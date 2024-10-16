@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import cast
+from typing import Any, Callable, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -112,7 +112,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         old_listing_ids = PromotionRule.get_old_channel_listing_ids(
             len(rules_to_create)
         )
-        for idx, (channel, rule) in enumerate(rules_to_create):
+        for idx, (_channel, rule) in enumerate(rules_to_create):
             rule.old_channel_listing_id = old_listing_ids[idx][0]
 
         cls.save_promotion_rules(rules_to_create, rules_to_update)
@@ -224,6 +224,8 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
     ):
         add_channels = cleaned_input.get("add_channels", [])
         remove_channels = cleaned_input.get("remove_channels", [])
+        func_arg: Any
+        mark_as_dirty_func: Callable[[Any], None]
         if remove_channels and not add_channels:
             # In case of only removing the channels, we need to mark the product to be
             # recalculated.
@@ -231,8 +233,8 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
             mark_as_dirty_func = mark_products_in_channels_as_dirty
             func_arg = {int(channel_id): product_ids for channel_id in remove_channels}
         else:
-            mark_as_dirty_func = mark_catalogue_promotion_rules_as_dirty  # type: ignore
-            func_arg = [promotion.pk]  # type: ignore[assignment]
+            mark_as_dirty_func = mark_catalogue_promotion_rules_as_dirty
+            func_arg = [promotion.pk]
 
         with traced_atomic_transaction():
             cls.add_channels(promotion, rule, cleaned_input.get("add_channels", []))

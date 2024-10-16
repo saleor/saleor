@@ -14,7 +14,6 @@ from .....graphql.product.bulk_mutations.product_variant_bulk_update import (
 from .....graphql.webhook.subscription_payload import get_pre_save_payload_key
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.models import Webhook
@@ -128,7 +127,6 @@ def test_product_variant_bulk_update(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
     product_with_single_variant.refresh_from_db(fields=["search_index_dirty"])
 
@@ -219,7 +217,6 @@ def test_product_variant_bulk_create_stock_thread_race(
     )
 
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -290,7 +287,6 @@ def test_product_variant_bulk_update_stocks(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -383,7 +379,6 @@ def test_product_variant_bulk_update_and_remove_stock(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -421,7 +416,6 @@ def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -467,7 +461,6 @@ def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
     stock_to_update.refresh_from_db()
 
@@ -694,7 +687,6 @@ def test_product_variant_bulk_update_with_already_existing_sku(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -723,7 +715,6 @@ def test_product_variant_bulk_update_when_variant_not_exists(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -790,7 +781,6 @@ def test_product_variant_bulk_update_attributes(
         PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkUpdate"]
 
     # then
@@ -840,7 +830,6 @@ def test_generate_pre_save_payloads(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
     staff_api_client.post_graphql(PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables)
-    flush_post_commit_hooks()
 
     # then
     payload_key = get_pre_save_payload_key(webhook, variant)

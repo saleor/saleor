@@ -105,10 +105,8 @@ def _assert_with_static_payload(
 def _assert_fields(payload, webhook, expected_response, response, mock_request):
     webhook_app = webhook.app
     mock_request.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
-
+    assert not EventDelivery.objects.exists()
     delivery = mock_request.mock_calls[0].args[0]
-
     assert json.loads(delivery.payload.get_payload()) == payload
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == WebhookEventSyncType.TRANSACTION_PROCESS_SESSION

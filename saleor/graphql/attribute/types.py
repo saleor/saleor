@@ -18,10 +18,6 @@ from ..core.connection import (
 )
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_39,
-    ADDED_IN_310,
-    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -77,7 +73,7 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         description=AttributeValueDescriptions.DATE_TIME, required=False
     )
     external_reference = graphene.String(
-        description=f"External ID of this attribute value. {ADDED_IN_310}",
+        description="External ID of this attribute value.",
         required=False,
     )
 
@@ -95,22 +91,22 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         )
 
     @staticmethod
-    def resolve_file(root: models.AttributeValue, _info: ResolveInfo):
+    def resolve_file(root: models.AttributeValue, _info: ResolveInfo) -> None | File:
         if not root.file_url:
-            return
+            return None
         return File(url=root.file_url, content_type=root.content_type)
 
     @staticmethod
     def resolve_reference(root: models.AttributeValue, info: ResolveInfo):
-        def prepare_reference(attribute):
+        def prepare_reference(attribute) -> None | str:
             if attribute.input_type != AttributeInputType.REFERENCE:
-                return
+                return None
             reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
                 attribute.entity_type
             ].value_field
             reference_pk = getattr(root, f"{reference_field}_id", None)
             if reference_pk is None:
-                return
+                return None
             reference_id = graphene.Node.to_global_id(
                 attribute.entity_type, reference_pk
             )
@@ -258,7 +254,7 @@ class Attribute(ModelObjectType[models.Attribute]):
         ),
     )
     external_reference = graphene.String(
-        description=f"External ID of this attribute. {ADDED_IN_310}",
+        description="External ID of this attribute.",
         required=False,
     )
 
@@ -365,7 +361,6 @@ class AssignedVariantAttribute(BaseObjectType):
     class Meta:
         description = (
             "Represents assigned attribute to variant with variant selection attached."
-            + ADDED_IN_31
         )
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
@@ -417,8 +412,7 @@ class AttributeInput(BaseInputObjectType):
 class AttributeValueSelectableTypeInput(BaseInputObjectType):
     id = graphene.ID(required=False, description="ID of an attribute value.")
     external_reference = graphene.String(
-        required=False,
-        description="External reference of an attribute value." + ADDED_IN_314,
+        required=False, description="External reference of an attribute value."
     )
     value = graphene.String(
         required=False,
@@ -437,7 +431,7 @@ class AttributeValueSelectableTypeInput(BaseInputObjectType):
             "3. If value is provided, then attribute value will be resolved by value. "
             "If this attribute value doesn't exist, then it will be created.\n"
             "4. If externalReference and value is provided then "
-            "new attribute value will be created." + ADDED_IN_39
+            "new attribute value will be created."
         )
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
@@ -445,7 +439,7 @@ class AttributeValueSelectableTypeInput(BaseInputObjectType):
 class AttributeValueInput(BaseInputObjectType):
     id = graphene.ID(description="ID of the selected attribute.", required=False)
     external_reference = graphene.String(
-        description="External ID of this attribute." + ADDED_IN_314, required=False
+        description="External ID of this attribute.", required=False
     )
     values = NonNullList(
         graphene.String,
@@ -458,20 +452,20 @@ class AttributeValueInput(BaseInputObjectType):
     )
     dropdown = AttributeValueSelectableTypeInput(
         required=False,
-        description="Attribute value ID or external reference." + ADDED_IN_39,
+        description="Attribute value ID or external reference.",
     )
     swatch = AttributeValueSelectableTypeInput(
         required=False,
-        description="Attribute value ID or external reference." + ADDED_IN_39,
+        description="Attribute value ID or external reference.",
     )
     multiselect = NonNullList(
         AttributeValueSelectableTypeInput,
         required=False,
-        description="List of attribute value IDs or external references." + ADDED_IN_39,
+        description="List of attribute value IDs or external references.",
     )
     numeric = graphene.String(
         required=False,
-        description="Numeric value of an attribute." + ADDED_IN_39,
+        description="Numeric value of an attribute.",
     )
     file = graphene.String(
         required=False,

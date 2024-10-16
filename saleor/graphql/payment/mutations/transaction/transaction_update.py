@@ -24,7 +24,6 @@ from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_34, ADDED_IN_314, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.scalars import UUID
 from ....core.types import common as common_types
@@ -61,8 +60,7 @@ class TransactionUpdate(TransactionCreate):
         token = UUID(
             description=(
                 "The token of the transaction. One of field id or token is required."
-            )
-            + ADDED_IN_314,
+            ),
             required=False,
         )
         transaction = TransactionUpdateInput(
@@ -76,8 +74,6 @@ class TransactionUpdate(TransactionCreate):
         auto_permission_message = False
         description = (
             "Update transaction."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "
             + f"and {PaymentPermissions.HANDLE_PAYMENTS.name} for apps, "
@@ -253,6 +249,6 @@ class TransactionUpdate(TransactionCreate):
             )
         if instance.checkout_id and money_data:
             manager = get_plugin_manager_promise(info.context).get()
-            transaction_amounts_for_checkout_updated(instance, manager)
+            transaction_amounts_for_checkout_updated(instance, manager, user, app)
 
         return TransactionUpdate(transaction=instance)

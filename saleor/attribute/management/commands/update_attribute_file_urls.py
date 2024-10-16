@@ -40,16 +40,17 @@ class Command(BaseCommand):
                 )
             except ClientError as exc:
                 if exc.response["Error"]["Code"] == "NoSuchKey":
-                    logger.info(f"No object found: {old_file_url}")
+                    logger.info("No object found: %s", old_file_url)
                 else:
                     raise
             else:
                 storage.bucket.Object(old_file_url).delete()
-                logger.info(f"File {old_file_url} moved to {new_file_url}.")
+                logger.info("File %s moved to %s.", old_file_url, new_file_url)
 
                 value.file_url = new_file_name
                 value.save(update_fields=["file_url"])
                 logger.info(
-                    f"File url for AttributeValue {value} with id {value.id} "
-                    "has been updated."
+                    "File URL for AttributeValue %s with ID %s has been updated.",
+                    value,
+                    value.id,
                 )

@@ -1,5 +1,5 @@
+import datetime
 import uuid
-from datetime import date, timedelta
 from decimal import Decimal
 
 import graphene
@@ -17,26 +17,21 @@ from ...tests.utils import get_graphql_content
 from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from ..filters import CheckoutDiscountedObjectWhere
 
-
-@pytest.fixture
-def checkout_query_with_filter():
-    query = """
-      query ($filter: CheckoutFilterInput!, ) {
-        checkouts(first: 5, filter:$filter) {
-          totalCount
-          edges {
-            node {
-              id
-            }
-          }
+CHECKOUT_QUERY_WITH_FILTER = """
+  query ($filter: CheckoutFilterInput!, ) {
+    checkouts(first: 5, filter:$filter) {
+      totalCount
+      edges {
+        node {
+          id
         }
       }
-    """
-    return query
+    }
+  }
+"""
 
 
 def test_checkout_query_with_filter_channels_with_one_channel(
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     checkouts_list,
@@ -48,7 +43,7 @@ def test_checkout_query_with_filter_channels_with_one_channel(
 
     # when
     response = staff_api_client.post_graphql(
-        checkout_query_with_filter,
+        CHECKOUT_QUERY_WITH_FILTER,
         variables,
         permissions=(permission_manage_checkouts,),
     )
@@ -60,7 +55,6 @@ def test_checkout_query_with_filter_channels_with_one_channel(
 
 
 def test_checkout_query_with_filter_channels_without_channel(
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     checkouts_list,
@@ -70,7 +64,7 @@ def test_checkout_query_with_filter_channels_without_channel(
 
     # when
     response = staff_api_client.post_graphql(
-        checkout_query_with_filter,
+        CHECKOUT_QUERY_WITH_FILTER,
         variables,
         permissions=(permission_manage_checkouts,),
     )
@@ -82,7 +76,6 @@ def test_checkout_query_with_filter_channels_without_channel(
 
 
 def test_checkout_query_with_filter_channels_with_many_channel(
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     checkouts_list,
@@ -98,7 +91,7 @@ def test_checkout_query_with_filter_channels_with_many_channel(
 
     # when
     response = staff_api_client.post_graphql(
-        checkout_query_with_filter,
+        CHECKOUT_QUERY_WITH_FILTER,
         variables,
         permissions=(permission_manage_checkouts,),
     )
@@ -110,7 +103,6 @@ def test_checkout_query_with_filter_channels_with_many_channel(
 
 
 def test_checkout_query_with_filter_channels_with_empty_channel(
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     checkouts_list,
@@ -122,7 +114,7 @@ def test_checkout_query_with_filter_channels_with_empty_channel(
 
     # when
     response = staff_api_client.post_graphql(
-        checkout_query_with_filter,
+        CHECKOUT_QUERY_WITH_FILTER,
         variables,
         permissions=(permission_manage_checkouts,),
     )
@@ -139,32 +131,69 @@ def test_checkout_query_with_filter_channels_with_empty_channel(
         (
             {
                 "created": {
-                    "gte": str(date.today() - timedelta(days=3)),
-                    "lte": str(date.today()),
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    ),
+                    "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
                 }
             },
             1,
         ),
-        ({"created": {"gte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"lte": str(date.today())}}, 2),
-        ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1),
-        ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        ({"created": {"lte": str(datetime.datetime.now(tz=datetime.UTC).date())}}, 2),
+        (
+            {
+                "created": {
+                    "lte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        - datetime.timedelta(days=3)
+                    )
+                }
+            },
+            1,
+        ),
+        (
+            {
+                "created": {
+                    "gte": str(
+                        datetime.datetime.now(tz=datetime.UTC).date()
+                        + datetime.timedelta(days=1)
+                    )
+                }
+            },
+            0,
+        ),
     ],
 )
 def test_checkout_query_with_filter_created(
     checkouts_filter,
     count,
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     channel_USD,
 ):
+    # given
     Checkout.objects.create(channel=channel_USD)
     with freeze_time("2012-01-14"):
         Checkout.objects.create(channel=channel_USD)
     variables = {"filter": checkouts_filter}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     checkouts_list = content["data"]["checkouts"]["edges"]
 
@@ -183,12 +212,12 @@ def test_checkouts_query_with_filter_customer_fields(
     checkouts_filter,
     user_field,
     user_value,
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     customer_user,
     channel_USD,
 ):
+    # given
     setattr(customer_user, user_field, user_value)
     customer_user.save()
     customer_user.refresh_from_db()
@@ -202,7 +231,11 @@ def test_checkouts_query_with_filter_customer_fields(
 
     variables = {"filter": checkouts_filter}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     checkout_list = content["data"]["checkouts"]["edges"]
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
@@ -243,6 +276,7 @@ def test_query_checkout_with_sort(
     address,
     channel_USD,
 ):
+    # given
     created_checkouts = []
     with freeze_time("2017-01-14"):
         created_checkouts.append(
@@ -284,7 +318,11 @@ def test_query_checkout_with_sort(
 
     variables = {"sort_by": checkout_sort}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_CHECKOUT_WITH_SORT, variables)
+
+    # then
     content = get_graphql_content(response)
     checkouts = content["data"]["checkouts"]["edges"]
 
@@ -308,12 +346,12 @@ def test_query_checkout_with_sort(
 def test_checkouts_query_with_filter_search(
     checkouts_filter,
     count,
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     customer_user,
     channel_USD,
 ):
+    # given
     user1 = User.objects.create(email="user_email1@example.com")
     user2 = User.objects.create(email="user_email2@example.com")
     user3 = User.objects.create(email="john@wayne.com")
@@ -350,19 +388,23 @@ def test_checkouts_query_with_filter_search(
     payment.transactions.create(gateway_response={}, is_success=True)
     variables = {"filter": checkouts_filter}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["checkouts"]["totalCount"] == count
 
 
 def test_checkouts_query_with_filter_search_by_global_payment_id(
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     customer_user,
     channel_USD,
 ):
+    # given
     checkouts = Checkout.objects.bulk_create(
         [
             Checkout(
@@ -384,17 +426,26 @@ def test_checkouts_query_with_filter_search_by_global_payment_id(
 
     variables = {"filter": {"search": global_id}}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["checkouts"]["totalCount"] == 1
 
 
 def test_checkouts_query_with_filter_search_by_token(
-    checkout_query_with_filter, checkout, staff_api_client, permission_manage_checkouts
+    checkout, staff_api_client, permission_manage_checkouts
 ):
+    # given
     variables = {"filter": {"search": checkout.pk}}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+
+    # when
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["checkouts"]["totalCount"] == 1
 
@@ -474,7 +525,6 @@ def test_checkouts_query_with_filter_authorize_status(
     transaction_data,
     statuses,
     expected_count,
-    checkout_query_with_filter,
     staff_api_client,
     permission_manage_checkouts,
     customer_user,
@@ -505,7 +555,7 @@ def test_checkouts_query_with_filter_authorize_status(
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
 
     # when
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
 
     # then
     content = get_graphql_content(response)
@@ -577,7 +627,6 @@ def test_checkouts_query_with_filter_charge_status(
     transaction_data,
     statuses,
     expected_count,
-    checkout_query_with_filter,
     checkout_with_prices,
     staff_api_client,
     permission_manage_checkouts,
@@ -607,7 +656,7 @@ def test_checkouts_query_with_filter_charge_status(
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
 
     # when
-    response = staff_api_client.post_graphql(checkout_query_with_filter, variables)
+    response = staff_api_client.post_graphql(CHECKOUT_QUERY_WITH_FILTER, variables)
 
     # then
     content = get_graphql_content(response)

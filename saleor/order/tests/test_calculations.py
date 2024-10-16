@@ -1570,7 +1570,7 @@ def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines_no_shipping
 ):
     # given
     order = order_with_lines
-    lines = [line for line in order.lines.all()]
+    lines = list(order.lines.all())
     for line in lines:
         line.is_shipping_required = False
     OrderLine.objects.bulk_update(lines, ["is_shipping_required"])

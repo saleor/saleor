@@ -10,7 +10,6 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.scalars import PositiveDecimal
 from ...core.types import GiftCardError, NonNullList
@@ -25,10 +24,10 @@ from .gift_card_create import GiftCardCreate, GiftCardInput
 class GiftCardUpdateInput(GiftCardInput):
     remove_tags = NonNullList(
         graphene.String,
-        description="The gift card tags to remove." + ADDED_IN_31,
+        description="The gift card tags to remove.",
     )
     balance_amount = PositiveDecimal(
-        description="The gift card balance amount." + ADDED_IN_31,
+        description="The gift card balance amount.",
         required=False,
     )
 
@@ -74,9 +73,9 @@ class GiftCardUpdate(GiftCardCreate):
         currency = instance.currency
         try:
             validate_price_precision(amount, currency)
-        except ValidationError as error:
-            error.code = GiftCardErrorCode.INVALID.value
-            raise ValidationError({"balance_amount": error})
+        except ValidationError as e:
+            e.code = GiftCardErrorCode.INVALID.value
+            raise ValidationError({"balance_amount": e}) from e
         cleaned_input["current_balance_amount"] = amount
         cleaned_input["initial_balance_amount"] = amount
 

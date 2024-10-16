@@ -35,9 +35,9 @@ def test_get_or_create_adyen_partial_payments_with_additional_actions_response(
     partial_payments = list(checkout.payments.exclude(id=payment_adyen_for_checkout.id))
 
     assert len(partial_payments) == 2
-    assert all([payment.is_active is False for payment in partial_payments])
-    assert all([payment.partial is True for payment in partial_payments])
-    assert all([payment.is_active is False for payment in partial_payments])
+    assert all(payment.is_active is False for payment in partial_payments)
+    assert all(payment.partial is True for payment in partial_payments)
+    assert all(payment.is_active is False for payment in partial_payments)
     assert any(payment.total == Decimal("14.71") for payment in partial_payments)
     assert any(payment.total == Decimal("16.29") for payment in partial_payments)
     assert any(
@@ -71,9 +71,9 @@ def test_get_or_create_adyen_partial_payments_with_notification_payload(
     partial_payments = list(checkout.payments.exclude(id=payment_adyen_for_checkout.id))
 
     assert len(partial_payments) == 2
-    assert all([payment.is_active is False for payment in partial_payments])
-    assert all([payment.partial is True for payment in partial_payments])
-    assert all([payment.is_active is False for payment in partial_payments])
+    assert all(payment.is_active is False for payment in partial_payments)
+    assert all(payment.partial is True for payment in partial_payments)
+    assert all(payment.is_active is False for payment in partial_payments)
     assert any(payment.total == Decimal("29.10") for payment in partial_payments)
     assert any(payment.total == Decimal("41.90") for payment in partial_payments)
     assert any(

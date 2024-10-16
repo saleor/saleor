@@ -103,15 +103,14 @@ def resolve_product(
     if id:
         _type, id = from_global_id_or_error(id, "Product")
         return qs.filter(id=id).first()
-    elif slug:
+    if slug:
         if slug_language_code:
             return qs.filter(
                 translations__language_code=slug_language_code, translations__slug=slug
             ).first()
 
         return qs.filter(slug=slug).first()
-    else:
-        return qs.filter(external_reference=external_reference).first()
+    return qs.filter(external_reference=external_reference).first()
 
 
 @traced_resolver
@@ -181,10 +180,9 @@ def resolve_variant(
     if id:
         _, id = from_global_id_or_error(id, "ProductVariant")
         return qs.filter(pk=id).first()
-    elif sku:
+    if sku:
         return qs.filter(sku=sku).first()
-    else:
-        return qs.filter(external_reference=external_reference).first()
+    return qs.filter(external_reference=external_reference).first()
 
 
 @traced_resolver

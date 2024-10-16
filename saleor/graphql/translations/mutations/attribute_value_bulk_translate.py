@@ -7,7 +7,6 @@ from ....attribute import AttributeInputType, models
 from ....core.utils.editorjs import clean_editor_js
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValueTranslation
-from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import AttributeValueTranslateErrorCode, LanguageCodeEnum
 from ...core.types import (
@@ -77,11 +76,7 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
         )
 
     class Meta:
-        description = (
-            "Creates/updates translations for attributes values."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        )
+        description = "Creates/updates translations for attributes values."
         base_model = models.AttributeValue
         translation_model = models.AttributeValueTranslation
         translation_fields = ["name", "rich_text", "plain_text"]

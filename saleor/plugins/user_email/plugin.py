@@ -392,8 +392,8 @@ class UserEmailPlugin(BasePlugin):
         self,
         event: Union[NotifyEventType, str],
         payload_func: Callable[[], dict],
-        previous_value,
-    ):
+        previous_value: None,
+    ) -> None:
         if not self.active:
             return previous_value
         event_map = get_user_event_map()
@@ -401,13 +401,14 @@ class UserEmailPlugin(BasePlugin):
             return previous_value
 
         if event not in event_map:
-            logger.warning(f"Missing handler for event {event}")
+            logger.warning("Missing handler for event %s", event)
             return previous_value
 
         event_func = event_map[event]
         config = asdict(self.config)
         self._add_missing_configuration(config)
         event_func(payload_func, config, self)
+        return previous_value
 
     @classmethod
     def validate_plugin_configuration(

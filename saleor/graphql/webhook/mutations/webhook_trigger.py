@@ -11,7 +11,6 @@ from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
@@ -36,8 +35,6 @@ class WebhookTrigger(BaseMutation):
             "provided in the `webhook.subscription_query`). Requires permission "
             "relevant to processed event. Successfully delivered webhook returns "
             "`delivery` with status='PENDING' and empty payload."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
@@ -91,7 +88,7 @@ class WebhookTrigger(BaseMutation):
         event_name = (
             event_type[0].upper() + to_camel_case(event_type)[1:] if event_type else ""
         )
-        raise_validation_error(
+        return raise_validation_error(
             message=(
                 f"Event type: {event_name}, "
                 f"which was parsed from webhook's "

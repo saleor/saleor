@@ -1,13 +1,13 @@
 import datetime
 import re
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Model, Q
 from django.db.models.expressions import Exists, OuterRef
 from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
@@ -72,7 +72,11 @@ T_INSTANCE = Union[
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 T_ERROR_DICT = dict[tuple[str, str], list]
 
-EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
+
+class EntityTypeData(NamedTuple):
+    model: type[Model]
+    name_field: str
+    value_field: str
 
 
 class AttributeAssignmentMixin:
@@ -164,7 +168,7 @@ class AttributeAssignmentMixin:
                 global_id, only_type="Attribute"
             )
         except GraphQLError as e:
-            raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR.value)
+            raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR.value) from e
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
@@ -226,7 +230,7 @@ class AttributeAssignmentMixin:
         :raises ValidationError: contain the message.
         :return: The resolved data
         """
-        error_class: Union[type[PageErrorCode], type[ProductErrorCode]] = (
+        error_class: type[Union[PageErrorCode, ProductErrorCode]] = (
             PageErrorCode if is_page_attributes else ProductErrorCode
         )
 
@@ -249,11 +253,11 @@ class AttributeAssignmentMixin:
                     external_reference,
                     use_camel_case=True,
                 )
-            except ValidationError as error:
+            except ValidationError as e:
                 raise ValidationError(
-                    error.message,
+                    e.message,
                     code=error_class.REQUIRED.value,
-                )
+                ) from e
 
             values = AttrValuesInput(
                 global_id=global_id,
@@ -346,10 +350,10 @@ class AttributeAssignmentMixin:
             )
             values.references = ref_instances
             return values
-        except GraphQLError:
+        except GraphQLError as e:
             raise ValidationError(
                 "Invalid reference type.", code=error_class.INVALID.value
-            )
+            ) from e
 
     @classmethod
     def _validate_attributes_input(
@@ -456,7 +460,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.dropdown:
-            return tuple()
+            return ()
 
         attr_value = attr_values.dropdown.value
         external_ref = attr_values.dropdown.external_reference
@@ -484,7 +488,7 @@ class AttributeAssignmentMixin:
         if attr_value:
             return cls._prepare_attribute_values(attribute, [attr_value])
 
-        return tuple()
+        return ()
 
     @classmethod
     def _pre_save_swatch_value(
@@ -494,7 +498,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.swatch:
-            return tuple()
+            return ()
 
         attr_value = attr_values.swatch.value
         external_ref = attr_values.swatch.external_reference
@@ -535,7 +539,7 @@ class AttributeAssignmentMixin:
         if attr_value := attr_values.swatch.value:
             return cls._prepare_attribute_values(attribute, [attr_value])
 
-        return tuple()
+        return ()
 
     @classmethod
     def _pre_save_multiselect_values(
@@ -545,7 +549,7 @@ class AttributeAssignmentMixin:
         attr_values_input: AttrValuesInput,
     ):
         if not attr_values_input.multiselect:
-            return tuple()
+            return ()
 
         attribute_values: list[attribute_models.AttributeValue] = []
         for attr_value in attr_values_input.multiselect:
@@ -602,7 +606,7 @@ class AttributeAssignmentMixin:
         elif attr_values.numeric:
             value = attr_values.numeric
         else:
-            return tuple()
+            return ()
 
         defaults = {
             "name": value,
@@ -619,7 +623,7 @@ class AttributeAssignmentMixin:
         """
 
         if not attr_values.values:
-            return tuple()
+            return ()
 
         return cls._prepare_attribute_values(attribute, attr_values.values)
 
@@ -631,7 +635,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.rich_text:
-            return tuple()
+            return ()
         defaults = {
             "rich_text": attr_values.rich_text,
             "name": truncatechars(
@@ -648,7 +652,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if not attr_values.plain_text:
-            return tuple()
+            return ()
         defaults = {
             "plain_text": attr_values.plain_text,
             "name": truncatechars(attr_values.plain_text, 200),
@@ -663,7 +667,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         if attr_values.boolean is None:
-            return tuple()
+            return ()
 
         boolean = bool(attr_values.boolean)
         value = {
@@ -684,7 +688,7 @@ class AttributeAssignmentMixin:
         attr_values: AttrValuesInput,
     ):
         is_date_attr = attribute.input_type == AttributeInputType.DATE
-        tz = datetime.timezone.utc
+        tz = datetime.UTC
         if is_date_attr:
             if not attr_values.date:
                 return ()
@@ -732,7 +736,7 @@ class AttributeAssignmentMixin:
         Slug value is generated based on instance and reference entity id.
         """
         if not attr_values.references or not attribute.entity_type:
-            return tuple()
+            return ()
 
         entity_data = cls.ENTITY_TYPE_MAPPING[attribute.entity_type]
         field_name = entity_data.name_field
@@ -742,7 +746,7 @@ class AttributeAssignmentMixin:
         for ref in attr_values.references:
             name = getattr(ref, field_name)
             if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                name = f"{ref.product.name}: {name}"  # type: ignore
+                name = f"{ref.product.name}: {name}"  # type: ignore[union-attr]
 
             reference_list.append(
                 (
@@ -750,7 +754,7 @@ class AttributeAssignmentMixin:
                     {
                         "attribute": attribute,
                         "slug": slugify(
-                            unidecode(f"{instance.id}_{ref.id}")  # type: ignore
+                            unidecode(f"{instance.id}_{ref.id}")  # type: ignore[union-attr]
                         ),
                         "defaults": {"name": name},
                         attr_value_field: ref,
@@ -774,7 +778,7 @@ class AttributeAssignmentMixin:
         """
         file_url = attr_value.file_url
         if not file_url:
-            return tuple()
+            return ()
         name = file_url.split("/")[-1]
         # don't create new value when assignment already exists
         value = cls._get_assigned_attribute_value_if_exists(

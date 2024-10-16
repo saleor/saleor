@@ -1,7 +1,6 @@
 import datetime
 
 import pytest
-import pytz
 
 from .....product.models import Collection, CollectionChannelListing
 from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
@@ -34,13 +33,13 @@ def collections_for_sorting_with_channels(channel_USD, channel_PLN):
             ),
             CollectionChannelListing(
                 collection=collections[2],
-                published_at=datetime.datetime(2004, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2004, 1, 1, tzinfo=datetime.UTC),
                 is_published=False,
                 channel=channel_USD,
             ),
             CollectionChannelListing(
                 collection=collections[3],
-                published_at=datetime.datetime(2003, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2003, 1, 1, tzinfo=datetime.UTC),
                 is_published=False,
                 channel=channel_USD,
             ),
@@ -59,13 +58,13 @@ def collections_for_sorting_with_channels(channel_USD, channel_PLN):
             ),
             CollectionChannelListing(
                 collection=collections[2],
-                published_at=datetime.datetime(2002, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2002, 1, 1, tzinfo=datetime.UTC),
                 is_published=False,
                 channel=channel_PLN,
             ),
             CollectionChannelListing(
                 collection=collections[4],
-                published_at=datetime.datetime(2001, 1, 1, tzinfo=pytz.UTC),
+                published_at=datetime.datetime(2001, 1, 1, tzinfo=datetime.UTC),
                 is_published=False,
                 channel=channel_PLN,
             ),

@@ -43,7 +43,7 @@ def test_update_config_items_skips_new_keys_when_doesnt_exsist_in_conf_structure
 
     plugin_sample._update_config_items(data_to_update, current_config)
     assert not all(
-        [config_field["name"] == "New-field" for config_field in current_config]
+        config_field["name"] == "New-field" for config_field in current_config
     )
 
 
@@ -74,7 +74,7 @@ def test_update_config_items_adds_new_keys(monkeypatch):
     ]
 
     plugin_sample._update_config_items(data_to_update, current_config)
-    assert any([config_field["name"] == "New-field" for config_field in current_config])
+    assert any(config_field["name"] == "New-field" for config_field in current_config)
 
 
 def test_update_configuration_structure_removes_old_keys(
@@ -89,7 +89,7 @@ def test_update_configuration_structure_removes_old_keys(
     configuration = PluginSample._update_configuration_structure(
         plugin_configuration.configuration
     )
-    assert all([config_field["name"] != "Username" for config_field in configuration])
+    assert all(config_field["name"] != "Username" for config_field in configuration)
 
 
 def test_save_plugin_configuration(plugin_configuration):

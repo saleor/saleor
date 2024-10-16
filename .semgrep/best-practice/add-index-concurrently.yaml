@@ -1,0 +1,13 @@
+rules:
+  - id: add-index-concurrently
+    metadata:
+      category: best-practice
+      technology:
+        - django
+    languages:
+      - python
+    severity: ERROR
+    message: Adding an index in migrations should be done concurrently; use
+      `django.contrib.postgres.operations.AddIndexConcurrently` instead of
+      `migrations.AddIndex`.
+    pattern: django.db.migrations.AddIndex(...)

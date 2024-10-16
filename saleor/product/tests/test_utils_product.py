@@ -1,7 +1,5 @@
-from datetime import datetime
+import datetime
 from unittest.mock import patch
-
-import pytz
 
 from ...discount.models import PromotionRule
 from ..models import ProductChannelListing
@@ -53,7 +51,7 @@ def test_mark_products_in_channels_as_dirty_product_process_only_for_provided_ch
         discounted_price_amount=20,
         currency=channel_PLN.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=(datetime(1999, 1, 1, tzinfo=pytz.UTC)),
+        available_for_purchase_at=(datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)),
         discounted_price_dirty=False,
     )
     product_channel_listing = product.channel_listings.all()
@@ -87,7 +85,7 @@ def test_mark_products_in_channels_as_dirty_with_multiple_products_and_channels(
         discounted_price_amount=20,
         currency=channel_PLN.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=(datetime(1999, 1, 1, tzinfo=pytz.UTC)),
+        available_for_purchase_at=(datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)),
         discounted_price_dirty=False,
     )
     first_product_channel_listing = first_product.channel_listings.all()
@@ -99,7 +97,7 @@ def test_mark_products_in_channels_as_dirty_with_multiple_products_and_channels(
         discounted_price_amount=20,
         currency=channel_PLN.currency_code,
         visible_in_listings=True,
-        available_for_purchase_at=(datetime(1999, 1, 1, tzinfo=pytz.UTC)),
+        available_for_purchase_at=(datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)),
         discounted_price_dirty=False,
     )
 

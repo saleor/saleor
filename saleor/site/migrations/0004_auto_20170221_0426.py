@@ -40,6 +40,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AlterUniqueTogether(
-            name="authorizationkey", unique_together=set([("site_settings", "name")])
+            name="authorizationkey", unique_together={("site_settings", "name")}
         ),
     ]

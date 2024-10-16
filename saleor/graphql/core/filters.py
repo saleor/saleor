@@ -136,14 +136,14 @@ class GlobalIDFormField(Field):
 
         try:
             _type, _id = from_global_id(value)
-        except (TypeError, ValueError):
-            raise ValidationError(self.error_messages["invalid"])
+        except (TypeError, ValueError) as e:
+            raise ValidationError(self.error_messages["invalid"]) from e
 
         try:
             CharField().clean(_id)
             CharField().clean(_type)
-        except ValidationError:
-            raise ValidationError(self.error_messages["invalid"])
+        except ValidationError as e:
+            raise ValidationError(self.error_messages["invalid"]) from e
 
         return value
 
@@ -218,27 +218,23 @@ class MetadataWhereFilterBase(WhereFilterSet):
 
 
 class WhereFilter(Filter):
-    def method():  # type: ignore
+    @property
+    def method(self):
         # Filter method needs to be lazily resolved, as it may be dependent on
         # the 'parent' FilterSet.
+        return self._method
 
-        def fget(self):
-            return self._method
+    @method.setter
+    def method(self, value):
+        self._method = value
 
-        def fset(self, value):
-            self._method = value
+        # clear existing FilterMethod
+        if isinstance(self.filter, WhereFilterMethod):
+            del self.filter
 
-            # clear existing FilterMethod
-            if isinstance(self.filter, WhereFilterMethod):
-                del self.filter
-
-            # override filter w/ FilterMethod.
-            if value is not None:
-                self.filter = WhereFilterMethod(self)
-
-        return locals()
-
-    method = property(**method())  # type: ignore
+        # override filter w/ FilterMethod.
+        if value is not None:
+            self.filter = WhereFilterMethod(self)  # type: ignore[method-assign]
 
     def filter(self, qs, value):
         if self.distinct:
@@ -314,4 +310,4 @@ class GlobalIDWhereFilter(WhereFilter):
         _id = None
         if value is not None:
             _, _id = from_global_id(value)
-        return super(GlobalIDFilter, self).filter(qs, _id)  # type: ignore
+        return super(GlobalIDFilter, self).filter(qs, _id)  # type: ignore[misc]

@@ -177,10 +177,8 @@ def test_available_products_only_published(product_list, channel_USD):
     available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 2
     assert all(
-        [
-            product.channel_listings.get(channel__slug=channel_USD).is_published
-            for product in available_products
-        ]
+        product.channel_listings.get(channel__slug=channel_USD).is_published
+        for product in available_products
     )
 
 
@@ -193,10 +191,8 @@ def test_available_products_only_available(product_list, channel_USD):
     available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 2
     assert all(
-        [
-            product.channel_listings.get(channel__slug=channel_USD).is_published
-            for product in available_products
-        ]
+        product.channel_listings.get(channel__slug=channel_USD).is_published
+        for product in available_products
     )
 
 
@@ -209,10 +205,8 @@ def test_available_products_available_from_yesterday(product_list, channel_USD):
     available_products = models.Product.objects.published(channel_USD)
     assert available_products.count() == 3
     assert all(
-        [
-            product.channel_listings.get(channel__slug=channel_USD).is_published
-            for product in available_products
-        ]
+        product.channel_listings.get(channel__slug=channel_USD).is_published
+        for product in available_products
     )
 
 

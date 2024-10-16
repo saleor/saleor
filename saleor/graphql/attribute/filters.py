@@ -9,7 +9,6 @@ from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
@@ -216,7 +215,7 @@ def filter_with_choices(qs, _, value):
     lookup = Q(input_type__in=AttributeInputType.TYPES_WITH_CHOICES)
     if value is True:
         return qs.filter(lookup)
-    elif value is False:
+    if value is False:
         return qs.exclude(lookup)
     return qs.none()
 
@@ -293,5 +292,5 @@ class AttributeWhere(MetadataWhereFilterBase):
 class AttributeWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeWhere
-        description = "Where filtering options." + ADDED_IN_311 + PREVIEW_FEATURE
+        description = "Where filtering options."
         doc_category = DOC_CATEGORY_ATTRIBUTES

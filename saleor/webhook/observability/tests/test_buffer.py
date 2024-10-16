@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -51,7 +51,7 @@ def test_put_event(buffer, event_data):
 
 
 def test_buffer_put_events_max_size(buffer, event_data):
-    for i in range(MAX_SIZE * 2):
+    for _i in range(MAX_SIZE * 2):
         buffer.put_event(event_data)
     assert buffer.size() == MAX_SIZE
 
@@ -153,6 +153,6 @@ def test_pop_expired_events(buffer):
     with freeze_time(push_time):
         events = [f"event-data-{i}".encode() for i in range(MAX_SIZE)]
         buffer.put_events(events)
-    with freeze_time(push_time + timedelta(seconds=buffer.timeout + 1)):
+    with freeze_time(push_time + datetime.timedelta(seconds=buffer.timeout + 1)):
         popped_events = buffer.pop_events()
     assert popped_events == []

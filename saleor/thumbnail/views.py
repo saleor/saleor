@@ -1,6 +1,5 @@
 import logging
-from collections import namedtuple
-from typing import Optional
+from typing import NamedTuple, Optional, Union
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -29,7 +28,12 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
-ModelData = namedtuple("ModelData", ["model", "image_field", "thumbnail_field"])
+
+class ModelData(NamedTuple):
+    model: type[Union[App, AppInstallation, Category, Collection, ProductMedia, User]]
+    image_field: str
+    thumbnail_field: str
+
 
 ICON_TYPE_TO_MODEL_DATA_MAPPING = {
     "App": ModelData(App, "brand_logo_default", "app"),
@@ -93,11 +97,11 @@ def handle_thumbnail(
 
     try:
         if object_type in UUID_IDENTIFIABLE_TYPES:
-            instance = model_data.model.objects.using(
+            instance = model_data.model.objects.using(  # type: ignore[misc]
                 settings.DATABASE_CONNECTION_REPLICA_NAME
             ).get(uuid=pk)
         else:
-            instance = model_data.model.objects.using(
+            instance = model_data.model.objects.using(  # type: ignore[misc]
                 settings.DATABASE_CONNECTION_REPLICA_NAME
             ).get(id=pk)
     except ObjectDoesNotExist:

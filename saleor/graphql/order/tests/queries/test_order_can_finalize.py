@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+import datetime
 
 import graphene
-import pytz
 
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
@@ -148,7 +147,8 @@ def test_can_finalize_order_product_available_for_purchase_from_tomorrow(
     line = order.lines.first()
     product = line.variant.product
     product.channel_listings.update(
-        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=1)
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC)
+        + datetime.timedelta(days=1)
     )
 
     order_id = graphene.Node.to_global_id("Order", order.id)

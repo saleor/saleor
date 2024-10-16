@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.db.models import Exists, OuterRef
 
 from ...channel.models import Channel
@@ -6,7 +8,7 @@ from ..core.dataloaders import DataLoader
 from ..order.dataloaders import OrderByIdLoader
 
 
-class ChannelByIdLoader(DataLoader):
+class ChannelByIdLoader(DataLoader[int, Channel]):
     context_key = "channel_by_id"
 
     def batch_load(self, keys):
@@ -14,7 +16,7 @@ class ChannelByIdLoader(DataLoader):
         return [channels.get(channel_id) for channel_id in keys]
 
 
-class ChannelBySlugLoader(DataLoader):
+class ChannelBySlugLoader(DataLoader[str, Channel]):
     context_key = "channel_by_slug"
 
     def batch_load(self, keys):
@@ -24,7 +26,7 @@ class ChannelBySlugLoader(DataLoader):
         return [channels.get(slug) for slug in keys]
 
 
-class ChannelByOrderIdLoader(DataLoader):
+class ChannelByOrderIdLoader(DataLoader[UUID, Channel]):
     context_key = "channel_by_order"
 
     def batch_load(self, keys):
@@ -36,7 +38,7 @@ class ChannelByOrderIdLoader(DataLoader):
                     for order in orders
                 ]
 
-            channel_ids = set(order.channel_id for order in orders if order)
+            channel_ids = {order.channel_id for order in orders if order}
             return (
                 ChannelByIdLoader(self.context)
                 .load_many(channel_ids)
@@ -46,7 +48,7 @@ class ChannelByOrderIdLoader(DataLoader):
         return OrderByIdLoader(self.context).load_many(keys).then(with_orders)
 
 
-class ChannelWithHasOrdersByIdLoader(DataLoader):
+class ChannelWithHasOrdersByIdLoader(DataLoader[int, Channel]):
     context_key = "channel_with_has_orders_by_id"
 
     def batch_load(self, keys):

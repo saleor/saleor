@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 from math import ceil
 from typing import Optional
 
@@ -33,7 +33,7 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
 
     # block the IP address before the next attempt to prevent concurrent requests
     if add_block(block_key, MIN_DELAY) is False:
-        next_attempt_time = cache.get(block_key) or timezone.now() + timedelta(
+        next_attempt_time = cache.get(block_key) or timezone.now() + datetime.timedelta(
             seconds=MIN_DELAY
         )
         raise ValidationError(
@@ -51,9 +51,8 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
             clear_cache([ip_key, ip_user_key, block_key])
             return user
 
-        else:
-            # increment failed attempt for known user
-            ip_user_attempts_count = increment_attempt(ip_user_key)
+        # increment failed attempt for known user
+        ip_user_attempts_count = increment_attempt(ip_user_key)
 
     # increment failed attempt for whatever user
     ip_attempts_count = increment_attempt(ip_key)
@@ -121,12 +120,12 @@ def get_delay_time(ip_attempts_count: int, ip_user_attempts_count: int) -> int:
 
 
 def override_block(block_key: str, time_delta: int):
-    next_attempt_time = timezone.now() + timedelta(seconds=time_delta)
+    next_attempt_time = timezone.now() + datetime.timedelta(seconds=time_delta)
     cache.set(block_key, next_attempt_time, timeout=time_delta)
 
 
 def add_block(block_key: str, time_delta: int) -> bool:
-    next_attempt_time = timezone.now() + timedelta(seconds=time_delta)
+    next_attempt_time = timezone.now() + datetime.timedelta(seconds=time_delta)
     return cache.add(block_key, next_attempt_time, timeout=time_delta)
 
 

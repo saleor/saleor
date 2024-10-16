@@ -1,9 +1,9 @@
 import copy
+import datetime
 from collections import defaultdict
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from dataclasses import fields as dataclass_fields
-from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Optional
 from uuid import UUID
@@ -25,6 +25,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....discount.models import OrderDiscount, VoucherCode
+from ....discount.utils.manual_discount import apply_discount_to_value
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
 from ....order import (
@@ -48,7 +49,7 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_314, ADDED_IN_318, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_318, ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -56,6 +57,7 @@ from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
+from ...discount.enums import DiscountValueTypeEnum
 from ...meta.inputs import MetadataInput
 from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
@@ -182,11 +184,11 @@ class OrderBulkCreateData:
 
     @property
     def all_invoices(self) -> list[Invoice]:
-        return [invoice for invoice in self.invoices]
+        return list(self.invoices)
 
     @property
     def all_discounts(self) -> list[OrderDiscount]:
-        return [discount for discount in self.discounts]
+        return list(self.discounts)
 
     @property
     def orderline_fulfillmentlines_map(
@@ -216,18 +218,16 @@ class OrderBulkCreateData:
     @property
     def unique_variant_ids(self) -> list[int]:
         return list(
-            set(
-                [
-                    order_line.line.variant.id
-                    for order_line in self.lines
-                    if order_line.line.variant
-                ]
-            )
+            {
+                order_line.line.variant.id
+                for order_line in self.lines
+                if order_line.line.variant
+            }
         )
 
     @property
     def unique_warehouse_ids(self) -> list[UUID]:
-        return list(set([order_line.warehouse.id for order_line in self.lines]))
+        return list({order_line.warehouse.id for order_line in self.lines})
 
     @property
     def total_order_quantity(self):
@@ -261,6 +261,8 @@ class OrderAmounts:
     shipping_price_net: Decimal
     total_gross: Decimal
     total_net: Decimal
+    subtotal_net: Decimal
+    subtotal_gross: Decimal
     undiscounted_total_gross: Decimal
     undiscounted_total_net: Decimal
     shipping_tax_rate: Decimal
@@ -272,6 +274,9 @@ class LineAmounts:
     total_net: Decimal
     unit_gross: Decimal
     unit_net: Decimal
+    unit_discount_value: Decimal
+    unit_discount_type: Optional[str]
+    unit_discount_reason: Optional[str]
     undiscounted_total_gross: Decimal
     undiscounted_total_net: Decimal
     undiscounted_unit_gross: Decimal
@@ -451,6 +456,10 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     )
     variant_name = graphene.String(description="The name of the product variant.")
     product_name = graphene.String(description="The name of the product.")
+    product_sku = graphene.String(
+        required=False,
+        description="The SKU of the product." + ADDED_IN_318,
+    )
     translated_variant_name = graphene.String(
         description="Translation of the product variant name."
     )
@@ -475,6 +484,20 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
         TaxedMoneyInput,
         required=True,
         description="Price of the order line excluding applied discount.",
+    )
+    unit_discount_reason = graphene.String(
+        required=False,
+        description="Reason of the discount on order line." + ADDED_IN_319,
+    )
+    unit_discount_type = graphene.Field(
+        DiscountValueTypeEnum,
+        required=False,
+        description="Type of the discount: fixed or percent" + ADDED_IN_319,
+    )
+    unit_discount_value = PositiveDecimal(
+        description="Value of the discount. Can store fixed value or percent value"
+        + ADDED_IN_319,
+        required=False,
     )
     warehouse = graphene.ID(
         required=True,
@@ -615,7 +638,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Creates multiple orders." + ADDED_IN_314 + PREVIEW_FEATURE
+        description = "Creates multiple orders."
         permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
         doc_category = DOC_CATEGORY_ORDERS
         error_type_class = OrderBulkCreateError
@@ -769,14 +792,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return object_storage
 
     @classmethod
-    def is_datetime_valid(cls, date: datetime) -> bool:
+    def is_datetime_valid(cls, date: datetime.datetime) -> bool:
         """We accept future time values with 5 minutes from current time.
 
         Some systems might have incorrect time that is in the future compared to Saleor.
         At the same time, we don't want to create orders that are too far in the future.
         """
         current_time = timezone.now()
-        future_time = current_time + timedelta(minutes=MINUTES_DIFF)
+        future_time = current_time + datetime.timedelta(minutes=MINUTES_DIFF)
         if not date.tzinfo:
             raise ValidationError(
                 message="Input 'date' must be timezone-aware. "
@@ -1076,6 +1099,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         net_amount = line_input["total_price"]["net"]
         undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
         undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
+
+        unit_discount_reason = line_input.get("unit_discount_reason")
+        unit_discount_type = line_input.get("unit_discount_type")
+        unit_discount_value = line_input.get("unit_discount_value", Decimal(0))
+
         quantity = line_input["quantity"]
         tax_rate = line_input.get("tax_rate", None)
 
@@ -1142,11 +1170,35 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_unit_price_net_amount - unit_price_net_amount
         )
 
+        if (
+            unit_discount_value
+            and unit_discount_type
+            and Money(unit_price_net_amount, currency)
+            != apply_discount_to_value(
+                unit_discount_value,
+                unit_discount_type,
+                currency,
+                Money(undiscounted_unit_price_net_amount, currency),
+            )
+        ):
+            order_data.errors.append(
+                OrderBulkError(
+                    message=(
+                        "Provided discount value doesn't match with provided line amounts."
+                    ),
+                    path=f"lines.{index}.unit_discount_value",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+
         return LineAmounts(
             total_gross=gross_amount,
             total_net=net_amount,
             unit_gross=unit_price_gross_amount,
             unit_net=unit_price_net_amount,
+            unit_discount_reason=unit_discount_reason,
+            unit_discount_type=unit_discount_type,
+            unit_discount_value=unit_discount_value,
             undiscounted_total_gross=undiscounted_gross_amount,
             undiscounted_total_net=undiscounted_net_amount,
             undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
@@ -1178,14 +1230,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 if shipping_price_gross_amount < shipping_price_net_amount:
                     order_data.errors.append(
                         OrderBulkError(
-                            message="Net price can't be greater then gross price.",
+                            message="Net price can't be greater than gross price.",
                             path="delivery_method.shipping_price",
                             code=OrderBulkCreateErrorCode.PRICE_ERROR,
                         )
                     )
                     order_data.is_critical_error = True
                 shipping_tax_rate = (
-                    shipping_price_gross_amount / shipping_price_net_amount - 1
+                    (shipping_price_gross_amount / shipping_price_net_amount - 1)
+                    if shipping_price_net_amount
+                    else Decimal(0)
                 )
             else:
                 assert order_data.channel
@@ -1209,16 +1263,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         # Calculate lines
         order_lines = order_data.all_order_lines
-        order_total_gross_amount = Decimal(
+        order_subtotal_gross_amount = Decimal(
             sum(line.total_price_gross_amount for line in order_lines)
         )
-        order_undiscounted_total_gross_amount = Decimal(
+        order_undiscounted_subtotal_gross_amount = Decimal(
             sum(line.undiscounted_total_price_gross_amount for line in order_lines)
         )
-        order_total_net_amount = Decimal(
+        order_subtotal_net_amount = Decimal(
             sum(line.total_price_net_amount for line in order_lines)
         )
-        order_undiscounted_total_net_amount = Decimal(
+        order_undiscounted_subtotal_net_amount = Decimal(
             sum(line.undiscounted_total_price_net_amount for line in order_lines)
         )
 
@@ -1226,10 +1280,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             shipping_price_gross=shipping_price_gross_amount,
             shipping_price_net=shipping_price_net_amount,
             shipping_tax_rate=shipping_tax_rate,
-            total_gross=order_total_gross_amount,
-            total_net=order_total_net_amount,
-            undiscounted_total_gross=order_undiscounted_total_gross_amount,
-            undiscounted_total_net=order_undiscounted_total_net_amount,
+            total_gross=order_subtotal_gross_amount + shipping_price_gross_amount,
+            total_net=order_subtotal_net_amount + shipping_price_net_amount,
+            subtotal_net=order_subtotal_net_amount,
+            subtotal_gross=order_subtotal_gross_amount,
+            undiscounted_total_gross=order_undiscounted_subtotal_gross_amount
+            + shipping_price_gross_amount,
+            undiscounted_total_net=order_undiscounted_subtotal_net_amount
+            + shipping_price_net_amount,
         )
 
     @classmethod
@@ -1351,7 +1409,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             "user_email": "email",
             "user_external_reference": "external_reference",
         }
-        if any([note_input.get(key) for key in user_key_map.keys()]):
+        if any(note_input.get(key) for key in user_key_map.keys()):
             user = cls.get_instance_with_errors(
                 input=note_input,
                 errors=order_data.errors,
@@ -1526,7 +1584,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkTransaction(transaction=new_transaction, events=events)
             )
         except ValidationError as error:
-            for field, err in error.error_dict.items():
+            for _field, err in error.error_dict.items():
                 message = str(err[0].message)
                 code = err[0].code
                 order_data.errors.append(
@@ -1616,11 +1674,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             translated_variant_name=order_line_input.get("translated_variant_name")
             or "",
             product_variant_id=(variant.get_global_id() if variant else None),
+            product_sku=order_line_input.get("product_sku"),
             created_at=order_line_input["created_at"],
             is_shipping_required=order_line_input["is_shipping_required"],
             is_gift_card=order_line_input["is_gift_card"],
             currency=order_input["currency"],
             quantity=line_amounts.quantity,
+            unit_discount_reason=line_amounts.unit_discount_reason,
+            unit_discount_type=line_amounts.unit_discount_type,
+            unit_discount_value=line_amounts.unit_discount_value,
             unit_price_net_amount=line_amounts.unit_net,
             unit_price_gross_amount=line_amounts.unit_gross,
             total_price_net_amount=line_amounts.total_net,
@@ -1986,6 +2048,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.undiscounted_total_net_amount = (
             order_amounts.undiscounted_total_net
         )
+        order_data.order.subtotal_net_amount = order_amounts.subtotal_net
+        order_data.order.subtotal_gross_amount = order_amounts.subtotal_gross
+
         order_data.order.customer_note = order_input.get("customer_note") or ""
         order_data.order.redirect_url = order_input.get("redirect_url")
         order_data.order.origin = OrderOrigin.BULK_CREATE
@@ -2128,7 +2193,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             if not order_data.is_critical_error:
                 stocks_map = stocks_map_copy
 
-        return [stock for stock in stocks_map.values()]
+        return list(stocks_map.values())
 
     @classmethod
     def handle_error_policy(

@@ -110,7 +110,7 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
         message="Charged",
         psp_reference="PSP-ref123",
         available_actions=["REFUND", "CANCEL"],
-        amount=1,
+        amount_charged=1,
     )
 
     # Step 4 - Complete checkout and check created order

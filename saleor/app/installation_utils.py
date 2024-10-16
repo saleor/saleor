@@ -44,14 +44,14 @@ class AppInstallationError(HTTPError):
 def validate_app_install_response(response: Response):
     try:
         response.raise_for_status()
-    except HTTPError as err:
+    except HTTPError as e:
         try:
             error_msg = str(response.json()["error"]["message"])
         except Exception:
-            raise err
+            raise e from None
         raise AppInstallationError(
             error_msg, request=response.request, response=response
-        )
+        ) from e
 
 
 def send_app_token(target_url: str, token: str):
@@ -111,9 +111,9 @@ def fetch_icon_image(
                     )
             content.seek(0)
             image_file = File(content, filename)
-    except requests.RequestException:
+    except requests.RequestException as e:
         code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
-        raise ValidationError("Unable to fetch image.", code=code)
+        raise ValidationError("Unable to fetch image.", code=code) from e
 
     validate_icon_image(image_file, code)
     return image_file

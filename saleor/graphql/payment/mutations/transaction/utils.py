@@ -70,13 +70,13 @@ def clean_customer_ip_address(
         raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
     try:
         validate_ipv46_address(customer_ip_address)
-    except ValidationError as error:
+    except ValidationError as e:
         raise ValidationError(
             {
                 "customer_ip_address": ValidationError(
-                    message=error.message,
+                    message=e.message,
                     code=error_code,
                 )
             }
-        )
+        ) from e
     return customer_ip_address

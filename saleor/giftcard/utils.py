@@ -1,6 +1,6 @@
+import datetime
 from collections import defaultdict
 from collections.abc import Iterable
-from datetime import date
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
@@ -44,12 +44,12 @@ def add_gift_card_code_to_checkout(
     try:
         # only active gift card with currency the same as channel currency can be used
         gift_card = (
-            GiftCard.objects.active(date=date.today())
+            GiftCard.objects.active(date=datetime.datetime.now(tz=datetime.UTC).date())
             .filter(currency=currency)
             .get(code=promo_code)
         )
-    except GiftCard.DoesNotExist:
-        raise InvalidPromoCode()
+    except GiftCard.DoesNotExist as e:
+        raise InvalidPromoCode() from e
 
     checkout.gift_cards.add(gift_card)
     checkout.save(update_fields=["last_change"])
@@ -161,7 +161,7 @@ def fulfill_gift_card_lines(
 @traced_atomic_transaction()
 def gift_cards_create(
     order: "Order",
-    gift_card_lines_info: Iterable["GiftCardLineData"],
+    gift_card_lines_info: list["GiftCardLineData"],
     settings: "SiteSettings",
     requestor_user: Optional["User"],
     app: Optional["App"],
@@ -275,7 +275,7 @@ def assign_user_gift_cards(user):
 def is_gift_card_expired(gift_card: GiftCard):
     """Return True when gift card expiry date pass."""
     today = timezone.now().date()
-    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore
+    return bool(gift_card.expiry_date) and gift_card.expiry_date < today  # type: ignore[operator]
 
 
 def get_user_gift_cards(user: "User") -> "QuerySet":

@@ -1,9 +1,8 @@
+import datetime
 from collections import defaultdict
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import graphene
-import pytz
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
@@ -24,12 +23,7 @@ from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_33,
-    ADDED_IN_38,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date, DateTime, PositiveDecimal
@@ -67,9 +61,7 @@ class PublishableChannelListingInput(BaseInputObjectType):
             "Use `publishedAt` field instead."
         )
     )
-    published_at = DateTime(
-        description="Publication date time. ISO 8601 standard." + ADDED_IN_33
-    )
+    published_at = DateTime(description="Publication date time. ISO 8601 standard.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -101,7 +93,7 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
         description=(
             "A start date time from which a product will be available "
             "for purchase. When not set and `isAvailable` is set to True, "
-            "the current day is assumed." + ADDED_IN_33
+            "the current day is assumed."
         )
     )
     add_variants = NonNullList(
@@ -269,8 +261,8 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         )
         if is_available_for_purchase is False:
             return None
-        elif is_available_for_purchase is True and not available_for_purchase_date:
-            return datetime.now(pytz.UTC)
+        if is_available_for_purchase is True and not available_for_purchase_date:
+            return datetime.datetime.now(tz=datetime.UTC)
         return available_for_purchase_date
 
     @classmethod
@@ -296,7 +288,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
         try:
             ProductVariantChannelListing.objects.bulk_create(variant_channel_listings)
-        except IntegrityError:
+        except IntegrityError as e:
             raise ValidationError(
                 {
                     "addVariants": ValidationError(
@@ -305,7 +297,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                         code=ProductErrorCode.ALREADY_EXISTS.value,
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def remove_variants(
@@ -411,7 +403,7 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
     )
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     preorder_threshold = graphene.Int(
-        description=("The threshold for preorder variant in channel." + ADDED_IN_31)
+        description="The threshold for preorder variant in channel."
     )
 
     class Meta:
@@ -428,8 +420,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
             required=False, description="ID of a product variant to update."
         )
         sku = graphene.String(
-            required=False,
-            description="SKU of a product variant to update." + ADDED_IN_38,
+            required=False, description="SKU of a product variant to update."
         )
         input = NonNullList(
             ProductVariantChannelListingAddInput,

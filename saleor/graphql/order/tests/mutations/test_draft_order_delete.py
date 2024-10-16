@@ -279,7 +279,6 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
     wrapped_call_order_event,
     setup_order_webhooks,
     settings,
-    django_capture_on_commit_callbacks,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,

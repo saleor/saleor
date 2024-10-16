@@ -4559,7 +4559,7 @@ def test_order_confirmed(
                 }
             ],
             "code": str(order.id),
-            "date": datetime.date.today().strftime("%Y-%m-%d"),
+            "date": datetime.datetime.now(tz=datetime.UTC).date().strftime("%Y-%m-%d"),
             "customerCode": 0,
             "discount": None,
             "addresses": {
@@ -4933,7 +4933,7 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # then
-    assert all([line for line in lines_data if line["taxIncluded"] is True])
+    assert all(line for line in lines_data if line["taxIncluded"] is True)
 
 
 def test_get_order_request_data_uses_correct_address_for_cc(

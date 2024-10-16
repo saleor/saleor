@@ -99,7 +99,7 @@ def test_draft_order_complete_with_transaction_CORE_0221(
         message="Charged",
         psp_reference="PSP-ref123",
         available_actions=["REFUND", "CANCEL"],
-        amount=order_total,
+        amount_charged=order_total,
     )
 
     order = order_query(e2e_staff_api_client, order_id)

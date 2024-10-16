@@ -1,10 +1,9 @@
+import datetime
 import os
-from datetime import datetime, timedelta
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
-import pytz
 from django.core.files import File
 from graphql_relay import to_global_id
 
@@ -2052,14 +2051,14 @@ def test_pagination_for_sorting_collections_by_published_at_date(
             Collection(name="Coll3", slug="collection-3"),
         ]
     )
-    now = datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     CollectionChannelListing.objects.bulk_create(
         [
             CollectionChannelListing(
                 channel=channel_USD,
                 collection=collection,
                 is_published=True,
-                published_at=now - timedelta(days=num),
+                published_at=now - datetime.timedelta(days=num),
             )
             for num, collection in enumerate(collections)
         ]

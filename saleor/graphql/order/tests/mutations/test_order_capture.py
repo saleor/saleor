@@ -195,7 +195,6 @@ def test_order_capture_triggers_webhooks(
     payment_txn_preauth,
     staff_user,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -221,8 +220,7 @@ def test_order_capture_triggers_webhooks(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(ORDER_CAPTURE_MUTATION, variables)
+    response = staff_api_client.post_graphql(ORDER_CAPTURE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
@@ -264,7 +262,9 @@ def test_order_capture_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls

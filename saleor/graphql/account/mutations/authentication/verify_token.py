@@ -35,7 +35,7 @@ class VerifyToken(BaseMutation):
         try:
             payload = get_payload(token)
         except ValidationError as e:
-            raise ValidationError({"token": e})
+            raise ValidationError({"token": e}) from e
         return payload
 
     @classmethod
@@ -43,7 +43,7 @@ class VerifyToken(BaseMutation):
         try:
             user = get_user(payload)
         except ValidationError as e:
-            raise ValidationError({"token": e})
+            raise ValidationError({"token": e}) from e
         return user
 
     @classmethod

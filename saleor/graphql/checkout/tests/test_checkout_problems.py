@@ -1,7 +1,5 @@
 import datetime
-from datetime import timedelta
 
-import pytz
 from django.utils import timezone
 
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
@@ -146,7 +144,7 @@ def test_checkout_problems_with_reservation(api_client, checkout_with_items):
     stock.quantity = checkout_line.quantity
     stock.save(update_fields=["quantity"])
 
-    reserved_until = timezone.now() + timedelta(minutes=5)
+    reserved_until = timezone.now() + datetime.timedelta(minutes=5)
     Reservation.objects.create(
         checkout_line=checkout_line,
         stock=stock,
@@ -268,7 +266,7 @@ def test_checkout_with_multiple_same_variant_and_out_of_stock(
     assert len(content["data"]["checkout"]["problems"]) == 2
     problems = content["data"]["checkout"]["problems"]
     assert all(
-        [problem["availableQuantity"] == available_quantity for problem in problems]
+        problem["availableQuantity"] == available_quantity for problem in problems
     )
     problem_line_ids = [problem["line"]["id"] for problem in problems]
     problem_variant_ids = [problem["variant"]["id"] for problem in problems]
@@ -313,7 +311,7 @@ def test_checkout_problems_when_product_doesnt_have_channel_listing(
     checkout = checkout_with_items_and_shipping
     checkout_line = checkout.lines.first()
 
-    available_at = datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=5)
+    available_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=5)
     product = checkout_line.variant.product
     product.channel_listings.update(available_for_purchase_at=available_at)
 

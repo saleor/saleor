@@ -45,12 +45,14 @@ class Migration(migrations.Migration):
                 max_length=11,
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="payment",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="payment_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="payment",
             index=django.contrib.postgres.indexes.GinIndex(

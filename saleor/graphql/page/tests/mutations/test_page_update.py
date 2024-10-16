@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta
+import datetime
 from functools import partial
 from unittest import mock
 from unittest.mock import ANY
 
 import graphene
 import pytest
-import pytz
 from django.conf import settings
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
@@ -952,7 +951,10 @@ def test_public_page_sets_publication_date(
 
     assert not data["errors"]
     assert data["page"]["isPublished"] is True
-    assert data["page"]["publishedAt"] == datetime.now(pytz.utc).isoformat()
+    assert (
+        data["page"]["publishedAt"]
+        == datetime.datetime.now(tz=datetime.UTC).isoformat()
+    )
 
 
 def test_update_page_publication_date(
@@ -964,7 +966,9 @@ def test_update_page_publication_date(
         "page_type": page_type,
     }
     page = Page.objects.create(**data)
-    published_at = datetime.now(pytz.utc).replace(microsecond=0) + timedelta(days=5)
+    published_at = datetime.datetime.now(tz=datetime.UTC).replace(
+        microsecond=0
+    ) + datetime.timedelta(days=5)
     page_id = graphene.Node.to_global_id("Page", page.id)
     variables = {
         "id": page_id,

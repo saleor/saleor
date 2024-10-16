@@ -1,10 +1,9 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 import pytest
-import pytz
 from django.db.models import Sum
 from django.test import override_settings
 
@@ -310,7 +309,7 @@ def test_order_lines_create_for_just_published_product(
     order.save(update_fields=["status"])
     variant = variant_with_many_stocks
     product_listing = variant.product.channel_listings.get(channel=order.channel)
-    product_listing.published_at = datetime.now(pytz.utc)
+    product_listing.published_at = datetime.datetime.now(tz=datetime.UTC)
     product_listing.save(update_fields=["published_at"])
 
     quantity = 1
@@ -1269,7 +1268,6 @@ def test_order_lines_create_triggers_webhooks(
     permission_group_manage_orders,
     staff_api_client,
     settings,
-    django_capture_on_commit_callbacks,
     status,
     webhook_event,
 ):
@@ -1295,8 +1293,7 @@ def test_order_lines_create_triggers_webhooks(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -1314,7 +1311,7 @@ def test_order_lines_create_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls

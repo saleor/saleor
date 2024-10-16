@@ -69,7 +69,7 @@ class Command(BaseCommand):
                 allow_redirects=False,
             )
         except RequestException as e:
-            raise CommandError(f"Request failed. Exception: {e}")
+            raise CommandError(f"Request failed. Exception: {e}") from e
         response.raise_for_status()
 
     def handle(self, *args: Any, **options: Any) -> Optional[str]:

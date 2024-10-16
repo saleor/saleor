@@ -1,10 +1,9 @@
+import datetime
 import json
-from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
 import graphene
-import pytz
 from django.conf import settings
 from freezegun import freeze_time
 
@@ -16,7 +15,7 @@ from .....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
+from .....tests.utils import dummy_editorjs
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
@@ -155,7 +154,6 @@ def test_product_variant_bulk_create_by_name(
         PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
     )
     content = get_graphql_content(response, ignore_errors=True)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     # then
@@ -218,7 +216,6 @@ def test_product_variant_bulk_create_by_attribute_id(
         PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     # then
@@ -273,7 +270,6 @@ def test_product_variant_bulk_create_by_attribute_external_ref(
         PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     # then
@@ -327,7 +323,6 @@ def test_product_variant_bulk_create_return_error_when_attribute_external_ref_an
         PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     # then
@@ -380,7 +375,6 @@ def test_product_variant_bulk_create_will_create_new_attr_value_and_external_ref
         PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantBulkCreate"]
 
     # then
@@ -489,7 +483,7 @@ def test_product_variant_bulk_create_with_plain_text_attribute(
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_product_variant_bulk_create_with_date_attribute(
     staff_api_client, product, date_attribute, permission_manage_products
 ):
@@ -499,7 +493,7 @@ def test_product_variant_bulk_create_with_date_attribute(
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.pk)
-    date_time_value = datetime.now(tz=pytz.utc)
+    date_time_value = datetime.datetime.now(tz=datetime.UTC)
     date_value = date_time_value.date()
 
     sku = str(uuid4())[:12]
@@ -571,7 +565,7 @@ def test_product_variant_bulk_create_with_file_attribute(
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_product_variant_bulk_create_with_datetime_attribute(
     staff_api_client,
     product,
@@ -585,7 +579,7 @@ def test_product_variant_bulk_create_with_datetime_attribute(
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_id = graphene.Node.to_global_id("Attribute", date_time_attribute.pk)
-    date_time_value = datetime.now(tz=pytz.utc)
+    date_time_value = datetime.datetime.now(tz=datetime.UTC)
 
     sku = str(uuid4())[:12]
     variants = [
@@ -1139,7 +1133,7 @@ def test_product_variant_bulk_create_stocks_input(
         assert variant_data["sku"] in expected_result
         expected_variant = expected_result[variant_data["sku"]]
         expected_stocks = expected_variant["stocks"]
-        assert all([stock in expected_stocks for stock in variant_data["stocks"]])
+        assert all(stock in expected_stocks for stock in variant_data["stocks"])
 
 
 def test_product_variant_bulk_create_duplicated_warehouses(
@@ -1374,10 +1368,8 @@ def test_product_variant_bulk_create_channel_listings_input(
         expected_variant = expected_result[variant_data["sku"]]
         expected_channel_listing = expected_variant["channelListings"]
         assert all(
-            [
-                channelListing in expected_channel_listing
-                for channelListing in variant_data["channelListings"]
-            ]
+            channelListing in expected_channel_listing
+            for channelListing in variant_data["channelListings"]
         )
 
     # ensure all variants channel listings has discounted_price_amount set
@@ -1411,7 +1403,7 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
 
     global_threshold = 10
     end_date = (
-        (datetime.now() + timedelta(days=3))
+        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
         .astimezone()
         .replace(microsecond=0)
         .isoformat()
@@ -1506,11 +1498,9 @@ def test_product_variant_bulk_create_preorder_channel_listings_input(
             for channel_listing in expected_variant["channelListings"]
         ]
         assert all(
-            [
-                channel_listing["preorderThreshold"]["quantity"]
-                in expected_channel_listing_thresholds
-                for channel_listing in variant_data["channelListings"]
-            ]
+            channel_listing["preorderThreshold"]["quantity"]
+            in expected_channel_listing_thresholds
+            for channel_listing in variant_data["channelListings"]
         )
         preorder_data = variant_data["preorder"]
         assert preorder_data["globalThreshold"] == global_threshold

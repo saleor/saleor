@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [("product", "0039_merge_20171130_0727")]
 
     operations = [
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(

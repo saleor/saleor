@@ -16,14 +16,17 @@ def test_create_and_update_customer_with_metadata_core_1514(
     assign_permissions(e2e_staff_api_client, permissions)
 
     # Step 1 - Create a customer with metadata
-    email = "new3@com.com"
     metadata = [{"key": "customer_code", "value": "abc"}]
     private_metadata = [{"key": "priv_customer_code", "value": "priv_abc"}]
+    customer_input = {
+        "email": "new3@com.com",
+        "metadata": metadata,
+        "privateMetadata": private_metadata,
+    }
+
     user_data = create_customer(
         e2e_staff_api_client,
-        email,
-        metadata,
-        private_metadata,
+        customer_input,
     )
 
     assert user_data is not None

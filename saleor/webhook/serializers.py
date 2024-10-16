@@ -1,6 +1,5 @@
+import datetime
 from collections import defaultdict
-from collections.abc import Iterable
-from datetime import date, datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
@@ -80,7 +79,7 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> dict[str, 
 
 def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ) -> list[dict]:
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     return [
@@ -103,9 +102,9 @@ def serialize_checkout_lines_for_tax_calculation(
 def serialize_product_attributes(product: "Product") -> list[dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_value):
+    def _prepare_reference(attribute, attr_value) -> None | str:
         if attribute.input_type != AttributeInputType.REFERENCE:
-            return
+            return None
         if attribute.entity_type == AttributeEntityType.PAGE:
             reference_pk = attr_value.reference_page_id
         elif attribute.entity_type == AttributeEntityType.PRODUCT:
@@ -140,7 +139,10 @@ def serialize_product_attributes(product: "Product") -> list[dict]:
         for attr_value in values_map[attribute.pk]:
             attr_slug = attr_value.slug
             value: dict[
-                str, Optional[Union[str, datetime, date, bool, dict[str, Any]]]
+                str,
+                Optional[
+                    Union[str, datetime.datetime, datetime.date, bool, dict[str, Any]]
+                ],
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,
@@ -168,9 +170,9 @@ def serialize_product_attributes(product: "Product") -> list[dict]:
 def serialize_variant_attributes(variant: "ProductVariant") -> list[dict]:
     data = []
 
-    def _prepare_reference(attribute, attr_value):
+    def _prepare_reference(attribute, attr_value) -> None | str:
         if attribute.input_type != AttributeInputType.REFERENCE:
-            return
+            return None
         if attribute.entity_type == AttributeEntityType.PAGE:
             reference_pk = attr_value.reference_page_id
         elif attribute.entity_type == AttributeEntityType.PRODUCT:
@@ -197,7 +199,10 @@ def serialize_variant_attributes(variant: "ProductVariant") -> list[dict]:
         for attr_value in attr.values.all():
             attr_slug = attr_value.slug
             value: dict[
-                str, Optional[Union[str, datetime, date, bool, dict[str, Any]]]
+                str,
+                Optional[
+                    Union[str, datetime.datetime, datetime.date, bool, dict[str, Any]]
+                ],
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,

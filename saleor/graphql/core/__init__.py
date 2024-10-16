@@ -1,6 +1,6 @@
 import graphene
 
-from . import fields  # noqa
+from . import fields  # noqa: F401
 from .context import SaleorContext
 
 __all__ = ["SaleorContext"]

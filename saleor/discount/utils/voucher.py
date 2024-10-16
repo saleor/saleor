@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -165,7 +165,7 @@ def get_active_voucher_code(voucher, channel_slug):
 
 def apply_voucher_to_line(
     voucher_info: "VoucherInfo",
-    lines_info: Iterable["LineInfo"],
+    lines_info: Sequence["LineInfo"],
 ):
     """Attach voucher to valid checkout or order lines info.
 
@@ -207,9 +207,9 @@ def get_discounted_lines(
             if not line_variant or not line_product:
                 continue
             line_category = line_product.category
-            line_collections = set(
-                [collection.pk for collection in line_info.collections if collection]
-            )
+            line_collections = {
+                collection.pk for collection in line_info.collections if collection
+            }
             if line_info.variant and (
                 line_variant.pk in voucher_info.variant_pks
                 or line_product.pk in voucher_info.product_pks
@@ -239,7 +239,7 @@ def validate_voucher_for_checkout(
     manager: "PluginsManager",
     voucher: "Voucher",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ):
     from ...checkout import base_calculations
     from ...checkout.utils import calculate_checkout_quantity
@@ -419,7 +419,7 @@ def create_or_update_line_discount_objects_from_voucher(lines_info):
 
 # TODO (SHOPX-912): share the method with checkout
 def prepare_line_discount_objects_for_voucher(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ):
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[OrderLineDiscount] = []
@@ -427,7 +427,7 @@ def prepare_line_discount_objects_for_voucher(
     updated_fields: list[str] = []
 
     if not lines_info:
-        return
+        return None
 
     for line_info in lines_info:
         line = line_info.line
@@ -540,7 +540,7 @@ def calculate_line_discount_amount_from_voucher(
 
 
 def _reduce_base_unit_price_for_voucher_discount(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
         line = line_info.line

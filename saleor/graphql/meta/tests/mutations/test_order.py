@@ -603,7 +603,6 @@ def test_change_in_public_metadata_triggers_webhooks(
     setup_order_webhooks,
     api_client,
     order_with_lines,
-    django_capture_on_commit_callbacks,
     settings,
 ):
     # given
@@ -622,10 +621,9 @@ def test_change_in_public_metadata_triggers_webhooks(
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        execute_update_public_metadata_for_item(
-            api_client, None, order_id, "Order", key="new-key"
-        )
+    execute_update_public_metadata_for_item(
+        api_client, None, order_id, "Order", key="new-key"
+    )
 
     # then
     order_metadata_updated_delivery = EventDelivery.objects.get(
@@ -643,7 +641,9 @@ def test_change_in_public_metadata_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -679,7 +679,6 @@ def test_change_in_private_metadata_triggers_webhooks(
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
-    django_capture_on_commit_callbacks,
     settings,
 ):
     # given
@@ -698,10 +697,9 @@ def test_change_in_private_metadata_triggers_webhooks(
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        execute_update_private_metadata_for_item(
-            staff_api_client, permission_manage_orders, order_id, "Order", key="new-key"
-        )
+    execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order_id, "Order", key="new-key"
+    )
 
     # then
     order_metadata_updated_delivery = EventDelivery.objects.get(
@@ -718,7 +716,9 @@ def test_change_in_private_metadata_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=additional_order_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls

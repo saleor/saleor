@@ -1,5 +1,5 @@
+import datetime
 from collections.abc import Iterable
-from datetime import date
 from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 def clean_checkout_shipping(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     error_code: Union[
         type[CheckoutErrorCode],
         type[PaymentErrorCode],
@@ -85,7 +85,7 @@ def clean_billing_address(
 def clean_checkout_payment(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     error_code: type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
 ):
@@ -110,7 +110,7 @@ def validate_checkout_email(checkout: models.Checkout):
 
 def _validate_gift_cards(checkout: Checkout):
     """Check if all gift cards assigned to checkout are available."""
-    today = date.today()
+    today = datetime.datetime.now(tz=datetime.UTC).date()
     all_gift_cards = GiftCard.objects.filter(checkouts=checkout.token).count()
     active_gift_cards = (
         GiftCard.objects.active(date=today).filter(checkouts=checkout.token).count()
@@ -122,7 +122,7 @@ def _validate_gift_cards(checkout: Checkout):
 
 def validate_checkout(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     unavailable_variant_pks: Iterable[int],
     manager: "PluginsManager",
 ):
@@ -180,8 +180,8 @@ def validate_checkout(
     # can raise TaxError
     try:
         manager.preprocess_order_creation(checkout_info, lines)
-    except TaxError as tax_error:
+    except TaxError as e:
         raise ValidationError(
-            f"Unable to calculate taxes - {str(tax_error)}",
+            f"Unable to calculate taxes - {str(e)}",
             code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
-        )
+        ) from e

@@ -1,8 +1,7 @@
+import datetime
 import json
-from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
-import pytz
 from freezegun import freeze_time
 
 from ......plugins.base_plugin import ExternalAccessTokens
@@ -93,12 +92,12 @@ def test_external_refresh_do_not_update_last_login_when_in_threshold(
     )
     variables = {"pluginId": "pluginId1", "input": json.dumps({"refreshToken": "ABCD"})}
 
-    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
     expected_last_login = customer_user.last_login
     expected_updated_at = customer_user.updated_at
 
-    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_in_threshold = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD - 1
     )
 
@@ -136,12 +135,12 @@ def test_external_refresh_do_update_last_login_when_out_of_threshold(
     )
     variables = {"pluginId": "pluginId1", "input": json.dumps({"refreshToken": "ABCD"})}
 
-    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
     previous_last_login = customer_user.last_login
     previous_updated_at = customer_user.updated_at
 
-    time_out_of_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_out_of_threshold = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD + 1
     )
 

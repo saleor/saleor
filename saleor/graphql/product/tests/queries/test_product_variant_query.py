@@ -408,10 +408,8 @@ def test_get_product_variant_stocks(
     assert len(data["stocksNoAddress"]) == all_stocks.count()
     no_address_stocks_ids = [stock["id"] for stock in data["stocksNoAddress"]]
     assert all(
-        [
-            graphene.Node.to_global_id("Stock", stock.pk) in no_address_stocks_ids
-            for stock in all_stocks
-        ]
+        graphene.Node.to_global_id("Stock", stock.pk) in no_address_stocks_ids
+        for stock in all_stocks
     )
 
     # When address is given, return only stocks from warehouse that ship to that
@@ -419,10 +417,8 @@ def test_get_product_variant_stocks(
     assert len(data["stocksWithAddress"]) == pl_stocks.count()
     with_address_stocks_ids = [stock["id"] for stock in data["stocksWithAddress"]]
     assert all(
-        [
-            graphene.Node.to_global_id("Stock", stock.pk) in with_address_stocks_ids
-            for stock in pl_stocks
-        ]
+        graphene.Node.to_global_id("Stock", stock.pk) in with_address_stocks_ids
+        for stock in pl_stocks
     )
 
 

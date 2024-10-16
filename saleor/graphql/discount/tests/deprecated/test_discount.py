@@ -45,11 +45,9 @@ def test_sales_with_sorting_and_without_channel(
             promotion_converted_from_sale_with_empty_predicate,
         ]
     ]
-    assert all([node["node"]["name"] in promotion_names for node in sales_nodes])
+    assert all(node["node"]["name"] in promotion_names for node in sales_nodes)
 
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 QUERY_VOUCHERS_WITH_SORT = """
@@ -84,9 +82,7 @@ def test_query_vouchers_with_sort(
         voucher_percentage.name,
         voucher_with_high_min_spent_amount.name,
     ]
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 def test_filter_sales_by_query(staff_api_client, permission_manage_discounts):

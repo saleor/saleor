@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-import pytz
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -23,7 +22,6 @@ from .....order.models import Fulfillment, Order
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import ProductVariantChannelListing
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -538,13 +536,11 @@ def test_order_from_checkout_gift_card_bought(
     assert not data["errors"]
 
     assert Order.objects.count() == orders_count + 1
-    flush_post_commit_hooks()
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         None,
         app,
@@ -1629,7 +1625,7 @@ def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
         checkout_line=other_checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     checkout_line.quantity = 1
@@ -1679,7 +1675,7 @@ def test_order_from_checkout_own_reservation(
         checkout_line=checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -2061,7 +2057,7 @@ def test_order_from_draft_create_with_preorder_variant(
 
     assert order.lines.count() == len(variants_and_quantities)
     for variant_id, quantity in variants_and_quantities.items():
-        order.lines.get(variant_id=variant_id).quantity == quantity
+        assert order.lines.get(variant_id=variant_id).quantity == quantity
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
 
@@ -2303,7 +2299,8 @@ def test_order_from_draft_create_product_channel_listing_does_not_exist(
 
 
 @pytest.mark.parametrize(
-    "available_for_purchase", [None, datetime.now(pytz.UTC) + timedelta(days=1)]
+    "available_for_purchase",
+    [None, datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1)],
 )
 def test_order_from_draft_create_product_channel_listing_not_available_for_purchase(
     app_api_client,

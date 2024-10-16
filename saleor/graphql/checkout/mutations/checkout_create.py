@@ -17,13 +17,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_35,
-    ADDED_IN_36,
-    ADDED_IN_38,
-    DEPRECATED_IN_3X_FIELD,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
@@ -110,7 +104,6 @@ class CheckoutLineInput(BaseInputObjectType):
             "Custom price of the item. Can be set only by apps "
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
-            + ADDED_IN_31
         ),
     )
     force_new_line = graphene.Boolean(
@@ -118,12 +111,12 @@ class CheckoutLineInput(BaseInputObjectType):
         default_value=False,
         description=(
             "Flag that allow force splitting the same variant into multiple lines "
-            "by skipping the matching logic. " + ADDED_IN_36
+            "by skipping the matching logic. "
         ),
     )
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the object's metadata." + ADDED_IN_38),
+        description=("Fields required to update the object's metadata."),
         required=False,
     )
 
@@ -163,9 +156,7 @@ class CheckoutCreateInput(BaseInputObjectType):
     )
     validation_rules = CheckoutValidationRules(
         required=False,
-        description=(
-            "The checkout validation rules that can be changed." + ADDED_IN_35
-        ),
+        description=("The checkout validation rules that can be changed."),
     )
 
     class Meta:
@@ -301,12 +292,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
         shipping_address_metadata = (
-            data.get("shipping_address", {}).pop("metadata", list())
+            data.get("shipping_address", {}).pop("metadata", [])
             if data.get("shipping_address")
             else None
         )
         billing_address_metadata = (
-            data.get("billing_address", {}).pop("metadata", list())
+            data.get("billing_address", {}).pop("metadata", [])
             if data.get("billing_address")
             else None
         )

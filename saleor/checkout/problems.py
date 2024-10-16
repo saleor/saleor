@@ -4,8 +4,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Optional, Union
 
-import pytz
-
 from ..graphql.channel import ChannelContext
 from ..product.models import ProductChannelListing, ProductVariant
 from ..warehouse.models import Stock
@@ -41,7 +39,7 @@ CHECKOUT_LINE_PK_TYPE = str
 
 
 def get_insufficient_stock_lines(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     variant_stock_map: dict[
         tuple[
             VARIANT_ID,
@@ -111,7 +109,7 @@ def line_is_not_available(
 
 
 def get_not_available_lines(
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     product_channel_listings_map: dict[
         tuple[
             PRODUCT_ID,
@@ -121,7 +119,7 @@ def get_not_available_lines(
     ],
 ):
     lines_not_available = []
-    now = datetime.datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     for line in lines:
         if line_is_not_available(line, now, product_channel_listings_map):
             lines_not_available.append(line)
@@ -131,7 +129,7 @@ def get_not_available_lines(
 
 def get_checkout_lines_problems(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     variant_stock_map: dict[
         tuple[
             VARIANT_ID,

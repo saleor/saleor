@@ -7,7 +7,6 @@ from .....product.utils import get_products_ids_without_variants
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -33,7 +32,7 @@ class CatalogueInput(BaseInputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        description="Product variant related to the discount." + ADDED_IN_31,
+        description="Product variant related to the discount.",
         name="variants",
     )
 

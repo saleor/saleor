@@ -2,7 +2,6 @@ import datetime
 import json
 
 import pytest
-import pytz
 from django.conf import settings
 
 from ....tests.utils import dummy_editorjs
@@ -97,7 +96,7 @@ def test_create_page_with_each_of_attribute_types_core_0701(
         {"id": attr_date_id, "date": "2021-01-01"},
         {
             "id": attr_date_time_id,
-            "dateTime": datetime.datetime(2023, 1, 1, tzinfo=pytz.utc),
+            "dateTime": datetime.datetime(2023, 1, 1, tzinfo=datetime.UTC),
         },
         {"id": attr_plain_text_id, "plainText": "test plain text"},
         {"id": attr_rich_text_id, "richText": expected_rich_text},

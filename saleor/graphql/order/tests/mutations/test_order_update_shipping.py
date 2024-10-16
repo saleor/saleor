@@ -561,7 +561,6 @@ def test_order_update_shipping_triggers_webhooks(
     order_with_lines,
     shipping_method,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -583,8 +582,7 @@ def test_order_update_shipping_triggers_webhooks(
     variables = {"order": order_id, "shippingMethod": method_id}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -602,7 +600,7 @@ def test_order_update_shipping_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
 
     # FIXME: This is the issue with current way of caching filter shipping
     #  webhooks. Mutation calls the webhook to validates the shipping methods.

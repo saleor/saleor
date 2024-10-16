@@ -16,7 +16,6 @@ from .....product import models
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_38, ADDED_IN_310
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error
@@ -33,11 +32,11 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         )
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a product variant to update. {ADDED_IN_310}",
+            description="External ID of a product variant to update.",
         )
         sku = graphene.String(
             required=False,
-            description="SKU of a product variant to delete." + ADDED_IN_38,
+            description="SKU of a product variant to delete.",
         )
 
     class Meta:

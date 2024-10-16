@@ -65,7 +65,7 @@ def test_order_bulk_cancel(
     ]
 
     mock_cancel_order.assert_has_calls(calls, any_order=True)
-    mock_cancel_order.call_count == expected_count
+    assert mock_cancel_order.call_count == expected_count
 
 
 def test_order_bulk_cancel_by_user_no_channel_access(

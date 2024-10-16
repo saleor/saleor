@@ -22,7 +22,7 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_33, DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -62,9 +62,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = DateTime(
-        description="The product publication date time." + ADDED_IN_33
-    )
+    published_at = DateTime(description="The product publication date time.")
     is_published = graphene.Boolean(
         required=True,
         description="Indicates if the product is published in the channel.",
@@ -86,7 +84,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         ),
     )
     available_for_purchase_at = DateTime(
-        description="The product available for purchase date time." + ADDED_IN_33
+        description="The product available for purchase date time."
     )
     discounted_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
@@ -361,7 +359,7 @@ class ProductVariantChannelListing(
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
-        description="Preorder variant data." + ADDED_IN_31,
+        description="Preorder variant data.",
     )
 
     class Meta:
@@ -397,9 +395,7 @@ class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing])
             "Use the `publishedAt` field to fetch the publication date."
         ),
     )
-    published_at = DateTime(
-        description="The collection publication date." + ADDED_IN_33
-    )
+    published_at = DateTime(description="The collection publication date.")
     is_published = graphene.Boolean(
         required=True,
         description="Indicates if the collection is published in the channel.",

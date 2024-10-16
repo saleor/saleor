@@ -22,7 +22,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
 from ...core.validators import validate_one_of_args_is_in_mutation
@@ -41,7 +40,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         skus = NonNullList(
             graphene.String,
             required=False,
-            description="List of product variant SKUs to delete." + ADDED_IN_38,
+            description="List of product variant SKUs to delete.",
         )
 
     class Meta:

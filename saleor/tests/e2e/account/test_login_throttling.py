@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 import graphene
@@ -95,7 +95,7 @@ def test_customer_should_not_be_able_to_perform_credential_guessing_attacks_core
     attempt_ip_counter = 1
     attempt_ip_user_counter = 1
     delay = get_delay_time(attempt_ip_counter, attempt_ip_user_counter)
-    next_attempt = now + timedelta(seconds=delay)
+    next_attempt = now + datetime.timedelta(seconds=delay)
 
     assert mocked_cache.get(block_key) == next_attempt
     assert mocked_cache.get(ip_key) == attempt_ip_counter
@@ -128,7 +128,7 @@ def test_customer_should_not_be_able_to_perform_credential_guessing_attacks_core
     attempt_ip_user_counter += 1
     new_delay = get_delay_time(attempt_ip_counter, attempt_ip_user_counter)
     assert new_delay != delay
-    next_attempt = now + timedelta(seconds=new_delay)
+    next_attempt = now + datetime.timedelta(seconds=new_delay)
 
     assert mocked_cache.get(block_key) == next_attempt
     assert mocked_cache.get(ip_key) == attempt_ip_counter

@@ -37,10 +37,12 @@ class BaseMetadataMutation(BaseMutation):
     def __init_subclass_with_meta__(
         cls,
         arguments=None,
-        permission_map=[],
+        permission_map=None,
         _meta=None,
         **kwargs,
     ):
+        if permission_map is None:
+            permission_map = []
         if not _meta:
             _meta = MetadataPermissionOptions(cls)
         if not arguments:
@@ -73,7 +75,7 @@ class BaseMetadataMutation(BaseMutation):
                         str(e), code=MetadataErrorCode.GRAPHQL_ERROR.value
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def get_instance_by_token(cls, object_id, qs):
@@ -87,6 +89,7 @@ class BaseMetadataMutation(BaseMutation):
             return None
         if qs and "token" in [field.name for field in qs.model._meta.get_fields()]:
             return qs.filter(token=object_id).first()
+        return None
 
     @classmethod
     def get_old_sale_instance(cls, global_id, old_sale_id):
@@ -94,14 +97,13 @@ class BaseMetadataMutation(BaseMutation):
             old_sale_id=old_sale_id
         ).first():
             return instance
-        else:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        f"Couldn't resolve to a node: {global_id}", code="not_found"
-                    )
-                }
-            )
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    f"Couldn't resolve to a node: {global_id}", code="not_found"
+                )
+            }
+        )
 
     @classmethod
     def validate_model_is_model_with_metadata(cls, model, object_id):
@@ -230,7 +232,7 @@ class BaseMetadataMutation(BaseMutation):
             return None, None
         try:
             return from_global_id_or_error(object_id)
-        except GraphQLError:
+        except GraphQLError as e:
             if order := order_models.Order.objects.filter(id=object_id).first():
                 return "Order", order.pk
             if checkout := checkout_models.Checkout.objects.filter(
@@ -243,7 +245,7 @@ class BaseMetadataMutation(BaseMutation):
                         "Couldn't resolve to a node.", code="graphql_error"
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def perform_model_extra_actions(cls, root, info: ResolveInfo, type_name, **data):
@@ -257,18 +259,16 @@ class BaseMetadataMutation(BaseMutation):
         """Return a success response."""
         # Wrap the instance with ChannelContext for models that use it.
         use_channel_context = any(
-            [
-                isinstance(instance, Model)
-                for Model in [
-                    discount_models.Voucher,
-                    menu_models.Menu,
-                    menu_models.MenuItem,
-                    product_models.Collection,
-                    product_models.Product,
-                    product_models.ProductVariant,
-                    shipping_models.ShippingMethod,
-                    shipping_models.ShippingZone,
-                ]
+            isinstance(instance, Model)
+            for Model in [
+                discount_models.Voucher,
+                menu_models.Menu,
+                menu_models.MenuItem,
+                product_models.Collection,
+                product_models.Product,
+                product_models.ProductVariant,
+                shipping_models.ShippingMethod,
+                shipping_models.ShippingZone,
             ]
         )
         if use_channel_context:

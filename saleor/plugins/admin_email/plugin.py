@@ -218,8 +218,8 @@ class AdminEmailPlugin(BasePlugin):
         self,
         event: Union[NotifyEventType, str],
         payload_func: Callable[[], dict],
-        previous_value,
-    ):
+        previous_value: None,
+    ) -> None:
         if not self.active:
             return previous_value
 
@@ -234,6 +234,7 @@ class AdminEmailPlugin(BasePlugin):
         event_func = event_map[event]
         config = asdict(self.config)
         event_func(payload_func, config, self)
+        return previous_value
 
     @classmethod
     def validate_plugin_configuration(

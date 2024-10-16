@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-import pytz
 from django.test import override_settings
 from django.utils import timezone
 from prices import Money
@@ -1543,7 +1542,7 @@ def test_checkout_lines_add_with_available_for_purchase_from_tomorrow_product(
     variant = stock.product_variant
     product = stock.product_variant.product
     product.channel_listings.update(
-        available_for_purchase_at=datetime.datetime.now(pytz.UTC)
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC)
         + datetime.timedelta(days=1)
     )
 
@@ -1824,7 +1823,9 @@ def test_checkout_lines_add_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
 
     shipping_methods_call, filter_shipping_call, tax_delivery_call = (
         mocked_send_webhook_request_sync.mock_calls

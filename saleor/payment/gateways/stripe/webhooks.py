@@ -112,14 +112,13 @@ def _channel_slug_is_different_from_payment_channel_slug(
     order = payment.order
     if checkout is not None:
         return channel_slug != checkout.channel.slug
-    elif order is not None:
+    if order is not None:
         return channel_slug != order.channel.slug
-    else:
-        logger.warning(
-            "Both payment.checkout and payment.order cannot be None",
-            extra={"payment_id": payment.id},
-        )
-        return True
+    logger.warning(
+        "Both payment.checkout and payment.order cannot be None",
+        extra={"payment_id": payment.id},
+    )
+    return True
 
 
 def _get_payment(payment_intent_id: str, with_lock=True) -> Optional[Payment]:
@@ -223,7 +222,6 @@ def _finalize_checkout(
         logger.info(
             "Failed to complete checkout %s.", checkout.pk, extra={"error": str(e)}
         )
-        return None
 
 
 def _get_or_create_transaction(

@@ -1,7 +1,7 @@
 import math
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, Optional, cast
 from uuid import UUID
 
 from django.db import transaction
@@ -38,12 +38,14 @@ if TYPE_CHECKING:
     from ..order.models import Order
 
 
-StockData = namedtuple("StockData", ["pk", "quantity"])
+class StockData(NamedTuple):
+    pk: int
+    quantity: int
 
 
 @traced_atomic_transaction()
 def allocate_stocks(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     country_code: str,
     channel: "Channel",
     manager: PluginsManager,
@@ -241,7 +243,7 @@ def _create_allocations(
     stocks_allocations: dict,
     stocks_reservations: dict,
     insufficient_stock: list[InsufficientStockData],
-):
+) -> tuple[list[InsufficientStockData], list[Any]]:
     quantity = line_info.quantity
     quantity_allocated = 0
     allocations = []
@@ -275,11 +277,10 @@ def _create_allocations(
             )
         )
         return insufficient_stock, []
+    return [], allocations
 
 
-def deallocate_stock(
-    order_lines_data: Iterable["OrderLineInfo"], manager: PluginsManager
-):
+def deallocate_stock(order_lines_data: list["OrderLineInfo"], manager: PluginsManager):
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -405,7 +406,7 @@ def increase_stock(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: Iterable["OrderLineInfo"], channel: "Channel", manager: PluginsManager
+    lines_info: list["OrderLineInfo"], channel: "Channel", manager: PluginsManager
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -434,7 +435,7 @@ def increase_allocations(
     Allocation.objects.filter(pk__in=allocation_pks_to_delete).delete()
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
-    order = lines_info[0].line.order  # type: ignore[index]
+    order = lines_info[0].line.order
     country_code = get_active_country(
         channel, order.shipping_address, order.billing_address
     )
@@ -446,7 +447,7 @@ def increase_allocations(
     )
 
 
-def decrease_allocations(lines_info: Iterable["OrderLineInfo"], manager):
+def decrease_allocations(lines_info: list["OrderLineInfo"], manager):
     """Decreate allocations for provided order lines."""
     tracked_lines = get_order_lines_with_track_inventory(lines_info)
     if not tracked_lines:
@@ -456,7 +457,7 @@ def decrease_allocations(lines_info: Iterable["OrderLineInfo"], manager):
 
 @traced_atomic_transaction()
 def decrease_stock(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     manager,
     update_stocks=True,
     allow_stock_to_be_exceeded: bool = False,
@@ -528,7 +529,7 @@ def decrease_stock(
 
 
 def _decrease_stocks_quantity(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     variant_and_warehouse_to_stock: dict[int, dict[UUID, Stock]],
     quantity_allocation_for_stocks: dict[int, int],
     allow_stock_to_be_exceeded: bool = False,
@@ -537,11 +538,11 @@ def _decrease_stocks_quantity(
     stocks_to_update = []
     for line_info in order_lines_info:
         variant = line_info.variant
+        if not variant:
+            continue
         warehouse_pk = line_info.warehouse_pk
         stock = (
-            variant_and_warehouse_to_stock.get(variant.pk, {}).get(  # type: ignore
-                warehouse_pk
-            )
+            variant_and_warehouse_to_stock.get(variant.pk, {}).get(warehouse_pk)
             if warehouse_pk
             else None
         )
@@ -582,8 +583,8 @@ def _decrease_stocks_quantity(
 
 
 def get_order_lines_with_track_inventory(
-    order_lines_info: Iterable["OrderLineInfo"],
-) -> Iterable["OrderLineInfo"]:
+    order_lines_info: list["OrderLineInfo"],
+) -> list["OrderLineInfo"]:
     """Return order lines with variants with track inventory set to True."""
     return [
         line_info
@@ -644,7 +645,7 @@ def deallocate_stock_for_orders(orders_id, manager: PluginsManager):
 
 @traced_atomic_transaction()
 def allocate_preorders(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     channel_slug: str,
     check_reservations: bool = False,
     checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
@@ -745,8 +746,8 @@ def allocate_preorders(
 
 
 def get_order_lines_with_preorder(
-    order_lines_info: Iterable["OrderLineInfo"],
-) -> Iterable["OrderLineInfo"]:
+    order_lines_info: list["OrderLineInfo"],
+) -> list["OrderLineInfo"]:
     """Return order lines with variants with preorder flag set to True."""
     return [
         line_info
@@ -888,7 +889,7 @@ def _get_stock_for_preorder_allocation(
 
     if shipping_method_id is not None:
         warehouse = Warehouse.objects.filter(
-            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore
+            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore[misc,union-attr]
         ).first()
     else:
         from ..order.utils import get_order_country

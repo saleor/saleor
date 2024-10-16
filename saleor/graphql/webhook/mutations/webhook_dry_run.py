@@ -7,7 +7,6 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookDryRunErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -38,8 +37,6 @@ class WebhookDryRun(BaseMutation):
             "Performs a dry run of a webhook event. "
             "Supports a single event (the first, if multiple provided in the `query`). "
             "Requires permission relevant to processed event."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
@@ -114,11 +111,10 @@ class WebhookDryRun(BaseMutation):
         if type == "Sale":
             object_id = cls.get_global_id_or_error(object_id, "Sale")
             return discount_models.Promotion.objects.get(old_sale_id=object_id)
-        elif type == "App":
+        if type == "App":
             qs = App.objects.filter(removed_at__isnull=True)
             return cls.get_node_or_error(info, object_id, field="objectId", qs=qs)
-        else:
-            return cls.get_node_or_error(info, object_id, field="objectId")
+        return cls.get_node_or_error(info, object_id, field="objectId")
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

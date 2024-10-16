@@ -15,7 +15,6 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order.actions import order_charged, order_refunded, order_voided
 from .....payment.models import Transaction
 from .....plugins.manager import get_plugins_manager
-from .....tests.utils import flush_post_commit_hooks
 from .... import ChargeStatus, TransactionKind
 from ....utils import price_to_minor_unit
 from ..consts import (
@@ -1662,6 +1661,7 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
     checkout_with_items,
     stripe_plugin,
     channel_USD,
+    django_capture_on_commit_callbacks,
 ):
     # given
     plugin = stripe_plugin()
@@ -1694,7 +1694,6 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
 
     # when
     def call_webhook_notification(*args, **kwargs):
-        flush_post_commit_hooks()
         handle_successful_payment_intent(
             payment_intent, plugin.config, channel_USD.slug
         )
@@ -1703,15 +1702,16 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
         "saleor.checkout.complete_checkout._process_payment",
         call_webhook_notification,
     ):
-        complete_checkout(
-            manager,
-            checkout_info,
-            lines_info,
-            {},
-            False,
-            None,
-            None,
-        )
+        with django_capture_on_commit_callbacks(execute=True):
+            complete_checkout(
+                manager,
+                checkout_info,
+                lines_info,
+                {},
+                False,
+                None,
+                None,
+            )
 
     # then
     payment.refresh_from_db()

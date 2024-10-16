@@ -1,5 +1,4 @@
 import json
-from collections.abc import Iterable
 from typing import Optional
 from urllib.parse import urlencode, urljoin
 
@@ -258,7 +257,7 @@ class AdyenGatewayPlugin(BasePlugin):
         config = self._get_gateway_config()
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
-        elif path.startswith(ADDITIONAL_ACTION_PATH):
+        if path.startswith(ADDITIONAL_ACTION_PATH):
             with opentracing.global_tracer().start_active_span(
                 "adyen.checkout.payment_details"
             ) as scope:
@@ -303,7 +302,7 @@ class AdyenGatewayPlugin(BasePlugin):
         self,
         currency: Optional[str],
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]],
+        checkout_lines: Optional[list["CheckoutLineInfo"]],
         previous_value,
     ) -> list["PaymentGateway"]:
         """Fetch current configuration for given checkout.
@@ -407,8 +406,10 @@ class AdyenGatewayPlugin(BasePlugin):
             return previous_value
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
-        except ObjectDoesNotExist:
-            raise PaymentError("Payment cannot be performed. Payment does not exists.")
+        except ObjectDoesNotExist as e:
+            raise PaymentError(
+                "Payment cannot be performed. Payment does not exists."
+            ) from e
 
         checkout = payment.checkout
         if checkout is None:
@@ -422,7 +423,7 @@ class AdyenGatewayPlugin(BasePlugin):
         return_url = prepare_url(
             params,
             build_absolute_uri(
-                f"/plugins/channel/{self.channel.slug}/"  # type: ignore
+                f"/plugins/channel/{self.channel.slug}/"  # type: ignore[union-attr]
                 f"{self.PLUGIN_ID}/additional-actions"
             ),
         )
@@ -763,10 +764,14 @@ class AdyenGatewayPlugin(BasePlugin):
     ) -> "GatewayResponse":
         if not self.active:
             return previous_value
+
+        if not payment_information.token:
+            raise PaymentError("Cannot find a payment reference to void.")
+
         request = request_for_payment_cancel(
             payment_information=payment_information,
             merchant_account=self.config.connection_params["merchant_account"],
-            token=payment_information.token,  # type: ignore
+            token=payment_information.token,
         )
         with opentracing.global_tracer().start_active_span(
             "adyen.payment.cancel"
@@ -815,7 +820,7 @@ class AdyenGatewayPlugin(BasePlugin):
                     request_data=request_data,
                     certificate=apple_certificate,
                 )
-            except SSLError:
+            except SSLError as e:
                 raise ValidationError(
                     {
                         "apple-pay-cert": ValidationError(
@@ -823,6 +828,6 @@ class AdyenGatewayPlugin(BasePlugin):
                             code=PluginErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from e
             except Exception:
                 pass

@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
 
 def create_or_update_discount_objects_for_order(
     order: "Order",
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     create_or_update_discount_objects_from_promotion_for_order(
@@ -46,7 +45,7 @@ def create_or_update_discount_objects_for_order(
 
 def create_or_update_discount_objects_from_promotion_for_order(
     order: "Order",
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     create_order_line_discount_objects_for_catalogue_promotions(lines_info)
@@ -58,23 +57,23 @@ def create_or_update_discount_objects_from_promotion_for_order(
 
 
 def create_order_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
     create_order_line_discount_objects(lines_info, discount_data)
 
 
 def create_order_line_discount_objects(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
     discount_data: tuple[
         list[dict],
-        list["OrderLineDiscount"],
-        list["OrderLineDiscount"],
+        list[OrderLineDiscount],
+        list[OrderLineDiscount],
         list[str],
     ],
-):
+) -> None | list["EditableOrderLineInfo"]:
     if not discount_data or not lines_info:
-        return
+        return None
 
     (
         discounts_to_create_inputs,
@@ -88,7 +87,7 @@ def create_order_line_discount_objects(
         with transaction.atomic():
             # Protect against potential thread race. OrderLine object can have only
             # single catalogue discount applied.
-            order_id = lines_info[0].line.order_id  # type: ignore[index]
+            order_id = lines_info[0].line.order_id
             _order_lock = list(
                 Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
             )
@@ -126,7 +125,7 @@ def create_order_line_discount_objects(
 
 
 def _copy_unit_discount_data_to_order_line(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
         if discounts := line_info.discounts:
@@ -152,7 +151,7 @@ def _copy_unit_discount_data_to_order_line(
 
 
 def _update_base_unit_price_amount_for_catalogue_promotion(
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
         line = line_info.line
@@ -165,7 +164,7 @@ def _update_base_unit_price_amount_for_catalogue_promotion(
 
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     # If voucher is set or manual discount applied, then skip order promotions
@@ -197,7 +196,7 @@ def create_order_discount_objects_for_order_promotions(
         return
 
 
-def _set_order_base_prices(order: Order, lines_info: Iterable["EditableOrderLineInfo"]):
+def _set_order_base_prices(order: Order, lines_info: list["EditableOrderLineInfo"]):
     """Set base order prices that includes only catalogue discounts."""
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
@@ -220,7 +219,7 @@ def _set_order_base_prices(order: Order, lines_info: Iterable["EditableOrderLine
 @allow_writer()
 def _clear_order_discount(
     order_or_checkout: Order,
-    lines_info: Iterable["EditableOrderLineInfo"],
+    lines_info: list["EditableOrderLineInfo"],
 ):
     with transaction.atomic():
         delete_gift_line(order_or_checkout, lines_info)

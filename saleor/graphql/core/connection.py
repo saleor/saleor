@@ -54,9 +54,9 @@ def from_global_cursor(cursor) -> list[str]:
 def get_field_value(instance: DjangoModel, field_name: str):
     """Get field value for given field in filter format 'field__foreign_key_field'."""
     field_path = field_name.split("__")
-    attr = instance
+    attr: Any = instance
     for elem in field_path:
-        attr = getattr(attr, elem, None)  # type:ignore
+        attr = getattr(attr, elem, None)
 
     if callable(attr):
         return f"{attr()}"
@@ -73,8 +73,8 @@ def _prepare_filter_by_rank_expression(
     try:
         rank = Decimal(cursor[0])
         id = coerce_id(cursor[1])
-    except (InvalidOperation, ValueError, TypeError):
-        raise GraphQLError("Received cursor is invalid.")
+    except (InvalidOperation, ValueError, TypeError) as e:
+        raise GraphQLError("Received cursor is invalid.") from e
 
     # Because rank is float number, it gets mangled by PostgreSQL's query parser
     # making equal comparisons impossible. Instead we compare rank against small
@@ -168,9 +168,9 @@ def _get_sorting_fields(sort_by, qs):
     sorting_attribute = sort_by.get("attribute_id")
     if sorting_fields and not isinstance(sorting_fields, list):
         return [sorting_fields]
-    elif not sorting_fields and sorting_attribute is not None:
+    if not sorting_fields and sorting_attribute is not None:
         return qs.model.sort_by_attribute_fields()
-    elif not sorting_fields:
+    if not sorting_fields:
         raise ValueError("Error while preparing cursor values.")
     return sorting_fields
 
@@ -224,7 +224,7 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
 
     matching_records = list(qs)
     if last:
-        matching_records = list(reversed(matching_records))
+        matching_records.reverse()
         if len(matching_records) <= requested_count:
             start_slice = 0
     page_info = _get_page_info(matching_records, cursor, first, last)
@@ -270,8 +270,8 @@ def connection_from_queryset_slice(
     cursor = after or before
     try:
         cursor = from_global_cursor(cursor) if cursor else None
-    except ValueError:
-        raise GraphQLError("Received cursor is invalid.")
+    except ValueError as e:
+        raise GraphQLError("Received cursor is invalid.") from e
 
     sort_by = args.get("sort_by", {})
     sorting_fields = _get_sorting_fields(sort_by, qs)
@@ -290,8 +290,8 @@ def connection_from_queryset_slice(
     )
     try:
         filtered_qs = qs.filter(filter_kwargs)
-    except ValueError:
-        raise GraphQLError("Received cursor is invalid.")
+    except ValueError as e:
+        raise GraphQLError("Received cursor is invalid.") from e
     filtered_qs = filtered_qs[:end_margin]
     edges, page_info = _get_edges_for_connection(
         edge_type, filtered_qs, args, sorting_fields
@@ -610,7 +610,7 @@ def where_filter_qs(
 
 
 def contains_filter_operator(input: dict[str, Union[dict, str]]):
-    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+    return any(operator in input for operator in ["AND", "OR", "NOT"])
 
 
 def _handle_and_filter_input(

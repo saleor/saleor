@@ -1,5 +1,4 @@
-from collections.abc import Iterable
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -12,7 +11,7 @@ from ..core.utils.events import (
 from ..payment.models import TransactionItem
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_multiple_events
-from . import CheckoutChargeStatus
+from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .calculations import fetch_checkout_data
 from .fetch import (
     CheckoutInfo,
@@ -24,7 +23,8 @@ from .models import Checkout
 from .payment_utils import update_refundable_for_checkout
 
 if TYPE_CHECKING:
-    from ..account.models import Address
+    from ..account.models import Address, User
+    from ..app.models import App
     from ..webhook.models import Webhook
 
 from ..plugins.manager import PluginsManager
@@ -80,7 +80,7 @@ def call_checkout_event(
 def _trigger_checkout_sync_webhooks(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     webhook_event_map: dict[str, set["Webhook"]],
     address: Optional["Address"] = None,
 ):
@@ -90,7 +90,7 @@ def _trigger_checkout_sync_webhooks(
     # valid prices. Triggered only when we have active sync tax webhook.
     if webhook_event_map.get(
         WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    ) and checkout_info.checkout.price_expiration < timezone.now() + timedelta(
+    ) and checkout_info.checkout.price_expiration < timezone.now() + datetime.timedelta(
         seconds=10
     ):
         fetch_checkout_data(
@@ -150,10 +150,10 @@ def call_checkout_info_event(
     manager: "PluginsManager",
     event_name: str,
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
-):
+) -> None:
     checkout = checkout_info.checkout
     if webhook_event_map is None:
         webhook_event_map = get_webhooks_for_multiple_events(
@@ -175,7 +175,7 @@ def call_checkout_info_event(
         possible_sync_events=WebhookEventSyncType.CHECKOUT_EVENTS,
     ):
         call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
-        return None
+        return
 
     _trigger_checkout_sync_webhooks(
         manager,
@@ -186,7 +186,7 @@ def call_checkout_info_event(
     )
 
     call_event_including_protected_events(event_func, checkout, webhooks=webhooks)
-    return None
+    return
 
 
 def update_last_transaction_modified_at_for_checkout(
@@ -203,13 +203,18 @@ def update_last_transaction_modified_at_for_checkout(
 def transaction_amounts_for_checkout_updated(
     transaction: TransactionItem,
     manager: "PluginsManager",
+    user: Optional["User"],
+    app: Optional["App"],
 ):
+    from .tasks import automatic_checkout_completion_task
+
     if not transaction.checkout_id:
         return
     checkout = cast(Checkout, transaction.checkout)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     previous_charge_status = checkout_info.checkout.charge_status
+    previous_authorize_status = checkout_info.checkout.authorize_status
     fetch_checkout_data(checkout_info, manager, lines, force_status_update=True)
     previous_charge_status_is_fully_paid = previous_charge_status in [
         CheckoutChargeStatus.FULL,
@@ -239,3 +244,17 @@ def transaction_amounts_for_checkout_updated(
             checkout_info=checkout_info,
             lines=lines,
         )
+
+    channel = checkout_info.channel
+    if (
+        channel.automatically_complete_fully_paid_checkouts
+        and
+        # ensure that checkout completion is triggered only once
+        (
+            previous_authorize_status != CheckoutAuthorizeStatus.FULL
+            and checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+        )
+    ):
+        user_id = user.id if user else None
+        app_id = app.id if app else None
+        automatic_checkout_completion_task.delay(checkout.pk, user_id, app_id)

@@ -36,8 +36,10 @@ mutation TaxCountryConfigurationUpdate($countryCode: CountryCode!,
 def update_country_tax_rates(
     staff_api_client,
     country_code,
-    update_tax_class_rates=[],
+    update_tax_class_rates=None,
 ):
+    if update_tax_class_rates is None:
+        update_tax_class_rates = []
     variables = {
         "countryCode": country_code,
         "updateTaxClassRates": update_tax_class_rates,

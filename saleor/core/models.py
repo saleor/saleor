@@ -2,8 +2,7 @@ import datetime
 from collections.abc import Iterable
 from typing import Any, TypeVar
 
-import pytz
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import GinIndex, PostgresIndex
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
@@ -51,7 +50,7 @@ T = TypeVar("T", bound="PublishableModel")
 
 class PublishedQuerySet(models.QuerySet[T]):
     def published(self):
-        today = datetime.datetime.now(pytz.UTC)
+        today = datetime.datetime.now(tz=datetime.UTC)
         return self.filter(
             Q(published_at__lte=today) | Q(published_at__isnull=True),
             is_published=True,
@@ -74,7 +73,7 @@ class PublishableModel(models.Model):
     def is_visible(self):
         return self.is_published and (
             self.published_at is None
-            or self.published_at <= datetime.datetime.now(pytz.UTC)
+            or self.published_at <= datetime.datetime.now(tz=datetime.UTC)
         )
 
 
@@ -85,7 +84,7 @@ class ModelWithMetadata(models.Model):
     metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
-        indexes = [
+        indexes: list[PostgresIndex] = [
             GinIndex(fields=["private_metadata"], name="%(class)s_p_meta_idx"),
             GinIndex(fields=["metadata"], name="%(class)s_meta_idx"),
         ]
@@ -188,6 +187,12 @@ class EventPayload(models.Model):
         file_name = f"{self.pk}.json"
         file_path = safe_join(prefix, file_name)
         self.payload_file.save(file_path, ContentFile(payload_bytes))
+
+    def save_as_file(self):
+        payload_data = self.payload
+        self.payload = ""
+        self.save()
+        self.save_payload_file(payload_data)
 
 
 class EventDelivery(models.Model):

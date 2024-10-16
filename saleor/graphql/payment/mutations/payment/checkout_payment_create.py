@@ -21,7 +21,7 @@ from ....account.i18n import I18nMixin
 from ....checkout.mutations.utils import get_checkout
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31, ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ....core.descriptions import DEPRECATED_IN_3X_INPUT
 from ....core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
@@ -64,13 +64,13 @@ class PaymentInput(BaseInputObjectType):
         ),
     )
     store_payment_method = StorePaymentMethodEnum(
-        description="Payment store type." + ADDED_IN_31,
+        description="Payment store type.",
         required=False,
         default_value=StorePaymentMethodEnum.NONE.name,
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description="User public metadata." + ADDED_IN_31,
+        description="User public metadata.",
         required=False,
     )
 
@@ -84,7 +84,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -169,10 +169,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             return
         try:
             validate_storefront_url(return_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error}, code=PaymentErrorCode.INVALID.value
-            )
+                {"redirect_url": e}, code=PaymentErrorCode.INVALID.value
+            ) from e
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):

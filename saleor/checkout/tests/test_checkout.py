@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 
 import graphene
 import pytest
-import pytz
 from django.utils import timezone
 from django_countries.fields import Country
 from freezegun import freeze_time
@@ -361,23 +360,23 @@ def test_clear_delivery_method(checkout, shipping_method):
 
 
 def test_last_change_update(checkout):
-    with freeze_time(datetime.datetime.now()) as frozen_datetime:
-        assert checkout.last_change != frozen_datetime()
+    with freeze_time(datetime.datetime.now(tz=datetime.UTC)):
+        assert checkout.last_change != datetime.datetime.now(tz=datetime.UTC)
 
         checkout.note = "Sample note"
         checkout.save()
 
-        assert checkout.last_change == pytz.utc.localize(frozen_datetime())
+        assert checkout.last_change == datetime.datetime.now(tz=datetime.UTC)
 
 
 def test_last_change_update_foreign_key(checkout, shipping_method):
-    with freeze_time(datetime.datetime.now()) as frozen_datetime:
-        assert checkout.last_change != frozen_datetime()
+    with freeze_time(datetime.datetime.now(tz=datetime.UTC)):
+        assert checkout.last_change != datetime.datetime.now(tz=datetime.UTC)
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
 
-        assert checkout.last_change == pytz.utc.localize(frozen_datetime())
+        assert checkout.last_change == datetime.datetime.now(tz=datetime.UTC)
 
 
 @pytest.mark.parametrize(
@@ -1252,7 +1251,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         quantity=total_quantity,
         spec=Checkout,
         channel=channel_USD,
-        get_value_from_private_metadata=Mock(return_value=None),
+        metadata_storage=Mock(get_value_from_private_metadata=Mock(return_value=None)),
     )
 
     voucher = Voucher.objects.create(

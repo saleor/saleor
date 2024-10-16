@@ -1,5 +1,5 @@
+import datetime
 import logging
-from datetime import timedelta
 
 from django.conf import settings
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
@@ -83,8 +83,8 @@ def _bulk_release_voucher_usage(order_ids):
     suspected_codes = [code.code for code in codes if code.used < code.order_count]
     if suspected_codes:
         logger.error(
-            f"Voucher codes: [{','.join(suspected_codes)}] have been used more times "
-            f"than indicated by `code.used` field."
+            "Voucher codes: [%s] have been used more times than indicated by `code.used` field.",
+            ",".join(suspected_codes),
         )
 
     codes.update(used=Greatest(F("used") - F("order_count"), 0))
@@ -181,7 +181,7 @@ def delete_expired_orders_task():
     channel_qs = Channel.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(
-        delete_expired_orders_after__gt=timedelta(),
+        delete_expired_orders_after__gt=datetime.timedelta(),
         id=OuterRef("channel"),
     )
 
@@ -197,7 +197,7 @@ def delete_expired_orders_task():
             ~Exists(Payment.objects.filter(order=OuterRef("pk"))),
             expired_at__isnull=False,
             status=OrderStatus.EXPIRED,
-            expired_at__lte=now - F("delete_expired_orders_after"),  # type:ignore
+            expired_at__lte=now - F("delete_expired_orders_after"),  # type:ignore[operator]
         )
     )
     ids_batch = qs.values_list("pk", flat=True)[:DELETE_EXPIRED_ORDER_BATCH_SIZE]

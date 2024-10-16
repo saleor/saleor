@@ -1,6 +1,6 @@
 """Checkout-related ORM models."""
 
-from datetime import date
+import datetime
 from decimal import Decimal
 from operator import attrgetter
 from typing import TYPE_CHECKING, Optional
@@ -234,7 +234,7 @@ class Checkout(models.Model):
         """Return the total balance of the gift cards assigned to the checkout."""
         balance = (
             self.gift_cards.using(database_connection_name)
-            .active(date=date.today())
+            .active(date=datetime.datetime.now(tz=datetime.UTC).date())
             .aggregate(models.Sum("current_balance_amount"))[
                 "current_balance_amount__sum"
             ]

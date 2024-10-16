@@ -43,7 +43,7 @@ def update_page_assignment():
             FROM attribute_assignedpageattribute AS apa
             WHERE av.id IN (SELECT id FROM limited)
             AND av.assignment_id = apa.id;
-            """,  # noqa
+            """,
                 [PAGE_BATCH_SIZE],
             )
 

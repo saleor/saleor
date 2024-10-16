@@ -1,16 +1,14 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-import pytz
-from django.utils import timezone
 from freezegun import freeze_time
 
+from ...checkout import CheckoutAuthorizeStatus
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderGrantedRefundStatus
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from .. import TransactionEventType
 from ..interface import (
     PaymentLineData,
@@ -256,19 +254,37 @@ def test_parse_transaction_action_data_with_only_psp_reference():
     [
         (
             "2023-10-17T10:18:28.111Z",
-            datetime(2023, 10, 17, 10, 18, 28, 111000, tzinfo=pytz.UTC),
+            datetime.datetime(2023, 10, 17, 10, 18, 28, 111000, tzinfo=datetime.UTC),
         ),
-        ("2011-11-04", datetime(2011, 11, 4, 0, 0)),
-        ("2011-11-04T00:05:23", datetime(2011, 11, 4, 0, 5, 23)),
-        ("2011-11-04T00:05:23Z", datetime(2011, 11, 4, 0, 5, 23, tzinfo=pytz.UTC)),
-        ("20111104T000523", datetime(2011, 11, 4, 0, 5, 23)),
-        ("2011-W01-2T00:05:23.283", datetime(2011, 1, 4, 0, 5, 23, 283000)),
-        ("2011-11-04 00:05:23.283", datetime(2011, 11, 4, 0, 5, 23, 283000)),
+        ("2011-11-04", datetime.datetime(2011, 11, 4, 0, 0, tzinfo=datetime.UTC)),
+        (
+            "2011-11-04T00:05:23",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.UTC),
+        ),
+        (
+            "2011-11-04T00:05:23Z",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.UTC),
+        ),
+        (
+            "20111104T000523",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, tzinfo=datetime.UTC),
+        ),
+        (
+            "2011-W01-2T00:05:23.283",
+            datetime.datetime(2011, 1, 4, 0, 5, 23, 283000, tzinfo=datetime.UTC),
+        ),
+        (
+            "2011-11-04 00:05:23.283",
+            datetime.datetime(2011, 11, 4, 0, 5, 23, 283000, tzinfo=datetime.UTC),
+        ),
         (
             "2011-11-04 00:05:23.283+00:00",
-            datetime(2011, 11, 4, 0, 5, 23, 283000, tzinfo=pytz.UTC),
+            datetime.datetime(2011, 11, 4, 0, 5, 23, 283000, tzinfo=datetime.UTC),
         ),
-        ("1994-11-05T13:15:30Z", datetime(1994, 11, 5, 13, 15, 30, tzinfo=pytz.UTC)),
+        (
+            "1994-11-05T13:15:30Z",
+            datetime.datetime(1994, 11, 5, 13, 15, 30, tzinfo=datetime.UTC),
+        ),
     ],
 )
 def test_parse_transaction_action_data_with_provided_time(
@@ -328,7 +344,7 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     assert isinstance(parsed_data.event, TransactionRequestEventResponse)
     assert parsed_data.event.psp_reference == expected_psp_reference
     assert parsed_data.event.amount == event_amount
-    assert parsed_data.event.time == datetime.fromisoformat(event_time)
+    assert parsed_data.event.time == datetime.datetime.fromisoformat(event_time)
     assert parsed_data.event.external_url == event_url
     assert parsed_data.event.message == event_cause
     assert parsed_data.event.type == event_type
@@ -386,7 +402,7 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     assert parsed_data.event.psp_reference == expected_psp_reference
     assert parsed_data.event.type == TransactionEventType.CHARGE_SUCCESS
     assert parsed_data.event.amount == expected_amount
-    assert parsed_data.event.time == timezone.now()
+    assert parsed_data.event.time == datetime.datetime.now(tz=datetime.UTC)
     assert parsed_data.event.external_url == ""
     assert parsed_data.event.message == ""
 
@@ -623,7 +639,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == amount
-    assert event.created_at == timezone.now()
+    assert event.created_at == datetime.datetime.now(tz=datetime.UTC)
     assert event.external_url == ""
     assert event.message == ""
     assert event.type == TransactionEventType.CHARGE_SUCCESS
@@ -677,6 +693,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -700,12 +717,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
     assert order.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
@@ -724,6 +741,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_partially_
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -747,12 +765,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_partially_
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
@@ -771,6 +789,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_refu
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -794,12 +813,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_refu
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
 
     mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
@@ -818,6 +837,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_partially_refun
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -841,12 +861,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_partially_refun
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
 
     assert not mock_order_fully_refunded.called
@@ -863,6 +883,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
     transaction_item_generator,
     app,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     order = order_with_lines
@@ -886,12 +907,12 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
 
     # then
-    flush_post_commit_hooks()
     order.refresh_from_db()
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.FULL
     assert not mock_order_fully_paid.called
@@ -974,17 +995,218 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     # then
     transaction.refresh_from_db()
     assert len(transaction.available_actions) == 2
-    assert set(transaction.available_actions) == set(["charge", "cancel"])
+    assert set(transaction.available_actions) == {"charge", "cancel"}
     assert transaction.events.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == event_amount
-    assert event.created_at == datetime.fromisoformat(event_time)
+    assert event.created_at == datetime.datetime.fromisoformat(event_time)
     assert event.external_url == event_url
     assert event.message == event_cause
     assert event.type == event_type
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_paid(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_automatic_checkout_completion_task.assert_not_called()
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_authorized(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+
+    channel = checkout.channel
+    assert channel.automatically_complete_fully_paid_checkouts is False
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_not_called()
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_paid_triggers_checkout_completion(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+    plugins_manager,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
+    )
+
+
+@patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_create_transaction_event_from_request_when_authorized_triggers_checkout_completion(
+    mocked_checkout_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    transaction_item_generator,
+    app,
+    checkout_with_prices,
+    plugins_manager,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=checkout.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = checkout.total.gross.amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_from_request_and_webhook_response(
+            request_event, app, response_data
+        )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_checkout_fully_paid.assert_not_called()
+    mocked_automatic_checkout_completion_task.assert_called_once_with(
+        checkout.pk, None, app.id
+    )
 
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(
@@ -1937,6 +2159,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
     webhook_app,
     plugins_manager,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     expected_amount = Decimal("15")
@@ -1948,16 +2171,16 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
         transaction=transaction, include_in_calculations=False
     )
     # when
-    create_transaction_event_for_transaction_session(
-        request_event,
-        webhook_app,
-        manager=plugins_manager,
-        transaction_webhook_response=response,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_for_transaction_session(
+            request_event,
+            webhook_app,
+            manager=plugins_manager,
+            transaction_webhook_response=response,
+        )
 
     # then
     order_with_lines.refresh_from_db()
-    flush_post_commit_hooks()
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
@@ -1972,6 +2195,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
     webhook_app,
     plugins_manager,
     order_with_lines,
+    django_capture_on_commit_callbacks,
 ):
     # given
     response = transaction_session_response.copy()
@@ -1983,16 +2207,16 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
     )
 
     # when
-    create_transaction_event_for_transaction_session(
-        request_event,
-        webhook_app,
-        manager=plugins_manager,
-        transaction_webhook_response=response,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        create_transaction_event_for_transaction_session(
+            request_event,
+            webhook_app,
+            manager=plugins_manager,
+            transaction_webhook_response=response,
+        )
 
     # then
     order_with_lines.refresh_from_db()
-    flush_post_commit_hooks()
     mock_order_fully_paid.assert_called_once_with(order_with_lines, webhooks=set())
     mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
@@ -2036,7 +2260,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
     # then
     transaction.refresh_from_db()
     assert len(transaction.available_actions) == 3
-    assert set(transaction.available_actions) == set(["refund", "charge", "cancel"])
+    assert set(transaction.available_actions) == {"refund", "charge", "cancel"}
 
 
 @pytest.mark.parametrize(
@@ -2119,7 +2343,7 @@ def test_create_transaction_event_from_request_and_webhook_updates_modified_at(
 
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         create_transaction_event_from_request_and_webhook_response(
             request_event, app, response_data
         )
@@ -2151,7 +2375,7 @@ def test_create_transaction_event_updates_transaction_modified_at(
 
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         create_transaction_event_for_transaction_session(
             request_event,
             webhook_app,
@@ -2262,7 +2486,7 @@ def test_create_transaction_event_updates_transaction_modified_at_for_failure(
 
     # when
     with freeze_time("2023-03-18 12:00:00"):
-        calculation_time = datetime.now(pytz.UTC)
+        calculation_time = datetime.datetime.now(tz=datetime.UTC)
         create_transaction_event_for_transaction_session(
             request_event,
             webhook_app,
@@ -2705,7 +2929,7 @@ def test_get_transaction_event_amount_match_the_newest_event(
     )
     newest_event = events[-1]
     for event in events[:-1]:
-        event.created_at = newest_event.created_at - timedelta(minutes=10)
+        event.created_at = newest_event.created_at - datetime.timedelta(minutes=10)
     TransactionEvent.objects.bulk_update(events[:-1], ["created_at"])
 
     # when

@@ -10,6 +10,10 @@ mutation DraftOrderComplete($id: ID!) {
     }
     order {
       id
+      user {
+        id
+        email
+      }
       undiscountedTotal {
         ...BaseTaxedMoney
       }
@@ -52,6 +56,7 @@ mutation DraftOrderComplete($id: ID!) {
         }
       }
       lines {
+        id
         productVariantId
         quantity
         unitDiscount {

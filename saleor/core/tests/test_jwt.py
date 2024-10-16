@@ -76,9 +76,11 @@ def test_create_access_token_for_app_extension_staff_user_with_more_permissions(
         decoded_token["app_extension"]
     )
     _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
-    assert set(decoded_token["user_permissions"]) == set(
-        ["MANAGE_CHANNELS", "MANAGE_APPS", "MANAGE_PRODUCTS"]
-    )
+    assert set(decoded_token["user_permissions"]) == {
+        "MANAGE_CHANNELS",
+        "MANAGE_APPS",
+        "MANAGE_PRODUCTS",
+    }
     assert int(decode_extension_id) == extension.id
     assert int(decode_app_id) == app.id
     assert decoded_token["aud"] == audience

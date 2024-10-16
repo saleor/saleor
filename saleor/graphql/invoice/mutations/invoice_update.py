@@ -8,7 +8,6 @@ from ....order import events as order_events
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_314
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, InvoiceError, NonNullList
@@ -21,14 +20,12 @@ class UpdateInvoiceInput(BaseInputObjectType):
     url = graphene.String(description="URL of an invoice to download.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the invoice metadata." + ADDED_IN_314,
+        description="Fields required to update the invoice metadata.",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the invoice private metadata." + ADDED_IN_314
-        ),
+        description=("Fields required to update the invoice private metadata."),
         required=False,
     )
 

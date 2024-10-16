@@ -1,5 +1,3 @@
-import pytest
-
 from .....order.models import Order
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -15,18 +13,6 @@ DRAFT_ORDER_QUERY = """
         }
     }
 """
-
-
-@pytest.fixture
-def draft_orders_in_different_channels(
-    draft_order_list, channel_USD, channel_JPY, channel_PLN
-):
-    draft_order_list[0].channel = channel_USD
-    draft_order_list[1].channel = channel_JPY
-    draft_order_list[2].channel = channel_PLN
-
-    Order.objects.bulk_update(draft_order_list, ["channel"])
-    return draft_order_list
 
 
 def test_draft_order_query(

@@ -2272,7 +2272,6 @@ def test_draft_order_update_triggers_webhooks(
     app_api_client,
     permission_manage_orders,
     draft_order,
-    django_capture_on_commit_callbacks,
     settings,
 ):
     # given
@@ -2305,10 +2304,9 @@ def test_draft_order_update_triggers_webhooks(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_orders,)
-        )
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2330,7 +2328,9 @@ def test_draft_order_update_triggers_webhooks(
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=draft_order_updated_webhook.id
+    ).exists()
 
     tax_delivery_call, filter_shipping_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -2367,7 +2367,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     app_api_client,
     permission_manage_orders,
     draft_order,
-    django_capture_on_commit_callbacks,
     settings,
 ):
     # given
@@ -2390,10 +2389,9 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = app_api_client.post_graphql(
-            query, variables, permissions=(permission_manage_orders,)
-        )
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
 
     # then
     content = get_graphql_content(response)
@@ -2417,7 +2415,9 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
 
     # confirm each sync webhook was called without saving event delivery
     mocked_send_webhook_request_sync.assert_called_once()
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=draft_order_updated_webhook.id
+    ).exists()
 
     filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
 

@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -28,7 +27,7 @@ if TYPE_CHECKING:
 
 def create_or_update_discount_objects_from_promotion_for_checkout(
     checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
@@ -38,7 +37,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
 
 
 def create_checkout_line_discount_objects_for_catalogue_promotions(
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
 ):
     discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
     if not discount_data or not lines_info:
@@ -56,7 +55,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         with transaction.atomic():
             # Protect against potential thread race. CheckoutLine object can have only
             # single catalogue discount applied.
-            checkout_id = lines_info[0].line.checkout_id  # type: ignore[index]
+            checkout_id = lines_info[0].line.checkout_id
             _checkout_lock = list(
                 Checkout.objects.filter(pk=checkout_id).select_for_update(of=(["self"]))
             )
@@ -89,7 +88,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
 
 def create_checkout_discount_objects_for_order_promotions(
     checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
     *,
     save: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -156,7 +155,7 @@ def _set_checkout_base_prices(checkout_info, lines_info):
 
 
 def _clear_checkout_discount(
-    checkout_info: "CheckoutInfo", lines_info: Iterable["CheckoutLineInfo"], save: bool
+    checkout_info: "CheckoutInfo", lines_info: list["CheckoutLineInfo"], save: bool
 ):
     delete_gift_line(checkout_info.checkout, lines_info)
     if checkout_info.discounts:

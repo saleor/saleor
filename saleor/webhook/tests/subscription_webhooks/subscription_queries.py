@@ -2055,6 +2055,125 @@ subscription {
 }
 """
 
+CALCULATE_TAXES_SUBSCRIPTION_QUERY = """
+subscription CalculateTaxes {
+  event {
+    ...CalculateTaxesEvent
+  }
+}
+
+fragment CalculateTaxesEvent on Event {
+  __typename
+  ... on CalculateTaxes {
+    taxBase {
+      ...TaxBase
+    }
+    recipient {
+      privateMetadata {
+        key
+        value
+      }
+    }
+  }
+}
+
+fragment TaxBase on TaxableObject {
+  pricesEnteredWithTax
+  currency
+  channel {
+    slug
+  }
+  discounts {
+    ...TaxDiscount
+  }
+  address {
+    ...Address
+  }
+  shippingPrice {
+    amount
+  }
+  lines {
+    ...TaxBaseLine
+  }
+  sourceObject {
+    __typename
+    ... on Checkout {
+      avataxEntityCode: metafield(key: "avataxEntityCode")
+      user {
+        ...User
+      }
+    }
+    ... on Order {
+      avataxEntityCode: metafield(key: "avataxEntityCode")
+      user {
+        ...User
+      }
+    }
+  }
+}
+
+fragment TaxDiscount on TaxableObjectDiscount {
+  name
+  amount {
+    amount
+  }
+}
+
+fragment Address on Address {
+  streetAddress1
+  streetAddress2
+  city
+  countryArea
+  postalCode
+  country {
+    code
+  }
+}
+
+fragment TaxBaseLine on TaxableObjectLine {
+  sourceLine {
+    __typename
+    ... on CheckoutLine {
+      id
+      checkoutProductVariant: variant {
+        id
+        product {
+          taxClass {
+            id
+            name
+          }
+        }
+      }
+    }
+    ... on OrderLine {
+      id
+      orderProductVariant: variant {
+        id
+        product {
+          taxClass {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+  quantity
+  unitPrice {
+    amount
+  }
+  totalPrice {
+    amount
+  }
+}
+
+fragment User on User {
+  id
+  email
+  avataxCustomerCode: metafield(key: "avataxCustomerCode")
+}
+"""
+
 TranslationTypes = Enum(
     "TranslationTypes",
     {

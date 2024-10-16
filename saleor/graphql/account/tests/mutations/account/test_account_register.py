@@ -196,7 +196,7 @@ def test_customer_register_no_redirect_url(mocked_notify, api_client, site_setti
     errors = response.json()["data"]["accountRegister"]["errors"]
 
     # then
-    assert "redirectUrl" in map(lambda error: error["field"], errors)
+    assert "redirectUrl" in (error["field"] for error in errors)
     mocked_notify.assert_not_called()
 
 

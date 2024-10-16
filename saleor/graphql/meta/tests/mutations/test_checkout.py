@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 import graphene
@@ -391,7 +391,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout.price_expiration = timezone.now() - timedelta(hours=10)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
     checkout.save(update_fields=["price_expiration"])
     # when
     response = execute_update_public_metadata_for_item(
@@ -415,7 +415,9 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 
     # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
 
     shipping_methods_call, filter_shipping_call, tax_delivery_call = (
         mocked_send_webhook_request_sync.mock_calls
@@ -470,7 +472,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout.price_expiration = timezone.now() - timedelta(hours=10)
+    checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
     checkout.save(update_fields=["price_expiration"])
 
     # when
@@ -495,7 +497,9 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
 
     # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
-    # TODO (PE-371): Assert EventDelivery DB object wasn't created
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_metadata_updated_webhook.id
+    ).exists()
 
     shipping_methods_call, filter_shipping_call, tax_delivery_call = (
         mocked_send_webhook_request_sync.mock_calls

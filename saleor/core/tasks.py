@@ -34,14 +34,14 @@ class RestrictWriterDBTask(Task):
 
         func_path = settings.CELERY_RESTRICT_WRITER_METHOD
         if not func_path:
-            return
+            return None
 
         try:
             wrapper_fun = import_string(func_path)
         except ImportError:
             task_logger.error(
-                f"Could not import the function {func_path}. "
-                f"Check if the path is correct."
+                "Could not import the function %s. Check if the path is correct.",
+                func_path,
             )
             return super().__call__(*args, **kwargs)
 

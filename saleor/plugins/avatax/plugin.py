@@ -217,7 +217,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -298,7 +298,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -316,7 +316,7 @@ class AvataxPlugin(BasePlugin):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Optional[Iterable["CheckoutLineInfo"]],
+        lines: Optional[list["CheckoutLineInfo"]],
         previous_value: Any,
     ):
         """Ensure all the data is correct and we can proceed with creation of order.
@@ -406,7 +406,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         previous_value: TaxedMoney,
@@ -458,7 +458,7 @@ class AvataxPlugin(BasePlugin):
 
             if currency == "JPY" and prices_entered_with_tax():
                 if isinstance(base_value, SimpleLazyObject):
-                    base_value = base_value._setupfunc()  # type: ignore
+                    base_value = base_value._setupfunc()  # type: ignore[attr-defined]
 
                 line_gross = Money(
                     base_value.amount - discount_amount, currency=currency
@@ -471,7 +471,7 @@ class AvataxPlugin(BasePlugin):
 
             return TaxedMoney(net=line_net, gross=line_gross)
         if isinstance(base_value, SimpleLazyObject):
-            base_value = base_value._setupfunc()  # type: ignore
+            base_value = base_value._setupfunc()  # type: ignore[attr-defined]
         return TaxedMoney(net=base_value, gross=base_value)
 
     def calculate_order_line_total(
@@ -547,7 +547,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         previous_value: TaxedMoney,
@@ -691,7 +691,7 @@ class AvataxPlugin(BasePlugin):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         previous_value: Decimal,
@@ -730,7 +730,7 @@ class AvataxPlugin(BasePlugin):
     def get_checkout_shipping_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         previous_value: Decimal,
     ):
@@ -744,7 +744,7 @@ class AvataxPlugin(BasePlugin):
     def _get_checkout_tax_data(
         self,
         checkout_info: "CheckoutInfo",
-        lines_info: Iterable["CheckoutLineInfo"],
+        lines_info: list["CheckoutLineInfo"],
         base_value: Union[TaxedMoney, Decimal],
     ):
         if self._skip_plugin(base_value):
@@ -780,7 +780,7 @@ class AvataxPlugin(BasePlugin):
     def _set_checkout_tax_error(
         self,
         checkout_info: "CheckoutInfo",
-        lines_info: Iterable["CheckoutLineInfo"],
+        lines_info: list["CheckoutLineInfo"],
         tax_error_message: str,
     ) -> None:
         app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines_info)
@@ -925,7 +925,7 @@ class AvataxPlugin(BasePlugin):
         ]
 
         all_address_fields = all(
-            [configuration[field] for field in required_from_address_fields]
+            configuration[field] for field in required_from_address_fields
         )
         if not all_address_fields:
             missing_fields.extend(required_from_address_fields)

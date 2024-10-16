@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+from uuid import UUID
 
 from django.db.models import Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
@@ -22,8 +23,11 @@ from ...product.models import ProductVariant
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..core.dataloaders import DataLoader
 
+if TYPE_CHECKING:
+    from .types.sales import SaleChannelListing
 
-class VoucherByIdLoader(DataLoader):
+
+class VoucherByIdLoader(DataLoader[int, Voucher]):
     context_key = "voucher_by_id"
 
     def batch_load(self, keys):
@@ -31,7 +35,7 @@ class VoucherByIdLoader(DataLoader):
         return [vouchers.get(voucher_id) for voucher_id in keys]
 
 
-class VoucherCodeByCodeLoader(DataLoader):
+class VoucherCodeByCodeLoader(DataLoader[str, VoucherCode]):
     context_key = "voucher_code_by_code"
 
     def batch_load(self, keys):
@@ -46,7 +50,7 @@ class VoucherCodeByCodeLoader(DataLoader):
         return [voucher_map.get(code) for code in keys]
 
 
-class CodeByVoucherIDLoader(DataLoader):
+class CodeByVoucherIDLoader(DataLoader[int, VoucherCode]):
     """Fetch voucher code.
 
     This dataloader will be deprecated together with `code` field.
@@ -64,7 +68,7 @@ class CodeByVoucherIDLoader(DataLoader):
         return [voucher_codes_map.get(voucher_id) for voucher_id in keys]
 
 
-class UsedByVoucherIDLoader(DataLoader):
+class UsedByVoucherIDLoader(DataLoader[int, int]):
     """Fetch voucher used.
 
     This dataloader will be deprecated together with `used` field.
@@ -78,13 +82,13 @@ class UsedByVoucherIDLoader(DataLoader):
             .filter(id__in=keys)
             .annotate(max_used=Coalesce(Sum("codes__used"), 0))
         )
-        vouchers_map = {}
+        vouchers_map: dict[int, int] = {}
         for voucher in vouchers:
-            vouchers_map[voucher.id] = voucher.max_used  # type: ignore
+            vouchers_map[voucher.id] = voucher.max_used  # type: ignore[attr-defined]
         return [vouchers_map.get(voucher_id) for voucher_id in keys]
 
 
-class VoucherByCodeLoader(DataLoader):
+class VoucherByCodeLoader(DataLoader[str, Voucher]):
     context_key = "voucher_by_code"
 
     def batch_load(self, codes):
@@ -109,7 +113,9 @@ class VoucherByCodeLoader(DataLoader):
         )
 
 
-class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
+class VoucherChannelListingByVoucherIdAndChannelSlugLoader(
+    DataLoader[tuple[int, str], VoucherChannelListing]
+):
     context_key = "voucherchannelisting_by_voucher_and_channel"
 
     def batch_load(self, keys):
@@ -135,7 +141,9 @@ class VoucherChannelListingByVoucherIdAndChanneSlugLoader(DataLoader):
         ]
 
 
-class VoucherChannelListingByVoucherIdLoader(DataLoader):
+class VoucherChannelListingsByVoucherIdLoader(
+    DataLoader[int, list[VoucherChannelListing]]
+):
     context_key = "voucherchannellisting_by_voucher"
 
     def batch_load(self, keys):
@@ -167,7 +175,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
             .in_bulk(field_name="code")
         )
 
-        vouchers = set([code.voucher for code in voucher_codes_map.values()])
+        vouchers = {code.voucher for code in voucher_codes_map.values()}
         voucher_products = (
             Voucher.products.through.objects.using(self.database_connection_name)
             .filter(voucher__in=vouchers)
@@ -220,7 +228,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
         return voucher_infos
 
 
-class OrderDiscountsByOrderIDLoader(DataLoader):
+class OrderDiscountsByOrderIDLoader(DataLoader[UUID, list[OrderDiscount]]):
     context_key = "orderdiscounts_by_order_id"
 
     def batch_load(self, keys):
@@ -233,7 +241,9 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
         return [discount_map.get(order_id, []) for order_id in keys]
 
 
-class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
+class CheckoutLineDiscountsByCheckoutLineIdLoader(
+    DataLoader[UUID, list[CheckoutLineDiscount]]
+):
     context_key = "checkout_line_discounts_by_checkout_line_id"
 
     def batch_load(self, keys):
@@ -246,7 +256,7 @@ class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
         return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]
 
 
-class CheckoutDiscountByCheckoutIdLoader(DataLoader):
+class CheckoutDiscountByCheckoutIdLoader(DataLoader[UUID, list[CheckoutDiscount]]):
     context_key = "checkout_discount_by_checkout_id"
 
     def batch_load(self, keys):
@@ -261,7 +271,7 @@ class CheckoutDiscountByCheckoutIdLoader(DataLoader):
         ]
 
 
-class PromotionRulesByPromotionIdLoader(DataLoader):
+class PromotionRulesByPromotionIdLoader(DataLoader[int, list[PromotionRule]]):
     context_key = "promotion_rules_by_promotion_id"
 
     def batch_load(self, keys):
@@ -277,7 +287,7 @@ class PromotionRulesByPromotionIdLoader(DataLoader):
         return [rules_map.get(promotion_id, []) for promotion_id in keys]
 
 
-class PromotionEventsByPromotionIdLoader(DataLoader):
+class PromotionEventsByPromotionIdLoader(DataLoader[int, list[PromotionEvent]]):
     context_key = "promotion_events_by_promotion_id"
 
     def batch_load(self, keys):
@@ -293,7 +303,7 @@ class PromotionEventsByPromotionIdLoader(DataLoader):
         return [events_map.get(promotion_id, []) for promotion_id in keys]
 
 
-class PromotionByIdLoader(DataLoader):
+class PromotionByIdLoader(DataLoader[int, Promotion]):
     context_key = "promotion_by_id"
 
     def batch_load(self, keys):
@@ -303,7 +313,7 @@ class PromotionByIdLoader(DataLoader):
         return [promotions.get(id) for id in keys]
 
 
-class ChannelsByPromotionRuleIdLoader(DataLoader):
+class ChannelsByPromotionRuleIdLoader(DataLoader[int, list[Channel]]):
     context_key = "channels_by_promotion_rule_id"
 
     def batch_load(self, keys):
@@ -324,7 +334,7 @@ class ChannelsByPromotionRuleIdLoader(DataLoader):
         return [rule_to_channels_map.get(rule_id, []) for rule_id in keys]
 
 
-class PromotionRuleByIdLoader(DataLoader):
+class PromotionRuleByIdLoader(DataLoader[int, PromotionRule]):
     context_key = "promotion_rule_by_id"
 
     def batch_load(self, keys):
@@ -332,7 +342,7 @@ class PromotionRuleByIdLoader(DataLoader):
         return [rules.get(id) for id in keys]
 
 
-class PromotionByRuleIdLoader(DataLoader):
+class PromotionByRuleIdLoader(DataLoader[int, Promotion]):
     context_key = "promotion_by_rule_id"
 
     def batch_load(self, keys):
@@ -348,7 +358,9 @@ class PromotionByRuleIdLoader(DataLoader):
         return [promotion_map.get(rule_id) for rule_id in keys]
 
 
-class SaleChannelListingByPromotionIdLoader(DataLoader):
+class SaleChannelListingByPromotionIdLoader(
+    DataLoader[int, list["SaleChannelListing"]]
+):
     context_key = "sale_channel_listing_by_promotion_id"
 
     def batch_load(self, keys):
@@ -387,7 +399,9 @@ class SaleChannelListingByPromotionIdLoader(DataLoader):
         )
 
 
-class PromotionRulesByPromotionIdAndChannelSlugLoader(DataLoader):
+class PromotionRulesByPromotionIdAndChannelSlugLoader(
+    DataLoader[tuple[int, str], list[PromotionRule]]
+):
     context_key = "promotion_rules_by_promotion_id_and_channel_slug"
 
     def batch_load(self, keys):
@@ -419,7 +433,7 @@ class PromotionRulesByPromotionIdAndChannelSlugLoader(DataLoader):
         return Promise.all([channel, promotion_ids]).then(with_channel)
 
 
-class PredicateByPromotionIdLoader(DataLoader):
+class PredicateByPromotionIdLoader(DataLoader[int, dict]):
     context_key = "predicate_by_promotion_id_and_channel_slug"
 
     def batch_load(self, keys):
@@ -453,7 +467,7 @@ class PredicateByPromotionIdLoader(DataLoader):
         )
 
 
-class GiftsByPromotionRuleIDLoader(DataLoader):
+class GiftsByPromotionRuleIDLoader(DataLoader[int, list[ProductVariant]]):
     context_key = "gifts_by_promotion_rule"
 
     def batch_load(self, keys):

@@ -5,7 +5,6 @@ from .....account.error_codes import AccountErrorCode
 from .....account.throttling import authenticate_with_throttling
 from .....core.jwt import create_access_token, create_refresh_token
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_38
 from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
@@ -24,7 +23,7 @@ class CreateToken(BaseMutation):
             required=False,
             description=(
                 "The audience that will be included to JWT tokens with "
-                "prefix `custom:`." + ADDED_IN_38
+                "prefix `custom:`."
             ),
         )
 

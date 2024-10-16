@@ -3,6 +3,7 @@ import importlib
 import json
 from inspect import isclass
 from typing import Any, Optional, Union
+from urllib.parse import urljoin
 
 import opentracing
 import opentracing.tags
@@ -100,8 +101,10 @@ class GraphQLView(View):
             module_path, class_name = ".".join(parts[:-1]), parts[-1]
             module = importlib.import_module(module_path)
             return getattr(module, class_name)
-        except (ImportError, AttributeError):
-            raise ImportError(f"Cannot import '{middleware_name}' graphene middleware!")
+        except (ImportError, AttributeError) as e:
+            raise ImportError(
+                f"Cannot import '{middleware_name}' graphene middleware!"
+            ) from e
 
     @observability.report_view
     def dispatch(self, request, *args, **kwargs):
@@ -110,21 +113,26 @@ class GraphQLView(View):
             if settings.PLAYGROUND_ENABLED:
                 return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-        elif request.method == "POST":
+        if request.method == "POST":
             return self.handle_query(request)
-        else:
-            if settings.PLAYGROUND_ENABLED:
-                return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
-            else:
-                return HttpResponseNotAllowed(["OPTIONS", "POST"])
+        if settings.PLAYGROUND_ENABLED:
+            return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
+        return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
+        if settings.PUBLIC_URL:
+            api_url = urljoin(settings.PUBLIC_URL, str(API_PATH))
+            plugins_url = urljoin(settings.PUBLIC_URL, "/plugins/")
+        else:
+            api_url = request.build_absolute_uri(str(API_PATH))
+            plugins_url = request.build_absolute_uri("/plugins/")
+
         return render(
             request,
             "graphql/playground.html",
             {
-                "api_url": request.build_absolute_uri(str(API_PATH)),
-                "plugins_url": request.build_absolute_uri("/plugins/"),
+                "api_url": api_url,
+                "plugins_url": plugins_url,
             },
         )
 

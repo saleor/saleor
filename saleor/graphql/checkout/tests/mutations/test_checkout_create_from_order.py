@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+import datetime
 
 import graphene
-import pytz
 
 from .....checkout.error_codes import CheckoutCreateFromOrderUnavailableVariantErrorCode
 from .....checkout.models import Checkout
@@ -527,7 +526,7 @@ def test_checkout_create_from_order_variant_not_available_for_purchase(
     user_api_client, order_with_lines
 ):
     # given
-    available_at = datetime.now(pytz.UTC) + timedelta(days=2)
+    available_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=2)
     order_with_lines.user = user_api_client.user
     order_with_lines.save()
     Stock.objects.update(quantity=10)
