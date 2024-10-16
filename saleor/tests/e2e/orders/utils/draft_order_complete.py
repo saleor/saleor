@@ -10,6 +10,10 @@ mutation DraftOrderComplete($id: ID!) {
     }
     order {
       id
+      user {
+        id
+        email
+      }
       undiscountedTotal {
         ...BaseTaxedMoney
       }
