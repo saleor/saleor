@@ -1231,7 +1231,9 @@ def _create_order_from_checkout(
 
     # voucher
     voucher = checkout_info.voucher
-    voucher_code = checkout_info.checkout.voucher_code
+    voucher_code = (
+        checkout_info.voucher_code.code if checkout_info.voucher_code else None
+    )
 
     # shipping
     undiscounted_base_shipping_price = base_checkout_undiscounted_delivery_price(
