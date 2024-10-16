@@ -3696,7 +3696,10 @@ def test_draft_order_create_triggers_webhooks(
         webhook_id=draft_order_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": draft_order_created_delivery.id},
+        kwargs={
+            "event_delivery_id": draft_order_created_delivery.id,
+            "deferred_payload_data": {},
+        },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

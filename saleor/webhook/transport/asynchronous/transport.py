@@ -2,10 +2,8 @@ import datetime
 import json
 import logging
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 from urllib.parse import urlparse
-from uuid import UUID
 
 from celery import group
 from celery.utils.log import get_task_logger
@@ -31,6 +29,8 @@ from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
 from ..utils import (
+    DeferredPayloadData,
+    RequestorModelName,
     WebhookResponse,
     WebhookSchemes,
     attempt_update,
@@ -39,6 +39,7 @@ from ..utils import (
     delivery_update,
     get_delivery_for_webhook,
     handle_webhook_retry,
+    prepare_deferred_payload_data,
     send_webhook_using_scheme_method,
 )
 
@@ -50,21 +51,6 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(f"{__name__}.celery")
 
 OBSERVABILITY_QUEUE_NAME = "observability"
-
-
-class RequestorModelName:
-    # lowercase, as it is returned as such by `model._meta.model_name`
-    APP = "app.app"
-    USER = "account.user"
-
-
-@dataclass
-class DeferredPayloadData:
-    model_name: str
-    model_id: Union[int, UUID]
-    requestor_model_name: Optional[str]
-    requestor_model_id: Optional[Union[int, UUID]]
-    request_time: Optional[datetime.datetime]
 
 
 def create_deliveries_for_subscriptions_deferred_payload(
@@ -282,9 +268,9 @@ def trigger_webhooks_async(
                     )
                 )
 
-    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(
-        WebhookEventAsyncType.CHECKOUT_UPDATED, {}
-    ).get("is_deferred_payload", False)
+    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(event_type, {}).get(
+        "is_deferred_payload", False
+    )
 
     # Subscription webhooks are those that have a subscription query. Depending on the
     # `defer_payload_generation` flag, deliveries are created with or without the
@@ -299,21 +285,9 @@ def trigger_webhooks_async(
                 )
             )
 
-            model_name = f"{subscribable_object._meta.app_label}.{subscribable_object._meta.model_name}"
-            requestor_model_name = (
-                f"{requestor._meta.app_label}.{requestor._meta.model_name}"
-                if requestor
-                else None
+            deferred_payload_data = prepare_deferred_payload_data(
+                subscribable_object, requestor, request_time
             )
-
-            payload_data_obj = DeferredPayloadData(
-                model_name=model_name,
-                model_id=subscribable_object.pk,
-                request_time=request_time,
-                requestor_model_name=requestor_model_name,
-                requestor_model_id=(requestor.pk if requestor else None),
-            )
-            deferred_payload_data = asdict(payload_data_obj)
         else:
             deliveries.extend(
                 create_deliveries_for_subscriptions(

@@ -1,13 +1,15 @@
+import datetime
 import decimal
 import hashlib
 import json
 import logging
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from time import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 from urllib.parse import unquote, urlparse, urlunparse
+from uuid import UUID
 
 import boto3
 from botocore.exceptions import ClientError
@@ -84,6 +86,42 @@ class WebhookResponse:
     response_status_code: Optional[int] = None
     status: str = EventDeliveryStatus.SUCCESS
     duration: float = 0.0
+
+
+class RequestorModelName:
+    # lowercase, as it is returned as such by `model._meta.model_name`
+    APP = "app.app"
+    USER = "account.user"
+
+
+@dataclass
+class DeferredPayloadData:
+    model_name: str
+    model_id: Union[int, UUID]
+    requestor_model_name: Optional[str]
+    requestor_model_id: Optional[Union[int, UUID]]
+    request_time: Optional[datetime.datetime]
+
+
+def prepare_deferred_payload_data(subscribable_object, requestor, request_time):
+    model_name = (
+        f"{subscribable_object._meta.app_label}.{subscribable_object._meta.model_name}"
+    )
+    requestor_model_name = (
+        f"{requestor._meta.app_label}.{requestor._meta.model_name}"
+        if requestor
+        else None
+    )
+
+    payload_data_obj = DeferredPayloadData(
+        model_name=model_name,
+        model_id=subscribable_object.pk,
+        request_time=request_time,
+        requestor_model_name=requestor_model_name,
+        requestor_model_id=(requestor.pk if requestor else None),
+    )
+    deferred_payload_data = asdict(payload_data_obj)
+    return deferred_payload_data
 
 
 def generate_cache_key_for_webhook(

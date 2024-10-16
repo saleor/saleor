@@ -9568,6 +9568,10 @@ def setup_checkout_webhooks(
     }
 
     fragment CheckoutFragment on Checkout {
+      shippingMethods {
+        id
+        name
+      }
       shippingPrice {
         gross {
           amount
