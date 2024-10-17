@@ -287,7 +287,7 @@ def _get_product_to_variant_channel_listings_per_channel_map(
     for variant_channel_listing in variant_channel_listings:
         product_id = variant_to_product_id[variant_channel_listing.variant_id]
         price_data[product_id][variant_channel_listing.channel_id].append(
-            variant_channel_listings
+            variant_channel_listing
         )
     return price_data
 
