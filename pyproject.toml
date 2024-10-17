@@ -81,7 +81,7 @@ documentation = "https://docs.saleor.io/"
   text-unidecode = "^1.2"
   urllib3 = "^1.26.19"
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
-  setuptools = "^71.1.0"
+  setuptools = "^75.2.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
 
     [tool.poetry.dependencies.celery]
