@@ -59,9 +59,8 @@ def plugin_manager_promise(
 
 
 def get_plugin_manager_promise(context: SaleorContext) -> Promise[PluginsManager]:
-    app_promise = get_app_promise(context)
-    # todo: fix typing
-    return app_promise.then(lambda app: plugin_manager_promise(context, app))  # type: ignore
+    app = get_app_promise(context).get()
+    return plugin_manager_promise(context, app)
 
 
 def plugin_manager_promise_callback(func):
