@@ -20,6 +20,8 @@ from django.core.cache import CacheKeyWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django.core.validators import URLValidator
+from django.utils.functional import SimpleLazyObject
+from django.utils.module_loading import import_string
 from graphql.execution import executor
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -1007,9 +1009,13 @@ BREAKER_BOARD_FAILURE_MIN_COUNT = int(
 BREAKER_BOARD_COOLDOWN_SECONDS = int(
     os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS", 5 * 60)
 )
-BREAKER_BOARD_TTL = int(os.environ.get("BREAKER_BOARD_TTL", 10 * 60))
+BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 10 * 60))
 
 if ENABLE_BREAKER_BOARD is True and not BREAKER_BOARD_STORAGE_CLASS_STRING:
     raise ImproperlyConfigured(
         "BREAKER_BOARD_STORAGE_CLASS_STRING must be defined when ENABLE_BREAKER_BOARD is set to True"
     )
+
+BREAKER_BOARD_STORAGE = SimpleLazyObject(
+    lambda: import_string(BREAKER_BOARD_STORAGE_CLASS_STRING)()  # type: ignore[arg-type]
+)

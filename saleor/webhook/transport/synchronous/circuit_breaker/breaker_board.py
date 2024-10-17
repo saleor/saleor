@@ -2,9 +2,6 @@ import time
 from typing import TYPE_CHECKING
 
 from saleor.webhook.event_types import WebhookEventSyncType
-from saleor.webhook.transport.synchronous.circuit_breaker.storage import (
-    Storage,
-)
 
 if TYPE_CHECKING:
     from .....webhook.models import Webhook
@@ -22,11 +19,11 @@ class BreakerBoard:
 
     def __init__(
         self,
-        storage: Storage,
+        storage,
         failure_threshold: int,
         failure_min_count: int,
         cooldown_seconds: int,
-        ttl: int,
+        ttl_seconds: int,
     ):
         self.storage = storage
 
@@ -37,15 +34,19 @@ class BreakerBoard:
         self.failure_threshold = failure_threshold
         self.failure_min_count = failure_min_count
         self.cooldown_seconds = cooldown_seconds
-        self.ttl = ttl
+        self.ttl_seconds = ttl_seconds
 
     def is_closed(self, app_id: int):
         # TODO - cache last open to optimize?
         return self.storage.last_open(app_id) < (time.time() - self.cooldown_seconds)
 
     def register_error(self, app_id: int):
-        errors = self.storage.register_event_returning_count(app_id, "error", self.ttl)
-        total = self.storage.register_event_returning_count(app_id, "total", self.ttl)
+        errors = self.storage.register_event_returning_count(
+            app_id, "error", self.ttl_seconds
+        )
+        total = self.storage.register_event_returning_count(
+            app_id, "total", self.ttl_seconds
+        )
 
         if total < self.failure_min_count:
             return
@@ -54,7 +55,7 @@ class BreakerBoard:
             self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
-        self.storage.register_event_returning_count(app_id, "total", self.ttl)
+        self.storage.register_event_returning_count(app_id, "total", self.ttl_seconds)
 
         last_open = self.storage.last_open(app_id)
         if last_open == 0:
