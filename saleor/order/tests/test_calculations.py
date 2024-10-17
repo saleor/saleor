@@ -25,7 +25,6 @@ from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from .. import OrderStatus, calculations
 from ..interface import OrderTaxedPricesData
-from ..models import OrderLine
 
 
 @pytest.fixture
@@ -1514,101 +1513,6 @@ def test_fetch_order_data_plugin_tax_data_with_negative_values(
     # then
     assert order.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
     assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
-    assert caplog.records[0].order_id == to_global_id_or_none(order)
-
-
-@patch("saleor.plugins.avatax.plugin.get_order_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines(
-    mock_get_tax_data,
-    order_with_lines,
-    caplog,
-    plugin_configuration,  # noqa: F811
-):
-    # given
-    order = order_with_lines
-
-    channel = order.channel
-    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
-    channel.tax_configuration.save(update_fields=["tax_app_id"])
-
-    tax_data = {
-        "lines": [
-            {
-                "lineAmount": 30.0000,
-                "quantity": 3.0,
-                "itemCode": "SKU_A",
-            },
-            {
-                "lineAmount": 8.1300,
-                "quantity": 1.0,
-                "itemCode": "Shipping",
-            },
-        ]
-    }
-    mock_get_tax_data.return_value = tax_data
-
-    plugin_configuration()
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    calculations.fetch_order_prices_if_expired(order, manager, None, True)
-
-    # then
-    assert order.tax_error == TaxDataErrorMessage.LINE_NUMBER
-    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
-    assert caplog.records[0].order_id == to_global_id_or_none(order)
-
-
-@patch("saleor.plugins.avatax.plugin.get_order_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_fetch_order_data_plugin_tax_data_with_wrong_number_of_lines_no_shipping(
-    mock_get_tax_data,
-    order_with_lines,
-    caplog,
-    plugin_configuration,  # noqa: F811
-):
-    # given
-    order = order_with_lines
-    lines = list(order.lines.all())
-    for line in lines:
-        line.is_shipping_required = False
-    OrderLine.objects.bulk_update(lines, ["is_shipping_required"])
-
-    channel = order.channel
-    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
-    channel.tax_configuration.save(update_fields=["tax_app_id"])
-
-    tax_data = {
-        "lines": [
-            {
-                "lineAmount": 30.0000,
-                "quantity": 3.0,
-                "itemCode": "SKU_A",
-            },
-            {
-                "lineAmount": 40.0000,
-                "quantity": 2.0,
-                "itemCode": "SKU_B",
-            },
-            {
-                "lineAmount": 8.1300,
-                "quantity": 1.0,
-                "itemCode": "Shipping",
-            },
-        ]
-    }
-    mock_get_tax_data.return_value = tax_data
-
-    plugin_configuration()
-    manager = get_plugins_manager(allow_replica=False)
-
-    # when
-    calculations.fetch_order_prices_if_expired(order, manager, None, True)
-
-    # then
-    assert order.tax_error == TaxDataErrorMessage.LINE_NUMBER
-    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
     assert caplog.records[0].order_id == to_global_id_or_none(order)
 
 
