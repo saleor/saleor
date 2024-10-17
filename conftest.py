@@ -44,6 +44,7 @@ pytest_plugins = [
     "saleor.discount.tests.fixtures",
     "saleor.checkout.tests.fixtures",
     "saleor.attribute.tests.fixtures",
+    "saleor.payment.tests.fixtures",
     "saleor.webhook.transport.tests.circuit_breaker.fixtures",
 ]
 
