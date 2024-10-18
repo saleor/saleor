@@ -33,3 +33,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Skipped obsolete payload save and cleanup for successful sync webhooks - #16632 by @cmiacz
 - Removed support for the django-debug-toolbar debugging tool and the `ENABLE_DEBUG_TOOLBAR` env variable - #16902 by @patrys
 - Fixed playground not displaying docs if api is hidden behind reverse proxy - #16810 by @jqob
+- Drop tax data line number validation for Avatax plugin - #16917 by @zedzior
