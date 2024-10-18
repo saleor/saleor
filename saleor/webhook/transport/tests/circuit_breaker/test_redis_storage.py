@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from unittest.mock import Mock, patch
 
 import fakeredis
@@ -41,14 +41,26 @@ def test_update_open(storage):
     assert storage.last_open(APP_ID) == 0
 
 
+def test_manually_close_breaker(storage):
+    storage.update_open(APP_ID, 100)
+    assert storage.last_open(APP_ID) == 100
+
+    storage.close_breaker(APP_ID)
+    assert storage.last_open(APP_ID) == 0
+
+
 def test_register_event_returning_count(storage):
-    with freeze_time(datetime.fromtimestamp(NOW)):
+    with freeze_time(datetime.datetime.fromtimestamp(NOW, tz=datetime.UTC)):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 1
 
-    with freeze_time(datetime.fromtimestamp(NOW + TTL_SECONDS - 1)):
+    with freeze_time(
+        datetime.datetime.fromtimestamp(NOW + TTL_SECONDS - 1, tz=datetime.UTC)
+    ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2
 
-    with freeze_time(datetime.fromtimestamp(NOW + TTL_SECONDS)):
+    with freeze_time(
+        datetime.datetime.fromtimestamp(NOW + TTL_SECONDS, tz=datetime.UTC)
+    ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2
 
 

@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 import pytest
 from freezegun import freeze_time
@@ -27,11 +27,15 @@ def test_update_open(storage):
 
 
 def test_register_event_returning_count(storage):
-    with freeze_time(datetime.fromtimestamp(NOW)):
+    with freeze_time(datetime.datetime.fromtimestamp(NOW, tz=datetime.UTC)):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 1
 
-    with freeze_time(datetime.fromtimestamp(NOW + TTL_SECONDS - 1)):
+    with freeze_time(
+        datetime.datetime.fromtimestamp(NOW + TTL_SECONDS - 1, tz=datetime.UTC)
+    ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2
 
-    with freeze_time(datetime.fromtimestamp(NOW + TTL_SECONDS)):
+    with freeze_time(
+        datetime.datetime.fromtimestamp(NOW + TTL_SECONDS, tz=datetime.UTC)
+    ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2

@@ -24,6 +24,9 @@ class Storage:
     ) -> int:
         pass
 
+    def close_breaker(self, app_id: int):
+        pass
+
 
 class InMemoryStorage(Storage):
     def __init__(self):
@@ -53,6 +56,17 @@ class InMemoryStorage(Storage):
         self._events[key] = filtered_entries
         return len(filtered_entries)
 
+    def close_breaker(self, app_id: int):
+        self._last_open.pop(app_id, None)
+        self._events = defaultdict(
+            list,
+            {
+                key: value
+                for key, value in self._events.items()
+                if not key.startswith(str(app_id))
+            },
+        )
+
 
 class RedisStorage(Storage):
     WARNING_MESSAGE = "An error occurred when interacting with Redis"
@@ -80,8 +94,7 @@ class RedisStorage(Storage):
 
         if result is None:
             return 0
-        else:
-            return int(str(result, "utf-8"))
+        return int(str(result, "utf-8"))
 
     def update_open(self, app_id: int, open_time_seconds: int):
         try:
@@ -118,3 +131,11 @@ class RedisStorage(Storage):
         except (RedisError, IndexError):
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
             return 0
+
+    def close_breaker(self, app_id: int):
+        try:
+            keys = self._client.keys(f"{self.KEY_PREFIX}-{app_id}*")
+            if keys:
+                self._client.delete(*keys)
+        except RedisError:
+            logger.warning(self.WARNING_MESSAGE, exc_info=True)

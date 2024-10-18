@@ -10,6 +10,7 @@ from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
+    CloseBreaker,
     GiftCardSettingsUpdate,
     OrderSettingsUpdate,
     ShopAddressUpdate,
@@ -101,3 +102,4 @@ class ShopMutations(graphene.ObjectType):
         )
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
+    close_circuit_breaker = CloseBreaker.Field()

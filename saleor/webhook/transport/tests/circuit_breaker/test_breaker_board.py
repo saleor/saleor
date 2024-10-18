@@ -13,7 +13,7 @@ def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
         failure_threshold=1,
         failure_min_count=0,
         cooldown_seconds=10,
-        ttl=10,
+        ttl_seconds=10,
     )
     app, webhook = app_with_webhook
 
@@ -45,7 +45,7 @@ def test_breaker_board_failure_ignored_webhook_event_type(
         failure_threshold=1,
         failure_min_count=0,
         cooldown_seconds=10,
-        ttl=10,
+        ttl_seconds=10,
     )
     app, webhook = app_with_webhook
 
@@ -68,7 +68,7 @@ def test_breaker_board_success(app_with_webhook, success_response_function_mock)
         failure_threshold=1,
         failure_min_count=0,
         cooldown_seconds=10,
-        ttl=10,
+        ttl_seconds=10,
     )
     app, webhook = app_with_webhook
 
@@ -115,7 +115,7 @@ def test_breaker_board_threshold(
         failure_threshold=threshold,
         failure_min_count=10,
         cooldown_seconds=10,
-        ttl=10,
+        ttl_seconds=10,
     )
     app, webhook = app_with_webhook
 
@@ -137,3 +137,28 @@ def test_breaker_board_threshold(
         )
 
     assert bool(breaker_board.storage.last_open(app.id)) == tripped
+
+
+def test_breaker_board_close_breaker(
+    app_with_webhook,
+    failed_response_function_mock,
+):
+    breaker_board = BreakerBoard(
+        storage=InMemoryStorage(),
+        failure_threshold=3,
+        failure_min_count=1,
+        cooldown_seconds=10,
+        ttl_seconds=10,
+    )
+    app, webhook = app_with_webhook
+    wrapped_function_mock_failed = breaker_board(failed_response_function_mock)
+
+    for _ in range(3):
+        wrapped_function_mock_failed(
+            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, False
+        )
+
+    assert bool(breaker_board.storage.last_open(app.id))
+
+    breaker_board.storage.close_breaker(app.id)
+    assert not bool(breaker_board.storage.last_open(app.id))
