@@ -1,6 +1,7 @@
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils.module_loading import import_string
 
 from ....core.error_codes import ShopErrorCode
 from ....graphql.app.types import App
@@ -10,6 +11,7 @@ from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 
+# TODO: make breaker_board instance a singleton
 breaker_board = None
 if settings.ENABLE_BREAKER_BOARD:
     from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
@@ -17,7 +19,7 @@ if settings.ENABLE_BREAKER_BOARD:
     )
 
     breaker_board = BreakerBoard(
-        storage=settings.BREAKER_BOARD_STORAGE,
+        storage=import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)(),  # type: ignore[arg-type]
         failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
         failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
         cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
