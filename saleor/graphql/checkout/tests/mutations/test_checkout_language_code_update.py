@@ -5,6 +5,8 @@ from django.test import override_settings
 from .....checkout.actions import call_checkout_event
 from .....core.models import EventDelivery
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import send_webhook_request_async
+from .....webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -76,10 +78,15 @@ def test_with_active_problems_flow(api_client, checkout_with_problems):
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
+    wraps=send_webhook_request_async.apply_async,
+)
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_update_language_code_triggers_webhooks(
+    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_event,
@@ -89,6 +96,7 @@ def test_checkout_update_language_code_triggers_webhooks(
     checkout_with_gift_card,
 ):
     # given
+    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     mocked_send_webhook_request_sync.return_value = []
     (
         tax_webhook,
@@ -110,18 +118,17 @@ def test_checkout_update_language_code_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutLanguageCodeUpdate"]["errors"]
 
-    assert wrapped_call_checkout_event.called
-
-    # confirm that event delivery was generated for each async webhook.
-    checkout_update_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_updated_webhook.id
+    deferred_payload_data = prepare_deferred_payload_data(
+        subscribable_object=checkout, requestor=user_api_client.user, request_time=None
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_update_delivery.id},
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
+
+    assert wrapped_call_checkout_event.called
+    assert mocked_send_webhook_request_async.call_count == 1
+    assert (
+        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
+            "deferred_payload_data"
+        ]
+        == deferred_payload_data
     )
 
     # confirm each sync webhook was called without saving event delivery
