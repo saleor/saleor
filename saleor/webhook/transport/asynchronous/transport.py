@@ -53,18 +53,18 @@ task_logger = get_task_logger(f"{__name__}.celery")
 OBSERVABILITY_QUEUE_NAME = "observability"
 
 
-def create_deliveries_for_subscriptions_deferred_payload(
+def create_deliveries_for_deferred_payload_events(
     event_type: str,
     webhooks: Sequence["Webhook"],
 ):
-    """Create a list of event deliveries without payloads based on subscription query.
+    """Create a list of event deliveries for events with deferred payload.
 
-    This flow of creating deliveries defers the payload generation to the Celery task,
-    which speeds up the entire webhook delivery process. Flow can be enabled for
-    webhooks by passing `defer_payload_generation=True` to `trigger_webhooks_async`,
-    however it works only for "create" and "update" events, as the payload generator in
-    tasks needs to have access to the subscribable object's ID, which is not available
-    for "delete" events at this point.
+    This flow of creating deliveries defers the payload generation to the Celery task.
+    Flow can be enabled for async events by providing `is_deferred_payload=True` in
+    the WebhookEventAsyncType.EVENT_MAP config.
+
+    Note: the flow doesn't support "delete" events, as it requires model instances to
+    exist in database at the time of payload generation.
     """
     event_deliveries = []
     for webhook in webhooks:
@@ -280,7 +280,7 @@ def trigger_webhooks_async(
     if subscription_webhooks:
         if is_deferred_payload:
             deliveries.extend(
-                create_deliveries_for_subscriptions_deferred_payload(
+                create_deliveries_for_deferred_payload_events(
                     event_type=event_type, webhooks=subscription_webhooks
                 )
             )

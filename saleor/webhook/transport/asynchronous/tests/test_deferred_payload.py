@@ -13,7 +13,7 @@ from ...utils import get_webhooks_for_event
 from ..transport import (
     DeferredPayloadData,
     _generate_deferred_payload,
-    create_deliveries_for_subscriptions_deferred_payload,
+    create_deliveries_for_deferred_payload_events,
     trigger_webhooks_async,
 )
 
@@ -91,7 +91,7 @@ def test_generate_deferred_payload(
         requestor_model_id=staff_user.pk,
         request_time=None,
     )
-    delivery = create_deliveries_for_subscriptions_deferred_payload(
+    delivery = create_deliveries_for_deferred_payload_events(
         event_type, list(webhooks)
     )[0]
 
@@ -132,7 +132,7 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
         requestor_model_id=999999,
         request_time=None,
     )
-    delivery = create_deliveries_for_subscriptions_deferred_payload(
+    delivery = create_deliveries_for_deferred_payload_events(
         event_type, list(webhooks)
     )[0]
 
