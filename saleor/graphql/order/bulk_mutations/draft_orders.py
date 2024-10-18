@@ -1,9 +1,10 @@
 from collections.abc import Iterable
-from typing import Union
+from typing import Optional, Union
 from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import ProtectedError
 
 from ....channel import models as channel_models
 from ....order import OrderStatus, models
@@ -50,6 +51,30 @@ class DraftOrderBulkDelete(
     def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
         """Get the instances channel ids for channel permission accessible check."""
         return [order.channel_id for order in instances]
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids, **data
+    ) -> tuple[int, Optional[ValidationError]]:
+        # code relies on the fact that both protected Models have FK named as `order`
+        count, errors = 0, None
+        try:
+            count, errors = super().perform_mutation(_root, info, ids=ids, **data)
+        except ProtectedError as e:
+            error_dict: dict[str, list[ValidationError]] = {}
+            for protected in e.protected_objects:
+                if hasattr(protected, "order_id"):
+                    node_id = graphene.Node.to_global_id("Order", protected.order_id)
+                    error_message = f"Draft orders has attached items: {protected._meta.object_name}."
+                    ValidationError(
+                        {
+                            node_id: ValidationError(
+                                error_message, code=OrderErrorCode.CANNOT_DELETE.value
+                            )
+                        }
+                    ).update_error_dict(error_dict)
+            errors = ValidationError(error_dict)
+        return count, errors
 
 
 class DraftOrderLinesBulkDelete(
