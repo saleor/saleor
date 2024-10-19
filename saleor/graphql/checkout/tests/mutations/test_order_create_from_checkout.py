@@ -775,6 +775,7 @@ def test_order_from_checkout_with_voucher(
     assert order_discount.type == DiscountType.VOUCHER
     assert order_discount.voucher == voucher_percentage
     assert order_discount.voucher_code == code.code
+    assert order.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
