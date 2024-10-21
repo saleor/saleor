@@ -1,6 +1,9 @@
 import time
 from typing import TYPE_CHECKING
 
+from django.conf import settings
+from django.utils.module_loading import import_string
+
 from saleor.webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
@@ -89,3 +92,14 @@ class BreakerBoard:
         inner.__wrapped__ = func  # type: ignore[attr-defined]
 
         return inner
+
+
+def initialize_breaker_board():
+    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)  # type: ignore[arg-type]
+    return BreakerBoard(
+        storage=storage_class(),
+        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
+        failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
+        cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
+        ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
+    )

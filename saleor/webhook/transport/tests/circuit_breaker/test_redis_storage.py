@@ -41,11 +41,11 @@ def test_update_open(storage):
     assert storage.last_open(APP_ID) == 0
 
 
-def test_manually_close_breaker(storage):
+def test_manually_clear_state_for_app(storage):
     storage.update_open(APP_ID, 100)
     assert storage.last_open(APP_ID) == 100
 
-    storage.close_breaker(APP_ID)
+    storage.clear_state_for_app(APP_ID)
     assert storage.last_open(APP_ID) == 0
 
 

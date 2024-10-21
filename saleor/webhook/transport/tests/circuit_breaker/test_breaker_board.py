@@ -139,7 +139,7 @@ def test_breaker_board_threshold(
     assert bool(breaker_board.storage.last_open(app.id)) == tripped
 
 
-def test_breaker_board_close_breaker(
+def test_breaker_board_clear_state_for_app(
     app_with_webhook,
     failed_response_function_mock,
 ):
@@ -160,5 +160,5 @@ def test_breaker_board_close_breaker(
 
     assert bool(breaker_board.storage.last_open(app.id))
 
-    breaker_board.storage.close_breaker(app.id)
+    breaker_board.storage.clear_state_for_app(app.id)
     assert not bool(breaker_board.storage.last_open(app.id))

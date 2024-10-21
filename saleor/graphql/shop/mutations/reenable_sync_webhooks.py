@@ -1,7 +1,6 @@
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.utils.module_loading import import_string
 
 from ....core.error_codes import ShopErrorCode
 from ....graphql.app.types import App
@@ -11,27 +10,29 @@ from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 
-# TODO: make breaker_board instance a singleton
 breaker_board = None
 if settings.ENABLE_BREAKER_BOARD:
     from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
-        BreakerBoard,
+        initialize_breaker_board,
     )
 
-    breaker_board = BreakerBoard(
-        storage=import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)(),  # type: ignore[arg-type]
-        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
-        failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
-        cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
-        ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
+    breaker_board = initialize_breaker_board()
+
+
+class ReenableSyncWebhooks(BaseMutation):
+    app = graphene.Field(
+        App,
+        description=(
+            "Re-enable sync webhooks for the app if circuit breaker was tripped. "
+            "Can be used to manually re-enable sync webhooks for the app before "
+            "the cooldown period ends."
+        ),
     )
-
-
-class CloseBreaker(BaseMutation):
-    app = graphene.Field(App, description="App which circuit breaker was closed.")
 
     class Arguments:
-        app_id = graphene.ID(description="The app ID to close the breaker.")
+        app_id = graphene.ID(
+            description="The app ID to re-enable sync webhooks for.", required=True
+        )
 
     class Meta:
         description = "Close circuit breaker for provided app."
@@ -52,5 +53,5 @@ class CloseBreaker(BaseMutation):
                 }
             )
         app = cls.get_node_or_error(info, data.get("app_id"), only_type="App")
-        breaker_board.storage.close_breaker(app.id)  # type: ignore[union-attr]
-        return CloseBreaker(app=app)
+        breaker_board.storage.clear_state_for_app(app.id)  # type: ignore[union-attr]
+        return ReenableSyncWebhooks(app=app)

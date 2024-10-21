@@ -24,7 +24,7 @@ class Storage:
     ) -> int:
         pass
 
-    def close_breaker(self, app_id: int):
+    def clear_state_for_app(self, app_id: int):
         pass
 
 
@@ -56,7 +56,7 @@ class InMemoryStorage(Storage):
         self._events[key] = filtered_entries
         return len(filtered_entries)
 
-    def close_breaker(self, app_id: int):
+    def clear_state_for_app(self, app_id: int):
         self._last_open.pop(app_id, None)
         self._events = defaultdict(
             list,
@@ -132,7 +132,7 @@ class RedisStorage(Storage):
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
             return 0
 
-    def close_breaker(self, app_id: int):
+    def clear_state_for_app(self, app_id: int):
         try:
             keys = self._client.keys(f"{self.KEY_PREFIX}-{app_id}*")
             if keys:

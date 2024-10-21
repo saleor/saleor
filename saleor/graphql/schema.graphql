@@ -14294,10 +14294,10 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  closeCircuitBreaker(
-    """The app ID to close the breaker."""
-    appId: ID
-  ): CloseBreaker @doc(category: "Shop")
+  reenableCircuitBreaker(
+    """The app ID to re-enable sync webhooks for."""
+    appId: ID!
+  ): ReenableSyncWebhooks @doc(category: "Shop")
 
   """
   Manage shipping method's availability in channels. 
@@ -19801,8 +19801,10 @@ Close circuit breaker for provided app.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type CloseBreaker @doc(category: "Shop") {
-  """App which circuit breaker was closed."""
+type ReenableSyncWebhooks @doc(category: "Shop") {
+  """
+  Re-enable sync webhooks for the app if circuit breaker was tripped. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
+  """
   app: App
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
