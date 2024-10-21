@@ -337,7 +337,7 @@ def _generate_deferred_payload(
         apps.get_model(args_obj.model_name).objects.filter(pk=args_obj.model_id).first()
     )
     if not subscribable_object:
-        logger_obj.error(
+        logger_obj.warning(
             (
                 "[Webhook ID:%r] Failed to get the subscribable_object for deferred "
                 "payload; event: %s, model name: %s, model ID: %r, delivery ID: %r"
