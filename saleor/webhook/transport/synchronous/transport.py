@@ -7,6 +7,11 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from django.utils.module_loading import import_string
+
+from saleor.webhook.transport.synchronous.circuit_breaker.breaker_board import (
+    BreakerBoard,
+)
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -319,6 +324,17 @@ def trigger_webhook_sync(
         kwargs = {"timeout": timeout}
 
     return send_webhook_request_sync(delivery, **kwargs)
+
+
+# TODO: should be called once an app starts, not on each request
+if settings.ENABLE_BREAKER_BOARD:
+    trigger_webhook_sync = BreakerBoard(
+        storage=import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)(),  # type: ignore[arg-type]
+        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
+        failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
+        cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
+        ttl=settings.BREAKER_BOARD_TTL,
+    )(trigger_webhook_sync)
 
 
 def trigger_all_webhooks_sync(
