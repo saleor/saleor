@@ -27,7 +27,6 @@ pytest_plugins = [
     "saleor.app.tests.fixtures",
     "saleor.plugins.tests.fixtures",
     "saleor.graphql.tests.fixtures",
-    "saleor.graphql.account.tests.benchmark.fixtures",
     "saleor.webhook.tests.fixtures",
     "saleor.tax.tests.fixtures",
     "saleor.channel.tests.fixtures",
@@ -44,6 +43,8 @@ pytest_plugins = [
     "saleor.discount.tests.fixtures",
     "saleor.checkout.tests.fixtures",
     "saleor.attribute.tests.fixtures",
+    "saleor.account.tests.fixtures",
+    "saleor.graphql.account.tests.fixtures",
     "saleor.payment.tests.fixtures",
 ]
 
