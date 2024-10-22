@@ -102,4 +102,4 @@ class ShopMutations(graphene.ObjectType):
         )
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
-    reenable_circuit_breaker = ReenableSyncWebhooks.Field()
+    reenable_sync_webhooks = ReenableSyncWebhooks.Field()

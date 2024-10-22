@@ -14294,7 +14294,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  reenableCircuitBreaker(
+  reenableSyncWebhooks(
     """The app ID to re-enable sync webhooks for."""
     appId: ID!
   ): ReenableSyncWebhooks @doc(category: "Shop")
