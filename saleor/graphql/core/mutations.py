@@ -975,7 +975,7 @@ class BaseBulkMutation(BaseMutation):
         return cls._meta.object_type
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, _instance, /, _related_objects=None):
+    def clean_instance(cls, _info: ResolveInfo, _instance, /):
         """Perform additional logic.
 
         Override this method to raise custom validation error and prevent
@@ -983,25 +983,40 @@ class BaseBulkMutation(BaseMutation):
         """
 
     @classmethod
+    def clean_input(cls, info: ResolveInfo, instances, ids):
+        clean_instance_ids = []
+        errors_dict: dict[str, list[ValidationError]] = {}
+        for instance, node_id in zip(instances, ids):
+            instance_errors = []
+
+            # catch individual validation errors to raise them later as
+            # a single error
+            try:
+                cls.clean_instance(info, instance)
+            except ValidationError as e:
+                msg = ". ".join(e.messages)
+                instance_errors.append(msg)
+
+            if not instance_errors:
+                clean_instance_ids.append(instance.pk)
+            else:
+                instance_errors_msg = ". ".join(instance_errors)
+                # FIXME we are not propagating code error from the raised ValidationError
+                ValidationError({node_id: instance_errors_msg}).update_error_dict(
+                    errors_dict
+                )
+        return clean_instance_ids, errors_dict
+
+    @classmethod
     def bulk_action(cls, _info: ResolveInfo, _queryset: QuerySet, /):
         """Implement action performed on queryset."""
         raise NotImplementedError
-
-    @classmethod
-    def get_ids_with_related_objects(cls, _ids, /):
-        """Perform additional queries on db.
-
-        Ovveride this method if you need to additional data for validation.
-        """
-        return None
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
-        clean_instance_ids = []
-        errors_dict: dict[str, list[ValidationError]] = {}
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
@@ -1020,29 +1035,7 @@ class BaseBulkMutation(BaseMutation):
         except ValidationError as error:
             return 0, error
 
-        instances_ids = [instance.id for instance in instances]
-        related_objects = cls.get_ids_with_related_objects(instances_ids)
-
-        for instance, node_id in zip(instances, ids):
-            instance_errors = []
-
-            # catch individual validation errors to raise them later as
-            # a single error
-            try:
-                cls.clean_instance(info, instance, related_objects)
-            except ValidationError as e:
-                msg = ". ".join(e.messages)
-                instance_errors.append(msg)
-
-            if not instance_errors:
-                clean_instance_ids.append(instance.pk)
-            else:
-                instance_errors_msg = ". ".join(instance_errors)
-                # FIXME we are not propagating code error from the raised ValidationError
-                ValidationError({node_id: instance_errors_msg}).update_error_dict(
-                    errors_dict
-                )
-
+        clean_instance_ids, errors_dict = cls.clean_input(info, instances, ids)
         if errors_dict:
             errors = ValidationError(errors_dict)
         else:
@@ -1095,8 +1088,6 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
-        clean_instance_ids = []
-        errors_dict: dict[str, list[ValidationError]] = {}
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
@@ -1115,32 +1106,10 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         except ValidationError as error:
             return 0, error
 
-        instances_ids = [instance.id for instance in instances]
-        related_objects = cls.get_ids_with_related_objects(instances_ids)
-
         channel_ids = cls.get_channel_ids(instances)
         cls.check_channel_permissions(info, channel_ids)
 
-        for instance, node_id in zip(instances, ids):
-            instance_errors = []
-
-            # catch individual validation errors to raise them later as
-            # a single error
-            try:
-                cls.clean_instance(info, instance, related_objects)
-            except ValidationError as e:
-                msg = ". ".join(e.messages)
-                instance_errors.append(msg)
-
-            if not instance_errors:
-                clean_instance_ids.append(instance.pk)
-            else:
-                instance_errors_msg = ". ".join(instance_errors)
-                # FIXME we are not propagating code error from the raised ValidationError
-                ValidationError({node_id: instance_errors_msg}).update_error_dict(
-                    errors_dict
-                )
-
+        clean_instance_ids, errors_dict = cls.clean_input(info, instances, ids)
         if errors_dict:
             errors = ValidationError(errors_dict)
         else:
