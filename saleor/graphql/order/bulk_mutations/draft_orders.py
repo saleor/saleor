@@ -1,14 +1,14 @@
 from collections.abc import Iterable
-from typing import Optional, Union
+from typing import Union
 from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import ProtectedError
 
 from ....channel import models as channel_models
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
+from ....payment.models import Payment, TransactionItem
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.mutations import (
@@ -36,7 +36,23 @@ class DraftOrderBulkDelete(
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, instance):
+    def get_ids_with_related_objects(cls, ids, /):
+        related_objects = {
+            Payment.__name__: Payment.objects.values_list("order_id", flat=True)
+            .filter(order_id__in=ids)
+            .order_by()
+            .distinct(),
+            TransactionItem.__name__: TransactionItem.objects.values_list(
+                "order_id", flat=True
+            )
+            .filter(order_id__in=ids)
+            .order_by()
+            .distinct(),
+        }
+        return related_objects
+
+    @classmethod
+    def clean_instance(cls, _info: ResolveInfo, instance, related_objects=None):
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
@@ -46,35 +62,23 @@ class DraftOrderBulkDelete(
                     )
                 }
             )
+        if related_objects and (
+            instance.pk in related_objects[Payment.__name__]
+            or instance.pk in related_objects[TransactionItem.__name__]
+        ):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete orders with payments or transactions attached to it.",
+                        code=OrderErrorCode.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
     def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
         """Get the instances channel ids for channel permission accessible check."""
         return [order.channel_id for order in instances]
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, ids, **data
-    ) -> tuple[int, Optional[ValidationError]]:
-        # code relies on the fact that both protected Models have FK named as `order`
-        count, errors = 0, None
-        try:
-            count, errors = super().perform_mutation(_root, info, ids=ids, **data)
-        except ProtectedError as e:
-            error_dict: dict[str, list[ValidationError]] = {}
-            for protected in e.protected_objects:
-                if hasattr(protected, "order_id"):
-                    node_id = graphene.Node.to_global_id("Order", protected.order_id)
-                    error_message = f"Draft orders has attached items: {protected._meta.object_name}."
-                    ValidationError(
-                        {
-                            node_id: ValidationError(
-                                error_message, code=OrderErrorCode.CANNOT_DELETE.value
-                            )
-                        }
-                    ).update_error_dict(error_dict)
-            errors = ValidationError(error_dict)
-        return count, errors
 
 
 class DraftOrderLinesBulkDelete(
@@ -94,7 +98,7 @@ class DraftOrderLinesBulkDelete(
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, instance):
+    def clean_instance(cls, _info: ResolveInfo, instance, _related_objects=None):
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {

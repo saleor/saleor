@@ -975,7 +975,7 @@ class BaseBulkMutation(BaseMutation):
         return cls._meta.object_type
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, _instance, /):
+    def clean_instance(cls, _info: ResolveInfo, _instance, /, _related_objects=None):
         """Perform additional logic.
 
         Override this method to raise custom validation error and prevent
@@ -986,6 +986,14 @@ class BaseBulkMutation(BaseMutation):
     def bulk_action(cls, _info: ResolveInfo, _queryset: QuerySet, /):
         """Implement action performed on queryset."""
         raise NotImplementedError
+
+    @classmethod
+    def get_ids_with_related_objects(cls, _ids, /):
+        """Perform additional queries on db.
+
+        Ovveride this method if you need to additional data for validation.
+        """
+        return None
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -1011,13 +1019,17 @@ class BaseBulkMutation(BaseMutation):
             )
         except ValidationError as error:
             return 0, error
+
+        instances_ids = [instance.id for instance in instances]
+        related_objects = cls.get_ids_with_related_objects(instances_ids)
+
         for instance, node_id in zip(instances, ids):
             instance_errors = []
 
             # catch individual validation errors to raise them later as
             # a single error
             try:
-                cls.clean_instance(info, instance)
+                cls.clean_instance(info, instance, related_objects)
             except ValidationError as e:
                 msg = ". ".join(e.messages)
                 instance_errors.append(msg)
@@ -1026,6 +1038,7 @@ class BaseBulkMutation(BaseMutation):
                 clean_instance_ids.append(instance.pk)
             else:
                 instance_errors_msg = ". ".join(instance_errors)
+                # FIXME we are not propagating code error from the raised ValidationError
                 ValidationError({node_id: instance_errors_msg}).update_error_dict(
                     errors_dict
                 )
@@ -1102,6 +1115,9 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         except ValidationError as error:
             return 0, error
 
+        instances_ids = [instance.id for instance in instances]
+        related_objects = cls.get_ids_with_related_objects(instances_ids)
+
         channel_ids = cls.get_channel_ids(instances)
         cls.check_channel_permissions(info, channel_ids)
 
@@ -1111,7 +1127,7 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
             # catch individual validation errors to raise them later as
             # a single error
             try:
-                cls.clean_instance(info, instance)
+                cls.clean_instance(info, instance, related_objects)
             except ValidationError as e:
                 msg = ". ".join(e.messages)
                 instance_errors.append(msg)
@@ -1120,6 +1136,7 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
                 clean_instance_ids.append(instance.pk)
             else:
                 instance_errors_msg = ". ".join(instance_errors)
+                # FIXME we are not propagating code error from the raised ValidationError
                 ValidationError({node_id: instance_errors_msg}).update_error_dict(
                     errors_dict
                 )

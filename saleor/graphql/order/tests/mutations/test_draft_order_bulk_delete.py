@@ -134,10 +134,11 @@ def test_delete_draft_orders_orders_with_transaction_item(
     errors = content["data"]["draftOrderBulkDelete"]["errors"]
     assert len(errors) == 3
     for i, order in enumerate(order_list):
-        assert errors[i]["code"] == OrderErrorCode.CANNOT_DELETE.name
+        assert errors[i]["code"] == OrderErrorCode.INVALID.name
         assert errors[i]["field"] in ids
         assert (
-            errors[i]["message"] == "Draft orders has attached items: TransactionItem."
+            errors[i]["message"]
+            == "Cannot delete order with payments or transactions attached to it."
         )
     assert content["data"]["draftOrderBulkDelete"]["count"] == 0
     assert order_models.Order.objects.filter(
