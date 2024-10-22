@@ -92,10 +92,10 @@ def test_draft_order_delete_draft_with_transactions(
     content = get_graphql_content(response)
     account_errors = content["data"]["draftOrderDelete"]["errors"]
     assert len(account_errors) == 1
-    assert account_errors[0]["code"] == OrderErrorCode.CANNOT_DELETE.name
+    assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
     assert (
         account_errors[0]["message"]
-        == "Draft order has attached items: TransactionItem."
+        == "Cannot delete order with payments or transactions attached to it."
     )
 
 

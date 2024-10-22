@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import ProtectedError
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
@@ -8,6 +7,7 @@ from ....discount.utils.voucher import release_voucher_code_usage
 from ....order import OrderStatus, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
+from ....payment.models import Payment, TransactionItem
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -49,32 +49,29 @@ class DraftOrderDelete(
                     )
                 }
             )
+        if (
+            Payment.objects.filter(order_id=instance.pk).exists()
+            or TransactionItem.objects.filter(order_id=instance.pk).exists()
+        ):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete order with payments or transactions attached to it.",
+                        code=OrderErrorCode.INVALID.value,
+                    )
+                }
+            )
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         order = cls.get_instance(info, **data)
         manager = get_plugin_manager_promise(info.context).get()
-        try:
-            with traced_atomic_transaction():
-                response = super().perform_mutation(_root, info, **data)
-                call_order_event(
-                    manager,
-                    WebhookEventAsyncType.DRAFT_ORDER_DELETED,
-                    order,
-                )
-        except ProtectedError as e:
-            items = ", ".join(
-                [
-                    item._meta.object_name
-                    for item in e.protected_objects
-                    if item._meta.object_name
-                ]
-            )
-            raise ValidationError(
-                ValidationError(
-                    f"Draft order has attached items: {items}.",
-                    code=OrderErrorCode.CANNOT_DELETE.value,
-                )
+        with traced_atomic_transaction():
+            response = super().perform_mutation(_root, info, **data)
+            call_order_event(
+                manager,
+                WebhookEventAsyncType.DRAFT_ORDER_DELETED,
+                order,
             )
         return response
 
