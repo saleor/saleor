@@ -69,11 +69,39 @@ class DraftOrderBulkDelete(
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Cannot delete orders with payments or transactions attached to it.",
+                        "Cannot delete order with payments or transactions attached to it.",
                         code=OrderErrorCode.INVALID.value,
                     )
                 }
             )
+
+    @classmethod
+    def clean_input(cls, info: ResolveInfo, instances, ids):
+        clean_instance_ids = []
+        errors_dict: dict[str, list[ValidationError]] = {}
+
+        instances_ids = [instance.id for instance in instances]
+        related_objects = cls.get_ids_with_related_objects(instances_ids)
+        for instance, node_id in zip(instances, ids):
+            instance_errors = []
+
+            # catch individual validation errors to raise them later as
+            # a single error
+            try:
+                cls.clean_instance(info, instance, related_objects)
+            except ValidationError as e:
+                msg = ". ".join(e.messages)
+                instance_errors.append(msg)
+
+            if not instance_errors:
+                clean_instance_ids.append(instance.pk)
+            else:
+                instance_errors_msg = ". ".join(instance_errors)
+                # FIXME we are not propagating code error from the raised ValidationError
+                ValidationError({node_id: instance_errors_msg}).update_error_dict(
+                    errors_dict
+                )
+        return clean_instance_ids, errors_dict
 
     @classmethod
     def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
@@ -98,7 +126,7 @@ class DraftOrderLinesBulkDelete(
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, instance, _related_objects=None):
+    def clean_instance(cls, _info: ResolveInfo, instance):
         if instance.order.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
