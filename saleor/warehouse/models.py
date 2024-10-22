@@ -1,14 +1,7 @@
 import itertools
 import uuid
 from collections.abc import Iterable
-from typing import (
-    TYPE_CHECKING,
-    Optional,
-    TypedDict,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Optional, TypedDict, TypeVar, Union, cast
 
 from django.db import models
 from django.db.models import Count, Exists, F, OuterRef, Prefetch, Q, Sum
@@ -48,6 +41,39 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
                 )
             )
         ).order_by("pk")
+
+    def for_channel_with_active_shipping_zone_or_cc(self, channel_slug: str):
+        WarehouseChannel = Channel.warehouses.through
+        ShippingZoneChannel = Channel.shipping_zones.through
+        WarehouseShippingZone = ShippingZone.warehouses.through
+
+        channel = Channel.objects.filter(slug=channel_slug).values("pk")
+        warehouse_channels = WarehouseChannel.objects.filter(
+            Exists(channel.filter(pk=OuterRef("channel_id")))
+        ).values("warehouse_id")
+
+        shipping_zone_channels = ShippingZoneChannel.objects.filter(
+            Exists(channel.filter(pk=OuterRef("channel_id")))
+        ).values("shippingzone_id")
+
+        warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
+            Exists(warehouse_channels.filter(warehouse_id=OuterRef("warehouse_id"))),
+            Exists(
+                shipping_zone_channels.filter(
+                    shippingzone_id=OuterRef("shippingzone_id")
+                )
+            ),
+        ).values("warehouse_id")
+        return self.filter(
+            Q(
+                Exists(warehouse_channels.filter(warehouse_id=OuterRef("id"))),
+                click_and_collect_option__in=[
+                    WarehouseClickAndCollectOption.LOCAL_STOCK,
+                    WarehouseClickAndCollectOption.ALL_WAREHOUSES,
+                ],
+            )
+            | Q(Exists(warehouse_shipping_zones.filter(warehouse_id=OuterRef("id"))))
+        )
 
     def for_country_and_channel(self, country: str, channel_id: int):
         ShippingZoneChannel = Channel.shipping_zones.through
