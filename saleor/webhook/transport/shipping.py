@@ -120,13 +120,15 @@ def get_excluded_shipping_methods_or_fetch(
     subscribable_object: Optional[Union["Order", "Checkout"]],
     allow_replica: bool,
     requestor: Optional[RequestorOrLazyObject],
-    pregenerated_subscription_payloads: Optional[dict] = {},
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
     The data will be fetched from the cache. If missing it will fetch it from all
     defined webhooks by calling a request to each of them one by one.
     """
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
     cache_data = get_cache_data_for_exclude_shipping_methods(payload)
     excluded_methods = []
     # Gather responses from webhooks
@@ -160,7 +162,7 @@ def get_excluded_shipping_data(
     subscribable_object: Optional[Union["Order", "Checkout"]],
     allow_replica: bool,
     requestor: Optional[RequestorOrLazyObject] = None,
-    pregenerated_subscription_payloads: Optional[dict] = {},
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
@@ -173,7 +175,8 @@ def get_excluded_shipping_data(
     The function will fetch the payload only in the case that we have any defined
     webhook.
     """
-
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
     excluded_methods_map: dict[str, list[ExcludedShippingMethod]] = defaultdict(list)
     webhooks = get_webhooks_for_event(event_type)
     if webhooks:

@@ -3502,8 +3502,10 @@ class WebhookPlugin(BasePlugin):
         checkout: "Checkout",
         available_shipping_methods: list["ShippingMethodData"],
         previous_value: list[ExcludedShippingMethod],
-        pregenerated_subscription_payloads: Optional[dict] = {},
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> list[ExcludedShippingMethod]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         generate_function = generate_excluded_shipping_methods_for_checkout_payload
         payload_function = lambda: generate_function(  # noqa: E731
             checkout,
