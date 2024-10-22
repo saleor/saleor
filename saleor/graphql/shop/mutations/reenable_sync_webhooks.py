@@ -35,7 +35,7 @@ class ReenableSyncWebhooks(BaseMutation):
         )
 
     class Meta:
-        description = "Close circuit breaker for provided app."
+        description = "Re-enable sync webhooks for provided app."
         doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
@@ -43,15 +43,16 @@ class ReenableSyncWebhooks(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        if not breaker_board:
-            raise ValidationError(
-                {
-                    "configuration": ValidationError(
-                        "Circuit breaker feature is disabled.",
-                        code=ShopErrorCode.INVALID.value,
-                    )
-                }
-            )
         app = cls.get_node_or_error(info, data.get("app_id"), only_type="App")
-        breaker_board.storage.clear_state_for_app(app.id)  # type: ignore[union-attr]
+        if breaker_board:
+            error = breaker_board.storage.clear_state_for_app(app.id)  # type: ignore[union-attr]
+            if error:
+                raise ValidationError(
+                    {
+                        "app_id": ValidationError(
+                            f"Cannot re-enable sync webhooks for the app {app.name}.",  # type: ignore[union-attr]
+                            code=ShopErrorCode.INVALID.value,
+                        )
+                    }
+                )
         return ReenableSyncWebhooks(app=app)

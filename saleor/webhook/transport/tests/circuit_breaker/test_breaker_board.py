@@ -160,5 +160,6 @@ def test_breaker_board_clear_state_for_app(
 
     assert bool(breaker_board.storage.last_open(app.id))
 
-    breaker_board.storage.clear_state_for_app(app.id)
+    error = breaker_board.storage.clear_state_for_app(app.id)
+    assert not error
     assert not bool(breaker_board.storage.last_open(app.id))

@@ -14290,7 +14290,7 @@ type Mutation {
   ): GiftCardSettingsUpdate @doc(category: "Gift cards")
 
   """
-  Close circuit breaker for provided app. 
+  Re-enable sync webhooks for provided app. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
@@ -19797,7 +19797,7 @@ input TimePeriodInputType {
 }
 
 """
-Close circuit breaker for provided app. 
+Re-enable sync webhooks for provided app. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """

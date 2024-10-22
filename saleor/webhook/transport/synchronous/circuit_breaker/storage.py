@@ -139,3 +139,5 @@ class RedisStorage(Storage):
                 self._client.delete(*keys)
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
+            error = 1
+            return error
