@@ -10,10 +10,10 @@ from ..subscription_payload import (
     generate_payload_promise_from_subscription,
 )
 from ..utils import get_subscription_query_hash
+from .models import WebhooksByEventTypeLoader
 from .utils import (
     AppsByEventTypeLoader,
     PayloadsRequestContextByEventTypeLoader,
-    WebhooksByEventTypeLoader,
 )
 
 
