@@ -133,7 +133,7 @@ def test_delete_draft_orders_orders_with_transaction_item(
     assert "errors" in content["data"]["draftOrderBulkDelete"]
     errors = content["data"]["draftOrderBulkDelete"]["errors"]
     assert len(errors) == 3
-    for i, order in enumerate(order_list):
+    for i, _order in enumerate(order_list):
         assert errors[i]["code"] == OrderErrorCode.INVALID.name
         assert errors[i]["field"] in ids
         assert (
