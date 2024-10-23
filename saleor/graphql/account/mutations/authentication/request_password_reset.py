@@ -1,15 +1,12 @@
-from urllib.parse import urlencode
-
 import graphene
 from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .....account.error_codes import AccountErrorCode
-from .....account.notifications import send_password_reset_notification
-from .....account.utils import retrieve_user_by_email
-from .....core.utils.url import prepare_url, validate_storefront_url
+from .....account.tasks import trigger_send_password_reset_notification
+from .....account.utils import RequestorAwareContext, retrieve_user_by_email
+from .....core.utils.url import validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel, validate_channel
 from ....core import ResolveInfo
@@ -17,7 +14,6 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
-from ....plugins.dataloaders import get_plugin_manager_promise
 
 
 class RequestPasswordReset(BaseMutation):
@@ -90,38 +86,11 @@ class RequestPasswordReset(BaseMutation):
         ).slug
         channel_slug = validate_channel(channel_slug, error_class=AccountErrorCode).slug
 
-        if not user:
-            return RequestPasswordReset()
-
-        token = default_token_generator.make_token(user)
-
-        params = urlencode({"email": user.email, "token": token})
-        manager = get_plugin_manager_promise(info.context).get()
-        send_password_reset_notification(
-            redirect_url,
-            user,
-            manager,
+        trigger_send_password_reset_notification.delay(
+            redirect_url=redirect_url,
+            user_pk=user.pk if user else None,
+            context_data=RequestorAwareContext.create_context_data(info.context),
             channel_slug=channel_slug,
-            staff=user.is_staff,
         )
-        if user.is_staff:
-            cls.call_event(
-                manager.staff_set_password_requested,
-                user,
-                channel_slug,
-                token,
-                prepare_url(params, redirect_url),
-            )
-        else:
-            cls.call_event(
-                manager.account_set_password_requested,
-                user,
-                channel_slug,
-                token,
-                prepare_url(params, redirect_url),
-            )
-
-        user.last_password_reset_request = timezone.now()
-        user.save(update_fields=["last_password_reset_request"])
 
         return RequestPasswordReset()
