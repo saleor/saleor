@@ -21,6 +21,7 @@ DRAFT_ORDER_DELETE_MUTATION = """
             errors {
                 code
                 field
+                message
             }
         }
     }
@@ -69,6 +70,33 @@ def test_draft_order_delete_non_draft_order(
     assert len(account_errors) == 1
     assert account_errors[0]["field"] == "id"
     assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
+
+
+def test_draft_order_delete_draft_with_transactions(
+    staff_api_client, permission_group_manage_orders, draft_order, transaction_item
+):
+    # given
+    order = draft_order
+    query = DRAFT_ORDER_DELETE_MUTATION
+    transaction_item.order_id = order.id
+    transaction_item.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    account_errors = content["data"]["draftOrderDelete"]["errors"]
+    assert len(account_errors) == 1
+    assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
+    assert (
+        account_errors[0]["message"]
+        == "Cannot delete order with payments or transactions attached to it."
+    )
 
 
 def test_draft_order_delete_by_user_no_channel_access(
