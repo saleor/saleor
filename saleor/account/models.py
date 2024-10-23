@@ -192,6 +192,7 @@ class User(
     uuid = models.UUIDField(default=uuid4, unique=True)
 
     USERNAME_FIELD = "email"
+    DO_NOT_LEAK_ID = False
 
     objects = UserManager()
 

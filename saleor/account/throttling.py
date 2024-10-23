@@ -44,9 +44,19 @@ def authenticate_with_throttling(request, email, password) -> Optional[models.Us
 
     # retrieve user from credentials
     ip_user_attempts_count = 0
-    if user := retrieve_user_by_email(email):
+    user_exists = True
+
+    user = retrieve_user_by_email(email)
+    if not user:
+        user_exists = False
+        user = models.User()
+
+    correct_password = user.check_password(password)
+
+    if user_exists:
         ip_user_key = get_cache_key_failed_ip_with_user(ip, user.pk)
-        if user.check_password(password):
+
+        if correct_password:
             # clear cache entries when login successful
             clear_cache([ip_key, ip_user_key, block_key])
             return user
