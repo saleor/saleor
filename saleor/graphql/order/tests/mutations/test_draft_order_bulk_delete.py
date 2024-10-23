@@ -2,12 +2,18 @@ import graphene
 
 from .....order import OrderStatus
 from .....order import models as order_models
+from .....order.error_codes import OrderErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_BULK_DELETE = """
     mutation draftOrderBulkDelete($ids: [ID!]!) {
         draftOrderBulkDelete(ids: $ids) {
             count
+            errors {
+                field
+                code
+                message
+            }
         }
     }
 """
@@ -99,6 +105,45 @@ def test_delete_draft_orders_by_app(
     assert order_models.Order.objects.filter(
         id__in=[order.id for order in orders]
     ).count() == len(orders)
+
+
+def test_delete_draft_orders_orders_with_transaction_item(
+    staff_api_client,
+    order_list,
+    permission_group_manage_orders,
+    transaction_item_generator,
+):
+    # given
+    for order in order_list:
+        order.status = OrderStatus.DRAFT
+        order.save()
+        transaction_item_generator(order_id=order.pk)
+
+    query = DRAFT_ORDER_BULK_DELETE
+
+    ids = [graphene.Node.to_global_id("Order", order.id) for order in order_list]
+    variables = {"ids": ids}
+
+    # when
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert "errors" in content["data"]["draftOrderBulkDelete"]
+    errors = content["data"]["draftOrderBulkDelete"]["errors"]
+    assert len(errors) == 3
+    for i, _order in enumerate(order_list):
+        assert errors[i]["code"] == OrderErrorCode.INVALID.name
+        assert errors[i]["field"] in ids
+        assert (
+            errors[i]["message"]
+            == "Cannot delete order with payments or transactions attached to it."
+        )
+    assert content["data"]["draftOrderBulkDelete"]["count"] == 0
+    assert order_models.Order.objects.filter(
+        id__in=[order.id for order in order_list]
+    ).count() == len(order_list)
 
 
 MUTATION_DELETE_ORDER_LINES = """
