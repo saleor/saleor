@@ -181,7 +181,7 @@ class AccountRegister(ModelMutation):
 
         # moving logic to async task to prevent timing attacks
         finish_creating_user.delay(
-            instance.pk,
+            instance.pk if not user_exists else None,
             cleaned_input.get("redirect_url"),
             cleaned_input.get("channel"),
             context_data,

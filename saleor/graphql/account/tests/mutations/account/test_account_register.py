@@ -8,6 +8,7 @@ from ......account import events as account_events
 from ......account.models import User
 from ......account.notifications import get_default_user_payload
 from ......account.search import generate_user_fields_search_document_value
+from ......account.tasks import finish_creating_user
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
@@ -39,7 +40,12 @@ ACCOUNT_REGISTER_MUTATION = """
 )
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
+@patch(
+    "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
+    wraps=finish_creating_user,
+)
 def test_customer_register(
+    mocked_finish_creating_user,
     mocked_notify,
     mocked_generator,
     api_client,
@@ -101,6 +107,8 @@ def test_customer_register(
     assert len(called_kwargs) == 2
     assert called_kwargs["payload_func"]() == expected_payload
     assert called_kwargs["channel_slug"] == channel_PLN.slug
+    assert mocked_finish_creating_user.delay.called
+    assert mocked_finish_creating_user.delay.call_args.args[0] == new_user.pk
 
 
 @override_settings(
@@ -108,7 +116,12 @@ def test_customer_register(
 )
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
+@patch(
+    "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
+    wraps=finish_creating_user,
+)
 def test_customer_register_twice(
+    mocked_finish_creating_user,
     mocked_notify,
     mocked_generator,
     api_client,
@@ -170,15 +183,22 @@ def test_customer_register_twice(
     assert len(called_kwargs) == 2
     assert called_kwargs["payload_func"]() == expected_payload
     assert called_kwargs["channel_slug"] == channel_PLN.slug
+    assert mocked_finish_creating_user.delay.called
+    assert mocked_finish_creating_user.delay.call_args.args[0] == new_user.pk
 
+    # when
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
+
+    # then
     assert not data["errors"]
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
+    assert mocked_finish_creating_user.delay.call_count == 2
+    assert mocked_finish_creating_user.delay.call_args.args[0] is None
 
 
 @override_settings(
