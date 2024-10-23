@@ -12,6 +12,7 @@ from ....tax.utils import (
     get_tax_configuration_for_checkout,
 )
 from ....webhook.event_types import WebhookEventSyncType
+from ...app.dataloaders.apps import AppsByEventTypeLoader
 from ...checkout.dataloaders.checkout_infos import (
     CheckoutInfoByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
@@ -20,8 +21,7 @@ from ...core.dataloaders import DataLoader
 from ..subscription_payload import generate_payload_promise_from_subscription
 from ..utils import get_subscription_query_hash
 from .models import WebhooksByEventTypeLoader
-from .utils import (
-    AppsByEventTypeLoader,
+from .request_context import (
     PayloadsRequestContextByEventTypeLoader,
 )
 

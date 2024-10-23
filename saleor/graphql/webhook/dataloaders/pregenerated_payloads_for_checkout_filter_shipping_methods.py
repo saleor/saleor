@@ -4,6 +4,7 @@ from typing import Any
 from promise import Promise
 
 from ....webhook.event_types import WebhookEventSyncType
+from ...app.dataloaders.apps import AppsByEventTypeLoader
 from ...checkout.dataloaders.models import CheckoutByTokenLoader
 from ...core.dataloaders import DataLoader
 from ..subscription_payload import (
@@ -11,8 +12,7 @@ from ..subscription_payload import (
 )
 from ..utils import get_subscription_query_hash
 from .models import WebhooksByEventTypeLoader
-from .utils import (
-    AppsByEventTypeLoader,
+from .request_context import (
     PayloadsRequestContextByEventTypeLoader,
 )
 

@@ -1,7 +1,7 @@
 from .app import ActiveAppByIdLoader, AppByIdLoader, AppByTokenLoader
 from .app_extension import AppExtensionByAppIdLoader, AppExtensionByIdLoader
 from .app_tokens import AppTokensByAppIdLoader
-from .apps import ActiveAppsByAppIdentifierLoader
+from .apps import ActiveAppsByAppIdentifierLoader, AppsByEventTypeLoader
 from .thumbnail import (
     ThumbnailByAppIdSizeAndFormatLoader,
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
@@ -17,6 +17,7 @@ __all__ = [
     "AppExtensionByAppIdLoader",
     "AppExtensionByIdLoader",
     "AppTokensByAppIdLoader",
+    "AppsByEventTypeLoader",
     "get_app_promise",
     "ThumbnailByAppIdSizeAndFormatLoader",
     "ThumbnailByAppInstallationIdSizeAndFormatLoader",
