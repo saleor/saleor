@@ -49,3 +49,15 @@ def get_default_storage_root_url():
     # `path` is stripped to get the actual root URL
     tmp_path = "path"
     return build_absolute_uri(default_storage.url(tmp_path)).rstrip(tmp_path)
+
+
+def sanitize_url_for_logging(url: str) -> str:
+    """Remove sensitive data from a URL to make it safe for logging."""
+    url_parts = urlparse(url)
+    if url_parts.username or url_parts.password:
+        url_parts = url_parts._replace(
+            netloc=f"***:***@{url_parts.hostname}:{url_parts.port}"
+            if url_parts.port
+            else f"***:***@{url_parts.hostname}"
+        )
+    return url_parts.geturl()
