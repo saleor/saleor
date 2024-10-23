@@ -2886,3 +2886,47 @@ def test_product_tax_class_query_by_staff(staff_api_client, product, channel_USD
     assert data["product"]
     assert data["product"]["id"]
     assert data["product"]["taxClass"]["id"]
+
+
+def test_products_invalid_channel_slug(api_client):
+    response = api_client.post_graphql(
+        """
+        query {
+          products(last: 100, channel: "does-not-exist") {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+        """
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    assert "errors" in content
+    assert (
+        content["errors"][0]["message"]
+        == "Channel with 'does-not-exist' slug does not exist."
+    )
+
+
+def test_products_no_products_for_channel(api_client, channel_USD):
+    response = api_client.post_graphql(
+        """
+        query {
+          products(last: 100, channel: "empty-channel") {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+        """
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    assert "errors" in content
+    assert (
+        content["errors"][0]["message"]
+        == "No products found for channel 'empty-channel'"
+    )

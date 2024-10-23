@@ -1,4 +1,5 @@
 import graphene
+from graphql import GraphQLError
 from promise import Promise
 
 from ...permission.enums import ProductPermissions
@@ -521,6 +522,9 @@ class ProductQueries(graphene.ObjectType):
             channel = get_default_channel_slug_or_graphql_error(
                 allow_replica=info.context.allow_replica
             )
+
+        if not channel:
+            raise GraphQLError(f"Channel with '{channel}' slug does not exist.")
 
         def _resolve_products(channel_obj):
             qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
