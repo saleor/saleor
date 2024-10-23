@@ -807,3 +807,19 @@ def test_applicable_for_click_and_collect_no_quantity_check_additional_stock(
     # then
     assert len(result) == 1
     assert result.first().id == all_warehouse.id
+
+
+def test_for_channel_with_active_shipping_zone_or_cc(
+    warehouses_for_cc, warehouse, warehouse_JPY, warehouse_no_shipping_zone, channel_USD
+):
+    # given
+    expected_warehouse_pks = [wh.pk for wh in warehouses_for_cc]
+    expected_warehouse_pks.append(warehouse.pk)
+
+    # when
+    warehouses = Warehouse.objects.for_channel_with_active_shipping_zone_or_cc(
+        channel_USD.slug
+    )
+
+    # then
+    assert set(warehouses.values_list("pk", flat=True)) == set(expected_warehouse_pks)
