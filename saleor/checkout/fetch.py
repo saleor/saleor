@@ -74,6 +74,7 @@ class CheckoutInfo:
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
+    pregenerated_payloads_for_excluded_shipping_method: Optional[dict] = None
 
     @cached_property
     def all_shipping_methods(self) -> list["ShippingMethodData"]:
@@ -90,6 +91,7 @@ class CheckoutInfo:
             self.checkout,
             self.channel,
             all_methods,
+            self.pregenerated_payloads_for_excluded_shipping_method,
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
