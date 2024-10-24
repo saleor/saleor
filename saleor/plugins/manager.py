@@ -1715,10 +1715,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def attribute_created(self, attribute: "Attribute"):
+    def attribute_created(self, attribute: "Attribute", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_created", default_value, attribute, channel_slug=None
+            "attribute_created",
+            default_value,
+            attribute,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
