@@ -11,10 +11,7 @@ from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import Order
-from .. import (
-    DiscountType,
-    VoucherType,
-)
+from .. import DiscountType, VoucherType
 from ..models import (
     DiscountValueType,
     NotApplicable,
@@ -230,9 +227,7 @@ def _get_the_cheapest_line(
 ) -> Optional["LineInfo"]:
     if not lines_info:
         return None
-    return min(
-        lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
-    )
+    return min(lines_info, key=lambda line_info: line_info.variant_discounted_price)
 
 
 def validate_voucher_for_checkout(

@@ -88,6 +88,103 @@ def test_checkout_line_delete(
     assert mocked_invalidate_checkout.call_count == 1
 
 
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_line_delete."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_line_delete_when_variant_without_channel_listing(
+    mocked_invalidate_checkout,
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_line_with_reservation_in_many_stocks,
+):
+    # given
+    assert Reservation.objects.count() == 2
+    checkout = checkout_line_with_reservation_in_many_stocks.checkout
+    previous_last_change = checkout.last_change
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 3
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    line.variant.channel_listings.all().delete()
+    assert line.quantity == 3
+
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+
+    variables = {"id": to_global_id_or_none(checkout), "lineId": line_id}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLineDelete"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 0
+    assert calculate_checkout_quantity(lines) == 0
+    assert Reservation.objects.count() == 0
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout.call_count == 1
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_line_delete."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_line_delete_when_checkout_has_variant_without_channel_listing(
+    mocked_invalidate_checkout,
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    previous_last_change = checkout.last_change
+
+    lines, _ = fetch_checkout_lines(checkout)
+    assert calculate_checkout_quantity(lines) == 4
+    assert checkout.lines.count() == 4
+    line_without_listing = checkout.lines.last()
+    line_without_listing.variant.channel_listings.all().delete()
+
+    line = checkout.lines.first()
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+
+    variables = {"id": to_global_id_or_none(checkout), "lineId": line_id}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINE_DELETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLineDelete"]
+    assert not data["errors"]
+
+    assert checkout.lines.count() == 3
+    checkout.refresh_from_db()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout.call_count == 1
+
+
 def test_checkout_lines_delete_with_not_applicable_voucher(
     user_api_client, checkout_with_item, voucher, channel_USD
 ):

@@ -92,6 +92,37 @@ def test_checkout_remove_voucher_code(
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_when_variant_without_listing(
+    checkout_updated_webhook_mock, api_client, checkout_with_voucher
+):
+    # given
+    line = checkout_with_voucher.lines.first()
+    line.variant.channel_listings.all().delete()
+
+    assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_checkout_remove_voucher_code_from_voucher_with_multiple_codes(
     checkout_updated_webhook_mock,
     api_client,

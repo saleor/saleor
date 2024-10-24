@@ -53,6 +53,44 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
     assert_no_permission(response)
 
 
+def test_checkout_customer_detach_when_variant_without_listing(
+    user_api_client, checkout_with_item, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+
+    line = checkout.lines.first()
+    line.variant.channel_listings.all().delete()
+
+    previous_last_change = checkout.last_change
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerDetach"]
+
+    # then
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user is None
+    assert checkout.last_change != previous_last_change
+
+    # Mutation should fail when user calling it doesn't own the checkout.
+    other_user = User.objects.create_user("othercustomer@example.com", "password")
+    checkout.user = other_user
+    checkout.save()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    assert_no_permission(response)
+
+
 def test_checkout_customer_detach_by_app(
     app_api_client, checkout_with_item, customer_user, permission_impersonate_user
 ):

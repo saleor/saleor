@@ -49,10 +49,7 @@ def calculate_base_line_total_price(
     """
     from ..discount.utils.voucher import calculate_line_discount_amount_from_voucher
 
-    variant = line_info.variant
-    variant_price = variant.get_base_price(
-        line_info.channel_listing, line_info.line.price_override
-    )
+    variant_price = line_info.undiscounted_unit_price
 
     total_price = variant_price * line_info.line.quantity
 
@@ -86,10 +83,7 @@ def calculate_undiscounted_base_line_unit_price(
     channel: "Channel",
 ):
     """Calculate line unit price without discounts and vouchers."""
-    variant = line_info.variant
-    variant_price = variant.get_base_price(
-        line_info.channel_listing, line_info.line.price_override
-    )
+    variant_price = line_info.undiscounted_unit_price
     return quantize_price(variant_price, variant_price.currency)
 
 
