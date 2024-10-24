@@ -326,8 +326,6 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         ).exists():
             product_channel_listing.delete()
 
-        cls.perform_checkout_lines_delete(variants, [channel.id])
-
     @classmethod
     def perform_checkout_lines_delete(cls, variants, channel_id):
         lines_id_and_checkout_id = list(
