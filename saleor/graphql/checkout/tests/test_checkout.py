@@ -20,7 +20,8 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
 from ....core.prices import quantize_price
-from ....discount import DiscountValueType, VoucherType
+from ....discount import DiscountType, DiscountValueType, VoucherType
+from ....discount.models import CheckoutLineDiscount
 from ....payment import TransactionAction
 from ....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -1729,53 +1730,132 @@ def test_fetch_checkout_invalid_token(user_api_client, channel_USD, checkout):
 
 
 QUERY_CHECKOUT_PRICES = """
-    query getCheckout($id: ID) {
-        checkout(id: $id) {
-           displayGrossPrices
-           token
-           discount {
-                amount
-           }
-           totalPrice {
-                currency
-                gross {
-                    amount
-                }
-            }
-            subtotalPrice {
-                currency
-                gross {
-                    amount
-                }
-            }
-           lines {
-                isGift
-                variant {
-                    id
-                }
-                unitPrice {
-                    gross {
-                        amount
-                    }
-                }
-                undiscountedUnitPrice {
-                    amount
-                    currency
-                }
-                totalPrice {
-                    currency
-                    gross {
-                        amount
-                    }
-                }
-                undiscountedTotalPrice {
-                    amount
-                    currency
-                }
-           }
-        }
+query getCheckout($id: ID) {
+  checkout(id: $id) {
+    displayGrossPrices
+    token
+    discount {
+      amount
     }
+    totalPrice {
+      currency
+      gross {
+        amount
+      }
+    }
+    subtotalPrice {
+      currency
+      gross {
+        amount
+      }
+    }
+    problems {
+      ... on CheckoutLineProblemVariantNotAvailable {
+        __typename
+        line {
+          id
+        }
+      }
+    }
+    lines {
+      id
+      isGift
+      variant {
+        id
+        pricing {
+          onSale
+          price {
+            gross {
+              amount
+            }
+          }
+        }
+      }
+      unitPrice {
+        gross {
+          amount
+        }
+      }
+      undiscountedUnitPrice {
+        amount
+        currency
+      }
+      totalPrice {
+        currency
+        gross {
+          amount
+        }
+      }
+      undiscountedTotalPrice {
+        amount
+        currency
+      }
+      problems {
+        ... on CheckoutLineProblemVariantNotAvailable {
+          __typename
+        }
+      }
+    }
+  }
+}
 """
+
+
+def test_checkout_prices_when_variant_without_listing(
+    user_api_client, checkout_with_line_without_listing
+):
+    # given
+    checkout, line_without_listing = checkout_with_line_without_listing
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    assert response_api_line_without_listing["variant"]["pricing"] is None
+    assert (
+        response_api_line_without_listing["unitPrice"]["gross"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+        * line_without_listing.quantity
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+        * line_without_listing.quantity
+    )
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
 
 
 def test_checkout_prices(user_api_client, checkout_with_item):
@@ -1892,6 +1972,67 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
 
 
+def test_checkout_prices_checkout_with_custom_prices_when_variant_without_listing(
+    user_api_client, checkout_with_line_without_listing
+):
+    # given
+    checkout, line_without_listing = checkout_with_line_without_listing
+    price_override = Decimal("20.00")
+    line_without_listing.price_override = price_override
+    line_without_listing.undiscounted_unit_price_amount = price_override
+    line_without_listing.save(
+        update_fields=["price_override", "undiscounted_unit_price_amount"]
+    )
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    assert response_api_line_without_listing["variant"]["pricing"] is None
+    assert (
+        response_api_line_without_listing["unitPrice"]["gross"]["amount"]
+        == price_override
+    )
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == price_override
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == price_override * line_without_listing.quantity
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == price_override * line_without_listing.quantity
+    )
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+
+
 def test_checkout_prices_with_sales(user_api_client, checkout_with_item_on_sale):
     # given
     query = QUERY_CHECKOUT_PRICES
@@ -1957,6 +2098,124 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item_on_sale)
         data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
     )
     assert line_total_price.gross.amount < undiscounted_total_price
+
+
+def test_checkout_prices_with_sales_when_variant_without_listing(
+    user_api_client, checkout_with_item, promotion_converted_from_sale
+):
+    # given
+    checkout = checkout_with_item
+
+    line_without_listing = checkout_with_item.lines.first()
+
+    channel = checkout_with_item.channel
+    discount_amount = Decimal("5.0")
+    variant = line_without_listing.variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    predicate = {"variantPredicate": {"ids": [variant_id]}}
+
+    rule = promotion_converted_from_sale.rules.first()
+    rule.catalogue_predicate = predicate
+    rule.reward_value = discount_amount
+    rule.save(update_fields=["catalogue_predicate", "reward_value"])
+    rule.channels.add(channel)
+
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    CheckoutLineDiscount.objects.create(
+        line=line_without_listing,
+        promotion_rule=rule,
+        type=DiscountType.PROMOTION,
+        value_type=rule.reward_value_type,
+        value=discount_amount,
+        amount_value=discount_amount * line_without_listing.quantity,
+        currency=channel.currency_code,
+    )
+
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout = checkout_with_item
+
+    line_without_listing.variant.channel_listings.get(
+        channel_id=checkout.channel_id
+    ).delete()
+
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    line_info = [line for line in lines if line.line.pk == line_without_listing.pk][0]
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    line_unit_price = calculations.checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    assert response_api_line_without_listing["variant"]["pricing"] is None
+    assert (
+        response_api_line_without_listing["unitPrice"]["gross"]["amount"]
+        == line_unit_price.gross.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+        * line_without_listing.quantity
+    )
+    assert line_unit_price.gross < line_without_listing.undiscounted_unit_price
+    assert (
+        line_total_price.gross
+        < line_without_listing.undiscounted_unit_price * line_without_listing.quantity
+    )
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
 
 
 def test_checkout_prices_with_promotion(
@@ -2028,6 +2287,91 @@ def test_checkout_prices_with_promotion(
     assert line_total_price.gross.amount < undiscounted_total_price
 
 
+def test_checkout_prices_with_promotion_when_variant_without_listing(
+    user_api_client, checkout_with_item_on_promotion
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+
+    checkout = checkout_with_item_on_promotion
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    line_without_listing = checkout.lines.first()
+    line_without_listing.variant.channel_listings.get(
+        channel_id=checkout.channel_id
+    ).delete()
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    line_info = [line for line in lines if line.line.pk == line_without_listing.pk][0]
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    line_unit_price = calculations.checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    assert response_api_line_without_listing["variant"]["pricing"] is None
+    assert (
+        response_api_line_without_listing["unitPrice"]["gross"]["amount"]
+        == line_unit_price.gross.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+        * line_without_listing.quantity
+    )
+    assert line_unit_price.gross < line_without_listing.undiscounted_unit_price
+    assert (
+        line_total_price.gross
+        < line_without_listing.undiscounted_unit_price * line_without_listing.quantity
+    )
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+
+
 def test_checkout_prices_with_order_promotion(
     user_api_client, checkout_with_item_and_order_discount
 ):
@@ -2077,6 +2421,91 @@ def test_checkout_prices_with_order_promotion(
 
     assert data["lines"][0]["undiscountedUnitPrice"]["amount"] == unit_price.amount
     assert data["lines"][0]["undiscountedTotalPrice"]["amount"] == subtotal_price.amount
+
+
+def test_checkout_prices_with_order_promotion_when_variant_without_listing(
+    user_api_client, checkout_with_item_and_order_discount
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_and_order_discount
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    line_without_listing = checkout.lines.first()
+    line_without_listing.variant.channel_listings.get(
+        channel_id=checkout.channel_id
+    ).delete()
+
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    line_info = [line for line in lines if line.line.pk == line_without_listing.pk][0]
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    line_unit_price = calculations.checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    assert response_api_line_without_listing["variant"]["pricing"] is None
+    assert str(
+        response_api_line_without_listing["unitPrice"]["gross"]["amount"]
+    ) == str(round(line_unit_price.gross.amount, 2))
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == line_without_listing.undiscounted_unit_price_amount
+        * line_without_listing.quantity
+    )
+    assert line_unit_price.gross < line_without_listing.undiscounted_unit_price
+    assert (
+        line_total_price.gross
+        < line_without_listing.undiscounted_unit_price * line_without_listing.quantity
+    )
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
 
 
 def test_checkout_prices_with_gift_promotion(
@@ -2138,6 +2567,77 @@ def test_checkout_prices_with_gift_promotion(
     assert gift_line["undiscountedTotalPrice"]["amount"] == top_price
     assert gift_line["variant"]["id"] == graphene.Node.to_global_id(
         "ProductVariant", variant_id
+    )
+
+
+def test_checkout_prices_with_gift_promotion_when_variant_without_listing(
+    user_api_client, checkout_with_item_and_gift_promotion, gift_promotion_rule
+):
+    # given
+    query = QUERY_CHECKOUT_PRICES
+    checkout = checkout_with_item_and_gift_promotion
+    line_without_listing = checkout.lines.get(is_gift=True)
+
+    variants = gift_promotion_rule.gifts.all()
+    variant_listings = ProductVariantChannelListing.objects.filter(variant__in=variants)
+    top_price, variant_id = max(
+        variant_listings.values_list("discounted_price_amount", "variant")
+    )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    line_info = [line for line in lines if line.line.pk == line_without_listing.pk][0]
+
+    # Calculate the prices based on the existing gift line
+    calculations.checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+
+    variant_listings.delete()
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    assert response_api_line_without_listing["variant"]["pricing"] is None
+    assert response_api_line_without_listing["unitPrice"]["gross"]["amount"] == 0
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == top_price
+    )
+    assert response_api_line_without_listing["totalPrice"]["gross"]["amount"] == 0
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == top_price
+    )
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
     )
 
 
@@ -2241,6 +2741,88 @@ def test_checkout_prices_with_specific_voucher(
     )
 
 
+def test_checkout_prices_with_specific_voucher_when_variant_without_listing(
+    user_api_client, checkout_with_item_and_voucher_specific_products
+):
+    # given
+    checkout = checkout_with_item_and_voucher_specific_products
+    line_without_listing = checkout.lines.first()
+    line_without_listing.variant.channel_listings.all().delete()
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == total.gross.amount
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == subtotal.gross.amount
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert response_api_line_without_listing["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.undiscounted_unit_price
+    undiscounted_line_total = undiscounted_unit_price * line_info.line.quantity
+    assert line_total_price.gross < undiscounted_line_total
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == undiscounted_line_total.amount
+    )
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+
+
 def test_checkout_prices_with_voucher_once_per_order(
     user_api_client, checkout_with_item_and_voucher_once_per_order
 ):
@@ -2302,6 +2884,95 @@ def test_checkout_prices_with_voucher_once_per_order(
     assert (
         data["lines"][0]["undiscountedTotalPrice"]["amount"]
         == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_voucher_once_per_order_when_variant_without_listing(
+    user_api_client, checkout_with_item_and_voucher_once_per_order
+):
+    # given
+    checkout = checkout_with_item_and_voucher_once_per_order
+
+    line_without_listing = checkout.lines.first()
+    line_without_listing.variant.channel_listings.all().delete()
+
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert response_api_line_without_listing["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.undiscounted_unit_price
+    undiscounted_line_total = undiscounted_unit_price * line_info.line.quantity
+    assert line_total_price.gross < undiscounted_line_total
+
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
     )
 
 
@@ -2367,6 +3038,95 @@ def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_vo
     )
 
 
+def test_checkout_prices_with_voucher_when_variant_without_listing(
+    user_api_client, checkout_with_item_and_voucher
+):
+    # given
+    checkout = checkout_with_item_and_voucher
+
+    line_without_listing = checkout.lines.first()
+    line_without_listing.variant.channel_listings.all().delete()
+
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == total.gross.amount
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == subtotal.gross.amount
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert response_api_line_without_listing["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.undiscounted_unit_price
+    undiscounted_line_total = undiscounted_unit_price * line_info.line.quantity
+
+    assert line_total_price.gross < undiscounted_line_total
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+
+
 def test_checkout_prices_with_voucher_code_that_doesnt_exist(
     user_api_client, checkout_with_item_and_voucher, voucher
 ):
@@ -2429,6 +3189,95 @@ def test_checkout_prices_with_voucher_code_that_doesnt_exist(
     assert (
         data["lines"][0]["undiscountedTotalPrice"]["amount"]
         == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_voucher_code_that_doesnt_exist_when_variant_without_listing(
+    user_api_client, checkout_with_item_and_voucher, voucher
+):
+    # given
+    checkout = checkout_with_item_and_voucher
+
+    line_without_listing = checkout.lines.first()
+    line_without_listing.variant.channel_listings.all().delete()
+
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+    voucher.delete()
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+
+    response_api_line_without_listing = [
+        line_data
+        for line_data in data["lines"]
+        if line_data["id"] == to_global_id_or_none(line_without_listing)
+    ][0]
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert response_api_line_without_listing["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        response_api_line_without_listing["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.undiscounted_unit_price
+
+    assert (
+        response_api_line_without_listing["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        response_api_line_without_listing["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+    assert undiscounted_unit_price * line_info.line.quantity == line_total_price.gross
+
+    checkout_problems = data["problems"]
+    assert len(checkout_problems) == 1
+    assert (
+        checkout_problems[0]["__typename"] == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert checkout_problems[0]["line"]["id"] == to_global_id_or_none(
+        line_without_listing
+    )
+    assert len(response_api_line_without_listing["problems"]) == 1
+    assert (
+        response_api_line_without_listing["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
     )
 
 

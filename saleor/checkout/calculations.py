@@ -254,6 +254,20 @@ def checkout_line_tax_rate(
     return checkout_line_info.line.tax_rate
 
 
+def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
+    """Update undiscounted unit price amount.
+
+    Undiscounted unit price stores the price of the variant. If listing is not present,
+    the undiscounted unit price will be used to provide a price for the rest of
+    calculations.
+    """
+    for line_info in lines:
+        if not line_info.channel_listing or line_info.channel_listing.price is None:
+            continue
+
+        line_info.line.undiscounted_unit_price = line_info.undiscounted_unit_price
+
+
 def _fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -295,6 +309,8 @@ def _fetch_checkout_prices_if_expired(
     )
 
     lines = cast(list, lines)
+    update_undiscounted_unit_price_for_lines(lines)
+
     create_or_update_discount_objects_from_promotion_for_checkout(
         checkout_info, lines, database_connection_name
     )
@@ -389,6 +405,7 @@ def _fetch_checkout_prices_if_expired(
                 "total_price_net_amount",
                 "total_price_gross_amount",
                 "tax_rate",
+                "undiscounted_unit_price_amount",
             ],
         )
     return checkout_info, lines

@@ -28,6 +28,9 @@ def checkout_line_with_reservation_in_many_stocks(
     checkout_line = checkout.lines.create(
         variant=variant,
         quantity=3,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price_amount,
     )
 
     reserved_until = timezone.now() + datetime.timedelta(minutes=5)
@@ -61,6 +64,9 @@ def checkout_line_with_one_reservation(
     checkout_line = checkout.lines.create(
         variant=variant,
         quantity=2,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price_amount,
     )
 
     reserved_until = timezone.now() + datetime.timedelta(minutes=5)

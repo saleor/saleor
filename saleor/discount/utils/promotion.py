@@ -183,6 +183,12 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
     for line_info in lines_info:
         line = line_info.line
 
+        # if channel_listing is not present, we can't close the checkout. User needs to
+        # remove the line for the checkout first. Until that moment, we return the same
+        # price as we did when listing was present - including line discount.
+        if isinstance(line_info, CheckoutLineInfo) and not line_info.channel_listing:
+            continue
+
         # get the existing catalogue discount for the line
         discount_to_update = None
         if discounts_to_update := line_info.get_catalogue_discounts():
@@ -517,8 +523,11 @@ def delete_gift_line(
             lines_info.remove(gift_line_info)  # type: ignore[arg-type]
 
 
-def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
-    defaults = _get_defaults_for_gift_line(order_or_checkout, variant_id)
+def create_gift_line(
+    order_or_checkout: Union[Checkout, Order],
+    gift_listing: "ProductVariantChannelListing",
+):
+    defaults = _get_defaults_for_gift_line(order_or_checkout, gift_listing)
     line, created = order_or_checkout.lines.get_or_create(
         is_gift=True, defaults=defaults
     )
@@ -535,13 +544,16 @@ def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int)
 
 
 def _get_defaults_for_gift_line(
-    order_or_checkout: Union[Checkout, Order], variant_id: int
+    order_or_checkout: Union[Checkout, Order],
+    gift_listing: "ProductVariantChannelListing",
 ):
+    variant_id = gift_listing.variant_id
     if isinstance(order_or_checkout, Checkout):
         return {
             "variant_id": variant_id,
             "quantity": 1,
             "currency": order_or_checkout.currency,
+            "undiscounted_unit_price_amount": gift_listing.price_amount,
         }
     variant = (
         ProductVariant.objects.filter(id=variant_id)
@@ -884,9 +896,7 @@ def _handle_gift_reward(
         else OrderLineDiscount
     )
     with transaction.atomic():
-        line, line_created = create_gift_line(
-            order_or_checkout, gift_listing.variant_id
-        )
+        line, line_created = create_gift_line(order_or_checkout, gift_listing)
         (
             line_discount,
             discount_created,
