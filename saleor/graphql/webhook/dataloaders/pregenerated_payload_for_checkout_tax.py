@@ -70,10 +70,11 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
             apps_map = {app.id: app for app in apps}
             promises = []
             for checkout_info, lines_info in zip(checkouts_info, checkout_lines_info):
-                tax_configuration, country_tax_configuration = (
-                    get_tax_configuration_for_checkout(
-                        checkout_info, lines_info, self.database_connection_name
-                    )
+                (
+                    tax_configuration,
+                    country_tax_configuration,
+                ) = get_tax_configuration_for_checkout(
+                    checkout_info, lines_info, self.database_connection_name
                 )
                 tax_strategy = get_tax_calculation_strategy(
                     tax_configuration, country_tax_configuration

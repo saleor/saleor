@@ -470,7 +470,7 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     # then
     delivery = EventDelivery.objects.get()
     mock_async_apply.assert_called_once_with(
-        kwargs={"event_delivery_id": delivery.id},
+        kwargs={"event_delivery_id": delivery.id, "deferred_payload_data": {}},
         queue=expected_queue_name,
         bind=True,
         retry_backoff=10,
