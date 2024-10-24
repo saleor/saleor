@@ -129,6 +129,67 @@ def test_checkout_lines_update(
     "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_lines_update_when_checkout_has_variant_without_listing(
+    mocked_invalidate_checkout,
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 4
+    assert calculate_checkout_quantity(lines) == 4
+
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 1
+
+    line_without_listing = checkout.lines.last()
+    line_without_listing.variant.channel_listings.all().delete()
+
+    previous_last_change = checkout.last_change
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 3}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 4
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 3
+    assert calculate_checkout_quantity(lines) == 6
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout.call_count == 1
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
 def test_checkout_lines_update_using_line_id(
     mocked_update_shipping_method, user_api_client, checkout_with_item
 ):
@@ -469,6 +530,9 @@ def test_checkout_lines_update_against_reserved_stock(
     other_checkout_line = other_checkout.lines.create(
         variant=variant,
         quantity=7,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     reservation = Reservation.objects.create(
         checkout_line=other_checkout_line,
@@ -1000,6 +1064,34 @@ def test_checkout_lines_update_with_unavailable_variant(
     variant.channel_listings.filter(channel=checkout_with_item.channel).update(
         price_amount=None
     )
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    errors = content["data"]["checkoutLinesUpdate"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+    checkout.refresh_from_db()
+    assert checkout.last_change == previous_last_change
+
+
+def test_checkout_lines_update_with_variant_without_channel_listing(
+    user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    previous_last_change = checkout.last_change
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    variant = line.variant
+    variant.channel_listings.filter(channel=checkout_with_item.channel).delete()
     assert line.quantity == 3
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)

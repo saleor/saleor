@@ -295,9 +295,7 @@ def _get_the_cheapest_line(
 ) -> Optional["LineInfo"]:
     if not lines_info:
         return None
-    return min(
-        lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
-    )
+    return min(lines_info, key=lambda line_info: line_info.variant_discounted_price)
 
 
 def calculate_discounted_price_for_rules(
@@ -552,9 +550,16 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
 
     if not lines_info:
         return
+    from ..checkout.fetch import CheckoutLineInfo
 
     for line_info in lines_info:
         line = line_info.line
+
+        # if channel_listing is not present, we can't close the checkout. User needs to
+        # remove the line for the checkout first. Until that moment, we return the same
+        # price as we did when listing was present - including line discount.
+        if isinstance(line_info, CheckoutLineInfo) and not line_info.channel_listing:
+            continue
 
         # get the existing catalogue discount for the line
         discount_to_update = None
@@ -1127,9 +1132,7 @@ def _handle_gift_reward_for_checkout(
     from ..checkout.fetch import CheckoutLineInfo
 
     with transaction.atomic():
-        line, line_created = create_gift_line(
-            checkout_info.checkout, gift_listing.variant_id
-        )
+        line, line_created = create_gift_line(checkout_info.checkout, gift_listing)
         (
             line_discount,
             discount_created,
@@ -1185,8 +1188,11 @@ def _handle_gift_reward_for_checkout(
         line_info.discounts = [line_discount]
 
 
-def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int):
-    defaults = _get_defaults_for_gift_line(order_or_checkout, variant_id)
+def create_gift_line(
+    order_or_checkout: Union[Checkout, Order],
+    gift_listing: "ProductVariantChannelListing",
+):
+    defaults = _get_defaults_for_gift_line(order_or_checkout, gift_listing)
     line, created = order_or_checkout.lines.get_or_create(
         is_gift=True, defaults=defaults
     )
@@ -1203,13 +1209,16 @@ def create_gift_line(order_or_checkout: Union[Checkout, Order], variant_id: int)
 
 
 def _get_defaults_for_gift_line(
-    order_or_checkout: Union[Checkout, Order], variant_id: int
+    order_or_checkout: Union[Checkout, Order],
+    gift_listing: "ProductVariantChannelListing",
 ):
+    variant_id = gift_listing.variant_id
     if isinstance(order_or_checkout, Checkout):
         return {
             "variant_id": variant_id,
             "quantity": 1,
             "currency": order_or_checkout.currency,
+            "undiscounted_unit_price_amount": gift_listing.price_amount,
         }
     else:
         variant = (
@@ -1685,7 +1694,7 @@ def _handle_gift_reward_for_order(
     from ..order.fetch import EditableOrderLineInfo
 
     with transaction.atomic():
-        line, line_created = create_gift_line(order, gift_listing.variant_id)
+        line, line_created = create_gift_line(order, gift_listing)
         (
             line_discount,
             discount_created,

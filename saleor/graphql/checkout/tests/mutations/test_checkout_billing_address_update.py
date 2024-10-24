@@ -72,6 +72,42 @@ def test_checkout_billing_address_update_by_id(
     assert checkout.billing_address.validation_skipped is False
 
 
+def test_checkout_billing_address_update_when_variant_without_listing(
+    user_api_client, checkout_with_item, graphql_address_data
+):
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    line.variant.channel_listings.all().delete()
+    assert checkout.shipping_address is None
+
+    query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
+    billing_address = graphql_address_data
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "billingAddress": billing_address,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.billing_address is not None
+    assert checkout.billing_address.first_name == billing_address["firstName"]
+    assert checkout.billing_address.last_name == billing_address["lastName"]
+    assert (
+        checkout.billing_address.street_address_1 == billing_address["streetAddress1"]
+    )
+    assert (
+        checkout.billing_address.street_address_2 == billing_address["streetAddress2"]
+    )
+    assert checkout.billing_address.postal_code == billing_address["postalCode"]
+    assert checkout.billing_address.country == billing_address["country"]
+    assert checkout.billing_address.city == billing_address["city"].upper()
+    assert checkout.billing_address.validation_skipped is False
+
+
 def test_checkout_billing_address_update_by_id_without_required_fields(
     user_api_client, checkout_with_item, graphql_address_data
 ):

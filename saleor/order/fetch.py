@@ -1,19 +1,20 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Optional
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
 
 from ..channel.models import Channel
+from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
+from ..core.taxes import zero_money
 from ..discount import DiscountType, VoucherType
-from ..discount.interface import (
-    fetch_variant_rules_info,
-    fetch_voucher_info,
-)
+from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..discount.models import OrderLineDiscount
 from ..discount.utils import apply_voucher_to_line
+from ..graphql.core.types import Money
 from ..payment.models import Payment
 from ..product.models import (
     DigitalContent,
@@ -81,6 +82,27 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 class EditableOrderLineInfo(LineInfo):
     line: "OrderLine"
     discounts: list["OrderLineDiscount"]
+
+    @cached_property
+    def variant_discounted_price(self) -> Money:
+        """Return the discounted variant price.
+
+        If listing is present return the discounted price from the listing.
+        if listing is not present, calculate current unit price based on the details
+        assigned to the line. We want to show the same prices as they were
+        before removing listing.
+        """
+        if self.channel_listing and self.channel_listing.discounted_price is not None:
+            return self.channel_listing.discounted_price
+
+        catalogue_discounts = self.get_catalogue_discounts()
+        total_price = self.line.undiscounted_base_unit_price * self.line.quantity
+        for discount in catalogue_discounts:
+            total_price -= discount.amount
+        unit_price = max(
+            total_price / self.line.quantity, zero_money(self.line.currency)
+        )
+        return quantize_price(unit_price, self.line.currency)
 
     def get_manual_line_discount(
         self,

@@ -2,16 +2,14 @@ import itertools
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import cached_property, singledispatch
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from uuid import UUID
 
+from prices import Money
+
+from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
+from ..core.taxes import zero_money
 from ..discount import VoucherType
 from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
@@ -53,6 +51,41 @@ class CheckoutLineInfo(LineInfo):
     product_type: "ProductType"
     discounts: list["CheckoutLineDiscount"]
     tax_class: Optional["TaxClass"] = None
+
+    @cached_property
+    def variant_discounted_price(self) -> Money:
+        """Return the discounted variant price.
+
+        `variant_discounted_price` means price with the most beneficial applicable
+        catalogue promotion.
+        If listing is present return the discounted price from the listing,
+        if listing is not present, calculate current unit price based on
+        `undiscounted_unit_price` and catalogue promotion discounts.
+        """
+        if self.channel_listing and self.channel_listing.discounted_price is not None:
+            return self.channel_listing.discounted_price
+        catalogue_discounts = self.get_catalogue_discounts()
+        total_price = self.undiscounted_unit_price * self.line.quantity
+        for discount in catalogue_discounts:
+            total_price -= discount.amount
+
+        unit_price = max(
+            total_price / self.line.quantity, zero_money(self.line.currency)
+        )
+        return quantize_price(unit_price, self.line.currency)
+
+    @cached_property
+    def undiscounted_unit_price(self) -> Money:
+        """Provide undiscounted unit price.
+
+        Return the undiscounted variant price when listing is present. If variant
+        doesn't have listing, use denormalized price.
+        """
+        if self.channel_listing and self.channel_listing.price is not None:
+            return self.variant.get_base_price(
+                self.channel_listing, self.line.price_override
+            )
+        return self.line.undiscounted_unit_price
 
 
 @dataclass
@@ -338,7 +371,20 @@ def fetch_checkout_lines(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
-            if not skip_lines_with_unavailable_variants:
+            if (
+                not skip_lines_with_unavailable_variants
+                # variant price is denormalized on checkout line object. We have enough
+                # information to include the variant without listing in the
+                # calculations. This will allow to display a proper prices but we won't
+                # allow to finalize the checkout without removing `unavailable_variant`
+                # from the checkout.
+                or _only_variant_listing_is_missing(
+                    checkout,
+                    product,
+                    variant_channel_listing,
+                    product_channel_listing_mapping,
+                )
+            ):
                 lines_info.append(
                     CheckoutLineInfo(
                         line=line,
@@ -389,7 +435,9 @@ def fetch_checkout_lines(
     return lines_info, unavailable_variant_pks
 
 
-def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
+def get_variant_channel_listing(
+    variant: "ProductVariant", channel_id: int
+) -> Optional["ProductVariantChannelListing"]:
     variant_channel_listing = None
     for channel_listing in variant.channel_listings.all():
         if channel_listing.channel_id == channel_id:
@@ -397,27 +445,56 @@ def get_variant_channel_listing(variant: "ProductVariant", channel_id: int):
     return variant_channel_listing
 
 
-def _is_variant_valid(
+def _product_channel_listing_is_valid(
     checkout: "Checkout",
     product: "Product",
-    variant_channel_listing: "ProductVariantChannelListing",
     product_channel_listing_mapping: dict,
 ):
-    if not variant_channel_listing or variant_channel_listing.price is None:
-        return False
-
     product_channel_listing = _get_product_channel_listing(
         product_channel_listing_mapping, checkout.channel_id, product
     )
-
     if (
         not product_channel_listing
         or product_channel_listing.is_available_for_purchase() is False
         or not product_channel_listing.is_visible
     ):
         return False
-
     return True
+
+
+def _is_variant_valid(
+    checkout: "Checkout",
+    product: "Product",
+    variant_channel_listing: Optional["ProductVariantChannelListing"],
+    product_channel_listing_mapping: dict,
+):
+    if not variant_channel_listing or variant_channel_listing.price is None:
+        return False
+
+    if not _product_channel_listing_is_valid(
+        checkout,
+        product,
+        product_channel_listing_mapping,
+    ):
+        return False
+    return True
+
+
+def _only_variant_listing_is_missing(
+    checkout: "Checkout",
+    product: "Product",
+    variant_channel_listing: Optional["ProductVariantChannelListing"],
+    product_channel_listing_mapping: dict,
+):
+    if not _product_channel_listing_is_valid(
+        checkout,
+        product,
+        product_channel_listing_mapping,
+    ):
+        return False
+    if not variant_channel_listing or variant_channel_listing.price is None:
+        return True
+    return False
 
 
 def _get_product_channel_listing(
