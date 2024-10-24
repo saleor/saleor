@@ -137,8 +137,26 @@ def automatic_checkout_completion_task(
     user = User.objects.filter(pk=user_id).first()
     app = App.objects.filter(pk=app_id).first()
     manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
+    lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    if unavailable_variant_pks:
+        checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in unavailable_variant_pks
+        }
+        task_logger.info(
+            "The automatic checkout completion not triggered, as the checkout %s "
+            "contains unavailable variants: %s.",
+            checkout_id,
+            ", ".join(not_available_variants_ids),
+            extra={
+                "checkout_id": checkout_id,
+                "variant_ids": not_available_variants_ids,
+            },
+        )
+        return
 
     task_logger.info(
         "Automatic checkout completion triggered for checkout: %s.",
