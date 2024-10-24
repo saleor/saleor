@@ -150,6 +150,70 @@ def test_checkout_shipping_address_with_metadata_update(
     "update_checkout_shipping_method_if_invalid",
     wraps=update_checkout_shipping_method_if_invalid,
 )
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_address_when_variant_without_listing(
+    mocked_invalidate_checkout,
+    mocked_update_shipping_method,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+):
+    # given
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    line.variant.channel_listings.all().delete()
+
+    assert checkout.shipping_address is None
+    previous_last_change = checkout.last_change
+
+    shipping_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "shippingAddress": shipping_address,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_WITH_METADATA_UPDATE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address.metadata == {"public": "public_value"}
+
+    assert checkout.shipping_address is not None
+    assert checkout.shipping_address.first_name == shipping_address["firstName"]
+    assert checkout.shipping_address.last_name == shipping_address["lastName"]
+    assert (
+        checkout.shipping_address.street_address_1 == shipping_address["streetAddress1"]
+    )
+    assert (
+        checkout.shipping_address.street_address_2 == shipping_address["streetAddress2"]
+    )
+    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
+    assert checkout.shipping_address.country == shipping_address["country"]
+    assert checkout.shipping_address.city == shipping_address["city"].upper()
+    assert checkout.shipping_address.validation_skipped is False
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout.call_count == 1
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
 @override_settings(DEFAULT_COUNTRY="DE")
 def test_checkout_shipping_address_update_changes_checkout_country(
     mocked_update_shipping_method,
@@ -329,6 +393,9 @@ def test_checkout_shipping_address_update_with_reserved_stocks(
     other_checkout_line = other_checkout.lines.create(
         variant=variant,
         quantity=1,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,
@@ -386,6 +453,9 @@ def test_checkout_shipping_address_update_against_reserved_stocks(
     other_checkout_line = other_checkout.lines.create(
         variant=variant,
         quantity=3,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,
