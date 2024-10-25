@@ -5,6 +5,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from ..core.utils.events import call_event
 from ..core.utils.url import prepare_url
 from ..graphql.plugins.dataloaders import get_plugin_manager_promise
@@ -21,6 +22,7 @@ def _prepare_redirect_url(user: User, redirect_url: str, token: str) -> str:
 
 
 @app.task()
+@allow_writer()
 def trigger_send_password_reset_notification(
     redirect_url, user_pk, context_data, channel_slug
 ):
@@ -68,6 +70,7 @@ def trigger_send_password_reset_notification(
 
 
 @app.task()
+@allow_writer()
 def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
     if not user_pk:
         return
@@ -78,6 +81,7 @@ def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
     )
     user.save(update_fields=["search_document"])
 
+    context_data["allow_replica"] = True
     context = RequestorAwareContext.from_context_data(context_data)
 
     manager = get_plugin_manager_promise(context).get()
