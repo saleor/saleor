@@ -407,22 +407,26 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .values_list(Sum("quantity_reserved"))
     )
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
-
+    warehouse_pks = list(
+        Warehouse.objects.using(qs.db)
+        .for_channel_with_active_shipping_zone_or_cc(channel_slug)
+        .values_list("pk", flat=True)
+    )
     stocks = (
         Stock.objects.using(qs.db)
-        .for_channel_and_country(channel_slug)
         .filter(
+            warehouse_id__in=warehouse_pks,
             quantity__gt=Coalesce(allocated_subquery, 0)
-            + Coalesce(reservation_subquery, 0)
+            + Coalesce(reservation_subquery, 0),
         )
         .values("product_variant_id")
     )
+
     variants = (
         ProductVariant.objects.using(qs.db)
         .filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
         .values("product_id")
     )
-
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
     if stock_availability == StockAvailability.OUT_OF_STOCK:
