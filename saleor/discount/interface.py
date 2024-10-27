@@ -21,13 +21,16 @@ class VoucherInfo:
     """It contains the voucher's details and PKs of all applicable objects."""
 
     voucher: Voucher
+    voucher_code: Optional[str]
     product_pks: list[int]
     variant_pks: list[int]
     collection_pks: list[int]
     category_pks: list[int]
 
 
-def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
+def fetch_voucher_info(
+    voucher: Voucher, voucher_code: Optional[str] = None
+) -> VoucherInfo:
     variant_pks = list(variant.id for variant in voucher.variants.all())
     product_pks = list(product.id for product in voucher.products.all())
     category_pks = list(category.id for category in voucher.categories.all())
@@ -35,6 +38,7 @@ def fetch_voucher_info(voucher: Voucher) -> VoucherInfo:
 
     return VoucherInfo(
         voucher=voucher,
+        voucher_code=voucher_code,
         product_pks=product_pks,
         variant_pks=variant_pks,
         collection_pks=collection_pks,
@@ -53,14 +57,22 @@ class VariantPromotionRuleInfo(NamedTuple):
 def fetch_variant_rules_info(
     variant_channel_listing: "ProductVariantChannelListing",
     translation_language_code: str,
-):
+) -> list[VariantPromotionRuleInfo]:
     listings_rules = (
         variant_channel_listing.variantlistingpromotionrule.all()
         if variant_channel_listing
         else []
     )
+
     rules_info = []
-    for listing_promotion_rule in listings_rules:
+    if listings_rules:
+        # Before introducing unique_type on discount models, there was possibility
+        # to have multiple catalogue discount associated with single line. In such a
+        # case, we should pick the best discount (with the highest discount amount)
+        listing_promotion_rule = max(
+            list(listings_rules),
+            key=lambda x: x.discount_amount,
+        )
         promotion = listing_promotion_rule.promotion_rule.promotion
 
         promotion_translation, rule_translation = get_rule_translations(

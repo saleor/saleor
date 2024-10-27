@@ -73,7 +73,7 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
 )
-from ..core.scalars import JSON, PositiveDecimal
+from ..core.scalars import JSON, DateTime, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
@@ -116,7 +116,7 @@ class IssuingPrincipal(Union):
 
 
 class Event(graphene.Interface):
-    issued_at = graphene.DateTime(description="Time of the event.")
+    issued_at = DateTime(description="Time of the event.")
     version = graphene.String(description="Saleor version that triggered the event.")
     issuing_principal = graphene.Field(
         IssuingPrincipal,
@@ -2748,7 +2748,50 @@ class ThumbnailCreated(SubscriptionObjectType):
         return image.url if image else None
 
 
-WEBHOOK_TYPES_MAP = {
+SYNC_WEBHOOK_TYPES_MAP = {
+    WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
+    WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
+    WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
+    WebhookEventSyncType.PAYMENT_VOID: PaymentVoidEvent,
+    WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
+    WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
+    WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
+        TransactionCancelationRequested
+    ),
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
+    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: OrderFilterShippingMethods,
+    WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
+        CheckoutFilterShippingMethods
+    ),
+    WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
+        ShippingListMethodsForCheckout
+    ),
+    WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION: (
+        PaymentGatewayInitializeSession
+    ),
+    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
+    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
+    WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
+    WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED: (
+        StoredPaymentMethodDeleteRequested
+    ),
+    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION: (
+        PaymentGatewayInitializeTokenizationSession
+    ),
+    WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION: (
+        PaymentMethodInitializeTokenizationSession
+    ),
+    WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION: (
+        PaymentMethodProcessTokenizationSession
+    ),
+}
+
+
+ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
     WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
     WebhookEventAsyncType.ACCOUNT_EMAIL_CHANGED: AccountEmailChanged,
@@ -2869,6 +2912,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SHIPPING_ZONE_UPDATED: ShippingZoneUpdated,
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
     WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: ShippingZoneMetadataUpdated,
+    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
@@ -2890,44 +2934,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
     WebhookEventAsyncType.THUMBNAIL_CREATED: ThumbnailCreated,
-    WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
-    WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
-    WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,
-    WebhookEventSyncType.PAYMENT_VOID: PaymentVoidEvent,
-    WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
-    WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
-    WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
-    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
-        TransactionCancelationRequested
-    ),
-    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
-    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
-    WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: OrderFilterShippingMethods,
-    WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
-        CheckoutFilterShippingMethods
-    ),
-    WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
-        ShippingListMethodsForCheckout
-    ),
-    WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
-    WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes,
-    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION: (
-        PaymentGatewayInitializeSession
-    ),
-    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
-    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
-    WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
-    WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS: ListStoredPaymentMethods,
-    WebhookEventSyncType.STORED_PAYMENT_METHOD_DELETE_REQUESTED: (
-        StoredPaymentMethodDeleteRequested
-    ),
-    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_TOKENIZATION_SESSION: (
-        PaymentGatewayInitializeTokenizationSession
-    ),
-    WebhookEventSyncType.PAYMENT_METHOD_INITIALIZE_TOKENIZATION_SESSION: (
-        PaymentMethodInitializeTokenizationSession
-    ),
-    WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION: (
-        PaymentMethodProcessTokenizationSession
-    ),
 }
+
+WEBHOOK_TYPES_MAP = ASYNC_WEBHOOK_TYPES_MAP | SYNC_WEBHOOK_TYPES_MAP

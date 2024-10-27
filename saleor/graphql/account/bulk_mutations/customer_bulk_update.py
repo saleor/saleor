@@ -181,20 +181,22 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         field,
         index,
         index_error_map,
+        info,
         format_check=True,
         required_check=True,
         enable_normalization=True,
     ):
         try:
-            address_form = cls.validate_address_form(
+            address = cls.validate_address(
                 address_data,
-                address_type,
+                address_type=address_type,
                 format_check=format_check,
                 required_check=required_check,
                 enable_normalization=enable_normalization,
+                info=info,
             )
 
-            return address_form.cleaned_data
+            return address.as_data()
         except ValidationError as exc:
             cls.format_errors(index, exc, index_error_map, field_prefix=field)
 
@@ -281,6 +283,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     field=SHIPPING_ADDRESS_FIELD,
                     index=index,
                     index_error_map=index_error_map,
+                    info=info,
                 )
                 customer_input["input"][SHIPPING_ADDRESS_FIELD] = clean_shipping_address
 
@@ -291,6 +294,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     field=BILLING_ADDRESS_FIELD,
                     index=index,
                     index_error_map=index_error_map,
+                    info=info,
                 )
                 customer_input["input"][BILLING_ADDRESS_FIELD] = clean_billing_address
 
@@ -510,6 +514,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "country_area",
                 "phone",
                 "metadata",
+                "validation_skipped",
             ],
         )
 
@@ -520,6 +525,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "last_name",
                 "email",
                 "is_active",
+                "is_confirmed",
                 "note",
                 "language_code",
                 "external_reference",

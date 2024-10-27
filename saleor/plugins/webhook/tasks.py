@@ -1,13 +1,6 @@
-import logging
-
-from celery.utils.log import get_task_logger
 from django.conf import settings
 
 from ...celeryconf import app
-
-logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
-
 
 # all tasks to be removed in 3.18.
 # tasks moved to different direction.
@@ -22,7 +15,7 @@ task_logger = get_task_logger(__name__)
 def send_webhook_request_async(self, event_delivery_id):
     from ...webhook.transport.asynchronous.transport import send_webhook_request_async
 
-    send_webhook_request_async(self, event_delivery_id)
+    send_webhook_request_async(event_delivery_id)
 
 
 @app.task

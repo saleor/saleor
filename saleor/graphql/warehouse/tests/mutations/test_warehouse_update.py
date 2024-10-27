@@ -32,6 +32,7 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
                 id
                 streetAddress1
                 streetAddress2
+                postalCode
                 metadata {
                     key
                     value
@@ -76,6 +77,7 @@ def test_mutation_update_warehouse(
         {"key": "public", "value": "public_value"}
     ]
     assert warehouse.address.metadata == {"public": "public_value"}
+    assert warehouse.address.validation_skipped is False
     assert not (warehouse.name == warehouse_old_name)
     assert warehouse.name == "New name"
     assert warehouse.slug == warehouse_slug
@@ -578,3 +580,40 @@ def test_update_product_external_reference_not_existing(
         data["errors"][0]["message"]
         == f"Couldn't resolve to a node: {external_reference}"
     )
+
+
+def test_update_warehouse_invalid_address_skip_validation(
+    staff_api_client,
+    warehouse,
+    permission_manage_products,
+    graphql_address_data_skipped_validation,
+):
+    # given
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    variables = {
+        "id": warehouse_id,
+        "input": {
+            "name": warehouse.name,
+            "address": address_data,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["updateWarehouse"]
+    assert not data["errors"]
+    assert data["warehouse"]["address"]["postalCode"] == invalid_postal_code
+    warehouse.refresh_from_db()
+    assert warehouse.address.postal_code == invalid_postal_code
+    assert warehouse.address.validation_skipped is True

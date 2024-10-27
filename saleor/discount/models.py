@@ -56,8 +56,10 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .order_by()
+            .values("voucher_id")
             .annotate(total_used=Sum("used"))
-            .values("total_used")[:1]
+            .values("total_used")
         )
         return self.filter(
             Q(usage_limit__isnull=True) | Q(usage_limit__gt=Subquery(subquery)),
@@ -80,8 +82,10 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
     def expired(self, date):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .order_by()
+            .values("voucher_id")
             .annotate(total_used=Sum("used"))
-            .values("total_used")[:1]
+            .values("total_used")
         )
         return self.filter(
             Q(usage_limit__lte=Subquery(subquery)) | Q(end_date__lt=date),
@@ -133,6 +137,10 @@ class Voucher(ModelWithMetadata):
         code_instance = self.codes.last()
         return code_instance.code if code_instance else None
 
+    @property
+    def promo_codes(self):
+        return list(self.codes.values_list("code", flat=True))
+
     def get_discount(self, channel: Channel):
         """Return proper discount amount for given channel.
 
@@ -160,7 +168,7 @@ class Voucher(ModelWithMetadata):
             )
         raise NotImplementedError("Unknown discount type")
 
-    def get_discount_amount_for(self, price: Money, channel: Channel):
+    def get_discount_amount_for(self, price: Money, channel: Channel) -> Money:
         discount = self.get_discount(channel)
         after_discount = discount(price)
         if after_discount.amount < 0:

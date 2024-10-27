@@ -740,14 +740,16 @@ def create_fulfillments(order):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
             allocation = line.allocations.get()
-            fulfillment.lines.create(
-                order_line=line, quantity=quantity, stock=allocation.stock
-            )
+            stock = allocation.stock
+            fulfillment.lines.create(order_line=line, quantity=quantity, stock=stock)
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
 
             allocation.quantity_allocated = F("quantity_allocated") - quantity
             allocation.save(update_fields=["quantity_allocated"])
+
+            stock.quantity_allocated = F("quantity_allocated") - quantity
+            stock.save(update_fields=["quantity_allocated"])
 
     update_order_status(order)
 
@@ -803,6 +805,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
             "shipping_method_name": shipping_method.name,
             "shipping_price": shipping_price,
             "base_shipping_price": shipping_method_channel_listing.price,
+            "undiscounted_base_shipping_price": shipping_method_channel_listing.price,
         }
     )
     if will_be_unconfirmed:

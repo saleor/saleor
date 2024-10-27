@@ -191,14 +191,15 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
             if shipping_address:
                 shipping_address_data = shipping_address.as_data()
-                cls.validate_address(
-                    shipping_address_data,
-                    address_type=AddressType.SHIPPING,
-                    format_check=True,
-                    required_check=True,
-                    enable_normalization=True,
-                    instance=shipping_address,
-                )
+                if not shipping_address.validation_skipped:
+                    cls.validate_address(
+                        shipping_address_data,
+                        address_type=AddressType.SHIPPING,
+                        format_check=True,
+                        required_check=True,
+                        enable_normalization=True,
+                        instance=shipping_address,
+                    )
                 if shipping_address_data != shipping_address.as_data():
                     shipping_address.save()
 
@@ -212,14 +213,15 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 }
             )
         billing_address_data = billing_address.as_data()
-        cls.validate_address(
-            billing_address_data,
-            address_type=AddressType.BILLING,
-            format_check=True,
-            required_check=True,
-            enable_normalization=True,
-            instance=billing_address,
-        )
+        if not billing_address.validation_skipped:
+            cls.validate_address(
+                billing_address_data,
+                address_type=AddressType.BILLING,
+                format_check=True,
+                required_check=True,
+                enable_normalization=True,
+                instance=billing_address,
+            )
         if billing_address_data != billing_address.as_data():
             billing_address.save()
 

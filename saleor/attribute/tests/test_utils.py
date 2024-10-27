@@ -1,9 +1,11 @@
 import pytest
 
-from ...attribute.models import AssignedPageAttributeValue
+from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
 from ...product.models import ProductType
+from .. import AttributeInputType, AttributeType
 from ..utils import (
     associate_attribute_values_to_instance,
+    validate_attribute_owns_values,
 )
 from .model_helpers import (
     get_page_attribute_values,
@@ -11,6 +13,38 @@ from .model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
 )
+
+
+@pytest.fixture
+def attribute_1():
+    attr = Attribute.objects.create(
+        slug="attribute-1",
+        name="Attribute 1",
+        input_type=AttributeInputType.DROPDOWN,
+        type=AttributeType.PRODUCT_TYPE,
+    )
+    AttributeValue.objects.create(
+        attribute=attr,
+        name="Value 1",
+        slug="value-1",
+    )
+    return attr
+
+
+@pytest.fixture
+def attribute_2():
+    attr = Attribute.objects.create(
+        slug="attribute-2",
+        name="Attribute 2",
+        input_type=AttributeInputType.DROPDOWN,
+        type=AttributeType.PRODUCT_TYPE,
+    )
+    AttributeValue.objects.create(
+        attribute=attr,
+        name="Value 1",
+        slug="value-1",
+    )
+    return attr
 
 
 def test_associate_attribute_to_non_product_instance(color_attribute):
@@ -212,3 +246,38 @@ def test_associate_attribute_to_instance_duplicated_values(
         (new_color_value.pk, product.id),
         (multiselect_value.pk, product.id),
     }
+
+
+def test_validate_attribute_owns_values(attribute_1, attribute_2):
+    # given
+    attr_val_map = {
+        attribute_1.id: [attribute_1.values.first()],
+        attribute_2.id: [attribute_2.values.first()],
+    }
+
+    # when
+    validate_attribute_owns_values(attr_val_map)
+
+    # then
+    assert attr_val_map == {
+        attribute_1.id: [attribute_1.values.first()],
+        attribute_2.id: [attribute_2.values.first()],
+    }
+
+
+def test_associate_attribute_to_instance_uniqness(
+    product,
+    color_attribute,
+):
+    # given
+    product.product_type.product_attributes.add(color_attribute)
+    color_attribute_value = color_attribute.values.first()
+
+    # when
+    associate_attribute_values_to_instance(
+        product, {color_attribute.id: [color_attribute_value]}
+    )
+
+    # then
+    product.refresh_from_db()
+    assert len(product.product_type.product_attributes.all()) == 1

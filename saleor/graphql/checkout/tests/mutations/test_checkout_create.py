@@ -1,6 +1,7 @@
 import datetime
 import warnings
 from unittest import mock
+from unittest.mock import call, patch
 
 import graphene
 import pytest
@@ -10,12 +11,15 @@ from django.utils import timezone
 
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....checkout import AddressType
+from .....checkout.actions import call_checkout_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import calculate_checkout_quantity
+from .....core.models import EventDelivery
 from .....product.models import ProductChannelListing
 from .....warehouse.models import Reservation, Stock
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_CHECKOUT_CREATE = """
@@ -27,7 +31,26 @@ MUTATION_CHECKOUT_CREATE = """
           email
           quantity
           lines {
+            unitPrice {
+                gross {
+                    amount
+                }
+            }
+            totalPrice {
+                gross {
+                    amount
+                }
+            }
+            undiscountedTotalPrice {
+                amount
+            }
+            undiscountedUnitPrice {
+                amount
+            }
             quantity
+            variant {
+                id
+            }
             isGift
           }
         }
@@ -43,12 +66,11 @@ MUTATION_CHECKOUT_CREATE = """
 """
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_checkout_create_triggers_webhooks(
+def test_checkout_create_triggers_async_webhooks(
     mocked_webhook_trigger,
-    mocked_get_webhooks_for_event,
-    any_webhook,
+    webhook,
+    permission_manage_checkouts,
     user_api_client,
     stock,
     graphql_address_data,
@@ -56,7 +78,9 @@ def test_checkout_create_triggers_webhooks(
     channel_USD,
 ):
     """Create checkout object using GraphQL API."""
-    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    webhook.app.permissions.set([permission_manage_checkouts])
+    webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
+
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -104,35 +128,6 @@ def test_checkout_create_with_default_channel(
     assert any(
         [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
     )
-
-
-def test_checkout_create_with_variant_without_sku(
-    api_client, stock, graphql_address_data, channel_USD
-):
-    variant = stock.product_variant
-    variant.sku = None
-    variant.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    test_email = "test@example.com"
-    shipping_address = graphql_address_data
-    quantity = 1
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "lines": [{"quantity": quantity, "variantId": variant_id}],
-            "email": test_email,
-            "shippingAddress": shipping_address,
-        }
-    }
-    assert not Checkout.objects.exists()
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    get_graphql_content(response)["data"]["checkoutCreate"]
-
-    new_checkout = Checkout.objects.first()
-    lines, _ = fetch_checkout_lines(new_checkout)
-    assert new_checkout.channel == channel_USD
-    assert calculate_checkout_quantity(lines) == quantity
-    assert lines[0].variant.sku is None
 
 
 def test_checkout_create_with_inactive_channel(
@@ -439,6 +434,35 @@ def test_checkout_create_with_multiple_channel_with_channel_slug(
     assert checkout_line.quantity == 1
 
 
+def test_checkout_create_with_variant_without_sku(
+    api_client, stock, graphql_address_data, channel_USD
+):
+    variant = stock.product_variant
+    variant.sku = None
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    quantity = 1
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": quantity, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+    lines, _ = fetch_checkout_lines(new_checkout)
+    assert new_checkout.channel == channel_USD
+    assert calculate_checkout_quantity(lines) == quantity
+    assert lines[0].variant.sku is None
+
+
 def test_checkout_create_with_existing_checkout_in_other_channel(
     user_api_client, stock, graphql_address_data, channel_USD, user_checkout_PLN
 ):
@@ -547,6 +571,9 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout.shipping_address.metadata == {"shipping": "shipping_value"}
     assert new_checkout.billing_address.metadata == {"billing": "billing_value"}
 
+    assert new_checkout.billing_address.validation_skipped is False
+    assert new_checkout.shipping_address.validation_skipped is False
+
 
 def test_checkout_create_with_custom_price(
     app_api_client,
@@ -584,6 +611,63 @@ def test_checkout_create_with_custom_price(
     assert checkout_line.variant == variant
     assert checkout_line.quantity == 1
     assert checkout_line.price_override == price
+
+
+def test_checkout_create_with_custom_price_and_catalogue_promotion(
+    app_api_client,
+    variant_on_promotion,
+    channel_USD,
+    permission_handle_checkouts,
+):
+    """Ensure that catalogue promotion is applied on custom price."""
+    # given
+    variant = variant_on_promotion
+
+    promotion_rule = variant.channel_listings.get(
+        channel=channel_USD
+    ).promotion_rules.first()
+    reward_value = promotion_rule.reward_value
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    price = 12
+    quantity = 2
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": quantity, "variantId": variant_id, "price": price}],
+            "email": test_email,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables, permissions=[permission_handle_checkouts]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert len(data["checkout"]["lines"]) == 1
+
+    unit_discount = price * reward_value / 100
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == quantity
+    assert line_data["undiscountedUnitPrice"]["amount"] == price
+    assert line_data["undiscountedTotalPrice"]["amount"] == price * quantity
+    assert line_data["unitPrice"]["gross"]["amount"] == price - unit_discount
+    assert (
+        line_data["totalPrice"]["gross"]["amount"] == (price - unit_discount) * quantity
+    )
+
+    checkout = Checkout.objects.first()
+    line = checkout.lines.first()
+    assert line.discounts.count() == 1
+    line_discount = line.discounts.first()
+    assert line_discount.amount_value == unit_discount * quantity
+    assert line_discount.value == reward_value
+    assert line_discount.value_type == promotion_rule.reward_value_type
 
 
 def test_checkout_create_with_gift_reward(
@@ -2404,3 +2488,248 @@ def test_checkout_create_with_disabled_fields_normalization_raises_required_erro
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "postalCode"
     assert data["errors"][0]["code"] == "REQUIRED"
+
+
+MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES = """
+    mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
+      checkoutCreate(input: $checkoutInput) {
+        checkout {
+          id
+          shippingAddress {
+            postalCode
+          }
+          billingAddress {
+            postalCode
+          }
+        }
+        errors {
+          field
+          message
+          code
+        }
+      }
+    }
+"""
+
+
+def test_checkout_create_skip_validation_shipping_address_by_customer(
+    api_client, stock, graphql_address_data_skipped_validation, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    shipping_address["postalCode"] = invalid_postal_code
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES, variables
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_create_skip_validation_shipping_address_by_app(
+    app_api_client,
+    stock,
+    graphql_address_data_skipped_validation,
+    channel_USD,
+    permission_handle_checkouts,
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    shipping_address["postalCode"] = invalid_postal_code
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": shipping_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"]["postalCode"] == invalid_postal_code
+    new_checkout = Checkout.objects.first()
+    assert new_checkout.shipping_address.postal_code == invalid_postal_code
+    assert new_checkout.shipping_address.validation_skipped is True
+
+
+def test_checkout_create_skip_validation_billing_address_by_customer(
+    api_client, stock, graphql_address_data_skipped_validation, channel_USD
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    billing_address = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    billing_address["postalCode"] = invalid_postal_code
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": billing_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES, variables
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_create_skip_validation_billing_address_by_app(
+    app_api_client,
+    stock,
+    graphql_address_data_skipped_validation,
+    channel_USD,
+    permission_handle_checkouts,
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    billing_address = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    billing_address["postalCode"] = invalid_postal_code
+
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": billing_address,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_WITH_ADDRESSES,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutCreate"]
+    assert not data["errors"]
+    assert data["checkout"]["billingAddress"]["postalCode"] == invalid_postal_code
+    new_checkout = Checkout.objects.first()
+    assert new_checkout.billing_address.postal_code == invalid_postal_code
+    assert new_checkout.billing_address.validation_skipped is True
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_create.call_checkout_event",
+    wraps=call_checkout_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_create_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_event,
+    api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
+    setup_checkout_webhooks,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = None
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_created_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_CREATED)
+
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    billing_metadata = [{"key": "billing", "value": "billing_value"}]
+    shipping_metadata = [{"key": "shipping", "value": "shipping_value"}]
+    shipping_address_data = graphql_address_data.copy()
+    billing_address_data = graphql_address_data.copy()
+    shipping_address_data["metadata"] = shipping_metadata
+    billing_address_data["metadata"] = billing_metadata
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address_data,
+            "billingAddress": billing_address_data,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutCreate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_event.called

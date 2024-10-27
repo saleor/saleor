@@ -76,8 +76,8 @@ def test_order_refund(
     assert refunded_fulfillment.shipping_refund_amount is None
 
     flush_post_commit_hooks()
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_refunded.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
     assert amount < order.total.gross.amount
     assert not mock_order_fully_refunded.called
 
@@ -131,9 +131,9 @@ def test_order_fully_refunded(
     assert refunded_fulfillment.shipping_refund_amount is None
 
     flush_post_commit_hooks()
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_refunded.assert_called_once_with(order)
-    mock_order_fully_refunded.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
+    mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_refund_by_user_no_channel_access(
@@ -206,9 +206,9 @@ def test_order_refund_by_app(
     assert refunded_fulfillment.shipping_refund_amount is None
 
     flush_post_commit_hooks()
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_refunded.assert_called_once_with(order)
-    mock_order_fully_refunded.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
+    mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
 
 
 def test_order_refund_with_gift_card_lines(

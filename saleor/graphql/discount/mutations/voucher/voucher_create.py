@@ -17,6 +17,7 @@ from ....core.descriptions import (
 )
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
+from ....core.scalars import DateTime
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo, get_duplicated_values
 from ....core.validators import (
@@ -44,12 +45,8 @@ class VoucherInput(BaseInputObjectType):
         required=False,
         description="List of codes to add." + ADDED_IN_318 + PREVIEW_FEATURE,
     )
-    start_date = graphene.types.datetime.DateTime(
-        description="Start date of the voucher in ISO 8601 format."
-    )
-    end_date = graphene.types.datetime.DateTime(
-        description="End date of the voucher in ISO 8601 format."
-    )
+    start_date = DateTime(description="Start date of the voucher in ISO 8601 format.")
+    end_date = DateTime(description="End date of the voucher in ISO 8601 format.")
     discount_value_type = DiscountValueTypeEnum(
         description="Choices: fixed or percentage."
     )

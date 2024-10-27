@@ -2,10 +2,12 @@ from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db import transaction
+from django.db.models import OuterRef, Subquery
 
 from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
+from ....discount.models import VoucherCode
 from ....permission.enums import DiscountPermissions
 from ....product.utils.product import (
     get_channel_to_products_map_from_rules,
@@ -84,14 +86,26 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
-        sale_id_to_rule = cls.get_sale_and_rules(queryset)
-        sales_and_catalogue_infos = [
-            (sale, cls.get_catalogue_info(sale_id_to_rule.get(sale.id)))
-            for sale in queryset
-        ]
-        channel_to_products_map = cls.get_channel_to_products_map(queryset)
+        with transaction.atomic():
+            promotions = tuple(
+                models.Promotion.objects.order_by("pk")
+                .select_for_update(of=("self",))
+                .filter(pk__in=queryset.values_list("pk", flat=True))
+            )
+            rules = cls.get_sales(promotions)
+            sale_id_to_rule = cls.get_sale_and_rules(rules)
+            sales_and_catalogue_infos = [
+                (promotion, cls.get_catalogue_info(sale_id_to_rule.get(promotion.id)))
+                for promotion in promotions
+            ]
+            channel_to_products_map = cls.get_channel_to_products_map(rules)
 
-        queryset.delete()
+            models.PromotionRule.objects.order_by("pk").filter(
+                pk__in=[rule.pk for rule in rules]
+            ).delete()
+            models.Promotion.objects.order_by("pk").filter(
+                pk__in=[promotion.pk for promotion in promotions]
+            ).delete()
 
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.SALE_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
@@ -103,12 +117,8 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             cls.call_event(mark_products_in_channels_as_dirty, channel_to_products_map)
 
     @classmethod
-    def get_sale_and_rules(cls, qs: QuerySet[models.Promotion]):
-        rules = models.PromotionRule.objects.filter(
-            Exists(qs.filter(id=OuterRef("promotion_id")))
-        )
-        sale_id_to_rule = {rule.promotion_id: rule for rule in rules}
-        return sale_id_to_rule
+    def get_sale_and_rules(cls, rules: tuple[models.PromotionRule, ...]):
+        return {rule.promotion_id: rule for rule in rules}
 
     @classmethod
     def get_catalogue_info(cls, rule: models.PromotionRule):
@@ -117,11 +127,19 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         )
 
     @classmethod
-    def get_channel_to_products_map(cls, qs: QuerySet[models.Promotion]):
-        rules = models.PromotionRule.objects.filter(
-            Exists(qs.filter(id=OuterRef("promotion_id")))
+    def get_channel_to_products_map(cls, rules: tuple[models.PromotionRule, ...]):
+        rules = models.PromotionRule.objects.order_by("pk").filter(
+            pk__in=[rule.pk for rule in rules]
         )
         return get_channel_to_products_map_from_rules(rules)
+
+    @classmethod
+    def get_sales(cls, promotions) -> tuple[models.PromotionRule, ...]:
+        return tuple(
+            models.PromotionRule.objects.order_by("pk")
+            .select_for_update(of=("self",))
+            .filter(promotion_id__in=[promotion.pk for promotion in promotions])
+        )
 
 
 class VoucherBulkDelete(ModelBulkDeleteMutation):
@@ -147,8 +165,12 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         manager = get_plugin_manager_promise(info.context).get()
-        vouchers = list(queryset)
-        codes = [voucher.code for voucher in vouchers]
+        vouchers = queryset.annotate(
+            last_code=Subquery(
+                VoucherCode.objects.filter(voucher=OuterRef("pk")).values("code")[:1]
+            )
+        )
+        codes = [voucher.last_code for voucher in vouchers]
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.VOUCHER_DELETED)
         queryset.delete()
 

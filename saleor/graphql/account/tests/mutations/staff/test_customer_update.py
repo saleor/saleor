@@ -91,6 +91,7 @@ def test_customer_update(
     address_data["metadata"] = metadata
     stored_metadata = {"test key": "test value"}
     address_data.pop("privateMetadata")
+    address_data.pop("validationSkipped")
 
     new_street_address = "Updated street address"
     address_data["streetAddress1"] = new_street_address

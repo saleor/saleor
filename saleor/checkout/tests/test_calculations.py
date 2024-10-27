@@ -11,8 +11,16 @@ from prices import Money, TaxedMoney
 
 from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping_id
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
+from ...core.taxes import (
+    TaxData,
+    TaxDataErrorMessage,
+    TaxLineData,
+    zero_taxed_money,
+)
+from ...graphql.core.utils import to_global_id_or_none
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
+from ...plugins.avatax.plugin import AvataxPlugin
+from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
 from ...tax import TaxCalculationStrategy
@@ -509,8 +517,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     # then
     one_line_total_prices = [
-        calculate_base_line_total_price(line_info, checkout_info.channel)
-        for line_info in lines_info
+        calculate_base_line_total_price(line_info) for line_info in lines_info
     ]
     all_lines_total_price = sum(one_line_total_prices, zero_taxed_money(currency))
     shipping_price = base_checkout_delivery_price(checkout_info, lines_info)
@@ -569,6 +576,7 @@ def test_fetch_checkout_data_calls_plugin(
 
 
 @freeze_time()
+@patch("saleor.checkout.calculations.validate_tax_data")
 @patch("saleor.plugins.manager.PluginsManager.calculate_checkout_total")
 @patch("saleor.plugins.manager.PluginsManager.get_taxes_for_checkout")
 @patch("saleor.checkout.calculations._apply_tax_data")
@@ -577,10 +585,13 @@ def test_fetch_checkout_data_calls_tax_app(
     mock_apply_tax_data,
     mock_get_taxes,
     mock_calculate_checkout_total,
+    mock_validate_tax_data,
     fetch_kwargs,
     checkout_with_items,
 ):
     # given
+    mock_validate_tax_data.return_value = False
+
     checkout = checkout_with_items
     checkout.price_expiration = timezone.now()
     checkout.save()
@@ -702,3 +713,320 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     assert checkout_with_single_item.shipping_price == TaxedMoney(
         net=Money("1337.00", "USD"), gross=Money("1443.96", "USD")
     )
+
+
+@pytest.mark.parametrize("tax_app_id", [None, "test.app"])
+def test_calculate_and_add_tax_empty_tax_data_logging_address(
+    tax_app_id, checkout_with_single_item, address, caplog
+):
+    # given
+    checkout = checkout_with_single_item
+
+    address.validation_skipped = True
+    address.postal_code = "invalid postal code"
+    address.save(update_fields=["postal_code", "validation_skipped"])
+
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save(update_fields=["billing_address", "shipping_address"])
+
+    checkout.channel.tax_configuration.tax_app_id = tax_app_id
+    checkout.channel.tax_configuration.save()
+
+    zero_money = zero_taxed_money(checkout.currency)
+    manager_methods = {
+        "calculate_checkout_total": Mock(return_value=zero_money),
+        "calculate_checkout_subtotal": Mock(return_value=zero_money),
+        "calculate_checkout_line_total": Mock(return_value=zero_money),
+        "calculate_checkout_shipping": Mock(return_value=zero_money),
+        "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_checkout": Mock(return_value=None),
+    }
+    manager = Mock(**manager_methods)
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    _calculate_and_add_tax(
+        TaxCalculationStrategy.TAX_APP,
+        None,
+        checkout,
+        manager,
+        checkout_info,
+        checkout_lines_info,
+        prices_entered_with_tax=False,
+    )
+
+    # then
+    assert (
+        f"Fetching tax data for checkout with address validation skipped. "
+        f"Address ID: {address.pk}" in caplog.text
+    )
+
+
+@pytest.mark.parametrize(
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
+)
+@patch("saleor.checkout.calculations._set_checkout_base_prices")
+def test_fetch_checkout_data_tax_data_with_negative_values(
+    mock_set_base_prices,
+    prices_entered_with_tax,
+    tax_app_id,
+    checkout_with_single_item,
+    caplog,
+):
+    # given
+    checkout = checkout_with_single_item
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = tax_app_id
+    channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    channel.tax_configuration.save()
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("-3"),
+                tax_rate=Decimal("50"),
+            ),
+        ],
+    )
+
+    zero_money = zero_taxed_money(checkout.currency)
+    manager_methods = {
+        "calculate_checkout_total": Mock(return_value=zero_money),
+        "calculate_checkout_subtotal": Mock(return_value=zero_money),
+        "calculate_checkout_line_total": Mock(return_value=zero_money),
+        "calculate_checkout_shipping": Mock(return_value=zero_money),
+        "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_checkout": Mock(return_value=tax_data),
+    }
+    manager = Mock(**manager_methods)
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout_info.checkout.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
+    assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+@pytest.mark.parametrize(
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
+)
+@patch("saleor.checkout.calculations._set_checkout_base_prices")
+def test_fetch_checkout_data_tax_data_with_wrong_number_of_lines(
+    mock_set_base_prices,
+    prices_entered_with_tax,
+    tax_app_id,
+    checkout_with_single_item,
+    caplog,
+):
+    # given
+    checkout = checkout_with_single_item
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = tax_app_id
+    channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    channel.tax_configuration.save()
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("50"),
+            ),
+            TaxLineData(
+                total_net_amount=Decimal("4"),
+                total_gross_amount=Decimal("6"),
+                tax_rate=Decimal("50"),
+            ),
+        ],
+    )
+
+    zero_money = zero_taxed_money(checkout.currency)
+    manager_methods = {
+        "calculate_checkout_total": Mock(return_value=zero_money),
+        "calculate_checkout_subtotal": Mock(return_value=zero_money),
+        "calculate_checkout_line_total": Mock(return_value=zero_money),
+        "calculate_checkout_shipping": Mock(return_value=zero_money),
+        "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_checkout": Mock(return_value=tax_data),
+    }
+    manager = Mock(**manager_methods)
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout_info.checkout.tax_error == TaxDataErrorMessage.LINE_NUMBER
+    assert TaxDataErrorMessage.LINE_NUMBER in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+@pytest.mark.parametrize(
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
+)
+@patch("saleor.checkout.calculations._set_checkout_base_prices")
+def test_fetch_checkout_data_tax_data_with_price_overflow(
+    mock_set_base_prices,
+    prices_entered_with_tax,
+    tax_app_id,
+    checkout_with_single_item,
+    caplog,
+):
+    # given
+    checkout = checkout_with_single_item
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = tax_app_id
+    channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    channel.tax_configuration.save()
+
+    tax_data = TaxData(
+        shipping_price_net_amount=Decimal("1"),
+        shipping_price_gross_amount=Decimal("1.5"),
+        shipping_tax_rate=Decimal("50"),
+        lines=[
+            TaxLineData(
+                total_net_amount=Decimal("2"),
+                total_gross_amount=Decimal("3"),
+                tax_rate=Decimal("120"),
+            ),
+        ],
+    )
+
+    zero_money = zero_taxed_money(checkout.currency)
+    manager_methods = {
+        "calculate_checkout_total": Mock(return_value=zero_money),
+        "calculate_checkout_subtotal": Mock(return_value=zero_money),
+        "calculate_checkout_line_total": Mock(return_value=zero_money),
+        "calculate_checkout_shipping": Mock(return_value=zero_money),
+        "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
+        "get_taxes_for_checkout": Mock(return_value=tax_data),
+    }
+    manager = Mock(**manager_methods)
+
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout_info.checkout.tax_error == TaxDataErrorMessage.OVERFLOW
+    assert TaxDataErrorMessage.OVERFLOW in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_plugin_tax_data_with_negative_values(
+    mock_get_tax_data,
+    checkout_with_item_and_shipping,
+    caplog,
+    plugin_configuration,  # noqa: F811
+):
+    # given
+    checkout = checkout_with_item_and_shipping
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.save(update_fields=["tax_app_id"])
+
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": -8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+    mock_get_tax_data.return_value = tax_data
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout.tax_error == TaxDataErrorMessage.NEGATIVE_VALUE
+    assert TaxDataErrorMessage.NEGATIVE_VALUE in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+@patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_fetch_order_data_plugin_tax_data_price_overflow(
+    mock_get_tax_data,
+    checkout_with_item_and_shipping,
+    caplog,
+    plugin_configuration,  # noqa: F811
+):
+    # given
+    checkout = checkout_with_item_and_shipping
+
+    channel = checkout.channel
+    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.save(update_fields=["tax_app_id"])
+
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 3892370265647658029.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+    mock_get_tax_data.return_value = tax_data
+
+    plugin_configuration()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
+
+    # when
+    fetch_checkout_data(checkout_info, manager, checkout_lines_info, force_update=True)
+
+    # then
+    assert checkout.tax_error == TaxDataErrorMessage.OVERFLOW
+    assert TaxDataErrorMessage.OVERFLOW in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)

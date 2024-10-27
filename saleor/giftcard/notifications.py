@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from ..account.notifications import get_default_user_payload
 from ..core.notification.utils import get_site_context
-from ..core.notify_events import NotifyEventType
+from ..core.notify import NotifyEventType, NotifyHandler
 from ..core.prices import quantize_price
 from ..graphql.core.utils import to_global_id_or_none
 
@@ -22,19 +22,26 @@ def send_gift_card_notification(
     resending,
 ):
     """Trigger sending a gift card notification for the given recipient."""
-    payload = {
-        "gift_card": get_default_gift_card_payload(gift_card),
-        "user": get_default_user_payload(customer_user) if customer_user else None,
-        "requester_user_id": to_global_id_or_none(requester_user)
-        if requester_user
-        else None,
-        "requester_app_id": to_global_id_or_none(app) if app else None,
-        "recipient_email": email,
-        "resending": resending,
-        **get_site_context(),
-    }
+
+    def _generate_payload():
+        payload = {
+            "gift_card": get_default_gift_card_payload(gift_card),
+            "user": get_default_user_payload(customer_user) if customer_user else None,
+            "requester_user_id": to_global_id_or_none(requester_user)
+            if requester_user
+            else None,
+            "requester_app_id": to_global_id_or_none(app) if app else None,
+            "recipient_email": email,
+            "resending": resending,
+            **get_site_context(),
+        }
+        return payload
+
+    handler = NotifyHandler(_generate_payload)
     manager.notify(
-        NotifyEventType.SEND_GIFT_CARD, payload=payload, channel_slug=channel_slug
+        NotifyEventType.SEND_GIFT_CARD,
+        payload_func=handler.payload,
+        channel_slug=channel_slug,
     )
     manager.gift_card_sent(gift_card, channel_slug, email)
 

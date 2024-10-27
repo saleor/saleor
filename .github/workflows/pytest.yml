@@ -57,7 +57,7 @@ jobs:
 
       - name: Cache the venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
@@ -92,7 +92,7 @@ jobs:
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }}
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
@@ -100,9 +100,11 @@ jobs:
             ${{ runner.os }}-pre-commit-
 
       # Publish coverage and test results
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: pytest-results
           path: junit/test-results.xml

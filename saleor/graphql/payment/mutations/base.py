@@ -1,13 +1,16 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
 from ....checkout import models as checkout_models
 from ....checkout.calculations import fetch_checkout_data
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....core.prices import quantize_price
 from ....order import models as order_models
+from ...core.enums import TransactionInitializeErrorCode
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 
@@ -74,6 +77,21 @@ class TransactionSessionBase(BaseMutation):
                     )
                 }
             )
+
+        if (
+            source_object.payment_transactions.count()
+            >= settings.TRANSACTION_ITEMS_LIMIT
+        ):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        f"{source_object_type} transactions limit of "
+                        f"{settings.TRANSACTION_ITEMS_LIMIT} reached.",
+                        code=TransactionInitializeErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         return source_object
 
     @classmethod
@@ -82,8 +100,9 @@ class TransactionSessionBase(BaseMutation):
         source_object: Union[checkout_models.Checkout, order_models.Order],
         input_amount: Optional[Decimal],
     ) -> Decimal:
+        currency = source_object.currency
         if input_amount is not None:
-            return input_amount
+            return quantize_price(input_amount, currency)
         amount: Decimal = source_object.total_gross_amount
         transactions = source_object.payment_transactions.all()
         for transaction_item in transactions:
@@ -94,4 +113,4 @@ class TransactionSessionBase(BaseMutation):
             amount -= transaction_item.authorize_pending_value
             amount -= transaction_item.charge_pending_value
 
-        return amount if amount >= Decimal(0) else Decimal(0)
+        return quantize_price(amount, currency) if amount >= Decimal(0) else Decimal(0)

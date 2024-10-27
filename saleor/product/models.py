@@ -231,6 +231,9 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
                 fields=["name", "slug"],
                 opclasses=["gin_trgm_ops"] * 2,
             ),
+            models.Index(
+                fields=["category_id", "slug"],
+            ),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
 
@@ -514,6 +517,9 @@ class ProductVariantChannelListing(models.Model):
     class Meta:
         unique_together = [["variant", "channel"]]
         ordering = ("pk",)
+        indexes = [
+            GinIndex(fields=["price_amount", "channel_id"]),
+        ]
 
 
 class VariantChannelListingPromotionRule(models.Model):

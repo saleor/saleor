@@ -17,9 +17,14 @@ ACCOUNT_ADDRESS_UPDATE_MUTATION = """
                     key
                     value
                 }
+                postalCode
             }
             user {
                 id
+            }
+            errors {
+                code
+                field
             }
         }
     }
@@ -48,6 +53,7 @@ def test_customer_update_own_address(
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"].upper()
     assert address_obj.metadata == {"public": "public_value"}
+    assert address_obj.validation_skipped is False
     user.refresh_from_db()
     assert generate_address_search_document_value(address_obj) in user.search_document
 
@@ -142,4 +148,110 @@ def test_customer_update_address_for_other(
         "address": address_data,
     }
     response = user_api_client.post_graphql(ACCOUNT_ADDRESS_UPDATE_MUTATION, variables)
+    assert_no_permission(response)
+
+
+def test_customer_update_address_skip_validation(
+    user_api_client, customer_user, graphql_address_data_skipped_validation
+):
+    # given
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_account_address_update_by_app(
+    app_api_client, customer_user, graphql_address_data, permission_manage_users
+):
+    # given
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    address_data = graphql_address_data
+    new_city = "Poznań"
+    address_data["city"] = new_city
+    assert address_data["city"] != address_obj.city
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressUpdate"]
+    assert data["address"]["city"] == address_data["city"].upper()
+    address_obj.refresh_from_db()
+    assert address_obj.city == address_data["city"].upper()
+    assert address_obj.validation_skipped is False
+
+
+def test_account_address_update_by_app_skip_validation(
+    app_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+    permission_manage_users,
+):
+    # given
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    invalid_postal_code = "invalid postal code"
+    address_data = graphql_address_data_skipped_validation
+    address_data["postalCode"] = invalid_postal_code
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountAddressUpdate"]
+    assert data["address"]["postalCode"] == invalid_postal_code
+    address_obj.refresh_from_db()
+    assert address_obj.postal_code == invalid_postal_code
+    assert address_obj.validation_skipped is True
+
+
+def test_account_address_update_by_app_skip_validation_no_permissions(
+    app_api_client, customer_user, graphql_address_data_skipped_validation
+):
+    # given
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
+    address_obj = customer_user.addresses.first()
+    invalid_postal_code = "invalid postal code"
+    address_data = graphql_address_data_skipped_validation
+    address_data["postalCode"] = invalid_postal_code
+
+    variables = {
+        "addressId": graphene.Node.to_global_id("Address", address_obj.id),
+        "address": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+
+    # then
     assert_no_permission(response)

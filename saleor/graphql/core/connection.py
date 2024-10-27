@@ -383,16 +383,16 @@ def _validate_slice_args(
     if max_limit:
         if first:
             assert first <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`first` limit of {} records."
-            ).format(first, info.field_name, max_limit)
+                f"Requesting {first} records on the `{info.field_name}` connection exceeds the "
+                f"`first` limit of {max_limit} records."
+            )
             args["first"] = min(first, max_limit)
 
         if last:
             assert last <= max_limit, (
-                "Requesting {} records on the `{}` connection exceeds the "
-                "`last` limit of {} records."
-            ).format(last, info.field_name, max_limit)
+                f"Requesting {last} records on the `{info.field_name}` connection exceeds the "
+                f"`last` limit of {max_limit} records."
+            )
             args["last"] = min(last, max_limit)
 
 
@@ -481,6 +481,9 @@ def filter_qs(iterable, args, filterset_class, filter_input, request):
         or filter_channel
         or get_default_channel_slug_or_graphql_error()
     )
+
+    if currency := args.get("currency"):
+        filter_input["currency"] = currency
 
     if isinstance(iterable, ChannelQsContext):
         queryset = iterable.qs

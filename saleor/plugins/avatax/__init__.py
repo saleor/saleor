@@ -15,12 +15,17 @@ from requests.auth import HTTPBasicAuth
 
 from ...account.models import Address
 from ...checkout import base_calculations
-from ...checkout.utils import is_shipping_required
+from ...checkout.utils import get_address_for_checkout_taxes, is_shipping_required
 from ...core.http_client import HTTPClient
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
+from ...discount.utils import is_order_level_voucher
 from ...order import base_calculations as base_order_calculations
-from ...order.utils import get_total_order_discount_excluding_shipping
+from ...order.utils import (
+    get_address_for_order_taxes,
+    get_total_order_discount_excluding_shipping,
+    log_address_if_validation_skipped_for_order,
+)
 from ...shipping.models import ShippingMethod
 from ...tax.utils import get_charge_taxes_for_checkout
 from ...warehouse.models import Warehouse
@@ -283,17 +288,12 @@ def generate_request_data_from_checkout_lines(
     config: AvataxConfiguration,
 ) -> list[dict[str, Union[str, int, bool, None]]]:
     data: list[dict[str, Union[str, int, bool, None]]] = []
-    channel = checkout_info.channel
 
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher
-    is_entire_order_discount = (
-        voucher.type == VoucherType.ENTIRE_ORDER
-        if voucher and not voucher.apply_once_per_order
-        else False
-    )
+    is_entire_order_discount = is_order_level_voucher(voucher)
     applicable_checkout_discount = (
         bool(checkout_info.discounts) or is_entire_order_discount
     )
@@ -317,7 +317,6 @@ def generate_request_data_from_checkout_lines(
 
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
-            channel,
         )
 
         # This is a workaround for Avatax and sending a lines with amount 0. Like
@@ -508,8 +507,7 @@ def generate_request_data_from_checkout(
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
 ):
-    shipping_address = checkout_info.delivery_method_info.shipping_address
-    address = shipping_address or checkout_info.billing_address
+    address = get_address_for_checkout_taxes(checkout_info)
     lines = generate_request_data_from_checkout_lines(checkout_info, lines_info, config)
     if not lines:
         return {}
@@ -615,11 +613,7 @@ def get_checkout_tax_data(
 
 
 def get_order_request_data(order: "Order", config: AvataxConfiguration):
-    if order.collection_point_id:
-        address: Address = order.collection_point.address  # type: ignore
-    else:
-        address = order.shipping_address or order.billing_address  # type: ignore
-
+    address = get_address_for_order_taxes(order)
     transaction = (
         TransactionType.INVOICE
         if not (order.is_draft() or order.is_unconfirmed())
@@ -652,6 +646,15 @@ def get_order_tax_data(
         data, f"order_{order.id}", config, force_refresh
     )
     if response and "error" in response:
+        msg = response.get("error", {}).get("message", "")
+        error_code = response.get("error", {}).get("code", "")
+        logger.warning(
+            "Unable to calculate taxes for order %s, error_code: %s, error_msg: %s",
+            order.id,
+            error_code,
+            msg,
+        )
+        log_address_if_validation_skipped_for_order(order, logger)
         raise TaxError(response.get("error"))
     return response
 

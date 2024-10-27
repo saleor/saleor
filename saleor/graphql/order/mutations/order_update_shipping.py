@@ -2,10 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....order import OrderStatus, models
+from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
@@ -134,5 +136,5 @@ class OrderUpdateShipping(
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
-        cls.call_event(manager.order_updated, order)
+        call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
         return OrderUpdateShipping(order=order)

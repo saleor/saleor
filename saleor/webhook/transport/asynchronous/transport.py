@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 
 def create_deliveries_for_subscriptions(
@@ -159,6 +159,16 @@ def create_event_delivery_list_for_webhooks(
     return event_deliveries
 
 
+def get_queue_name_for_webhook(webhook, default_queue):
+    return {
+        WebhookSchemes.AWS_SQS: settings.WEBHOOK_SQS_CELERY_QUEUE_NAME,
+        WebhookSchemes.GOOGLE_CLOUD_PUBSUB: settings.WEBHOOK_PUBSUB_CELERY_QUEUE_NAME,
+    }.get(
+        urlparse(webhook.target_url).scheme.lower(),
+        default_queue,
+    )
+
+
 def trigger_webhooks_async(
     data,  # deprecated, legacy_data_generator should be used instead
     event_type,
@@ -169,6 +179,7 @@ def trigger_webhooks_async(
     allow_replica=False,
     pre_save_payloads=None,
     request_time=None,
+    queue=None,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -177,10 +188,11 @@ def trigger_webhooks_async(
         `legacy_data_generator` function is used to generate the payload when needed.
     :param event_type: used in both webhook types as event type.
     :param webhooks: used in both webhook types, queryset of async webhooks.
-    :param allow_replica: use a replica database.
     :param subscribable_object: subscribable object used in subscription webhooks.
     :param requestor: used in subscription webhooks to generate metadata for payload.
     :param legacy_data_generator: used to generate payload for regular webhooks.
+    :param allow_replica: use a replica database.
+    :param queue: defines the queue to which the event should be sent.
     """
     regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
     deliveries = []
@@ -210,9 +222,17 @@ def trigger_webhooks_async(
                 request_time=request_time,
             )
         )
-
     for delivery in deliveries:
-        send_webhook_request_async.delay(delivery.id)
+        send_webhook_request_async.apply_async(
+            kwargs={"event_delivery_id": delivery.id},
+            queue=get_queue_name_for_webhook(
+                delivery.webhook,
+                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            ),
+            bind=True,
+            retry_backoff=10,
+            retry_kwargs={"max_retries": 5},
+        )
 
 
 @app.task(

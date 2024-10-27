@@ -20,7 +20,7 @@ from ...core.types import OrderError
 from ...core.utils import raise_validation_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
-from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
+from .utils import EditableOrderValidationMixin, call_event_by_order_status
 
 
 class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
@@ -53,9 +53,10 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
         cls.validate(info, order, line)
 
         db_id = line.id
+        line_allocation = line.allocations.first()
         warehouse_pk = (
-            line.allocations.first().stock.warehouse.pk
-            if order.is_unconfirmed()
+            line_allocation.stock.warehouse.pk
+            if line_allocation and order.is_unconfirmed()
             else None
         )
         with traced_atomic_transaction():
@@ -97,8 +98,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
                 ["should_refresh_prices", "weight", "search_vector", "updated_at"]
             )
             order.save(update_fields=updated_fields)
-            func = get_webhook_handler_by_order_status(order.status, manager)
-            cls.call_event(func, order)
+            call_event_by_order_status(order, manager)
         return OrderLineDelete(order=order, order_line=line)
 
     @classmethod

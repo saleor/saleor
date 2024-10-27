@@ -35,6 +35,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
+from ..core.scalars import DateTime
 from ..core.types import (
     BaseObjectType,
     IconThumbnailField,
@@ -497,9 +498,7 @@ class App(ModelObjectType[models.App]):
         required=False, description="Canonical app ID from the manifest" + ADDED_IN_319
     )
     permissions = NonNullList(Permission, description="List of the app's permissions.")
-    created = graphene.DateTime(
-        description="The date and time when the app was created."
-    )
+    created = DateTime(description="The date and time when the app was created.")
     is_active = graphene.Boolean(
         description="Determine if app will be set active or not."
     )

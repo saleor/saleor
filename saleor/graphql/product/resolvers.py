@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
@@ -21,7 +23,7 @@ def resolve_categories(info: ResolveInfo, level=None):
     ).prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
-    return qs.distinct()
+    return qs
 
 
 def resolve_collection_by_id(info: ResolveInfo, id, channel_slug, requestor):
@@ -66,11 +68,17 @@ def resolve_digital_contents(info: ResolveInfo):
 
 
 def resolve_product(
-    info: ResolveInfo, id, slug, external_reference, channel_slug, requestor
+    info: ResolveInfo,
+    id,
+    slug,
+    external_reference,
+    channel: Optional[Channel],
+    limited_channel_access: bool,
+    requestor,
 ):
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(database_connection_name).visible_to_user(
-        requestor, channel_slug=channel_slug
+        requestor, channel, limited_channel_access
     )
     if id:
         _type, id = from_global_id_or_error(id, "Product")
@@ -83,18 +91,17 @@ def resolve_product(
 
 @traced_resolver
 def resolve_products(
-    info: ResolveInfo, requestor, channel_slug=None
+    info: ResolveInfo,
+    requestor,
+    channel: Optional[Channel],
+    limited_channel_access: bool,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
     qs = models.Product.objects.using(connection_name).visible_to_user(
-        requestor, channel_slug
+        requestor, channel, limited_channel_access
     )
     if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
-        if channel := (
-            Channel.objects.using(connection_name)
-            .filter(slug=str(channel_slug))
-            .first()
-        ):
+        if channel:
             product_channel_listings = (
                 models.ProductChannelListing.objects.using(connection_name)
                 .filter(channel_id=channel.id, visible_in_listings=True)
@@ -105,6 +112,7 @@ def resolve_products(
             )
         else:
             qs = models.Product.objects.none()
+    channel_slug = channel.slug if channel else None
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
@@ -129,13 +137,16 @@ def resolve_variant(
     sku,
     external_reference,
     *,
-    channel_slug,
+    channel: Optional[Channel],
+    limited_channel_access: bool,
     requestor,
     requestor_has_access_to_all,
 ):
     connection_name = get_database_connection_name(info.context)
     visible_products = (
-        models.Product.objects.visible_to_user(requestor, channel_slug)
+        models.Product.objects.visible_to_user(
+            requestor, channel, limited_channel_access
+        )
         .using(connection_name)
         .values_list("pk", flat=True)
     )
@@ -143,7 +154,7 @@ def resolve_variant(
         product__id__in=visible_products
     )
     if not requestor_has_access_to_all:
-        qs = qs.available_in_channel(channel_slug)
+        qs = qs.available_in_channel(channel)
     if id:
         _, id = from_global_id_or_error(id, "ProductVariant")
         return qs.filter(pk=id).first()
@@ -156,33 +167,24 @@ def resolve_variant(
 @traced_resolver
 def resolve_product_variants(
     info: ResolveInfo,
-    requestor_has_access_to_all,
     requestor,
     ids=None,
-    channel_slug=None,
+    channel: Optional[Channel] = None,
+    limited_channel_access: bool = False,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
-    visible_products = models.Product.objects.visible_to_user(
-        requestor, channel_slug
-    ).using(connection_name)
-    qs = models.ProductVariant.objects.using(connection_name).filter(
-        product__id__in=visible_products
+
+    qs = models.ProductVariant.objects.using(connection_name).visible_to_user(
+        requestor, channel, limited_channel_access
     )
 
-    if not requestor_has_access_to_all:
-        visible_products = visible_products.annotate_visible_in_listings(
-            channel_slug
-        ).exclude(visible_in_listings=False)
-        qs = (
-            qs.filter(product__in=visible_products)
-            .available_in_channel(channel_slug)
-            .using(connection_name)
-        )
     if ids:
         db_ids = [
             from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
         ]
         qs = qs.filter(pk__in=db_ids)
+
+    channel_slug = channel.slug if channel else None
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 

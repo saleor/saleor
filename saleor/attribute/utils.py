@@ -69,8 +69,9 @@ def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
     values = AttributeValue.objects.filter(lookup)
 
     for value in values:
-        values_map[value.attribute_id].add(value.slug)
-        slug_value_to_value_map[value.slug] = value
+        attr_id = value.attribute_id
+        values_map[attr_id].add(value.slug)
+        slug_value_to_value_map[attr_id, value.slug] = value
 
     for attribute_id, attr_values in attr_val_map.items():
         if values_map[attribute_id] != {v.slug for v in attr_values}:
@@ -79,7 +80,7 @@ def validate_attribute_owns_values(attr_val_map: dict[int, list]) -> None:
         # id set. This is needed as `ignore_conflicts=True` flag in `bulk_create
         # is used in `AttributeValueManager`
         attr_val_map[attribute_id] = [
-            slug_value_to_value_map[v.slug] for v in attr_values
+            slug_value_to_value_map[attribute_id, v.slug] for v in attr_values
         ]
 
 
@@ -113,12 +114,21 @@ def _associate_attribute_to_instance(
             instance, instance_attrs_ids, AssignedVariantAttribute, instance_field_name
         )
 
+    # workaround for checking uniqness using database check for zero-downtime
+    # compatibility
+    temporary_fields = {
+        "page": "page_uniq",
+        "product": "product_uniq",
+        "variant": None,
+    }
+
     values_order_map = _overwrite_values(
         instance,
         assignments,
         attr_val_map,
         value_model,
         None if instance_field_name == "variant" else instance_field_name,
+        temporary_fields[instance_field_name],
     )
 
     if isinstance(instance, ProductVariant):
@@ -161,7 +171,12 @@ def _get_or_create_assignments(
 
 
 def _overwrite_values(
-    instance, assignments, attr_val_map, value_assignment_model, instance_field_name
+    instance,
+    assignments,
+    attr_val_map,
+    value_assignment_model,
+    instance_field_name,
+    temporary_instance_field_name,
 ) -> dict[int, list]:
     instance_field_kwarg = (
         {instance_field_name: instance} if instance_field_name else {}
@@ -194,7 +209,7 @@ def _overwrite_values(
     # Spend on db query to check values that are in the db so that we can use bulk_create
     # to set the new assignments
     # This code will be able to use bulk_create option ignore_conflicts once
-    # unique_together is set for product + value on AssignedProductAttributeValue
+    # unique_together is set for instance_id + value on value_assigment_model
     values_order_map = defaultdict(list)
     assigned_attr_values_instances = []
     for attr_id, values in attr_val_map.items():
@@ -208,6 +223,9 @@ def _overwrite_values(
             params = {"value": value, **instance_field_kwarg}
             if assignment:
                 params["assignment_id"] = assignment.id
+            # save to ensure uniqness for zero-downtime compatibility
+            if temporary_instance_field_name:
+                params[temporary_instance_field_name] = instance.pk
             assigned_attr_values_instances.append(value_assignment_model(**params))
             if assignment:
                 values_order_map[assignment.id].append(value.id)

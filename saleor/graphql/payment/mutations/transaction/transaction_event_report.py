@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -7,36 +7,51 @@ from django.utils import timezone
 from .....app.models import App
 from .....checkout.actions import transaction_amounts_for_checkout_updated
 from .....core.exceptions import PermissionDenied
+from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.events import call_event
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.fetch import fetch_order_info
 from .....order.search import update_order_search_vector
 from .....order.utils import updates_amounts_for_order
-from .....payment import TransactionEventType
+from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
     get_already_existing_event,
+    get_transaction_event_amount,
 )
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_313, ADDED_IN_314, PREVIEW_FEATURE
+from ....core.descriptions import (
+    ADDED_IN_313,
+    ADDED_IN_314,
+    ADDED_IN_317,
+    PREVIEW_FEATURE,
+)
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.mutations import ModelMutation
-from ....core.scalars import UUID, PositiveDecimal
+from ....core.scalars import UUID, DateTime, PositiveDecimal
+from ....core.types import NonNullList
 from ....core.types import common as common_types
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 from ...types import TransactionEvent, TransactionItem
 from ...utils import check_if_requestor_has_access
 from .utils import get_transaction_item
+
+if TYPE_CHECKING:
+    from .....plugins.manager import PluginsManager
 
 
 class TransactionEventReport(ModelMutation):
@@ -77,9 +92,16 @@ class TransactionEventReport(ModelMutation):
             description="Current status of the event to report.",
         )
         amount = PositiveDecimal(
-            description="The amount of the event to report.", required=True
+            description=(
+                "The amount of the event to report. \n\nRequired for all `REQUEST`, "
+                "`SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, "
+                "the amount will be calculated based on the previous events with "
+                "the same pspReference. "
+                "If not possible to calculate, the mutation will return an error."
+            ),
+            required=False,
         )
-        time = graphene.DateTime(
+        time = DateTime(
             description=(
                 "The time of the event to report. If not provide, "
                 "the current time will be used."
@@ -95,6 +117,21 @@ class TransactionEventReport(ModelMutation):
         available_actions = graphene.List(
             graphene.NonNull(TransactionActionEnum),
             description="List of all possible actions for the transaction",
+        )
+        transaction_metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the transaction metadata." + ADDED_IN_317
+            ),
+            required=False,
+        )
+        transaction_private_metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the transaction private metadata."
+                + ADDED_IN_317
+            ),
+            required=False,
         )
 
     class Meta:
@@ -114,6 +151,30 @@ class TransactionEventReport(ModelMutation):
         model = payment_models.TransactionEvent
         object_type = TransactionEvent
         auto_permission_message = False
+        support_meta_field = True
+        support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED,
+                description=(
+                    "Optionally called when transaction's metadata was updated."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_FULLY_PAID,
+                description=(
+                    "Optionally called when the checkout charge status "
+                    "changed to `FULL` or `OVERCHARGED`."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_UPDATED,
+                description=(
+                    "Optionally called when the transaction is related to the order "
+                    "and the order was updated."
+                ),
+            ),
+        ]
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):
@@ -122,10 +183,13 @@ class TransactionEventReport(ModelMutation):
     @classmethod
     def update_transaction(
         cls,
+        manager: "PluginsManager",
         transaction: payment_models.TransactionItem,
         transaction_event: payment_models.TransactionEvent,
         available_actions: Optional[list[str]] = None,
         app: Optional["App"] = None,
+        metadata: Optional[list[dict]] = None,
+        private_metadata: Optional[list[dict]] = None,
     ):
         fields_to_update = [
             "authorized_value",
@@ -137,6 +201,8 @@ class TransactionEventReport(ModelMutation):
             "refund_pending_value",
             "cancel_pending_value",
             "modified_at",
+            "metadata",
+            "private_metadata",
         ]
 
         if (
@@ -164,6 +230,35 @@ class TransactionEventReport(ModelMutation):
             fields_to_update.append("app")
             fields_to_update.append("app_identifier")
         transaction.save(update_fields=fields_to_update)
+        if metadata:
+            call_event(manager.transaction_item_metadata_updated, transaction)
+
+    @classmethod
+    def clean_amount_value(
+        cls, amount: Optional[float], event_type: str, psp_reference: str, currency: str
+    ):
+        if amount is None:
+            if event_type not in OPTIONAL_AMOUNT_EVENTS:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            f"The `amount` field is required for {event_type} event.",
+                            code=TransactionEventReportErrorCode.REQUIRED.value,
+                        )
+                    }
+                )
+            try:
+                amount = get_transaction_event_amount(event_type, psp_reference)
+            except ValueError as error:
+                raise ValidationError(
+                    {
+                        "amount": ValidationError(
+                            str(error),
+                            code=TransactionEventReportErrorCode.REQUIRED.value,
+                        )
+                    },
+                )
+        return quantize_price(amount, currency)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -174,13 +269,15 @@ class TransactionEventReport(ModelMutation):
         *,
         psp_reference,
         type,
-        amount,
+        amount=None,
         token=None,
         id=None,
         time=None,
         external_url=None,
         message=None,
         available_actions=None,
+        transaction_metadata: Optional[list[dict]] = None,
+        transaction_private_metadata: Optional[list[dict]] = None,
     ):
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
@@ -198,6 +295,9 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
+        amount = cls.clean_amount_value(
+            amount, type, psp_reference, transaction.currency
+        )
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
@@ -222,6 +322,9 @@ class TransactionEventReport(ModelMutation):
             transaction_event, transaction_event_data
         )
 
+        cls.validate_and_update_metadata(
+            transaction, transaction_metadata, transaction_private_metadata
+        )
         cls.clean_instance(info, transaction_event)
 
         if available_actions is not None:
@@ -269,10 +372,13 @@ class TransactionEventReport(ModelMutation):
             previous_charged_value = transaction.charged_value
             previous_refunded_value = transaction.refunded_value
             cls.update_transaction(
+                manager,
                 transaction,
                 transaction_event,
                 available_actions=available_actions,
                 app=app,
+                metadata=transaction_metadata,
+                private_metadata=transaction_private_metadata,
             )
             if transaction.order_id:
                 order = cast(order_models.Order, transaction.order)

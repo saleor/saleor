@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -27,6 +27,7 @@ from ..utils import (
     create_transaction_event_from_request_and_webhook_response,
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
+    get_transaction_event_amount,
     parse_transaction_action_data,
     recalculate_refundable_for_checkout,
     try_void_or_refund_inactive_payment,
@@ -240,7 +241,8 @@ def test_parse_transaction_action_data_with_only_psp_reference():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        response_data,
+        TransactionEventType.AUTHORIZATION_REQUEST,
     )
 
     # then
@@ -291,7 +293,8 @@ def test_parse_transaction_action_data_with_provided_time(
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        response_data,
+        TransactionEventType.CHARGE_REQUEST,
     )
     # then
     assert parsed_data.event.time == expected_datetime
@@ -317,7 +320,8 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        response_data,
+        TransactionEventType.CHARGE_REQUEST,
     )
     # then
     assert isinstance(parsed_data, TransactionRequestResponse)
@@ -353,7 +357,8 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.REFUND_REQUEST
+        response_data,
+        TransactionEventType.REFUND_REQUEST,
     )
 
     # then
@@ -374,7 +379,8 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        response_data,
+        TransactionEventType.CHARGE_REQUEST,
     )
 
     # then
@@ -391,17 +397,32 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
 
 
 @freeze_time("2018-05-31 12:00:01")
-def test_parse_transaction_action_data_with_missin_psp_reference():
+def test_parse_transaction_action_data_with_missing_psp_reference():
     # given
     response_data = {}
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        response_data,
+        TransactionEventType.AUTHORIZATION_REQUEST,
     )
 
     # then
     assert parsed_data is None
+
+
+def test_parse_transaction_action_data_with_missing_optional_psp_reference():
+    # given
+    response_data = {}
+
+    # when
+    parsed_data, _ = parse_transaction_action_data(
+        response_data,
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+    )
+
+    # then
+    assert parsed_data
 
 
 def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
@@ -412,7 +433,8 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        response_data,
+        TransactionEventType.AUTHORIZATION_REQUEST,
     )
 
     # then
@@ -466,10 +488,118 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
     assert TransactionEvent.objects.count() == 1
 
 
-@freeze_time("2018-05-31 12:00:01")
-def test_create_transaction_event_from_request_and_webhook_response_part_event(
+@pytest.mark.parametrize(
+    ("event_type", "result_event_type"),
+    [
+        (
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_FAILURE,
+        ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_FAILURE,
+        ),
+        (
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.CANCEL_FAILURE,
+        ),
+    ],
+)
+def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_reference_valid_event(
+    event_type, result_event_type, transaction_item_generator, app
+):
+    # given
+    transaction = transaction_item_generator()
+    event_amount = Decimal(11.00)
+    request_event = TransactionEvent.objects.create(
+        type=event_type,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+    event_count = transaction.events.count()
+    response_data = {
+        "amount": event_amount,
+        "result": result_event_type.upper(),
+    }
+
+    # when
+    event = create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    request_event.refresh_from_db()
+    transaction.refresh_from_db()
+    assert request_event.psp_reference is None
+    assert transaction.events.count() == event_count + 1
+    assert event.psp_reference is None
+    assert event.type == result_event_type
+    assert not event.message
+
+
+@pytest.mark.parametrize(
+    ("event_type", "result_event_type"),
+    [
+        (
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_SUCCESS,
+        ),
+        (
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.CANCEL_SUCCESS,
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+    ],
+)
+def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_reference_invalid_event(
+    event_type,
+    result_event_type,
     transaction_item_generator,
     app,
+):
+    # given
+    transaction = transaction_item_generator()
+    event_amount = Decimal(11.00)
+    request_event = TransactionEvent.objects.create(
+        type=event_type,
+        amount_value=event_amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+    event_count = transaction.events.count()
+    response_data = {
+        "amount": event_amount,
+        "result": result_event_type.upper(),
+    }
+
+    # when
+    event = create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    request_event.refresh_from_db()
+    transaction.refresh_from_db()
+    assert request_event.psp_reference is None
+    assert transaction.events.count() == event_count + 1
+    assert event.psp_reference is None
+    assert event.transaction_id == transaction.id
+    assert event.message == (
+        f"Providing `pspReference` is required for {result_event_type.upper()}."
+    )
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_and_webhook_response_part_event(
+    transaction_item_generator, app
 ):
     # given
     transaction = transaction_item_generator()
@@ -584,9 +714,9 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid
     flush_post_commit_hooks()
     order.refresh_from_db()
     assert order.charge_status == OrderChargeStatus.FULL
-    mock_order_fully_paid.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_paid.assert_called_once_with(order)
+    mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_paid.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
@@ -632,8 +762,8 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_partially_
     order.refresh_from_db()
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_paid.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_paid.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -678,9 +808,9 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_refu
     flush_post_commit_hooks()
     order.refresh_from_db()
 
-    mock_order_fully_refunded.assert_called_once_with(order)
-    mock_order_updated.assert_called_once_with(order)
-    mock_order_refunded.assert_called_once_with(order)
+    mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_refunded")
@@ -726,8 +856,8 @@ def test_create_transaction_event_from_request_triggers_webhooks_partially_refun
     order.refresh_from_db()
 
     assert not mock_order_fully_refunded.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_refunded.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -771,7 +901,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
     order.refresh_from_db()
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.FULL
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -864,8 +994,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
 
 
 def test_create_transaction_event_from_request_and_webhook_response_incorrect_data(
-    transaction_item_generator,
-    app,
+    transaction_item_generator, app
 ):
     # given
     transaction = transaction_item_generator()
@@ -895,8 +1024,7 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
-    transaction_item_generator,
-    app,
+    transaction_item_generator, app
 ):
     # given
     transaction = transaction_item_generator()
@@ -948,10 +1076,7 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
 )
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_same_event(
-    transaction_item_generator,
-    first_event_amount,
-    second_event_amount,
-    app,
+    transaction_item_generator, first_event_amount, second_event_amount, app
 ):
     # given
     expected_psp_reference = "psp:122:222"
@@ -1002,9 +1127,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 )
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_handle_incorrect_values(
-    transaction_item_generator,
-    event_amount,
-    app,
+    transaction_item_generator, event_amount, app
 ):
     # given
     expected_psp_reference = "psp:122:222"
@@ -1045,8 +1168,7 @@ def test_create_transaction_event_from_request_handle_incorrect_values(
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_response_different_amount(
-    transaction_item_generator,
-    app,
+    transaction_item_generator, app
 ):
     # given
     expected_psp_reference = "psp:122:222"
@@ -1095,9 +1217,7 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_event_from_request_and_webhook_missing_response_calculate_refundable(
-    transaction_item_generator,
-    checkout,
-    app,
+    transaction_item_generator, checkout, app
 ):
     # given
     checkout.automatically_refundable = True
@@ -1128,9 +1248,7 @@ def test_create_event_from_request_and_webhook_missing_response_calculate_refund
 
 
 def test_create_event_from_request_and_webhook_error_response_calculate_refundable(
-    transaction_item_generator,
-    checkout,
-    app,
+    transaction_item_generator, checkout, app
 ):
     # given
     checkout.automatically_refundable = True
@@ -1175,9 +1293,7 @@ def test_create_event_from_request_and_webhook_error_response_calculate_refundab
 
 
 def test_create_event_from_request_and_webhook_failure_event_calculate_refundable(
-    transaction_item_generator,
-    checkout,
-    app,
+    transaction_item_generator, checkout, app
 ):
     # given
     checkout.automatically_refundable = True
@@ -1222,9 +1338,7 @@ def test_create_event_from_request_and_webhook_failure_event_calculate_refundabl
 
 
 def test_create_event_from_request_and_webhook_success_event_calculate_refundable(
-    transaction_item_generator,
-    checkout,
-    app,
+    transaction_item_generator, checkout, app
 ):
     # given
     checkout.automatically_refundable = False
@@ -1269,9 +1383,7 @@ def test_create_event_from_request_and_webhook_success_event_calculate_refundabl
 
 
 def test_create_event_from_request_and_webhook_pending_event_calculate_refundable(
-    transaction_item_generator,
-    checkout,
-    app,
+    transaction_item_generator, checkout, app
 ):
     # given
     checkout.automatically_refundable = False
@@ -1459,10 +1571,22 @@ def test_get_correct_event_types_based_on_request_type(request_type, expected_ev
 @pytest.mark.parametrize(
     ("response_result", "transaction_amount_field_name"),
     [
-        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
-        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
-        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
-        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+        (
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "authorize_pending_value",
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "authorized_value",
+        ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            "charge_pending_value",
+        ),
+        (
+            TransactionEventType.CHARGE_SUCCESS,
+            "charged_value",
+        ),
     ],
 )
 def test_create_transaction_event_for_transaction_session_success_response(
@@ -1500,10 +1624,22 @@ def test_create_transaction_event_for_transaction_session_success_response(
 @pytest.mark.parametrize(
     ("response_result", "transaction_amount_field_name"),
     [
-        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
-        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
-        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
-        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+        (
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "authorize_pending_value",
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "authorized_value",
+        ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            "charge_pending_value",
+        ),
+        (
+            TransactionEventType.CHARGE_SUCCESS,
+            "charged_value",
+        ),
     ],
 )
 def test_create_transaction_event_for_transaction_session_success_response_with_0(
@@ -1587,18 +1723,33 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
 
 
 @pytest.mark.parametrize(
-    "response_result",
+    ("response_result", "message"),
     [
-        TransactionEventType.AUTHORIZATION_FAILURE,
-        TransactionEventType.AUTHORIZATION_SUCCESS,
-        TransactionEventType.AUTHORIZATION_REQUEST,
-        TransactionEventType.CHARGE_FAILURE,
-        TransactionEventType.CHARGE_SUCCESS,
-        TransactionEventType.CHARGE_REQUEST,
+        (
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS.",
+        ),
+        (
+            TransactionEventType.CHARGE_SUCCESS,
+            "Providing `pspReference` is required for CHARGE_SUCCESS.",
+        ),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            "Message related to the payment",
+        ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            "Providing `pspReference` is required for CHARGE_REQUEST.",
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            "Providing `pspReference` is required for AUTHORIZATION_REQUEST.",
+        ),
     ],
 )
 def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     response_result,
+    message,
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
@@ -1628,6 +1779,7 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     # then
     assert response_event.amount_value == expected_amount
     assert response_event.type == TransactionEventType.CHARGE_FAILURE
+    assert response_event.message == message
     transaction.refresh_from_db()
     assert transaction.authorized_value == Decimal("0")
     assert transaction.charged_value == Decimal("0")
@@ -1720,7 +1872,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
     order_with_lines.refresh_from_db()
     flush_post_commit_hooks()
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1754,8 +1906,8 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
     # then
     order_with_lines.refresh_from_db()
     flush_post_commit_hooks()
-    mock_order_fully_paid.assert_called_once_with(order_with_lines)
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_fully_paid.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @pytest.mark.parametrize(
@@ -1847,9 +1999,7 @@ def test_create_transaction_event_for_transaction_session_failure_doesnt_set_act
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_updates_modified_at(
-    transaction_item_generator,
-    checkout,
-    app,
+    transaction_item_generator, checkout, app
 ):
     # given
     transaction = transaction_item_generator(checkout_id=checkout.pk)
@@ -2364,3 +2514,231 @@ def test_recalculate_refundable_for_checkout_update_missing_checkout(
     # then
     transaction_item.refresh_from_db()
     assert transaction_item.last_refund_success is False
+
+
+@pytest.mark.parametrize(
+    ("input_event_type", "event_type_to_create"),
+    [
+        (TransactionEventType.CHARGE_FAILURE, TransactionEventType.CHARGE_SUCCESS),
+        (TransactionEventType.CHARGE_FAILURE, TransactionEventType.CHARGE_REQUEST),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ),
+        (
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.REFUND_SUCCESS),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.REFUND_REQUEST),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.CHARGE_SUCCESS),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.CHARGE_REQUEST),
+        (TransactionEventType.REFUND_FAILURE, TransactionEventType.CHARGE_FAILURE),
+        (TransactionEventType.CANCEL_FAILURE, TransactionEventType.CANCEL_SUCCESS),
+        (TransactionEventType.CANCEL_FAILURE, TransactionEventType.CANCEL_REQUEST),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.AUTHORIZATION_FAILURE,
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+        ),
+        (
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+        ),
+        (TransactionEventType.REFUND_REVERSE, TransactionEventType.REFUND_SUCCESS),
+        (TransactionEventType.CHARGE_BACK, TransactionEventType.CHARGE_SUCCESS),
+    ],
+)
+def test_get_transaction_event_amount(
+    input_event_type,
+    event_type_to_create,
+    transaction_events_generator,
+    transaction_item,
+):
+    # given
+    expected_amount = 10
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            psp_reference,
+        ],
+        types=[
+            event_type_to_create,
+        ],
+        amounts=[
+            expected_amount,
+        ],
+    )
+
+    # when
+    amount = get_transaction_event_amount(input_event_type, psp_reference)
+
+    # then
+    assert amount == expected_amount
+
+
+def test_get_transaction_event_amount_match_the_newest_event(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    event_types = [
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+    ]
+    events = transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            psp_reference,
+        ]
+        * len(event_types),
+        types=event_types,
+        amounts=[10, 5, 4, 3, 2],
+    )
+    newest_event = events[-1]
+    for event in events[:-1]:
+        event.created_at = newest_event.created_at - timedelta(minutes=10)
+    TransactionEvent.objects.bulk_update(events[:-1], ["created_at"])
+
+    # when
+    amount = get_transaction_event_amount(
+        TransactionEventType.CHARGE_FAILURE, psp_reference
+    )
+
+    # then
+    assert amount == newest_event.amount_value
+
+
+@pytest.mark.parametrize(
+    ("input_event_type", "event_types_to_create"),
+    [
+        (TransactionEventType.CHARGE_FAILURE, [TransactionEventType.REFUND_FAILURE]),
+        (TransactionEventType.CHARGE_FAILURE, []),
+        (
+            TransactionEventType.REFUND_FAILURE,
+            [TransactionEventType.AUTHORIZATION_FAILURE],
+        ),
+        (TransactionEventType.REFUND_FAILURE, []),
+        (TransactionEventType.CANCEL_FAILURE, [TransactionEventType.CHARGE_FAILURE]),
+        (TransactionEventType.CANCEL_FAILURE, []),
+        (
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            [TransactionEventType.CHARGE_SUCCESS],
+        ),
+        (TransactionEventType.AUTHORIZATION_FAILURE, []),
+        (TransactionEventType.REFUND_REVERSE, [TransactionEventType.REFUND_FAILURE]),
+        (TransactionEventType.REFUND_REVERSE, []),
+        (TransactionEventType.CHARGE_BACK, [TransactionEventType.CHARGE_FAILURE]),
+        (TransactionEventType.CHARGE_BACK, []),
+    ],
+)
+def test_get_transaction_event_amount_missing_matching_event(
+    input_event_type,
+    event_types_to_create,
+    transaction_events_generator,
+    transaction_item,
+):
+    # given
+    amount = 10
+    psp_reference = "xyz"
+    if event_types_to_create:
+        transaction_events_generator(
+            transaction=transaction_item,
+            psp_references=[
+                psp_reference,
+            ],
+            types=event_types_to_create,
+            amounts=[
+                amount,
+            ],
+        )
+
+    # when & then
+    with pytest.raises(
+        ValueError, match=f"Unable to deduce the amount for {input_event_type} event."
+    ):
+        get_transaction_event_amount(input_event_type, psp_reference)
+
+
+def test_get_transaction_event_amount_missing_matching_event_different_psp_reference(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            "123",
+        ],
+        types=[TransactionEventType.CHARGE_SUCCESS],
+        amounts=[10],
+    )
+    event_type = TransactionEventType.CHARGE_FAILURE
+
+    # when & then
+    with pytest.raises(
+        ValueError, match=f"Unable to deduce the amount for {event_type} event."
+    ):
+        get_transaction_event_amount(event_type, psp_reference)
+
+
+def test_get_transaction_event_amount_invalid_event_type(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            psp_reference,
+        ],
+        types=[TransactionEventType.CHARGE_FAILURE],
+        amounts=[10],
+    )
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    # when & then
+    with pytest.raises(
+        ValueError, match=f"Unable to deduce the amount for {event_type} event."
+    ):
+        get_transaction_event_amount(event_type, psp_reference)
+
+
+def test_get_transaction_event_amount_for_info_event_type(
+    transaction_events_generator, transaction_item
+):
+    # given
+    psp_reference = "xyz"
+    transaction_events_generator(
+        transaction=transaction_item,
+        psp_references=[
+            "123",
+        ],
+        types=[TransactionEventType.CHARGE_SUCCESS],
+        amounts=[10],
+    )
+
+    # when
+    amount = get_transaction_event_amount(TransactionEventType.INFO, psp_reference)
+
+    # then
+    assert amount == 0

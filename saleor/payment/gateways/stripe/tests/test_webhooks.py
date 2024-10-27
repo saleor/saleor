@@ -1,4 +1,5 @@
 import json
+import logging
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
@@ -8,9 +9,11 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from stripe.stripe_object import StripeObject
 
+from .....checkout.calculations import calculate_checkout_total_with_gift_cards
 from .....checkout.complete_checkout import complete_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order.actions import order_charged, order_refunded, order_voided
+from .....payment.models import Transaction
 from .....plugins.manager import get_plugins_manager
 from .....tests.utils import flush_post_commit_hooks
 from .... import ChargeStatus, TransactionKind
@@ -27,6 +30,7 @@ from ..consts import (
     WEBHOOK_SUCCESS_EVENT,
 )
 from ..webhooks import (
+    _channel_slug_is_different_from_payment_channel_slug,
     _finalize_checkout,
     _process_payment_with_checkout,
     _update_payment_with_new_transaction,
@@ -380,6 +384,94 @@ def test_handle_successful_payment_intent_different_order_channel_slug(
 
     # then
     assert wrapped_order_charged.called == called
+
+
+@patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
+@patch("saleor.checkout.complete_checkout.gateway.process_payment")
+@patch("saleor.payment.gateways.stripe.webhooks.order_charged", wraps=order_charged)
+@patch("saleor.payment.gateways.stripe.webhooks.update_payment_method")
+def test_handle_successful_payment_intent_checkout_with_voucher_ongoing_completing(
+    _wrapped_update_payment_method,
+    wrapped_order_charged,
+    wrapped_process_payment,
+    wrapped_payment_refund_or_void,
+    payment_stripe_for_checkout,
+    voucher_free_shipping,
+    stripe_plugin,
+    channel_USD,
+    customer_user,
+    success_gateway_response,
+):
+    # given
+    channel = channel_USD
+    payment = payment_stripe_for_checkout
+    checkout = payment.checkout
+
+    wrapped_process_payment.return_value = success_gateway_response
+
+    checkout.voucher_code = voucher_free_shipping.codes.first().code
+    checkout.save(update_fields=["voucher_code"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    address = customer_user.default_billing_address
+    total = calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    # set voucher usage limit to 1
+    voucher_free_shipping.usage_limit = 1
+    voucher_free_shipping.save(update_fields=["usage_limit"])
+
+    plugin = stripe_plugin()
+    payment_intent = StripeObject(id="token", last_response={})
+    payment_intent["amount_received"] = payment.total
+    payment_intent["currency"] = payment.currency
+    payment_intent["capture_method"] = "automatic"
+    payment_intent["setup_future_usage"] = None
+    payment_intent["payment_method"] = StripeObject()
+
+    Transaction.objects.create(
+        payment=payment_stripe_for_checkout,
+        action_required=False,
+        kind=TransactionKind.AUTH,
+        token=payment_intent.id,
+        is_success=True,
+        amount=total.gross.amount,
+        currency=total.gross.currency,
+        error="",
+        gateway_response={},
+        action_required_data={},
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    def call_webhook_success_event(*args, **kwargs):
+        handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
+
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment", call_webhook_success_event
+    ):
+        order_from_checkout, action_required, _ = complete_checkout(
+            checkout_info=checkout_info,
+            lines=lines,
+            manager=manager,
+            payment_data={},
+            store_source=False,
+            user=customer_user,
+            app=None,
+        )
+
+    # then
+    assert wrapped_order_charged.called is False
+    assert order_from_checkout
+    wrapped_payment_refund_or_void.assert_not_called()
+    code = voucher_free_shipping.codes.first()
+    assert code.used == 1
 
 
 @patch(
@@ -1630,3 +1722,94 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
     assert payment.order
     transaction = payment.transactions.get(kind=TransactionKind.CAPTURE)
     assert transaction.token == payment_intent.id
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_checkout_false(
+    payment, checkout
+):
+    # given
+    payment.checkout = checkout
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = checkout.channel.slug
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is False
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_checkout_true(
+    payment, checkout
+):
+    # given
+    payment.checkout = checkout
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = "test"
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is True
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_order_false(
+    payment, order
+):
+    # given
+    payment.checkout = None
+    payment.order = order
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = order.channel.slug
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is False
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_for_order_true(
+    payment, order
+):
+    # given
+    payment.checkout = None
+    payment.order = order
+    payment.save(update_fields=["checkout", "order"])
+
+    channel_slug = "test"
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is True
+
+
+def test_channel_slug_is_different_from_payment_channel_slug_no_order_or_checkout(
+    payment, caplog
+):
+    # given
+    payment.checkout = None
+    payment.order = None
+    payment.save(update_fields=["checkout", "order"])
+    caplog.set_level(logging.WARNING)
+
+    channel_slug = "test"
+
+    # when
+    result = _channel_slug_is_different_from_payment_channel_slug(channel_slug, payment)
+
+    # then
+    assert result is True
+    assert (
+        caplog.records[0].message
+        == "Both payment.checkout and payment.order cannot be None"
+    )
+    assert caplog.records[0].payment_id == payment.id

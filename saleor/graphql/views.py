@@ -24,7 +24,7 @@ from ..core.exceptions import PermissionDenied
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
-from .context import get_context_value
+from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
 from .utils import format_error, query_fingerprint, query_identifier
@@ -60,6 +60,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
     backend: GraphQLBackend = None  # type: ignore[assignment]
+    _query: Optional[str] = None
 
     HANDLED_EXCEPTIONS = (
         GraphQLError,
@@ -164,6 +165,10 @@ class GraphQLView(View):
             span.set_tag(
                 opentracing.tags.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
+            )
+            accepted_encoding = request.META.get("HTTP_ACCEPT_ENCODING", "")
+            span.set_tag(
+                "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
             )
             span.set_tag("http.useragent", request.META.get("HTTP_USER_AGENT", ""))
             span.set_tag("span.type", "web")
@@ -274,7 +279,6 @@ class GraphQLView(View):
             )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
-
             document, error = self.parse_query(query)
             with observability.report_gql_operation() as operation:
                 operation.query = document
@@ -283,9 +287,11 @@ class GraphQLView(View):
             if error or document is None:
                 return error
 
+            _query_identifier = query_identifier(document)
+            self._query = _query_identifier
             raw_query_string = document.document_string
             span.set_tag("graphql.query", raw_query_string)
-            span.set_tag("graphql.query_identifier", query_identifier(document))
+            span.set_tag("graphql.query_identifier", _query_identifier)
             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
             try:
                 query_contains_schema = self.check_if_query_contains_only_schema(
@@ -350,6 +356,8 @@ class GraphQLView(View):
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
+            finally:
+                clear_context(context)
 
     @staticmethod
     def parse_body(request: HttpRequest):
@@ -383,9 +391,8 @@ class GraphQLView(View):
             variables = operations.get("variables")
         return query, variables, operation_name
 
-    @classmethod
-    def format_error(cls, error):
-        return format_error(error, cls.HANDLED_EXCEPTIONS)
+    def format_error(self, error):
+        return format_error(error, self.HANDLED_EXCEPTIONS, self._query)
 
 
 def get_key(key):

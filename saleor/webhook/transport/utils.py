@@ -52,7 +52,7 @@ from ..models import Webhook
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
-task_logger = get_task_logger(__name__)
+task_logger = get_task_logger(f"{__name__}.celery")
 
 
 DEFAULT_TAX_CODE = "UNMAPPED"

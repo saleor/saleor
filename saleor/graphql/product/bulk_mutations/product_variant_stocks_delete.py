@@ -14,9 +14,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...warehouse.dataloaders import (
-    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
-)
+from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..types import ProductVariant
 
@@ -85,9 +83,7 @@ class ProductVariantStocksDelete(BaseMutation):
 
         stocks_to_delete.delete()
 
-        StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-            info.context
-        ).clear((variant.id, None, None))
+        StocksByProductVariantIdLoader(info.context).clear(variant.id)
 
         variant = ChannelContext(node=variant, channel_slug=None)
         return cls(product_variant=variant)

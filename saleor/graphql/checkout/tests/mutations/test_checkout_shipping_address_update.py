@@ -1,10 +1,12 @@
 import datetime
 from unittest import mock
+from unittest.mock import call, patch
 
 import pytest
 from django.test import override_settings
 from django.utils import timezone
 
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
@@ -13,11 +15,13 @@ from .....checkout.utils import (
     add_voucher_to_checkout,
     invalidate_checkout,
 )
+from .....core.models import EventDelivery
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
 from .....warehouse.models import Reservation, Stock
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
@@ -132,6 +136,7 @@ def test_checkout_shipping_address_with_metadata_update(
     assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert checkout.shipping_address.country == shipping_address["country"]
     assert checkout.shipping_address.city == shipping_address["city"].upper()
+    assert checkout.shipping_address.validation_skipped is False
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
@@ -1015,3 +1020,134 @@ def test_checkout_shipping_address_update_with_collection_point_already_set(
     errors = data["errors"]
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_CHANGE_FORBIDDEN.name
     assert errors[0]["field"] == "shippingAddress"
+
+
+def test_checkout_shipping_address_skip_validation_by_customer(
+    checkout_with_items, user_api_client, graphql_address_data_skipped_validation
+):
+    # given
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": address_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_checkout_shipping_address_skip_validation_by_app(
+    checkout_with_items,
+    app_api_client,
+    graphql_address_data_skipped_validation,
+    permission_handle_checkouts,
+):
+    # given
+    checkout = checkout_with_items
+    address_data = graphql_address_data_skipped_validation
+    invalid_postal_code = "invalid_postal_code"
+    address_data["postalCode"] = invalid_postal_code
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address.postal_code == invalid_postal_code
+    assert checkout.shipping_address.validation_skipped is True
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_shipping_address_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_shipping_address_update_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_info_event,
+    setup_checkout_webhooks,
+    settings,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_updated_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    checkout = checkout_with_item
+    assert checkout.shipping_address is None
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": graphql_address_data,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutShippingAddressUpdate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_info_event.called

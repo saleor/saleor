@@ -8,7 +8,6 @@ from email.headerregistry import Address
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
 import dateutil.parser
-import html2text
 import i18naddress
 import pybars
 from babel.numbers import format_currency
@@ -17,6 +16,8 @@ from django.core.mail import send_mail
 from django.core.mail.backends.smtp import EmailBackend
 from django.core.validators import EmailValidator
 from django_prices.utils.locale import get_locale_data
+from lxml import etree
+from lxml import html as lxml_html
 
 from ..thumbnail.utils import get_thumbnail_size
 from .base_plugin import ConfigurationTypeField
@@ -144,8 +145,10 @@ def format_datetime(this, date, date_format=None):
 
 def get_product_image_thumbnail(this, size: int, image_data):
     """Use provided size to get a correct image."""
+    if image_data is None:
+        return
     expected_size = get_thumbnail_size(size)
-    return image_data["original"][str(expected_size)]
+    return image_data.get("original", {}).get(str(expected_size))
 
 
 def compare(this, val1, compare_operator, val2):
@@ -183,6 +186,22 @@ def price(this, net_amount, gross_amount, currency, display_gross=False):
     return pybars.strlist([formatted_price])
 
 
+def get_plain_text_message_for_email(message: str) -> str:
+    try:
+        html_message = lxml_html.fromstring(message)
+    except etree.ParserError:
+        html_message = None
+
+    plain_text = ""
+    if html_message is not None:
+        html_message_to_parse = html_message.find("body")
+        if html_message_to_parse is None:
+            html_message_to_parse = html_message
+
+        plain_text = " ".join(str(html_message_to_parse.text_content()).split())
+    return plain_text
+
+
 def send_email(
     config: EmailConfig, recipient_list, context, subject="", template_str=""
 ):
@@ -214,7 +233,7 @@ def send_email(
     subject_message = subject_template(context, helpers)
     send_mail(
         subject_message,
-        html2text.html2text(message),
+        get_plain_text_message_for_email(message),
         from_email,
         recipient_list,
         html_message=message,
@@ -264,6 +283,7 @@ def validate_default_email_configuration(
                 ),
             }
         )
+
     config = EmailConfig(
         host=configuration["host"],
         port=configuration["port"],
@@ -275,15 +295,16 @@ def validate_default_email_configuration(
         use_ssl=configuration["use_ssl"],
     )
 
-    if not config.sender_address:
-        raise ValidationError(
-            {
-                "sender_address": ValidationError(
-                    "Missing sender address value.",
-                    code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
-                )
-            }
-        )
+    errors = {}
+    for field in ("host", "port", "sender_address"):
+        if not getattr(config, field):
+            errors[field] = ValidationError(
+                f"Missing {field.replace('_', ' ')} value.",
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
+            )
+
+    if errors:
+        raise ValidationError(errors)
 
     EmailValidator(
         message={  # type: ignore[arg-type] # the code below is a hack

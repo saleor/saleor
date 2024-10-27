@@ -19,6 +19,7 @@ class PaymentErrorCode(Enum):
     CHECKOUT_EMAIL_NOT_SET = "checkout_email_not_set"
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
     NO_CHECKOUT_LINES = "no_checkout_lines"
+    CHECKOUT_COMPLETION_IN_PROGRESS = "checkout_completion_in_progress"
 
 
 class TransactionCreateErrorCode(Enum):
@@ -63,6 +64,7 @@ class TransactionEventReportErrorCode(Enum):
     NOT_FOUND = "not_found"
     INCORRECT_DETAILS = "incorrect_details"
     ALREADY_EXISTS = "already_exists"
+    REQUIRED = "required"
 
 
 class PaymentGatewayConfigErrorCode(Enum):
@@ -82,6 +84,7 @@ class TransactionInitializeErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     UNIQUE = "unique"
+    CHECKOUT_COMPLETION_IN_PROGRESS = "checkout_completion_in_progress"
 
 
 class TransactionProcessErrorCode(Enum):
@@ -91,6 +94,7 @@ class TransactionProcessErrorCode(Enum):
     TRANSACTION_ALREADY_PROCESSED = "transaction_already_processed"
     MISSING_PAYMENT_APP_RELATION = "missing_payment_app_relation"
     MISSING_PAYMENT_APP = "missing_payment_app"
+    CHECKOUT_COMPLETION_IN_PROGRESS = "checkout_completion_in_progress"
 
 
 class StoredPaymentMethodRequestDeleteErrorCode(Enum):

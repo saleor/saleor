@@ -19,7 +19,7 @@ from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
 from .draft_order_create import OrderLineInput
-from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
+from .utils import EditableOrderValidationMixin, call_event_by_order_status
 
 
 class OrderLineUpdate(
@@ -72,9 +72,11 @@ class OrderLineUpdate(
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
+
+        line_allocation = instance.allocations.first()
         warehouse_pk = (
-            instance.allocations.first().stock.warehouse.pk
-            if instance.order.is_unconfirmed()
+            line_allocation.stock.warehouse.pk
+            if line_allocation and instance.order.is_unconfirmed()
             else None
         )
         app = get_app_promise(info.context).get()
@@ -104,8 +106,7 @@ class OrderLineUpdate(
             recalculate_order_weight(instance.order)
             instance.order.save(update_fields=["should_refresh_prices", "weight"])
 
-            func = get_webhook_handler_by_order_status(instance.order.status, manager)
-            cls.call_event(func, instance.order)
+            call_event_by_order_status(instance.order, manager)
 
     @classmethod
     def success_response(cls, instance):

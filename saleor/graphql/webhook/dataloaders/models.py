@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-from ...core.models import EventPayload
-from ...webhook.models import Webhook, WebhookEvent
-from ..core.dataloaders import DataLoader
+from ....core.models import EventPayload
+from ....webhook.models import Webhook, WebhookEvent
+from ...core.dataloaders import DataLoader
 
 
 class PayloadByIdLoader(DataLoader[str, str]):

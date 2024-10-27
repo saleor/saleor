@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, Mock, patch
 
 import pytest
 import requests
@@ -9,6 +9,7 @@ from requests_hardened import HTTPSession
 
 from ..... import schema_version
 from .....app.error_codes import AppErrorCode
+from .....app.models import App
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
@@ -851,3 +852,76 @@ def test_app_fetch_manifest_with_invalid_brand_data(
     assert len(errors) == 1
     assert errors[0]["field"] == "brand"
     assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name
+
+
+@pytest.mark.vcr
+def test_fetch_manifest_fail_when_app_with_same_identifier_already_installed(
+    staff_api_client,
+    staff_user,
+    permission_manage_apps,
+    app,
+):
+    # given
+    app.identifier = "saleor.app.avatax"
+    app.save()
+    manifest_url = "http://localhost:3000/api/manifest"
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {"manifest_url": manifest_url}
+    staff_user.user_permissions.set([permission_manage_apps])
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["appFetchManifest"]["errors"]
+
+    # then
+    assert len(errors) == 1
+    assert errors[0]["field"] == "identifier"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["message"] == (
+        f"App with the same identifier is already installed: {app.name}"
+    )
+
+
+@pytest.mark.vcr
+def test_fetch_manifest_app_with_same_identifier_installed_but_marked_to_be_removed(
+    staff_api_client,
+    staff_user,
+    permission_manage_apps,
+    app_marked_to_be_removed,
+):
+    # given
+    app_marked_to_be_removed.identifier = "saleor.app.avatax"
+    app_marked_to_be_removed.save()
+    manifest_url = "http://localhost:3000/api/manifest"
+
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+    staff_user.user_permissions.set([permission_manage_apps])
+
+    # when
+    with patch(
+        "saleor.graphql.app.mutations.app_fetch_manifest.fetch_brand_data"
+    ) as mocked_fetch_brand:
+        mocked_fetch_brand.return_value = None
+        response = staff_api_client.post_graphql(
+            query,
+            variables=variables,
+        )
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+
+    # then
+    all_apps = App.objects.all()
+    assert not errors
+    assert manifest["identifier"] == "saleor.app.avatax"
+    assert all_apps.not_removed().count() == 0
+    assert all_apps.marked_to_be_removed().count() == 1

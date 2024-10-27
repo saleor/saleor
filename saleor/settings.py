@@ -101,11 +101,11 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://postgres:toor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://postgres:toor@localhost:5432/saleor",
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
@@ -146,6 +146,18 @@ EMAIL_PORT: str = str(email_config.get("EMAIL_PORT", ""))
 EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
 EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
 EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
+
+# SMTP configuration for UserEmailPlugin can be achieved by setting USER_EMAIL_URL.
+# Providing that variable means that SMTP configuration for this plugin is not required.
+user_email_config = dj_email_url.parse(os.environ.get("USER_EMAIL_URL", ""))
+
+USER_EMAIL_HOST_USER: str = user_email_config.get("EMAIL_HOST_USER") or ""
+USER_EMAIL_HOST_PASSWORD: str = user_email_config.get("EMAIL_HOST_PASSWORD") or ""
+USER_EMAIL_HOST: str = user_email_config.get("EMAIL_HOST") or ""
+USER_EMAIL_PORT: str = str(user_email_config.get("EMAIL_PORT") or "")
+
+USER_EMAIL_USE_TLS: bool = user_email_config.get("EMAIL_USE_TLS", False)
+USER_EMAIL_USE_SSL: bool = user_email_config.get("EMAIL_USE_SSL", False)
 
 ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 
@@ -528,15 +540,13 @@ EXPORT_FILES_TIMEDELTA = timedelta(
 )
 
 # CELERY SETTINGS
-CELERY_TIMEZONE = TIME_ZONE
+CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_BROKER_URL = (
     os.environ.get("CELERY_BROKER_URL", os.environ.get("CLOUDAMQP_URL")) or ""
 )
-CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 CELERY_TASK_ROUTES = {
     "saleor.plugins.webhook.tasks.observability_reporter_task": {
         "queue": "observability"
@@ -545,6 +555,11 @@ CELERY_TASK_ROUTES = {
         "queue": "observability"
     },
 }
+CELERY_TASK_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_WORKER_PREFETCH_MULTIPLIER = int(
+    os.environ.get("CELERY_WORKER_PREFETCH_MULTIPLIER", 1)
+)
 
 # Expire orders task setting
 BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
@@ -881,6 +896,20 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 )
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
+WEBHOOK_SQS_CELERY_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_SQS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+WEBHOOK_PUBSUB_CELERY_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_PUBSUB_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+
+CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
+    "CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
+    "ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
+)
+
 
 # Queue name for execution of collection product_updated events
 COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
@@ -902,6 +931,17 @@ OAUTH_UPDATE_LAST_LOGIN_THRESHOLD = parse(
     os.environ.get("OAUTH_UPDATE_LAST_LOGIN_THRESHOLD", "15 minutes")
 )
 
+# Time threshold to update user last_login when using tokenCreate/tokenRefresh
+# mutations.
+TOKEN_UPDATE_LAST_LOGIN_THRESHOLD = parse(
+    os.environ.get("TOKEN_UPDATE_LAST_LOGIN_THRESHOLD", "5 seconds")
+)
+
+# Max lock time for checkout processing.
+# It prevents locking checkout when unhandled issue appears.
+CHECKOUT_COMPLETION_LOCK_TIME = parse(
+    os.environ.get("CHECKOUT_COMPLETION_LOCK_TIME", "3 minutes")
+)
 
 # Default timeout (sec) for establishing a connection when performing external requests.
 REQUESTS_CONN_EST_TIMEOUT = 2
@@ -925,3 +965,8 @@ GIFTS_LIMIT_PER_RULE = os.environ.get("GIFTS_LIMIT_PER_RULE", 500)
 ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
     "ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS", False
 )
+
+
+# Transaction items limit for PaymentGatewayInitialize / TransactionInitialize.
+# That setting limits the allowed number of transaction items for single entity.
+TRANSACTION_ITEMS_LIMIT = 100

@@ -2,7 +2,6 @@ from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from .....account.error_codes import AccountErrorCode
 from .....core.jwt import (
@@ -15,7 +14,12 @@ from ....core.doc_category import DOC_CATEGORY_AUTH
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ...types import User
-from .utils import _does_token_match, get_payload, get_user
+from .utils import (
+    _does_token_match,
+    get_payload,
+    get_user,
+    update_user_last_login_if_required,
+)
 
 
 class RefreshToken(BaseMutation):
@@ -128,12 +132,11 @@ class RefreshToken(BaseMutation):
         if need_csrf:
             cls.clean_csrf_token(csrf_token, payload)
 
-        user = get_user(payload)
         additional_payload = {}
         if audience := payload.get("aud"):
             additional_payload["aud"] = audience
+        user = get_user(payload)
         token = create_access_token(user, additional_payload=additional_payload)
         if user and not user.is_anonymous:
-            user.last_login = timezone.now()
-            user.save(update_fields=["last_login", "updated_at"])
+            update_user_last_login_if_required(user)
         return cls(errors=[], user=user, token=token)

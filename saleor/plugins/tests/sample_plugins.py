@@ -1,12 +1,7 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
@@ -178,9 +173,6 @@ class PluginSample(BasePlugin):
     def get_tax_rate_type_choices(self, previous_value):
         return [TaxType(code="123", description="abc")]
 
-    def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        return True
-
     def external_authentication_url(
         self, data: dict, request: WSGIRequest, previous_value
     ) -> dict:
@@ -296,7 +288,12 @@ class PluginSample(BasePlugin):
         return Decimal("0.080").quantize(Decimal(".01"))
 
     def get_taxes_for_checkout(
-        self, checkout_info: "CheckoutInfo", lines, app_identifier, previous_value
+        self,
+        checkout_info: "CheckoutInfo",
+        lines,
+        app_identifier,
+        previous_value,
+        pregenerated_subscription_payloads=None,
     ) -> Optional["TaxData"]:
         return sample_tax_data(checkout_info.checkout)
 
@@ -348,16 +345,16 @@ class PluginSample(BasePlugin):
             app_identifier="321", response=None, error="Some error"
         )
 
-    def checkout_fully_paid(self, checkout, previous_value):
+    def checkout_fully_paid(self, checkout, previous_value, webhooks):
         return None
 
-    def order_fully_refunded(self, order, previous_value):
+    def order_fully_refunded(self, order, previous_value, webhooks):
         return None
 
     def order_paid(self, order, previous_value):
         return None
 
-    def order_refunded(self, order, previous_value):
+    def order_refunded(self, order, previous_value, webhooks):
         return None
 
     def list_stored_payment_methods(
@@ -480,6 +477,7 @@ class SampleAuthorizationPlugin(BasePlugin):
     PLUGIN_ID = "saleor.sample.authorization"
     PLUGIN_NAME = "SampleAuthorization"
     DEFAULT_ACTIVE = True
+    CONFIGURATION_PER_CHANNEL = False
 
     def authenticate_user(self, request, previous_value) -> Optional[User]:
         # This function will be mocked in test

@@ -68,6 +68,9 @@ query OrdersQuery {
                     amount
                     currency
                 }
+                undiscountedShippingPrice{
+                    amount
+                }
                 shippingPrice {
                     gross {
                         amount
@@ -88,6 +91,7 @@ query OrdersQuery {
                 }
                 lines {
                     id
+                    isPriceOverridden
                     unitPrice{
                         gross{
                             amount
@@ -275,10 +279,14 @@ def test_order_query(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("10"), currency="USD")
-    gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
-    shipping_price = TaxedMoney(net=net, gross=gross)
+    shipping_net = Money(amount=Decimal("10"), currency="USD")
+    shipping_gross = Money(
+        amount=shipping_net.amount * Decimal(1.23), currency="USD"
+    ).quantize()
+    shipping_price = TaxedMoney(net=shipping_net, gross=shipping_gross)
     order.shipping_price = shipping_price
+    order.base_shipping_price = shipping_net
+    order.undiscounted_base_shipping_price = shipping_net
     shipping_tax_rate = Decimal("0.23")
     order.shipping_tax_rate = shipping_tax_rate
     private_value = "abc123"
@@ -315,6 +323,7 @@ def test_order_query(
     expected_price = Money(
         amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="USD"
     )
+    assert order_data["undiscountedShippingPrice"]["amount"] == shipping_net.amount
     assert expected_price == shipping_price.gross
     assert order_data["shippingTaxRate"] == float(shipping_tax_rate)
     shipping_tax_class = order.shipping_method.tax_class
@@ -417,6 +426,30 @@ def test_order_query_denormalized_shipping_tax_class_data(
         order_data["shippingTaxClassPrivateMetadata"][0]["value"]
         == list(shipping_tax_class.private_metadata.values())[0]
     )
+
+
+def test_order_query_price_overridden(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_shipping.user_set.add(staff_api_client.user)
+    line = order.lines.first()
+    line.is_price_overridden = True
+    line.save(update_fields=["is_price_overridden"])
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_line = order_data["lines"][0]
+    assert order_line["isPriceOverridden"] is True
 
 
 def test_order_query_total_price_is_0(
@@ -1122,7 +1155,7 @@ QUERY_ORDER_BY_EXTERNAL_REFERENCE = """
 """
 
 
-def test_query_order_by_external_reference(user_api_client, order):
+def test_query_order_by_external_reference_missing_permission(user_api_client, order):
     # given
     query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
     ext_ref = "test-ext-ref"
@@ -1132,6 +1165,29 @@ def test_query_order_by_external_reference(user_api_client, order):
 
     # when
     response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_order_by_external_reference(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_orders,
+        ],
+    )
     content = get_graphql_content(response)
 
     # then
@@ -1143,7 +1199,7 @@ def test_query_order_by_external_reference(user_api_client, order):
 
 @pytest.mark.parametrize("external_reference", ['" "', "not-existing"])
 def test_query_order_by_not_existing_external_reference(
-    external_reference, user_api_client, order
+    external_reference, staff_api_client, order, permission_manage_orders
 ):
     # given
     query = QUERY_ORDER_BY_EXTERNAL_REFERENCE
@@ -1152,7 +1208,13 @@ def test_query_order_by_not_existing_external_reference(
     variables = {"externalReference": external_reference}
 
     # when
-    response = user_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_orders,
+        ],
+    )
     content = get_graphql_content(response)
 
     # then

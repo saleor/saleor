@@ -1,11 +1,14 @@
 import datetime
 from decimal import Decimal
 from unittest import mock
+from unittest.mock import call, patch
 
 import graphene
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
@@ -14,9 +17,12 @@ from .....checkout.utils import (
     calculate_checkout_quantity,
     invalidate_checkout,
 )
+from .....core.models import EventDelivery
+from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
 from .....product.models import ProductChannelListing
 from .....warehouse.models import Reservation, Stock
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
@@ -33,6 +39,14 @@ MUTATION_CHECKOUT_LINES_UPDATE = """
                     quantity
                     variant {
                         id
+                    }
+                    undiscountedUnitPrice {
+                        amount
+                    }
+                    unitPrice {
+                        gross {
+                            amount
+                        }
                     }
                 }
                 totalPrice {
@@ -660,6 +674,171 @@ def test_checkout_lines_update_with_custom_price_override_existing_price(
     assert calculate_checkout_quantity(lines) == 1
 
 
+def test_checkout_lines_update_with_custom_price_and_fixed_catalogue_promotion(
+    app_api_client, checkout_with_item_on_promotion, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    old_line_qty = line.quantity
+    line_qty = 1
+    assert line_qty != old_line_qty
+    line_discount = line.discounts.first()
+    old_line_discount_amount_value = line_discount.amount_value
+    reward_value = line_discount.value
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    custom_price = Decimal("15")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": line_qty, "price": custom_price}
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    assert checkout_data["totalPrice"]["gross"]["amount"] == custom_price - reward_value
+    assert len(checkout_data["lines"]) == 1
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == line_qty
+    assert line_data["undiscountedUnitPrice"]["amount"] == custom_price
+    assert line_data["unitPrice"]["gross"]["amount"] == custom_price - reward_value
+
+    line_discount.refresh_from_db()
+    assert line_discount.amount_value == reward_value
+    assert line_discount.amount_value != old_line_discount_amount_value
+
+
+def test_checkout_lines_update_with_custom_price_and_percentage_catalogue_promotion(
+    app_api_client, checkout_with_item_on_promotion, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    old_line_qty = line.quantity
+    line_qty = 2
+    assert line_qty != old_line_qty
+    line_discount = line.discounts.first()
+    old_line_discount_amount_value = line_discount.amount_value
+
+    promotion_rule = line_discount.promotion_rule
+    reward_value_type = RewardValueType.PERCENTAGE
+    reward_value = Decimal("50")
+    promotion_rule.reward_value_type = reward_value_type
+    promotion_rule.reward_value = reward_value
+    promotion_rule.save(update_fields=["reward_value_type", "reward_value"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    custom_price = Decimal("40")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": line_qty, "price": custom_price}
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    unit_discount_amount = custom_price * promotion_rule.reward_value / 100
+    discount_amount = unit_discount_amount * line_qty
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    assert (
+        checkout_data["totalPrice"]["gross"]["amount"]
+        == custom_price * line_qty - discount_amount
+    )
+    assert len(checkout_data["lines"]) == 1
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == line_qty
+    assert line_data["undiscountedUnitPrice"]["amount"] == custom_price
+    assert (
+        line_data["unitPrice"]["gross"]["amount"] == custom_price - unit_discount_amount
+    )
+
+    line_discount.refresh_from_db()
+    assert line_discount.amount_value == discount_amount
+    assert line_discount.amount_value != old_line_discount_amount_value
+    assert line_discount.value == reward_value
+    assert line_discount.value_type == reward_value_type
+
+
+def test_checkout_lines_update_with_0_custom_price_and_catalogue_promotion(
+    app_api_client, checkout_with_item_on_promotion, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item_on_promotion
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    old_line_qty = line.quantity
+    line_qty = 1
+    assert line_qty != old_line_qty
+    line_discount = line.discounts.first()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    custom_price = Decimal("0")
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {"variantId": variant_id, "quantity": line_qty, "price": custom_price}
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout_data = data["checkout"]
+    assert checkout_data["totalPrice"]["gross"]["amount"] == 0
+    assert len(checkout_data["lines"]) == 1
+    line_data = data["checkout"]["lines"][0]
+    assert line_data["quantity"] == line_qty
+    assert line_data["undiscountedUnitPrice"]["amount"] == 0
+    assert line_data["unitPrice"]["gross"]["amount"] == 0
+
+    line_discount.refresh_from_db()
+    assert line_discount.amount_value == 0
+
+
 def test_checkout_lines_update_clear_custom_price(
     app_api_client, checkout_with_item, permission_handle_checkouts
 ):
@@ -1181,3 +1360,84 @@ def test_checkout_lines_update_quantity_gift(user_api_client, checkout_with_item
     assert errors[0]["field"] == "lineId"
     assert errors[0]["code"] == CheckoutErrorCode.NON_EDITABLE_GIFT_LINE.name
     assert errors[0]["lines"] == [line_id]
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_lines_update_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_info_event,
+    setup_checkout_webhooks,
+    settings,
+    api_client,
+    checkout_with_items,
+    product_with_single_variant,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_updated_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    variant = product_with_single_variant.variants.first()
+
+    checkout_info = fetch_checkout_info(
+        checkout_with_items, [], get_plugins_manager(allow_replica=False)
+    )
+    add_variant_to_checkout(checkout_info, variant, 1)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "lines": [{"variantId": to_global_id_or_none(variant), "quantity": 3}],
+    }
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_UPDATE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutLinesUpdate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_info_event.called

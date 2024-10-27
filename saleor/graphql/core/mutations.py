@@ -3,14 +3,7 @@ import secrets
 from collections.abc import Collection, Iterable
 from enum import Enum
 from itertools import chain
-from typing import (
-    Any,
-    Optional,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Optional, TypeVar, Union, cast, overload
 from uuid import UUID
 
 import graphene
@@ -172,6 +165,7 @@ class BaseMutation(graphene.Mutation):
         support_private_meta_field=False,
         auto_webhook_events_message: bool = True,
         webhook_events_info: Optional[list[WebhookEventInfo]] = None,
+        exclude=None,
         **options,
     ):
         if not _meta:
@@ -185,6 +179,9 @@ class BaseMutation(graphene.Mutation):
 
         cls._validate_permissions(permissions)
 
+        if exclude is None:
+            exclude = []
+
         _meta.auto_permission_message = auto_permission_message
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
@@ -192,6 +189,7 @@ class BaseMutation(graphene.Mutation):
         _meta.permissions = permissions
         _meta.support_meta_field = support_meta_field
         _meta.support_private_meta_field = support_private_meta_field
+        _meta.exclude = exclude
 
         if permissions and auto_permission_message:
             permissions_msg = message_one_of_permissions_required(permissions)
@@ -656,7 +654,6 @@ class ModelMutation(BaseMutation):
         cls,
         arguments=None,
         model=None,
-        exclude=None,
         return_field_name=None,
         object_type=None,
         _meta=None,
@@ -671,9 +668,6 @@ class ModelMutation(BaseMutation):
         if "doc_category" not in options and doc_category_key in DOC_CATEGORY_MAP:
             options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
-        if exclude is None:
-            exclude = []
-
         if not return_field_name:
             return_field_name = get_model_name(model)
         if arguments is None:
@@ -682,7 +676,6 @@ class ModelMutation(BaseMutation):
         _meta.model = model
         _meta.object_type = object_type
         _meta.return_field_name = return_field_name
-        _meta.exclude = exclude
         super().__init_subclass_with_meta__(_meta=_meta, **options)
 
         model_type = cls.get_type_for_model()

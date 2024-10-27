@@ -142,9 +142,9 @@ def get_nodes(
         old_id_field = "number" if str(graphene_type) == "Order" else "old_id"
         nodes_pk_list.extend([str(getattr(node, old_id_field)) for node in nodes])
     for pk in pks:
-        assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
-            graphene_type, pk
-        )
+        assert (
+            pk in nodes_pk_list
+        ), f"There is no node of type {graphene_type} with pk {pk}"
     return nodes
 
 
@@ -268,7 +268,7 @@ def query_fingerprint(document: GraphQLDocument) -> str:
     return f"{label}:{query_hash}"
 
 
-def format_error(error, handled_exceptions):
+def format_error(error, handled_exceptions, query=None):
     result: dict[str, Any]
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
@@ -283,6 +283,8 @@ def format_error(error, handled_exceptions):
         exc = exc.original_error
     if isinstance(exc, AssertionError):
         exc = GraphQLError(str(exc))
+    if query:
+        exc._exc_query = query
     if isinstance(exc, handled_exceptions):
         handled_errors_logger.info("A query had an error", exc_info=exc)
     else:

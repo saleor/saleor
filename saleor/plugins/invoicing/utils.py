@@ -7,7 +7,7 @@ import pytz
 from django.conf import settings
 from django.template.loader import get_template
 from prices import Money
-from weasyprint import HTML
+# from weasyprint import HTML
 
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent

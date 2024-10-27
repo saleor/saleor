@@ -36,6 +36,8 @@ class AccountErrorCode(Enum):
     CHANNEL_INACTIVE = "channel_inactive"
     MISSING_CHANNEL_SLUG = "missing_channel_slug"
     ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
+    LOGIN_ATTEMPT_DELAYED = "login_attempt_delayed"
+    UNKNOWN_IP_ADDRESS = "unknown_ip_address"
 
 
 class CustomerBulkUpdateErrorCode(Enum):

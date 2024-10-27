@@ -42,6 +42,7 @@ class Checkout(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now=True, db_index=True)
+    completing_started_at = models.DateTimeField(blank=True, null=True)
 
     # Denormalized modified_at for the latest modified transactionItem assigned to
     # checkout
@@ -186,8 +187,13 @@ class Checkout(models.Model):
     discount_name = models.CharField(max_length=255, blank=True, null=True)
 
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
-    voucher_code = models.CharField(max_length=255, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
+    voucher_code = models.CharField(max_length=255, blank=True, null=True)
+
+    # The field is to prevent race condition when two different threads are processing
+    # the same checkout with limited usage voucher assigned, both threads increasing the
+    # voucher usage which causing `NotApplicable` error for voucher
+    is_voucher_usage_increased = models.BooleanField(default=False)
 
     redirect_url = models.URLField(blank=True, null=True)
     tracking_code = models.CharField(max_length=255, blank=True, null=True)
@@ -217,6 +223,15 @@ class Checkout(models.Model):
     def is_shipping_required(self) -> bool:
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
+
+    def is_checkout_locked(self) -> bool:
+        return bool(
+            self.completing_started_at
+            and (
+                (timezone.now() - self.completing_started_at).seconds
+                < settings.CHECKOUT_COMPLETION_LOCK_TIME
+            )
+        )
 
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""

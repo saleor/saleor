@@ -10,6 +10,7 @@ from graphene.utils.str_converters import to_snake_case
 from ...checkout.models import Checkout
 from ...discount.models import Promotion, PromotionRule
 from ...discount.utils import update_rule_variant_relation
+from ...order.models import Order
 from ...product.managers import ProductsQueryset, ProductVariantQueryset
 from ...product.models import (
     Category,
@@ -20,6 +21,7 @@ from ...product.models import (
 )
 from ..checkout.filters import CheckoutDiscountedObjectWhere
 from ..core.connection import where_filter_qs
+from ..order.filters import OrderDiscountedObjectWhere
 from ..product.filters import (
     CategoryWhere,
     CollectionWhere,
@@ -81,6 +83,7 @@ def get_variants_for_promotion(
                     for variant in variants
                 ]
             )
+
     if promotion_rule_variants:
         update_rule_variant_relation(rules, promotion_rule_variants)
 
@@ -283,6 +286,10 @@ def _handle_predicate(
         return _handle_checkout_predicate(
             result_qs, base_qs, predicate_data, operator, currency
         )
+    elif predicate_type == PredicateObjectType.ORDER:
+        return _handle_order_predicate(
+            result_qs, base_qs, predicate_data, operator, currency
+        )
 
 
 def _handle_catalogue_predicate(
@@ -310,12 +317,9 @@ def _handle_checkout_predicate(
 ):
     predicate_data = _predicate_to_snake_case(predicate_data)
     if predicate := predicate_data.get("discounted_object_predicate"):
-        if currency:
-            predicate["currency"] = currency
-
         checkouts = where_filter_qs(
             Checkout.objects.filter(pk__in=base_qs.values("pk")),
-            {},
+            {"currency": currency} if currency else {},
             CheckoutDiscountedObjectWhere,
             predicate,
             None,
@@ -324,6 +328,29 @@ def _handle_checkout_predicate(
             result_qs &= checkouts
         else:
             result_qs |= checkouts
+    return result_qs
+
+
+def _handle_order_predicate(
+    result_qs: QuerySet,
+    base_qs: QuerySet,
+    predicate_data: dict[str, Union[dict, str, list, bool]],
+    operator,
+    currency: Optional[str] = None,
+):
+    predicate_data = _predicate_to_snake_case(predicate_data)
+    if predicate := predicate_data.get("discounted_object_predicate"):
+        orders = where_filter_qs(
+            Order.objects.filter(pk__in=base_qs.values("pk")),
+            {"currency": currency} if currency else {},
+            OrderDiscountedObjectWhere,
+            predicate,
+            None,
+        )
+        if operator == Operators.AND:
+            result_qs &= orders
+        else:
+            result_qs |= orders
     return result_qs
 
 

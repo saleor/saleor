@@ -1,6 +1,8 @@
 from datetime import timedelta
 
+from celery.schedules import BaseSchedule
 from django.utils import timezone
+from django.utils.module_loading import import_string
 from freezegun import freeze_time
 
 from ...discount.models import Promotion
@@ -213,3 +215,14 @@ def test_is_due_no_promo_to_notify_about_upcoming_promo_exists_initial_time_retu
     # then
     assert is_due is False
     assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_promotion_webhook_schedule_import_path():
+    # given
+    schedule = promotion_webhook_schedule()
+
+    # when
+    scheduler_instance = import_string(schedule.import_path)
+
+    # then
+    assert isinstance(scheduler_instance, BaseSchedule)

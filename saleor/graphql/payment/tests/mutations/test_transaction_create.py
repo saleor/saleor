@@ -195,6 +195,63 @@ def test_transaction_create_for_order_by_app(
     assert transaction.external_url == external_url
 
 
+def test_transaction_create_for_order_by_app_metadata_null_value(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": None,
+            "privateMetadata": None,
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    available_actions = list(set(available_actions))
+
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["actions"] == available_actions
+    assert data["pspReference"] == psp_reference
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert psp_reference == transaction.psp_reference
+    assert authorized_value == transaction.authorized_value
+    assert transaction.metadata == {}
+    assert transaction.private_metadata == {}
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+    assert transaction.external_url == external_url
+
+
 def test_transaction_create_for_order_updates_order_total_authorized_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
@@ -286,6 +343,63 @@ def test_transaction_create_for_order_updates_order_total_charged_by_app(
     assert charged_value == transaction.charged_value
 
 
+@pytest.mark.parametrize("automatically_confirm_all_new_orders", [True, False])
+def test_transaction_create_for_draft_order(
+    automatically_confirm_all_new_orders,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.save(update_fields=["status"])
+
+    channel = order_with_lines.channel
+    channel.automatically_confirm_all_new_orders = automatically_confirm_all_new_orders
+    channel.save(update_fields=["automatically_confirm_all_new_orders"])
+
+    previously_charged_value = Decimal("90")
+    old_transaction = order_with_lines.payment_transactions.create(
+        charged_value=previously_charged_value, currency=order_with_lines.currency
+    )
+    update_order_charge_data(order_with_lines)
+
+    charged_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": "Credit card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    transaction = order_with_lines.payment_transactions.exclude(
+        id=old_transaction.id
+    ).last()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["chargedAmount"]["amount"] == charged_value
+    assert (
+        order_with_lines.total_charged_amount
+        == previously_charged_value + charged_value
+    )
+    assert charged_value == transaction.charged_value
+    assert order_with_lines.status == OrderStatus.DRAFT
+
+
 def test_transaction_create_for_checkout_by_app(
     checkout_with_items, permission_manage_payments, app_api_client
 ):
@@ -345,6 +459,67 @@ def test_transaction_create_for_checkout_by_app(
     assert transaction.private_metadata == {
         private_metadata["key"]: private_metadata["value"]
     }
+    assert transaction.external_url == external_url
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+
+
+def test_transaction_create_for_checkout_by_app_metadata_null_value(
+    checkout_with_items, permission_manage_payments, app_api_client
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": None,
+            "privateMetadata": None,
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+    available_actions = list(set(available_actions))
+
+    transaction = checkout_with_items.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["actions"] == available_actions
+    assert data["pspReference"] == psp_reference
+    assert data["authorizedAmount"]["amount"] == authorized_value
+    assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert available_actions == list(map(str.upper, transaction.available_actions))
+    assert psp_reference == transaction.psp_reference
+    assert authorized_value == transaction.authorized_value
+    assert transaction.metadata == {}
+    assert transaction.private_metadata == {}
     assert transaction.external_url == external_url
     assert transaction.app_identifier == app_api_client.app.identifier
     assert transaction.app == app_api_client.app
@@ -1046,7 +1221,7 @@ def test_transaction_create_for_checkout_fully_paid(
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
-    mocked_checkout_fully_paid.assert_called_once_with(checkout)
+    mocked_checkout_fully_paid.assert_called_once_with(checkout, webhooks=set())
 
 
 @pytest.mark.parametrize(
@@ -1663,6 +1838,13 @@ def test_transaction_create_creates_calculation_events(
     assert cancel_event.amount.amount == canceled_value
 
 
+@pytest.mark.parametrize(
+    ("auto_order_confirmation", "excpected_order_status"),
+    [
+        (True, OrderStatus.UNFULFILLED),
+        (False, OrderStatus.UNCONFIRMED),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
@@ -1670,15 +1852,20 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
     mock_order_paid,
-    order_with_lines,
+    auto_order_confirmation,
+    excpected_order_status,
+    unconfirmed_order_with_lines,
     permission_manage_payments,
     staff_api_client,
 ):
     # given
-    charged_value = order_with_lines.total.gross.amount
+    order = unconfirmed_order_with_lines
+    order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
+    order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
+    charged_value = order.total.gross.amount
 
     variables = {
-        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "id": graphene.Node.to_global_id("Order", order.pk),
         "transaction": {
             "name": "Credit Card",
             "pspReference": "PSP reference - 123",
@@ -1696,13 +1883,14 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     )
 
     # then
-    order_with_lines.refresh_from_db()
+    order.refresh_from_db()
     get_graphql_content(response)
 
-    assert order_with_lines.charge_status == OrderChargeStatus.FULL
-    mock_order_fully_paid.assert_called_once_with(order_with_lines)
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_paid.assert_called_once_with(order_with_lines)
+    assert order.status == excpected_order_status
+    assert order.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
+    mock_order_updated.assert_called_once_with(order, webhooks=set())
+    mock_order_paid.assert_called_once_with(order, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_paid")
@@ -1743,8 +1931,8 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
 
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_paid.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_paid.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1783,7 +1971,7 @@ def test_transaction_create_for_order_triggers_webhook_when_authorized(
 
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert not mock_order_fully_paid.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1822,9 +2010,9 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_refunded(
     order_with_lines.refresh_from_db()
     get_graphql_content(response)
 
-    mock_order_fully_refunded.assert_called_once_with(order_with_lines)
-    mock_order_refunded.assert_called_once_with(order_with_lines)
-    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_fully_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1864,8 +2052,8 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     get_graphql_content(response)
 
     assert not mock_order_fully_refunded.called
-    mock_order_updated.assert_called_once_with(order_with_lines)
-    mock_order_refunded.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines, webhooks=set())
+    mock_order_refunded.assert_called_once_with(order_with_lines, webhooks=set())
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -1898,3 +2086,70 @@ def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
     transaction = checkout_with_items.payment_transactions.first()
 
     assert checkout_with_items.last_transaction_modified_at == transaction.modified_at
+
+
+@pytest.mark.parametrize(
+    ("amount_field_name", "transaction_field_name", "amount_db_field"),
+    [
+        ("amountAuthorized", "authorizedAmount", "authorized_value"),
+        ("amountCharged", "chargedAmount", "charged_value"),
+        ("amountCanceled", "canceledAmount", "canceled_value"),
+        ("amountRefunded", "refundedAmount", "refunded_value"),
+    ],
+)
+def test_transaction_create_amount_with_lot_of_decimal_places(
+    amount_field_name,
+    transaction_field_name,
+    amount_db_field,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CANCEL.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    value = Decimal("9.88789999")
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": "Credit Card",
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            amount_field_name: {
+                "amount": value,
+                "currency": "USD",
+            },
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    available_actions = set(available_actions)
+
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert set(data["actions"]) == available_actions
+    assert data["pspReference"] == psp_reference
+    assert str(data[transaction_field_name]["amount"]) == str(round(value, 2))
+    assert data["externalUrl"] == external_url
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert available_actions == set(map(str.upper, transaction.available_actions))
+    assert psp_reference == transaction.psp_reference
+    assert round(value, 2) == getattr(transaction, amount_db_field)
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None
+    assert transaction.external_url == external_url

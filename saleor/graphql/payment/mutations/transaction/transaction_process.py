@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional, Union, cast
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 
@@ -8,8 +9,9 @@ from .....app.models import App
 from .....channel import TransactionFlowStrategy
 from .....channel.models import Channel
 from .....checkout import models as checkout_models
+from .....checkout.utils import activate_payments, cancel_active_payments
 from .....order import models as order_models
-from .....payment import TransactionEventType
+from .....payment import FAILED_TRANSACTION_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionProcessErrorCode
 from .....payment.interface import PaymentGatewayData
@@ -196,6 +198,10 @@ class TransactionProcess(BaseMutation):
             )
         request_event = cls.get_request_event(events)
         source_object = cls.get_source_object(transaction_item)
+
+        if isinstance(source_object, checkout_models.Checkout):
+            cls.validate_checkout(source_object)
+
         app = cls.clean_payment_app(transaction_item)
         app_identifier = app.identifier
         action = cls.get_action(request_event, source_object.channel)
@@ -206,6 +212,13 @@ class TransactionProcess(BaseMutation):
         )
 
         manager = get_plugin_manager_promise(info.context).get()
+
+        payment_ids = []
+        if isinstance(source_object, checkout_models.Checkout):
+            # Deactivate active payment objects to avoid processing checkout
+            # with use of two different flows.
+            payment_ids = cancel_active_payments(source_object)
+
         event, data = handle_transaction_process_session(
             transaction_item=transaction_item,
             source_object=source_object,
@@ -218,6 +231,26 @@ class TransactionProcess(BaseMutation):
             manager=manager,
             request_event=request_event,
         )
+        if event.type in FAILED_TRANSACTION_EVENTS and payment_ids:
+            activate_payments(payment_ids)
 
         transaction_item.refresh_from_db()
         return cls(transaction=transaction_item, transaction_event=event, data=data)
+
+    @staticmethod
+    def validate_checkout(checkout: checkout_models.Checkout) -> None:
+        if checkout.is_checkout_locked():
+            error_code = (
+                TransactionProcessErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.value
+            )
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Transaction cannot be processed - the checkout completion is "
+                        "currently in progress. Please wait until the process is "
+                        f"finished (max {settings.CHECKOUT_COMPLETION_LOCK_TIME} "
+                        "seconds).",
+                        code=error_code,
+                    )
+                }
+            )

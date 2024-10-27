@@ -56,14 +56,14 @@ def test_stored_payment_method_request_delete(
     )
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "stored_payment_method_request_delete"
+        "stored_payment_method_request_delete", channel_slug=channel_USD.slug
     )
     mocked_stored_payment_method_request_delete.assert_called_once_with(
         request_delete_data=StoredPaymentMethodRequestDeleteData(
             payment_method_id=expected_id,
             user=user_api_client.user,
             channel=channel_USD,
-        )
+        ),
     )
 
 
@@ -104,7 +104,7 @@ def test_stored_payment_method_request_delete_app_returned_failure_event(
     assert error["message"] == expected_error_message
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "stored_payment_method_request_delete"
+        "stored_payment_method_request_delete", channel_slug=channel_USD.slug
     )
     mocked_stored_payment_method_request_delete.assert_called_once_with(
         request_delete_data=StoredPaymentMethodRequestDeleteData(
@@ -212,7 +212,7 @@ def test_stored_payment_method_request_delete_not_app_or_plugin_subscribed_to_ev
     )
 
     mocked_is_event_active_for_any_plugin.assert_called_once_with(
-        "stored_payment_method_request_delete"
+        "stored_payment_method_request_delete", channel_slug=channel_USD.slug
     )
     assert not mocked_stored_payment_method_request_delete.called
 

@@ -312,11 +312,9 @@ def test_serialize_checkout_lines_for_tax_calculation(
         product = variant.product
 
         total_price = base_calculations.calculate_base_line_total_price(
-            line_info, checkout_info.channel
+            line_info
         ).amount
-        unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info, checkout_info.channel
-        ).amount
+        unit_price = base_calculations.calculate_base_line_unit_price(line_info).amount
 
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
@@ -374,11 +372,9 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
         product = variant.product
 
         total_price = base_calculations.calculate_base_line_total_price(
-            line_info, checkout_info.channel
+            line_info
         ).amount
-        unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info, checkout_info.channel
-        ).amount
+        unit_price = base_calculations.calculate_base_line_unit_price(line_info).amount
 
         assert data == {
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),

@@ -1,16 +1,22 @@
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import graphene
 import pytest
+from django.test import override_settings
 
 from .....account.models import Address
+from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
+from .....core.models import EventDelivery
 from .....plugins.manager import get_plugins_manager
 from .....shipping import models as shipping_models
 from .....shipping.utils import convert_to_shipping_method_data
+from .....warehouse import WarehouseClickAndCollectOption
+from .....warehouse.models import Stock
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -22,6 +28,10 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
             deliveryMethodId: $deliveryMethodId) {
             checkout {
             id
+            shippingAddress {
+                id
+                firstName
+            }
             deliveryMethod {
                 __typename
                 ... on ShippingMethod {
@@ -34,6 +44,14 @@ MUTATION_UPDATE_DELIVERY_METHOD = """
                 ... on Warehouse {
                    name
                    id
+                }
+            }
+            totalPrice {
+                gross {
+                    amount
+                }
+                net {
+                    amount
                 }
             }
         }
@@ -253,6 +271,50 @@ def test_checkout_delivery_method_update_external_shipping(
             PRIVATE_META_APP_SHIPPING_ID
             not in checkout.metadata_storage.private_metadata
         )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_delivery_method_update_external_shipping_invalid_currency(
+    mock_send_request,
+    api_client,
+    checkout_with_item_for_cc,
+    settings,
+    shipping_app,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    checkout = checkout_with_item_for_cc
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "AUD",  # checkout currency is USD
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+    assert (
+        errors[0]["message"]
+        == "Cannot choose shipping method with different currency than the checkout."
+    )
 
 
 @patch(
@@ -834,3 +896,367 @@ def test_with_active_problems_flow(
 
     # then
     assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+
+
+def test_checkout_delivery_method_update_only_with_token_cleans_shipping_address(
+    api_client,
+    checkout_with_item_for_cc,
+    warehouse,
+):
+    # given
+    warehouse.click_and_collect_option = WarehouseClickAndCollectOption.LOCAL_STOCK
+    warehouse.save(update_fields=["click_and_collect_option"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse.id
+    checkout.save(update_fields=["collection_point_id"])
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    response = api_client.post_graphql(query, {"id": to_global_id_or_none(checkout)})
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"] is None
+
+
+def test_checkout_delivery_method_update_from_cc_cleans_shipping_address(
+    api_client, checkout_with_item_for_cc, warehouse, shipping_method
+):
+    # given
+    warehouse.click_and_collect_option = WarehouseClickAndCollectOption.LOCAL_STOCK
+    warehouse.save(update_fields=["click_and_collect_option"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse.id
+    checkout.save(update_fields=["collection_point_id"])
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"] is None
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+
+
+def test_checkout_delivery_method_update_from_cc_to_all_warehouses_update_address(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
+):
+    # given
+    warehouse_cc_local = warehouses_for_cc[2]
+    warehouse_cc_all = warehouses_for_cc[1]
+    test_address_name = "Jimmy"
+    warehouse_cc_all_address = warehouse_cc_all.address
+    warehouse_cc_all_address.first_name = test_address_name
+    warehouse_cc_all_address.save(update_fields=["first_name"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse_cc_local.id
+    checkout.save(update_fields=["collection_point_id", "shipping_method_id"])
+    Stock.objects.create(
+        warehouse=warehouse_cc_all,
+        product_variant=checkout.lines.first().variant,
+        quantity=1,
+    )
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"]["firstName"] == test_address_name
+
+
+def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
+    api_client, checkout_with_item_for_cc, warehouses_for_cc
+):
+    # given
+    warehouse_cc_local = warehouses_for_cc[2]
+    warehouse_cc_all = warehouses_for_cc[1]
+    warehouse_cc_all.click_and_collect_option = WarehouseClickAndCollectOption.DISABLED
+    warehouse_cc_all.save(update_fields=["click_and_collect_option"])
+    checkout = checkout_with_item_for_cc
+    checkout.collection_point_id = warehouse_cc_local.id
+    checkout.save(update_fields=["collection_point_id", "shipping_method_id"])
+    Stock.objects.create(
+        warehouse=warehouse_cc_all,
+        product_variant=checkout.lines.first().variant,
+        quantity=1,
+    )
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_delivery_method_update_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_info_event,
+    setup_checkout_webhooks,
+    settings,
+    api_client,
+    shipping_method,
+    checkout_with_item,
+    address,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_updated_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.save(update_fields=["shipping_address"])
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_info_event.called
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_delivery_method_update_cc_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_info_event,
+    setup_checkout_webhooks,
+    settings,
+    api_client,
+    checkout_with_item_for_cc,
+    warehouses_for_cc,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_updated_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    warehouse_cc_all = warehouses_for_cc[1]
+    test_address_name = "Jimmy"
+    warehouse_cc_all_address = warehouse_cc_all.address
+    warehouse_cc_all_address.first_name = test_address_name
+    warehouse_cc_all_address.save(update_fields=["first_name"])
+    checkout = checkout_with_item_for_cc
+
+    Stock.objects.create(
+        warehouse=warehouse_cc_all,
+        product_variant=checkout.lines.first().variant,
+        quantity=1,
+    )
+
+    # when
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    method_id = graphene.Node.to_global_id("Warehouse", warehouse_cc_all.id)
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_info_event.called
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
+    mock_clean_delivery,
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_checkout_info_event,
+    setup_checkout_webhooks,
+    settings,
+    api_client,
+    checkout_with_item_for_cc,
+):
+    # given
+    (
+        tax_webhook,
+        shipping_webhook,
+        shipping_filter_webhook,
+        checkout_updated_webhook,
+    ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    checkout = checkout_with_item_for_cc
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = True
+
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mocked_send_webhook_request_sync.side_effect = [
+        mock_json_response,
+        [],
+        [],
+    ]
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_webhook.app.identifier}:{response_method_id}"
+    )
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+
+    # confirm that event delivery was generated for each webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
+    shipping_methods_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_webhook.id,
+        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+    )
+    filter_shipping_delivery = EventDelivery.objects.get(
+        webhook_id=shipping_filter_webhook.id,
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+    )
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+    mocked_send_webhook_request_sync.assert_has_calls(
+        [
+            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
+            call(tax_delivery),
+        ]
+    )
+    assert wrapped_call_checkout_info_event.called

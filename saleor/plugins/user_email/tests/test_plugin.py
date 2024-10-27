@@ -5,8 +5,9 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.mail.backends.smtp import EmailBackend
+from django.test import override_settings
 
-from ....core.notify_events import NotifyEventType
+from ....core.notify import NotifyEventType
 from ....graphql.tests.utils import get_graphql_content
 from ...email_common import DEFAULT_EMAIL_VALUE, get_email_template
 from ...manager import get_plugins_manager
@@ -76,8 +77,12 @@ def test_event_map():
         NotifyEventType.SEND_GIFT_CARD,
     ],
 )
+@patch("saleor.plugins.user_email.plugin.UserEmailPlugin._add_missing_configuration")
 @patch("saleor.plugins.user_email.plugin.get_user_event_map")
-def test_notify(mocked_get_event_map, event_type, user_email_plugin):
+def test_notify(
+    mocked_get_event_map, mock_add_missing_configuration, event_type, user_email_plugin
+):
+    # given
     payload = {
         "field1": 1,
         "field2": 2,
@@ -86,13 +91,25 @@ def test_notify(mocked_get_event_map, event_type, user_email_plugin):
     mocked_get_event_map.return_value = {event_type: mocked_event}
 
     plugin = user_email_plugin()
+    mock_add_missing_configuration.reset_mock()
+
+    # when
     plugin.notify(event_type, payload, previous_value=None)
 
-    mocked_event.assert_called_with(payload, asdict(plugin.config), plugin)
+    # then
+    config = asdict(plugin.config)
+    mocked_event.assert_called_with(payload, config, plugin)
+    mock_add_missing_configuration.assert_called_once_with(config)
 
 
+@patch("saleor.plugins.user_email.plugin.UserEmailPlugin._add_missing_configuration")
 @patch("saleor.plugins.user_email.plugin.get_user_event_map")
-def test_notify_event_not_related(mocked_get_event_map, user_email_plugin):
+def test_notify_event_not_related(
+    mocked_get_event_map,
+    mock_add_missing_configuration,
+    user_email_plugin,
+):
+    # given
     event_type = NotifyEventType.STAFF_ORDER_CONFIRMATION
     payload = {
         "field1": 1,
@@ -102,13 +119,24 @@ def test_notify_event_not_related(mocked_get_event_map, user_email_plugin):
     mocked_get_event_map.return_value = {event_type: mocked_event}
 
     plugin = user_email_plugin()
+    mock_add_missing_configuration.reset_mock()
+
+    # when
     plugin.notify(event_type, payload, previous_value=None)
 
+    # then
     assert not mocked_event.called
+    mock_add_missing_configuration.assert_not_called()
 
 
+@patch("saleor.plugins.user_email.plugin.UserEmailPlugin._add_missing_configuration")
 @patch("saleor.plugins.user_email.plugin.get_user_event_map")
-def test_notify_event_missing_handler(mocked_get_event_map, user_email_plugin):
+def test_notify_event_missing_handler(
+    mocked_get_event_map,
+    mock_add_missing_configuration,
+    user_email_plugin,
+):
+    # given
     event_type = NotifyEventType.ORDER_PAYMENT_CONFIRMATION
     payload = {
         "field1": 1,
@@ -118,13 +146,24 @@ def test_notify_event_missing_handler(mocked_get_event_map, user_email_plugin):
     mocked_get_event_map.return_value = mocked_event_map
 
     plugin = user_email_plugin()
+    mock_add_missing_configuration.reset_mock()
+
+    # when
     plugin.notify(event_type, payload, previous_value=None)
 
+    # then
     assert not mocked_event_map.__getitem__.called
+    mock_add_missing_configuration.assert_not_called()
 
 
+@patch("saleor.plugins.user_email.plugin.UserEmailPlugin._add_missing_configuration")
 @patch("saleor.plugins.user_email.plugin.get_user_event_map")
-def test_notify_event_plugin_is_not_active(mocked_get_event_map, user_email_plugin):
+def test_notify_event_plugin_is_not_active(
+    mocked_get_event_map,
+    mock_add_missing_configuration,
+    user_email_plugin,
+):
+    # given
     event_type = NotifyEventType.ORDER_PAYMENT_CONFIRMATION
     payload = {
         "field1": 1,
@@ -132,9 +171,14 @@ def test_notify_event_plugin_is_not_active(mocked_get_event_map, user_email_plug
     }
 
     plugin = user_email_plugin(active=False)
+    mock_add_missing_configuration.reset_mock()
+
+    # when
     plugin.notify(event_type, payload, previous_value=None)
 
+    # then
     assert not mocked_get_event_map.called
+    mock_add_missing_configuration.assert_not_called()
 
 
 def test_save_plugin_configuration_tls_and_ssl_are_mutually_exclusive(
@@ -302,6 +346,7 @@ def test_plugin_manager_doesnt_load_email_templates_from_db(
 ):
     settings.PLUGINS = ["saleor.plugins.user_email.plugin.UserEmailPlugin"]
     manager = get_plugins_manager(allow_replica=False)
+    manager.get_all_plugins()
     plugin = manager.all_plugins[0]
 
     email_config_item = None
@@ -313,3 +358,69 @@ def test_plugin_manager_doesnt_load_email_templates_from_db(
     # email template from DB but returns default email value.
     assert email_config_item
     assert email_config_item["value"] == DEFAULT_EMAIL_VALUE
+
+
+@override_settings(
+    USER_EMAIL_HOST="test_user_email_host",
+    USER_EMAIL_PORT=1337,
+    USER_EMAIL_USE_TLS=True,
+    USER_EMAIL_USE_SSL=False,
+    USER_EMAIL_HOST_USER="test_user_email_username",
+    USER_EMAIL_HOST_PASSWORD="test_user_email_password",
+)
+def test_adding_missing_configuration_from_settings(user_email_plugin):
+    # given
+    config = {
+        "host": None,
+        "port": None,
+        "use_tls": None,
+        "use_ssl": None,
+        "username": None,
+        "password": None,
+    }
+
+    # when
+    user_email_plugin()._add_missing_configuration(config)
+
+    # then
+    assert config == {
+        "host": "test_user_email_host",
+        "port": 1337,
+        "use_tls": True,
+        "use_ssl": False,
+        "username": "test_user_email_username",
+        "password": "test_user_email_password",
+    }
+
+
+@override_settings(
+    USER_EMAIL_HOST=None,
+    USER_EMAIL_PORT=None,
+    USER_EMAIL_USE_TLS=None,
+    USER_EMAIL_USE_SSL=None,
+    USER_EMAIL_HOST_USER=None,
+    USER_EMAIL_HOST_PASSWORD=None,
+)
+def test_adding_missing_configuration_from_settings_with_defaults(user_email_plugin):
+    # given
+    config = {
+        "host": "",
+        "port": "",
+        "use_tls": "",
+        "use_ssl": "",
+        "username": "",
+        "password": "",
+    }
+
+    # when
+    user_email_plugin()._add_missing_configuration(config)
+
+    # then
+    assert config == {
+        "host": None,
+        "port": None,
+        "use_tls": None,
+        "use_ssl": None,
+        "username": "",
+        "password": "",
+    }

@@ -1,14 +1,26 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from uuid import UUID
 
-if TYPE_CHECKING:
-    from ..channel.models import Channel
-    from ..discount.models import OrderLineDiscount
-    from ..payment.models import Payment
-    from ..product.models import DigitalContent, ProductVariant
-    from .models import Order, OrderLine
+from django.db.models import prefetch_related_objects
+
+from ..channel.models import Channel
+from ..core.pricing.interface import LineInfo
+from ..discount import DiscountType, VoucherType
+from ..discount.interface import (
+    fetch_variant_rules_info,
+    fetch_voucher_info,
+)
+from ..discount.models import OrderLineDiscount
+from ..discount.utils import apply_voucher_to_line
+from ..payment.models import Payment
+from ..product.models import (
+    DigitalContent,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
+from .models import Order, OrderLine
 
 
 @dataclass
@@ -56,10 +68,88 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
                 quantity=line.quantity,
                 is_digital=is_digital,
                 variant=variant,
-                digital_content=variant.digital_content
-                if is_digital and variant
-                else None,
+                digital_content=(
+                    variant.digital_content if is_digital and variant else None
+                ),
             )
         )
 
     return lines_info
+
+
+@dataclass
+class EditableOrderLineInfo(LineInfo):
+    line: "OrderLine"
+    discounts: list["OrderLineDiscount"]
+
+    def get_manual_line_discount(
+        self,
+    ) -> Optional["OrderLineDiscount"]:
+        for discount in self.discounts:
+            if discount.type == DiscountType.MANUAL:
+                return discount
+        return None
+
+
+def fetch_draft_order_lines_info(
+    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
+) -> list[EditableOrderLineInfo]:
+    prefetch_related_fields = [
+        "discounts__promotion_rule__promotion",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        "variant__product__collections",
+    ]
+    if lines is None:
+        lines = list(order.lines.prefetch_related(*prefetch_related_fields))
+    else:
+        prefetch_related_objects(lines, *prefetch_related_fields)
+
+    lines_info = []
+    channel = order.channel
+    for line in lines:
+        variant = line.variant
+        if not variant:
+            continue
+        product = variant.product
+        variant_channel_listing = get_prefetched_variant_listing(variant, channel.id)
+        if not variant_channel_listing:
+            continue
+
+        rules_info = (
+            fetch_variant_rules_info(variant_channel_listing, order.language_code)
+            if not line.is_gift
+            else []
+        )
+        lines_info.append(
+            EditableOrderLineInfo(
+                line=line,
+                variant=variant,
+                product=product,
+                collections=list(product.collections.all()) if product else [],
+                channel_listing=variant_channel_listing,
+                discounts=list(line.discounts.all()),
+                rules_info=rules_info,
+                channel=channel,
+                voucher=None,
+                voucher_code=None,
+            )
+        )
+    voucher = order.voucher
+    if voucher and (
+        voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order
+    ):
+        voucher_info = fetch_voucher_info(voucher, order.voucher_code)
+        apply_voucher_to_line(voucher_info, lines_info)
+    return lines_info
+
+
+def get_prefetched_variant_listing(
+    variant: Optional[ProductVariant], channel_id: int
+) -> Optional[ProductVariantChannelListing]:
+    if not variant:
+        return None
+    for channel_listing in variant.channel_listings.all():
+        if channel_listing.channel_id == channel_id:
+            return channel_listing
+    return None

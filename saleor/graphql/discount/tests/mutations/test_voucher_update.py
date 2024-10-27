@@ -415,3 +415,141 @@ def test_update_voucher_single_use_voucher_already_used_in_checkout(
     assert errors[0]["field"] == "singleUse"
     assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
     assert not errors[0]["voucherCodes"]
+
+
+def test_update_voucher_usage_limit_voucher_already_used(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    checkout,
+):
+    # given
+    assert voucher.usage_limit is None
+    code_instance = voucher.codes.first()
+    checkout.voucher_code = code_instance.code
+    checkout.save(update_fields=["voucher_code"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": 10},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["voucher"]
+    errors = content["data"]["voucherUpdate"]["errors"]
+    assert len(errors) == 1
+
+    voucher.refresh_from_db()
+    assert voucher.usage_limit is None
+    assert errors[0]["field"] == "usageLimit"
+    assert errors[0]["code"] == DiscountErrorCode.VOUCHER_ALREADY_USED.name
+
+
+def test_update_voucher_usage_limit_the_same_value(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    checkout,
+):
+    # given
+    usage_limit = 10
+    voucher.usage_limit = usage_limit
+    voucher.save(update_fields=["usage_limit"])
+
+    code_instance = voucher.codes.first()
+    checkout.voucher_code = code_instance.code
+    checkout.save(update_fields=["voucher_code"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": usage_limit},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["errors"]
+    assert content["data"]["voucherUpdate"]["voucher"]
+
+
+def test_update_voucher_with_deprecated_code_field(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+):
+    # given
+    new_code = "new-code"
+    code_instance = voucher.codes.get()
+    assert code_instance.code != new_code
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {
+            "code": new_code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["voucherUpdate"]["errors"]
+    data = content["data"]["voucherUpdate"]["voucher"]
+    assert len(data["codes"]["edges"]) == 1
+    assert data["codes"]["edges"][0]["node"]["code"] == new_code
+
+    code_instance.refresh_from_db()
+    assert code_instance.code == new_code
+
+
+def test_update_voucher_usage_limit_order_with_given_voucher_code_exists(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    order,
+):
+    """Ensure the voucher limit can be updated when the order has the same voucher code.
+
+    The voucher usage limit should be updated if an order contains a voucher code that
+    matches an existing order’s voucher code, but the voucher associated with
+    this code no longer exists.
+    """
+    # given
+    assert voucher.usage_limit is None
+    code_instance = voucher.codes.first()
+
+    # set the voucher code for the order, but left the voucher field empty,
+    # it simulates the situation when the voucher was deleted, and this code was the
+    # part of the different voucher
+    order.voucher_code = code_instance.code
+    order.voucher = None
+    order.save(update_fields=["voucher_code", "voucher"])
+
+    usage_limit = 10
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": usage_limit},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["voucherUpdate"]["errors"]
+    assert not errors
+    assert content["data"]["voucherUpdate"]["voucher"]["usageLimit"] == usage_limit

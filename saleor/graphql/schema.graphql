@@ -790,7 +790,9 @@ type Query {
     """
     External ID of an order. 
     
-    Added in Saleor 3.10.
+    Added in Saleor 3.10..
+    
+    Requires one of the following permissions: MANAGE_ORDERS.
     """
     externalReference: String
   ): Order @doc(category: "Orders")
@@ -1287,7 +1289,7 @@ type Query {
   """
   Look up a checkout by id.
   
-  Requires one of the following permissions to query checkouts that belong to other users: MANAGE_CHECKOUTS, IMPERSONATE_USER.
+  Requires one of the following permissions to query a checkout, if a checkout is in inactive channel: MANAGE_CHECKOUTS, IMPERSONATE_USER, HANDLE_PAYMENTS.
   """
   checkout(
     """
@@ -1308,7 +1310,7 @@ type Query {
   """
   List of checkouts.
   
-  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   """
   checkouts(
     """
@@ -4196,7 +4198,7 @@ type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   language: LanguageDisplay!
 
   """Translated shipping method name."""
-  name: String!
+  name: String
 
   """
   Translated description of the shipping method.
@@ -7956,6 +7958,15 @@ input AddressInput {
   Added in Saleor 3.15.
   """
   metadata: [MetadataInput!]
+
+  """
+  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  skipValidation: Boolean = false
 }
 
 input MetadataInput {
@@ -11783,6 +11794,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Shipping method for this order."""
   shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
 
+  """
+  Undiscounted total price of shipping.
+  
+  Added in Saleor 3.19.
+  """
+  undiscountedShippingPrice: Money
+
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
 
@@ -12251,6 +12269,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Price of the order line without discounts."""
   undiscountedTotalPrice: TaxedMoney!
+
+  """
+  Returns True, if the line unit price was overridden.
+  
+  Added in Saleor 3.14.
+  """
+  isPriceOverridden: Boolean
 
   """
   A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -13976,6 +14001,7 @@ input OrderFilterInput @doc(category: "Orders") {
   isClickAndCollect: Boolean
   isPreorder: Boolean
   ids: [ID!]
+  checkoutTokens: [UUID!]
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
@@ -16881,10 +16907,19 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
+  
+  Triggers the following webhook events:
+  - TRANSACTION_ITEM_METADATA_UPDATED (async): Optionally called when transaction's metadata was updated.
+  - CHECKOUT_FULLY_PAID (async): Optionally called when the checkout charge status changed to `FULL` or `OVERCHARGED`.
+  - ORDER_UPDATED (async): Optionally called when the transaction is related to the order and the order was updated.
   """
   transactionEventReport(
-    """The amount of the event to report."""
-    amount: PositiveDecimal!
+    """
+    The amount of the event to report. 
+    
+    Required for all `REQUEST`, `SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, the amount will be calculated based on the previous events with the same pspReference. If not possible to calculate, the mutation will return an error.
+    """
+    amount: PositiveDecimal
 
     """List of all possible actions for the transaction"""
     availableActions: [TransactionActionEnum!]
@@ -16915,12 +16950,26 @@ type Mutation {
     """
     token: UUID
 
+    """
+    Fields required to update the transaction metadata.
+    
+    Added in Saleor 3.17.
+    """
+    transactionMetadata: [MetadataInput!]
+
+    """
+    Fields required to update the transaction private metadata.
+    
+    Added in Saleor 3.17.
+    """
+    transactionPrivateMetadata: [MetadataInput!]
+
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!
-  ): TransactionEventReport @doc(category: "Payments")
+  ): TransactionEventReport @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [TRANSACTION_ITEM_METADATA_UPDATED, CHECKOUT_FULLY_PAID, ORDER_UPDATED], syncEvents: [])
 
   """
-  Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways.
+  Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
   
   Added in Saleor 3.13.
   
@@ -16940,7 +16989,7 @@ type Mutation {
   ): PaymentGatewayInitialize @doc(category: "Payments")
 
   """
-  Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+  Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. There is a limit of 100 transaction items per checkout / order.
   
   Added in Saleor 3.13.
   
@@ -18862,6 +18911,8 @@ type Mutation {
   """
   Create a new checkout.
   
+  `skipValidation` field requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+  
   Triggers the following webhook events:
   - CHECKOUT_CREATED (async): A checkout was created.
   """
@@ -20051,15 +20102,22 @@ type Mutation {
   ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER, ACCOUNT_EMAIL_CHANGED], syncEvents: [])
 
   """
-  Create a new address for the customer. 
+  Create a new address for the customer.
   
-  Requires one of the following permissions: AUTHENTICATED_USER.
+  Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
   
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - ADDRESS_CREATED (async): An address was created.
   """
   accountAddressCreate(
+    """
+    ID of customer the application is impersonating. The field can be used and is required by apps only. Requires IMPERSONATE_USER and AUTHENTICATED_APP permission.
+    
+    Added in Saleor 3.19.
+    """
+    customerId: ID
+
     """Fields required to create address."""
     input: AddressInput!
 
@@ -20124,15 +20182,22 @@ type Mutation {
   ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
   """
-  Updates the account of the logged-in user. 
+  Updates the account of the logged-in user.
   
-  Requires one of the following permissions: AUTHENTICATED_USER.
+  Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
   
   Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   accountUpdate(
+    """
+    ID of customer the application is impersonating. The field can be used and is required by apps only. Requires IMPERSONATE_USER and AUTHENTICATED_APP permission.
+    
+    Added in Saleor 3.19.
+    """
+    customerId: ID
+
     """Fields required to update the account of the logged-in user."""
     input: AccountInput!
   ): AccountUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
@@ -20542,7 +20607,7 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   query: String
 
   """
-  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
   
   Added in Saleor 3.12.
   
@@ -20614,7 +20679,7 @@ input WebhookUpdateInput @doc(category: "Webhooks") {
   query: String
 
   """
-  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
   
   Added in Saleor 3.12.
   
@@ -24374,6 +24439,7 @@ enum PaymentErrorCode @doc(category: "Payments") {
   CHECKOUT_EMAIL_NOT_SET
   UNAVAILABLE_VARIANT_IN_CHANNEL
   NO_CHECKOUT_LINES
+  CHECKOUT_COMPLETION_IN_PROGRESS
 }
 
 """
@@ -24743,8 +24809,13 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
 Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
+
+Triggers the following webhook events:
+- TRANSACTION_ITEM_METADATA_UPDATED (async): Optionally called when transaction's metadata was updated.
+- CHECKOUT_FULLY_PAID (async): Optionally called when the checkout charge status changed to `FULL` or `OVERCHARGED`.
+- ORDER_UPDATED (async): Optionally called when the transaction is related to the order and the order was updated.
 """
-type TransactionEventReport @doc(category: "Payments") {
+type TransactionEventReport @doc(category: "Payments") @webhookEventsInfo(asyncEvents: [TRANSACTION_ITEM_METADATA_UPDATED, CHECKOUT_FULLY_PAID, ORDER_UPDATED], syncEvents: []) {
   """Defines if the reported event hasn't been processed earlier."""
   alreadyProcessed: Boolean
 
@@ -24778,10 +24849,11 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
   NOT_FOUND
   INCORRECT_DETAILS
   ALREADY_EXISTS
+  REQUIRED
 }
 
 """
-Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways.
+Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways. There is a limit of 100 transaction items per checkout / order.
 
 Added in Saleor 3.13.
 
@@ -24851,7 +24923,7 @@ input PaymentGatewayToInitialize @doc(category: "Payments") {
 }
 
 """
-Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. There is a limit of 100 transaction items per checkout / order.
 
 Added in Saleor 3.13.
 
@@ -24888,6 +24960,7 @@ enum TransactionInitializeErrorCode @doc(category: "Payments") {
   INVALID
   NOT_FOUND
   UNIQUE
+  CHECKOUT_COMPLETION_IN_PROGRESS
 }
 
 """
@@ -24930,6 +25003,7 @@ enum TransactionProcessErrorCode @doc(category: "Payments") {
   TRANSACTION_ALREADY_PROCESSED
   MISSING_PAYMENT_APP_RELATION
   MISSING_PAYMENT_APP
+  CHECKOUT_COMPLETION_IN_PROGRESS
 }
 
 """
@@ -26676,6 +26750,13 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The name of the product."""
   productName: String
 
+  """
+  The SKU of the product.
+  
+  Added in Saleor 3.18.
+  """
+  productSku: String
+
   """Translation of the product variant name."""
   translatedVariantName: String
 
@@ -26699,6 +26780,27 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
 
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
+
+  """
+  Reason of the discount on order line.
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountReason: String
+
+  """
+  Type of the discount: fixed or percent
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Value of the discount. Can store fixed value or percent value
+  
+  Added in Saleor 3.19.
+  """
+  unitDiscountValue: PositiveDecimal
 
   """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!
@@ -29148,6 +29250,8 @@ type CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents:
 """
 Create a new checkout.
 
+`skipValidation` field requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+
 Triggers the following webhook events:
 - CHECKOUT_CREATED (async): A checkout was created.
 """
@@ -29174,11 +29278,13 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   email: String
 
   """
-  The mailing address to where the checkout will be shipped. Note: the address will be ignored if the checkout doesn't contain shippable items.
+  The mailing address to where the checkout will be shipped. Note: the address will be ignored if the checkout doesn't contain shippable items. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
   """
   shippingAddress: AddressInput
 
-  """Billing address of the customer."""
+  """
+  Billing address of the customer. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
+  """
   billingAddress: AddressInput
 
   """Checkout language code."""
@@ -31110,6 +31216,8 @@ enum AccountErrorCode @doc(category: "Users") {
   CHANNEL_INACTIVE
   MISSING_CHANNEL_SLUG
   ACCOUNT_NOT_CONFIRMED
+  LOGIN_ATTEMPT_DELAYED
+  UNKNOWN_IP_ADDRESS
 }
 
 """
@@ -31349,9 +31457,9 @@ type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: 
 }
 
 """
-Create a new address for the customer. 
+Create a new address for the customer.
 
-Requires one of the following permissions: AUTHENTICATED_USER.
+Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
 
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
@@ -31454,9 +31562,9 @@ input AccountRegisterInput @doc(category: "Users") {
 }
 
 """
-Updates the account of the logged-in user. 
+Updates the account of the logged-in user.
 
-Requires one of the following permissions: AUTHENTICATED_USER.
+Requires one of following set of permissions: AUTHENTICATED_USER or AUTHENTICATED_APP + IMPERSONATE_USER.
 
 Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
@@ -35169,6 +35277,28 @@ type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
 }
 
 """
+Event sent when shop metadata is updated.
+
+Added in Saleor 3.15.
+"""
+type ShopMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
 Event sent when new staff user is created.
 
 Added in Saleor 3.5.
@@ -36014,7 +36144,9 @@ type TaxableObject @doc(category: "Taxes") {
   """The currency of the object."""
   currency: String!
 
-  """The price of shipping method."""
+  """
+  The price of shipping method, includes shipping voucher discount if applied.
+  """
   shippingPrice: Money!
 
   """The address data."""
@@ -36035,6 +36167,19 @@ type TaxableObjectDiscount @doc(category: "Taxes") {
 
   """The amount of the discount."""
   amount: Money!
+
+  """
+  Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
+  """
+  type: TaxableObjectDiscountTypeEnum!
+}
+
+"""
+Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
+"""
+enum TaxableObjectDiscountTypeEnum @doc(category: "Taxes") {
+  SUBTOTAL
+  SHIPPING
 }
 
 type TaxableObjectLine @doc(category: "Taxes") {
@@ -36056,10 +36201,14 @@ type TaxableObjectLine @doc(category: "Taxes") {
   """The product sku."""
   productSku: String
 
-  """Price of the single item in the order line."""
+  """
+  Price of the single item in the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
+  """
   unitPrice: Money!
 
-  """Price of the order line."""
+  """
+  Price of the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
+  """
   totalPrice: Money!
 }
 
@@ -36197,28 +36346,6 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 
   """Action to proceed for the transaction"""
   action: TransactionProcessAction!
-}
-
-"""
-Event sent when shop metadata is updated.
-
-Added in Saleor 3.15.
-"""
-type ShopMetadataUpdated implements Event {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """Shop data."""
-  shop: Shop
 }
 
 """

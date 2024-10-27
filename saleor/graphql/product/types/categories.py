@@ -12,6 +12,7 @@ from ....thumbnail.utils import (
     get_thumbnail_size,
 )
 from ...channel import ChannelQsContext
+from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,
@@ -30,13 +31,14 @@ from ...core.descriptions import (
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
-from ...core.tracing import traced_resolver
+from ...core.scalars import DateTime
 from ...core.types import Image, ModelObjectType, ThumbnailField
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CategoryTranslation
 from ...utils import get_user_or_app_from_context
 from ..dataloaders import (
+    CategoryByIdLoader,
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
@@ -61,7 +63,7 @@ class Category(ModelObjectType[models.Category]):
             f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
         ),
     )
-    updated_at = graphene.DateTime(
+    updated_at = DateTime(
         required=True,
         description="The date and time when the category was last updated."
         + ADDED_IN_317,
@@ -160,37 +162,54 @@ class Category(ModelObjectType[models.Category]):
         )
 
     @staticmethod
+    def resolve_parent(root: models.Category, info):
+        if root.parent_id:
+            return CategoryByIdLoader(info.context).load(root.parent_id)
+        return None
+
+    @staticmethod
     def resolve_url(root: models.Category, _info):
         return ""
 
     @staticmethod
-    @traced_resolver
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
         tree = root.get_descendants(include_self=True)
+        limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         connection_name = get_database_connection_name(info.context)
-        qs = models.Product.objects.using(connection_name).all()
-        if not has_required_permissions:
-            qs = (
-                qs.visible_to_user(requestor, channel)
-                .annotate_visible_in_listings(channel)
-                .exclude(
-                    visible_in_listings=False,
-                )
-            )
-        if channel and has_required_permissions:
-            qs = qs.filter(channel_listings__channel__slug=channel)
-        qs = qs.filter(category__in=tree)
-        qs = ChannelQsContext(qs=qs, channel_slug=channel)
 
-        kwargs["channel"] = channel
-        qs = filter_connection_queryset(qs, kwargs)
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+        def _resolve_products(channel_obj):
+            qs = models.Product.objects.using(connection_name).all()
+            if not has_required_permissions:
+                qs = (
+                    qs.visible_to_user(requestor, channel_obj, limited_channel_access)
+                    .annotate_visible_in_listings(channel_obj)
+                    .exclude(
+                        visible_in_listings=False,
+                    )
+                )
+            if channel_obj and has_required_permissions:
+                qs = qs.filter(channel_listings__channel_id=channel_obj.id)
+            qs = qs.filter(category__in=tree)
+            qs = ChannelQsContext(qs=qs, channel_slug=channel)
+
+            kwargs["channel"] = channel
+            qs = filter_connection_queryset(qs, kwargs)
+            return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+
+        if channel:
+            return (
+                ChannelBySlugLoader(info.context)
+                .load(str(channel))
+                .then(_resolve_products)
+            )
+        else:
+            return _resolve_products(None)
 
     @staticmethod
     def __resolve_references(roots: list["Category"], _info):

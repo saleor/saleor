@@ -326,9 +326,9 @@ def test_cannot_update_configuration_of_hidden_plugin(
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
     plugin_id = PluginSample.PLUGIN_ID
-    original_config = (
-        get_plugins_manager(allow_replica=False).get_plugin(plugin_id).configuration
-    )
+    manager = get_plugins_manager(allow_replica=False)
+    plugin = manager.get_plugin(plugin_id)
+    original_config = plugin.configuration
 
     variables = {
         "id": plugin_id,
@@ -347,7 +347,7 @@ def test_cannot_update_configuration_of_hidden_plugin(
     ]
 
     # Hidden plugin should be untouched
-    plugin = get_plugins_manager(allow_replica=False).get_plugin(plugin_id)
+    plugin = manager.get_plugin(plugin_id)
     assert plugin.active is True
     assert plugin.configuration == original_config
 
@@ -370,11 +370,9 @@ def test_cannot_update_configuration_of_hidden_multichannel_plugin(
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
 
     plugin_id = ChannelPluginSample.PLUGIN_ID
-    original_config = (
-        get_plugins_manager(allow_replica=False)
-        .get_plugin(plugin_id, channel_slug=channel_USD.slug)
-        .configuration
-    )
+    manager = get_plugins_manager(allow_replica=False)
+    plugin = manager.get_plugin(plugin_id, channel_slug=channel_USD.slug)
+    original_config = plugin.configuration
 
     variables = {
         "id": plugin_id,
@@ -393,9 +391,7 @@ def test_cannot_update_configuration_of_hidden_multichannel_plugin(
     ]
 
     # Hidden plugin should be untouched
-    plugin = get_plugins_manager(allow_replica=False).get_plugin(
-        plugin_id, channel_slug=channel_USD.slug
-    )
+    plugin = manager.get_plugin(plugin_id, channel_slug=channel_USD.slug)
     assert plugin.active is True
     assert plugin.configuration == original_config
 

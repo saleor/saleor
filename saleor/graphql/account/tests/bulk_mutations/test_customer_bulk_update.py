@@ -32,12 +32,14 @@ CUSTOMER_BULK_UPDATE_MUTATION = """
                             key
                             value
                         }
+                        postalCode
                     }
                     defaultBillingAddress {
                         metadata {
                             key
                             value
                         }
+                        postalCode
                     }
                 }
             }
@@ -351,6 +353,7 @@ def test_customers_bulk_update_match_orders_and_gift_card_when_confirmed(
     assert gift_card.created_by == customer_user
     assert gift_card.created_by_email == customer_user.email
     assert order.user == customer_user
+    assert customer_user.is_confirmed
 
 
 def test_customers_bulk_update_using_external_refs(
@@ -538,6 +541,7 @@ def test_customers_bulk_update_with_address(
     address_data = convert_dict_keys_to_camel_case(address.as_data())
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
+    address_data.pop("validationSkipped")
 
     new_street_address = "Updated street address"
     address_data["streetAddress1"] = new_street_address
@@ -597,6 +601,7 @@ def test_customers_bulk_update_with_address_when_no_default(
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     address_data = convert_dict_keys_to_camel_case(shipping_address.as_data())
+    address_data.pop("validationSkipped")
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
 
@@ -647,6 +652,7 @@ def test_customers_bulk_update_with_invalid_address(
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("validationSkipped")
     address_data.pop("metadata")
     address_data.pop("privateMetadata")
     address_data.pop("country")
@@ -914,3 +920,54 @@ def test_customers_bulk_update_trigger_gift_card_search_vector_update(
     for card in gift_card_list:
         card.refresh_from_db()
         assert card.search_index_dirty is True
+
+
+def test_customers_bulk_update_skip_address_validation(
+    staff_api_client,
+    customer_user,
+    graphql_address_data_skipped_validation,
+    permission_manage_users,
+):
+    # given
+    shipping_address, billing_address = (
+        customer_user.default_shipping_address,
+        customer_user.default_billing_address,
+    )
+    assert shipping_address
+    assert billing_address
+
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    address_data = graphql_address_data_skipped_validation
+    wrong_postal_code = "wrong postal code"
+    address_data["postalCode"] = wrong_postal_code
+
+    customers_input = [
+        {
+            "id": customer_id,
+            "input": {
+                "defaultBillingAddress": address_data,
+                "defaultShippingAddress": address_data,
+            },
+        }
+    ]
+
+    variables = {"customers": customers_input}
+
+    # when
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    customer_data = data["results"][0]["customer"]
+    assert customer_data["defaultShippingAddress"]["postalCode"] == wrong_postal_code
+    assert customer_data["defaultBillingAddress"]["postalCode"] == wrong_postal_code
+    shipping_address.refresh_from_db()
+    assert shipping_address.postal_code == wrong_postal_code
+    assert shipping_address.validation_skipped is True
+    billing_address.refresh_from_db()
+    assert billing_address.postal_code == wrong_postal_code
+    assert billing_address.validation_skipped is True

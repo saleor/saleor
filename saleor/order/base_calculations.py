@@ -5,9 +5,13 @@ from prices import Money, TaxedMoney
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
-from ..discount import DiscountType, DiscountValueType, VoucherType
+from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount
-from ..discount.utils import apply_discount_to_value
+from ..discount.utils import (
+    apply_discount_to_value,
+    is_order_level_voucher,
+    is_shipping_voucher,
+)
 from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 
@@ -34,6 +38,7 @@ def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
         quantity = line.quantity
         base_line_total = line.base_unit_price * quantity
         subtotal += base_line_total
+
     return quantize_price(subtotal, currency)
 
 
@@ -81,9 +86,8 @@ def propagate_order_discount_on_order_prices(
     discount.
     """
     base_subtotal = base_order_subtotal(order, lines)
-    base_shipping_price = order.base_shipping_price
     subtotal = base_subtotal
-    shipping_price = base_shipping_price
+    shipping_price = order.base_shipping_price
     currency = order.currency
     order_discounts_to_update = []
 
@@ -92,13 +96,26 @@ def propagate_order_discount_on_order_prices(
         shipping_price_before_discount = shipping_price
         if order_discount.type == DiscountType.VOUCHER:
             voucher = order_discount.voucher
-            if voucher and voucher.type == VoucherType.ENTIRE_ORDER:
+            if is_order_level_voucher(voucher):
                 subtotal = apply_discount_to_value(
                     value=order_discount.value,
                     value_type=order_discount.value_type,
                     currency=currency,
                     price_to_discount=subtotal,
                 )
+            # Shipping voucher is tricky: it is associated with an order, but it
+            # decreases base price, similar to line level discounts, so we should
+            # exclude it
+            if is_shipping_voucher(order_discount.voucher):
+                continue
+
+        elif order_discount.type == DiscountType.ORDER_PROMOTION:
+            subtotal = apply_discount_to_value(
+                value=order_discount.value,
+                value_type=order_discount.value_type,
+                currency=currency,
+                price_to_discount=subtotal,
+            )
         elif order_discount.type == DiscountType.MANUAL:
             if order_discount.value_type == DiscountValueType.PERCENTAGE:
                 subtotal = apply_discount_to_value(
@@ -113,7 +130,7 @@ def propagate_order_discount_on_order_prices(
                     currency=currency,
                     price_to_discount=shipping_price,
                 )
-            else:
+            elif order_discount.value_type == DiscountValueType.FIXED:
                 temporary_undiscounted_total = subtotal + shipping_price
                 if temporary_undiscounted_total.amount > 0:
                     temporary_total = apply_discount_to_value(
@@ -150,7 +167,7 @@ def apply_order_discounts(
 ) -> tuple[Money, Money]:
     """Calculate prices after applying order level discounts.
 
-    Handles manual discounts and ENTIRE_ORDER vouchers.
+    Handles manual discounts, ENTIRE_ORDER vouchers and ORDER_PROMOTION.
     Shipping vouchers are included in the base shipping price.
     Specific product vouchers are included in line base prices.
     Entire order vouchers are recalculated and updated in this function
@@ -212,11 +229,13 @@ def propagate_order_discount_on_order_lines_prices(
     elif lines_count > 1:
         remaining_discount = subtotal_discount
         for idx, line in enumerate(lines):
-            if idx < lines_count - 1:
+            if not base_subtotal.amount:
+                yield line, zero_money(base_subtotal.currency)
+            elif idx < lines_count - 1:
                 share = (
                     line.base_unit_price_amount * line.quantity / base_subtotal.amount
                 )
-                discount = min(share * remaining_discount, base_subtotal)
+                discount = min(share * subtotal_discount, base_subtotal)
                 yield (
                     line,
                     _get_total_price_with_subtotal_discount_for_order_line(
@@ -285,6 +304,7 @@ def assign_order_prices(
     subtotal: Money,
     shipping_price: Money,
 ):
+    shipping_price = quantize_price(shipping_price, order.currency)
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
     order.total_net_amount = subtotal.amount + shipping_price.amount

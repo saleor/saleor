@@ -835,3 +835,48 @@ def test_attribute_bulk_update_removes_value_with_invalid_id(
     assert errors
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
     assert errors[0]["path"] == "removeValues.0"
+
+
+def test_attribute_bulk_update_add_value_missing_name(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attr_external_ref = color_attribute.external_reference
+    attributes = [
+        {
+            "externalReference": attr_external_ref,
+            "fields": {
+                "addValues": [
+                    {
+                        "externalReference": "new_ext_reference",
+                    },
+                    {
+                        "name": "",
+                    },
+                ]
+            },
+        }
+    ]
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["attributeBulkUpdate"]
+    errors = data["results"][0]["errors"]
+    assert data["count"] == 0
+    assert errors
+    assert len(errors) == 2
+    assert errors[0]["path"] == "addValues.0.name"
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
+    assert errors[1]["path"] == "addValues.1.name"
+    assert errors[1]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name

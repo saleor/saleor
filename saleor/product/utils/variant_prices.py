@@ -117,11 +117,13 @@ def _update_or_create_listings(
 ):
     if changed_products_listings_to_update:
         ProductChannelListing.objects.bulk_update(
-            changed_products_listings_to_update, ["discounted_price_amount"]
+            sorted(changed_products_listings_to_update, key=lambda listing: listing.id),
+            ["discounted_price_amount"],
         )
     if changed_variants_listings_to_update:
         ProductVariantChannelListing.objects.bulk_update(
-            changed_variants_listings_to_update, ["discounted_price_amount"]
+            sorted(changed_variants_listings_to_update, key=lambda listing: listing.id),
+            ["discounted_price_amount"],
         )
     if changed_variant_listing_promotion_rule_to_create:
         _create_variant_listing_promotion_rule(
@@ -129,7 +131,11 @@ def _update_or_create_listings(
         )
     if changed_variant_listing_promotion_rule_to_update:
         VariantChannelListingPromotionRule.objects.bulk_update(
-            changed_variant_listing_promotion_rule_to_update, ["discount_amount"]
+            sorted(
+                changed_variant_listing_promotion_rule_to_update,
+                key=lambda listing: listing.id,
+            ),
+            ["discount_amount"],
         )
 
 
@@ -144,10 +150,16 @@ def _create_variant_listing_promotion_rule(variant_listing_promotion_rule_to_cre
             for listing in variant_listing_promotion_rule_to_create
         ]
         # Lock PromotionRule and ProductVariantChannelListing before bulk_create
-        rules = PromotionRule.objects.filter(id__in=rule_ids).select_for_update()
-        variant_listings = ProductVariantChannelListing.objects.filter(
-            id__in=listing_ids
-        ).select_for_update()
+        rules = (
+            PromotionRule.objects.filter(id__in=rule_ids)
+            .select_for_update()
+            .order_by("pk")
+        )
+        variant_listings = (
+            ProductVariantChannelListing.objects.filter(id__in=listing_ids)
+            .select_for_update()
+            .order_by("pk")
+        )
         # Do not create VariantChannelListingPromotionRule for rules that were deleted.
         if len(rules) < len(rule_ids):
             variant_listing_promotion_rule_to_create = [
@@ -187,7 +199,10 @@ def _get_product_to_variant_channel_listings_per_channel_map(
         lambda: defaultdict(list)
     )
     for variant_channel_listing in variant_channel_listings.iterator():
-        product_id = variant_to_product_id[variant_channel_listing.variant_id]
+        try:
+            product_id = variant_to_product_id[variant_channel_listing.variant_id]
+        except KeyError:
+            continue
         price_data[product_id][variant_channel_listing.channel_id].append(
             variant_channel_listing
         )

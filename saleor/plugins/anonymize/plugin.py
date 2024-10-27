@@ -49,7 +49,7 @@ class AnonymizePlugin(BasePlugin):
             address.save()
         return address
 
-    def order_created(self, order: "Order", previous_value: Any):
+    def order_created(self, order: "Order", previous_value: Any, webhooks=None):
         order = obfuscate_order(order)
         order.search_vector = FlatConcatSearchVector(
             *prepare_order_search_vector_value(order)

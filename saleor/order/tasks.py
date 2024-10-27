@@ -2,17 +2,20 @@ import logging
 from datetime import timedelta
 
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
+from django.db.models.functions import Greatest
 from django.utils import timezone
 
 from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.tracing import traced_atomic_transaction
-from ..core.utils.events import call_event
 from ..discount.models import Voucher, VoucherCode, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
+from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.utils import get_webhooks_for_multiple_events
 from . import OrderEvents, OrderStatus
+from .actions import call_order_event, call_order_events
 from .models import Order, OrderEvent
 from .utils import invalidate_order_prices
 
@@ -39,8 +42,19 @@ def recalculate_orders_task(order_ids: list[int]):
 @app.task
 def send_order_updated(order_ids):
     manager = get_plugins_manager(allow_replica=True)
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [
+            WebhookEventAsyncType.ORDER_UPDATED,
+            *WebhookEventSyncType.ORDER_EVENTS,
+        ]
+    )
     for order in Order.objects.filter(id__in=order_ids):
-        manager.order_updated(order)
+        call_order_event(
+            manager,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            order,
+            webhook_event_map=webhook_event_map,
+        )
 
 
 def _bulk_release_voucher_usage(order_ids):
@@ -53,12 +67,21 @@ def _bulk_release_voucher_usage(order_ids):
     ).values("count")
 
     vouchers = Voucher.objects.filter(usage_limit__isnull=False)
-    VoucherCode.objects.filter(
+    codes = VoucherCode.objects.filter(
         Exists(voucher_orders),
         Exists(vouchers.filter(id=OuterRef("voucher_id"))),
-    ).annotate(order_count=Subquery(count_orders)).update(
-        used=F("used") - F("order_count")
-    )
+    ).annotate(order_count=Subquery(count_orders))
+
+    # We observed mismatch between code.used and number of orders which utilize the code
+    # In some cases it is expected, but we want to further investigate the issue
+    suspected_codes = [code.code for code in codes if code.used < code.order_count]
+    if suspected_codes:
+        logger.error(
+            f"Voucher codes: [{','.join(suspected_codes)}] have been used more times "
+            f"than indicated by `code.used` field."
+        )
+
+    codes.update(used=Greatest(F("used") - F("order_count"), 0))
 
     orders = Order.objects.filter(id__in=order_ids)
     voucher_codes = VoucherCode.objects.filter(
@@ -72,9 +95,23 @@ def _bulk_release_voucher_usage(order_ids):
 
 def _call_expired_order_events(order_ids, manager):
     orders = Order.objects.filter(id__in=order_ids)
+    webhook_event_map = get_webhooks_for_multiple_events(
+        [
+            WebhookEventAsyncType.ORDER_EXPIRED,
+            WebhookEventAsyncType.ORDER_UPDATED,
+            *WebhookEventSyncType.ORDER_EVENTS,
+        ]
+    )
     for order in orders:
-        call_event(manager.order_expired, order)
-        call_event(manager.order_updated, order)
+        call_order_events(
+            manager,
+            [
+                WebhookEventAsyncType.ORDER_EXPIRED,
+                WebhookEventAsyncType.ORDER_UPDATED,
+            ],
+            order,
+            webhook_event_map=webhook_event_map,
+        )
 
 
 def _order_expired_events(order_ids):

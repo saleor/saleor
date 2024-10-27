@@ -52,6 +52,7 @@ from ..core.filters import (
     OperationObjectTypeWhereFilter,
     filter_slug_list,
 )
+from ..core.scalars import DateTime
 from ..core.types import (
     BaseInputObjectType,
     ChannelFilterInputObjectType,
@@ -205,10 +206,14 @@ def _clean_product_attributes_boolean_filter_input(filter_value, queries):
         for attr in attributes
     }
 
-    for attr_slug, val in filter_value:
-        attr_pk = values_map[attr_slug]["pk"]
-        value_pk = values_map[attr_slug]["values"].get(val)
-        if value_pk:
+    for attr_slug, value in filter_value:
+        if attr_slug not in values_map:
+            raise ValueError(f"Unknown attribute name: {attr_slug}")
+        attr_pk = values_map[attr_slug].get("pk")
+        value_pk = values_map[attr_slug]["values"].get(value)
+        if not value_pk:
+            raise ValueError(f"Requested value for attribute {attr_slug} doesn't exist")
+        if attr_pk and value_pk:
             queries[attr_pk] += [value_pk]
 
 
@@ -375,15 +380,17 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .values_list(Sum("quantity_reserved"))
     )
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
-
-    stocks = (
-        Stock.objects.for_channel_and_country(channel_slug)
-        .filter(
-            quantity__gt=Coalesce(allocated_subquery, 0)
-            + Coalesce(reservation_subquery, 0)
-        )
-        .values("product_variant_id")
+    warehouse_pks = list(
+        Warehouse.objects.for_channel_with_active_shipping_zone_or_cc(
+            channel_slug
+        ).values_list("pk", flat=True)
     )
+
+    stocks = Stock.objects.filter(
+        warehouse_id__in=warehouse_pks,
+        quantity__gt=Coalesce(allocated_subquery, 0)
+        + Coalesce(reservation_subquery, 0),
+    ).values("product_variant_id")
     variants = ProductVariant.objects.filter(
         Exists(stocks.filter(product_variant_id=OuterRef("pk")))
     ).values("product_id")
@@ -391,7 +398,7 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
     if stock_availability == StockAvailability.OUT_OF_STOCK:
-        qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+        qs = qs.exclude(Exists(variants.filter(product_id=OuterRef("pk"))))
     return qs
 
 
@@ -680,7 +687,7 @@ class ProductStockFilterInput(BaseInputObjectType):
 class ProductFilter(MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
     published_from = ObjectTypeFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_published_from",
         help_text=f"Filter by the publication date. {ADDED_IN_38}",
     )
@@ -689,7 +696,7 @@ class ProductFilter(MetadataFilterBase):
         help_text=f"Filter by availability for purchase. {ADDED_IN_38}",
     )
     available_from = ObjectTypeFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_available_from",
         help_text=f"Filter by the date of availability for purchase. {ADDED_IN_38}",
     )
@@ -1024,12 +1031,12 @@ class ProductWhere(MetadataWhereFilterBase):
         method="filter_is_listed", help_text="Filter by visibility on the channel."
     )
     published_from = ObjectTypeWhereFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_published_from",
         help_text="Filter by the publication date.",
     )
     available_from = ObjectTypeWhereFilter(
-        input_class=graphene.DateTime,
+        input_class=DateTime,
         method="filter_available_from",
         help_text="Filter by the date of availability for purchase.",
     )

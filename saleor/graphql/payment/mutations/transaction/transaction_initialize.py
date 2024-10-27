@@ -2,10 +2,13 @@ import uuid
 from typing import Optional
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .....app.models import App
 from .....channel.models import Channel
+from .....checkout import models as checkout_models
+from .....checkout.utils import activate_payments, cancel_active_payments
 from .....core.exceptions import PermissionDenied
 from .....payment import TransactionItemIdempotencyUniqueError
 from .....payment.interface import PaymentGatewayData
@@ -93,8 +96,8 @@ class TransactionInitialize(TransactionSessionBase):
         description = (
             "Initializes a transaction session. It triggers the webhook "
             "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
+            f"There is a limit of {settings.TRANSACTION_ITEMS_LIMIT} transaction "
+            "items per checkout / order." + ADDED_IN_313 + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionInitializeError
 
@@ -164,6 +167,9 @@ class TransactionInitialize(TransactionSessionBase):
             TransactionInitializeErrorCode.NOT_FOUND.value,
             manager=manager,
         )
+        if isinstance(source_object, checkout_models.Checkout):
+            cls.validate_checkout(source_object)
+
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
         action = cls.clean_action(info, action, source_object.channel)
         customer_ip_address = clean_customer_ip_address(
@@ -177,6 +183,11 @@ class TransactionInitialize(TransactionSessionBase):
             amount,
         )
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
+        payment_ids = []
+        if isinstance(source_object, checkout_models.Checkout):
+            # Deactivate active payment objects to avoid processing checkout
+            # with use of two different flows.
+            payment_ids = cancel_active_payments(source_object)
         try:
             transaction, event, data = handle_transaction_initialize_session(
                 source_object=source_object,
@@ -189,6 +200,8 @@ class TransactionInitialize(TransactionSessionBase):
                 idempotency_key=idempotency_key,
             )
         except TransactionItemIdempotencyUniqueError:
+            if payment_ids:
+                activate_payments(payment_ids)
             raise ValidationError(
                 {
                     "idempotency_key": ValidationError(
@@ -201,3 +214,21 @@ class TransactionInitialize(TransactionSessionBase):
                 }
             )
         return cls(transaction=transaction, transaction_event=event, data=data)
+
+    @staticmethod
+    def validate_checkout(checkout: checkout_models.Checkout) -> None:
+        if checkout.is_checkout_locked():
+            error_code = (
+                TransactionInitializeErrorCode.CHECKOUT_COMPLETION_IN_PROGRESS.value
+            )
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Transaction cannot be initialized - the checkout completion "
+                        "is currently in progress. Please wait until the process is "
+                        f"finished (max {settings.CHECKOUT_COMPLETION_LOCK_TIME} "
+                        "seconds).",
+                        code=error_code,
+                    )
+                }
+            )

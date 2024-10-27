@@ -30,7 +30,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
-from ....core.notify_events import NotifyEventType
+from ....core.notify import NotifyEventType
 from ....core.utils.url import prepare_url
 from ....discount import RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
@@ -74,7 +74,7 @@ third_url = "http://www.example.com/third/"
     ],
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.delay"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
@@ -118,9 +118,10 @@ def test_trigger_webhooks_for_event_calls_expected_events(
         get_webhooks_for_event(event_name),
         allow_replica=False,
     )
+
     deliveries_called = {
-        EventDelivery.objects.get(id=delivery_id[0][0])
-        for delivery_id in mock_request.call_args_list
+        EventDelivery.objects.get(id=request.kwargs["kwargs"]["event_delivery_id"])
+        for request in mock_request.call_args_list
     }
     urls_called = {delivery.webhook.target_url for delivery in deliveries_called}
     assert mock_request.call_count == total_webhook_calls
@@ -149,6 +150,7 @@ def test_order_created(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -178,6 +180,7 @@ def test_order_confirmed(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -207,6 +210,7 @@ def test_draft_order_created(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -236,6 +240,7 @@ def test_draft_order_deleted(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -265,6 +270,7 @@ def test_draft_order_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -351,6 +357,7 @@ def test_customer_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -379,6 +386,7 @@ def test_order_fully_paid(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -412,6 +420,7 @@ def test_order_paid(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -445,6 +454,7 @@ def test_order_refunded(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -478,6 +488,7 @@ def test_order_fully_refunded(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -594,6 +605,7 @@ def test_collection_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -726,6 +738,7 @@ def test_product_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -842,6 +855,7 @@ def test_product_variant_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -873,6 +887,7 @@ def test_product_variant_out_of_stock(
         legacy_data_generator=ANY,
         allow_replica=False,
     )
+    assert callable(mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"])
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
@@ -903,6 +918,38 @@ def test_product_variant_back_in_stock(
         legacy_data_generator=ANY,
         allow_replica=False,
     )
+    assert callable(mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"])
+    assert isinstance(
+        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+    )
+
+
+@freeze_time("2014-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_product_variant_stock_updated(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    variant_with_many_stocks,
+):
+    variant = variant_with_many_stocks.stocks.first()
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager(allow_replica=False)
+    manager.product_variant_stock_updated(variant)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        None,
+        WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
+        [any_webhook],
+        variant,
+        None,
+        legacy_data_generator=ANY,
+        allow_replica=False,
+    )
+    assert callable(mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"])
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
     )
@@ -931,6 +978,7 @@ def test_order_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -960,6 +1008,7 @@ def test_order_cancelled(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -989,6 +1038,7 @@ def test_order_expired(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1018,6 +1068,7 @@ def test_order_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1047,6 +1098,7 @@ def test_checkout_created(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1194,6 +1246,7 @@ def test_checkout_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1227,6 +1280,7 @@ def test_checkout_fully_paid(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1256,6 +1310,7 @@ def test_checkout_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1453,6 +1508,7 @@ def test_fulfillment_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1482,6 +1538,7 @@ def test_gift_card_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1511,6 +1568,7 @@ def test_voucher_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1541,6 +1599,7 @@ def test_shop_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1570,6 +1629,7 @@ def test_shipping_zone_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1599,6 +1659,7 @@ def test_warehouse_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
@@ -1628,6 +1689,7 @@ def test_transaction_item_metadata_updated(
         None,
         legacy_data_generator=ANY,
         allow_replica=False,
+        queue=None,
     )
     assert isinstance(
         mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
