@@ -37,7 +37,11 @@ class LineInfo:
         return [
             discount
             for discount in self.discounts
-            if discount.type in [DiscountType.PROMOTION, DiscountType.ORDER_PROMOTION]
+            if discount.type in [
+                   DiscountType.CATALOGUE_PROMOTION,
+                   DiscountType.PROMOTION,
+                   DiscountType.ORDER_PROMOTION,
+               ]
         ]
 
     def get_catalogue_discounts(
@@ -46,7 +50,8 @@ class LineInfo:
         return [
             discount
             for discount in self.discounts
-            if discount.type == DiscountType.PROMOTION
+            if discount.type
+            in [DiscountType.PROMOTION, DiscountType.CATALOGUE_PROMOTION]
         ]
 
     def get_voucher_discounts(
