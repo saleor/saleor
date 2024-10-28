@@ -1,16 +1,13 @@
-from urllib.parse import urlencode
-
 import graphene
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
-from .....account import events as account_events
-from .....account import models, notifications, search
+from .....account import models
 from .....account.error_codes import AccountErrorCode
-from .....core.tracing import traced_atomic_transaction
-from .....core.utils.url import prepare_url, validate_storefront_url
+from .....account.tasks import finish_creating_user
+from .....account.utils import RequestorAwareContext
+from .....core.utils.url import validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
@@ -20,7 +17,6 @@ from ....core.mutations import ModelMutation
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
-from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
 from ...types import User
 from .base import AccountBaseInput
@@ -71,11 +67,10 @@ class AccountRegister(ModelMutation):
     class Meta:
         description = "Register a new user."
         doc_category = DOC_CATEGORY_USERS
-        exclude = ["password"]
-        model = models.User
-        object_type = User
         error_type_class = AccountError
         error_type_field = "account_errors"
+        model = models.User
+        object_type = User
         support_meta_field = True
         webhook_events_info = [
             WebhookEventInfo(
@@ -102,6 +97,9 @@ class AccountRegister(ModelMutation):
         response.requires_confirmation = (
             site.settings.enable_account_confirmation_by_email
         )
+        # we don't want to return id's as it will allow to deduce if user exists
+        if response.user:
+            response.user.RETURN_ID_IN_API_RESPONSE = False
         return response
 
     @classmethod
@@ -145,46 +143,89 @@ class AccountRegister(ModelMutation):
         return super().clean_input(info, instance, data, **kwargs)
 
     @classmethod
-    def save(cls, info: ResolveInfo, user, cleaned_input):
-        password = cleaned_input["password"]
-        user.set_password(password)
-        user.search_document = search.prepare_user_search_document_value(
-            user, attach_addresses_data=False
+    def clean_instance(cls, info: ResolveInfo, instance, /):
+        user_exists = False
+
+        try:
+            instance.full_clean(exclude=["password"])
+        except ValidationError as error:
+            user_exists, error.error_dict = cls._clean_errors(error)
+
+            if error.error_dict:
+                raise error
+
+        return user_exists
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = models.User()
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        user_exists = cls.clean_instance(info, instance)
+        context_data = RequestorAwareContext.create_context_data(info.context)
+        cls.save_and_create_task(user_exists, instance, cleaned_input, context_data)
+        return cls.success_response(instance)
+
+    @classmethod
+    def save_and_create_task(cls, user_exists, instance, cleaned_input, context_data):
+        instance.set_password(cleaned_input["password"])
+        instance.is_confirmed = False
+
+        if not user_exists:
+            instance.save()
+
+        # moving logic to async task to prevent timing attacks
+        finish_creating_user.delay(
+            instance.pk if not user_exists else None,
+            cleaned_input.get("redirect_url"),
+            cleaned_input.get("channel"),
+            context_data,
         )
-        manager = get_plugin_manager_promise(info.context).get()
-        site = get_site_promise(info.context).get()
-        token = None
-        redirect_url = cleaned_input.get("redirect_url")
 
-        with traced_atomic_transaction():
-            user.is_confirmed = False
-            user.save()
-            if site.settings.enable_account_confirmation_by_email:
-                # Notifications will be deprecated in the future
-                token = default_token_generator.make_token(user)
-                notifications.send_account_confirmation(
-                    user,
-                    redirect_url,
-                    manager,
-                    channel_slug=cleaned_input["channel"],
-                    token=token,
-                )
-                if redirect_url:
-                    params = urlencode(
-                        {
-                            "email": user.email,
-                            "token": token or default_token_generator.make_token(user),
-                        }
-                    )
-                    redirect_url = prepare_url(params, redirect_url)
+    @classmethod
+    def _clean_email_errors(cls, errors):
+        """Clean email errors.
 
-                cls.call_event(
-                    manager.account_confirmation_requested,
-                    user,
-                    cleaned_input["channel"],
-                    token,
-                    redirect_url,
-                )
+        Iterates over errors for field `email` with purpose to
+        not leak `unique` error in case when user already exists in database which would
+        allow user enumeration.
+        Returns boolean value if user exists and filtered errors
+        that can be displayed to the end user.
+        """
+        existing_user = False
+        filtered_errors = []
 
-            cls.call_event(manager.customer_created, user)
-        account_events.customer_account_created_event(user=user)
+        for error in errors:
+            if error.code == "unique":
+                existing_user = True
+                continue
+            filtered_errors.append(error)
+
+        return existing_user, filtered_errors
+
+    @classmethod
+    def _clean_errors(cls, error):
+        """Clean errors.
+
+        Iterate over errors for field `email` with purpose to
+        not leak error indicating user existence in the system.
+        Returns boolean value if user exists and filtered errors
+        that can be displayed to the end user.
+        """
+        existing_user = False
+        error_dict = {}
+
+        for field, errors in error.error_dict.items():
+            if field == "email":
+                existing_user, errors = cls._clean_email_errors(errors)
+                if not errors:
+                    continue
+
+            error_dict[field] = errors
+
+        return existing_user, error_dict

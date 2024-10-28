@@ -1,8 +1,10 @@
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 from django.db.models import Exists, OuterRef
 
+from ..app.models import App
 from ..checkout import AddressType
 from ..core.utils.events import call_event
 from ..permission.models import Permission
@@ -12,6 +14,43 @@ from .models import Group, User
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
     from .models import Address
+
+
+@dataclass
+class RequestorAwareContext:
+    allow_replica: bool
+    user: Optional[User] = None
+    app: Optional[App] = None
+
+    @property
+    def META(self):
+        return {}
+
+    @staticmethod
+    def _get_or_none(model, pk_value):
+        return (
+            model.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(pk=pk_value)
+            .first()
+            if pk_value
+            else None
+        )
+
+    @classmethod
+    def from_context_data(cls, context_data):
+        return cls(
+            allow_replica=context_data["allow_replica"],
+            user=cls._get_or_none(User, context_data["user_pk"]),
+            app=cls._get_or_none(App, context_data["app_pk"]),
+        )
+
+    @staticmethod
+    def create_context_data(context):
+        return {
+            "allow_replica": context.allow_replica,
+            "user_pk": context.user.pk if context.user else None,
+            "app_pk": context.app.pk if context.app else None,
+        }
 
 
 def store_user_address(

@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
@@ -11,6 +10,13 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
 - Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
+- Change error codes related to user enumeration bad habbit. Included mutations will now not reveal information in error codes if email was already registered:
+  - `AccountRegister`,
+    `AccountRegister` mutation will additionaly not return `ID` of the user.
+  - `ConfirmAccount`,
+  - `RequestPasswordReset`,
+    `RequestPasswordReset` will now require `channel` as input for staff users,
+  - `SetPassword` - #16243 by @kadewu
 
 ### GraphQL API
 
