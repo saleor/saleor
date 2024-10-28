@@ -2429,12 +2429,15 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def translation_created(
-        self, translation: "Translation", previous_value: None
+        self,
+        translation: "Translation",
+        previous_value: None,
+        webhooks=None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.TRANSLATION_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             translation_data_generator = partial(
                 generate_translation_payload, translation, self.requestor
             )
@@ -2449,12 +2452,15 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def translation_updated(
-        self, translation: "Translation", previous_value: None
+        self,
+        translation: "Translation",
+        previous_value: None,
+        webhooks=None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             translation_data_generator = partial(
                 generate_translation_payload, translation, self.requestor
             )

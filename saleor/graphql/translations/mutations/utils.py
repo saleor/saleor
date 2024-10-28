@@ -14,6 +14,8 @@ from ....menu import models as menu_models
 from ....page import models as page_models
 from ....product import models as product_models
 from ....shipping import models as shipping_models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_MAP
@@ -475,10 +477,24 @@ class BaseBulkTranslateMutation(BaseMutation):
     def post_save_actions(cls, info, created_translations, updated_translations):
         manager = get_plugin_manager_promise(info.context).get()
 
+        translation_created_webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.TRANSLATION_CREATED
+        )
         for translation in created_translations:
-            cls.call_event(manager.translation_created, translation)
+            cls.call_event(
+                manager.translation_created,
+                translation,
+                webhooks=translation_created_webhooks,
+            )
+        translation_updated_webhooks = get_webhooks_for_event(
+            WebhookEventAsyncType.TRANSLATION_UPDATED
+        )
         for translation in updated_translations:
-            cls.call_event(manager.translation_updated, translation)
+            cls.call_event(
+                manager.translation_updated,
+                translation,
+                webhooks=translation_updated_webhooks,
+            )
 
     @classmethod
     @traced_atomic_transaction()
