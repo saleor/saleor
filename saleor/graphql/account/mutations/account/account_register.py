@@ -97,9 +97,9 @@ class AccountRegister(ModelMutation):
         response.requires_confirmation = (
             site.settings.enable_account_confirmation_by_email
         )
-        # we don't want to leak id's as it will allow to deduce if user exists
+        # we don't want to return id's as it will allow to deduce if user exists
         if response.user:
-            response.user.DO_NOT_LEAK_ID = True
+            response.user.RETURN_ID_IN_API_RESPONSE = False
         return response
 
     @classmethod
