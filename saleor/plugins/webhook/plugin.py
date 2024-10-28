@@ -2026,8 +2026,8 @@ class WebhookPlugin(BasePlugin):
                 legacy_data_generator=page_data_generator,
             )
 
-    def _trigger_page_type_event(self, event_type, page_type):
-        if webhooks := get_webhooks_for_event(event_type):
+    def _trigger_page_type_event(self, event_type, page_type, webhooks=None):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             payload = self._serialize_payload(
                 {
                     "id": graphene.Node.to_global_id("PageType", page_type.id),
@@ -2054,11 +2054,13 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.PAGE_TYPE_UPDATED, page_type
         )
 
-    def page_type_deleted(self, page_type: "PageType", previous_value: Any) -> Any:
+    def page_type_deleted(
+        self, page_type: "PageType", previous_value: Any, webhooks=None
+    ) -> Any:
         if not self.active:
             return previous_value
         self._trigger_page_type_event(
-            WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type
+            WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type, webhooks=webhooks
         )
 
     def _trigger_permission_group_event(self, event_type, group):
