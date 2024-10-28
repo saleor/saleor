@@ -1,14 +1,9 @@
 import itertools
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from decimal import Decimal
 from functools import cached_property, singledispatch
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from uuid import UUID
 
 from django.conf import settings
@@ -26,6 +21,7 @@ from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
 )
+from ..tax.models import TaxClass, TaxConfiguration
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
 
@@ -47,7 +43,6 @@ if TYPE_CHECKING:
         ProductVariant,
         ProductVariantChannelListing,
     )
-    from ..tax.models import TaxClass, TaxConfiguration
     from .models import Checkout
 
 
@@ -93,7 +88,33 @@ class CheckoutLineInfo(LineInfo):
             return self.variant.get_base_price(
                 self.channel_listing, self.line.price_override
             )
-        return self.line.undiscounted_unit_price
+        if self.line.undiscounted_unit_price is not None:
+            return self.line.undiscounted_unit_price
+        return self._get_fallback_undiscounted_unit_price()
+
+    def _get_fallback_undiscounted_unit_price(self):
+        """Calculate the `undiscounted_unit_price` in case of ongoing migration.
+
+        Before finalizing the migration task, there is a possibility of not having the
+        `undiscounted_unit_price` value. In that case, we will calculate this in the
+        runtime, to return a correct results.
+        """
+        if self.line.price_override is not None:
+            return Money(self.line.price_override, self.line.currency)
+
+        prices_entered_with_tax = (
+            TaxConfiguration.objects.filter(channel_id=self.line.checkout.channel_id)
+            .values_list("prices_entered_with_tax", flat=True)
+            .first()
+        )
+        if prices_entered_with_tax:
+            base_total_price = self.line.total_price_gross_amount
+        else:
+            base_total_price = self.line.total_price_net_amount
+
+        if base_total_price is Decimal(0) or self.line.quantity == 0:
+            return Decimal(0)
+        return quantize_price(base_total_price / self.line.quantity, self.line.currency)
 
 
 @dataclass
