@@ -29,6 +29,8 @@ ACCOUNT_REGISTER_MUTATION = """
             user {
                 id
                 email
+                firstName
+                lastName
             }
         }
     }
@@ -91,6 +93,10 @@ def test_customer_register(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
+    assert data["user"]["firstName"] == variables["input"]["firstName"]
+    assert data["user"]["lastName"] == variables["input"]["lastName"]
+    assert data["user"]["email"] == variables["input"]["email"]
+    assert data["user"]["id"] == ""
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["input"]["firstName"]
@@ -167,6 +173,10 @@ def test_customer_register_twice(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
+    assert data["user"]["firstName"] == variables["input"]["firstName"]
+    assert data["user"]["lastName"] == variables["input"]["lastName"]
+    assert data["user"]["email"] == variables["input"]["email"]
+    assert data["user"]["id"] == ""
     assert new_user.metadata == {"meta": "data"}
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["input"]["firstName"]
@@ -187,6 +197,9 @@ def test_customer_register_twice(
     assert mocked_finish_creating_user.delay.call_args.args[0] == new_user.pk
 
     # when
+    # remove personal data from input
+    del variables["input"]["firstName"]
+    del variables["input"]["lastName"]
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
@@ -195,6 +208,10 @@ def test_customer_register_twice(
     assert not data["errors"]
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
+    assert data["user"]["firstName"] == ""
+    assert data["user"]["lastName"] == ""
+    assert data["user"]["email"] == variables["input"]["email"]
+    assert data["user"]["id"] == ""
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
     assert mocked_finish_creating_user.delay.call_count == 2
