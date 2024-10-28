@@ -55,7 +55,7 @@ def test_page_type_bulk_delete_by_staff(
     assert not Page.objects.filter(pk__in=pages_pks)
 
 
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.graphql.page.bulk_mutations.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_type_bulk_delete_trigger_webhooks(
     mocked_webhook_trigger,
