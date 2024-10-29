@@ -1,6 +1,7 @@
 import decimal
 import json
 import logging
+from collections import namedtuple
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, Optional, Union, cast, overload
@@ -1727,3 +1728,63 @@ def get_transaction_event_amount(event_type: str, psp_reference: str):
     if matched_event is None:
         raise ValueError(f"Unable to deduce the amount for {event_type} event.")
     return matched_event.amount_value
+
+
+RefundCancelEventTypeMap = namedtuple("RefundCancelEventTypeMap", ["refund", "cancel"])
+REFUND_OR_CANCEL_EVENT_TYPE_MAP = {
+    TransactionEventType.REFUND_OR_CANCEL_REQUEST: RefundCancelEventTypeMap(
+        refund=TransactionEventType.REFUND_REQUEST,
+        cancel=TransactionEventType.CANCEL_REQUEST,
+    ),
+    TransactionEventType.REFUND_OR_CANCEL_SUCCESS: RefundCancelEventTypeMap(
+        refund=TransactionEventType.REFUND_SUCCESS,
+        cancel=TransactionEventType.CANCEL_SUCCESS,
+    ),
+    TransactionEventType.REFUND_OR_CANCEL_FAILURE: RefundCancelEventTypeMap(
+        refund=TransactionEventType.REFUND_FAILURE,
+        cancel=TransactionEventType.CANCEL_FAILURE,
+    ),
+}
+
+
+def get_transaction_event_type_for_refund_or_cancel_report(
+    transaction: TransactionItem, request_type: str, psp_reference: str
+):
+    """Deduce the transaction event type for refund or cancel report.
+
+    Map to corresponding REFUND event if:
+    - there is an event with the `REFUND` related type with the same pspReference
+    - there is no `CANCEL` related event with the same pspReference
+    - OR transaction.chargedAmount is above 0
+
+    Map to corresponding CANCEL event if:
+    - there is an event with the `CANCEL` related type with the same pspReference
+    - there is no `REFUND` related event with the same pspReference
+    - OR transaction.chargedAmount is 0
+    """
+    if request_type not in TransactionEventType.REFUND_OR_CANCEL_EVENT_TYPES:
+        return request_type
+
+    refund_cancel_event_map = REFUND_OR_CANCEL_EVENT_TYPE_MAP[request_type]
+    events = transaction.events.all()
+    refund_event_exists = any(
+        event
+        for event in events
+        if event.type in TransactionEventType.REFUND_RELATED_EVENT_TYPES
+        and event.psp_reference == psp_reference
+    )
+    cancel_event_exists = any(
+        event
+        for event in events
+        if event.type in TransactionEventType.CANCEL_RELATED_EVENT_TYPES
+        and event.psp_reference == psp_reference
+    )
+
+    if cancel_event_exists and not refund_event_exists:
+        return refund_cancel_event_map.cancel
+    elif refund_event_exists and not cancel_event_exists:
+        return refund_cancel_event_map.refund
+
+    if transaction.charged_value == 0:
+        return refund_cancel_event_map.cancel
+    return refund_cancel_event_map.refund

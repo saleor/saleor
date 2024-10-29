@@ -29,6 +29,7 @@ from ..utils import (
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
     get_transaction_event_amount,
+    get_transaction_event_type_for_refund_or_cancel_report,
     parse_transaction_action_data,
     recalculate_refundable_for_checkout,
     try_void_or_refund_inactive_payment,
@@ -3029,3 +3030,174 @@ def test_get_transaction_event_amount_for_info_event_type(
 
     # then
     assert amount == 0
+
+
+@pytest.mark.parametrize(
+    (
+        "request_type",
+        "psp_references",
+        "event_types",
+        "amount_charged",
+        "expected_event_type",
+    ),
+    [
+        (
+            TransactionEventType.REFUND_OR_CANCEL_REQUEST,
+            ["psp:123"],
+            [TransactionEventType.REFUND_REQUEST],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_REQUEST,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_REQUEST,
+            ["psp:123"],
+            [TransactionEventType.CANCEL_REQUEST],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_REQUEST,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_REQUEST,
+            ["psp:123", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_REQUEST,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_REQUEST,
+            ["psp:123", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_REQUEST,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            ["psp:123"],
+            [TransactionEventType.REFUND_REQUEST],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            ["psp:123"],
+            [TransactionEventType.CANCEL_REQUEST],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            ["psp:123", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            ["psp:123", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            ["psp:123"],
+            [TransactionEventType.REFUND_FAILURE],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_FAILURE,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            ["psp:123"],
+            [TransactionEventType.CANCEL_FAILURE],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_FAILURE,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            ["psp:123", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_FAILURE,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            ["psp:123", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_FAILURE,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            ["psp:123", "psp:000"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            ["psp:000", "psp:123"],
+            [TransactionEventType.REFUND_REQUEST, TransactionEventType.CANCEL_REQUEST],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_REQUEST,
+            [],
+            [],
+            Decimal("0.00"),
+            TransactionEventType.CANCEL_REQUEST,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_REQUEST,
+            [],
+            [],
+            Decimal("10.00"),
+            TransactionEventType.REFUND_REQUEST,
+        ),
+    ],
+)
+def test_get_transaction_event_type_for_refund_or_cancel_report(
+    request_type,
+    psp_references,
+    event_types,
+    amount_charged,
+    expected_event_type,
+    transaction_events_generator,
+    transaction_item,
+):
+    # given
+    transaction_item.charged_value = amount_charged
+    transaction_item.save(update_fields=["charged_value"])
+    psp_reference = "psp:123"
+
+    if event_types:
+        transaction_events_generator(
+            transaction=transaction_item,
+            psp_references=psp_references,
+            types=event_types,
+            amounts=[10] * len(event_types),
+        )
+
+    # when
+    result = get_transaction_event_type_for_refund_or_cancel_report(
+        transaction_item, request_type, psp_reference
+    )
+
+    # then
+    assert result == expected_event_type
+
+
+def test_get_transaction_event_type_for_refund_or_cancel_report_invalid_request_type(
+    transaction_item_generator,
+):
+    # given
+    transaction = transaction_item_generator()
+    request_type = "INVALID_REQUEST_TYPE"
+    psp_reference = "psp:123"
+
+    # when
+    result = get_transaction_event_type_for_refund_or_cancel_report(
+        transaction, request_type, psp_reference
+    )
+
+    # then
+    assert result == request_type
