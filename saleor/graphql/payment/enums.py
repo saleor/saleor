@@ -5,6 +5,7 @@ from ...payment import (
     StorePaymentMethod,
     TokenizedPaymentFlow,
     TransactionAction,
+    TransactionEventOutputType,
     TransactionEventType,
     TransactionKind,
 )
@@ -34,6 +35,11 @@ TransactionEventTypeEnum = to_enum(
     TransactionEventType, description=TransactionEventType.__doc__
 )
 TransactionEventTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+TransactionEventOutputTypeEnum = to_enum(
+    TransactionEventOutputType, description=TransactionEventOutputType.__doc__
+)
+TransactionEventOutputTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class OrderAction(BaseEnum):

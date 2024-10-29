@@ -167,11 +167,10 @@ class TransactionAction:
     ]
 
 
-class TransactionEventType:
-    """Represents possible event types.
+class TransactionEventOutputType:
+    """Represents possible event types on transaction event.
 
-    Added in Saleor 3.12.
-
+    Added in Saleor 3.20.
     The following types are possible:
     AUTHORIZATION_SUCCESS - represents success authorization.
     AUTHORIZATION_FAILURE - represents failure authorization.
@@ -237,11 +236,95 @@ class TransactionEventType:
         (CANCEL_REQUEST, "Represents cancel request"),
         (INFO, "Represents an info event"),
     ]
+
+
+class TransactionEventType:
+    """Represents possible event types reported for transaction event.
+
+    Added in Saleor 3.12.
+
+    The following types are possible:
+    AUTHORIZATION_SUCCESS - represents success authorization.
+    AUTHORIZATION_FAILURE - represents failure authorization.
+    AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
+    AUTHORIZATION_REQUEST - represents authorization request.
+    AUTHORIZATION_ACTION_REQUIRED - represents authorization that needs
+    additional actions from the customer.
+    CHARGE_ACTION_REQUIRED - represents charge that needs
+    additional actions from the customer.
+    CHARGE_SUCCESS - represents success charge.
+    CHARGE_FAILURE - represents failure charge.
+    CHARGE_BACK - represents chargeback.
+    CHARGE_REQUEST - represents charge request.
+    REFUND_SUCCESS - represents success refund.
+    REFUND_FAILURE - represents failure refund.
+    REFUND_REVERSE - represents reverse refund.
+    REFUND_REQUEST - represents refund request.
+    CANCEL_SUCCESS - represents success cancel.
+    CANCEL_FAILURE - represents failure cancel.
+    CANCEL_REQUEST - represents cancel request.
+    INFO - represents info event.
+    REFUND_OR_CANCEL_REQUEST - represents refund or cancel request.
+    REFUND_OR_CANCEL_SUCCESS - represents refund or cancel success.
+    REFUND_OR_CANCEL_FAILURE - represents refund or cancel failure.
+    """
+
+    AUTHORIZATION_SUCCESS = "authorization_success"
+    AUTHORIZATION_FAILURE = "authorization_failure"
+    AUTHORIZATION_ADJUSTMENT = "authorization_adjustment"
+    AUTHORIZATION_REQUEST = "authorization_request"
+    AUTHORIZATION_ACTION_REQUIRED = "authorization_action_required"
+    CHARGE_SUCCESS = "charge_success"
+    CHARGE_FAILURE = "charge_failure"
+    CHARGE_BACK = "charge_back"
+    CHARGE_ACTION_REQUIRED = "charge_action_required"
+    CHARGE_REQUEST = "charge_request"
+    REFUND_SUCCESS = "refund_success"
+    REFUND_FAILURE = "refund_failure"
+    REFUND_REVERSE = "refund_reverse"
+    REFUND_REQUEST = "refund_request"
+    CANCEL_SUCCESS = "cancel_success"
+    CANCEL_FAILURE = "cancel_failure"
+    CANCEL_REQUEST = "cancel_request"
+    INFO = "info"
+    REFUND_OR_CANCEL_REQUEST = "refund_or_cancel_request"
+    REFUND_OR_CANCEL_SUCCESS = "refund_or_cancel_success"
+    REFUND_OR_CANCEL_FAILURE = "refund_or_cancel_failure"
+
+    CHOICES = [
+        (AUTHORIZATION_SUCCESS, "Represents success authorization"),
+        (AUTHORIZATION_FAILURE, "Represents failure authorization"),
+        (AUTHORIZATION_ADJUSTMENT, "Represents authorization adjustment"),
+        (AUTHORIZATION_REQUEST, "Represents authorization request"),
+        (
+            AUTHORIZATION_ACTION_REQUIRED,
+            "Represents additional actions required for authorization.",
+        ),
+        (CHARGE_ACTION_REQUIRED, "Represents additional actions required for charge."),
+        (CHARGE_SUCCESS, "Represents success charge"),
+        (CHARGE_FAILURE, "Represents failure charge"),
+        (CHARGE_BACK, "Represents chargeback."),
+        (CHARGE_REQUEST, "Represents charge request"),
+        (REFUND_SUCCESS, "Represents success refund"),
+        (REFUND_FAILURE, "Represents failure refund"),
+        (REFUND_REVERSE, "Represents reverse refund"),
+        (REFUND_REQUEST, "Represents refund request"),
+        (CANCEL_SUCCESS, "Represents success cancel"),
+        (CANCEL_FAILURE, "Represents failure cancel"),
+        (CANCEL_REQUEST, "Represents cancel request"),
+        (INFO, "Represents an info event"),
+        (REFUND_OR_CANCEL_REQUEST, "Represents refund or cancel request"),
+        (REFUND_OR_CANCEL_SUCCESS, "Represents refund or cancel success"),
+        (REFUND_OR_CANCEL_FAILURE, "Represents refund or cancel failure"),
+    ]
     REFUND_RELATED_EVENT_TYPES = [
         REFUND_SUCCESS,
         REFUND_FAILURE,
         REFUND_REVERSE,
         REFUND_REQUEST,
+        REFUND_OR_CANCEL_REQUEST,
+        REFUND_OR_CANCEL_SUCCESS,
+        REFUND_OR_CANCEL_FAILURE,
     ]
 
 
@@ -250,6 +333,7 @@ FAILED_TRANSACTION_EVENTS = [
     TransactionEventType.CHARGE_FAILURE,
     TransactionEventType.REFUND_FAILURE,
     TransactionEventType.CANCEL_FAILURE,
+    TransactionEventType.REFUND_OR_CANCEL_FAILURE,
 ]
 
 
@@ -261,6 +345,7 @@ OPTIONAL_PSP_REFERENCE_EVENTS = [
     TransactionEventType.REFUND_FAILURE,
     TransactionEventType.CHARGE_FAILURE,
     TransactionEventType.CANCEL_FAILURE,
+    TransactionEventType.REFUND_OR_CANCEL_FAILURE,
 ]
 
 OPTIONAL_AMOUNT_EVENTS = [

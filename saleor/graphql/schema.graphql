@@ -13215,7 +13215,7 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   
   Added in Saleor 3.13.
   """
-  type: TransactionEventTypeEnum
+  type: TransactionEventOutputTypeEnum
 
   """
   User or App that created the transaction event.
@@ -13233,10 +13233,9 @@ type TransactionEvent implements Node @doc(category: "Payments") {
 }
 
 """
-Represents possible event types.
+Represents possible event types on transaction event.
 
-    Added in Saleor 3.12.
-
+    Added in Saleor 3.20.
     The following types are possible:
     AUTHORIZATION_SUCCESS - represents success authorization.
     AUTHORIZATION_FAILURE - represents failure authorization.
@@ -13259,7 +13258,7 @@ Represents possible event types.
     CANCEL_REQUEST - represents cancel request.
     INFO - represents info event.
 """
-enum TransactionEventTypeEnum @doc(category: "Payments") {
+enum TransactionEventOutputTypeEnum @doc(category: "Payments") {
   AUTHORIZATION_SUCCESS
   AUTHORIZATION_FAILURE
   AUTHORIZATION_ADJUSTMENT
@@ -24864,6 +24863,60 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
   INCORRECT_DETAILS
   ALREADY_EXISTS
   REQUIRED
+}
+
+"""
+Represents possible event types reported for transaction event.
+
+    Added in Saleor 3.12.
+
+    The following types are possible:
+    AUTHORIZATION_SUCCESS - represents success authorization.
+    AUTHORIZATION_FAILURE - represents failure authorization.
+    AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
+    AUTHORIZATION_REQUEST - represents authorization request.
+    AUTHORIZATION_ACTION_REQUIRED - represents authorization that needs
+    additional actions from the customer.
+    CHARGE_ACTION_REQUIRED - represents charge that needs
+    additional actions from the customer.
+    CHARGE_SUCCESS - represents success charge.
+    CHARGE_FAILURE - represents failure charge.
+    CHARGE_BACK - represents chargeback.
+    CHARGE_REQUEST - represents charge request.
+    REFUND_SUCCESS - represents success refund.
+    REFUND_FAILURE - represents failure refund.
+    REFUND_REVERSE - represents reverse refund.
+    REFUND_REQUEST - represents refund request.
+    CANCEL_SUCCESS - represents success cancel.
+    CANCEL_FAILURE - represents failure cancel.
+    CANCEL_REQUEST - represents cancel request.
+    INFO - represents info event.
+    REFUND_OR_CANCEL_REQUEST - represents refund or cancel request.
+    REFUND_OR_CANCEL_SUCCESS - represents refund or cancel success.
+    REFUND_OR_CANCEL_FAILURE - represents refund or cancel failure.
+"""
+enum TransactionEventTypeEnum @doc(category: "Payments") {
+  AUTHORIZATION_SUCCESS
+  AUTHORIZATION_FAILURE
+  AUTHORIZATION_ADJUSTMENT
+  AUTHORIZATION_REQUEST
+  AUTHORIZATION_ACTION_REQUIRED
+  CHARGE_ACTION_REQUIRED
+  CHARGE_SUCCESS
+  CHARGE_FAILURE
+  CHARGE_BACK
+  CHARGE_REQUEST
+  REFUND_SUCCESS
+  REFUND_FAILURE
+  REFUND_REVERSE
+  REFUND_REQUEST
+  CANCEL_SUCCESS
+  CANCEL_FAILURE
+  CANCEL_REQUEST
+  INFO
+  REFUND_OR_CANCEL_REQUEST
+  REFUND_OR_CANCEL_SUCCESS
+  REFUND_OR_CANCEL_FAILURE
 }
 
 """
