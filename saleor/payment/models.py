@@ -177,6 +177,8 @@ class TransactionEvent(models.Model):
         choices=TransactionEventType.CHOICES,
         default=TransactionEventType.INFO,
     )
+    # Determine whether the initial event falls under `REFUND_OR_CANCEL_*` type
+    refund_or_cancel = models.BooleanField(default=False)
     amount = MoneyField(amount_field="amount_value", currency_field="currency")
     amount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
