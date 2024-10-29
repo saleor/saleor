@@ -305,8 +305,7 @@ class CheckoutLine(ModelWithMetadata):
     undiscounted_unit_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        null=True,
-        blank=True,
+        default=Decimal(0),
     )
 
     undiscounted_unit_price = MoneyField(
