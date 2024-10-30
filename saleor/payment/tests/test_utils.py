@@ -236,14 +236,14 @@ def test_try_void_or_refund_inactive_payment_transaction_success(
     assert refund_or_void_mock.called
 
 
-def test_parse_transaction_action_data_with_only_psp_reference():
+def test_parse_transaction_action_data_with_only_psp_reference(transaction_item):
     # given
     expected_psp_reference = "psp:122:222"
     response_data = {"pspReference": expected_psp_reference}
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        transaction_item, response_data, TransactionEventType.AUTHORIZATION_REQUEST
     )
 
     # then
@@ -274,7 +274,7 @@ def test_parse_transaction_action_data_with_only_psp_reference():
     ],
 )
 def test_parse_transaction_action_data_with_provided_time(
-    event_time, expected_datetime
+    event_time, expected_datetime, transaction_item
 ):
     # given
     expected_psp_reference = "psp:122:222"
@@ -294,13 +294,13 @@ def test_parse_transaction_action_data_with_provided_time(
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        transaction_item, response_data, TransactionEventType.CHARGE_REQUEST
     )
     # then
     assert parsed_data.event.time == expected_datetime
 
 
-def test_parse_transaction_action_data_with_event_all_fields_provided():
+def test_parse_transaction_action_data_with_event_all_fields_provided(transaction_item):
     # given
     expected_psp_reference = "psp:122:222"
     event_amount = 12.00
@@ -320,7 +320,7 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        transaction_item, response_data, TransactionEventType.CHARGE_REQUEST
     )
     # then
     assert isinstance(parsed_data, TransactionRequestResponse)
@@ -334,9 +334,10 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     assert parsed_data.event.external_url == event_url
     assert parsed_data.event.message == event_cause
     assert parsed_data.event.type == event_type
+    assert parsed_data.event.refund_or_cancel is False
 
 
-def test_parse_transaction_action_data_with_incorrect_result():
+def test_parse_transaction_action_data_with_incorrect_result(transaction_item):
     # given
     expected_psp_reference = "psp:122:222"
     event_amount = 12.00
@@ -356,7 +357,7 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
     # when
     parsed_data, error_msg = parse_transaction_action_data(
-        response_data, TransactionEventType.REFUND_REQUEST
+        transaction_item, response_data, TransactionEventType.REFUND_REQUEST
     )
 
     # then
@@ -365,7 +366,9 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
 
 @freeze_time("2018-05-31 12:00:01")
-def test_parse_transaction_action_data_with_event_only_mandatory_fields():
+def test_parse_transaction_action_data_with_event_only_mandatory_fields(
+    transaction_item,
+):
     # given
     expected_psp_reference = "psp:122:222"
     expected_amount = Decimal("10.00")
@@ -377,7 +380,7 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.CHARGE_REQUEST
+        transaction_item, response_data, TransactionEventType.CHARGE_REQUEST
     )
 
     # then
@@ -391,28 +394,32 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     assert parsed_data.event.time == timezone.now()
     assert parsed_data.event.external_url == ""
     assert parsed_data.event.message == ""
+    assert parsed_data.event.refund_or_cancel is False
 
 
 @freeze_time("2018-05-31 12:00:01")
-def test_parse_transaction_action_data_with_missing_psp_reference():
+def test_parse_transaction_action_data_with_missing_psp_reference(transaction_item):
     # given
     response_data = {}
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        transaction_item, response_data, TransactionEventType.AUTHORIZATION_REQUEST
     )
 
     # then
     assert parsed_data is None
 
 
-def test_parse_transaction_action_data_with_missing_optional_psp_reference():
+def test_parse_transaction_action_data_with_missing_optional_psp_reference(
+    transaction_item,
+):
     # given
     response_data = {}
 
     # when
     parsed_data, _ = parse_transaction_action_data(
+        transaction_item,
         response_data,
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
     )
@@ -421,7 +428,9 @@ def test_parse_transaction_action_data_with_missing_optional_psp_reference():
     assert parsed_data
 
 
-def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
+def test_parse_transaction_action_data_with_missing_mandatory_event_fields(
+    transaction_item,
+):
     # given
     expected_psp_reference = "psp:122:222"
 
@@ -429,11 +438,145 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
 
     # when
     parsed_data, _ = parse_transaction_action_data(
-        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+        transaction_item, response_data, TransactionEventType.AUTHORIZATION_REQUEST
     )
 
     # then
     assert parsed_data is None
+
+
+@patch(
+    "saleor.payment.utils.get_transaction_event_type_for_refund_or_cancel_report",
+    wraps=get_transaction_event_type_for_refund_or_cancel_report,
+)
+def test_parse_transaction_action_data_with_refund_or_cancel_event(
+    mocked_get_transaction_event_type_for_refund_or_cancel_report, transaction_item
+):
+    # given
+    amount = Decimal("12")
+    transaction_item.charged_value = amount
+    transaction_item.save(update_fields=["charged_value"])
+
+    expected_psp_reference = "psp:122"
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+    event_type = TransactionEventType.REFUND_OR_CANCEL_SUCCESS
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+    }
+
+    request_type = TransactionEventType.REFUND_REQUEST
+
+    # when
+    parsed_data, error_msg = parse_transaction_action_data(
+        transaction_item, response_data, request_type
+    )
+
+    # then
+    assert isinstance(parsed_data, TransactionRequestResponse)
+    assert error_msg is None
+
+    assert parsed_data.psp_reference == expected_psp_reference
+    assert isinstance(parsed_data.event, TransactionRequestEventResponse)
+    assert parsed_data.event.psp_reference == expected_psp_reference
+    assert parsed_data.event.amount == amount
+    assert parsed_data.event.time == datetime.fromisoformat(event_time)
+    assert parsed_data.event.external_url == event_url
+    assert parsed_data.event.message == event_cause
+    assert parsed_data.event.type == TransactionEventType.REFUND_SUCCESS
+    assert parsed_data.event.refund_or_cancel is True
+
+    mocked_get_transaction_event_type_for_refund_or_cancel_report.assert_called_once()
+
+
+@patch(
+    "saleor.payment.utils.get_transaction_event_type_for_refund_or_cancel_report",
+)
+def test_parse_transaction_action_data_with_refund_or_cancel_invalid_event(
+    mocked_get_transaction_event_type_for_refund_or_cancel_report, transaction_item
+):
+    # given
+    amount = Decimal("12")
+    transaction_item.charged_value = amount
+    transaction_item.save(update_fields=["charged_value"])
+
+    expected_psp_reference = "psp:122"
+    event_amount = amount
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+    event_type = TransactionEventType.REFUND_OR_CANCEL_SUCCESS
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type,
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+    }
+    request_type = TransactionEventType.CHARGE_REQUEST
+
+    # when
+    parsed_data, error_msg = parse_transaction_action_data(
+        transaction_item, response_data, request_type
+    )
+
+    # then
+    assert parsed_data is None
+    assert isinstance(error_msg, str)
+    mocked_get_transaction_event_type_for_refund_or_cancel_report.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [event_type for event_type in TransactionEventType.REFUND_OR_CANCEL_EVENT_TYPES],
+)
+@patch(
+    "saleor.payment.utils.get_transaction_event_type_for_refund_or_cancel_report",
+    wraps=get_transaction_event_type_for_refund_or_cancel_report,
+)
+def test_parse_transaction_action_data_with_refund_or_cancel_event_missing_psp_reference(
+    mocked_get_transaction_event_type_for_refund_or_cancel_report,
+    event_type,
+    transaction_item,
+):
+    # given
+    amount = Decimal("12")
+    transaction_item.charged_value = amount
+    transaction_item.save(update_fields=["charged_value"])
+
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        "pspReference": None,
+        "amount": amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+    }
+
+    request_type = TransactionEventType.REFUND_REQUEST
+
+    # when
+    parsed_data, error_msg = parse_transaction_action_data(
+        transaction_item, response_data, request_type
+    )
+
+    # then
+    assert parsed_data is None
+    assert isinstance(error_msg, str)
+    mocked_get_transaction_event_type_for_refund_or_cancel_report.assert_not_called()
 
 
 def test_create_failed_transaction_event(transaction_item_generator):
@@ -1726,6 +1869,54 @@ def test_create_event_from_request_and_webhook_pending_event_calculate_refundabl
 
 
 @pytest.mark.parametrize(
+    ("event_type", "expected_event_type"),
+    [
+        (
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+        (
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            TransactionEventType.REFUND_FAILURE,
+        ),
+    ],
+)
+def test_create_transaction_event_from_request_and_webhook_response_refund_or_canel(
+    event_type,
+    expected_event_type,
+    transaction_item_generator,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(charged_value=Decimal("10"))
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+    amount = Decimal("11.00")
+    expected_psp_reference = "psp:122:222"
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "result": event_type.upper(),
+        "amount": amount,
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    event = TransactionEvent.objects.last()
+    assert event.psp_reference == expected_psp_reference
+    assert event.type == expected_event_type
+    assert event.refund_or_cancel is True
+    assert event.amount_value == amount
+
+
+@pytest.mark.parametrize(
     ("db_field_name", "value", "event_type"),
     [
         ("authorized_value", Decimal("12"), TransactionEventType.AUTHORIZATION_SUCCESS),
@@ -1862,6 +2053,8 @@ def test_create_manual_adjustment_events_additional_cancel(
             [
                 TransactionEventType.REFUND_FAILURE,
                 TransactionEventType.REFUND_SUCCESS,
+                TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+                TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
             ],
         ),
         (
@@ -1869,6 +2062,8 @@ def test_create_manual_adjustment_events_additional_cancel(
             [
                 TransactionEventType.CANCEL_FAILURE,
                 TransactionEventType.CANCEL_SUCCESS,
+                TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+                TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
             ],
         ),
     ],

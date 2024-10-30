@@ -795,10 +795,14 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
         TransactionEventType.REFUND_REQUEST: [
             TransactionEventType.REFUND_FAILURE,
             TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
         ],
         TransactionEventType.CANCEL_REQUEST: [
             TransactionEventType.CANCEL_FAILURE,
             TransactionEventType.CANCEL_SUCCESS,
+            TransactionEventType.REFUND_OR_CANCEL_FAILURE,
+            TransactionEventType.REFUND_OR_CANCEL_SUCCESS,
         ],
         "session-request": [
             TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
@@ -837,6 +841,7 @@ def parse_transaction_event_amount(
 
 
 def parse_transaction_event_data(
+    transaction_item: TransactionItem,
     event_data: dict,
     parsed_event_data: dict,
     error_field_msg: list[str],
@@ -868,7 +873,17 @@ def parse_transaction_event_data(
     result = event_data.get("result")
     if result:
         if result in possible_event_types:
-            parsed_event_data["type"] = possible_event_types[result]
+            event_type = possible_event_types[result]
+            if event_type in TransactionEventType.REFUND_OR_CANCEL_EVENT_TYPES:
+                if not psp_reference:
+                    logger.warning(missing_msg, "pspReference")
+                    error_field_msg.append(missing_msg % "pspReference")
+                else:
+                    event_type = get_transaction_event_type_for_refund_or_cancel_report(
+                        transaction_item, possible_event_types[result], psp_reference
+                    )
+                    parsed_event_data["refund_or_cancel"] = True
+            parsed_event_data["type"] = event_type
         else:
             possible_types = ",".join(possible_event_types.keys())
             msg = (
@@ -918,6 +933,7 @@ error_msg = str
 
 
 def parse_transaction_action_data(
+    transaction_item: TransactionItem,
     response_data: Any,
     request_type: str,
     event_is_optional: bool = True,
@@ -944,6 +960,7 @@ def parse_transaction_action_data(
     parsed_event_data: dict = {}
     error_field_msg: list[str] = []
     parse_transaction_event_data(
+        transaction_item=transaction_item,
         event_data=response_data,
         parsed_event_data=parsed_event_data,
         error_field_msg=error_field_msg,
@@ -1133,6 +1150,7 @@ def _create_event_from_response(
         app=app,
         include_in_calculations=True,
         related_granted_refund_id=related_granted_refund_id,
+        refund_or_cancel=response.refund_or_cancel,
     )
     with transaction.atomic():
         event, error_msg = deduplicate_event(event, app)
@@ -1144,6 +1162,7 @@ def _create_event_from_response(
 
 
 def _get_parsed_transaction_action_data(
+    transaction_item: TransactionItem,
     transaction_webhook_response: Optional[dict[str, Any]],
     event_type: str,
     event_is_optional: bool = True,
@@ -1152,6 +1171,7 @@ def _get_parsed_transaction_action_data(
         return None, "Failed to delivery request."
 
     transaction_request_response, error_msg = parse_transaction_action_data(
+        transaction_item,
         transaction_webhook_response,
         event_type,
         event_is_optional=event_is_optional,
@@ -1186,7 +1206,9 @@ def create_transaction_event_for_transaction_session(
 ):
     request_event_type = "session-request"
 
+    transaction_item = request_event.transaction
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
+        transaction_item=transaction_item,
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event_type,
         event_is_optional=False,
@@ -1232,7 +1254,6 @@ def create_transaction_event_for_transaction_session(
     if request_event_update_fields:
         request_event.save(update_fields=request_event_update_fields)
 
-    transaction_item = event.transaction
     if event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.AUTHORIZATION_SUCCESS,
@@ -1306,11 +1327,12 @@ def create_transaction_event_from_request_and_webhook_response(
     app: App,
     transaction_webhook_response: Optional[dict[str, Any]] = None,
 ):
+    transaction_item = request_event.transaction
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
+        transaction_item=transaction_item,
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event.type,
     )
-    transaction_item = request_event.transaction
     if not transaction_request_response:
         recalculate_refundable_for_checkout(transaction_item, request_event)
         failure_event = create_failed_transaction_event(
@@ -1340,7 +1362,6 @@ def create_transaction_event_from_request_and_webhook_response(
             update_order_granted_status_if_needed(request_event)
             return failure_event
 
-    transaction_item = request_event.transaction
     previous_authorized_value = transaction_item.authorized_value
     previous_charged_value = transaction_item.charged_value
     previous_refunded_value = transaction_item.refunded_value

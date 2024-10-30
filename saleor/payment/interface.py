@@ -125,6 +125,7 @@ class TransactionRequestEventResponse:
     time: Optional[datetime] = None
     external_url: Optional[str] = ""
     message: Optional[str] = ""
+    refund_or_cancel: bool = False
 
 
 @dataclass
