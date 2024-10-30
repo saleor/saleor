@@ -434,24 +434,23 @@ class BaseBulkTranslateMutation(BaseMutation):
     def post_save_actions(cls, info, created_translations, updated_translations):
         manager = get_plugin_manager_promise(info.context).get()
 
-        translation_created_webhooks = get_webhooks_for_event(
-            WebhookEventAsyncType.TRANSLATION_CREATED
-        )
-        for translation in created_translations:
-            cls.call_event(
-                manager.translation_created,
-                translation,
-                webhooks=translation_created_webhooks,
-            )
-        translation_updated_webhooks = get_webhooks_for_event(
-            WebhookEventAsyncType.TRANSLATION_UPDATED
-        )
-        for translation in updated_translations:
-            cls.call_event(
-                manager.translation_updated,
-                translation,
-                webhooks=translation_updated_webhooks,
-            )
+        if created_translations:
+            webhooks = get_webhooks_for_event(WebhookEventAsyncType.TRANSLATION_CREATED)
+            for translation in created_translations:
+                cls.call_event(
+                    manager.translation_created,
+                    translation,
+                    webhooks=webhooks,
+                )
+
+        if updated_translations:
+            webhooks = get_webhooks_for_event(WebhookEventAsyncType.TRANSLATION_UPDATED)
+            for translation in updated_translations:
+                cls.call_event(
+                    manager.translation_updated,
+                    translation,
+                    webhooks=webhooks,
+                )
 
     @classmethod
     @traced_atomic_transaction()
