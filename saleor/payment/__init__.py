@@ -336,7 +336,6 @@ FAILED_TRANSACTION_EVENTS = [
     TransactionEventType.CHARGE_FAILURE,
     TransactionEventType.REFUND_FAILURE,
     TransactionEventType.CANCEL_FAILURE,
-    TransactionEventType.REFUND_OR_CANCEL_FAILURE,
 ]
 
 
@@ -348,7 +347,6 @@ OPTIONAL_PSP_REFERENCE_EVENTS = [
     TransactionEventType.REFUND_FAILURE,
     TransactionEventType.CHARGE_FAILURE,
     TransactionEventType.CANCEL_FAILURE,
-    TransactionEventType.REFUND_OR_CANCEL_FAILURE,
 ]
 
 OPTIONAL_AMOUNT_EVENTS = [

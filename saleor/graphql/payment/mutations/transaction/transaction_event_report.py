@@ -26,6 +26,7 @@ from .....payment.utils import (
     create_failed_transaction_event,
     get_already_existing_event,
     get_transaction_event_amount,
+    get_transaction_event_type_for_refund_or_cancel_report,
 )
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
@@ -253,14 +254,19 @@ class TransactionEventReport(ModelMutation):
 
     @classmethod
     def clean_amount_value(
-        cls, amount: Optional[float], event_type: str, psp_reference: str, currency: str
+        cls,
+        amount: Optional[float],
+        event_type: str,
+        initial_type: str,
+        psp_reference: str,
+        currency: str,
     ):
         if amount is None:
             if event_type not in OPTIONAL_AMOUNT_EVENTS:
                 raise ValidationError(
                     {
                         "amount": ValidationError(
-                            f"The `amount` field is required for {event_type} event.",
+                            f"The `amount` field is required for {initial_type} event.",
                             code=TransactionEventReportErrorCode.REQUIRED.value,
                         )
                     }
@@ -313,8 +319,16 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
+        refund_or_cancel = False
+        initial_type = type
+        if type in TransactionEventType.REFUND_OR_CANCEL_EVENT_TYPES:
+            refund_or_cancel = True
+            type = get_transaction_event_type_for_refund_or_cancel_report(
+                transaction, type, psp_reference
+            )
+
         amount = cls.clean_amount_value(
-            amount, type, psp_reference, transaction.currency
+            amount, type, initial_type, psp_reference, transaction.currency
         )
         app_identifier = None
         if app and app.identifier:
@@ -340,6 +354,7 @@ class TransactionEventReport(ModelMutation):
             "user": user,
             "include_in_calculations": True,
             "related_granted_refund": related_granted_refund,
+            "refund_or_cancel": refund_or_cancel,
         }
         transaction_event = cls.get_instance(info, **transaction_event_data)
         transaction_event = cast(payment_models.TransactionEvent, transaction_event)

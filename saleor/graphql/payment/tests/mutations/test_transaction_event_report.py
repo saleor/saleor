@@ -18,6 +18,7 @@ from .....order.models import Order
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
+from .....payment.utils import get_transaction_event_type_for_refund_or_cancel_report
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.utils import to_global_id_or_none
 from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
@@ -148,6 +149,7 @@ def test_transaction_event_report_by_app(
         type=TransactionEventType.CHARGE_SUCCESS
     ).first()
     assert event
+    assert event.refund_or_cancel is False
     assert event.psp_reference == psp_reference
     assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
     assert event.amount_value == amount
@@ -236,6 +238,7 @@ def test_transaction_event_report_by_app_via_token(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
+    assert event.refund_or_cancel is False
 
 
 def test_transaction_event_report_by_user(
@@ -309,6 +312,7 @@ def test_transaction_event_report_by_user(
     assert event.app_identifier is None
     assert event.app is None
     assert event.user == staff_api_client.user
+    assert event.refund_or_cancel is False
 
     transaction.refresh_from_db()
     assert transaction.available_actions == [TransactionActionEnum.CANCEL.value]
@@ -382,6 +386,7 @@ def test_transaction_event_report_by_another_user(
     assert event.app is None
     assert transaction.user != staff_api_client.user
     assert event.user == staff_api_client.user
+    assert event.refund_or_cancel is False
 
     transaction.refresh_from_db()
     assert transaction.available_actions == [TransactionActionEnum.CANCEL.value]
@@ -464,6 +469,7 @@ def test_transaction_event_report_amount_with_lot_of_decimal_places(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
+    assert event.refund_or_cancel is False
 
 
 def test_transaction_event_report_no_permission(
@@ -1934,6 +1940,7 @@ def test_transaction_event_report_with_info_event(
     assert event.transaction == transaction
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
+    assert event.refund_or_cancel is False
 
 
 def test_transaction_event_report_accepts_old_id_for_old_transaction(
@@ -2013,6 +2020,7 @@ def test_transaction_event_report_accepts_old_id_for_old_transaction(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
+    assert event.refund_or_cancel is False
 
 
 def test_transaction_event_report_doesnt_accept_old_id_for_new_transaction(
@@ -2793,6 +2801,7 @@ def test_transaction_event_report_missing_amount(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
+    assert event.refund_or_cancel is False
 
 
 @pytest.mark.parametrize(
@@ -2859,6 +2868,7 @@ def test_transaction_event_report_missing_amount_not_deduced_error_raised(
         event_type[0]
         for event_type in TransactionEventType.CHOICES
         if event_type[0] not in OPTIONAL_AMOUNT_EVENTS
+        and event_type[0] != TransactionEventType.REFUND_OR_CANCEL_FAILURE
     ],
 )
 def test_transaction_event_report_missing_amount_error_raised(
@@ -3001,6 +3011,7 @@ def test_transaction_event_report_update_transaction_metadata(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
+    assert event.refund_or_cancel is False
     transaction_item_metadata_updated_mock.assert_called_once_with(transaction)
 
 
@@ -3067,6 +3078,7 @@ def test_transaction_event_report_metadata_not_provided(
         type=TransactionEventType.CHARGE_SUCCESS
     ).first()
     assert event
+    assert event.refund_or_cancel is False
     assert event.psp_reference == psp_reference
     assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
     assert event.amount_value == amount
@@ -3140,6 +3152,7 @@ def test_transaction_event_report_update_transaction_private_metadata(
         type=TransactionEventType.CHARGE_SUCCESS
     ).first()
     assert event
+    assert event.refund_or_cancel is False
     assert event.psp_reference == psp_reference
     assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
     assert event.amount_value == amount
@@ -3149,3 +3162,238 @@ def test_transaction_event_report_update_transaction_private_metadata(
     assert event.app == app_api_client.app
     assert event.user is None
     transaction_item_metadata_updated_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [event_type for event_type in TransactionEventType.REFUND_OR_CANCEL_EVENT_TYPES],
+)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_transaction_event_type_for_refund_or_cancel_report",
+    wraps=get_transaction_event_type_for_refund_or_cancel_report,
+)
+def test_transaction_event_report_refund_or_cancel(
+    mocked_get_transaction_event_type_for_refund_or_cancel_report,
+    event_type,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, charged_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    amount = 10
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.upper(),
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert not transaction_report_data["errors"]
+
+    expected_event_type_map = {
+        TransactionEventType.REFUND_OR_CANCEL_REQUEST: TransactionEventType.REFUND_REQUEST,
+        TransactionEventType.REFUND_OR_CANCEL_SUCCESS: TransactionEventType.REFUND_SUCCESS,
+        TransactionEventType.REFUND_OR_CANCEL_FAILURE: TransactionEventType.REFUND_FAILURE,
+    }
+    event = TransactionEvent.objects.last()
+    assert event
+    assert event.refund_or_cancel is True
+    assert event.psp_reference == psp_reference
+    assert event.type == expected_event_type_map.get(event_type)
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None
+
+    mocked_get_transaction_event_type_for_refund_or_cancel_report.assert_called_once()
+
+
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_transaction_event_type_for_refund_or_cancel_report",
+    wraps=get_transaction_event_type_for_refund_or_cancel_report,
+)
+def test_transaction_event_report_refund_or_cancel_returns_existing_event(
+    mocked_get_transaction_event_type_for_refund_or_cancel_report,
+    transaction_item_generator,
+    transaction_events_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, charged_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    amount = 10
+    event_type = TransactionEventType.REFUND_OR_CANCEL_REQUEST
+    [refund_event] = transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            psp_reference,
+        ],
+        types=[
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            amount,
+        ],
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.upper(),
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert not transaction_report_data["errors"]
+
+    event = TransactionEvent.objects.last()
+    assert event == refund_event
+    assert event.refund_or_cancel is False
+    assert event.psp_reference == psp_reference
+    assert event.type == refund_event.type
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+
+    mocked_get_transaction_event_type_for_refund_or_cancel_report.assert_called_once()
+
+
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_transaction_event_type_for_refund_or_cancel_report",
+    wraps=get_transaction_event_type_for_refund_or_cancel_report,
+)
+def test_transaction_event_report_refund_or_cancel_missing_amount(
+    mocked_get_transaction_event_type_for_refund_or_cancel_report,
+    transaction_item_generator,
+    transaction_events_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, charged_value=Decimal("10")
+    )
+    psp_reference = "111-abc"
+    amount = 10
+    event_type = TransactionEventType.REFUND_OR_CANCEL_FAILURE
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            psp_reference,
+        ],
+        types=[
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            amount,
+        ],
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": event_type.upper(),
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert not transaction_report_data["errors"]
+
+    event = TransactionEvent.objects.last()
+    assert event
+    assert event.refund_or_cancel is True
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventType.REFUND_FAILURE
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.transaction == transaction
+
+    mocked_get_transaction_event_type_for_refund_or_cancel_report.assert_called_once()
