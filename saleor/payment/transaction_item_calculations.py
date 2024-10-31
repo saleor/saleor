@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from decimal import Decimal
 from typing import Optional, cast
 
@@ -268,6 +268,7 @@ def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
     events_without_authorize: list[TransactionEvent] = [
         event for event in events if event.type not in AUTHORIZATION_EVENTS
     ]
+    refund_or_cancel_events_to_update = []
 
     for event in authorize_events:
         psp_reference = event.psp_reference
@@ -286,7 +287,18 @@ def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
         psp_reference = event.psp_reference
         if not psp_reference:
             event_map.without_psp_reference.append(event)
-        elif event.type == TransactionEventType.CHARGE_REQUEST:
+            continue
+
+        # Re-evaluate refund or cancel event types to check if any new refund/cancel
+        # events have occurred in the meantime, which could alter the deduced event
+        # type.
+        if event.refund_or_cancel is True:
+            event_type = _re_evaluate_refund_or_cancel_event_types(event, event_map)
+            if event_type != event.type:
+                event.type = event_type
+                refund_or_cancel_events_to_update.append(event)
+
+        if event.type == TransactionEventType.CHARGE_REQUEST:
             event_map.charge[psp_reference].request = event
         elif event.type == TransactionEventType.CHARGE_SUCCESS:
             event_map.charge[psp_reference].success = event
@@ -311,7 +323,59 @@ def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
         elif event.type == TransactionEventType.CANCEL_FAILURE:
             event_map.cancel[psp_reference].failure = event
 
+    if refund_or_cancel_events_to_update:
+        TransactionEvent.objects.bulk_update(
+            refund_or_cancel_events_to_update, ["type"]
+        )
+
     return event_map
+
+
+def _re_evaluate_refund_or_cancel_event_types(
+    event: TransactionEvent, action_map: ActionEventMap
+):
+    """Re-evaluates the type of an event based on the the previous events.
+
+    If any event of the REFUND type is found, return the corresponding REFUND event type.
+    If any event of the CANCEL type is found, return the corresponding CANCEL event type.
+    """
+
+    psp_reference = event.psp_reference
+    if not psp_reference:
+        return event.type
+    refund_events = action_map.refund[psp_reference]
+    refund_event_exists = any(
+        getattr(refund_events, refund_field.name)
+        for refund_field in fields(RefundEvents)
+    )
+    cancel_events = action_map.cancel[psp_reference]
+    cancel_event_exists = any(
+        getattr(cancel_events, cancel_field.name)
+        for cancel_field in fields(CancelEvents)
+    )
+    cancel_to_refund_event_map = {
+        TransactionEventType.CANCEL_REQUEST: TransactionEventType.REFUND_REQUEST,
+        TransactionEventType.CANCEL_SUCCESS: TransactionEventType.REFUND_SUCCESS,
+        TransactionEventType.CANCEL_FAILURE: TransactionEventType.REFUND_FAILURE,
+    }
+    refund_to_cancel_event_map = {
+        TransactionEventType.REFUND_REQUEST: TransactionEventType.CANCEL_REQUEST,
+        TransactionEventType.REFUND_SUCCESS: TransactionEventType.CANCEL_SUCCESS,
+        TransactionEventType.REFUND_FAILURE: TransactionEventType.CANCEL_FAILURE,
+    }
+    # TODO: consider also charge events
+    if (
+        refund_event_exists
+        and event.type in TransactionEventType.CANCEL_RELATED_EVENT_TYPES
+    ):
+        return cancel_to_refund_event_map[event.type]
+    elif (
+        cancel_event_exists
+        and event.type in TransactionEventType.REFUND_RELATED_EVENT_TYPES
+    ):
+        return refund_to_cancel_event_map[event.type]
+
+    return event.type
 
 
 def _set_transaction_amounts_to_zero(transaction: TransactionItem):

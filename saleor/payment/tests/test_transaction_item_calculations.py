@@ -2,12 +2,13 @@ import datetime
 from datetime import timedelta
 from decimal import Decimal
 
+import pytest
 import pytz
 from django.utils import timezone
 from freezegun import freeze_time
 
 from .. import TransactionEventType
-from ..models import TransactionItem
+from ..models import TransactionEvent, TransactionItem
 from ..transaction_item_calculations import recalculate_transaction_amounts
 
 
@@ -1666,3 +1667,124 @@ def test_recalculate_transaction_amounts_updates_transaction_modified_at(
     # then
     transaction.refresh_from_db()
     assert transaction.modified_at == calculation_time
+
+
+def test_with_refund_or_cancel_success_event(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+    refunded_value = Decimal("11.00")
+    event_type = TransactionEventType.REFUND_SUCCESS
+    events = transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            "1",
+        ],
+        types=[
+            event_type,
+        ],
+        amounts=[
+            refunded_value,
+        ],
+    )
+    event = events[0]
+    event.refund_or_cancel = True
+    event.save(update_fields=["refund_or_cancel"])
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    transaction.refresh_from_db()
+    _assert_amounts(
+        transaction, charged_value=-refunded_value, refunded_value=refunded_value
+    )
+    event.refresh_from_db()
+    assert event.type == event_type
+    assert event.refund_or_cancel is True
+
+
+@pytest.mark.parametrize(
+    (
+        "refund_or_cancel_event_type",
+        "previous_event_type",
+        "expected_event_type",
+        "expected_amounts",
+    ),
+    [
+        (
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.CANCEL_SUCCESS,
+            {"canceled_value": Decimal("11.00")},
+        ),
+        (
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.CANCEL_FAILURE,
+            {},
+        ),
+        (
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.CANCEL_REQUEST,
+            {"cancel_pending_value": Decimal("11.00")},
+        ),
+        (
+            TransactionEventType.CANCEL_SUCCESS,
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.REFUND_SUCCESS,
+            {"refunded_value": Decimal("11.00"), "charged_value": -Decimal("11.0")},
+        ),
+        (
+            TransactionEventType.CANCEL_FAILURE,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_FAILURE,
+            {},
+        ),
+        (
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_REQUEST,
+            {
+                "refund_pending_value": Decimal("11.00"),
+                "charged_value": -Decimal("11.0"),
+            },
+        ),
+    ],
+)
+def test_with_refund_or_cancel_event_type_changed(
+    refund_or_cancel_event_type,
+    previous_event_type,
+    expected_event_type,
+    expected_amounts,
+    transaction_item_generator,
+    transaction_events_generator,
+):
+    # given
+    transaction = transaction_item_generator()
+    amount = Decimal("11.00")
+    events = transaction_events_generator(
+        transaction=transaction,
+        psp_references=["1", "1"],
+        types=[refund_or_cancel_event_type, previous_event_type],
+        amounts=[amount, amount],
+    )
+    refund_or_cancel_event, previous_event = events
+    refund_or_cancel_event.refund_or_cancel = True
+    previous_event.created_at = timezone.now() - timedelta(minutes=1)
+
+    TransactionEvent.objects.bulk_update(
+        [refund_or_cancel_event, previous_event], ["refund_or_cancel", "created_at"]
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    transaction.refresh_from_db()
+    refund_or_cancel_event.refresh_from_db()
+    assert refund_or_cancel_event.type == expected_event_type
+    assert refund_or_cancel_event.refund_or_cancel is True
+    _assert_amounts(transaction, **expected_amounts)
