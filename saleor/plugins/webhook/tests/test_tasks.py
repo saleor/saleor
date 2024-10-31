@@ -889,6 +889,108 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     assert success_event.created_at == timezone.now()
     assert success_event.external_url == ""
     assert success_event.message == ""
+    assert success_event.refund_or_cancel is False
+
+    mocked_post_request.assert_called_once_with(
+        "POST",
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
+    )
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch.object(HTTPSession, "request")
+def test_handle_transaction_request_task_with_cancel_or_refund_result_event(
+    mocked_post_request,
+    transaction_item_generator,
+    permission_manage_payments,
+    staff_user,
+    mocked_webhook_response,
+    app,
+):
+    # given
+    transaction = transaction_item_generator()
+    request_psp_reference = "psp:123:111"
+    event_amount = 12.0
+    event_type = TransactionEventType.REFUND_OR_CANCEL_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_payload = {
+        "pspReference": request_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+    }
+    mocked_webhook_response.text = json.dumps(response_payload)
+    mocked_webhook_response.content = json.dumps(response_payload)
+    mocked_post_request.return_value = mocked_webhook_response
+
+    target_url = "http://localhost:3000/"
+
+    request_event = transaction.events.create(
+        type=TransactionEventType.REFUND_REQUEST, psp_reference=request_psp_reference
+    )
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url=target_url,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
+    event_amount = Decimal(event_amount)
+    transaction_data = TransactionActionData(
+        transaction=transaction,
+        action_type="refund",
+        action_value=event_amount,
+        event=request_event,
+        transaction_app_owner=app,
+    )
+
+    payload = generate_transaction_action_request_payload(transaction_data, staff_user)
+    event_payload = EventPayload.objects.create_with_payload_file(payload)
+    delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+        payload=event_payload,
+        webhook=webhook,
+    )
+
+    # when
+    handle_transaction_request_task(delivery.id, transaction_data.event.id)
+
+    # then
+    assert TransactionEvent.objects.all().count() == 2
+    assert (
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_REQUEST
+        ).count()
+        == 1
+    )
+    assert (
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.REFUND_SUCCESS
+        ).count()
+        == 1
+    )
+    success_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_SUCCESS
+    ).first()
+    assert success_event
+    assert success_event.psp_reference == request_psp_reference
+    assert success_event.amount_value == event_amount
+    assert success_event.created_at.isoformat() == event_time
+    assert success_event.external_url == event_url
+    assert success_event.message == event_cause
+    assert success_event.refund_or_cancel is True
 
     mocked_post_request.assert_called_once_with(
         "POST",
