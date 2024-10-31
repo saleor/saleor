@@ -2,7 +2,8 @@ import datetime
 import json
 import logging
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Optional
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Callable, Optional
 from urllib.parse import urlparse
 
 from celery import group
@@ -46,6 +47,137 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(f"{__name__}.celery")
 
 OBSERVABILITY_QUEUE_NAME = "observability"
+MAX_WEBHOOK_EVENTS_IN_DB_BULK = 100
+
+
+@dataclass
+class WebhookPayloadData:
+    subscribable_object: Any
+    legacy_data_generator: Optional[Callable[[], str]] = None
+    data: Optional[str] = (
+        None  # deprecated, legacy_data_generator should be used instead
+    )
+
+
+def create_deliveries_for_multiple_subscription_objects(
+    event_type,
+    subscribable_objects,
+    webhooks,
+    requestor=None,
+    allow_replica=False,
+    pre_save_payloads: Optional[dict] = None,
+    request_time: Optional[datetime.datetime] = None,
+) -> list[EventDelivery]:
+    """Create event deliveries with payloads based on multiple subscription objects.
+
+    Trigger webhooks for each object in `subscribable_objects`. EventDeliveries and
+    their related objects will be created in bulk.
+
+    It uses a subscription query, defined for webhook to explicitly determine
+    what fields should be included in the payload.
+
+    :param event_type: event type which should be triggered.
+    :param subscribable_objects: subscribable objects to process via subscription query.
+    :param webhooks: sequence of async webhooks.
+    :param requestor: used in subscription webhooks to generate meta data for payload.
+    :return: List of event deliveries to send via webhook tasks.
+    :param allow_replica: use replica database.
+    """
+    if event_type not in WEBHOOK_TYPES_MAP:
+        logger.info(
+            "Skipping subscription webhook. Event %s is not subscribable.", event_type
+        )
+        return []
+
+    event_payloads = []
+    event_payloads_data = []
+    event_deliveries = []
+    event_deliveries_for_bulk_update = []
+
+    for subscribable_object in subscribable_objects:
+        # Dataloaders are shared between calls to generate_payload_from_subscription to
+        # reuse their cache. This avoids unnecessary DB queries when different webhooks
+        # need to resolve the same data.
+        dataloaders: dict[str, type[DataLoader]] = {}
+
+        request = initialize_request(
+            requestor,
+            event_type in WebhookEventSyncType.ALL,
+            event_type=event_type,
+            allow_replica=allow_replica,
+            request_time=request_time,
+            dataloaders=dataloaders,
+        )
+
+        for webhook in webhooks:
+            data = generate_payload_from_subscription(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                subscription_query=webhook.subscription_query,
+                request=request,
+                app=webhook.app,
+            )
+
+            if not data:
+                logger.info(
+                    "No payload was generated with subscription for event: %s",
+                    event_type,
+                )
+                continue
+
+            if (
+                settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
+                and pre_save_payloads
+            ):
+                key = get_pre_save_payload_key(webhook, subscribable_object)
+                pre_save_payload = pre_save_payloads.get(key)
+                if pre_save_payload and pre_save_payload == data:
+                    logger.info(
+                        "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
+                        webhook.id,
+                        event_type,
+                        webhook.target_url,
+                    )
+                    continue
+
+            payload_data = json.dumps({**data})
+            event_payloads_data.append(payload_data)
+            event_payload = EventPayload()
+            event_payloads.append(event_payload)
+            event_delivery = EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
+            event_deliveries_for_bulk_update.append(event_delivery)
+
+            if len(event_deliveries_for_bulk_update) > MAX_WEBHOOK_EVENTS_IN_DB_BULK:
+                with allow_writer():
+                    # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+                    with transaction.atomic():
+                        EventPayload.objects.bulk_create_with_payload_files(
+                            event_payloads, event_payloads_data
+                        )
+                        event_deliveries.extend(
+                            EventDelivery.objects.bulk_create(
+                                event_deliveries_for_bulk_update
+                            )
+                        )
+                event_payloads = []
+                event_payloads_data = []
+                event_deliveries_for_bulk_update = []
+
+    with allow_writer():
+        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+        with transaction.atomic():
+            EventPayload.objects.bulk_create_with_payload_files(
+                event_payloads, event_payloads_data
+            )
+            event_deliveries.extend(
+                EventDelivery.objects.bulk_create(event_deliveries_for_bulk_update)
+            )
+        return event_deliveries
 
 
 def create_deliveries_for_subscriptions(
@@ -69,80 +201,15 @@ def create_deliveries_for_subscriptions(
     :return: List of event deliveries to send via webhook tasks.
     :param allow_replica: use replica database.
     """
-    if event_type not in WEBHOOK_TYPES_MAP:
-        logger.info(
-            "Skipping subscription webhook. Event %s is not subscribable.", event_type
-        )
-        return []
-
-    event_payloads = []
-    event_payloads_data = []
-    event_deliveries = []
-
-    # Dataloaders are shared between calls to generate_payload_from_subscription to
-    # reuse their cache. This avoids unnecessary DB queries when different webhooks
-    # need to resolve the same data.
-    dataloaders: dict[str, type[DataLoader]] = {}
-
-    request = initialize_request(
+    return create_deliveries_for_multiple_subscription_objects(
+        event_type,
+        [subscribable_object],
+        webhooks,
         requestor,
-        event_type in WebhookEventSyncType.ALL,
-        event_type=event_type,
-        allow_replica=allow_replica,
-        request_time=request_time,
-        dataloaders=dataloaders,
+        allow_replica,
+        pre_save_payloads,
+        request_time,
     )
-
-    for webhook in webhooks:
-        data = generate_payload_from_subscription(
-            event_type=event_type,
-            subscribable_object=subscribable_object,
-            subscription_query=webhook.subscription_query,
-            request=request,
-            app=webhook.app,
-        )
-
-        if not data:
-            logger.info(
-                "No payload was generated with subscription for event: %s", event_type
-            )
-            continue
-
-        if (
-            settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS
-            and pre_save_payloads
-        ):
-            key = get_pre_save_payload_key(webhook, subscribable_object)
-            pre_save_payload = pre_save_payloads.get(key)
-            if pre_save_payload and pre_save_payload == data:
-                logger.info(
-                    "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
-                    webhook.id,
-                    event_type,
-                    webhook.target_url,
-                )
-                continue
-
-        payload_data = json.dumps({**data})
-        event_payloads_data.append(payload_data)
-        event_payload = EventPayload()
-        event_payloads.append(event_payload)
-        event_deliveries.append(
-            EventDelivery(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
-        )
-
-    with allow_writer():
-        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-        with transaction.atomic():
-            EventPayload.objects.bulk_create_with_payload_files(
-                event_payloads, event_payloads_data
-            )
-            return EventDelivery.objects.bulk_create(event_deliveries)
 
 
 def group_webhooks_by_subscription(webhooks):
@@ -182,6 +249,78 @@ def get_queue_name_for_webhook(webhook, default_queue):
     )
 
 
+def trigger_webhooks_async_for_multiple_objects(
+    event_type,
+    webhooks,
+    webhook_payloads_data: list[WebhookPayloadData],
+    requestor=None,
+    allow_replica=False,
+    pre_save_payloads=None,
+    request_time=None,
+    queue=None,
+):
+    """Trigger async webhooks (regular and subscription) for each object in the list.
+
+    :param event_type: used in both webhook types as event type.
+    :param webhooks: used in both webhook types, queryset of async webhooks.
+    :param webhook_payloads_data: list of webhook payload data, required to generate
+    the payload.
+    :param requestor: used in subscription webhooks to generate metadata for payload.
+    :param allow_replica: use a replica database.
+    :param queue: defines the queue to which the event should be sent.
+    """
+    regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
+    deliveries = []
+    for webhook_payload_detail in webhook_payloads_data:
+        if regular_webhooks:
+            data = webhook_payload_detail.data
+            if webhook_payload_detail.legacy_data_generator:
+                data = webhook_payload_detail.legacy_data_generator()
+            elif data is None:
+                raise NotImplementedError(
+                    "No payload was provided for regular webhooks."
+                )
+
+            with allow_writer():
+                # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+                with transaction.atomic():
+                    payload = EventPayload.objects.create_with_payload_file(data)
+                    deliveries.extend(
+                        create_event_delivery_list_for_webhooks(
+                            webhooks=regular_webhooks,
+                            event_payload=payload,
+                            event_type=event_type,
+                        )
+                    )
+
+    if subscription_webhooks:
+        deliveries.extend(
+            create_deliveries_for_multiple_subscription_objects(
+                event_type=event_type,
+                subscribable_objects=[
+                    webhook_payload_data.subscribable_object
+                    for webhook_payload_data in webhook_payloads_data
+                ],
+                webhooks=subscription_webhooks,
+                requestor=requestor,
+                allow_replica=allow_replica,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
+            )
+        )
+    for delivery in deliveries:
+        send_webhook_request_async.apply_async(
+            kwargs={"event_delivery_id": delivery.id},
+            queue=get_queue_name_for_webhook(
+                delivery.webhook,
+                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            ),
+            bind=True,
+            retry_backoff=10,
+            retry_kwargs={"max_retries": 5},
+        )
+
+
 def trigger_webhooks_async(
     data,  # deprecated, legacy_data_generator should be used instead
     event_type,
@@ -207,48 +346,22 @@ def trigger_webhooks_async(
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
     """
-    regular_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
-    deliveries = []
-    if regular_webhooks:
-        if legacy_data_generator:
-            data = legacy_data_generator()
-        elif data is None:
-            raise NotImplementedError("No payload was provided for regular webhooks.")
-
-        with allow_writer():
-            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-            with transaction.atomic():
-                payload = EventPayload.objects.create_with_payload_file(data)
-                deliveries.extend(
-                    create_event_delivery_list_for_webhooks(
-                        webhooks=regular_webhooks,
-                        event_payload=payload,
-                        event_type=event_type,
-                    )
-                )
-    if subscription_webhooks:
-        deliveries.extend(
-            create_deliveries_for_subscriptions(
-                event_type=event_type,
+    trigger_webhooks_async_for_multiple_objects(
+        event_type=event_type,
+        webhooks=webhooks,
+        webhook_payloads_data=[
+            WebhookPayloadData(
                 subscribable_object=subscribable_object,
-                webhooks=subscription_webhooks,
-                requestor=requestor,
-                allow_replica=allow_replica,
-                pre_save_payloads=pre_save_payloads,
-                request_time=request_time,
+                legacy_data_generator=legacy_data_generator,
+                data=data,
             )
-        )
-    for delivery in deliveries:
-        send_webhook_request_async.apply_async(
-            kwargs={"event_delivery_id": delivery.id},
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            bind=True,
-            retry_backoff=10,
-            retry_kwargs={"max_retries": 5},
-        )
+        ],
+        requestor=requestor,
+        allow_replica=allow_replica,
+        pre_save_payloads=pre_save_payloads,
+        request_time=request_time,
+        queue=queue,
+    )
 
 
 @app.task(

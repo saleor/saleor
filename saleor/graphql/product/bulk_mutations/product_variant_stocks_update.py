@@ -123,10 +123,10 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
-            cls.call_event(
-                manager.product_variant_stock_updated,
-                stock,
-                webhooks=webhooks_stock_update,
-            )
+        cls.call_event(
+            manager.product_variant_stocks_updated,
+            stocks,
+            webhooks=webhooks_stock_update,
+        )
 
         warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])

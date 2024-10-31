@@ -908,12 +908,12 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_stock_updated(self, stock: "Stock", webhooks=None):
+    def product_variant_stocks_updated(self, stocks: list["Stock"], webhooks=None):
         default_value = None
         self.__run_method_on_plugins(
-            "product_variant_stock_updated",
+            "product_variant_stocks_updated",
             default_value,
-            stock,
+            stocks,
             webhooks=webhooks,
             channel_slug=None,
         )
