@@ -11,19 +11,33 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name="checkoutline",
-            name="undiscounted_unit_price_amount",
-            field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
-            ),
-        ),
-        migrations.RunSQL(
-            """
-            ALTER TABLE checkout_checkoutline
-            ALTER COLUMN undiscounted_unit_price_amount
-            SET DEFAULT 0;
-            """,
-            migrations.RunSQL.noop,
-        ),
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name="checkoutline",
+                    name="undiscounted_unit_price_amount",
+                    field=models.DecimalField(
+                        decimal_places=3, default=Decimal("0"), max_digits=12
+                    ),
+                ),
+            ],
+            database_operations=[
+                migrations.RunSQL(
+                    """
+                    ALTER TABLE checkout_checkoutline
+                    ALTER COLUMN undiscounted_unit_price_amount
+                    SET DEFAULT 0;
+                    """,
+                    migrations.RunSQL.noop,
+                ),
+                migrations.RunSQL(
+                    """
+                    ALTER TABLE checkout_checkoutline
+                    ALTER COLUMN undiscounted_unit_price_amount
+                    SET NOT NULL;
+                    """,
+                    migrations.RunSQL.noop,
+                ),
+            ],
+        )
     ]
