@@ -326,15 +326,17 @@ def _generate_deferred_payload(
 ):
     args_obj = DeferredPayloadData(**payload_args)
     requestor = None
-    if args_obj.requestor_model_id and args_obj.requestor_model_name in (
+    if args_obj.requestor_object_id and args_obj.requestor_model_name in (
         RequestorModelName.APP,
         RequestorModelName.USER,
     ):
         model = apps.get_model(args_obj.requestor_model_name)
-        requestor = model.objects.filter(pk=args_obj.requestor_model_id).first()
+        requestor = model.objects.filter(pk=args_obj.requestor_object_id).first()
 
     subscribable_object = (
-        apps.get_model(args_obj.model_name).objects.filter(pk=args_obj.model_id).first()
+        apps.get_model(args_obj.model_name)
+        .objects.filter(pk=args_obj.object_id)
+        .first()
     )
     if not subscribable_object:
         logger_obj.warning(
@@ -345,7 +347,7 @@ def _generate_deferred_payload(
             webhook.id,
             event_type,
             args_obj.model_name,
-            args_obj.model_id,
+            args_obj.object_id,
             delivery.id,
         )
 

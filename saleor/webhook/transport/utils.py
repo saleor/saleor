@@ -97,9 +97,9 @@ class RequestorModelName:
 @dataclass
 class DeferredPayloadData:
     model_name: str
-    model_id: Union[int, UUID]
+    object_id: Union[int, UUID]
     requestor_model_name: Optional[str]
-    requestor_model_id: Optional[Union[int, UUID]]
+    requestor_object_id: Optional[Union[int, UUID]]
     request_time: Optional[datetime.datetime]
 
 
@@ -115,10 +115,10 @@ def prepare_deferred_payload_data(subscribable_object, requestor, request_time):
 
     payload_data_obj = DeferredPayloadData(
         model_name=model_name,
-        model_id=subscribable_object.pk,
+        object_id=subscribable_object.pk,
         request_time=request_time,
         requestor_model_name=requestor_model_name,
-        requestor_model_id=(requestor.pk if requestor else None),
+        requestor_object_id=(requestor.pk if requestor else None),
     )
     deferred_payload_data = asdict(payload_data_obj)
     return deferred_payload_data

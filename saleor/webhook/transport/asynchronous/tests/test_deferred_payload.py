@@ -8,6 +8,7 @@ import pytest
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....core import EventDeliveryStatus
 from ....event_types import WebhookEventAsyncType
 from ...utils import get_webhooks_for_event
 from ..transport import (
@@ -35,7 +36,7 @@ def fetch_kwargs(checkout_with_items, plugins_manager):
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
-def test_(
+def test_call_trigger_webhook_async_deferred_payload(
     mocked_send_webhook_request_async,
     checkout_with_item,
     setup_checkout_webhooks,
@@ -62,14 +63,52 @@ def test_(
     deferred_payload_data = call_kwargs["kwargs"]["deferred_payload_data"]
 
     assert deferred_payload_data["model_name"] == "checkout.checkout"
-    assert deferred_payload_data["model_id"] == checkout.pk
+    assert deferred_payload_data["object_id"] == checkout.pk
     assert deferred_payload_data["requestor_model_name"] == "account.user"
-    assert deferred_payload_data["requestor_model_id"] == staff_user.pk
+    assert deferred_payload_data["requestor_object_id"] == staff_user.pk
     assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.id
 
     assert delivery.event_type == event_type
     assert delivery.payload is None
     assert delivery.webhook == checkout_updated_webhook
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport._generate_deferred_payload"
+)
+def test_deferred_payload_returns_none(
+    mocked_generate_deferred_payload,
+    mocked_send_webhook_using_scheme_method,
+    checkout_with_item,
+    setup_checkout_webhooks,
+    staff_user,
+):
+    # given
+    mocked_generate_deferred_payload.return_value = None
+    checkout = checkout_with_item
+    event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
+    _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
+    webhooks = get_webhooks_for_event(event_type)
+
+    # when
+    trigger_webhooks_async(
+        data=None,
+        event_type=event_type,
+        webhooks=webhooks,
+        subscribable_object=checkout,
+        requestor=staff_user,
+    )
+
+    # then
+    assert mocked_generate_deferred_payload.called
+    delivery = checkout_updated_webhook.eventdelivery_set.first()
+    assert delivery.status == EventDeliveryStatus.FAILED
+    assert delivery.attempts.count() == 1
+    attempt = delivery.attempts.first()
+    assert attempt.status == EventDeliveryStatus.FAILED
 
 
 def test_generate_deferred_payload(
@@ -86,9 +125,9 @@ def test_generate_deferred_payload(
     webhooks = get_webhooks_for_event(event_type)
     payload_args = DeferredPayloadData(
         model_name="checkout.checkout",
-        model_id=checkout.pk,
+        object_id=checkout.pk,
         requestor_model_name="account.user",
-        requestor_model_id=staff_user.pk,
+        requestor_object_id=staff_user.pk,
         request_time=None,
     )
     delivery = create_deliveries_for_deferred_payload_events(
@@ -127,9 +166,9 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
     webhooks = get_webhooks_for_event(event_type)
     payload_args = DeferredPayloadData(
         model_name="checkout.checkout",
-        model_id=uuid.uuid4(),
+        object_id=uuid.uuid4(),
         requestor_model_name="account.user",
-        requestor_model_id=999999,
+        requestor_object_id=999999,
         request_time=None,
     )
     delivery = create_deliveries_for_deferred_payload_events(
