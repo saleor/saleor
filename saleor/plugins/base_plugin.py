@@ -286,7 +286,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    attribute_created: Callable[["Attribute", None], None]
+    attribute_created: Callable[["Attribute", None, None], None]
 
     # Trigger when attribute is deleted.
     #
@@ -1131,7 +1131,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    page_type_deleted: Callable[["PageType", Any], Any]
+    page_type_deleted: Callable[["PageType", Any, None], Any]
 
     # Trigger when page type is updated.
     #

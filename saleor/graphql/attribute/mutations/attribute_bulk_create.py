@@ -13,6 +13,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
@@ -542,8 +543,9 @@ class AttributeBulkCreate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info: ResolveInfo, attributes: list[models.Attribute]):
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.ATTRIBUTE_CREATED)
         for attribute in attributes:
-            cls.call_event(manager.attribute_created, attribute)
+            cls.call_event(manager.attribute_created, attribute, webhooks=webhooks)
 
     @classmethod
     @traced_atomic_transaction()

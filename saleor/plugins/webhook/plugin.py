@@ -453,11 +453,13 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
-    def attribute_created(self, attribute: "Attribute", previous_value: None) -> None:
+    def attribute_created(
+        self, attribute: "Attribute", previous_value: None, webhooks=None
+    ) -> None:
         if not self.active:
             return previous_value
         self._trigger_attribute_event(
-            WebhookEventAsyncType.ATTRIBUTE_CREATED, attribute
+            WebhookEventAsyncType.ATTRIBUTE_CREATED, attribute, webhooks=webhooks
         )
         return previous_value
 
@@ -2164,8 +2166,8 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
-    def _trigger_page_type_event(self, event_type, page_type):
-        if webhooks := get_webhooks_for_event(event_type):
+    def _trigger_page_type_event(self, event_type, page_type, webhooks=None):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             payload = self._serialize_payload(
                 {
                     "id": graphene.Node.to_global_id("PageType", page_type.id),
@@ -2194,11 +2196,13 @@ class WebhookPlugin(BasePlugin):
         )
         return previous_value
 
-    def page_type_deleted(self, page_type: "PageType", previous_value: None) -> None:
+    def page_type_deleted(
+        self, page_type: "PageType", previous_value: None, webhooks=None
+    ) -> None:
         if not self.active:
             return previous_value
         self._trigger_page_type_event(
-            WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type
+            WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type, webhooks=webhooks
         )
         return previous_value
 
@@ -2425,12 +2429,15 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def translation_created(
-        self, translation: "Translation", previous_value: None
+        self,
+        translation: "Translation",
+        previous_value: None,
+        webhooks=None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.TRANSLATION_CREATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             translation_data_generator = partial(
                 generate_translation_payload, translation, self.requestor
             )
@@ -2445,12 +2452,15 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def translation_updated(
-        self, translation: "Translation", previous_value: None
+        self,
+        translation: "Translation",
+        previous_value: None,
+        webhooks=None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
             translation_data_generator = partial(
                 generate_translation_payload, translation, self.requestor
             )
