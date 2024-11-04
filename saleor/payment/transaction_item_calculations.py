@@ -343,6 +343,11 @@ def _re_evaluate_refund_or_cancel_event_types(
     psp_reference = event.psp_reference
     if not psp_reference:
         return event.type
+    charge_events = action_map.charge[psp_reference]
+    charge_event_exists = any(
+        getattr(charge_events, charge_field.name)
+        for charge_field in fields(ChargeEvents)
+    )
     refund_events = action_map.refund[psp_reference]
     refund_event_exists = any(
         getattr(refund_events, refund_field.name)
@@ -363,11 +368,9 @@ def _re_evaluate_refund_or_cancel_event_types(
         TransactionEventType.REFUND_SUCCESS: TransactionEventType.CANCEL_SUCCESS,
         TransactionEventType.REFUND_FAILURE: TransactionEventType.CANCEL_FAILURE,
     }
-    # TODO: consider also charge events
     if (
-        refund_event_exists
-        and event.type in TransactionEventType.CANCEL_RELATED_EVENT_TYPES
-    ):
+        refund_event_exists or charge_event_exists
+    ) and event.type in TransactionEventType.CANCEL_RELATED_EVENT_TYPES:
         return cancel_to_refund_event_map[event.type]
     elif (
         cancel_event_exists
