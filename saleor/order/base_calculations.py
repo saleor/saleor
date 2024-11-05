@@ -198,6 +198,7 @@ def apply_order_discounts(
         )
         subtotal_discount = base_subtotal - subtotal
         apply_subtotal_discount_to_order_lines(lines, base_subtotal, subtotal_discount)
+        update_unit_discount_reason_with_order_level_discounts(lines, order)
 
     return subtotal, shipping_price
 
@@ -299,13 +300,33 @@ def assign_order_line_prices(line: "OrderLine", total_price: Money):
 
     quantity = line.quantity
     if quantity > 0:
-        unit_price = total_price / quantity
-        line.unit_price_net = unit_price
-        line.unit_price_gross = unit_price
+        unit_price = total_price.amount / quantity
+        line.unit_price_net_amount = unit_price
+        line.unit_price_gross_amount = unit_price
 
         undiscounted_unit_price = line.undiscounted_total_price_net_amount / quantity
         line.undiscounted_unit_price_net_amount = undiscounted_unit_price
         line.undiscounted_unit_price_gross_amount = undiscounted_unit_price
+
+        if not line.is_gift:
+            unit_discount = quantize_price(
+                undiscounted_unit_price - unit_price, currency
+            )
+            line.unit_discount_amount = unit_discount
+
+
+def update_unit_discount_reason_with_order_level_discounts(
+    lines: Iterable["OrderLine"], order: "Order"
+):
+    order_level_discounts_reason = ", ".join(
+        discount.reason for discount in order.discounts.all() if discount.reason
+    )
+    for line in lines:
+        line.unit_discount_reason = ", ".join(
+            reason
+            for reason in [line.unit_discount_reason, order_level_discounts_reason]
+            if reason
+        )
 
 
 def assign_order_prices(
