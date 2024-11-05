@@ -922,6 +922,30 @@ class PluginsManager(PaymentInterface):
             channel_slug=None,
         )
 
+        # To keep the compatibility with previous plugin method name, as a fallback
+        # we call the method for single stock update.
+        plugin_ids_with_previous_event = []
+        previous_plugin_method_name = "product_variant_stock_updated"
+        plugins = self.get_plugins(
+            active_only=True,
+        )
+        for plugin in plugins:
+            plugin_method = getattr(plugin, previous_plugin_method_name, NotImplemented)
+            if plugin_method == NotImplemented:
+                continue
+            plugin_ids_with_previous_event.append(plugin.PLUGIN_ID)
+
+        if plugin_ids_with_previous_event:
+            for stock in stocks:
+                self.__run_method_on_plugins(
+                    previous_plugin_method_name,
+                    default_value,
+                    stock,
+                    webhooks=webhooks,
+                    channel_slug=None,
+                    plugin_ids=plugin_ids_with_previous_event,
+                )
+
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
     def product_variant_metadata_updated(self, product_variant: "ProductVariant"):
