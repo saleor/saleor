@@ -48,6 +48,7 @@ from ..tests.sample_plugins import (
     PluginSample,
     sample_tax_data,
 )
+from ..webhook.plugin import WebhookPlugin
 
 
 def test_get_plugins_manager(settings):
@@ -644,6 +645,28 @@ def test_manager_sale_toggle(promotion_converted_from_sale):
 
     assert promotion == promotion_returned
     assert current_catalogue == current_catalogue_returned
+
+
+@patch.object(PluginSample, "product_variant_stock_updated")
+@patch.object(WebhookPlugin, "product_variant_stocks_updated")
+def test_manager_with_fallback_to_previous_method_name(
+    mocked_stocks_updated, mocked_stock_updated, stock
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+
+    # when
+    PluginsManager(plugins=plugins).product_variant_stocks_updated([stock])
+    # then
+    mocked_stocks_updated.assert_called_once_with(
+        [stock], previous_value=None, webhooks=None
+    )
+    mocked_stock_updated.assert_called_once_with(
+        stock, previous_value=None, webhooks=None
+    )
 
 
 def test_manager_get_plugin_configuration(plugin_configuration):

@@ -1358,7 +1358,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_stock_updated: Callable[["Stock", None, None], Any]
+    product_variant_stocks_updated: Callable[[list["Stock"], None, None], Any]
 
     # Trigger when a product export is completed.
     #
