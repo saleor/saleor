@@ -1336,6 +1336,7 @@ def async_subscription_webhooks_with_root_objects(
     menu_item,
     shipping_method,
     product,
+    variant,
     fulfilled_order,
     fulfillment,
     stock,
@@ -1495,11 +1496,11 @@ def async_subscription_webhooks_with_root_objects(
         ],
         events.PRODUCT_VARIANT_CREATED: [
             subscription_product_variant_created_webhook,
-            product,
+            variant,
         ],
         events.PRODUCT_VARIANT_UPDATED: [
             subscription_product_variant_updated_webhook,
-            product,
+            variant,
         ],
         events.PRODUCT_VARIANT_OUT_OF_STOCK: [
             subscription_product_variant_out_of_stock_webhook,
@@ -1511,11 +1512,11 @@ def async_subscription_webhooks_with_root_objects(
         ],
         events.PRODUCT_VARIANT_DELETED: [
             subscription_product_variant_deleted_webhook,
-            product,
+            variant,
         ],
         events.PRODUCT_VARIANT_METADATA_UPDATED: [
             subscription_product_variant_metadata_updated_webhook,
-            product,
+            variant,
         ],
         events.SALE_CREATED: [
             subscription_sale_created_webhook,
