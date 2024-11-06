@@ -2579,7 +2579,8 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
     # given
     assert voucher.type == VoucherType.ENTIRE_ORDER
     voucher.discount_value_type = DiscountValueType.PERCENTAGE
-    voucher.save(update_fields=["discount_value_type"])
+    voucher.name = "Voucher name"
+    voucher.save(update_fields=["discount_value_type", "name"])
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -2589,9 +2590,6 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
     discount_value = Decimal("50")
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher name"
-    voucher.save(update_fields=["name"])
 
     order.voucher = voucher
     code = voucher.codes.first().code
@@ -2699,7 +2697,8 @@ def test_fetch_order_prices_voucher_shipping_fixed(
     # given
     voucher.type = VoucherType.SHIPPING
     voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["type", "discount_value_type"])
+    voucher.name = "Voucher shipping"
+    voucher.save(update_fields=["type", "discount_value_type", "name"])
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -2709,9 +2708,6 @@ def test_fetch_order_prices_voucher_shipping_fixed(
     discount_value = Decimal("5")
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher shipping"
-    voucher.save(update_fields=["name"])
 
     order.voucher = voucher
     code = voucher.codes.first().code
@@ -2776,7 +2772,8 @@ def test_fetch_order_prices_voucher_shipping_percentage(
     # given
     voucher.type = VoucherType.SHIPPING
     voucher.discount_value_type = DiscountValueType.PERCENTAGE
-    voucher.save(update_fields=["type", "discount_value_type"])
+    voucher.name = "Voucher shipping"
+    voucher.save(update_fields=["type", "discount_value_type", "name"])
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -2786,9 +2783,6 @@ def test_fetch_order_prices_voucher_shipping_percentage(
     discount_value = Decimal("50")
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher shipping"
-    voucher.save(update_fields=["name"])
 
     order.voucher = voucher
     code = voucher.codes.first().code

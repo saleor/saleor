@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -8,7 +9,7 @@ from prices import TaxedMoney
 from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
 from ...order.base_calculations import base_order_subtotal
-from ...order.models import Order
+from ...order.models import Order, OrderLine
 from ...order.utils import get_order_country
 from .. import DiscountType
 from ..models import (
@@ -21,7 +22,7 @@ from .promotion import (
     delete_gift_line,
     prepare_line_discount_objects_for_catalogue_promotions,
 )
-from .shared import update_line_info_cached_discounts
+from .shared import is_order_level_discount, update_line_info_cached_discounts
 from .voucher import create_or_update_discount_objects_from_voucher
 
 if TYPE_CHECKING:
@@ -251,3 +252,19 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
 
     if discount_to_update:
         OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
+
+
+def update_unit_discount_reason_with_order_level_discounts(
+    lines: Iterable[OrderLine], order: Order
+):
+    order_level_discounts_reason = ", ".join(
+        discount.reason
+        for discount in order.discounts.all()
+        if discount.reason and is_order_level_discount(discount)
+    )
+    for line in lines:
+        line.unit_discount_reason = ", ".join(
+            reason
+            for reason in [line.unit_discount_reason, order_level_discounts_reason]
+            if reason
+        )

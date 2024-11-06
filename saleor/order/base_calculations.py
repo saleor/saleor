@@ -174,6 +174,10 @@ def apply_order_discounts(
     assign_prices=True,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Money, Money]:
+    from ..discount.utils.order import (
+        update_unit_discount_reason_with_order_level_discounts,
+    )
+
     """Calculate prices after applying order level discounts.
 
     Handles manual discounts, ENTIRE_ORDER vouchers and ORDER_PROMOTION.
@@ -313,20 +317,6 @@ def assign_order_line_prices(line: "OrderLine", total_price: Money):
                 undiscounted_unit_price - unit_price, currency
             )
             line.unit_discount_amount = unit_discount
-
-
-def update_unit_discount_reason_with_order_level_discounts(
-    lines: Iterable["OrderLine"], order: "Order"
-):
-    order_level_discounts_reason = ", ".join(
-        discount.reason for discount in order.discounts.all() if discount.reason
-    )
-    for line in lines:
-        line.unit_discount_reason = ", ".join(
-            reason
-            for reason in [line.unit_discount_reason, order_level_discounts_reason]
-            if reason
-        )
 
 
 def assign_order_prices(

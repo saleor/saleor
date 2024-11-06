@@ -17,7 +17,10 @@ from ..core.taxes import (
     TaxError,
     zero_taxed_money,
 )
-from ..discount.utils.order import create_or_update_discount_objects_for_order
+from ..discount.utils.order import (
+    create_or_update_discount_objects_for_order,
+    update_unit_discount_reason_with_order_level_discounts,
+)
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
@@ -428,9 +431,18 @@ def _apply_tax_data(
         )
         undiscounted_subtotal += order_line.undiscounted_total_price
 
+        if not order_line.is_gift:
+            order_line.unit_discount_amount = quantize_price(
+                order_line.undiscounted_unit_price_net_amount
+                - order_line.unit_price_net_amount,
+                currency,
+            )
+
     order.subtotal = subtotal
     order.total = shipping_price + subtotal
     order.undiscounted_total = undiscounted_shipping_price + undiscounted_subtotal
+
+    update_unit_discount_reason_with_order_level_discounts(lines, order)
 
 
 def _remove_tax(order, lines):
