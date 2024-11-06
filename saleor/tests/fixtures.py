@@ -575,6 +575,9 @@ def checkout_with_item_and_gift_promotion(checkout_with_item, gift_promotion_rul
     top_price, variant_id = max(
         variant_listings.values_list("discounted_price_amount", "variant")
     )
+    variant_listing = [
+        listing for listing in variant_listings if listing.variant_id == variant_id
+    ][0]
 
     line = CheckoutLine.objects.create(
         checkout=checkout_with_item,
@@ -582,6 +585,7 @@ def checkout_with_item_and_gift_promotion(checkout_with_item, gift_promotion_rul
         variant_id=variant_id,
         is_gift=True,
         currency="USD",
+        undiscounted_unit_price_amount=variant_listing.price_amount,
     )
 
     CheckoutLineDiscount.objects.create(
@@ -897,6 +901,15 @@ def checkout_with_shipping_address(checkout_with_variants, address):
 def checkout_with_variants_for_cc(
     checkout, stocks_for_cc, product_variant_list, product_with_two_variants
 ):
+    channel_listings_map = {
+        listing.variant_id: listing
+        for listing in ProductVariantChannelListing.objects.filter(
+            channel_id=checkout.channel_id,
+            variant__in=product_variant_list
+            + [product_with_two_variants.variants.last()],
+        )
+    }
+
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
@@ -904,18 +917,27 @@ def checkout_with_variants_for_cc(
                 variant=product_variant_list[0],
                 quantity=3,
                 currency="USD",
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[0].id
+                ).price_amount,
             ),
             CheckoutLine(
                 checkout=checkout,
                 variant=product_variant_list[1],
                 quantity=10,
                 currency="USD",
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[0].id
+                ).price_amount,
             ),
             CheckoutLine(
                 checkout=checkout,
                 variant=product_with_two_variants.variants.last(),
                 quantity=5,
                 currency="USD",
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[0].id
+                ).price_amount,
             ),
         ]
     )
@@ -4689,6 +4711,9 @@ def checkout_line_with_reservation_in_many_stocks(
     checkout_line = checkout.lines.create(
         variant=variant,
         quantity=3,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price_amount,
     )
 
     reserved_until = timezone.now() + timedelta(minutes=5)
@@ -4722,6 +4747,9 @@ def checkout_line_with_one_reservation(
     checkout_line = checkout.lines.create(
         variant=variant,
         quantity=2,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price_amount,
     )
 
     reserved_until = timezone.now() + timedelta(minutes=5)
@@ -8187,6 +8215,23 @@ def checkout_for_cc(channel_USD, customer_user):
 
 @pytest.fixture
 def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
+    (
+        ProductVariantChannelListing.objects.create(
+            variant=product_variant_list[2],
+            channel=checkout_for_cc.channel,
+            cost_price_amount=Decimal(1),
+            price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
+            currency=checkout_for_cc.channel.currency_code,
+        ),
+    )
+    channel_listings_map = {
+        listing.variant_id: listing
+        for listing in ProductVariantChannelListing.objects.filter(
+            channel_id=checkout_for_cc.channel_id, variant__in=product_variant_list
+        )
+    }
+
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
@@ -8194,18 +8239,27 @@ def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
                 variant=product_variant_list[0],
                 quantity=1,
                 currency=checkout_for_cc.currency,
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[0].id
+                ).price_amount,
             ),
             CheckoutLine(
                 checkout=checkout_for_cc,
                 variant=product_variant_list[1],
                 quantity=1,
                 currency=checkout_for_cc.currency,
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[1].id
+                ).price_amount,
             ),
             CheckoutLine(
                 checkout=checkout_for_cc,
                 variant=product_variant_list[2],
                 quantity=1,
                 currency=checkout_for_cc.currency,
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[2].id
+                ).price_amount,
             ),
         ]
     )
@@ -8215,12 +8269,27 @@ def checkout_with_items_for_cc(checkout_for_cc, product_variant_list):
 
 
 @pytest.fixture
+def checkout_with_line_without_listing(checkout_with_items):
+    line = checkout_with_items.lines.first()
+    line.quantity = 2
+    line.save()
+    line.variant.channel_listings.filter(
+        channel_id=checkout_with_items.channel_id
+    ).delete()
+    return checkout_with_items, line
+
+
+@pytest.fixture
 def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
+    listing = product_variant_list[0].channel_listings.get(
+        channel_id=checkout_for_cc.channel_id
+    )
     CheckoutLine.objects.create(
         checkout=checkout_for_cc,
         variant=product_variant_list[0],
         quantity=1,
         currency=checkout_for_cc.currency,
+        undiscounted_unit_price_amount=listing.price_amount,
     )
     return checkout_for_cc
 
