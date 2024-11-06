@@ -449,7 +449,7 @@ def test_expire_orders_task_do_not_call_sync_webhooks(
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "deferred_payload_data": {}},
+                kwargs={"event_delivery_id": delivery.id},
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
                 bind=True,
                 retry_backoff=10,
@@ -826,7 +826,6 @@ def test_send_order_updated(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_updated_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,

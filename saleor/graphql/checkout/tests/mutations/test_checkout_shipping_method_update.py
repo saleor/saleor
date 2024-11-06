@@ -17,7 +17,7 @@ from .....shipping import models as shipping_models
 from .....shipping.utils import convert_to_shipping_method_data
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
+from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -532,17 +532,8 @@ def test_checkout_shipping_method_update_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutShippingMethodUpdate"]["errors"]
 
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert wrapped_call_checkout_info_event.called
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 4
@@ -639,18 +630,8 @@ def test_checkout_shipping_method_update_external_shipping_triggers_webhooks(
     assert not content["data"]["checkoutShippingMethodUpdate"]["errors"]
 
     assert wrapped_call_checkout_info_event.called
-
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout, requestor=staff_api_client.user, request_time=None
-    )
     assert wrapped_call_checkout_info_event.called
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 5
@@ -732,18 +713,8 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     assert not content["data"]["checkoutShippingMethodUpdate"]["errors"]
 
     assert wrapped_call_checkout_info_event.called
-
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert wrapped_call_checkout_info_event.called
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3

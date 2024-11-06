@@ -24,7 +24,7 @@ from .....product.models import ProductChannelListing
 from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
+from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
@@ -1419,18 +1419,8 @@ def test_checkout_lines_update_triggers_webhooks(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutLinesUpdate"]["errors"]
-
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert wrapped_call_checkout_info_event.called
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3

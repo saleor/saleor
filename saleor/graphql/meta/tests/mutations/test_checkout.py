@@ -10,7 +10,7 @@ from .....checkout.actions import call_checkout_events
 from .....core.models import EventDelivery
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
+from .....webhook.transport.utils import WebhookResponse
 from . import PRIVATE_KEY, PRIVATE_VALUE, PUBLIC_KEY, PUBLIC_VALUE
 from .test_delete_metadata import (
     execute_clear_public_metadata_for_item,
@@ -408,18 +408,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 
     # then
     assert response["data"]["updateMetadata"]["errors"] == []
-
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout, requestor=None, request_time=None
-    )
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
-
     # confirm each sync webhook con was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(
@@ -498,7 +487,6 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": checkout_metadata_updated_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=None,
         bind=True,

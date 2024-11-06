@@ -2324,7 +2324,6 @@ def test_draft_order_update_triggers_webhooks(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": draft_order_updated_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
@@ -2416,7 +2415,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": draft_order_updated_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,

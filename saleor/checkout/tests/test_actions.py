@@ -17,7 +17,7 @@ from ...plugins.webhook.tests.subscription_webhooks.subscription_queries import 
 )
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.transport.asynchronous.transport import send_webhook_request_async
-from ...webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
+from ...webhook.transport.utils import WebhookResponse
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..actions import (
     call_checkout_event,
@@ -662,16 +662,7 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
             )
 
     # then
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
@@ -748,16 +739,7 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
         )
 
     # then
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
@@ -874,11 +856,6 @@ def test_call_checkout_event_only_async_when_sync_missing(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": checkout_create_delivery.id,
-            "deferred_payload_data": prepare_deferred_payload_data(
-                subscribable_object=checkout_with_items,
-                requestor=None,
-                request_time=None,
-            ),
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
@@ -998,16 +975,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
             )
 
     # then
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
@@ -1099,17 +1067,7 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
         )
 
     # then
-
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
@@ -1191,18 +1149,12 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
             )
 
     # then
-
     # confirm that event delivery was generated for each async webhook.
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": checkout_create_delivery.id,
-            "deferred_payload_data": prepare_deferred_payload_data(
-                subscribable_object=checkout_with_items,
-                requestor=None,
-                request_time=None,
-            ),
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
@@ -1323,7 +1275,6 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": checkout_fully_paid_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
@@ -1456,16 +1407,6 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
             )
 
     # then
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
-
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(
@@ -1554,18 +1495,7 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
         )
 
     # then
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_items, requestor=None, request_time=None
-    )
-
     assert mocked_call_event_including_protected_events.called
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
-
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
     assert not EventDelivery.objects.exclude(
@@ -1690,7 +1620,6 @@ def test_call_checkout_events_only_async_when_sync_missing(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": checkout_create_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,

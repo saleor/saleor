@@ -46,7 +46,7 @@ def test_trigger_webhooks_async(
     for delivery in deliveries:
         assert (
             mock.call(
-                kwargs={"event_delivery_id": delivery.id, "deferred_payload_data": {}},
+                kwargs={"event_delivery_id": delivery.id},
                 queue=None,
                 bind=True,
                 retry_backoff=10,

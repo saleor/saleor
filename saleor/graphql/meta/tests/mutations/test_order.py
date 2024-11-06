@@ -636,7 +636,6 @@ def test_change_in_public_metadata_triggers_webhooks(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_metadata_updated_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
@@ -716,7 +715,6 @@ def test_change_in_private_metadata_triggers_webhooks(
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": order_metadata_updated_delivery.id,
-            "deferred_payload_data": {},
         },
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,

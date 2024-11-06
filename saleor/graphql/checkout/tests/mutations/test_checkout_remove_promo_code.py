@@ -17,7 +17,7 @@ from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from .....plugins.manager import get_plugins_manager
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
+from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -774,18 +774,8 @@ def test_checkout_remove_triggers_webhooks(
 
     # then
     assert not content["errors"]
-
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout_with_voucher, requestor=None, request_time=None
-    )
     assert wrapped_call_checkout_info_event.called
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3

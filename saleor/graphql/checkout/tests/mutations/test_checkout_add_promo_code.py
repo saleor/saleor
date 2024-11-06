@@ -14,7 +14,6 @@ from .....checkout import base_calculations, calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import Checkout
 from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
 from .....core.models import EventDelivery
 from .....discount import VoucherType
@@ -23,7 +22,7 @@ from .....product.models import Collection, ProductVariantChannelListing
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse, prepare_deferred_payload_data
+from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -1591,20 +1590,8 @@ def test_checkout_add_voucher_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutAddPromoCode"]["errors"]
 
-    checkout = Checkout.objects.get(
-        token=content["data"]["checkoutAddPromoCode"]["checkout"]["token"]
-    )
-    deferred_payload_data = prepare_deferred_payload_data(
-        subscribable_object=checkout, requestor=None, request_time=None
-    )
     assert wrapped_call_checkout_info_event.called
     assert mocked_send_webhook_request_async.call_count == 1
-    assert (
-        mocked_send_webhook_request_async.call_args.kwargs["kwargs"][
-            "deferred_payload_data"
-        ]
-        == deferred_payload_data
-    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3

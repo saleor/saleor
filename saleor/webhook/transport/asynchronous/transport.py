@@ -305,12 +305,14 @@ def trigger_webhooks_async(
 
     if deferred_deliveries:
         event_delivery_ids = [delivery.pk for delivery in deferred_deliveries]
-        # todo: consider adding batching
         generate_deferred_payloads.apply_async(
             kwargs={
                 "event_delivery_ids": event_delivery_ids,
                 "deferred_payload_data": deferred_payload_data,
-            }
+                "queue": queue,
+            },
+            queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            bind=True,
         )
 
     for delivery in deliveries:
@@ -333,7 +335,10 @@ def trigger_webhooks_async(
     bind=True,
 )
 def generate_deferred_payloads(
-    self, event_delivery_ids: list, deferred_payload_data: dict
+    self,
+    event_delivery_ids: list,
+    deferred_payload_data: dict,
+    queue: Optional[str] = None,
 ):
     deliveries = list(get_multiple_deliveries_for_webhooks(event_delivery_ids).values())
     args_obj = DeferredPayloadData(**deferred_payload_data)
@@ -392,7 +397,7 @@ def generate_deferred_payloads(
                     },
                     queue=get_queue_name_for_webhook(
                         delivery.webhook,
-                        default_queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+                        default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
                     ),
                     bind=True,
                     retry_backoff=10,
@@ -415,7 +420,6 @@ def send_webhook_request_async(self, event_delivery_id):
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
-    data = None
 
     try:
         if not delivery.payload:
