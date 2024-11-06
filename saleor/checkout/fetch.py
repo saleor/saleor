@@ -92,7 +92,7 @@ class CheckoutLineInfo(LineInfo):
             return self.line.undiscounted_unit_price
         return self._get_fallback_undiscounted_unit_price()
 
-    def _get_fallback_undiscounted_unit_price(self):
+    def _get_fallback_undiscounted_unit_price(self) -> Money:
         """Calculate the `undiscounted_unit_price` in case of ongoing migration.
 
         Before finalizing the migration task, there is a possibility of not having the
@@ -113,8 +113,12 @@ class CheckoutLineInfo(LineInfo):
             base_total_price = self.line.total_price_net_amount
 
         if base_total_price is Decimal(0) or self.line.quantity == 0:
-            return Decimal(0)
-        return quantize_price(base_total_price / self.line.quantity, self.line.currency)
+            return Money(Decimal(0), currency=self.line.currency)
+        undiscounted_total_price = Money(
+            base_total_price / self.line.quantity, currency=self.line.currency
+        )
+
+        return quantize_price(undiscounted_total_price, self.line.currency)
 
 
 @dataclass

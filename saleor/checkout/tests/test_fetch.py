@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from prices import Money
+
 from ...core.prices import quantize_price
 from ..calculations import fetch_checkout_data
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
@@ -129,7 +131,7 @@ def test_line_info_undiscounted_unit_price_without_listing_and_undiscounted_tota
     checkout_line.undiscounted_unit_price_amount = None
     checkout_line.save()
 
-    total_price = checkout_line.total_price_gross_amount
+    total_price = checkout_line.total_price.gross
 
     # when
     checkout_line_info = CheckoutLineInfo(
@@ -149,6 +151,54 @@ def test_line_info_undiscounted_unit_price_without_listing_and_undiscounted_tota
     # then
     assert checkout_line_info.undiscounted_unit_price == quantize_price(
         total_price / checkout_line.quantity, checkout_line.currency
+    )
+
+
+def test_line_undiscounted_unit_price_without_listing_undiscounted_and_price_override(
+    checkout_with_item_on_promotion, plugins_manager, channel_USD
+):
+    # given
+    channel_USD.tax_configuration.prices_entered_with_tax = True
+    channel_USD.tax_configuration.save()
+
+    checkout = checkout_with_item_on_promotion
+    checkout_line = checkout.lines.first()
+    channel = checkout_with_item_on_promotion.channel
+    variant = checkout_line.variant
+    product = variant.product
+    product_type = product.product_type
+    discounts = checkout_line.discounts.all()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    variant.channel_listings.all().delete()
+
+    checkout_line.price_override = Decimal(10)
+    checkout_line.undiscounted_unit_price_amount = None
+    checkout_line.save(
+        update_fields=["undiscounted_unit_price_amount", "price_override"]
+    )
+
+    # when
+    checkout_line_info = CheckoutLineInfo(
+        line=checkout_line,
+        variant=variant,
+        channel_listing=None,
+        product=product,
+        product_type=product_type,
+        collections=[],
+        tax_class=product.tax_class or product_type.tax_class,
+        discounts=discounts,
+        rules_info=[],
+        channel=channel,
+        voucher=None,
+        voucher_code=None,
+    )
+    # then
+    assert checkout_line_info.undiscounted_unit_price == Money(
+        checkout_line.price_override, checkout_line.currency
     )
 
 
@@ -177,7 +227,7 @@ def test_line_info_undiscounted_unit_price_without_listing_and_undiscounted_in_g
     checkout_line.save(update_fields=["undiscounted_unit_price_amount"])
     checkout_line.refresh_from_db()
 
-    total_price = checkout_line.total_price_gross_amount
+    total_price = checkout_line.total_price.gross
 
     # when
     checkout_line_info = CheckoutLineInfo(
@@ -225,7 +275,7 @@ def test_line_info_undiscounted_unit_price_without_listing_and_undiscounted_in_n
     checkout_line.save(update_fields=["undiscounted_unit_price_amount"])
     checkout_line.refresh_from_db()
 
-    total_price = checkout_line.total_price_net_amount
+    total_price = checkout_line.total_price.net
 
     # when
     checkout_line_info = CheckoutLineInfo(
