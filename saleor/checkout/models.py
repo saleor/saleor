@@ -302,6 +302,17 @@ class CheckoutLine(ModelWithMetadata):
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
     )
 
+    undiscounted_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+
+    undiscounted_unit_price = MoneyField(
+        amount_field="undiscounted_unit_price_amount",
+        currency_field="currency",
+    )
+
     total_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

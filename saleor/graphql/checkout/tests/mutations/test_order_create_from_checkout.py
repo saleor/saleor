@@ -1408,6 +1408,9 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     top_price, variant_id = max(
         variant_listings.values_list("discounted_price_amount", "variant")
     )
+    variant_listing = [
+        listing for listing in variant_listings if listing.variant_id == variant_id
+    ][0]
 
     # add gift reward
     gift_line = CheckoutLine.objects.create(
@@ -1416,6 +1419,7 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
         variant_id=variant_id,
         is_gift=True,
         currency="USD",
+        undiscounted_unit_price_amount=variant_listing.price_amount,
     )
     CheckoutLineDiscount.objects.create(
         line=gift_line,
@@ -1621,6 +1625,9 @@ def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
     other_checkout_line = other_checkout.lines.create(
         variant=checkout_line.variant,
         quantity=quantity_available,
+        undiscounted_unit_price_amount=checkout_line.variant.channel_listings.get(
+            channel_id=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,
