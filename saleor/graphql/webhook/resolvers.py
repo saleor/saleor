@@ -67,7 +67,9 @@ def resolve_shipping_methods_for_checkout(
     manager,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    lines, _ = fetch_checkout_lines(checkout)
+    lines, _ = fetch_checkout_lines(
+        checkout, database_connection_name=database_connection_name
+    )
     shipping_channel_listings = checkout.channel.shipping_method_listings.all()
     checkout_info = fetch_checkout_info(
         checkout,
