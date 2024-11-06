@@ -149,15 +149,23 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     @classmethod
     def _save(cls, info: ResolveInfo, instance, cleaned_input, base_fields_changed):
         new_variant = instance.pk is None
-        cls.set_track_inventory(info, instance, cleaned_input)
         variant_modified = False
+        product_search_index_marked_dirty = False
         with traced_atomic_transaction():
             if base_fields_changed:
                 instance.save()
                 variant_modified = True
             if not instance.product.default_variant:
                 instance.product.default_variant = instance
-                instance.product.save(update_fields=["default_variant", "updated_at"])
+                instance.product.search_index_dirty = True
+                instance.product.save(
+                    update_fields=[
+                        "default_variant",
+                        "updated_at",
+                        "search_index_dirty",
+                    ]
+                )
+                product_search_index_marked_dirty = True
             if stocks := cleaned_input.get("stocks"):
                 cls.create_variant_stocks(instance, stocks)
                 variant_modified = True
@@ -165,20 +173,25 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
                 AttributeAssignmentMixin.save(instance, attributes)
                 variant_modified = True
 
-            if not instance.name:
-                generate_and_set_variant_name(instance, cleaned_input.get("sku"))
-                variant_modified = True
-
             if variant_modified:
+                if not product_search_index_marked_dirty:
+                    instance.product.search_index_dirty = True
+                    instance.product.save(update_fields=["search_index_dirty"])
                 manager = get_plugin_manager_promise(info.context).get()
-                instance.product.search_index_dirty = True
-                instance.product.save(update_fields=["search_index_dirty"])
                 event_to_call = (
                     manager.product_variant_created
                     if new_variant
                     else manager.product_variant_updated
                 )
                 cls.call_event(event_to_call, instance)
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_input):
+        instance = super().construct_instance(instance, cleaned_input)
+        cls.set_track_inventory(None, instance, cleaned_input)
+        if not instance.name:
+            generate_and_set_variant_name(instance, cleaned_input.get("sku"))
+        return instance
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
