@@ -159,7 +159,8 @@ class EventPayloadManager(models.Manager["EventPayload"]):
     ) -> list["EventPayload"]:
         created_objs = self.bulk_create(objs)
         for obj, payload_data in zip(created_objs, payloads):
-            obj.save_payload_file(payload_data)
+            obj.save_payload_file(payload_data, save_instance=False)
+        self.bulk_update(created_objs, ["payload_file"])
         return created_objs
 
 
@@ -181,12 +182,14 @@ class EventPayload(models.Model):
                 return payload_data.decode("utf-8")
         return self.payload
 
-    def save_payload_file(self, payload_data: str):
+    def save_payload_file(self, payload_data: str, save_instance=True):
         payload_bytes = payload_data.encode("utf-8")
         prefix = get_random_string(length=12)
         file_name = f"{self.pk}.json"
         file_path = safe_join(prefix, file_name)
-        self.payload_file.save(file_path, ContentFile(payload_bytes))
+        self.payload_file.save(
+            file_path, ContentFile(payload_bytes), save=save_instance
+        )
 
     def save_as_file(self):
         payload_data = self.payload

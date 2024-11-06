@@ -309,9 +309,14 @@ class StockBulkUpdate(BaseMutation):
             filter_stock = selectors_stock_map.get(f"{variant_value}_{warehouse_value}")
 
             if filter_stock:
+                quantity_updated = filter_stock.quantity != cleaned_input["quantity"]
                 filter_stock.quantity = cleaned_input["quantity"]
                 instances_data_and_errors_list.append(
-                    {"instance": filter_stock, "errors": index_error_map[index]}
+                    {
+                        "instance": filter_stock,
+                        "errors": index_error_map[index],
+                        "quantity_updated": quantity_updated,
+                    }
                 )
             else:
                 index_error_map[index].append(
@@ -355,11 +360,13 @@ class StockBulkUpdate(BaseMutation):
         else:
             variant_lookup = Q(product_variant__external_reference__in=variants)
 
-        stocks = models.Stock.objects.filter(
-            warehouse_lookup & variant_lookup
-        ).annotate(
-            variant_external_reference=F("product_variant__external_reference"),
-            warehouse_external_reference=F("warehouse__external_reference"),
+        stocks = (
+            models.Stock.objects.select_for_update()
+            .filter(warehouse_lookup & variant_lookup)
+            .annotate(
+                variant_external_reference=F("product_variant__external_reference"),
+                warehouse_external_reference=F("warehouse__external_reference"),
+            )
         )
 
         selectors_stock_map = {
@@ -373,9 +380,8 @@ class StockBulkUpdate(BaseMutation):
         stocks_to_update = [
             stock_data["instance"]
             for stock_data in instances_data_with_errors_list
-            if stock_data["instance"]
+            if stock_data["instance"] and stock_data.get("quantity_updated")
         ]
-
         models.Stock.objects.bulk_update(stocks_to_update, fields=["quantity"])
 
         return stocks_to_update
@@ -383,12 +389,12 @@ class StockBulkUpdate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, instances):
         manager = get_plugin_manager_promise(info.context).get()
-        webhooks = get_webhooks_for_event(
-            WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
-        )
-        for instance in instances:
+        if instances:
+            webhooks = get_webhooks_for_event(
+                WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
+            )
             cls.call_event(
-                manager.product_variant_stock_updated, instance, webhooks=webhooks
+                manager.product_variant_stocks_updated, instances, webhooks=webhooks
             )
 
     @classmethod
@@ -399,14 +405,15 @@ class StockBulkUpdate(BaseMutation):
                 for data in instances_data_with_errors_list
             ]
         return [
-            StockBulkResult(stock=data.get("instance"), errors=data.get("errors"))
-            if data.get("instance")
-            else StockBulkResult(stock=None, errors=data.get("errors"))
+            (
+                StockBulkResult(stock=data.get("instance"), errors=data.get("errors"))
+                if data.get("instance")
+                else StockBulkResult(stock=None, errors=data.get("errors"))
+            )
             for data in instances_data_with_errors_list
         ]
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         index_error_map: dict = defaultdict(list)
@@ -414,25 +421,30 @@ class StockBulkUpdate(BaseMutation):
 
         warehouse_selector, variant_selector = cls.get_selectors(cleaned_inputs_map)
 
-        instances_data_with_errors_list = cls.update_stocks(
-            cleaned_inputs_map, warehouse_selector, variant_selector, index_error_map
-        )
+        with traced_atomic_transaction():
+            instances_data_with_errors_list = cls.update_stocks(
+                cleaned_inputs_map,
+                warehouse_selector,
+                variant_selector,
+                index_error_map,
+            )
 
-        if any(bool(error) for error in index_error_map.values()):
-            if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
-                results = cls.get_results(instances_data_with_errors_list, True)
-                return StockBulkUpdate(count=0, results=results)
+            if any(bool(error) for error in index_error_map.values()):
+                if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
+                    results = cls.get_results(instances_data_with_errors_list, True)
+                    return StockBulkUpdate(count=0, results=results)
 
-            if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
-                for data in instances_data_with_errors_list:
-                    if data["errors"] and data["instance"]:
-                        data["instance"] = None
+                if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
+                    for data in instances_data_with_errors_list:
+                        if data["errors"] and data["instance"]:
+                            data["instance"] = None
 
-        updated_stocks = cls.save_stocks(instances_data_with_errors_list)
+            updated_stocks = cls.save_stocks(instances_data_with_errors_list)
+            cls.post_save_actions(info, updated_stocks)
 
         # prepare and return data
         results = cls.get_results(instances_data_with_errors_list)
-
-        cls.post_save_actions(info, updated_stocks)
-
-        return StockBulkUpdate(count=len(updated_stocks), results=results)
+        count = len(
+            list(filter(lambda item: item["instance"], instances_data_with_errors_list))
+        )
+        return StockBulkUpdate(count=count, results=results)

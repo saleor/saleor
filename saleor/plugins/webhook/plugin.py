@@ -82,8 +82,10 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ...webhook.transport.asynchronous.transport import (
+    WebhookPayloadData,
     send_webhook_request_async,
     trigger_webhooks_async,
+    trigger_webhooks_async_for_multiple_objects,
 )
 from ...webhook.transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_data_dict,
@@ -1998,23 +2000,30 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
-    def product_variant_stock_updated(
-        self, stock: "Stock", previous_value: None, webhooks=None
+    def product_variant_stocks_updated(
+        self, stocks: list["Stock"], previous_value: None, webhooks=None
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data_generator = partial(
-                generate_product_variant_with_stock_payload, [stock], self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
+            webhook_payload_details = []
+            for stock in stocks:
+                product_variant_data_generator = partial(
+                    generate_product_variant_with_stock_payload, [stock], self.requestor
+                )
+                webhook_payload_details.append(
+                    WebhookPayloadData(
+                        subscribable_object=stock,
+                        legacy_data_generator=product_variant_data_generator,
+                        data=None,
+                    )
+                )
+            trigger_webhooks_async_for_multiple_objects(
                 event_type,
                 webhooks,
-                stock,
-                self.requestor,
-                legacy_data_generator=product_variant_data_generator,
+                webhook_payloads_data=webhook_payload_details,
+                requestor=self.requestor,
             )
         return previous_value
 
