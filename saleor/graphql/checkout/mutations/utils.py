@@ -4,13 +4,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import graphene
 import pytz
@@ -570,7 +564,7 @@ def apply_gift_reward_if_applicable_on_checkout_creation(
         return
 
     with transaction.atomic():
-        line, _line_created = create_gift_line(checkout, gift_listing.variant_id)
+        line, _line_created = create_gift_line(checkout, gift_listing)
         CheckoutLineDiscount.objects.create(
             type=DiscountType.ORDER_PROMOTION,
             line=line,
