@@ -38,6 +38,7 @@ from ..utils import (
     create_attempt,
     delivery_update,
     get_delivery_for_webhook,
+    get_multiple_deliveries_for_webhooks,
     handle_webhook_retry,
     prepare_deferred_payload_data,
     send_webhook_using_scheme_method,
@@ -245,7 +246,9 @@ def trigger_webhooks_async(
     :param queue: defines the queue to which the event should be sent.
     """
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
+
     deliveries = []
+    deferred_deliveries = []
 
     # Legacy webhooks are those that do not have a subscription query. In this case,
     # create deliveries and the payload object on the core side, before scheduling the
@@ -279,12 +282,11 @@ def trigger_webhooks_async(
     deferred_payload_data = {}
     if subscription_webhooks:
         if is_deferred_payload:
-            deliveries.extend(
+            deferred_deliveries.extend(
                 create_deliveries_for_deferred_payload_events(
                     event_type=event_type, webhooks=subscription_webhooks
                 )
             )
-
             deferred_payload_data = prepare_deferred_payload_data(
                 subscribable_object, requestor, request_time
             )
@@ -301,11 +303,20 @@ def trigger_webhooks_async(
                 )
             )
 
+    if deferred_deliveries:
+        event_delivery_ids = [delivery.pk for delivery in deferred_deliveries]
+        # todo: consider adding batching
+        generate_deferred_payloads.apply_async(
+            kwargs={
+                "event_delivery_ids": event_delivery_ids,
+                "deferred_payload_data": deferred_payload_data,
+            }
+        )
+
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.id,
-                "deferred_payload_data": deferred_payload_data,
             },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
@@ -317,14 +328,15 @@ def trigger_webhooks_async(
         )
 
 
-def _generate_deferred_payload(
-    event_type: str,
-    webhook: "Webhook",
-    payload_args: dict,
-    delivery: "EventDelivery",
-    logger_obj: "logging.Logger",
+@app.task(
+    queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+    bind=True,
+)
+def generate_deferred_payloads(
+    self, event_delivery_ids: list, deferred_payload_data: dict
 ):
-    args_obj = DeferredPayloadData(**payload_args)
+    deliveries = list(get_multiple_deliveries_for_webhooks(event_delivery_ids).values())
+    args_obj = DeferredPayloadData(**deferred_payload_data)
     requestor = None
     if args_obj.requestor_object_id and args_obj.requestor_model_name in (
         RequestorModelName.APP,
@@ -339,47 +351,53 @@ def _generate_deferred_payload(
         .first()
     )
     if not subscribable_object:
-        logger_obj.warning(
-            (
-                "[Webhook ID:%r] Failed to get the subscribable_object for deferred "
-                "payload; event: %s, model name: %s, model ID: %r, delivery ID: %r"
-            ),
-            webhook.id,
-            event_type,
-            args_obj.model_name,
-            args_obj.object_id,
-            delivery.id,
+        EventDelivery.objects.filter(pk__in=event_delivery_ids).update(
+            status=EventDeliveryStatus.FAILED
+        )
+        return
+
+    for delivery in deliveries:
+        event_type = delivery.event_type
+        webhook = delivery.webhook
+        request = initialize_request(
+            requestor,
+            event_type in WebhookEventSyncType.ALL,
+            event_type=event_type,
+            allow_replica=True,
+            request_time=args_obj.request_time,
+        )
+        data_promise = generate_payload_promise_from_subscription(
+            event_type=event_type,
+            subscribable_object=subscribable_object,
+            subscription_query=webhook.subscription_query,  # type: ignore
+            request=request,
+            app=webhook.app,
         )
 
-    request = initialize_request(
-        requestor,
-        event_type in WebhookEventSyncType.ALL,
-        event_type=event_type,
-        allow_replica=True,
-        request_time=args_obj.request_time,
-    )
-    data_promise = generate_payload_promise_from_subscription(
-        event_type=event_type,
-        subscribable_object=subscribable_object,
-        subscription_query=webhook.subscription_query,  # type: ignore
-        request=request,
-        app=webhook.app,
-    )
+        if data_promise:
+            data = data_promise.get()
+            if data:
+                data_json = json.dumps({**data})
+                with allow_writer():
+                    event_payload = EventPayload.objects.create_with_payload_file(
+                        data_json
+                    )
+                    delivery.payload = event_payload
+                    delivery.save(update_fields=["payload"])
 
-    if data_promise:
-        data = data_promise.get()
-        if data:
-            data_json = json.dumps({**data})
-
-            # Save the payload in the EventPayload object for later reuse in case of
-            # automatic or manual retry.
-            with allow_writer():
-                event_payload = EventPayload.objects.create_with_payload_file(data_json)
-                delivery.payload = event_payload
-                delivery.save(update_fields=["payload"])
-
-            return data_json
-    return None
+                # Trigger webhook delivery task when the payload is ready.
+                send_webhook_request_async.apply_async(
+                    kwargs={
+                        "event_delivery_id": delivery.id,
+                    },
+                    queue=get_queue_name_for_webhook(
+                        delivery.webhook,
+                        default_queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
+                    ),
+                    bind=True,
+                    retry_backoff=10,
+                    retry_kwargs={"max_retries": 5},
+                )
 
 
 @app.task(
@@ -388,7 +406,7 @@ def _generate_deferred_payload(
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
 )
-def send_webhook_request_async(self, event_delivery_id, deferred_payload_data=None):
+def send_webhook_request_async(self, event_delivery_id):
     delivery = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
         return None
@@ -400,22 +418,11 @@ def send_webhook_request_async(self, event_delivery_id, deferred_payload_data=No
     data = None
 
     try:
-        if delivery.payload:
-            data = delivery.payload.get_payload()
-        elif deferred_payload_data:
-            data = _generate_deferred_payload(
-                event_type=delivery.event_type,
-                webhook=webhook,
-                payload_args=deferred_payload_data,
-                delivery=delivery,
-                logger_obj=task_logger,
-            )
-
-        if data is None:
+        if not delivery.payload:
             raise ValueError(
                 f"Event delivery id: %{event_delivery_id}r has no payload."
             )
-
+        data = delivery.payload.get_payload()
         with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,

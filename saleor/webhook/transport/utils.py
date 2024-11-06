@@ -398,19 +398,39 @@ def handle_webhook_retry(
 
 
 def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
-    try:
-        delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
-            id=event_delivery_id
-        )
-    except EventDelivery.DoesNotExist:
-        logger.warning("Event delivery id: %r not found", event_delivery_id)
-        return None
+    delivery = get_multiple_deliveries_for_webhooks([event_delivery_id])
+    return delivery.get(event_delivery_id)
 
-    if not delivery.webhook.is_active:
-        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
-        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
-        return None
-    return delivery
+
+def get_multiple_deliveries_for_webhooks(
+    event_delivery_ids,
+) -> dict[int, "EventDelivery"]:
+    deliveries = EventDelivery.objects.select_related("payload", "webhook__app").filter(
+        id__in=event_delivery_ids
+    )
+
+    active_deliveries = {}
+    inactive_delivery_ids = set()
+
+    not_found_delivery_ids = set(event_delivery_ids) - set(
+        delivery.pk for delivery in deliveries
+    )
+    for not_found_delivery_id in not_found_delivery_ids:
+        logger.warning("Event delivery id: %r not found", not_found_delivery_id)
+
+    for delivery in deliveries:
+        if delivery.webhook.is_active:
+            active_deliveries[delivery.pk] = delivery
+        else:
+            logger.info("Event delivery id: %r webhook is disabled.", delivery.pk)
+            inactive_delivery_ids.add(delivery.pk)
+
+    if inactive_delivery_ids:
+        EventDelivery.objects.filter(id__in=inactive_delivery_ids).update(
+            status=EventDeliveryStatus.FAILED
+        )
+
+    return active_deliveries
 
 
 @contextmanager
