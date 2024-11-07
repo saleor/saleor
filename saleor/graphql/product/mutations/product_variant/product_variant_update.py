@@ -150,22 +150,10 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     def _save(cls, info: ResolveInfo, instance, cleaned_input, base_fields_changed):
         new_variant = instance.pk is None
         variant_modified = False
-        product_search_index_marked_dirty = False
         with traced_atomic_transaction():
             if base_fields_changed:
                 instance.save()
                 variant_modified = True
-            if not instance.product.default_variant:
-                instance.product.default_variant = instance
-                instance.product.search_index_dirty = True
-                instance.product.save(
-                    update_fields=[
-                        "default_variant",
-                        "updated_at",
-                        "search_index_dirty",
-                    ]
-                )
-                product_search_index_marked_dirty = True
             if stocks := cleaned_input.get("stocks"):
                 cls.create_variant_stocks(instance, stocks)
                 variant_modified = True
@@ -174,9 +162,12 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
                 variant_modified = True
 
             if variant_modified:
-                if not product_search_index_marked_dirty:
-                    instance.product.search_index_dirty = True
-                    instance.product.save(update_fields=["search_index_dirty"])
+                product_update_fields = ["updated_at", "search_index_dirty"]
+                instance.product.search_index_dirty = True
+                if not instance.product.default_variant:
+                    instance.product.default_variant = instance
+                    product_update_fields.append("default_variant")
+                instance.product.save(update_fields=product_update_fields)
                 manager = get_plugin_manager_promise(info.context).get()
                 event_to_call = (
                     manager.product_variant_created
