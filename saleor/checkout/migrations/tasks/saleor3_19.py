@@ -9,16 +9,18 @@ from ....product.models import ProductVariantChannelListing
 from ....tax.models import TaxConfiguration
 from ...models import CheckoutLine
 
-# The batch uses 21.81MB of memory. It takes 1.42 seconds to process batch when having
+# The batch uses 11.39MB of memory. It takes 0.42 seconds to process batch when having
 # over 5 mln records to process.
-BATCH_SIZE = 2000
+BATCH_SIZE = 500
 
 
 @app.task
-def propagate_lines_undiscounted_unit_price_task():
+def propagate_lines_undiscounted_unit_price_task(start_pk=0):
     with transaction.atomic():
         checkout_line_pks = list(
-            CheckoutLine.objects.filter(undiscounted_unit_price_amount__isnull=True)
+            CheckoutLine.objects.filter(
+                pk__gt=start_pk, undiscounted_unit_price_amount__isnull=True
+            )
             .order_by("id")
             .select_for_update()
             .values_list("id", flat=True)[:BATCH_SIZE]
@@ -66,4 +68,4 @@ def propagate_lines_undiscounted_unit_price_task():
                         base_total_price / line.quantity, line.currency
                     )
             CheckoutLine.objects.bulk_update(lines, ["undiscounted_unit_price_amount"])
-            propagate_lines_undiscounted_unit_price_task.delay()
+            propagate_lines_undiscounted_unit_price_task.delay(checkout_line_pks[-1])
