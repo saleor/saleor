@@ -83,6 +83,7 @@ from .fetch import (
 )
 from .models import Checkout
 from .utils import (
+    delete_checkouts,
     get_checkout_metadata,
     get_or_create_checkout_metadata,
     get_voucher_for_checkout_info,
@@ -1016,7 +1017,8 @@ def complete_checkout_post_payment_part(
                 private_metadata_list=private_metadata_list,
             )
             # remove checkout after order is successfully created
-            checkout_info.checkout.delete()
+            delete_checkouts([checkout_info.checkout.pk])
+            checkout_info.checkout.pk = None
         except InsufficientStock as e:
             _complete_checkout_fail_handler(
                 checkout_info,
@@ -1436,7 +1438,8 @@ def create_order_from_checkout(
                 private_metadata_list=private_metadata_list,
             )
             if delete_checkout:
-                checkout_info.checkout.delete()
+                delete_checkouts([checkout_info.checkout.pk])
+                checkout_info.checkout.pk = None
             return order
         except InsufficientStock:
             _complete_checkout_fail_handler(
