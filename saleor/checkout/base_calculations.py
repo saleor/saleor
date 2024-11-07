@@ -15,8 +15,6 @@ from ..core.taxes import zero_money
 from ..discount import VoucherType
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..channel.models import Channel
     from .fetch import CheckoutInfo, CheckoutLineInfo, ShippingMethodInfo
 
@@ -225,12 +223,11 @@ def checkout_total(
     return subtotal + shipping_price
 
 
-def apply_checkout_discount_on_checkout_line(
+def get_line_total_price_with_propagated_checkout_discount(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    line_total_price: Money,
-):
+) -> Money:
     """Calculate the checkout line price with discounts.
 
     Include the entire order voucher discount or discount from order
@@ -239,87 +236,91 @@ def apply_checkout_discount_on_checkout_line(
     the rate of total line price to checkout total price.
     """
     voucher = checkout_info.voucher
+    base_total_price = calculate_base_line_total_price(
+        checkout_line_info,
+    )
     if voucher and (
         voucher.apply_once_per_order
         or voucher.type in [VoucherType.SHIPPING, VoucherType.SPECIFIC_PRODUCT]
     ):
-        return line_total_price
+        return base_total_price
 
     if not voucher and not checkout_info.discounts:
-        return line_total_price
+        return base_total_price
 
-    total_discount_amount = checkout_info.checkout.discount_amount
-    return _get_discounted_checkout_line_price(
-        checkout_line_info,
-        lines,
-        line_total_price,
-        total_discount_amount,
-        checkout_info.channel,
-    )
+    total_discount = checkout_info.checkout.discount
+    for (
+        checkout_line,
+        total_price,
+    ) in _propagate_checkout_discount_on_checkout_lines_prices(
+        lines, total_discount, checkout_info.channel.currency_code
+    ):
+        if checkout_line_info.line.id == checkout_line.id:
+            return total_price
+    return base_total_price
 
 
-def _get_discounted_checkout_line_price(
-    checkout_line_info: "CheckoutLineInfo",
+def _propagate_checkout_discount_on_checkout_lines_prices(
     lines: list["CheckoutLineInfo"],
-    line_total_price: Money,
-    total_discount_amount: "Decimal",
-    channel: "Channel",
+    total_discount: Money,
+    currency: str,
 ):
     """Apply checkout discount on checkout line price.
 
     Propagate the discount amount proportionally to total prices of items.
     Ensure that the sum of discounts is equal to the discount amount.
     """
-    currency = channel.currency_code
-
     lines = list(lines)
+    lines_count = len(lines)
 
     # if the checkout has a single line, the whole discount amount will be applied
     # to this line
-    if len(lines) == 1:
-        return max(
-            (line_total_price - Money(total_discount_amount, currency)),
-            zero_money(currency),
+    if lines_count == 1:
+        line_info = lines[0]
+        line_total_price = calculate_base_line_total_price(line_info)
+        yield (
+            line_info.line,
+            max(
+                (line_total_price - total_discount),
+                zero_money(currency),
+            ),
         )
-
-    # if the checkout has more lines we need to propagate the discount amount
-    # proportionally to total prices of items
-    lines_total_prices = [
-        calculate_base_line_total_price(
-            line_info,
-        ).amount
-        for line_info in lines
-        if line_info.line.id != checkout_line_info.line.id
-    ]
-
-    total_price = sum(lines_total_prices) + line_total_price.amount
-
-    last_element = lines[-1].line.id == checkout_line_info.line.id
-    if last_element:
-        discount_amount = _calculate_discount_for_last_element(
-            lines_total_prices, total_price, total_discount_amount
-        )
-    else:
-        discount_amount = line_total_price.amount / total_price * total_discount_amount
-    return max(
-        (line_total_price - Money(discount_amount, currency)),
-        zero_money(currency),
-    )
-
-
-def _calculate_discount_for_last_element(
-    lines_total_prices, total_price, total_discount_amount
-):
-    """Calculate the discount for last element.
-
-    If the given line is last on the list we should calculate the discount by difference
-    between total discount amount and sum of discounts applied to rest of the lines,
-    otherwise the sum of discounts won't be equal to the discount amount.
-    """
-    sum_of_discounts_other_elements = sum(
-        [
-            line_total_price / total_price * total_discount_amount
-            for line_total_price in lines_total_prices
+    elif lines_count > 1:
+        # if the checkout has more lines we need to propagate the discount amount
+        # proportionally to total prices of items
+        lines_total_prices = [
+            calculate_base_line_total_price(
+                line_info,
+            )
+            for line_info in lines
         ]
-    )
-    return total_discount_amount - sum_of_discounts_other_elements
+
+        total_price = sum(lines_total_prices, start=Money(0, currency))
+        remaining_discount = total_discount
+        for idx, line_info in enumerate(lines):
+            line = line_info.line
+            if not total_price:
+                yield line, zero_money(currency)
+            elif idx < lines_count - 1:
+                line_total_price = lines_total_prices[idx]
+                share = line_total_price / total_price
+                discount = quantize_price(
+                    min(share * total_discount, line_total_price), currency
+                )
+                yield (
+                    line,
+                    max(
+                        (line_total_price - discount),
+                        zero_money(currency),
+                    ),
+                )
+                remaining_discount -= discount
+            else:
+                line_total_price = lines_total_prices[idx]
+                yield (
+                    line,
+                    max(
+                        (line_total_price - remaining_discount),
+                        zero_money(currency),
+                    ),
+                )

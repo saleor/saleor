@@ -250,7 +250,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("4.06", "USD"), gross=Money("5.01", "USD")
+        net=Money("4.07", "USD"), gross=Money("5.01", "USD")
     )
 
 
@@ -315,7 +315,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
 
     # then
     assert order.total == TaxedMoney(
-        net=Money("48.78", "USD"), gross=Money("60.00", "USD")
+        net=Money("48.77", "USD"), gross=Money("60.00", "USD")
     )
 
 
