@@ -28,10 +28,7 @@ from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils.promotion import get_sale_id
-from ..discount.utils.voucher import (
-    increase_voucher_usage,
-    release_voucher_code_usage,
-)
+from ..discount.utils.voucher import increase_voucher_usage, release_voucher_code_usage
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
@@ -84,6 +81,7 @@ from .fetch import (
 from .models import Checkout
 from .utils import (
     calculate_checkout_weight,
+    delete_checkouts,
     get_checkout_metadata,
     get_or_create_checkout_metadata,
     get_voucher_for_checkout_info,
@@ -1028,7 +1026,8 @@ def complete_checkout_post_payment_part(
                 is_automatic_completion=is_automatic_completion,
             )
             # remove checkout after order is successfully created
-            checkout_info.checkout.delete()
+            delete_checkouts([checkout_info.checkout.pk])
+            checkout_info.checkout.pk = None
         except InsufficientStock as e:
             _complete_checkout_fail_handler(
                 checkout_info,
@@ -1172,9 +1171,9 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
             currency=checkout.currency,
             amount_value=checkout.discount_amount,
             voucher=checkout_info.voucher,
-            voucher_code=checkout_info.voucher_code.code
-            if checkout_info.voucher_code
-            else None,
+            voucher_code=(
+                checkout_info.voucher_code.code if checkout_info.voucher_code else None
+            ),
         )
 
 
@@ -1454,7 +1453,8 @@ def create_order_from_checkout(
                 is_automatic_completion=is_automatic_completion,
             )
             if delete_checkout:
-                checkout_info.checkout.delete()
+                delete_checkouts([checkout_info.checkout.pk])
+                checkout_info.checkout.pk = None
             return order
         except InsufficientStock:
             _complete_checkout_fail_handler(
