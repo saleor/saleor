@@ -2322,9 +2322,7 @@ def test_draft_order_update_triggers_webhooks(
         webhook_id=draft_order_updated_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": draft_order_updated_delivery.id,
-        },
+        kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -2413,9 +2411,7 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         webhook_id=draft_order_updated_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": draft_order_updated_delivery.id,
-        },
+        kwargs={"event_delivery_id": draft_order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

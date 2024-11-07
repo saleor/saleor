@@ -824,9 +824,7 @@ def test_send_order_updated(
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": order_updated_delivery.id,
-        },
+        kwargs={"event_delivery_id": order_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

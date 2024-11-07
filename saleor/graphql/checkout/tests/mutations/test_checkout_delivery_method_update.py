@@ -17,8 +17,6 @@ from .....shipping.utils import convert_to_shipping_method_data
 from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .....webhook.transport.asynchronous.transport import send_webhook_request_async
-from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -1014,15 +1012,10 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_triggers_webhooks(
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1035,7 +1028,6 @@ def test_checkout_delivery_method_update_triggers_webhooks(
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     (
         tax_webhook,
         shipping_webhook,
@@ -1058,14 +1050,23 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
-    assert wrapped_call_checkout_info_event.called
-    assert mocked_send_webhook_request_async.call_count == 1
 
-    # shipping_list_methods_for_checkout is called twice - one for API response and one
-    # for async webhook payload
-    assert mocked_send_webhook_request_sync.call_count == 4
+    assert wrapped_call_checkout_info_event.called
+
+    # confirm that event delivery was generated for each async webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
     # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 4
     assert not EventDelivery.objects.exclude(
         webhook_id=checkout_updated_webhook.id
     ).exists()
@@ -1098,15 +1099,10 @@ def test_checkout_delivery_method_update_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_cc_triggers_webhooks(
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1118,7 +1114,6 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     (
         tax_webhook,
         shipping_webhook,
@@ -1150,10 +1145,25 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
     assert wrapped_call_checkout_info_event.called
-    assert mocked_send_webhook_request_async.call_count == 1
+
+    # confirm that event delivery was generated for each async webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
+    # Shipping sync webhooks are called twice - first call before saving the changes in
+    # the checkout instance, second when generating the payload. In the second call
+    # checkout instance has different data and cache cannot be used.
+    assert mocked_send_webhook_request_sync.call_count == 5
 
     # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 5
     assert not EventDelivery.objects.exclude(
         webhook_id=checkout_updated_webhook.id
     ).exists()
@@ -1186,20 +1196,15 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 @patch(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
     "clean_delivery_method"
 )
-@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     mock_clean_delivery,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -1209,7 +1214,6 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     checkout_with_item_for_cc,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     (
         tax_webhook,
         shipping_webhook,
@@ -1220,6 +1224,7 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     checkout = checkout_with_item_for_cc
     query = MUTATION_UPDATE_DELIVERY_METHOD
     mock_clean_delivery.return_value = True
+
     response_method_id = "abcd"
     mock_json_response = [
         {
@@ -1248,31 +1253,45 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
+
     assert wrapped_call_checkout_info_event.called
-    assert mocked_send_webhook_request_async.call_count == 1
+
+    # confirm that event delivery was generated for each async webhook.
+    checkout_update_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_updated_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(
         webhook_id=checkout_updated_webhook.id
     ).exists()
 
-    sync_deliveries = {
-        call.args[0].event_type: call.args[0]
-        for call in mocked_send_webhook_request_sync.mock_calls
-    }
-
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
-    shipping_methods_delivery = sync_deliveries[
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    ]
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
+    )
+    shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
-    filter_shipping_delivery = sync_deliveries[
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    ]
+    filter_shipping_delivery = filter_shipping_call.args[0]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
-    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
+    tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id

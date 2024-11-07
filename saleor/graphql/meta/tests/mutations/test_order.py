@@ -634,9 +634,7 @@ def test_change_in_public_metadata_triggers_webhooks(
     )
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": order_metadata_updated_delivery.id,
-        },
+        kwargs={"event_delivery_id": order_metadata_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -713,9 +711,7 @@ def test_change_in_private_metadata_triggers_webhooks(
         event_type=WebhookEventAsyncType.ORDER_METADATA_UPDATED,
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": order_metadata_updated_delivery.id,
-        },
+        kwargs={"event_delivery_id": order_metadata_updated_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

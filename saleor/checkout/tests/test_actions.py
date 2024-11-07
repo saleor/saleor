@@ -12,12 +12,7 @@ from freezegun import freeze_time
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
 from ...plugins.manager import get_plugins_manager
-from ...plugins.webhook.tests.subscription_webhooks.subscription_queries import (
-    CHECKOUT_CREATED,
-)
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...webhook.transport.asynchronous.transport import send_webhook_request_async
-from ...webhook.transport.utils import WebhookResponse
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..actions import (
     call_checkout_event,
@@ -617,11 +612,7 @@ def test_call_checkout_event_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -630,7 +621,6 @@ def test_call_checkout_event_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_triggers_sync_webhook_when_needed(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -639,7 +629,6 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
@@ -662,7 +651,17 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
             )
 
     # then
-    assert mocked_send_webhook_request_async.call_count == 1
+    # confirm that event delivery was generated for each async webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
@@ -670,36 +669,37 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    sync_deliveries = {
-        call.args[0].event_type: call.args[0]
-        for call in mocked_send_webhook_request_sync.mock_calls
-    }
-
-    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
-    shipping_methods_delivery = sync_deliveries[
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    ]
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
+    )
+    shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
 
-    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
-    filter_shipping_delivery = sync_deliveries[
-        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    ]
+    filter_shipping_delivery = filter_shipping_call.args[0]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
 
-    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
-    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
+    tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+    mocked_call_event_including_protected_events.assert_called_once_with(
+        plugins_manager.checkout_created,
+        checkout_with_items,
+        webhooks={checkout_created_webhook},
+    )
 
 
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -708,7 +708,6 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -717,7 +716,6 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
     checkout_with_items.save(update_fields=["price_expiration"])
@@ -739,7 +737,17 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
         )
 
     # then
-    assert mocked_send_webhook_request_async.call_count == 1
+    # confirm that event delivery was generated for each async webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
@@ -835,8 +843,6 @@ def test_call_checkout_event_only_async_when_sync_missing(
     checkout_with_items.save(update_fields=["price_expiration"])
 
     webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
-    webhook.subscription_query = CHECKOUT_CREATED
-    webhook.save()
     webhook.app.permissions.add(permission_manage_checkouts)
 
     # when
@@ -854,9 +860,7 @@ def test_call_checkout_event_only_async_when_sync_missing(
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
-        },
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -920,11 +924,7 @@ def test_call_checkout_info_event_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -933,7 +933,6 @@ def test_call_checkout_info_event_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -942,7 +941,6 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
@@ -975,7 +973,18 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
             )
 
     # then
-    assert mocked_send_webhook_request_async.call_count == 1
+
+    # confirm that event delivery was generated for each async webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
@@ -1013,11 +1022,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1026,7 +1031,6 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -1035,7 +1039,6 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
     checkout_with_items.save(update_fields=["price_expiration"])
@@ -1067,7 +1070,18 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
         )
 
     # then
-    assert mocked_send_webhook_request_async.call_count == 1
+
+    # confirm that event delivery was generated for each async webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
@@ -1125,8 +1139,6 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
     checkout_with_items.save(update_fields=["price_expiration"])
 
     webhook.events.create(event_type=WebhookEventAsyncType.CHECKOUT_CREATED)
-    webhook.subscription_query = CHECKOUT_CREATED
-    webhook.save()
     webhook.app.permissions.add(permission_manage_checkouts)
 
     lines_info, _ = fetch_checkout_lines(
@@ -1149,13 +1161,12 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
             )
 
     # then
+
     # confirm that event delivery was generated for each async webhook.
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
-        },
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1273,9 +1284,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
         webhook_id=checkout_fully_paid_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": checkout_fully_paid_delivery.id,
-        },
+        kwargs={"event_delivery_id": checkout_fully_paid_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1359,11 +1368,7 @@ def test_call_checkout_events_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1372,7 +1377,6 @@ def test_call_checkout_events_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_events_triggers_sync_webhook_when_needed(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -1381,7 +1385,6 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
@@ -1407,6 +1410,18 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
             )
 
     # then
+    # confirm that event delivery was generated for each async webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(
@@ -1448,11 +1463,7 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
-    wraps=send_webhook_request_async.apply_async,
-)
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1461,7 +1472,6 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_events_skips_tax_webhook_when_not_expired(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     checkout_with_items,
@@ -1470,7 +1480,6 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
     django_capture_on_commit_callbacks,
 ):
     # given
-    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
     checkout_with_items.save(update_fields=["price_expiration"])
@@ -1495,7 +1504,18 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
         )
 
     # then
-    assert mocked_call_event_including_protected_events.called
+    # confirm that event delivery was generated for each async webhook.
+    checkout_create_delivery = EventDelivery.objects.get(
+        webhook_id=checkout_created_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
     assert not EventDelivery.objects.exclude(
@@ -1618,9 +1638,7 @@ def test_call_checkout_events_only_async_when_sync_missing(
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
-        },
+        kwargs={"event_delivery_id": checkout_create_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
