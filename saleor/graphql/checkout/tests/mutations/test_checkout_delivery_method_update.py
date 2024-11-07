@@ -134,6 +134,43 @@ def test_checkout_delivery_method_update(
         assert checkout.collection_point is None
 
 
+@pytest.mark.parametrize(
+    ("delivery_method", "node_name", "attribute_name"),
+    [
+        ("warehouse", "Warehouse", "collection_point"),
+        ("shipping_method", "ShippingMethod", "shipping_method"),
+    ],
+    indirect=("delivery_method",),
+)
+def test_checkout_delivery_method_update_when_variant_without_channel_listing(
+    api_client,
+    delivery_method,
+    node_name,
+    attribute_name,
+    checkout_with_item_for_cc,
+):
+    # given
+    line = checkout_with_item_for_cc.lines.first()
+    line.variant.channel_listings.all().delete()
+
+    checkout = checkout_with_item_for_cc
+
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+
+    method_id = graphene.Node.to_global_id(node_name, delivery_method.id)
+
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert checkout.shipping_method is None
+
+
 @pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @pytest.mark.parametrize(
     ("delivery_method", "node_name", "attribute_name"),

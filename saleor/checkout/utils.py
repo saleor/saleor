@@ -26,19 +26,12 @@ from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
-from ..discount.models import (
-    CheckoutDiscount,
-    NotApplicable,
-    Voucher,
-    VoucherCode,
-)
+from ..discount.models import CheckoutDiscount, NotApplicable, Voucher, VoucherCode
 from ..discount.utils.checkout import (
     create_checkout_discount_objects_for_order_promotions,
     create_checkout_line_discount_objects_for_catalogue_promotions,
 )
-from ..discount.utils.promotion import (
-    delete_gift_line,
-)
+from ..discount.utils.promotion import delete_gift_line
 from ..discount.utils.shared import discount_info_for_logs
 from ..discount.utils.voucher import (
     get_discounted_lines,
@@ -191,6 +184,13 @@ def add_variant_to_checkout(
     if not product_channel_listing or not product_channel_listing.is_published:
         raise ProductNotPublished()
 
+    variant_channel_listing = product_models.ProductVariantChannelListing.objects.get(
+        channel_id=checkout.channel_id, variant_id=variant.id
+    )
+    variant_price_amount = variant.get_base_price(
+        variant_channel_listing, price_override
+    ).amount
+
     new_quantity, line = check_variant_in_stock(
         checkout,
         variant,
@@ -205,6 +205,7 @@ def add_variant_to_checkout(
             variant=variant,
             quantity=quantity,
             price_override=price_override,
+            undiscounted_unit_price_amount=variant_price_amount,
         )
         return checkout
 
@@ -220,6 +221,7 @@ def add_variant_to_checkout(
             quantity=new_quantity,
             currency=checkout.currency,
             price_override=price_override,
+            undiscounted_unit_price_amount=variant_price_amount,
         )
     elif new_quantity > 0:
         line.quantity = new_quantity
@@ -252,9 +254,20 @@ def add_variants_to_checkout(
     country_code = checkout.get_country()
 
     checkout_lines = checkout.lines.select_related("variant")
-
     lines_by_id = {str(line.pk): line for line in checkout_lines}
     variants_map = {str(variant.pk): variant for variant in variants}
+
+    new_variant_ids = set()
+    for line_data in checkout_lines_data:
+        if not line_data.line_id and line_data.variant_id:
+            new_variant_ids.add(line_data.variant_id)
+
+    new_variant_listing_map = {
+        listing.variant_id: listing
+        for listing in product_models.ProductVariantChannelListing.objects.filter(
+            channel_id=channel.id, variant_id__in=new_variant_ids
+        )
+    }
 
     to_create: list[CheckoutLine] = []
     to_update: list[CheckoutLine] = []
@@ -267,7 +280,9 @@ def add_variants_to_checkout(
             _append_line_to_delete(to_delete, line_data, line)
         else:
             variant = variants_map[line_data.variant_id]
-            _append_line_to_create(to_create, checkout, variant, line_data, line)
+            _append_line_to_create(
+                to_create, checkout, variant, line_data, line, new_variant_listing_map
+            )
 
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
@@ -334,15 +349,26 @@ def _append_line_to_delete(to_delete, line_data, line):
             to_delete.append(line)
 
 
-def _append_line_to_create(to_create, checkout, variant, line_data, line):
+def _append_line_to_create(
+    to_create,
+    checkout,
+    variant,
+    line_data,
+    line,
+    new_variant_listing_map: dict[int, "product_models.ProductVariantChannelListing"],
+):
     if line is None:
         if line_data.quantity > 0:
+            variant_price_amount = variant.get_base_price(
+                new_variant_listing_map.get(variant.id), line_data.custom_price
+            ).amount
             checkout_line = CheckoutLine(
                 checkout=checkout,
                 variant=variant,
                 quantity=line_data.quantity,
                 currency=checkout.currency,
                 price_override=line_data.custom_price,
+                undiscounted_unit_price_amount=variant_price_amount,
             )
             if line_data.metadata_list:
                 checkout_line.store_value_in_metadata(
@@ -477,7 +503,7 @@ def get_base_lines_prices(
 ):
     """Get base total price of checkout lines without voucher discount applied."""
     return [
-        line_info.channel_listing.discounted_price
+        line_info.variant_discounted_price
         for line_info in lines
         for i in range(line_info.line.quantity)
     ]
@@ -1118,14 +1144,31 @@ def checkout_info_for_logs(
                 "price_override": line_info.line.price_override,
                 "total_price_net_amount": line_info.line.total_price_net_amount,
                 "total_price_gross_amount": line_info.line.total_price_gross_amount,
-                "variant_listing_price": line_info.channel_listing.price_amount,
-                "variant_listing_discounted_price": line_info.channel_listing.discounted_price_amount,
-                "product_listing_discounted_price": line_info.product.channel_listings.get(
-                    channel=channel
-                ).discounted_price_amount,
-                "product_discounted_price_dirty": line_info.product.channel_listings.get(
-                    channel=channel
-                ).discounted_price_dirty,
+                "variant_listing_price": (
+                    line_info.channel_listing.price_amount
+                    if line_info.channel_listing
+                    else None
+                ),
+                "variant_listing_discounted_price": (
+                    line_info.channel_listing.discounted_price_amount
+                    if line_info.channel_listing
+                    else None
+                ),
+                "undiscounted_unit_price_amount": line_info.line.undiscounted_unit_price_amount,
+                "product_listing_discounted_price": (
+                    line_info.product.channel_listings.get(
+                        channel=channel
+                    ).discounted_price_amount
+                    if line_info.product.channel_listings
+                    else None
+                ),
+                "product_discounted_price_dirty": (
+                    line_info.product.channel_listings.get(
+                        channel=channel
+                    ).discounted_price_dirty
+                    if line_info.product.channel_listings
+                    else None
+                ),
                 "discounts": discount_info_for_logs(line_info.discounts),
             }
             for line_info in checkout_lines_info

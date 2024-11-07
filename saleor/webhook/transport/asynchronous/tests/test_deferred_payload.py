@@ -8,11 +8,11 @@ import pytest
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core import EventDeliveryStatus
+from .....core.models import EventDelivery
 from ....event_types import WebhookEventAsyncType
 from ...utils import get_webhooks_for_event
 from ..transport import (
     DeferredPayloadData,
-    create_deliveries_for_deferred_payload_events,
     generate_deferred_payloads,
     trigger_webhooks_async,
 )
@@ -88,7 +88,6 @@ def test_generate_deferred_payload(
 
     event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
     _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
-    webhooks = get_webhooks_for_event(event_type)
     deferred_payload_data = DeferredPayloadData(
         model_name="checkout.checkout",
         object_id=checkout.pk,
@@ -96,9 +95,12 @@ def test_generate_deferred_payload(
         requestor_object_id=staff_user.pk,
         request_time=None,
     )
-    delivery = create_deliveries_for_deferred_payload_events(
-        event_type, list(webhooks)
-    )[0]
+    delivery = EventDelivery(
+        event_type=event_type,
+        webhook=checkout_updated_webhook,
+        status=EventDeliveryStatus.PENDING,
+    )
+    delivery.save()
 
     # when
     generate_deferred_payloads.delay(
@@ -130,7 +132,6 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
     # given
     event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
     _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
-    webhooks = get_webhooks_for_event(event_type)
     deferred_payload_data = DeferredPayloadData(
         model_name="checkout.checkout",
         object_id=uuid.uuid4(),
@@ -138,9 +139,12 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
         requestor_object_id=999999,
         request_time=None,
     )
-    delivery = create_deliveries_for_deferred_payload_events(
-        event_type, list(webhooks)
-    )[0]
+    delivery = EventDelivery(
+        event_type=event_type,
+        webhook=checkout_updated_webhook,
+        status=EventDeliveryStatus.PENDING,
+    )
+    delivery.save()
 
     # when
     generate_deferred_payloads.delay(

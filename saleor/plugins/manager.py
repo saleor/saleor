@@ -912,15 +912,39 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_stock_updated(self, stock: "Stock", webhooks=None):
+    def product_variant_stocks_updated(self, stocks: list["Stock"], webhooks=None):
         default_value = None
         self.__run_method_on_plugins(
-            "product_variant_stock_updated",
+            "product_variant_stocks_updated",
             default_value,
-            stock,
+            stocks,
             webhooks=webhooks,
             channel_slug=None,
         )
+
+        # To keep the compatibility with previous plugin method name, as a fallback
+        # we call the method for single stock update.
+        plugin_ids_with_previous_event = []
+        previous_plugin_method_name = "product_variant_stock_updated"
+        plugins = self.get_plugins(
+            active_only=True,
+        )
+        for plugin in plugins:
+            plugin_method = getattr(plugin, previous_plugin_method_name, NotImplemented)
+            if plugin_method == NotImplemented:
+                continue
+            plugin_ids_with_previous_event.append(plugin.PLUGIN_ID)
+
+        if plugin_ids_with_previous_event:
+            for stock in stocks:
+                self.__run_method_on_plugins(
+                    previous_plugin_method_name,
+                    default_value,
+                    stock,
+                    webhooks=webhooks,
+                    channel_slug=None,
+                    plugin_ids=plugin_ids_with_previous_event,
+                )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
@@ -1431,10 +1455,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def page_type_deleted(self, page_type: "PageType"):
+    def page_type_deleted(self, page_type: "PageType", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "page_type_deleted", default_value, page_type, channel_slug=None
+            "page_type_deleted",
+            default_value,
+            page_type,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
@@ -1719,10 +1747,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def attribute_created(self, attribute: "Attribute"):
+    def attribute_created(self, attribute: "Attribute", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_created", default_value, attribute, channel_slug=None
+            "attribute_created",
+            default_value,
+            attribute,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
@@ -2478,16 +2510,24 @@ class PluginsManager(PaymentInterface):
         )
         return response
 
-    def translation_created(self, translation: "Translation"):
+    def translation_created(self, translation: "Translation", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_created", default_value, translation, channel_slug=None
+            "translation_created",
+            default_value,
+            translation,
+            channel_slug=None,
+            webhooks=webhooks,
         )
 
-    def translation_updated(self, translation: "Translation"):
+    def translation_updated(self, translation: "Translation", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_updated", default_value, translation, channel_slug=None
+            "translation_updated",
+            default_value,
+            translation,
+            channel_slug=None,
+            webhooks=webhooks,
         )
 
     def get_all_plugins(self, active_only=False):

@@ -1145,6 +1145,45 @@ def test_checkout_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
+def test_checkout_with_variant_without_channel_listing(
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_item,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_variant.channel_listings.filter(channel=checkout.channel).delete()
+
+    variant_id = to_global_id_or_none(checkout_line_variant)
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutComplete"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+
+
 def test_checkout_complete_with_inactive_channel(
     user_api_client,
     checkout_with_gift_card,
@@ -3274,6 +3313,9 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     other_checkout_line = other_checkout.lines.create(
         variant=checkout_line.variant,
         quantity=quantity_available,
+        undiscounted_unit_price_amount=checkout_line.variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,

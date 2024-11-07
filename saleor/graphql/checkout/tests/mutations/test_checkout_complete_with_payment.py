@@ -816,6 +816,39 @@ def test_checkout_complete_with_variant_without_price(
     assert not checkout.completing_started_at
 
 
+def test_checkout_complete_with_variant_without_channel_listing(
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_variant.channel_listings.filter(channel=checkout.channel).delete()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutComplete"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+    checkout.refresh_from_db()
+    assert not checkout.completing_started_at
+
+
 @patch("saleor.order.calculations._recalculate_with_plugins")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_checkout_complete_requires_confirmation(
@@ -3015,6 +3048,9 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     other_checkout_line = other_checkout.lines.create(
         variant=checkout_line.variant,
         quantity=quantity_available,
+        undiscounted_unit_price_amount=checkout_line.variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,

@@ -1293,7 +1293,7 @@ def test_product_channel_listing_remove_variant_is_None_as_app(
     assert len(variant.channel_listings.all()) == 2
 
 
-def test_product_channel_listing_remove_variant_removes_checkout_lines(
+def test_product_channel_listing_remove_variant_do_not_removes_checkout_lines(
     staff_api_client,
     product,
     permission_manage_products,
@@ -1339,7 +1339,7 @@ def test_product_channel_listing_remove_variant_removes_checkout_lines(
 
     assert len(variant.channel_listings.all()) == 1
 
-    assert not checkout.lines.all().exists()
+    assert checkout.lines.all().exists()
 
 
 def test_product_channel_listing_add_variant_duplicated_ids_in_add_and_remove(

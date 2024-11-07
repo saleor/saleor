@@ -4,7 +4,7 @@ import hashlib
 import json
 import logging
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import Enum
 from time import time
 from typing import Any, Callable, Optional, Union
@@ -103,7 +103,9 @@ class DeferredPayloadData:
     request_time: Optional[datetime.datetime]
 
 
-def prepare_deferred_payload_data(subscribable_object, requestor, request_time):
+def prepare_deferred_payload_data(
+    subscribable_object, requestor, request_time
+) -> DeferredPayloadData:
     model_name = (
         f"{subscribable_object._meta.app_label}.{subscribable_object._meta.model_name}"
     )
@@ -112,16 +114,13 @@ def prepare_deferred_payload_data(subscribable_object, requestor, request_time):
         if requestor
         else None
     )
-
-    payload_data_obj = DeferredPayloadData(
+    return DeferredPayloadData(
         model_name=model_name,
         object_id=subscribable_object.pk,
         request_time=request_time,
         requestor_model_name=requestor_model_name,
         requestor_object_id=(requestor.pk if requestor else None),
     )
-    deferred_payload_data = asdict(payload_data_obj)
-    return deferred_payload_data
 
 
 def generate_cache_key_for_webhook(
