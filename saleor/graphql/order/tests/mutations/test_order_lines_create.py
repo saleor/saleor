@@ -68,6 +68,7 @@ ORDER_LINES_CREATE_MUTATION = """
                 unitDiscount {
                   amount
                 }
+                unitDiscountReason
                 isPriceOverridden
             }
             order {
@@ -714,7 +715,8 @@ def test_order_lines_create_order_promotion(
     line_data = data["orderLines"][0]
     assert line_data["productSku"] == variant.sku
     assert line_data["quantity"] == quantity
-    assert line_data["unitDiscount"]["amount"] == 0.00
+    assert line_data["unitDiscount"]["amount"] == expected_unit_discount
+    assert line_data["unitDiscountReason"] == f"Promotion: {promotion_id}"
     assert (
         line_data["unitPrice"]["gross"]["amount"]
         == variant_channel_listing.price_amount - expected_unit_discount
@@ -725,7 +727,8 @@ def test_order_lines_create_order_promotion(
     )
 
     line = order.lines.get(product_sku=variant.sku)
-    assert line.unit_discount_amount == 0
+    assert line.unit_discount_amount == expected_unit_discount
+    assert line.unit_discount_reason == f"Promotion: {promotion_id}"
     assert (
         line.unit_price_gross_amount
         == variant_channel_listing.discounted_price.amount - expected_unit_discount

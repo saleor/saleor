@@ -28,6 +28,8 @@ from .voucher import create_or_update_discount_objects_from_voucher
 if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
 
+DEFAULT_MANUAL_DISCOUNT_REASON = "Manual discount"
+
 
 def create_or_update_discount_objects_for_order(
     order: "Order",
@@ -257,9 +259,16 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
 def update_unit_discount_reason_with_order_level_discounts(
     lines: Iterable[OrderLine], order: Order
 ):
+    # Manual discounts can be added without a reason provided. To not lose info about
+    # applied manual discount we add default reason
+    order_discounts = order.discounts.all()
+    for discount in order_discounts:
+        if not discount.reason and discount.type == DiscountType.MANUAL:
+            discount.reason = DEFAULT_MANUAL_DISCOUNT_REASON
+
     order_level_discounts_reason = ", ".join(
         discount.reason
-        for discount in order.discounts.all()
+        for discount in order_discounts
         if discount.reason and is_order_level_discount(discount)
     )
     for line in lines:

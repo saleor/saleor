@@ -621,6 +621,19 @@ def order_line_unit_discount_type(
     return order_line.unit_discount_type
 
 
+def order_line_unit_discount_reason(
+    order: Order,
+    order_line: OrderLine,
+    manager: PluginsManager,
+    lines: Optional[Iterable[OrderLine]] = None,
+    force_update: bool = False,
+) -> Optional[str]:
+    """Return the line unit discount reason."""
+    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    order_line = _find_order_line(lines, order_line)
+    return order_line.unit_discount_reason
+
+
 def order_undiscounted_shipping(
     order: Order,
     manager: PluginsManager,

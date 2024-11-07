@@ -1027,6 +1027,22 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         return Promise.all([order, lines, manager]).then(_resolve_unit_discount_type)
 
     @staticmethod
+    @traced_resolver
+    @prevent_sync_event_circular_query
+    def resolve_unit_discount_reason(root: models.OrderLine, info):
+        @allow_writer_in_context(info.context)
+        def _resolve_unit_discount_reason(data):
+            order, lines, manager = data
+            return calculations.order_line_unit_discount_reason(
+                order, root, manager, lines
+            )
+
+        order = OrderByIdLoader(info.context).load(root.order_id)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_unit_discount_reason)
+
+    @staticmethod
     def resolve_unit_discount_value(root: models.OrderLine, info):
         def _resolve_unit_discount_value(data):
             order, lines, manager = data
