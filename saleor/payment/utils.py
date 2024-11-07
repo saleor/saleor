@@ -1091,7 +1091,7 @@ def deduplicate_event(
                 "authorization amount."
             )
     if error_message:
-        logger.error(
+        logger.warning(
             msg=error_message,
             extra={
                 "transaction_id": event.transaction_id,
