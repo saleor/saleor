@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
@@ -26,6 +27,7 @@ from ..utils import (
     create_payment_lines_information,
     create_transaction_event_for_transaction_session,
     create_transaction_event_from_request_and_webhook_response,
+    deduplicate_event,
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
     get_transaction_event_amount,
@@ -3029,3 +3031,85 @@ def test_get_transaction_event_amount_for_info_event_type(
 
     # then
     assert amount == 0
+
+
+def test_deduplicate_event(transaction_events_generator, transaction_item, app):
+    # given
+    event = TransactionEvent(
+        psp_reference="psp:123",
+        type=TransactionEventType.CHARGE_SUCCESS,
+        amount_value=Decimal("10"),
+        transaction=transaction_item,
+        currency=transaction_item.currency,
+    )
+
+    # when
+    result_event, err_msg = deduplicate_event(event, app)
+
+    # then
+    assert err_msg is None
+    assert result_event
+
+
+def test_deduplicate_event_different_amount(
+    transaction_events_generator, transaction_item, app, caplog
+):
+    # given
+    events = transaction_events_generator(
+        psp_references=["psp:123"],
+        types=[TransactionEventType.CHARGE_SUCCESS],
+        amounts=[Decimal("10")],
+        transaction=transaction_item,
+    )
+    event = TransactionEvent(
+        psp_reference="psp:123",
+        type=TransactionEventType.CHARGE_SUCCESS,
+        amount_value=Decimal("12"),
+        transaction=transaction_item,
+        currency=transaction_item.currency,
+    )
+
+    # when
+    result_event, err_msg = deduplicate_event(event, app)
+
+    # then
+    assert result_event.id == events[0].id
+    assert err_msg == (
+        "The transaction with provided `pspReference` and "
+        "`type` already exists with different amount."
+    )
+    assert caplog.records[0].levelno == logging.WARNING
+    assert caplog.records[0].message == err_msg
+
+
+def test_deduplicate_event_authorization_already_exists(
+    transaction_events_generator, transaction_item, app, caplog
+):
+    # given
+    transaction_events_generator(
+        psp_references=["psp:123"],
+        types=[TransactionEventType.AUTHORIZATION_SUCCESS],
+        amounts=[Decimal("10")],
+        transaction=transaction_item,
+    )
+    event = TransactionEvent(
+        psp_reference="psp:111",
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        amount_value=Decimal("10"),
+        transaction=transaction_item,
+        currency=transaction_item.currency,
+    )
+
+    # when
+    result_event, err_msg = deduplicate_event(event, app)
+
+    # then
+    assert result_event
+    assert err_msg == (
+        "Event with `AUTHORIZATION_SUCCESS` already "
+        "reported for the transaction. Use "
+        "`AUTHORIZATION_ADJUSTMENT` to change the "
+        "authorization amount."
+    )
+    assert caplog.records[0].levelno == logging.WARNING
+    assert caplog.records[0].message == err_msg
