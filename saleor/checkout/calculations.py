@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -367,19 +368,22 @@ def _fetch_checkout_prices_if_expired(
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    checkout.save(
-        update_fields=checkout_update_fields,
-        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    )
-    checkout.lines.bulk_update(
-        [line_info.line for line_info in lines],
-        [
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-            "undiscounted_unit_price_amount",
-        ],
-    )
+    from .utils import checkout_lines_bulk_update
+
+    with transaction.atomic():
+        checkout.save(
+            update_fields=checkout_update_fields,
+            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+        )
+        checkout_lines_bulk_update(
+            [line_info.line for line_info in lines],
+            [
+                "total_price_net_amount",
+                "total_price_gross_amount",
+                "tax_rate",
+                "undiscounted_unit_price_amount",
+            ],
+        )
     return checkout_info, lines
 
 
