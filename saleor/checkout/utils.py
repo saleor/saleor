@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union, cast
+from uuid import UUID
 
 import graphene
 from django.conf import settings
@@ -113,6 +114,46 @@ def invalidate_checkout_prices(
         checkout.save(update_fields=updated_fields)
 
     return updated_fields
+
+
+def checkout_lines_bulk_update(
+    lines_to_update: list["CheckoutLine"], fields_to_update: list[str]
+):
+    """Bulk update on CheckoutLines with lock applied on them."""
+    with transaction.atomic():
+        _locked_lines = list(
+            CheckoutLine.objects.order_by("id")
+            .select_for_update()
+            .filter(id__in=[line.id for line in lines_to_update])
+            .values_list("id", flat=True)
+        )
+        CheckoutLine.objects.bulk_update(lines_to_update, fields_to_update)
+
+
+def checkout_lines_bulk_delete(line_pks_to_delete: list[UUID]):
+    """Delete CheckoutLines with lock applied on them."""
+    with transaction.atomic():
+        CheckoutLine.objects.filter(
+            id__in=CheckoutLine.objects.order_by("id")
+            .select_for_update()
+            .filter(pk__in=line_pks_to_delete)
+            .values_list("id", flat=True)
+        ).delete()
+
+
+def delete_checkouts(checkout_pks_to_delete: list[UUID]) -> int:
+    """Delete a checouts with lock applied on them."""
+    with transaction.atomic():
+        CheckoutLine.objects.filter(
+            id__in=CheckoutLine.objects.order_by("id")
+            .select_for_update()
+            .filter(checkout_id__in=checkout_pks_to_delete)
+            .values_list("id", flat=True)
+        ).delete()
+        deleted_count, _ = Checkout.objects.filter(
+            pk__in=checkout_pks_to_delete
+        ).delete()
+    return deleted_count
 
 
 def get_user_checkout(
@@ -285,11 +326,13 @@ def add_variants_to_checkout(
             )
 
     if to_delete:
-        CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
+        checkout_lines_bulk_delete([line.pk for line in to_delete])
+
     if to_update:
-        CheckoutLine.objects.bulk_update(
+        checkout_lines_bulk_update(
             to_update, ["quantity", "price_override", "metadata"]
         )
+
     if to_create:
         CheckoutLine.objects.bulk_create(to_create)
 
