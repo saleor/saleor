@@ -308,7 +308,7 @@ def assign_order_line_prices(line: "OrderLine", total_price: Money):
         line.unit_price_net_amount = unit_price
         line.unit_price_gross_amount = unit_price
 
-        undiscounted_unit_price = line.undiscounted_total_price_net_amount / quantity
+        undiscounted_unit_price = line.undiscounted_base_unit_price_amount
         line.undiscounted_unit_price_net_amount = undiscounted_unit_price
         line.undiscounted_unit_price_gross_amount = undiscounted_unit_price
 

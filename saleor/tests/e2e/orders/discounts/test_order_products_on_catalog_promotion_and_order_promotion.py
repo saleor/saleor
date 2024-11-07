@@ -458,7 +458,23 @@ def test_draft_order_products_on_catalog_promotion_and_order_promotion_CORE_2132
         == expected_undiscounted_total_tax
     )
     line1 = completed_order["lines"][0]
-    assert line1["unitDiscountReason"] == f"Promotion: {catalog_promotion_id}"
+    assert (
+        line1["unitDiscountReason"]
+        == f"Promotion: {catalog_promotion_id}, Promotion: {order_promotion_id}"
+    )
+    assert (
+        line1["unitDiscount"]["amount"]
+        == line1["undiscountedUnitPrice"]["gross"]["amount"]
+        - line1["unitPrice"]["gross"]["amount"]
+    )
     line2 = completed_order["lines"][1]
-    assert line2["unitDiscountReason"] == f"Promotion: {catalog_promotion_id}"
+    assert (
+        line2["unitDiscountReason"]
+        == f"Promotion: {catalog_promotion_id}, Promotion: {order_promotion_id}"
+    )
+    assert (
+        line2["unitDiscount"]["amount"]
+        == line2["undiscountedUnitPrice"]["gross"]["amount"]
+        - line2["unitPrice"]["gross"]["amount"]
+    )
     assert completed_order["discounts"][0]["type"] == "ORDER_PROMOTION"

@@ -30,6 +30,7 @@ mutation OrderDiscountAdd($input: OrderDiscountCommonInput!, $id: ID!) {
         amount {
           amount
         }
+        reason
       }
       shippingPrice {
         ...BaseTaxedMoney

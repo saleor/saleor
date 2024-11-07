@@ -120,9 +120,11 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
 
     # Step 3 - Add manual discount to the order
     manual_discount_value = 2
+    manual_discount_reason = "Manual discount reason"
     manual_discount_input = {
         "valueType": "FIXED",
         "value": manual_discount_value,
+        "reason": manual_discount_reason,
     }
     discount_data = order_discount_add(
         e2e_staff_api_client,
@@ -160,10 +162,17 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
         manual_discount_value - manual_discount_subtotal_share
     )
     assert product_price == product_variant_price
-    assert order_line["unitDiscount"]["amount"] == promotion_value
+    assert order_line["unitDiscount"]["amount"] == float(
+        quantize_price(
+            promotion_value + manual_discount_subtotal_share / quantity, currency
+        )
+    )
     assert order_line["unitDiscountType"] == "PERCENTAGE"
     assert order_line["unitDiscountValue"] == promotion_discount_value
-    assert order_line["unitDiscountReason"] == promotion_reason
+    assert (
+        order_line["unitDiscountReason"]
+        == f"{promotion_reason}, {manual_discount_reason}"
+    )
     product_discounted_price = product_price - promotion_value
     shipping_amount = quantize_price(
         Decimal(order["order"]["shippingPrice"]["gross"]["amount"]), currency
