@@ -560,6 +560,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     result_event_type,
     transaction_item_generator,
     app,
+    caplog,
 ):
     # given
     transaction = transaction_item_generator()
@@ -588,9 +589,10 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.transaction_id == transaction.id
-    assert event.message == (
-        f"Providing `pspReference` is required for {result_event_type.upper()}."
-    )
+    error_msg = f"Providing `pspReference` is required for {result_event_type.upper()}."
+    assert event.message == error_msg
+    assert caplog.records[0].levelno == logging.WARNING
+    assert caplog.records[0].message == error_msg
 
 
 @freeze_time("2018-05-31 12:00:01")
