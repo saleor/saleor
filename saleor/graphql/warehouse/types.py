@@ -240,11 +240,7 @@ class Stock(ModelObjectType[models.Stock]):
 
     @staticmethod
     def resolve_quantity_allocated(root, info: ResolveInfo):
-        return root.allocations.using(
-            get_database_connection_name(info.context)
-        ).aggregate(quantity_allocated=Coalesce(Sum("quantity_allocated"), 0))[
-            "quantity_allocated"
-        ]
+        return root.quantity_allocated
 
     @staticmethod
     @load_site_callback
