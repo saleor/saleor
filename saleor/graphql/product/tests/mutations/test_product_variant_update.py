@@ -167,6 +167,86 @@ def test_update_product_variant_by_id(
     product_variant_created_webhook_mock.assert_not_called()
 
 
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+def test_update_product_variant_skips_save_when_nothing_changes(
+    product_variant_updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    query = """
+        mutation updateVariant (
+            $id: ID!
+            $sku: String!
+            $quantityLimitPerCustomer: Int!
+            $trackInventory: Boolean!
+            $externalReference: String
+            $attributes: [AttributeValueInput!]) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        sku: $sku,
+                        trackInventory: $trackInventory,
+                        attributes: $attributes,
+                        externalReference: $externalReference
+                        quantityLimitPerCustomer: $quantityLimitPerCustomer,
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                        quantityLimitPerCustomer
+                        externalReference
+                        channelListings {
+                            channel {
+                                slug
+                            }
+                        }
+                    }
+                    errors {
+                      field
+                      message
+                      attributes
+                      code}
+                }
+            }
+    """
+    variant = product.variants.first()
+    quantity_limit = 9
+    external_reference = "test-ext-ref"
+    variant_name = variant.attributes.first().values.first().name
+    variant_sku = "123"
+    product.default_variant = variant
+    product.save(update_fields=["default_variant"])
+    variant.name = variant_name
+    variant.external_reference = external_reference
+    variant.quantity_limit_per_customer = quantity_limit
+    variant.track_inventory = True
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": variant_sku,
+        "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit,
+        "externalReference": external_reference,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["name"] == variant_name
+    assert data["sku"] == variant_sku
+    assert data["externalReference"] == external_reference == variant.external_reference
+    assert data["quantityLimitPerCustomer"] == quantity_limit
+    product_variant_updated_webhook_mock.assert_not_called()
+
+
 def test_update_product_variant_marks_prices_as_dirty(
     staff_api_client,
     product,
