@@ -17,6 +17,7 @@ from ..plugins.manager import get_plugins_manager
 from .complete_checkout import complete_checkout
 from .fetch import fetch_checkout_info, fetch_checkout_lines
 from .models import Checkout, CheckoutLine
+from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
 
@@ -96,9 +97,9 @@ def delete_expired_checkouts(
     total_deleted: int = 0
     has_more: bool = True
     for _batch_number in range(batch_count):
-        ids = list(qs.values_list("pk", flat=True))
+        checkout_ids = list(qs.values_list("pk", flat=True))
         with allow_writer():
-            deleted_count, _ = Checkout.objects.filter(pk__in=ids).delete()
+            deleted_count = delete_checkouts(checkout_ids)
         total_deleted += deleted_count
 
         # Stop deleting inactive checkouts if there was no match.
