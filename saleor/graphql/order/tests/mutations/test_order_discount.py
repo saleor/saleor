@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from .....core.prices import quantize_price
 from .....discount import DiscountType, DiscountValueType
+from .....discount.utils.order import DEFAULT_MANUAL_LINE_DISCOUNT_REASON
 from .....order import OrderEvents, OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
@@ -964,6 +965,7 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
           amount
         }
       }
+      unitDiscountReason
     }
     errors{
       field
@@ -1375,6 +1377,47 @@ def test_update_order_line_discount_order_is_not_draft(
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
     assert line_to_discount.unit_discount_amount == Decimal("0")
+
+
+def test_update_order_line_discount_default_reason(
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    """Test the default unit discount reason for manual line discounts."""
+    # given
+    _, discounted_line = draft_order.lines.all()
+
+    value = Decimal("1")
+    value_type = DiscountValueTypeEnum.FIXED
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", discounted_line.pk),
+        "input": {
+            "valueType": value_type.name,
+            "value": value,
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountUpdate"]
+    discounted_line.refresh_from_db()
+
+    line_discount = discounted_line.discounts.get()
+    assert line_discount.type == DiscountType.MANUAL
+    assert line_discount.value == value
+    assert line_discount.value_type == value_type.value
+    assert line_discount.amount_value == value * discounted_line.quantity
+    assert line_discount.reason is None
+
+    assert discounted_line.unit_discount_reason == DEFAULT_MANUAL_LINE_DISCOUNT_REASON
+    assert (
+        data["orderLine"]["unitDiscountReason"] == DEFAULT_MANUAL_LINE_DISCOUNT_REASON
+    )
 
 
 ORDER_LINE_DISCOUNT_REMOVE = """

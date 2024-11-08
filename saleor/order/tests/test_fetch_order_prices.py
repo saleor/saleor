@@ -12,7 +12,7 @@ from ...discount.models import (
     OrderLineDiscount,
     PromotionRule,
 )
-from ...discount.utils.order import DEFAULT_MANUAL_DISCOUNT_REASON
+from ...discount.utils.order import DEFAULT_MANUAL_ORDER_DISCOUNT_REASON
 from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
 
@@ -1270,7 +1270,7 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
         line_1.unit_price_net_amount * tax_rate
     )
     assert line_1.unit_discount_reason == ", ".join(
-        [catalogue_discount.reason, DEFAULT_MANUAL_DISCOUNT_REASON]
+        [catalogue_discount.reason, DEFAULT_MANUAL_ORDER_DISCOUNT_REASON]
     )
     assert line_1.unit_discount_amount == quantize_price(
         line_1.undiscounted_unit_price_net_amount - line_1.unit_price_net_amount,
@@ -1312,7 +1312,7 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2.unit_price_net_amount * tax_rate, currency
     )
-    assert line_2.unit_discount_reason == DEFAULT_MANUAL_DISCOUNT_REASON
+    assert line_2.unit_discount_reason == DEFAULT_MANUAL_ORDER_DISCOUNT_REASON
     assert line_2.unit_discount_amount == quantize_price(
         line_2.undiscounted_unit_price_net_amount - line_2.unit_price_net_amount,
         currency,
