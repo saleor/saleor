@@ -1482,7 +1482,7 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     line_1_total = line_1_db.undiscounted_total_price_net_amount
     assert line_1["totalPrice"]["net"]["amount"] == line_1_total
     assert line_1["unitDiscount"]["amount"] == 0.00
-    assert line_1["unitDiscountReason"] is None
+    assert line_1["unitDiscountReason"] == ""
     assert line_1["unitDiscountValue"] == 0.00
 
     line_2_total = quantize_price(
