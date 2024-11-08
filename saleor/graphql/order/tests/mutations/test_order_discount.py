@@ -986,6 +986,7 @@ def test_update_order_line_discount(
     order = draft_order_with_fixed_discount_order
     order.status = status
     order.save(update_fields=["status"])
+    assert order.discounts.get(type=DiscountType.MANUAL)
 
     undiscounted_shipping_price = order.shipping_method.channel_listings.get(
         channel=order.channel
@@ -1037,15 +1038,15 @@ def test_update_order_line_discount(
 
     order_discount = order.discounts.get()
     order_discount_amount = order_discount.amount
-    discount_applied_to_lines = order_discount_amount - (
+    order_level_discount_applied_to_lines = order_discount_amount - (
         undiscounted_shipping_price - order.shipping_price.gross
     )
-    discount_applied_to_discounted_line = (
-        discount_applied_to_lines
+    order_discount_applied_to_discounted_line = (
+        order_level_discount_applied_to_lines
         - (second_line.base_unit_price - second_line.unit_price.gross)
         * second_line.quantity
     )
-    assert discount_applied_to_discounted_line == quantize_price(
+    assert order_discount_applied_to_discounted_line == quantize_price(
         (line_to_discount.base_unit_price - line_to_discount.unit_price.gross)
         * line_to_discount.quantity,
         order.currency,
@@ -1064,8 +1065,16 @@ def test_update_order_line_discount(
         line_to_discount.base_unit_price
         == quantize_price(expected_line_price, "USD").gross
     )
-    unit_discount = line_to_discount.unit_discount
-    assert unit_discount == (line_price_before_discount - expected_line_price).gross
+    line_unit_discount = (line_price_before_discount - expected_line_price).gross
+    order_unit_discount = (
+        order_discount_applied_to_discounted_line / line_to_discount.quantity
+    )
+    unit_discount = quantize_price(
+        line_unit_discount + order_unit_discount, order.currency
+    )
+
+    assert line_to_discount.unit_discount == unit_discount
+    assert line_to_discount.unit_discount_reason == f"{reason}, {order_discount.reason}"
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
@@ -1073,17 +1082,13 @@ def test_update_order_line_discount(
     lines = parameters.get("lines", {})
     assert len(lines) == 1
 
-    line_to_discount.refresh_from_db()
-    assert line_to_discount.unit_discount_amount == value
-    assert line_to_discount.unit_discount_type == DiscountValueType.FIXED
-
     line_data = lines[0]
     assert line_data.get("line_pk") == str(line_to_discount.pk)
     discount_data = line_data.get("discount")
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert Decimal(discount_data["amount_value"]) == line_unit_discount.amount
 
     line_discount = line_to_discount.discounts.get()
     assert line_discount.type == DiscountType.MANUAL

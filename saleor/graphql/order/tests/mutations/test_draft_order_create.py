@@ -826,7 +826,7 @@ def test_draft_order_create_with_voucher_specific_product(
     assert line_1_data["totalPrice"]["gross"]["amount"] == variant_1_total
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
-    assert line_1_data["unitDiscountReason"] is None
+    assert line_1_data["unitDiscountReason"] == ""
 
     assert order.discounts.count() == 0
 
@@ -968,7 +968,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     assert line_1_data["totalPrice"]["gross"]["amount"] == variant_1_total
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
-    assert line_1_data["unitDiscountReason"] is None
+    assert line_1_data["unitDiscountReason"] == ""
 
     assert order.discounts.count() == 0
 

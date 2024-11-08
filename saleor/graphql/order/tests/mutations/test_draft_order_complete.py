@@ -1289,6 +1289,16 @@ DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """
                             amount
                         }
                     }
+                    unitPrice {
+                        net {
+                            amount
+                        }
+                    }
+                    undiscountedUnitPrice {
+                        net {
+                            amount
+                        }
+                    }
                     unitDiscount {
                         amount
                     }
@@ -1323,6 +1333,8 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     )
     rule_catalogue_value = rule_catalogue.reward_value
     rule_total_value = rule_total.reward_value
+    assert rule_catalogue.reward_value_type == DiscountValueType.FIXED
+    assert rule_total.reward_value_type == DiscountValueType.FIXED
 
     currency = order.currency
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -1363,8 +1375,21 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         currency,
     )
     assert line_1["totalPrice"]["net"]["amount"] == float(line_1_total)
-    assert line_1["unitDiscount"]["amount"] == 0.00
-    assert line_1["unitDiscountReason"] is None
+
+    line_1_undiscounted_unit_price = line_1_db.undiscounted_base_unit_price_amount
+    line_1_unit_discount = quantize_price(
+        line_1_order_discount_portion / line_1_db.quantity, currency
+    )
+    line_1_unit_price = quantize_price(
+        line_1_undiscounted_unit_price - line_1_unit_discount, currency
+    )
+    assert (
+        line_1["undiscountedUnitPrice"]["net"]["amount"]
+        == line_1_undiscounted_unit_price
+    )
+    assert line_1["unitPrice"]["net"]["amount"] == float(line_1_unit_price)
+    assert line_1["unitDiscount"]["amount"] == float(line_1_unit_discount)
+    assert line_1["unitDiscountReason"] == f"Promotion: {order_promotion_id}"
     assert line_1["unitDiscountValue"] == 0.00
 
     line_2_total = quantize_price(
@@ -1374,8 +1399,25 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         currency,
     )
     assert line_2["totalPrice"]["net"]["amount"] == float(line_2_total)
-    assert line_2["unitDiscount"]["amount"] == rule_catalogue_value
-    assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
+
+    line_2_undiscounted_unit_price = line_2_db.undiscounted_base_unit_price_amount
+    line_2_unit_discount = quantize_price(
+        rule_catalogue_value + line_2_order_discount_portion / line_2_db.quantity,
+        currency,
+    )
+    line_2_unit_price = quantize_price(
+        line_2_undiscounted_unit_price - line_2_unit_discount, currency
+    )
+    assert (
+        line_2["undiscountedUnitPrice"]["net"]["amount"]
+        == line_2_undiscounted_unit_price
+    )
+    assert line_2["unitPrice"]["net"]["amount"] == float(line_2_unit_price)
+    assert line_2["unitDiscount"]["amount"] == float(line_2_unit_discount)
+    assert (
+        line_2["unitDiscountReason"]
+        == f"Promotion: {catalogue_promotion_id}, Promotion: {order_promotion_id}"
+    )
     assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
     assert line_2["unitDiscountValue"] == rule_catalogue_value
 

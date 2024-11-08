@@ -352,7 +352,7 @@ def test_draft_order_update_with_voucher_specific_product(
     assert line_1_data["totalPrice"]["net"]["amount"] == line_1_total
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
-    assert line_1_data["unitDiscountReason"] is None
+    assert line_1_data["unitDiscountReason"] == ""
 
     order.refresh_from_db()
     assert order.voucher_code == voucher.code
@@ -444,7 +444,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order(
     assert line_1_data["totalPrice"]["net"]["amount"] == line_1_total
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
-    assert line_1_data["unitDiscountReason"] is None
+    assert line_1_data["unitDiscountReason"] == ""
 
     order.refresh_from_db()
     assert order.voucher_code == voucher.code

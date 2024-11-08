@@ -622,16 +622,16 @@ def test_update_order_line_discount_old_id(
     order_discount = order.discounts.get()
     order_discount_amount = order_discount.amount
     base_shipping = order.undiscounted_base_shipping_price
-    discount_applied_to_lines = order_discount_amount - (
+    order_level_discount_applied_to_lines = order_discount_amount - (
         base_shipping - order.shipping_price.gross
     )
-    discount_applied_to_discounted_line = (
-        discount_applied_to_lines
+    order_discount_applied_to_discounted_line = (
+        order_level_discount_applied_to_lines
         - (second_line.base_unit_price - second_line.unit_price.gross)
         * second_line.quantity
     )
     assert (
-        discount_applied_to_discounted_line
+        order_discount_applied_to_discounted_line
         == (line_to_discount.base_unit_price - line_to_discount.unit_price.gross)
         * line_to_discount.quantity
     )
@@ -645,12 +645,16 @@ def test_update_order_line_discount_old_id(
     )
     expected_line_price = discount(line_price_before_discount)
 
-    assert (
-        line_to_discount.base_unit_price
-        == quantize_price(expected_line_price, "USD").gross
+    line_unit_discount = (line_price_before_discount - expected_line_price).gross
+    order_unit_discount = (
+        order_discount_applied_to_discounted_line / line_to_discount.quantity
     )
-    unit_discount = line_to_discount.unit_discount
-    assert unit_discount == (line_price_before_discount - expected_line_price).gross
+    unit_discount = quantize_price(
+        line_unit_discount + order_unit_discount, order.currency
+    )
+
+    assert line_to_discount.unit_discount == unit_discount
+    assert line_to_discount.unit_discount_reason == f"{reason}, {order_discount.reason}"
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
@@ -664,7 +668,7 @@ def test_update_order_line_discount_old_id(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert Decimal(discount_data["amount_value"]) == line_unit_discount.amount
 
 
 ORDER_LINE_DISCOUNT_REMOVE = """
