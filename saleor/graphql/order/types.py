@@ -817,6 +817,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     unit_discount_value = graphene.Field(
         PositiveDecimal,
         description="Value of the discount. Can store fixed value or percent value",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Since the order line can have multiple "
+            f"discounts applied, this field is not valid anymore."
+        ),
         required=True,
     )
     total_price = graphene.Field(
@@ -867,6 +871,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Since the order line can have multiple "
+            f"discounts applied, this field is not valid anymore."
+        ),
     )
     tax_class = PermissionsField(
         TaxClass,

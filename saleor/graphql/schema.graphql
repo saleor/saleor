@@ -10998,7 +10998,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   unitDiscount: Money!
 
   """Value of the discount. Can store fixed value or percent value"""
-  unitDiscountValue: PositiveDecimal!
+  unitDiscountValue: PositiveDecimal! @deprecated(reason: "This field will be removed in Saleor 4.0. Since the order line can have multiple discounts applied, this field is not valid anymore.")
 
   """Price of the order line."""
   totalPrice: TaxedMoney!
@@ -11036,7 +11036,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   quantityToFulfill: Int!
 
   """Type of the discount: fixed or percent"""
-  unitDiscountType: DiscountValueTypeEnum
+  unitDiscountType: DiscountValueTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0. Since the order line can have multiple discounts applied, this field is not valid anymore.")
 
   """
   Denormalized tax class of the product in this order line.
