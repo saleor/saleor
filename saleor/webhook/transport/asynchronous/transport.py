@@ -457,6 +457,10 @@ def generate_deferred_payloads(
         )
         return
 
+    event_payloads = []
+    event_payloads_data = []
+    event_deliveries_for_bulk_update = []
+
     for delivery in deliveries:
         event_type = delivery.event_type
         webhook = delivery.webhook
@@ -479,26 +483,36 @@ def generate_deferred_payloads(
             data = data_promise.get()
             if data:
                 data_json = json.dumps({**data})
-                with allow_writer():
-                    event_payload = EventPayload.objects.create_with_payload_file(
-                        data_json
-                    )
-                    delivery.payload = event_payload
-                    delivery.save(update_fields=["payload"])
+                event_payloads_data.append(data_json)
+                event_payload = EventPayload()
+                event_payloads.append(event_payload)
+                delivery.payload = event_payload
+                event_deliveries_for_bulk_update.append(delivery)
 
-                # Trigger webhook delivery task when the payload is ready.
-                send_webhook_request_async.apply_async(
-                    kwargs={
-                        "event_delivery_id": delivery.id,
-                    },
-                    queue=get_queue_name_for_webhook(
-                        delivery.webhook,
-                        default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-                    ),
-                    bind=True,
-                    retry_backoff=10,
-                    retry_kwargs={"max_retries": 5},
+    if event_deliveries_for_bulk_update:
+        with allow_writer():
+            with transaction.atomic():
+                EventPayload.objects.bulk_create_with_payload_files(
+                    event_payloads, event_payloads_data
                 )
+                EventDelivery.objects.bulk_update(
+                    event_deliveries_for_bulk_update, ["payload"]
+                )
+
+    for delivery in event_deliveries_for_bulk_update:
+        # Trigger webhook delivery task when the payload is ready.
+        send_webhook_request_async.apply_async(
+            kwargs={
+                "event_delivery_id": delivery.id,
+            },
+            queue=get_queue_name_for_webhook(
+                delivery.webhook,
+                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+            ),
+            bind=True,
+            retry_backoff=10,
+            retry_kwargs={"max_retries": 5},
+        )
 
 
 @app.task(
