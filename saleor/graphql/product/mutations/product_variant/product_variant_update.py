@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 
 import graphene
@@ -147,34 +148,30 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, base_fields_changed):
-        new_variant = instance.pk is None
-        variant_modified = False
+    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields):
+        refresh_product_search_index = False
         with traced_atomic_transaction():
-            if base_fields_changed:
-                instance.save()
-                variant_modified = True
+            if changed_fields:
+                instance.save(update_fields=["updated_at"] + changed_fields)
+                if "sku" in changed_fields or "name" in changed_fields:
+                    refresh_product_search_index = True
             if stocks := cleaned_input.get("stocks"):
                 cls.create_variant_stocks(instance, stocks)
-                variant_modified = True
             if attributes := cleaned_input.get("attributes"):
                 AttributeAssignmentMixin.save(instance, attributes)
-                variant_modified = True
+                refresh_product_search_index = True
 
-            if variant_modified:
+            if refresh_product_search_index:
                 product_update_fields = ["updated_at", "search_index_dirty"]
                 instance.product.search_index_dirty = True
                 if not instance.product.default_variant:
                     instance.product.default_variant = instance
                     product_update_fields.append("default_variant")
                 instance.product.save(update_fields=product_update_fields)
+
+            if changed_fields or stocks or attributes:
                 manager = get_plugin_manager_promise(info.context).get()
-                event_to_call = (
-                    manager.product_variant_created
-                    if new_variant
-                    else manager.product_variant_updated
-                )
-                cls.call_event(event_to_call, instance)
+                cls.call_event(manager.product_variant_updated, instance)
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input):
@@ -183,6 +180,14 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         if not instance.name:
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
         return instance
+
+    @classmethod
+    def diff_instance_data_fields(cls, fields, old_instance_data, new_instance_data):
+        diff_fields = []
+        for field in fields:
+            if old_instance_data.get(field) != new_instance_data.get(field):
+                diff_fields.append(field)
+        return diff_fields
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -204,10 +209,23 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             "external_reference",
             external_reference,
         )
+        comparison_fields = [
+            "sku",
+            "name",
+            "track_inventory",
+            "is_preorder",
+            "quantity_limit_per_customer",
+            "weight",
+            "external_reference",
+            "metadata",
+            "private_metadata",
+        ]
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        old_instance_data = model_to_dict(instance).copy()
+        old_instance_data = copy.deepcopy(
+            model_to_dict(instance, fields=comparison_fields)
+        )
 
         cleaned_input = cls.clean_input(info, instance, input)
         metadata_list = cleaned_input.pop("metadata", None)
@@ -217,8 +235,12 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
 
-        base_fields_changed = old_instance_data != model_to_dict(instance)
-        cls._save(info, instance, cleaned_input, base_fields_changed)
+        changed_fields = cls.diff_instance_data_fields(
+            comparison_fields,
+            old_instance_data,
+            model_to_dict(instance, fields=comparison_fields),
+        )
+        cls._save(info, instance, cleaned_input, changed_fields)
         cls._save_m2m(info, instance, cleaned_input)
         # add to cleaned_input popped metadata to allow running post save events
         # that depends on the metadata inputs
