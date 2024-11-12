@@ -980,7 +980,7 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
     line_1, line_2 = order.lines.all()
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_reward = Decimal("3")
+    voucher_reward = Decimal("4")
     voucher_listing.discount_value = voucher_reward
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -993,7 +993,7 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
     order.save(update_fields=["voucher", "voucher_code"])
 
     # create manual order discount
-    manual_reward = Decimal("8")
+    manual_reward = Decimal("10")
     manual_discount_reason = "Manual discount reason"
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.FIXED,
@@ -1043,19 +1043,23 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
         manual_reward * base_subtotal / base_total, currency
     )
     shipping_discount_portion = manual_reward - subtotal_discount_portion
-    line_1_manual_discount_portion = (
-        subtotal_discount_portion * line_1_base_total_price / base_subtotal
+    line_1_manual_discount_portion = quantize_price(
+        subtotal_discount_portion * line_1_base_total_price / base_subtotal, currency
     )
-    line_2_manual_discount_portion = (
-        subtotal_discount_portion - line_1_manual_discount_portion
+    line_2_manual_discount_portion = quantize_price(
+        subtotal_discount_portion - line_1_manual_discount_portion, currency
     )
     line_1_total_price_net = line_1_base_total_price - line_1_manual_discount_portion
     line_2_total_price_net = line_2_base_total_price - line_2_manual_discount_portion
     line_1_total_price_gross = line_1_total_price_net * tax_rate
     line_2_total_price_gross = line_2_total_price_net * tax_rate
 
-    line_1_unit_price_net = line_1_total_price_net / line_1.quantity
-    line_2_unit_price_net = line_2_total_price_net / line_2.quantity
+    line_1_unit_price_net = quantize_price(
+        line_1_total_price_net / line_1.quantity, currency
+    )
+    line_2_unit_price_net = quantize_price(
+        line_2_total_price_net / line_2.quantity, currency
+    )
     line_1_unit_price_gross = line_1_unit_price_net * tax_rate
     line_2_unit_price_gross = line_2_unit_price_net * tax_rate
 

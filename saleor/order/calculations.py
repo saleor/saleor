@@ -19,7 +19,6 @@ from ..core.taxes import (
 )
 from ..discount.utils.order import (
     create_or_update_discount_objects_for_order,
-    update_unit_discount_reason_with_order_level_discounts,
 )
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
@@ -151,17 +150,9 @@ def _recalculate_prices(
 
     order.tax_error = None
 
-    # Flat rates, plugin and tax exemption strategies require to propagate order-level
-    # discounts to order lines. Tax app does it itself.
-    using_tax_app = (
-        tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
-        and tax_app_identifier
-        and not tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
-    )
     apply_order_discounts(
         order,
         lines,
-        assign_prices=not using_tax_app,
         database_connection_name=database_connection_name,
     )
     if prices_entered_with_tax:
@@ -431,23 +422,9 @@ def _apply_tax_data(
         )
         undiscounted_subtotal += order_line.undiscounted_total_price
 
-        if not order_line.is_gift:
-            unit_price_to_compare = (
-                order_line.unit_price.gross
-                if prices_entered_with_tax
-                else order_line.unit_price.net
-            )
-            order_line.unit_discount_amount = quantize_price(
-                order_line.undiscounted_base_unit_price_amount
-                - unit_price_to_compare.amount,
-                currency,
-            )
-
     order.subtotal = subtotal
     order.total = shipping_price + subtotal
     order.undiscounted_total = undiscounted_shipping_price + undiscounted_subtotal
-
-    update_unit_discount_reason_with_order_level_discounts(lines, order)
 
 
 def _remove_tax(order, lines):
