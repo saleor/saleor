@@ -161,11 +161,13 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     manual_discount_shipping_share = (
         manual_discount_value - manual_discount_subtotal_share
     )
+    unit_discount_amount = quantize_price(
+        promotion_value + manual_discount_subtotal_share / quantity, currency
+    )
     assert product_price == product_variant_price
-    assert order_line["unitDiscount"]["amount"] == float(
-        quantize_price(
-            promotion_value + manual_discount_subtotal_share / quantity, currency
-        )
+    assert (
+        quantize_price(Decimal(order_line["unitDiscount"]["amount"]), currency)
+        == unit_discount_amount
     )
     assert order_line["unitDiscountType"] == "PERCENTAGE"
     assert order_line["unitDiscountValue"] == promotion_discount_value

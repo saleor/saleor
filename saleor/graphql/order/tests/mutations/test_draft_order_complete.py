@@ -1374,7 +1374,10 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         line_1_db.undiscounted_total_price_net_amount - line_1_order_discount_portion,
         currency,
     )
-    assert line_1["totalPrice"]["net"]["amount"] == float(line_1_total)
+    assert (
+        quantize_price(Decimal(line_1["totalPrice"]["net"]["amount"]), currency)
+        == line_1_total
+    )
 
     line_1_undiscounted_unit_price = line_1_db.undiscounted_base_unit_price_amount
     line_1_unit_discount = quantize_price(
@@ -1387,8 +1390,14 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         line_1["undiscountedUnitPrice"]["net"]["amount"]
         == line_1_undiscounted_unit_price
     )
-    assert line_1["unitPrice"]["net"]["amount"] == float(line_1_unit_price)
-    assert line_1["unitDiscount"]["amount"] == float(line_1_unit_discount)
+    assert (
+        quantize_price(Decimal(line_1["unitPrice"]["net"]["amount"]), currency)
+        == line_1_unit_price
+    )
+    assert (
+        quantize_price(Decimal(line_1["unitDiscount"]["amount"]), currency)
+        == line_1_unit_discount
+    )
     assert line_1["unitDiscountReason"] == f"Promotion: {order_promotion_id}"
     assert line_1["unitDiscountValue"] == 0.00
 
@@ -1398,7 +1407,10 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         - line_2_order_discount_portion,
         currency,
     )
-    assert line_2["totalPrice"]["net"]["amount"] == float(line_2_total)
+    assert (
+        quantize_price(Decimal(line_2["totalPrice"]["net"]["amount"]), currency)
+        == line_2_total
+    )
 
     line_2_undiscounted_unit_price = line_2_db.undiscounted_base_unit_price_amount
     line_2_unit_discount = quantize_price(
@@ -1412,8 +1424,14 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         line_2["undiscountedUnitPrice"]["net"]["amount"]
         == line_2_undiscounted_unit_price
     )
-    assert line_2["unitPrice"]["net"]["amount"] == float(line_2_unit_price)
-    assert line_2["unitDiscount"]["amount"] == float(line_2_unit_discount)
+    assert (
+        quantize_price(Decimal(line_2["unitPrice"]["net"]["amount"]), currency)
+        == line_2_unit_price
+    )
+    assert (
+        quantize_price(Decimal(line_2["unitDiscount"]["amount"]), currency)
+        == line_2_unit_discount
+    )
     assert (
         line_2["unitDiscountReason"]
         == f"Promotion: {catalogue_promotion_id}, Promotion: {order_promotion_id}"
