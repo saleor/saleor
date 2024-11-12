@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.db import transaction
@@ -14,6 +14,7 @@ from ...order.utils import get_order_country
 from .. import DiscountType
 from ..models import (
     DiscountValueType,
+    OrderDiscount,
     OrderLineDiscount,
 )
 from .manual_discount import apply_discount_to_value
@@ -137,11 +138,9 @@ def _copy_unit_discount_data_to_order_line(
             discount_amount = sum([discount.amount_value for discount in discounts])
             unit_discount_amount = discount_amount / line.quantity
 
-            # Manual discounts can be added without a reason provided. To not lose info about
-            # applied manual line discount we add default reason
-            for discount in discounts:
-                if not discount.reason and discount.type == DiscountType.MANUAL:
-                    discount.reason = DEFAULT_MANUAL_LINE_DISCOUNT_REASON
+            _add_default_manual_discount_reason(
+                discounts, DEFAULT_MANUAL_LINE_DISCOUNT_REASON
+            )
             discount_reason = "; ".join(
                 [discount.reason for discount in discounts if discount.reason]
             )
@@ -267,12 +266,10 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
 def update_unit_discount_reason_with_order_level_discounts(
     lines: Iterable[OrderLine], order: Order
 ):
-    # Manual discounts can be added without a reason provided. To not lose info about
-    # applied manual discount we add default reason
     order_discounts = order.discounts.all()
-    for discount in order_discounts:
-        if not discount.reason and discount.type == DiscountType.MANUAL:
-            discount.reason = DEFAULT_MANUAL_ORDER_DISCOUNT_REASON
+    _add_default_manual_discount_reason(
+        order_discounts, DEFAULT_MANUAL_ORDER_DISCOUNT_REASON
+    )
 
     order_level_discounts_reason = ", ".join(
         discount.reason
@@ -285,3 +282,16 @@ def update_unit_discount_reason_with_order_level_discounts(
             for reason in [line.unit_discount_reason, order_level_discounts_reason]
             if reason
         )
+
+
+def _add_default_manual_discount_reason(
+    discounts: Union[Iterable[OrderDiscount], Iterable[OrderLineDiscount]], reason: str
+):
+    """Add default discount reason for manual order discount nad manual line discount.
+
+    Manual discounts can be added without a reason provided. To not lose info about
+    applied manual discount we need to add the default reason.
+    """
+    for discount in discounts:
+        if not discount.reason and discount.type == DiscountType.MANUAL:
+            discount.reason = reason
