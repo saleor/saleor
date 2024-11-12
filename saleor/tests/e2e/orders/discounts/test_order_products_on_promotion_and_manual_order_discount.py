@@ -173,7 +173,7 @@ def test_order_products_on_promotion_and_manual_order_discount_CORE_2108(
     assert order_line["unitDiscountValue"] == promotion_discount_value
     assert (
         order_line["unitDiscountReason"]
-        == f"{promotion_reason}, {manual_discount_reason}"
+        == f"{promotion_reason}; {manual_discount_reason}"
     )
     product_discounted_price = product_price - promotion_value
     shipping_amount = quantize_price(

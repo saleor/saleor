@@ -654,7 +654,7 @@ def test_update_order_line_discount_old_id(
     )
 
     assert line_to_discount.unit_discount == unit_discount
-    assert line_to_discount.unit_discount_reason == f"{reason}, {order_discount.reason}"
+    assert line_to_discount.unit_discount_reason == f"{reason}; {order_discount.reason}"
 
     event = order.events.get()
     assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED

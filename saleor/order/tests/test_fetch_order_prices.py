@@ -537,8 +537,9 @@ def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2.unit_price_net_amount * tax_rate, currency
     )
-    assert line_2.unit_discount_reason == ", ".join(
-        [catalogue_discount.reason, order_discount.reason]
+    assert (
+        line_2.unit_discount_reason
+        == f"{catalogue_discount.reason}; {order_discount.reason}"
     )
     assert line_2.unit_discount_amount == quantize_price(
         line_2.undiscounted_unit_price_net_amount - line_2.unit_price_net_amount,
@@ -848,8 +849,9 @@ def test_fetch_order_prices_catalogue_and_order_discounts_exceed_total_flat_rate
     assert line_2.total_price_gross_amount == Decimal(0)
     assert line_2.unit_price_net_amount == Decimal(0)
     assert line_2.unit_price_gross_amount == Decimal(0)
-    assert line_2.unit_discount_reason == ", ".join(
-        [catalogue_discount.reason, order_discount.reason]
+    assert (
+        line_2.unit_discount_reason
+        == f"{catalogue_discount.reason}; {order_discount.reason}"
     )
     assert line_2.unit_discount_amount == quantize_price(
         line_2.undiscounted_unit_price_net_amount - line_2.unit_price_net_amount,
@@ -1269,8 +1271,9 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     assert line_1.unit_price_gross_amount == round_up(
         line_1.unit_price_net_amount * tax_rate
     )
-    assert line_1.unit_discount_reason == ", ".join(
-        [catalogue_discount.reason, DEFAULT_MANUAL_ORDER_DISCOUNT_REASON]
+    assert (
+        line_1.unit_discount_reason
+        == f"{catalogue_discount.reason}; {DEFAULT_MANUAL_ORDER_DISCOUNT_REASON}"
     )
     assert line_1.unit_discount_amount == quantize_price(
         line_1.undiscounted_unit_price_net_amount - line_1.unit_price_net_amount,
@@ -2002,7 +2005,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     assert discounted_line.unit_discount_type == DiscountValueType.FIXED
     assert (
         discounted_line.unit_discount_reason
-        == f"Voucher code: {order.voucher_code}, Manual order discount"
+        == f"Voucher code: {order.voucher_code}; Manual order discount"
     )
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
@@ -2132,7 +2135,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     assert discounted_line.unit_discount_type == DiscountValueType.FIXED
     assert (
         discounted_line.unit_discount_reason
-        == f"Voucher code: {order.voucher_code}, {order_discount.reason}"
+        == f"Voucher code: {order.voucher_code}; {order_discount.reason}"
     )
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount

@@ -1434,7 +1434,7 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     )
     assert (
         line_2["unitDiscountReason"]
-        == f"Promotion: {catalogue_promotion_id}, Promotion: {order_promotion_id}"
+        == f"Promotion: {catalogue_promotion_id}; Promotion: {order_promotion_id}"
     )
     assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
     assert line_2["unitDiscountValue"] == rule_catalogue_value

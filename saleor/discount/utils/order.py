@@ -271,13 +271,13 @@ def update_unit_discount_reason_with_order_level_discounts(
         order_discounts, DEFAULT_MANUAL_ORDER_DISCOUNT_REASON
     )
 
-    order_level_discounts_reason = ", ".join(
+    order_level_discounts_reason = "; ".join(
         discount.reason
         for discount in order_discounts
         if discount.reason and is_order_level_discount(discount)
     )
     for line in lines:
-        line.unit_discount_reason = ", ".join(
+        line.unit_discount_reason = "; ".join(
             reason
             for reason in [line.unit_discount_reason, order_level_discounts_reason]
             if reason

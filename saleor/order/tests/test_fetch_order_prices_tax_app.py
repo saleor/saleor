@@ -742,7 +742,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_tax_app(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2.unit_price_net_amount * tax_rate, currency
     )
-    assert line_2.unit_discount_reason == ", ".join(
+    assert line_2.unit_discount_reason == "; ".join(
         [catalogue_discount.reason, order_discount.reason]
     )
     assert line_2.unit_discount_amount == quantize_price(
@@ -949,7 +949,7 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
 
     assert (
         line_1.unit_discount_reason
-        == f"Voucher code: {order.voucher_code}, {manual_discount_reason}"
+        == f"Voucher code: {order.voucher_code}; {manual_discount_reason}"
     )
     assert line_1.unit_discount_amount == quantize_price(
         line_1_undiscounted_unit_price_net - line_1_unit_price_net, currency
@@ -1163,7 +1163,7 @@ def test_fetch_order_prices_manual_line_discount_and_entire_order_voucher_tax_ap
 
     assert (
         line_1.unit_discount_reason
-        == f"{manual_discount_reason}, Voucher code: {order.voucher_code}"
+        == f"{manual_discount_reason}; Voucher code: {order.voucher_code}"
     )
     assert line_1.unit_discount_amount == quantize_price(
         line_1_undiscounted_unit_price_net - line_1_unit_price_net, currency

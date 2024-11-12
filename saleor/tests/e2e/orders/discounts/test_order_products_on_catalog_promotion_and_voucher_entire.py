@@ -445,7 +445,7 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
     line1 = completed_order["lines"][0]
     assert (
         line1["unitDiscountReason"]
-        == f"Promotion: {promotion_id}, Voucher code: {voucher_code}"
+        == f"Promotion: {promotion_id}; Voucher code: {voucher_code}"
     )
     assert (
         line1["unitDiscount"]["amount"]
@@ -455,7 +455,7 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
     line2 = completed_order["lines"][1]
     assert (
         line2["unitDiscountReason"]
-        == f"Promotion: {promotion_id}, Voucher code: {voucher_code}"
+        == f"Promotion: {promotion_id}; Voucher code: {voucher_code}"
     )
     assert (
         line2["unitDiscount"]["amount"]

@@ -460,7 +460,7 @@ def test_draft_order_products_on_catalog_promotion_and_order_promotion_CORE_2132
     line1 = completed_order["lines"][0]
     assert (
         line1["unitDiscountReason"]
-        == f"Promotion: {catalog_promotion_id}, Promotion: {order_promotion_id}"
+        == f"Promotion: {catalog_promotion_id}; Promotion: {order_promotion_id}"
     )
     assert (
         line1["unitDiscount"]["amount"]
@@ -470,7 +470,7 @@ def test_draft_order_products_on_catalog_promotion_and_order_promotion_CORE_2132
     line2 = completed_order["lines"][1]
     assert (
         line2["unitDiscountReason"]
-        == f"Promotion: {catalog_promotion_id}, Promotion: {order_promotion_id}"
+        == f"Promotion: {catalog_promotion_id}; Promotion: {order_promotion_id}"
     )
     assert (
         line2["unitDiscount"]["amount"]
