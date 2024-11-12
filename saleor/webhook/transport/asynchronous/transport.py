@@ -219,6 +219,41 @@ def create_deliveries_for_subscriptions(
     )
 
 
+def create_deliveries_for_deferred_payload_subscriptions(
+    event_type: str,
+    subscribable_objects,
+    webhooks: Sequence["Webhook"],
+    requestor=None,
+    allow_replica=False,
+    request_time=None,
+) -> dict[int, list[tuple[EventDelivery, DeferredPayloadData]]]:
+    deliveries_to_create = []
+    deliveries_per_object: dict[
+        int, list[tuple[EventDelivery, DeferredPayloadData]]
+    ] = defaultdict(list)
+
+    for subscribable_object in subscribable_objects:
+        deferred_payload_data = prepare_deferred_payload_data(
+            subscribable_object=subscribable_object,
+            requestor=requestor,
+            request_time=request_time,
+        )
+
+        for webhook in webhooks:
+            delivery = EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                webhook=webhook,
+            )
+            deliveries_to_create.append(delivery)
+            deliveries_per_object[subscribable_object.pk].append(
+                (delivery, deferred_payload_data)
+            )
+
+    EventDelivery.objects.bulk_create(deliveries_to_create)
+    return deliveries_per_object
+
+
 def group_webhooks_by_subscription(
     webhooks: Sequence["Webhook"],
 ) -> tuple[list["Webhook"], list["Webhook"]]:
@@ -325,23 +360,16 @@ def trigger_webhooks_async_for_multiple_objects(
             for webhook_payload_data in webhook_payloads_data
         ]
         if is_deferred_payload:
-            _deferred_deliveries_to_create = []
-            for subscribable_object in subscribable_objects:
-                for webhook in subscription_webhooks:
-                    delivery = EventDelivery(
-                        status=EventDeliveryStatus.PENDING,
-                        event_type=event_type,
-                        webhook=webhook,
-                    )
-                    _deferred_deliveries_to_create.append(delivery)
-                    deferred_payload_data = prepare_deferred_payload_data(
-                        subscribable_object, requestor, request_time
-                    )
-                    deferred_deliveries_per_object[subscribable_object.pk].append(
-                        (delivery, deferred_payload_data)
-                    )
-
-            EventDelivery.objects.bulk_create(_deferred_deliveries_to_create)
+            deferred_deliveries_per_object = (
+                create_deliveries_for_deferred_payload_subscriptions(
+                    event_type=event_type,
+                    subscribable_objects=subscribable_objects,
+                    webhooks=subscription_webhooks,
+                    requestor=requestor,
+                    allow_replica=allow_replica,
+                    request_time=request_time,
+                )
+            )
         else:
             deliveries.extend(
                 create_deliveries_for_multiple_subscription_objects(
@@ -355,25 +383,31 @@ def trigger_webhooks_async_for_multiple_objects(
                 )
             )
 
-    if deferred_deliveries_per_object:
-        for _, deferred_deliveries in deferred_deliveries_per_object.items():
-            event_delivery_ids = [delivery.id for delivery, _ in deferred_deliveries]
+    for _, deferred_deliveries in deferred_deliveries_per_object.items():
+        if not deferred_deliveries:
+            continue
 
-            # Trigger deferred payload generation task for each subscribable object.
-            # This task in run on the default queue; `send_webhook_queue` is passed to
-            # run the `send_webhook_request_async` task after the payload is generated.
-            generate_deferred_payloads.apply_async(
-                kwargs={
-                    "event_delivery_ids": event_delivery_ids,
-                    "deferred_payload_data": asdict(deferred_payload_data),
-                    "send_webhook_queue": queue,
-                },
-                bind=True,
-            )
+        event_delivery_ids = [delivery.pk for delivery, _ in deferred_deliveries]
+
+        # Deferred payload data is the same for all deliveries for a given subscribable
+        # object; we can take the first one for given `deferred_deliveries`.
+        deferred_payload_data = deferred_deliveries[0][1]
+
+        # Trigger deferred payload generation task for each subscribable object.
+        # This task in run on the default queue; `send_webhook_queue` is passed to
+        # run the `send_webhook_request_async` task after the payload is generated.
+        generate_deferred_payloads.apply_async(
+            kwargs={
+                "event_delivery_ids": event_delivery_ids,
+                "deferred_payload_data": asdict(deferred_payload_data),
+                "send_webhook_queue": queue,
+            },
+            bind=True,
+        )
 
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
-            kwargs={"event_delivery_id": delivery.id},
+            kwargs={"event_delivery_id": delivery.pk},
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
                 default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
@@ -501,7 +535,7 @@ def generate_deferred_payloads(
         # Trigger webhook delivery task when the payload is ready.
         send_webhook_request_async.apply_async(
             kwargs={
-                "event_delivery_id": delivery.id,
+                "event_delivery_id": delivery.pk,
             },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
