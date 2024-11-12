@@ -360,13 +360,14 @@ def trigger_webhooks_async_for_multiple_objects(
             event_delivery_ids = [delivery.id for delivery, _ in deferred_deliveries]
 
             # Trigger deferred payload generation task for each subscribable object.
+            # This task in run on the default queue; `send_webhook_queue` is passed to
+            # run the `send_webhook_request_async` task after the payload is generated.
             generate_deferred_payloads.apply_async(
                 kwargs={
                     "event_delivery_ids": event_delivery_ids,
                     "deferred_payload_data": asdict(deferred_payload_data),
-                    "queue": queue,
+                    "send_webhook_queue": queue,
                 },
-                queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
                 bind=True,
             )
 
@@ -426,15 +427,12 @@ def trigger_webhooks_async(
     )
 
 
-@app.task(
-    queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
-    bind=True,
-)
+@app.task(bind=True)
 def generate_deferred_payloads(
     self,
     event_delivery_ids: list,
     deferred_payload_data: dict,
-    queue: Optional[str] = None,
+    send_webhook_queue: Optional[str] = None,
 ):
     deliveries = list(get_multiple_deliveries_for_webhooks(event_delivery_ids).values())
     args_obj = DeferredPayloadData(**deferred_payload_data)
@@ -507,7 +505,7 @@ def generate_deferred_payloads(
             },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
             ),
             bind=True,
             retry_backoff=10,

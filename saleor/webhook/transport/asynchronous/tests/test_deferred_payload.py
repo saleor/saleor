@@ -191,7 +191,8 @@ def test_pass_queue_to_send_webhook_request_async(
 
     # then
     call_kwargs_generate_payloads = mocked_generate_deferred_payloads.call_args.kwargs
-    assert call_kwargs_generate_payloads["queue"] == queue
+    assert "queue" not in call_kwargs_generate_payloads
+    assert call_kwargs_generate_payloads["kwargs"]["send_webhook_queue"] == queue
 
     call_kwargs_send_webhook_request = (
         mocked_send_webhook_request_async.call_args.kwargs
