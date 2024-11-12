@@ -818,8 +818,8 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         PositiveDecimal,
         description="Value of the discount. Can store fixed value or percent value",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Since the order line can have multiple "
-            f"discounts applied, this field is not valid anymore."
+            f"{DEPRECATED_IN_3X_FIELD} Since the order line can be affected by multiple"
+            f" discounts, this field is only valid for single discount."
         ),
         required=True,
     )
@@ -872,8 +872,8 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Since the order line can have multiple "
-            f"discounts applied, this field is not valid anymore."
+            f"{DEPRECATED_IN_3X_FIELD} Since the order line can be affected by multiple"
+            f" discounts, this field is only valid for single discount."
         ),
     )
     tax_class = PermissionsField(
