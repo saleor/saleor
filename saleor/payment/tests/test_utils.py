@@ -481,6 +481,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_psp_ref
     # then
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
     assert TransactionEvent.objects.count() == 1
 
 
@@ -528,6 +529,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     request_event.refresh_from_db()
     transaction.refresh_from_db()
     assert request_event.psp_reference is None
+    assert request_event.include_in_calculations is False
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.type == result_event_type
@@ -586,6 +588,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     request_event.refresh_from_db()
     transaction.refresh_from_db()
     assert request_event.psp_reference is None
+    assert request_event.include_in_calculations is False
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.transaction_id == transaction.id
@@ -625,6 +628,7 @@ def test_create_transaction_event_from_request_and_webhook_response_part_event(
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == amount
@@ -983,6 +987,7 @@ def test_create_transaction_event_from_request_and_webhook_response_full_event(
     assert transaction.events.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == event_amount
@@ -1263,6 +1268,7 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
     assert TransactionEvent.objects.count() == 3
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
     assert failed_event
     assert failed_event.psp_reference == expected_psp_reference
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
@@ -1318,6 +1324,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
     assert event
     assert event.pk == existing_authorize_success.pk
 
@@ -1367,6 +1374,7 @@ def test_create_transaction_event_from_request_handle_incorrect_values(
     assert TransactionEvent.objects.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is False
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -1414,6 +1422,7 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
     assert TransactionEvent.objects.count() == 3
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
     assert failed_event
     assert failed_event.psp_reference == expected_psp_reference
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
