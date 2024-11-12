@@ -432,9 +432,14 @@ def _apply_tax_data(
         undiscounted_subtotal += order_line.undiscounted_total_price
 
         if not order_line.is_gift:
+            unit_price_to_compare = (
+                order_line.unit_price.gross
+                if prices_entered_with_tax
+                else order_line.unit_price.net
+            )
             order_line.unit_discount_amount = quantize_price(
-                order_line.undiscounted_unit_price_net_amount
-                - order_line.unit_price_net_amount,
+                order_line.undiscounted_base_unit_price_amount
+                - unit_price_to_compare.amount,
                 currency,
             )
 

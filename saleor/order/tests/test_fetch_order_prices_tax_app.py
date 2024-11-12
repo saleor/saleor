@@ -433,6 +433,196 @@ def test_fetch_order_prices_order_discount_tax_app(
     )
 
 
+def test_fetch_order_prices_order_discount_tax_app_prices_entered_with_taxes(
+    order_with_lines_and_order_promotion,
+    tax_configuration_tax_app,
+):
+    # given
+    order = order_with_lines_and_order_promotion
+    currency = order.currency
+    line_1, line_2 = order.lines.all()
+
+    tax_configuration_tax_app.prices_entered_with_tax = True
+    tax_configuration_tax_app.save(update_fields=["prices_entered_with_tax"])
+
+    rule = PromotionRule.objects.get()
+    assert rule.reward_value_type == DiscountValueType.FIXED
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    reward_value = rule.reward_value
+
+    line_1_base_total = line_1.quantity * line_1.base_unit_price_amount
+    line_2_base_total = line_2.quantity * line_2.base_unit_price_amount
+    base_total = line_1_base_total + line_2_base_total
+    line_1_order_discount_portion = reward_value * line_1_base_total / base_total
+    line_2_order_discount_portion = reward_value - line_1_order_discount_portion
+
+    app_tax_rate = Decimal(10)
+    db_tax_rate = app_tax_rate / Decimal(100)
+    tax_rate = Decimal(1) + db_tax_rate
+
+    line_1_undiscounted_total_price_gross = line_1_base_total
+    line_1_undiscounted_total_price_net = (
+        line_1_undiscounted_total_price_gross / tax_rate
+    )
+    line_1_undiscounted_unit_price_gross = (
+        line_1_undiscounted_total_price_gross / line_1.quantity
+    )
+    line_1_undiscounted_unit_price_net = line_1_undiscounted_unit_price_gross / tax_rate
+
+    line_1_total_price_gross = (
+        line_1_undiscounted_total_price_gross - line_1_order_discount_portion
+    )
+    line_1_total_price_net = line_1_total_price_gross / tax_rate
+    line_1_unit_price_gross = line_1_total_price_gross / line_1.quantity
+    line_1_unit_price_net = line_1_unit_price_gross / tax_rate
+
+    line_2_undiscounted_total_price_gross = line_2_base_total
+    line_2_undiscounted_total_price_net = (
+        line_2_undiscounted_total_price_gross / tax_rate
+    )
+    line_2_undiscounted_unit_price_gross = (
+        line_2_undiscounted_total_price_gross / line_2.quantity
+    )
+    line_2_undiscounted_unit_price_net = line_2_undiscounted_unit_price_gross / tax_rate
+
+    line_2_total_price_gross = (
+        line_2_undiscounted_total_price_gross - line_2_order_discount_portion
+    )
+    line_2_total_price_net = line_2_total_price_gross / tax_rate
+    line_2_unit_price_gross = line_2_total_price_gross / line_2.quantity
+    line_2_unit_price_net = line_2_unit_price_gross / tax_rate
+
+    shipping_price_gross = order.undiscounted_base_shipping_price_amount
+    shipping_price_net = shipping_price_gross / tax_rate
+
+    undiscounted_subtotal_gross = (
+        line_1_undiscounted_total_price_gross + line_2_undiscounted_total_price_gross
+    )
+    subtotal_gross = line_1_total_price_gross + line_2_total_price_gross
+    subtotal_net = line_1_total_price_net + line_2_total_price_net
+    total_gross = subtotal_gross + shipping_price_gross
+    total_net = subtotal_net + shipping_price_net
+
+    tax_data = TaxData(
+        shipping_price_net_amount=quantize_price(shipping_price_net, currency),
+        shipping_price_gross_amount=quantize_price(shipping_price_gross, currency),
+        shipping_tax_rate=app_tax_rate,
+        lines=[
+            TaxLineData(
+                total_net_amount=quantize_price(line_1_total_price_net, currency),
+                total_gross_amount=quantize_price(line_1_total_price_gross, currency),
+                tax_rate=app_tax_rate,
+            ),
+            TaxLineData(
+                total_net_amount=quantize_price(line_2_total_price_net, currency),
+                total_gross_amount=quantize_price(line_2_total_price_gross, currency),
+                tax_rate=app_tax_rate,
+            ),
+        ],
+    )
+
+    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager = Mock(**manager_methods)
+
+    # when
+    order, lines = fetch_order_prices_if_expired(order, manager, None, True)
+
+    # then
+    discount = order.discounts.get()
+    assert discount.amount_value == reward_value
+    assert discount.value == reward_value
+    assert discount.value_type == DiscountValueType.FIXED
+    assert discount.type == DiscountType.ORDER_PROMOTION
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+    assert order.shipping_price_net_amount == quantize_price(
+        shipping_price_net, currency
+    )
+    assert order.shipping_price_gross_amount == shipping_price_gross
+    assert order.shipping_tax_rate == db_tax_rate
+    assert order.subtotal_net_amount == quantize_price(subtotal_net, currency)
+    assert order.subtotal_gross_amount == subtotal_gross
+    assert order.total_net_amount == quantize_price(total_net, currency)
+    assert order.total_gross_amount == total_gross
+    assert (
+        order.total_gross_amount
+        == undiscounted_subtotal_gross - reward_value + shipping_price_gross
+    )
+    assert order.total_net_amount == order.total_gross_amount / tax_rate
+
+    line_1, line_2 = lines
+
+    assert line_1.undiscounted_total_price_net_amount == quantize_price(
+        line_1_undiscounted_total_price_net, currency
+    )
+    assert (
+        line_1.undiscounted_total_price_gross_amount
+        == line_1_undiscounted_total_price_gross
+    )
+    assert line_1.undiscounted_unit_price_net_amount == quantize_price(
+        line_1_undiscounted_unit_price_net, currency
+    )
+    assert (
+        line_1.undiscounted_unit_price_gross_amount
+        == line_1_undiscounted_unit_price_gross
+    )
+
+    assert line_1.base_unit_price_amount == quantize_price(
+        line_1_undiscounted_unit_price_gross, currency
+    )
+    assert line_1.total_price_net_amount == quantize_price(
+        line_1_total_price_net, currency
+    )
+    assert line_1.total_price_gross_amount == quantize_price(
+        line_1_total_price_gross, currency
+    )
+    assert line_1.unit_price_net_amount == quantize_price(
+        line_1_unit_price_net, currency
+    )
+    assert line_1.unit_price_gross_amount == quantize_price(
+        line_1_unit_price_gross, currency
+    )
+
+    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
+    assert line_1.unit_discount_amount == quantize_price(
+        line_1_undiscounted_unit_price_gross - line_1_unit_price_gross, currency
+    )
+
+    assert line_2.undiscounted_total_price_net_amount == quantize_price(
+        line_2_undiscounted_total_price_net, currency
+    )
+    assert (
+        line_2.undiscounted_total_price_gross_amount
+        == line_2_undiscounted_total_price_gross
+    )
+    assert line_2.undiscounted_unit_price_net_amount == quantize_price(
+        line_2_undiscounted_unit_price_net, currency
+    )
+    assert (
+        line_2.undiscounted_unit_price_gross_amount
+        == line_2_undiscounted_unit_price_gross
+    )
+
+    assert line_2.base_unit_price_amount == line_2_undiscounted_unit_price_gross
+    assert line_2.total_price_net_amount == quantize_price(
+        line_2_total_price_net, currency
+    )
+    assert line_2.total_price_gross_amount == quantize_price(
+        line_2_total_price_gross, currency
+    )
+    assert line_2.unit_price_net_amount == quantize_price(
+        line_2_unit_price_net, currency
+    )
+    assert line_2.unit_price_gross_amount == quantize_price(
+        line_2_unit_price_gross, currency
+    )
+
+    assert line_2.unit_discount_reason == f"Promotion: {promotion_id}"
+    assert line_2.unit_discount_amount == quantize_price(
+        line_2_undiscounted_unit_price_gross - line_2_unit_price_gross, currency
+    )
+
+
 def test_fetch_order_prices_gift_discount_tax_app(
     order_with_lines_and_gift_promotion,
     tax_configuration_tax_app,
