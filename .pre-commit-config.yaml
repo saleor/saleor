@@ -5,7 +5,7 @@ exclude: ^(.semgrep|vendored)/
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         exclude: ^templates/templated_email/compiled/
@@ -15,20 +15,20 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.7
+    rev: v0.7.3
     hooks:
       - id: ruff
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.13.0
     hooks:
       - id: mypy
         language: system
         exclude: (tests|vendored)/
 
   - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.20.0"
+    rev: "0.21.0"
     hooks:
       - id: deptry
 
@@ -60,7 +60,7 @@ repos:
         name: Check for uncreated migrations.
         entry: sh -c "./manage.py makemigrations --check --dry-run"
         files: "models\\.py$"
-        stages: [commit]
+        stages: [pre-commit]
 
   - repo: local
     hooks:
@@ -68,4 +68,4 @@ repos:
         language: system
         name: Check GraphQL schema is up to date.
         entry: sh -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
-        stages: [commit]
+        stages: [pre-commit]
