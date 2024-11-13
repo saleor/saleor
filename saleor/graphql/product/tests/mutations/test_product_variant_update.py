@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, call, patch
 from uuid import uuid4
 
 import graphene
@@ -12,6 +12,7 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....product.error_codes import ProductErrorCode
 from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
@@ -167,94 +168,7 @@ def test_update_product_variant_by_id(
     product_variant_created_webhook_mock.assert_not_called()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_update_product_variant_skips_save_when_nothing_changes(
-    product_variant_updated_webhook_mock,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-    query = """
-        mutation updateVariant (
-            $id: ID!
-            $sku: String!
-            $quantityLimitPerCustomer: Int!
-            $trackInventory: Boolean!
-            $externalReference: String
-            $attributes: [AttributeValueInput!]) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        sku: $sku,
-                        trackInventory: $trackInventory,
-                        attributes: $attributes,
-                        externalReference: $externalReference
-                        quantityLimitPerCustomer: $quantityLimitPerCustomer,
-                    }) {
-                    productVariant {
-                        name
-                        sku
-                        quantityLimitPerCustomer
-                        externalReference
-                        channelListings {
-                            channel {
-                                slug
-                            }
-                        }
-                    }
-                    errors {
-                      field
-                      message
-                      attributes
-                      code}
-                }
-            }
-    """
-    variant = product.variants.first()
-    quantity_limit = 9
-    external_reference = "test-ext-ref"
-    variant_name = variant.attributes.first().values.first().name
-    variant_sku = "123"
-    product.default_variant = variant
-    product.save(update_fields=["default_variant"])
-    variant.name = variant_name
-    variant.external_reference = external_reference
-    variant.quantity_limit_per_customer = quantity_limit
-    variant.track_inventory = True
-    variant.save()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-
-    variables = {
-        "id": variant_id,
-        "sku": variant_sku,
-        "trackInventory": True,
-        "quantityLimitPerCustomer": quantity_limit,
-        "externalReference": external_reference,
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    flush_post_commit_hooks()
-    data = content["data"]["productVariantUpdate"]["productVariant"]
-
-    assert data["name"] == variant_name
-    assert data["sku"] == variant_sku
-    assert data["externalReference"] == external_reference == variant.external_reference
-    assert data["quantityLimitPerCustomer"] == quantity_limit
-    product_variant_updated_webhook_mock.assert_not_called()
-
-
-@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_update_product_variant_update_metadata_when_base_fields_unchanged(
-    product_variant_updated_webhook_mock,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-    query = """
+QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
         mutation updateVariant (
             $id: ID!
             $sku: String!
@@ -302,13 +216,47 @@ def test_update_product_variant_update_metadata_when_base_fields_unchanged(
                 }
             }
     """
+
+
+@pytest.mark.parametrize(
+    ("fields", "changed_fields"),
+    [
+        ({"sku": 123}, []),
+        ({"sku": 1234}, ["sku"]),
+        ({"metadata": [{"key": "test_key1", "value": "test_value1"}]}, []),
+        ({"metadata": [{"key": "test_key1", "value": "test_value2"}]}, ["metadata"]),
+        ({"trackInventory": True}, []),
+        ({"trackInventory": False}, ["track_inventory"]),
+        ({"quantityLimitPerCustomer": 9}, []),
+        ({"quantityLimitPerCustomer": 5}, ["quantity_limit_per_customer"]),
+        ({"externalReference": "test-ext-ref"}, []),
+        ({"externalReference": "test-ext-ref2"}, ["external_reference"]),
+        (
+            {"sku": 1234, "trackInventory": False, "externalReference": "test-ext-ref"},
+            ["sku", "track_inventory"],
+        ),
+    ],
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
+def test_update_product_variant_update_fields_when_necessary(
+    save_variant_mock,
+    call_event_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    fields,
+    changed_fields,
+):
     variant = product.variants.first()
     quantity_limit = 9
     external_reference = "test-ext-ref"
     variant_name = variant.attributes.first().values.first().name
     variant_sku = "123"
-    new_metadata_value = "test_value2"
-    new_private_metadata_value = "private_value_2"
     product.default_variant = variant
     product.save(update_fields=["default_variant"])
     variant.name = variant_name
@@ -326,35 +274,33 @@ def test_update_product_variant_update_metadata_when_base_fields_unchanged(
         "trackInventory": True,
         "quantityLimitPerCustomer": quantity_limit,
         "externalReference": external_reference,
-        "metadata": [{"key": "test_key1", "value": new_metadata_value}],
-        "privateMetadata": [
-            {"key": "private_key1", "value": new_private_metadata_value}
-        ],
+        "metadata": [{"key": "test_key1", "value": "test_value1"}],
+        "privateMetadata": [{"key": "private_key1", "value": "private_value_1"}],
     }
 
+    for field, value in fields.items():
+        variables[field] = value
+
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        QUERY_UPDATE_VARIANT_CHANGING_FIELDS,
+        variables,
+        permissions=[permission_manage_products],
     )
     variant.refresh_from_db()
-    content = get_graphql_content(response)
+    get_graphql_content(response)
     flush_post_commit_hooks()
-    data = content["data"]["productVariantUpdate"]["productVariant"]
 
-    assert data["name"] == variant_name
-    assert data["sku"] == variant_sku
-
-    assert data["metadata"] == [{"key": "test_key1", "value": new_metadata_value}]
-    assert variant.metadata == {"test_key1": new_metadata_value}
-    assert data["privateMetadata"] == [
-        {"key": "private_key1", "value": new_private_metadata_value}
-    ]
-    assert variant.private_metadata == {"private_key1": new_private_metadata_value}
-
-    assert data["externalReference"] == external_reference == variant.external_reference
-    assert data["quantityLimitPerCustomer"] == quantity_limit
-    product_variant_updated_webhook_mock.assert_called_once_with(
-        product.variants.last()
-    )
+    if changed_fields:
+        save_variant_mock.assert_called_once_with(variant, changed_fields)
+        call_event_mock.assert_has_calls(
+            [
+                call(ANY, variant),
+                call(mark_active_catalogue_promotion_rules_as_dirty, ANY),
+            ]
+        )
+    else:
+        save_variant_mock.assert_not_called()
+        call_event_mock.assert_not_called()
 
 
 def test_update_product_variant_marks_prices_as_dirty(

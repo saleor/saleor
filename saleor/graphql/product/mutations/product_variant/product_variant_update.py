@@ -9,10 +9,8 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.models import ProductChannelListing
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....core import ResolveInfo
@@ -140,19 +138,16 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             instance.track_inventory = track_inventory
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        super().post_save_action(info, instance, cleaned_input)
-        channel_ids = ProductChannelListing.objects.filter(
-            product_id=instance.product_id
-        ).values_list("channel_id", flat=True)
-        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+    def _save_variant_instance(cls, instance, changed_fields):
+        update_fields = ["updated_at"] + changed_fields
+        instance.save(update_fields=update_fields)
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields):
+    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields) -> bool:
         refresh_product_search_index = False
         with traced_atomic_transaction():
             if changed_fields:
-                instance.save(update_fields=["updated_at"] + changed_fields)
+                cls._save_variant_instance(instance, changed_fields)
                 if "sku" in changed_fields or "name" in changed_fields:
                     refresh_product_search_index = True
             if stocks := cleaned_input.get("stocks"):
@@ -172,6 +167,9 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if changed_fields or stocks or attributes:
                 manager = get_plugin_manager_promise(info.context).get()
                 cls.call_event(manager.product_variant_updated, instance)
+                return True
+
+            return False
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input):
@@ -240,14 +238,16 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             old_instance_data,
             model_to_dict(instance, fields=comparison_fields),
         )
-        cls._save(info, instance, cleaned_input, changed_fields)
+        variant_modified = cls._save(info, instance, cleaned_input, changed_fields)
         cls._save_m2m(info, instance, cleaned_input)
-        # add to cleaned_input popped metadata to allow running post save events
-        # that depends on the metadata inputs
-        if metadata_list:
-            cleaned_input["metadata"] = metadata_list
-        if private_metadata_list:
-            cleaned_input["private_metadata"] = private_metadata_list
 
-        cls.post_save_action(info, instance, cleaned_input)
+        if variant_modified:
+            # add to cleaned_input popped metadata to allow running post save events
+            # that depends on the metadata inputs
+            if metadata_list:
+                cleaned_input["metadata"] = metadata_list
+            if private_metadata_list:
+                cleaned_input["private_metadata"] = private_metadata_list
+            cls.post_save_action(info, instance, cleaned_input)
+
         return cls.success_response(instance)
