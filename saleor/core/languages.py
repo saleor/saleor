@@ -25,7 +25,7 @@ for lid in sorted(locale_identifiers()):
         languages.append((lid.replace("_", "-"), Locale.parse(lid).english_name))
 """
 
-LANGUAGES = [
+LANGUAGES: list[tuple[str, str]] = [
     ("af", "Afrikaans"),
     ("af-na", "Afrikaans (Namibia)"),
     ("af-za", "Afrikaans (South Africa)"),
