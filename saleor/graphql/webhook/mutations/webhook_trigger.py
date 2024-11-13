@@ -15,7 +15,6 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
-from ....webhook.transport.utils import prepare_deferred_payload_data
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
@@ -154,6 +153,7 @@ class WebhookTrigger(BaseMutation):
             generate_deferred_payloads,
             send_webhook_request_async,
         )
+        from ....webhook.transport.utils import prepare_deferred_payload_data
 
         event_type, object, webhook = cls.validate_input(info, **data)
         delivery = None
