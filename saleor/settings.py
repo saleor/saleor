@@ -3,7 +3,7 @@ import logging
 import os
 import os.path
 import warnings
-from typing import Optional
+from typing import Optional, cast
 from urllib.parse import urlparse
 
 import dj_database_url
@@ -124,7 +124,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"
-LANGUAGES = CORE_LANGUAGES
+LANGUAGES: list[tuple[str, str]] = CORE_LANGUAGES
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
 USE_TZ = True
@@ -419,7 +419,7 @@ AUTH_PASSWORD_VALIDATORS = [
     }
 ]
 
-DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
+DEFAULT_COUNTRY: str = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_DECIMAL_PLACES = 3
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
@@ -951,8 +951,8 @@ TOKEN_UPDATE_LAST_LOGIN_THRESHOLD = parse(
 
 # Max lock time for checkout processing.
 # It prevents locking checkout when unhandled issue appears.
-CHECKOUT_COMPLETION_LOCK_TIME = parse(
-    os.environ.get("CHECKOUT_COMPLETION_LOCK_TIME", "3 minutes")
+CHECKOUT_COMPLETION_LOCK_TIME: int = cast(
+    int, parse(os.environ.get("CHECKOUT_COMPLETION_LOCK_TIME", "3 minutes"))
 )
 
 # Default timeout (sec) for establishing a connection when performing external requests.
