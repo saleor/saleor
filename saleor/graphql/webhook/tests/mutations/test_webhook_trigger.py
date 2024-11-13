@@ -7,6 +7,7 @@ from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookTriggerErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....tests.utils import assert_no_permission
 from ...subscription_types import WEBHOOK_TYPES_MAP
 
@@ -19,6 +20,7 @@ WEBHOOK_TRIGGER_MUTATION = """
                 message
             }
             delivery {
+                id
                 status
                 eventType
                 payload
@@ -350,3 +352,50 @@ def test_webhook_trigger_for_removed_app(
     assert app_data["delivery"] is None
     assert app_data["errors"][0]["code"] == WebhookTriggerErrorCode.NOT_FOUND.name
     assert app_data["errors"][0]["field"] == "webhookId"
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
+)
+def test_webhook_trigger_for_deferred_payload(
+    mocked_generate_deferred_payloads,
+    mocked_send_webhook_request_async,
+    staff_api_client,
+    checkout,
+    subscription_checkout_updated_webhook,
+    permission_manage_checkouts,
+):
+    # given
+    query = WEBHOOK_TRIGGER_MUTATION
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    webhook = subscription_checkout_updated_webhook
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
+
+    variables = {"webhookId": webhook_id, "objectId": checkout_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookTrigger"]
+
+    assert not data["errors"]
+    delivery_node_id = data["delivery"]["id"]
+    _, delivery_pk = graphene.Node.from_global_id(delivery_node_id)
+    delivery_pk = int(delivery_pk)
+    assert mocked_generate_deferred_payloads.called
+    generate_payload_kwargs = mocked_generate_deferred_payloads.call_args.kwargs[
+        "kwargs"
+    ]
+    assert generate_payload_kwargs["event_delivery_ids"] == [delivery_pk]
+    assert generate_payload_kwargs["deferred_payload_data"]["object_id"] == checkout.pk
+
+    assert mocked_send_webhook_request_async.called
+    send_webhook_kwargs = mocked_send_webhook_request_async.call_args.kwargs["kwargs"]
+    assert send_webhook_kwargs["event_delivery_id"] == delivery_pk

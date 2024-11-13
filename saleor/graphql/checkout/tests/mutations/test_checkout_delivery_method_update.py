@@ -21,47 +21,45 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 MUTATION_UPDATE_DELIVERY_METHOD = """
-    mutation checkoutDeliveryMethodUpdate(
-            $id: ID, $deliveryMethodId: ID) {
-        checkoutDeliveryMethodUpdate(
-            id: $id,
-            deliveryMethodId: $deliveryMethodId) {
-            checkout {
+    mutation checkoutDeliveryMethodUpdate($id: ID, $deliveryMethodId: ID) {
+      checkoutDeliveryMethodUpdate(id: $id, deliveryMethodId: $deliveryMethodId) {
+        checkout {
+          token
+          id
+          shippingAddress {
             id
-            shippingAddress {
-                id
-                firstName
+            firstName
+          }
+          deliveryMethod {
+            __typename
+            ... on ShippingMethod {
+              name
+              id
+              translation(languageCode: EN_US) {
+                name
+              }
             }
-            deliveryMethod {
-                __typename
-                ... on ShippingMethod {
-                    name
-                    id
-                    translation(languageCode: EN_US) {
-                        name
-                    }
-                }
-                ... on Warehouse {
-                   name
-                   id
-                }
+            ... on Warehouse {
+              name
+              id
             }
-            totalPrice {
-                gross {
-                    amount
-                }
-                net {
-                    amount
-                }
+          }
+          totalPrice {
+            gross {
+              amount
             }
+            net {
+              amount
+            }
+          }
         }
         errors {
-            field
-            message
-            code
+          field
+          message
+          code
         }
+      }
     }
-}
 """
 
 
@@ -1105,31 +1103,30 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     )
 
     # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
+    assert mocked_send_webhook_request_sync.call_count == 4
     assert not EventDelivery.objects.exclude(
         webhook_id=checkout_updated_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
+    sync_deliveries = {
+        call.args[0].event_type: call.args[0]
+        for call in mocked_send_webhook_request_sync.mock_calls
+    }
+
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
+    shipping_methods_delivery = sync_deliveries[
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    ]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
+    filter_shipping_delivery = sync_deliveries[
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    ]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    tax_delivery = tax_delivery_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
+    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     assert tax_delivery.webhook_id == tax_webhook.id
 
 
@@ -1184,7 +1181,6 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
     # then
     content = get_graphql_content(response)
     assert not content["data"]["checkoutDeliveryMethodUpdate"]["errors"]
-
     assert wrapped_call_checkout_info_event.called
 
     # confirm that event delivery was generated for each async webhook.
@@ -1199,32 +1195,35 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
         retry_kwargs={"max_retries": 5},
     )
 
+    # Shipping sync webhooks are called twice - first call before saving the changes in
+    # the checkout instance, second when generating the payload. In the second call
+    # checkout instance has different data and cache cannot be used.
+    assert mocked_send_webhook_request_sync.call_count == 5
+
     # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(
         webhook_id=checkout_updated_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
+    sync_deliveries = {
+        call.args[0].event_type: call.args[0]
+        for call in mocked_send_webhook_request_sync.mock_calls
+    }
+
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
+    shipping_methods_delivery = sync_deliveries[
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    ]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
+    filter_shipping_delivery = sync_deliveries[
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    ]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    tax_delivery = tax_delivery_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
+    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     assert tax_delivery.webhook_id == tax_webhook.id
 
 
