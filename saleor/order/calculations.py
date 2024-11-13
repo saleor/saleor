@@ -134,17 +134,9 @@ def _recalculate_prices(
 
     order.tax_error = None
 
-    # Flat rates, plugin and tax exemption strategies require to propagate order-level
-    # discounts to order lines. Tax app does it itself.
-    using_tax_app = (
-        tax_calculation_strategy == TaxCalculationStrategy.TAX_APP
-        and tax_app_identifier
-        and not tax_app_identifier.startswith(PLUGIN_IDENTIFIER_PREFIX)
-    )
     apply_order_discounts(
         order,
         lines,
-        assign_prices=not using_tax_app,
     )
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
