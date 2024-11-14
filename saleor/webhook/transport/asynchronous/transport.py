@@ -462,6 +462,7 @@ def trigger_webhooks_async(
 
 
 @app.task(bind=True)
+@allow_writer()
 def generate_deferred_payloads(
     self,
     event_delivery_ids: list,
