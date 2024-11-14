@@ -307,7 +307,9 @@ def _propagate_checkout_discount_on_checkout_lines_prices(
             elif idx < lines_count - 1:
                 line_total_price = lines_total_prices[idx]
                 share = line_total_price / total_price
-                discount = min(share * total_discount, line_total_price)
+                discount = quantize_price(
+                    min(share * total_discount, line_total_price), currency
+                )
                 yield (
                     line,
                     max(
