@@ -145,8 +145,9 @@ from ..dataloaders import (
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
+from ..filters import ProductVariantFilterInput, ProductVariantWhereInput
 from ..resolvers import resolve_product_variants, resolve_products
-from ..sorters import MediaSortingInput
+from ..sorters import MediaSortingInput, ProductVariantSortingInput
 from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
 
@@ -947,6 +948,20 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "include the unpublished items: "
             f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `productVariant` field instead.",
+    )
+    product_variants = FilterConnectionField(
+        ProductVariantCountableConnection,
+        filter=ProductVariantFilterInput(
+            description="Filtering options for product variant."
+        ),
+        where=ProductVariantWhereInput(description="Where filtering options."),
+        sort_by=ProductVariantSortingInput(description="Sort products variants."),
+        description=(
+            "List of variants for the product. Requires the following permissions to "
+            "include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+        ),
     )
     media = NonNullList(
         lambda: ProductMedia,
@@ -1427,6 +1442,45 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             ]
 
         return variants.then(map_channel_context)
+
+    @staticmethod
+    def resolve_product_variants(root: ChannelContext[models.Product], info, **kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+        has_required_permissions = has_one_of_permissions(
+            requestor, ALL_PRODUCTS_PERMISSIONS
+        )
+        channel = root.channel_slug
+        limited_channel_access = False if root.channel_slug is None else True
+        if channel is None and not has_required_permissions:
+            channel = str(
+                get_default_channel_slug_or_graphql_error(
+                    allow_replica=info.context.allow_replica
+                )
+            )
+
+        def _resolve_product_variants(channel_obj):
+            qs = resolve_product_variants(
+                info,
+                channel=channel_obj,
+                product_id=root.node.pk,
+                limited_channel_access=limited_channel_access,
+                requestor=requestor,
+            )
+            kwargs["channel"] = qs.channel_slug
+            qs = filter_connection_queryset(
+                qs, kwargs, allow_replica=info.context.allow_replica
+            )
+            return create_connection_slice(
+                qs, info, kwargs, ProductVariantCountableConnection
+            )
+
+        if channel:
+            return (
+                ChannelBySlugLoader(info.context)
+                .load(channel)
+                .then(_resolve_product_variants)
+            )
+        return _resolve_product_variants(None)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Product], info):

@@ -191,6 +191,7 @@ def resolve_product_variants(
     requestor,
     ids=None,
     channel: Optional[Channel] = None,
+    product_id: Optional[int] = None,
     limited_channel_access: bool = False,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
@@ -204,6 +205,9 @@ def resolve_product_variants(
             from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
         ]
         qs = qs.filter(pk__in=db_ids)
+
+    if product_id:
+        qs = qs.filter(product_id=product_id)
 
     channel_slug = channel.slug if channel else None
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
