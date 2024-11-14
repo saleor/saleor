@@ -212,21 +212,21 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
         old_instance_data = instance.serialize_for_comparison()
-
         cleaned_input = cls.clean_input(info, instance, input)
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
-        instance = cls.construct_instance(instance, cleaned_input)
-        new_instance_data = instance.serialize_for_comparison()
 
+        instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
+        new_instance_data = instance.serialize_for_comparison()
 
         changed_fields = cls.diff_instance_data_fields(
             instance._comparison_fields,
             old_instance_data,
             new_instance_data,
         )
+
         variant_modified = cls._save(info, instance, cleaned_input, changed_fields)
         cls._save_m2m(info, instance, cleaned_input)
 
