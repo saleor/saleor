@@ -1,9 +1,7 @@
-import copy
 from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.forms.models import model_to_dict
 from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
@@ -157,11 +155,14 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
                 refresh_product_search_index = True
 
             if refresh_product_search_index:
-                product_update_fields = ["updated_at", "search_index_dirty"]
                 instance.product.search_index_dirty = True
-                if not instance.product.default_variant:
-                    instance.product.default_variant = instance
-                    product_update_fields.append("default_variant")
+                product_update_fields = ["updated_at", "search_index_dirty"]
+            else:
+                product_update_fields = []
+            if not instance.product.default_variant:
+                instance.product.default_variant = instance
+                product_update_fields.append("default_variant")
+            if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
             if changed_fields or stocks or attributes:
@@ -207,36 +208,24 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             "external_reference",
             external_reference,
         )
-        comparison_fields = [
-            "sku",
-            "name",
-            "track_inventory",
-            "is_preorder",
-            "quantity_limit_per_customer",
-            "weight",
-            "external_reference",
-            "metadata",
-            "private_metadata",
-        ]
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        old_instance_data = copy.deepcopy(
-            model_to_dict(instance, fields=comparison_fields)
-        )
+        old_instance_data = instance.serialize_for_comparison()
 
         cleaned_input = cls.clean_input(info, instance, input)
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
+        new_instance_data = instance.serialize_for_comparison()
 
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
 
         changed_fields = cls.diff_instance_data_fields(
-            comparison_fields,
+            instance._comparison_fields,
             old_instance_data,
-            model_to_dict(instance, fields=comparison_fields),
+            new_instance_data,
         )
         variant_modified = cls._save(info, instance, cleaned_input, changed_fields)
         cls._save_m2m(info, instance, cleaned_input)

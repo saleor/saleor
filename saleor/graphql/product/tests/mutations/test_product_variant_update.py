@@ -221,15 +221,10 @@ QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
 @pytest.mark.parametrize(
     ("fields", "changed_fields"),
     [
-        ({"sku": 123}, []),
         ({"sku": 1234}, ["sku"]),
-        ({"metadata": [{"key": "test_key1", "value": "test_value1"}]}, []),
         ({"metadata": [{"key": "test_key1", "value": "test_value2"}]}, ["metadata"]),
-        ({"trackInventory": True}, []),
         ({"trackInventory": False}, ["track_inventory"]),
-        ({"quantityLimitPerCustomer": 9}, []),
         ({"quantityLimitPerCustomer": 5}, ["quantity_limit_per_customer"]),
-        ({"externalReference": "test-ext-ref"}, []),
         ({"externalReference": "test-ext-ref2"}, ["external_reference"]),
         (
             {"sku": 1234, "trackInventory": False, "externalReference": "test-ext-ref"},
@@ -290,17 +285,79 @@ def test_update_product_variant_update_fields_when_necessary(
     get_graphql_content(response)
     flush_post_commit_hooks()
 
-    if changed_fields:
-        save_variant_mock.assert_called_once_with(variant, changed_fields)
-        call_event_mock.assert_has_calls(
-            [
-                call(ANY, variant),
-                call(mark_active_catalogue_promotion_rules_as_dirty, ANY),
-            ]
-        )
-    else:
-        save_variant_mock.assert_not_called()
-        call_event_mock.assert_not_called()
+    save_variant_mock.assert_called_once_with(variant, changed_fields)
+    call_event_mock.assert_has_calls(
+        [
+            call(ANY, variant),
+            call(mark_active_catalogue_promotion_rules_as_dirty, ANY),
+        ]
+    )
+
+
+@pytest.mark.parametrize(
+    "field_values",
+    [
+        ["sku", 123],
+        ["metadata", [{"key": "test_key1", "value": "test_value1"}]],
+        ["trackInventory", True],
+        ["quantityLimitPerCustomer", 9],
+        ["externalReference", "test-ext-ref"],
+    ],
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
+def test_update_product_variant_skip_updating_fields_when_unchanged(
+    save_variant_mock,
+    call_event_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    field_values,
+):
+    variant = product.variants.first()
+    quantity_limit = 9
+    external_reference = "test-ext-ref"
+    variant_name = variant.attributes.first().values.first().name
+    variant_sku = "123"
+    product.default_variant = variant
+    product.save(update_fields=["default_variant"])
+    variant.name = variant_name
+    variant.metadata = {"test_key1": "test_value1"}
+    variant.private_metadata = {"private_key1": "private_value_1"}
+    variant.external_reference = external_reference
+    variant.quantity_limit_per_customer = quantity_limit
+    variant.track_inventory = True
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": variant_sku,
+        "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit,
+        "externalReference": external_reference,
+        "metadata": [{"key": "test_key1", "value": "test_value1"}],
+        "privateMetadata": [{"key": "private_key1", "value": "private_value_1"}],
+    }
+
+    field, value = field_values
+    variables[field] = value
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_CHANGING_FIELDS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    variant.refresh_from_db()
+    get_graphql_content(response)
+    flush_post_commit_hooks()
+
+    save_variant_mock.assert_not_called()
+    call_event_mock.assert_not_called()
 
 
 def test_update_product_variant_marks_prices_as_dirty(
