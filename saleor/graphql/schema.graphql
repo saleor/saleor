@@ -5520,7 +5520,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
-  variants: [ProductVariant!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `productVariant` field instead.")
+  variants: [ProductVariant!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `productVariants` field instead.")
 
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.

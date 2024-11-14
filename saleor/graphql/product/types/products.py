@@ -948,7 +948,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "include the unpublished items: "
             f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `productVariant` field instead.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `productVariants` field instead.",
     )
     product_variants = FilterConnectionField(
         ProductVariantCountableConnection,
