@@ -292,13 +292,16 @@ def order_with_lines(
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
+    quantity = 3
     stock = Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=5
+        warehouse=warehouse,
+        product_variant=variant,
+        quantity=5,
+        quantity_allocated=quantity,
     )
     base_price = variant.get_price(channel_listing)
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
-    quantity = 3
     unit_price = TaxedMoney(net=base_price, gross=gross)
     line = order.lines.create(
         product_name=str(variant.product),
@@ -345,8 +348,12 @@ def order_with_lines(
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
+    quantity = 2
     stock = Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=2
+        product_variant=variant,
+        warehouse=warehouse,
+        quantity=2,
+        quantity_allocated=quantity,
     )
     stock.refresh_from_db()
 
@@ -354,7 +361,6 @@ def order_with_lines(
     currency = base_price.currency
     gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=base_price, gross=gross)
-    quantity = 2
     line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
