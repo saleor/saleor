@@ -35,6 +35,7 @@ from ...core.tasks import delete_files_from_private_storage_task
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.events import call_event
+from ...core.utils.url import sanitize_url_for_logging
 from ...payment import PaymentError
 from ...payment.interface import (
     GatewayResponse,
@@ -312,7 +313,7 @@ def handle_webhook_retry(
     log_extra_details = {
         "webhook": {
             "id": webhook.id,
-            "target_url": webhook.target_url,
+            "target_url": sanitize_url_for_logging(webhook.target_url),
             "event": delivery.event_type,
             "execution_mode": "async",
             "duration": response.duration,
@@ -323,7 +324,7 @@ def handle_webhook_retry(
         "[Webhook ID: %r] Failed request to %r: %r for event: %r."
         " Delivery attempt id: %r",
         webhook.id,
-        webhook.target_url,
+        sanitize_url_for_logging(webhook.target_url),
         response.content,
         delivery.event_type,
         delivery_attempt.id,
@@ -334,7 +335,7 @@ def handle_webhook_retry(
         task_logger.info(
             "[Webhook ID: %r] Failed request to %r: received HTTP %d. Delivery ID: %r",
             webhook.id,
-            webhook.target_url,
+            sanitize_url_for_logging(webhook.target_url),
             response.response_status_code,
             delivery.id,
             extra=log_extra_details,
@@ -352,7 +353,7 @@ def handle_webhook_retry(
         task_logger.info(
             "[Webhook ID: %r] Failed request to %r: exceeded retry limit. Delivery ID: %r",
             webhook.id,
-            webhook.target_url,
+            sanitize_url_for_logging(webhook.target_url),
             delivery.id,
             extra=log_extra_details,
         )

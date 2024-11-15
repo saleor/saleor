@@ -488,4 +488,4 @@ def test_generate_event_delivery_attempt_payload_target_url_obfuscated(
     payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
     payload = json.loads(payload)
 
-    assert payload["webhook"]["targetUrl"] == f"http://user:{MASK}@example.com/webhooks"
+    assert payload["webhook"]["targetUrl"] == "http://***:***@example.com/webhooks"

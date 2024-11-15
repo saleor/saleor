@@ -17,6 +17,7 @@ from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
 from ....core.tracing import webhooks_opentracing_trace
 from ....core.utils import get_domain
+from ....core.utils.url import sanitize_url_for_logging
 from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
@@ -136,7 +137,7 @@ def create_deliveries_for_multiple_subscription_objects(
                         "[Webhook ID:%r] No data changes for event %r, skip delivery to %r",
                         webhook.id,
                         event_type,
-                        webhook.target_url,
+                        sanitize_url_for_logging(webhook.target_url),
                     )
                     continue
 
@@ -404,7 +405,7 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
             task_logger.info(
                 "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
                 webhook.id,
-                webhook.target_url,
+                sanitize_url_for_logging(webhook.target_url),
                 delivery.event_type,
                 delivery.id,
             )
@@ -461,7 +462,7 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
             logger.info(
                 "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
                 webhook.id,
-                webhook.target_url,
+                sanitize_url_for_logging(webhook.target_url),
                 failed,
                 len(events),
                 response.content,
@@ -471,7 +472,7 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
         logger.debug(
             "Successful delivered %s events to %r.",
             len(events),
-            webhook.target_url,
+            sanitize_url_for_logging(webhook.target_url),
             extra={**extra, "dropped_events_count": 0},
         )
 
