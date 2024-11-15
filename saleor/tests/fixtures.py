@@ -5091,9 +5091,7 @@ def order_with_lines(
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
-    Stock.objects.create(
-        warehouse=warehouse, product_variant=variant_1, quantity=5
-    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant_1, quantity=5)
 
     product = Product.objects.create(
         name="Test product 2",
@@ -5119,11 +5117,14 @@ def order_with_lines(
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
-    Stock.objects.create(
-        warehouse=warehouse, product_variant=variant_2, quantity=2
-    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant_2, quantity=2)
 
-    order_lines_generator(order, [variant_1, variant_2], [10, 20], [variant_1_quantity, variant_2_quantity])
+    order_lines_generator(
+        order,
+        [variant_1, variant_2],
+        [10, 20],
+        [variant_1_quantity, variant_2_quantity],
+    )
 
     order.shipping_address = order.billing_address.get_copy()
     order.channel = channel_USD
