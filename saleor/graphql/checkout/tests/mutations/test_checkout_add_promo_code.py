@@ -110,7 +110,6 @@ def test_checkout_add_voucher_for_entire_order(api_client, checkout_with_item, v
         total_price_gross_amount
         == taxed_total.gross.amount - checkout_with_item.discount_amount
     )
-    # TODO: check line prices
 
 
 def test_checkout_add_voucher_code_by_token(api_client, checkout_with_item, voucher):

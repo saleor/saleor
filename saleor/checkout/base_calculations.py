@@ -262,9 +262,7 @@ def get_line_total_price_with_propagated_checkout_discount(
 
 
 def _propagate_checkout_discount_on_checkout_lines_prices(
-    # checkout_line_info: "CheckoutLineInfo",
     lines: Iterable["CheckoutLineInfo"],
-    # line_total_price: Money,
     total_discount: Money,
     currency: str,
 ):
