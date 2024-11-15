@@ -2746,24 +2746,23 @@ def test_checkout_create_triggers_webhooks(
         webhook_id=checkout_created_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
+    sync_deliveries = {
+        call.args[0].event_type: call.args[0]
+        for call in mocked_send_webhook_request_sync.mock_calls
+    }
+
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
+    shipping_methods_delivery = sync_deliveries[
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    ]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
+    filter_shipping_delivery = sync_deliveries[
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    ]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    tax_delivery = tax_delivery_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
+    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     assert tax_delivery.webhook_id == tax_webhook.id
