@@ -247,6 +247,7 @@ def test_update_product_variant_update_fields_when_necessary(
     fields,
     changed_fields,
 ):
+    # given
     variant = product.variants.first()
     quantity_limit = 9
     external_reference = "test-ext-ref"
@@ -276,15 +277,16 @@ def test_update_product_variant_update_fields_when_necessary(
     for field, value in fields.items():
         variables[field] = value
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_UPDATE_VARIANT_CHANGING_FIELDS,
         variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     variant.refresh_from_db()
     get_graphql_content(response)
-    flush_post_commit_hooks()
-
     save_variant_mock.assert_called_once_with(variant, changed_fields)
     call_event_mock.assert_has_calls(
         [
@@ -318,6 +320,7 @@ def test_update_product_variant_skip_updating_fields_when_unchanged(
     permission_manage_products,
     field_values,
 ):
+    # given
     variant = product.variants.first()
     quantity_limit = 9
     external_reference = "test-ext-ref"
@@ -347,15 +350,16 @@ def test_update_product_variant_skip_updating_fields_when_unchanged(
     field, value = field_values
     variables[field] = value
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_UPDATE_VARIANT_CHANGING_FIELDS,
         variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     variant.refresh_from_db()
     get_graphql_content(response)
-    flush_post_commit_hooks()
-
     save_variant_mock.assert_not_called()
     call_event_mock.assert_not_called()
 

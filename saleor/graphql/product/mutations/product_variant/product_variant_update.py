@@ -181,14 +181,6 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
-    def diff_instance_data_fields(cls, fields, old_instance_data, new_instance_data):
-        diff_fields = []
-        for field in fields:
-            if old_instance_data.get(field) != new_instance_data.get(field):
-                diff_fields.append(field)
-        return diff_fields
-
-    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
