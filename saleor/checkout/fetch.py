@@ -412,36 +412,22 @@ def fetch_checkout_lines(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
-            if (
-                not skip_lines_with_unavailable_variants
-                # variant price is denormalized on checkout line object. We have enough
-                # information to include the variant without listing in the
-                # calculations. This will allow to display a proper prices but we won't
-                # allow to finalize the checkout without removing `unavailable_variant`
-                # from the checkout.
-                or _only_variant_listing_is_missing(
-                    checkout,
-                    product,
-                    variant_channel_listing,
-                    product_channel_listing_mapping,
+            lines_info.append(
+                CheckoutLineInfo(
+                    line=line,
+                    variant=variant,
+                    channel_listing=variant_channel_listing,
+                    product=product,
+                    product_type=product_type,
+                    collections=collections,
+                    tax_class=product.tax_class or product_type.tax_class,
+                    discounts=discounts,
+                    rules_info=rules_info,
+                    channel=channel,
+                    voucher=None,
+                    voucher_code=None,
                 )
-            ):
-                lines_info.append(
-                    CheckoutLineInfo(
-                        line=line,
-                        variant=variant,
-                        channel_listing=variant_channel_listing,
-                        product=product,
-                        product_type=product_type,
-                        collections=collections,
-                        tax_class=product.tax_class or product_type.tax_class,
-                        discounts=discounts,
-                        rules_info=rules_info,
-                        channel=channel,
-                        voucher=None,
-                        voucher_code=None,
-                    )
-                )
+            )
             continue
 
         lines_info.append(
@@ -522,23 +508,6 @@ def _is_variant_valid(
     ):
         return False
     return True
-
-
-def _only_variant_listing_is_missing(
-    checkout: "Checkout",
-    product: "Product",
-    variant_channel_listing: Optional["ProductVariantChannelListing"],
-    product_channel_listing_mapping: dict,
-):
-    if not _product_channel_listing_is_valid(
-        checkout,
-        product,
-        product_channel_listing_mapping,
-    ):
-        return False
-    if not variant_channel_listing or variant_channel_listing.price is None:
-        return True
-    return False
 
 
 def _get_product_channel_listing(
