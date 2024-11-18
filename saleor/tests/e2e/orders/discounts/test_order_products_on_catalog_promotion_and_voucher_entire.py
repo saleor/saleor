@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 
 from .....product.tasks import recalculate_discounted_price_for_products_task
@@ -278,16 +280,17 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
     assert order_id is not None
 
     # Step 2 - Add order lines to the order
+    quantity = 2
     lines = [
-        {"variantId": product_variant_id_1, "quantity": 2},
-        {"variantId": product_variant_id_2, "quantity": 2},
+        {"variantId": product_variant_id_1, "quantity": quantity},
+        {"variantId": product_variant_id_2, "quantity": quantity},
     ]
     order = order_lines_create(e2e_staff_api_client, order_id, lines)
     order_product1_variant_id = order["order"]["lines"][0]
     order_product2_variant_id = order["order"]["lines"][1]
 
     # Assert lines:
-    expected_product1_unit_price = round(
+    expected_product1_unit_price_after_catalogue_promotion = round(
         product1_variant_price
         - (product1_variant_price * (catalog_promotion_value / 100)),
         2,
@@ -303,17 +306,31 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
     )
     assert (
         order_product1_variant_id["unitPrice"]["gross"]["amount"]
-        == expected_product1_unit_price
+        == expected_product1_unit_price_after_catalogue_promotion
     )
     assert (
         order_product1_variant_id["unitPrice"]["gross"]["amount"]
         != order_product1_variant_id["undiscountedUnitPrice"]["gross"]["amount"]
     )
-
-    expected_product2_unit_price = round(
-        product2_variant_price
-        - (product2_variant_price * (catalog_promotion_value / 100)),
+    expected_product1_total_price_after_catalogue_promotion = round(
+        expected_product1_unit_price_after_catalogue_promotion * quantity, 2
+    )
+    assert (
+        order_product1_variant_id["totalPrice"]["gross"]["amount"]
+        == expected_product1_total_price_after_catalogue_promotion
+    )
+    expected_product1_tax = round(
+        (expected_product1_total_price_after_catalogue_promotion * country_tax_rate)
+        / (100 + country_tax_rate),
         2,
+    )
+    assert (
+        order_product1_variant_id["totalPrice"]["tax"]["amount"]
+        == expected_product1_tax
+    )
+
+    expected_product2_unit_price_after_catalogue_promotion = product2_variant_price - (
+        product2_variant_price * (catalog_promotion_value / 100)
     )
     assert order_product2_variant_id["variant"]["id"] == product_variant_id_2
     assert (
@@ -324,18 +341,34 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
     assert order_product2_variant_id["unitDiscount"]["amount"] == round(
         product2_variant_price * (catalog_promotion_value / 100), 2
     )
-    assert (
-        order_product2_variant_id["unitPrice"]["gross"]["amount"]
-        == expected_product2_unit_price
+    assert order_product2_variant_id["unitPrice"]["gross"]["amount"] == round(
+        expected_product2_unit_price_after_catalogue_promotion, 2
     )
     assert (
         order_product2_variant_id["unitPrice"]["gross"]["amount"]
         != order_product2_variant_id["undiscountedUnitPrice"]["gross"]["amount"]
     )
+    expected_product2_total_price_after_catalogue_promotion = (
+        expected_product2_unit_price_after_catalogue_promotion * quantity
+    )
+    assert order_product2_variant_id["totalPrice"]["gross"]["amount"] == round(
+        expected_product2_total_price_after_catalogue_promotion, 2
+    )
+    expected_product2_tax = round(
+        (expected_product2_total_price_after_catalogue_promotion * country_tax_rate)
+        / (100 + country_tax_rate),
+        2,
+    )
+    assert (
+        order_product2_variant_id["totalPrice"]["tax"]["amount"]
+        == expected_product2_tax
+    )
 
     # Assert subtotal:
     expected_subtotal_gross = round(
-        (expected_product1_unit_price * 2 + expected_product2_unit_price * 2), 2
+        expected_product1_total_price_after_catalogue_promotion
+        + expected_product2_total_price_after_catalogue_promotion,
+        2,
     )
     assert order["order"]["subtotal"]["gross"]["amount"] == expected_subtotal_gross
     expected_subtotal_tax = round(
@@ -388,28 +421,94 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
     order = draft_order_update(
         e2e_staff_api_client, order_id, {"voucherCode": voucher_code}
     )
+
     # Assert voucher
     assert order["order"]["voucherCode"] == voucher_code
     assert order["order"]["discounts"][0]["type"] == "VOUCHER"
     assert order["order"]["discounts"][0]["value"] == voucher_discount_value
-    assert order["order"]["discounts"][0]["amount"]["amount"] == round(
+    voucher_discount_amount = round(
         expected_subtotal_gross * (voucher_discount_value / 100), 2
+    )
+    assert order["order"]["discounts"][0]["amount"]["amount"] == voucher_discount_amount
+
+    # Assert line prices
+    order_product1_variant_id = order["order"]["lines"][0]
+    order_product2_variant_id = order["order"]["lines"][1]
+
+    product1_voucher_discount_share = round(
+        voucher_discount_amount
+        * expected_product1_total_price_after_catalogue_promotion
+        / expected_subtotal_gross,
+        2,
+    )
+    expected_product1_total_price = round(
+        expected_product1_total_price_after_catalogue_promotion
+        - product1_voucher_discount_share,
+        2,
+    )
+    assert (
+        order_product1_variant_id["totalPrice"]["gross"]["amount"]
+        == expected_product1_total_price
+    )
+    expected_product1_tax = round(
+        (expected_product1_total_price * country_tax_rate) / (100 + country_tax_rate), 2
+    )
+    assert (
+        order_product1_variant_id["totalPrice"]["tax"]["amount"]
+        == expected_product1_tax
+    )
+    expected_product1_net = round(
+        expected_product1_total_price - expected_product1_tax, 2
+    )
+    assert (
+        order_product1_variant_id["totalPrice"]["net"]["amount"]
+        == expected_product1_net
+    )
+    assert order_product1_variant_id["unitPrice"]["gross"]["amount"] == round(
+        expected_product1_total_price / quantity, 2
+    )
+
+    product2_voucher_discount_share = (
+        voucher_discount_amount - product1_voucher_discount_share
+    )
+    expected_product2_total_price = (
+        expected_product2_total_price_after_catalogue_promotion
+        - product2_voucher_discount_share
+    )
+    assert order_product2_variant_id["totalPrice"]["gross"]["amount"] == round(
+        expected_product2_total_price, 2
+    )
+    expected_product2_tax = round(
+        (expected_product2_total_price * country_tax_rate) / (100 + country_tax_rate), 2
+    )
+    assert (
+        order_product2_variant_id["totalPrice"]["tax"]["amount"]
+        == expected_product2_tax
+    )
+    expected_product2_net = round(
+        expected_product2_total_price - expected_product2_tax, 2
+    )
+    assert (
+        order_product2_variant_id["totalPrice"]["net"]["amount"]
+        == expected_product2_net
+    )
+    assert order_product2_variant_id["unitPrice"]["gross"]["amount"] == float(
+        round(Decimal(str(expected_product2_total_price / quantity)), 2)
     )
 
     # Assert subtotal with voucher
     subtotal_gross_with_voucher = round(
-        expected_subtotal_gross * (1 - (voucher_discount_value / 100)), 2
+        expected_subtotal_gross - voucher_discount_amount, 2
     )
     assert order["order"]["subtotal"]["gross"]["amount"] == subtotal_gross_with_voucher
-    subtotal_tax_with_voucher = round(
-        (subtotal_gross_with_voucher * country_tax_rate) / (100 + country_tax_rate),
-        2,
-    )
-    assert order["order"]["subtotal"]["tax"]["amount"] == subtotal_tax_with_voucher
+    subtotal_net_with_voucher = expected_product1_net + expected_product2_net
+    assert order["order"]["subtotal"]["net"]["amount"] == subtotal_net_with_voucher
 
     # Assert shipping price is the same
     assert order["order"]["shippingPrice"]["gross"]["amount"] == shipping_price
     assert order["order"]["shippingPrice"]["tax"]["amount"] == expected_shipping_tax
+    expected_shipping_net = shipping_price - expected_shipping_tax
+    assert order["order"]["shippingPrice"]["net"]["amount"] == expected_shipping_net
     assert order["order"]["undiscountedShippingPrice"]["amount"] == shipping_price
 
     # Assert total with voucher
@@ -418,20 +517,20 @@ def test_order_products_on_catalog_promotion_and_voucher_entire_order_CORE_2131(
         2,
     )
     assert order["order"]["total"]["gross"]["amount"] == total_gross_with_voucher
-    total_tax_with_voucher = round(
-        (total_gross_with_voucher * country_tax_rate) / (100 + country_tax_rate),
+    total_net_with_voucher = round(
+        expected_shipping_net + subtotal_net_with_voucher,
         2,
     )
-    assert order["order"]["total"]["tax"]["amount"] == total_tax_with_voucher
+    assert order["order"]["total"]["net"]["amount"] == total_net_with_voucher
 
     # Step 5 - Complete the draft order
     order = draft_order_complete(e2e_staff_api_client, order_id)
     completed_order = order["order"]
     assert completed_order["status"] == "UNFULFILLED"
     assert completed_order["total"]["gross"]["amount"] == total_gross_with_voucher
-    assert completed_order["total"]["tax"]["amount"] == total_tax_with_voucher
+    assert completed_order["total"]["net"]["amount"] == total_net_with_voucher
     assert completed_order["subtotal"]["gross"]["amount"] == subtotal_gross_with_voucher
-    assert completed_order["subtotal"]["tax"]["amount"] == subtotal_tax_with_voucher
+    assert completed_order["subtotal"]["net"]["amount"] == subtotal_net_with_voucher
     assert completed_order["shippingPrice"]["gross"]["amount"] == shipping_price
     assert completed_order["shippingPrice"]["tax"]["amount"] == expected_shipping_tax
     assert (
