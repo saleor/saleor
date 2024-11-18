@@ -214,7 +214,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         new_instance_data = instance.serialize_for_comparison()
 
         changed_fields = cls.diff_instance_data_fields(
-            instance._comparison_fields,
+            instance.comparison_fields,
             old_instance_data,
             new_instance_data,
         )

@@ -441,7 +441,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         )
 
     @property
-    def _comparison_fields(self):
+    def comparison_fields(self):
         return [
             "sku",
             "name",
@@ -455,7 +455,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         ]
 
     def serialize_for_comparison(self):
-        return copy.deepcopy(model_to_dict(self, fields=self._comparison_fields))
+        return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
 
 
 class ProductVariantTranslation(Translation):
