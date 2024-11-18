@@ -1,12 +1,14 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.test import override_settings
 
 from .....account.models import User
 from .....checkout.actions import call_checkout_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -53,8 +55,20 @@ def test_checkout_customer_attach(
     assert checkout.last_change != previous_last_change
 
 
-def test_checkout_customer_attach_when_variant_without_channel_listing(
-    user_api_client, checkout_with_item, customer_user2, permission_impersonate_user
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_customer_attach_when_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item,
+    customer_user2,
+    permission_impersonate_user,
 ):
     # given
     checkout = checkout_with_item
@@ -62,7 +76,10 @@ def test_checkout_customer_attach_when_variant_without_channel_listing(
     checkout.save()
 
     line = checkout.lines.first()
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
 
     assert checkout.user is None
     previous_last_change = checkout.last_change

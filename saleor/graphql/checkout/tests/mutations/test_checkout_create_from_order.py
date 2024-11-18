@@ -1,10 +1,11 @@
 import datetime
 
 import graphene
+import pytest
 
 from .....checkout.error_codes import CheckoutCreateFromOrderUnavailableVariantErrorCode
 from .....checkout.models import Checkout
-from .....product.models import ProductVariantChannelListing
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 from ...enums import CheckoutCreateFromOrderErrorCode
@@ -314,15 +315,38 @@ def test_checkout_create_from_order_variant_not_found(
     assert unavailable_variant["variantId"] == first_line.product_variant_id
 
 
-def test_checkout_create_from_order_variant_without_channel_listing(
-    user_api_client, order_with_lines
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field", "expected_error_code"),
+    [
+        (
+            ProductVariantChannelListing,
+            "variant_id",
+            CheckoutCreateFromOrderUnavailableVariantErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name,
+        ),
+        (
+            ProductChannelListing,
+            "product__variants__id",
+            CheckoutCreateFromOrderUnavailableVariantErrorCode.PRODUCT_NOT_PUBLISHED.name,
+        ),
+    ],
+)
+def test_checkout_create_from_order_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    expected_error_code,
+    user_api_client,
+    order_with_lines,
 ):
     # given
     order_with_lines.user = user_api_client.user
     order_with_lines.save()
     Stock.objects.update(quantity=10)
     first_line = order_with_lines.lines.first()
-    first_line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=order_with_lines.channel_id,
+        **{listing_filter_field: first_line.variant_id},
+    ).delete()
 
     variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)}
     # when
@@ -354,12 +378,9 @@ def test_checkout_create_from_order_variant_without_channel_listing(
         order_lines_map, checkout_lines, checkout_lines_from_response_map
     )
 
-    error_codes = CheckoutCreateFromOrderUnavailableVariantErrorCode
     assert len(data["unavailableVariants"]) == 1
     unavailable_variant = data["unavailableVariants"][0]
-    assert (
-        unavailable_variant["code"] == error_codes.UNAVAILABLE_VARIANT_IN_CHANNEL.name
-    )
+    assert unavailable_variant["code"] == expected_error_code
     assert unavailable_variant["lineId"] == graphene.Node.to_global_id(
         "OrderLine", first_line.pk
     )

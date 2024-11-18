@@ -2,6 +2,7 @@ from unittest import mock
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.test import override_settings
 
 from .....checkout.actions import call_checkout_info_event
@@ -11,6 +12,7 @@ from .....checkout.models import CheckoutLine
 from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -84,6 +86,13 @@ def test_checkout_lines_delete(
     assert mocked_invalidate_checkout.call_count == 1
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
     "update_checkout_shipping_method_if_invalid",
@@ -93,9 +102,11 @@ def test_checkout_lines_delete(
     "saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout",
     wraps=invalidate_checkout,
 )
-def test_checkout_lines_delete_when_variant_without_channel_listing(
+def test_checkout_lines_delete_when_line_without_channel_listing(
     mocked_invalidate_checkout,
     mocked_update_shipping_method,
+    channel_listing_model,
+    listing_filter_field,
     user_api_client,
     checkout_with_items,
 ):
@@ -104,7 +115,11 @@ def test_checkout_lines_delete_when_variant_without_channel_listing(
     checkout_lines_count = checkout.lines.count()
     previous_last_change = checkout.last_change
     line = checkout.lines.first()
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
+
     second_line = checkout.lines.last()
 
     first_line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
@@ -134,6 +149,13 @@ def test_checkout_lines_delete_when_variant_without_channel_listing(
     assert mocked_invalidate_checkout.call_count == 1
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_delete."
     "update_checkout_shipping_method_if_invalid",
@@ -146,6 +168,8 @@ def test_checkout_lines_delete_when_variant_without_channel_listing(
 def test_checkout_lines_delete_when_checkout_has_variant_without_channel_listing(
     mocked_invalidate_checkout,
     mocked_update_shipping_method,
+    channel_listing_model,
+    listing_filter_field,
     user_api_client,
     checkout_with_items,
 ):
@@ -157,7 +181,10 @@ def test_checkout_lines_delete_when_checkout_has_variant_without_channel_listing
     line = checkout.lines.first()
 
     line_without_listing = checkout.lines.last()
-    line_without_listing.variant.channel_listings.all().delete()
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
 
     first_line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
     lines_list = [

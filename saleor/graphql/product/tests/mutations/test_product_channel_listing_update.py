@@ -943,7 +943,7 @@ def test_product_channel_listing_update_remove_channel(
     assert variant.channel_listings.get() == variant_channel_listing_pln
 
 
-def test_product_channel_listing_update_remove_channel_removes_checkout_lines(
+def test_product_channel_listing_update_remove_channel_dont_remove_checkout_lines(
     staff_api_client,
     product_available_in_many_channels,
     permission_manage_products,
@@ -978,7 +978,7 @@ def test_product_channel_listing_update_remove_channel_removes_checkout_lines(
     # then
     data = content["data"]["productChannelListingUpdate"]
     assert not data["errors"]
-    assert not checkout.lines.all().exists()
+    assert checkout.lines.all().exists()
 
 
 def test_product_channel_listing_update_remove_not_assigned_channel(

@@ -16,7 +16,7 @@ from .....checkout.fetch import fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....checkout.utils import calculate_checkout_quantity
 from .....core.models import EventDelivery
-from .....product.models import ProductChannelListing
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -205,11 +205,36 @@ def test_checkout_create_with_unavailable_variant(
     assert error["variants"] == [variant_id]
 
 
-def test_checkout_create_with_variant_without_channel_listing(
-    api_client, stock, graphql_address_data, channel_USD
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field", "expected_error_code"),
+    [
+        (
+            ProductVariantChannelListing,
+            "variant_id",
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name,
+        ),
+        (
+            ProductChannelListing,
+            "product__variants__id",
+            CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name,
+        ),
+    ],
+)
+def test_checkout_create_with_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    expected_error_code,
+    api_client,
+    stock,
+    graphql_address_data,
+    channel_USD,
 ):
     variant = stock.product_variant
-    variant.channel_listings.filter(channel=channel_USD).delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=channel_USD.id, **{listing_filter_field: variant.id}
+    ).delete()
+
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
     shipping_address = graphql_address_data
@@ -227,7 +252,7 @@ def test_checkout_create_with_variant_without_channel_listing(
     error = get_graphql_content(response)["data"]["checkoutCreate"]["errors"][0]
 
     assert error["field"] == "lines"
-    assert error["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert error["code"] == expected_error_code
     assert error["variants"] == [variant_id]
 
 

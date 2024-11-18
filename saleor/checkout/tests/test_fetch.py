@@ -1,3 +1,6 @@
+import pytest
+
+from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ..fetch import CheckoutLineInfo, fetch_checkout_lines
 
 
@@ -245,17 +248,31 @@ def test_fetch_checkout_lines_info_when_product_not_available(
     )
 
     # then
-    assert len(line_infos) == 0
+    assert len(line_infos) == 1
+    assert line_infos[0].line.pk == line.pk
     assert unavailable_variants == [line.variant_id]
 
 
-def test_fetch_checkout_lines_info_when_variant_without_channel_listing(
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_fetch_checkout_lines_info_when_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
     checkout_with_item_on_promotion,
 ):
     # given
     lines = list(checkout_with_item_on_promotion.lines.all())
     line = lines[0]
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_item_on_promotion.channel_id,
+        **{listing_filter_field: line.variant_id},
+    ).delete()
 
     # when
     line_infos, unavailable_variants = fetch_checkout_lines(

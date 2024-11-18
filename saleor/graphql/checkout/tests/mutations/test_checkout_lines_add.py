@@ -131,6 +131,13 @@ def test_checkout_lines_add(
     assert mocked_invalidate_checkout.call_count == 1
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_lines_add."
     "update_checkout_shipping_method_if_invalid",
@@ -140,19 +147,24 @@ def test_checkout_lines_add(
     "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
     wraps=invalidate_checkout,
 )
-def test_checkout_lines_add_when_checkout_has_line_without_variant_listing(
+def test_checkout_lines_add_when_checkout_has_line_without_listing(
     mocked_invalidate_checkout,
     mocked_update_shipping_method,
+    channel_listing_model,
+    listing_filter_field,
     user_api_client,
     checkout_with_item,
-    stock,
+    variant_without_inventory_tracking,
 ):
     # given
-    variant = stock.product_variant
+    variant = variant_without_inventory_tracking
     checkout = checkout_with_item
 
     line = checkout.lines.first()
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
 
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
@@ -1409,12 +1421,36 @@ def test_checkout_lines_add_with_unavailable_variant(
     assert errors[0]["variants"] == [variant_id]
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field", "expected_error_code"),
+    [
+        (
+            ProductVariantChannelListing,
+            "variant_id",
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name,
+        ),
+        (
+            ProductChannelListing,
+            "product__variants__id",
+            CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name,
+        ),
+    ],
+)
 def test_checkout_lines_add_variant_without_channel_listing(
-    user_api_client, checkout_with_item, stock
+    channel_listing_model,
+    listing_filter_field,
+    expected_error_code,
+    user_api_client,
+    checkout_with_item,
+    stock,
 ):
     # given
     variant = stock.product_variant
-    variant.channel_listings.filter(channel=checkout_with_item.channel).delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_item.channel_id, **{listing_filter_field: variant.id}
+    ).delete()
+
     checkout = checkout_with_item
     line = checkout.lines.first()
     assert line.quantity == 3
@@ -1432,7 +1468,7 @@ def test_checkout_lines_add_variant_without_channel_listing(
     # then
     content = get_graphql_content(response)
     errors = content["data"]["checkoutLinesAdd"]["errors"]
-    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["code"] == expected_error_code
     assert errors[0]["field"] == "lines"
     assert errors[0]["variants"] == [variant_id]
 
