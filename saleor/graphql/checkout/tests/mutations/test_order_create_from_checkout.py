@@ -22,7 +22,7 @@ from .....order import OrderOrigin, OrderStatus
 from .....order.models import Fulfillment, Order
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
-from .....product.models import ProductVariantChannelListing
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -2146,7 +2146,16 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     assert Order.objects.count() == initial_order_count
 
 
-def test_order_from_draft_create_variant_channel_listing_does_not_exist(
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_order_from_checkout_create_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
     checkout_with_items,
     address,
     shipping_method,
@@ -2167,7 +2176,11 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
-    checkout_line_variant.channel_listings.get(channel__id=checkout.channel_id).delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: checkout_line_variant.id},
+    ).delete()
 
     lines, _ = fetch_checkout_lines(checkout)
 

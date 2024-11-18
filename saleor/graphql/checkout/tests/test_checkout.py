@@ -32,7 +32,11 @@ from ....payment.interface import (
 )
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
-from ....product.models import ProductVariant, ProductVariantChannelListing
+from ....product.models import (
+    ProductChannelListing,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
@@ -1637,6 +1641,43 @@ query getCheckout($id: ID) {
             }
           }
         }
+        product {
+          id
+          isAvailable
+          isAvailableForPurchase
+          pricing{
+            onSale
+            discount{
+              gross{
+                amount
+              }
+            }
+            priceRange{
+              start{
+                gross{
+                  amount
+                }
+              }
+              stop{
+                gross{
+                  amount
+                }
+              }
+            }
+            priceRangeUndiscounted{
+              start{
+                gross{
+                  amount
+                }
+              }
+              stop{
+                gross{
+                  amount
+                }
+              }
+            }
+          }
+        }
       }
       unitPrice {
         gross {
@@ -1668,11 +1709,25 @@ query getCheckout($id: ID) {
 """
 
 
-def test_checkout_prices_when_variant_without_listing(
-    user_api_client, checkout_with_line_without_listing
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_when_line_without_listing(
+    channel_listing_model, listing_filter_field, user_api_client, checkout_with_item
 ):
     # given
-    checkout, line_without_listing = checkout_with_line_without_listing
+    checkout = checkout_with_item
+    line_without_listing = checkout_with_item.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
+
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}
     checkout.price_expiration = timezone.now()
@@ -1839,11 +1894,26 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
 
 
-def test_checkout_prices_checkout_with_custom_prices_when_variant_without_listing(
-    user_api_client, checkout_with_line_without_listing
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_checkout_with_custom_prices_when_line_without_listing(
+    channel_listing_model, listing_filter_field, user_api_client, checkout_with_item
 ):
     # given
-    checkout, line_without_listing = checkout_with_line_without_listing
+    checkout = checkout_with_item
+
+    line_without_listing = checkout_with_item.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
+
     price_override = Decimal("20.00")
     line_without_listing.price_override = price_override
     line_without_listing.undiscounted_unit_price_amount = price_override
@@ -1967,8 +2037,19 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item_on_sale)
     assert line_total_price.gross.amount < undiscounted_total_price
 
 
-def test_checkout_prices_with_sales_when_variant_without_listing(
-    user_api_client, checkout_with_item, promotion_converted_from_sale
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_sales_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item,
+    promotion_converted_from_sale,
 ):
     # given
     checkout = checkout_with_item
@@ -1993,6 +2074,12 @@ def test_checkout_prices_with_sales_when_variant_without_listing(
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
 
+    channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel.currency_code,
+    )
+
     CheckoutLineDiscount.objects.create(
         line=line_without_listing,
         promotion_rule=rule,
@@ -2008,8 +2095,8 @@ def test_checkout_prices_with_sales_when_variant_without_listing(
 
     checkout = checkout_with_item
 
-    line_without_listing.variant.channel_listings.get(
-        channel_id=checkout.channel_id
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: variant.id}
     ).delete()
 
     query = QUERY_CHECKOUT_PRICES
@@ -2154,8 +2241,18 @@ def test_checkout_prices_with_promotion(
     assert line_total_price.gross.amount < undiscounted_total_price
 
 
-def test_checkout_prices_with_promotion_when_variant_without_listing(
-    user_api_client, checkout_with_item_on_promotion
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_promotion_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_on_promotion,
 ):
     # given
     query = QUERY_CHECKOUT_PRICES
@@ -2165,8 +2262,10 @@ def test_checkout_prices_with_promotion_when_variant_without_listing(
     variables = {"id": to_global_id_or_none(checkout)}
 
     line_without_listing = checkout.lines.first()
-    line_without_listing.variant.channel_listings.get(
-        channel_id=checkout.channel_id
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
     ).delete()
 
     # when
@@ -2290,8 +2389,18 @@ def test_checkout_prices_with_order_promotion(
     assert data["lines"][0]["undiscountedTotalPrice"]["amount"] == subtotal_price.amount
 
 
-def test_checkout_prices_with_order_promotion_when_variant_without_listing(
-    user_api_client, checkout_with_item_and_order_discount
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_order_promotion_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_and_order_discount,
 ):
     # given
     query = QUERY_CHECKOUT_PRICES
@@ -2299,8 +2408,10 @@ def test_checkout_prices_with_order_promotion_when_variant_without_listing(
     variables = {"id": to_global_id_or_none(checkout)}
 
     line_without_listing = checkout.lines.first()
-    line_without_listing.variant.channel_listings.get(
-        channel_id=checkout.channel_id
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
     ).delete()
 
     checkout.price_expiration = timezone.now()
@@ -2437,8 +2548,19 @@ def test_checkout_prices_with_gift_promotion(
     )
 
 
-def test_checkout_prices_with_gift_promotion_when_variant_without_listing(
-    user_api_client, checkout_with_item_and_gift_promotion, gift_promotion_rule
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_gift_promotion_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_and_gift_promotion,
+    gift_promotion_rule,
 ):
     # given
     query = QUERY_CHECKOUT_PRICES
@@ -2466,7 +2588,10 @@ def test_checkout_prices_with_gift_promotion_when_variant_without_listing(
         checkout_line_info=line_info,
     )
 
-    variant_listings.delete()
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
 
     # when
     response = user_api_client.post_graphql(query, variables)
@@ -2608,13 +2733,28 @@ def test_checkout_prices_with_specific_voucher(
     )
 
 
-def test_checkout_prices_with_specific_voucher_when_variant_without_listing(
-    user_api_client, checkout_with_item_and_voucher_specific_products
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_specific_voucher_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_and_voucher_specific_products,
 ):
     # given
     checkout = checkout_with_item_and_voucher_specific_products
     line_without_listing = checkout.lines.first()
-    line_without_listing.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
+
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}
 
@@ -2754,14 +2894,28 @@ def test_checkout_prices_with_voucher_once_per_order(
     )
 
 
-def test_checkout_prices_with_voucher_once_per_order_when_variant_without_listing(
-    user_api_client, checkout_with_item_and_voucher_once_per_order
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_voucher_once_per_order_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_and_voucher_once_per_order,
 ):
     # given
     checkout = checkout_with_item_and_voucher_once_per_order
 
     line_without_listing = checkout.lines.first()
-    line_without_listing.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
 
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2905,14 +3059,28 @@ def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_vo
     )
 
 
-def test_checkout_prices_with_voucher_when_variant_without_listing(
-    user_api_client, checkout_with_item_and_voucher
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_with_voucher_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_and_voucher,
 ):
     # given
     checkout = checkout_with_item_and_voucher
 
     line_without_listing = checkout.lines.first()
-    line_without_listing.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
 
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}
@@ -3059,14 +3227,29 @@ def test_checkout_prices_with_voucher_code_that_doesnt_exist(
     )
 
 
-def test_checkout_prices_voucher_code_that_doesnt_exist_when_variant_without_listing(
-    user_api_client, checkout_with_item_and_voucher, voucher
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_prices_voucher_code_that_doesnt_exist_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item_and_voucher,
+    voucher,
 ):
     # given
     checkout = checkout_with_item_and_voucher
 
     line_without_listing = checkout.lines.first()
-    line_without_listing.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
 
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}

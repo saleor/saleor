@@ -7,6 +7,7 @@ from django.test import override_settings
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -72,12 +73,28 @@ def test_checkout_billing_address_update_by_id(
     assert checkout.billing_address.validation_skipped is False
 
 
-def test_checkout_billing_address_update_when_variant_without_listing(
-    user_api_client, checkout_with_item, graphql_address_data
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_billing_address_update_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
 ):
     checkout = checkout_with_item
-    line = checkout.lines.first()
-    line.variant.channel_listings.all().delete()
+    line_without_listing = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
+
     assert checkout.shipping_address is None
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE

@@ -30,6 +30,7 @@ from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from .....payment.interface import GatewayResponse
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -815,7 +816,16 @@ def test_checkout_complete_with_variant_without_price(
     assert not checkout.completing_started_at
 
 
-def test_checkout_complete_with_variant_without_channel_listing(
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_complete_with_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
     site_settings,
     user_api_client,
     checkout_with_item,
@@ -832,7 +842,11 @@ def test_checkout_complete_with_variant_without_channel_listing(
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
-    checkout_line_variant.channel_listings.filter(channel=checkout.channel).delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: checkout_line.variant_id},
+    ).delete()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", checkout_line_variant.pk)
     redirect_url = "https://www.example.com"

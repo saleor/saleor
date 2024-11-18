@@ -18,7 +18,11 @@ from .....checkout.utils import add_variant_to_checkout, set_external_shipping_i
 from .....core.models import EventDelivery
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
-from .....product.models import Collection, ProductVariantChannelListing
+from .....product.models import (
+    Collection,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -272,15 +276,24 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     assert checkout_with_item.last_change == previous_checkout_last_change
 
 
-def test_checkout_add_voucher_code_variant_unavailable(
-    api_client, checkout_with_item, voucher
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_add_voucher_code_line_without_listing(
+    channel_listing_model, listing_filter_field, api_client, checkout_with_item, voucher
 ):
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
-    checkout_with_item.lines.first().variant.channel_listings.filter(
-        channel=checkout_with_item.channel
+    line = checkout_with_item.lines.first()
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_item.channel_id,
+        **{listing_filter_field: line.variant_id},
     ).delete()
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
