@@ -13,9 +13,10 @@ from prices import Money
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import Checkout
+from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.utils import (
     PRIVATE_META_APP_SHIPPING_ID,
+    add_variants_to_checkout,
     calculate_checkout_quantity,
     invalidate_checkout,
     recalculate_checkout_discount,
@@ -1933,3 +1934,42 @@ def test_checkout_lines_add_triggers_webhooks(
     assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
     tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+def test_checkout_lines_add_when_line_deleted(user_api_client, checkout_with_item):
+    # given
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+
+    db_variant_id = line.variant_id
+    variant_id = graphene.Node.to_global_id("ProductVariant", db_variant_id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"variantId": variant_id, "quantity": 2}],
+    }
+
+    def add_variants_to_checkout_wrapper(*args, **kwargs):
+        CheckoutLine.objects.filter(id=line.pk).delete()
+        return add_variants_to_checkout(*args, **kwargs)
+
+    # when
+    with mock.patch(
+        "saleor.graphql.checkout.mutations.checkout_lines_add.add_variants_to_checkout",
+        wraps=add_variants_to_checkout_wrapper,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+    newly_created_checkout_line = checkout.lines.filter(
+        variant_id=db_variant_id
+    ).first()
+    assert newly_created_checkout_line
+    assert newly_created_checkout_line.id != line.id
