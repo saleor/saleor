@@ -5524,6 +5524,8 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
 
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  
+  Added in Saleor 3.21.
   """
   productVariants(
     """Filtering options for product variant."""

@@ -256,7 +256,7 @@ COST_MAP = {
         "productType": {"complexity": 1},
         "thumbnail": {"complexity": 1},
         "variants": {"complexity": 1},
-        "productVariants": {"complexity": 100},
+        "productVariants": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ProductChannelListing": {
         "channel": {"complexity": 1},

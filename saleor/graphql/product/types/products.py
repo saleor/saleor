@@ -57,6 +57,7 @@ from ...core.connection import (
 )
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
@@ -960,7 +961,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         description=(
             "List of variants for the product. Requires the following permissions to "
             "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}." + ADDED_IN_321
         ),
     )
     media = NonNullList(
@@ -1446,24 +1447,13 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
     @staticmethod
     def resolve_product_variants(root: ChannelContext[models.Product], info, **kwargs):
         requestor = get_user_or_app_from_context(info.context)
-        has_required_permissions = has_one_of_permissions(
-            requestor, ALL_PRODUCTS_PERMISSIONS
-        )
-        channel = root.channel_slug
-        limited_channel_access = False if root.channel_slug is None else True
-        if channel is None and not has_required_permissions:
-            channel = str(
-                get_default_channel_slug_or_graphql_error(
-                    allow_replica=info.context.allow_replica
-                )
-            )
 
         def _resolve_product_variants(channel_obj):
             qs = resolve_product_variants(
                 info,
                 channel=channel_obj,
                 product_id=root.node.pk,
-                limited_channel_access=limited_channel_access,
+                limited_channel_access=True,
                 requestor=requestor,
             )
             kwargs["channel"] = qs.channel_slug
@@ -1474,13 +1464,11 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                 qs, info, kwargs, ProductVariantCountableConnection
             )
 
-        if channel:
-            return (
-                ChannelBySlugLoader(info.context)
-                .load(channel)
-                .then(_resolve_product_variants)
-            )
-        return _resolve_product_variants(None)
+        return (
+            ChannelBySlugLoader(info.context)
+            .load(root.channel_slug)
+            .then(_resolve_product_variants)
+        )
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Product], info):
