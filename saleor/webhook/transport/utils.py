@@ -103,6 +103,7 @@ def generate_cache_key_for_webhook(
     )
 
 
+# TODO (PE-568): change typing of data to `bytes` to avoid unnecessary encoding.
 def send_webhook_using_http(
     target_url,
     message,
@@ -265,6 +266,7 @@ def send_webhook_using_google_cloud_pubsub(
         return WebhookResponse(content=response, duration=response_duration)
 
 
+# TODO (PE-568): change typing of data to `bytes` to avoid unnecessary encoding.
 def send_webhook_using_scheme_method(
     target_url,
     domain,
