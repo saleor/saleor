@@ -16,7 +16,7 @@ from prices import Money
 from ..account.models import User
 from ..checkout.fetch import update_delivery_method_lists_for_checkout_info
 from ..core.db.connection import allow_writer
-from ..core.exceptions import ProductNotPublished
+from ..core.exceptions import NonExistingCheckoutLines, ProductNotPublished
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -117,14 +117,17 @@ def invalidate_checkout_prices(
     return updated_fields
 
 
+def checkout_lines_qs_select_for_update():
+    return CheckoutLine.objects.order_by("id").select_for_update(of=(["self"]))
+
+
 def checkout_lines_bulk_update(
     lines_to_update: list["CheckoutLine"], fields_to_update: list[str]
 ):
     """Bulk update on CheckoutLines with lock applied on them."""
     with transaction.atomic():
         _locked_lines = list(
-            CheckoutLine.objects.order_by("id")
-            .select_for_update()
+            checkout_lines_qs_select_for_update()
             .filter(id__in=[line.id for line in lines_to_update])
             .values_list("id", flat=True)
         )
@@ -135,8 +138,7 @@ def checkout_lines_bulk_delete(line_pks_to_delete: list[UUID]):
     """Delete CheckoutLines with lock applied on them."""
     with transaction.atomic():
         CheckoutLine.objects.filter(
-            id__in=CheckoutLine.objects.order_by("id")
-            .select_for_update()
+            id__in=checkout_lines_qs_select_for_update()
             .filter(pk__in=line_pks_to_delete)
             .values_list("id", flat=True)
         ).delete()
@@ -286,78 +288,92 @@ def add_variants_to_checkout(
     replace=False,
     replace_reservations=False,
     reservation_length: Optional[int] = None,
+    raise_error_for_missing_lines=False,
 ):
     """Add variants to checkout.
 
     If a variant is not placed in checkout, a new checkout line will be created.
     If quantity is set to 0, checkout line will be deleted.
     Otherwise, quantity will be added or replaced (if replace argument is True).
+    When `raise_error_for_missing_lines` is set to True, raise error when any line from
+    the input is not assigned to provided checkout.
     """
     country_code = checkout.get_country()
-
-    checkout_lines = checkout.lines.select_related("variant")
-    lines_by_id = {str(line.pk): line for line in checkout_lines}
-    variants_map = {str(variant.pk): variant for variant in variants}
-
-    new_variant_ids = set()
-    for line_data in checkout_lines_data:
-        if not line_data.line_id and line_data.variant_id:
-            new_variant_ids.add(line_data.variant_id)
-
-    new_variant_listing_map = {
-        listing.variant_id: listing
-        for listing in product_models.ProductVariantChannelListing.objects.filter(
-            channel_id=channel.id, variant_id__in=new_variant_ids
+    with transaction.atomic():
+        checkout_lines = list(
+            checkout_lines_qs_select_for_update()
+            .select_related("variant")
+            .filter(checkout_id=checkout.pk)
         )
-    }
+        lines_by_id = {str(line.pk): line for line in checkout_lines}
+        variants_map = {str(variant.pk): variant for variant in variants}
 
-    to_create: list[CheckoutLine] = []
-    to_update: list[CheckoutLine] = []
-    to_delete: list[CheckoutLine] = []
+        new_variant_ids = set()
+        non_existing_line_ids = set()
+        for line_data in checkout_lines_data:
+            if line_data.line_id and line_data.line_id not in lines_by_id:
+                non_existing_line_ids.add(line_data.line_id)
+                new_variant_ids.add(line_data.variant_id)
+            elif not line_data.line_id and line_data.variant_id:
+                new_variant_ids.add(line_data.variant_id)
 
-    for line_data in checkout_lines_data:
-        line = lines_by_id.get(line_data.line_id) if line_data.line_id else None
-        if line:
-            _append_line_to_update(to_update, to_delete, line_data, replace, line)
-            _append_line_to_delete(to_delete, line_data, line)
-        else:
-            variant = variants_map[line_data.variant_id]
-            _append_line_to_create(
-                to_create, checkout, variant, line_data, line, new_variant_listing_map
+        if raise_error_for_missing_lines and non_existing_line_ids:
+            raise NonExistingCheckoutLines(non_existing_line_ids)
+
+        new_variant_listing_map = {
+            listing.variant_id: listing
+            for listing in product_models.ProductVariantChannelListing.objects.filter(
+                channel_id=channel.id, variant_id__in=new_variant_ids
+            )
+        }
+
+        to_create: list[CheckoutLine] = []
+        to_update: list[CheckoutLine] = []
+        to_delete: list[CheckoutLine] = []
+
+        for line_data in checkout_lines_data:
+            line = lines_by_id.get(line_data.line_id) if line_data.line_id else None
+            if line:
+                _append_line_to_update(to_update, to_delete, line_data, replace, line)
+                _append_line_to_delete(to_delete, line_data, line)
+            else:
+                variant = variants_map[line_data.variant_id]
+                _append_line_to_create(
+                    to_create, checkout, variant, line_data, new_variant_listing_map
+                )
+
+        if to_delete:
+            checkout_lines_bulk_delete([line.pk for line in to_delete])
+
+        if to_update:
+            checkout_lines_bulk_update(
+                to_update, ["quantity", "price_override", "metadata"]
             )
 
-    if to_delete:
-        checkout_lines_bulk_delete([line.pk for line in to_delete])
+        if to_create:
+            CheckoutLine.objects.bulk_create(to_create)
 
-    if to_update:
-        checkout_lines_bulk_update(
-            to_update, ["quantity", "price_override", "metadata"]
-        )
+        to_reserve = to_create + to_update
 
-    if to_create:
-        CheckoutLine.objects.bulk_create(to_create)
+        if reservation_length and to_reserve:
+            updated_lines_ids = [line.pk for line in to_reserve + to_delete]
 
-    to_reserve = to_create + to_update
+            # Validation for stock reservation should be performed on new and updated lines.
+            # For already existing lines only reserved_until should be updated.
+            lines_to_update_reservation_time = []
+            for line in checkout_lines:
+                if line.pk not in updated_lines_ids:
+                    lines_to_update_reservation_time.append(line)
 
-    if reservation_length and to_reserve:
-        updated_lines_ids = [line.pk for line in to_reserve + to_delete]
-
-        # Validation for stock reservation should be performed on new and updated lines.
-        # For already existing lines only reserved_until should be updated.
-        lines_to_update_reservation_time = []
-        for line in checkout_lines:
-            if line.pk not in updated_lines_ids:
-                lines_to_update_reservation_time.append(line)
-
-        reserve_stocks_and_preorders(
-            to_reserve,
-            lines_to_update_reservation_time,
-            variants,
-            country_code,
-            channel,
-            reservation_length,
-            replace=replace_reservations,
-        )
+            reserve_stocks_and_preorders(
+                to_reserve,
+                lines_to_update_reservation_time,
+                variants,
+                country_code,
+                channel,
+                reservation_length,
+                replace=replace_reservations,
+            )
 
     return checkout
 
@@ -399,27 +415,25 @@ def _append_line_to_create(
     checkout,
     variant,
     line_data,
-    line,
     new_variant_listing_map: dict[int, "product_models.ProductVariantChannelListing"],
 ):
-    if line is None:
-        if line_data.quantity > 0:
-            variant_price_amount = variant.get_base_price(
-                new_variant_listing_map.get(variant.id), line_data.custom_price
-            ).amount
-            checkout_line = CheckoutLine(
-                checkout=checkout,
-                variant=variant,
-                quantity=line_data.quantity,
-                currency=checkout.currency,
-                price_override=line_data.custom_price,
-                undiscounted_unit_price_amount=variant_price_amount,
+    if line_data.quantity > 0:
+        variant_price_amount = variant.get_base_price(
+            new_variant_listing_map.get(variant.id), line_data.custom_price
+        ).amount
+        checkout_line = CheckoutLine(
+            checkout=checkout,
+            variant=variant,
+            quantity=line_data.quantity,
+            currency=checkout.currency,
+            price_override=line_data.custom_price,
+            undiscounted_unit_price_amount=variant_price_amount,
+        )
+        if line_data.metadata_list:
+            checkout_line.store_value_in_metadata(
+                {data.key: data.value for data in line_data.metadata_list}
             )
-            if line_data.metadata_list:
-                checkout_line.store_value_in_metadata(
-                    {data.key: data.value for data in line_data.metadata_list}
-                )
-            to_create.append(checkout_line)
+        to_create.append(checkout_line)
 
 
 def _check_new_checkout_address(checkout, address, address_type):
