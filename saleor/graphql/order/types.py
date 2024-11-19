@@ -788,9 +788,6 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     quantity_fulfilled = graphene.Int(
         required=True, description="Number of variant items fulfilled."
     )
-    unit_discount_reason = graphene.String(
-        description="Reason for any discounts applied on a product in the order."
-    )
     tax_rate = graphene.Float(
         required=True, description="Rate of tax applied on product variant."
     )
@@ -798,26 +795,54 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     thumbnail = ThumbnailField()
     unit_price = graphene.Field(
         TaxedMoney,
-        description="Price of the single item in the order line.",
+        description=(
+            "Price of the single item in the order line with all the line-level "
+            "discounts and order-level discount portions applied."
+        ),
         required=True,
     )
     undiscounted_unit_price = graphene.Field(
         TaxedMoney,
         description=(
-            "Price of the single item in the order line without applied an order line "
-            "discount."
+            "Price of the single item in the order line without any discount applied."
         ),
         required=True,
     )
     unit_discount = graphene.Field(
         Money,
-        description="The discount applied to the single order line.",
+        description=(
+            "Sum of the line-level discounts applied to the order line. "
+            "Order-level discounts which affect the line are not visible in this field."
+            " For order-level discount portion (if any), please query `order.discounts`"
+            " field."
+        ),
         required=True,
+    )
+    unit_discount_reason = graphene.String(
+        description=(
+            "Reason for line-level discounts applied on the order line. Order-level "
+            "discounts which affect the line are not visible in this field. For "
+            "order-level discount reason (if any), please query `order.discounts` "
+            "field."
+        )
     )
     unit_discount_value = graphene.Field(
         PositiveDecimal,
-        description="Value of the discount. Can store fixed value or percent value",
+        description=(
+            "Value of the discount. Can store fixed value or percent value. "
+            "This field shouldn't be used when multiple discounts affect the line. "
+            "There is known issue, that after running `checkoutComplete` mutation "
+            "the field always stores fixed value."
+        ),
         required=True,
+    )
+    unit_discount_type = graphene.Field(
+        DiscountValueTypeEnum,
+        description=(
+            "Type of the discount: `fixed` or `percent`. This field shouldn't be used "
+            "when multiple discounts affect the line. There is known issue, that after "
+            "running `checkoutComplete` mutation the field is always set to `fixed`."
+        ),
     )
     total_price = graphene.Field(
         TaxedMoney, description="Price of the order line.", required=True
@@ -863,10 +888,6 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     )
     quantity_to_fulfill = graphene.Int(
         required=True, description="A quantity of items remaining to be fulfilled."
-    )
-    unit_discount_type = graphene.Field(
-        DiscountValueTypeEnum,
-        description="Type of the discount: fixed or percent",
     )
     tax_class = PermissionsField(
         TaxClass,

@@ -11032,9 +11032,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Number of variant items fulfilled."""
   quantityFulfilled: Int!
 
-  """Reason for any discounts applied on a product in the order."""
-  unitDiscountReason: String
-
   """Rate of tax applied on product variant."""
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
@@ -11050,19 +11047,35 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
-  """Price of the single item in the order line."""
+  """
+  Price of the single item in the order line with all the line-level discounts and order-level discount portions applied.
+  """
   unitPrice: TaxedMoney!
 
   """
-  Price of the single item in the order line without applied an order line discount.
+  Price of the single item in the order line without any discount applied.
   """
   undiscountedUnitPrice: TaxedMoney!
 
-  """The discount applied to the single order line."""
+  """
+  Sum of the line-level discounts applied to the order line. Order-level discounts which affect the line are not visible in this field. For order-level discount portion (if any), please query `order.discounts` field.
+  """
   unitDiscount: Money!
 
-  """Value of the discount. Can store fixed value or percent value"""
+  """
+  Reason for line-level discounts applied on the order line. Order-level discounts which affect the line are not visible in this field. For order-level discount reason (if any), please query `order.discounts` field.
+  """
+  unitDiscountReason: String
+
+  """
+  Value of the discount. Can store fixed value or percent value. This field shouldn't be used when multiple discounts affect the line. There is known issue, that after running `checkoutComplete` mutation the field always stores fixed value.
+  """
   unitDiscountValue: PositiveDecimal!
+
+  """
+  Type of the discount: `fixed` or `percent`. This field shouldn't be used when multiple discounts affect the line. There is known issue, that after running `checkoutComplete` mutation the field is always set to `fixed`.
+  """
+  unitDiscountType: DiscountValueTypeEnum
 
   """Price of the order line."""
   totalPrice: TaxedMoney!
@@ -11098,9 +11111,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """A quantity of items remaining to be fulfilled."""
   quantityToFulfill: Int!
-
-  """Type of the discount: fixed or percent"""
-  unitDiscountType: DiscountValueTypeEnum
 
   """
   Denormalized tax class of the product in this order line.
