@@ -26,6 +26,7 @@ from .....payment.utils import (
     create_failed_transaction_event,
     get_already_existing_event,
     get_transaction_event_amount,
+    truncate_message,
 )
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
@@ -116,7 +117,12 @@ class TransactionEventReport(ModelMutation):
                 "payment provider page with event details."
             )
         )
-        message = graphene.String(description="The message related to the event.")
+        message = graphene.String(
+            description=(
+                "The message related to the event. The maximum length is 512 "
+                "characters; any text exceeding this limit will be truncated."
+            )
+        )
         available_actions = graphene.List(
             graphene.NonNull(TransactionActionEnum),
             description="List of all possible actions for the transaction",
@@ -326,6 +332,7 @@ class TransactionEventReport(ModelMutation):
                 psp_reference, transaction
             )
 
+        message = truncate_message(message) if message is not None else ""
         transaction_event_data = {
             "psp_reference": psp_reference,
             "type": type,
@@ -333,7 +340,7 @@ class TransactionEventReport(ModelMutation):
             "currency": transaction.currency,
             "created_at": time or timezone.now(),
             "external_url": external_url or "",
-            "message": message or "",
+            "message": message,
             "transaction": transaction,
             "app_identifier": app_identifier,
             "app": app,
