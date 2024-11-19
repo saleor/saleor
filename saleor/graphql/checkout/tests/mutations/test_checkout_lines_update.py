@@ -14,6 +14,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.utils import (
     add_variant_to_checkout,
+    add_variants_to_checkout,
     calculate_checkout_quantity,
     invalidate_checkout,
 )
@@ -1533,3 +1534,41 @@ def test_checkout_lines_update_triggers_webhooks(
         ]
     )
     assert wrapped_call_checkout_info_event.called
+
+
+def test_checkout_lines_update_when_line_deleted(user_api_client, checkout_with_item):
+    # given
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"lineId": line_id, "quantity": 1}],
+    }
+
+    def add_variants_to_checkout_wrapper(*args, **kwargs):
+        CheckoutLine.objects.filter(id=line.pk).delete()
+        return add_variants_to_checkout(*args, **kwargs)
+
+    # when
+    with mock.patch(
+        "saleor.graphql.checkout.mutations.checkout_lines_add.add_variants_to_checkout",
+        wraps=add_variants_to_checkout_wrapper,
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_UPDATE, variables
+        )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert data["errors"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "lineId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name
