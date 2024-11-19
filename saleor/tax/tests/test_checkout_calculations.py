@@ -11,6 +11,7 @@ from ...discount.utils.checkout import (
     create_checkout_discount_objects_for_order_promotions,
 )
 from ...plugins.manager import get_plugins_manager
+from ...product.models import ProductVariantChannelListing
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
 from ..calculations.checkout import (
@@ -799,6 +800,106 @@ def test_calculate_checkout_line_total_with_voucher_multiple_lines_last_line(
         net=quantize_price(expected_total_line_price / Decimal("1.23"), currency),
         gross=quantize_price(expected_total_line_price, currency),
     )
+
+
+def test_calculate_checkout_line_total_with_voucher_for_multiple_lines(
+    checkout, shipping_zone, address, voucher, product_list
+):
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+
+    rate = Decimal(23)
+    prices_entered_with_tax = True
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    currency = checkout.currency
+
+    # prepare the checkout with line prices and discount value that might
+    # result in rounding issues
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    variant_1 = product_list[0].variants.last()
+    variant_2 = product_list[1].variants.last()
+    variant_3 = product_list[2].variants.last()
+
+    variant_ids = [variant_1.id, variant_2.id, variant_3.id]
+    channel_listings = list(
+        ProductVariantChannelListing.objects.filter(
+            variant_id__in=variant_ids, channel_id=checkout.channel_id
+        )
+    )
+
+    line_prices = [7, 33, 25]
+    for listing in channel_listings:
+        price = line_prices[variant_ids.index(listing.variant_id)]
+        listing.price_amount = price
+        listing.discounted_price_amount = price
+
+    ProductVariantChannelListing.objects.bulk_update(
+        channel_listings, ["price_amount", "discounted_price_amount"]
+    )
+
+    qty = 1
+    add_variant_to_checkout(checkout_info, variant_1, qty)
+    add_variant_to_checkout(checkout_info, variant_2, qty)
+    add_variant_to_checkout(checkout_info, variant_3, qty)
+
+    method = shipping_zone.shipping_methods.get()
+    checkout.shipping_address = address
+    checkout.shipping_method_name = method.name
+    checkout.shipping_method = method
+    discount_amount = Decimal("3")
+    checkout.discount_amount = discount_amount
+    checkout.voucher_code = voucher.code
+    checkout.save()
+
+    line = checkout.lines.last()
+    variant = line.variant
+    product = variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=rate)
+
+    total_price = Money(sum(line_prices), currency)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    result_total_prices = []
+    for line_info in lines:
+        result_total_prices.append(
+            calculate_checkout_line_total(
+                checkout_info,
+                lines,
+                line_info,
+                rate,
+                prices_entered_with_tax,
+            )
+        )
+
+    # then
+    remaining_discount = discount_amount
+    assert (
+        sum(line_prices)
+        - sum([total_price.gross.amount for total_price in result_total_prices])
+        == discount_amount
+    )
+    for idx, line_total_price in enumerate(result_total_prices):
+        base_price = line_prices[idx]
+        line_base_total = Money(base_price, currency)
+        if idx < len(lines) - 1:
+            line_discount_amount = quantize_price(
+                discount_amount * line_base_total / total_price, currency
+            )
+            remaining_discount -= line_discount_amount
+        else:
+            line_discount_amount = remaining_discount
+
+        expected_total_line_price = line_base_total - Money(
+            line_discount_amount, currency
+        )
+        assert line_total_price == TaxedMoney(
+            net=quantize_price(expected_total_line_price / Decimal("1.23"), currency),
+            gross=quantize_price(expected_total_line_price, currency),
+        )
 
 
 def test_calculate_checkout_line_total_with_shipping_voucher(
