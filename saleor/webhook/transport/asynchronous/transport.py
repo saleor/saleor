@@ -575,7 +575,13 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
                 f"Event delivery id: %{event_delivery_id}r has no payload."
             )
         data = delivery.payload.get_payload()
-        with webhooks_opentracing_trace(delivery.event_type, domain, app=webhook.app):
+        # Covert payload to bytes if it's not already.
+        data = data if isinstance(data, bytes) else data.encode("utf-8")
+        # Count payload size in bytes.
+        payload_size = len(data)
+        with webhooks_opentracing_trace(
+            delivery.event_type, domain, payload_size, app=webhook.app
+        ):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
                 domain,
