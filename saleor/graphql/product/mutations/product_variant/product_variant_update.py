@@ -2,16 +2,13 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.forms.models import model_to_dict
 from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.models import ProductChannelListing
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....core import ResolveInfo
@@ -139,42 +136,41 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             instance.track_inventory = track_inventory
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        super().post_save_action(info, instance, cleaned_input)
-        channel_ids = ProductChannelListing.objects.filter(
-            product_id=instance.product_id
-        ).values_list("channel_id", flat=True)
-        cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+    def _save_variant_instance(cls, instance, changed_fields):
+        update_fields = ["updated_at"] + changed_fields
+        instance.save(update_fields=update_fields)
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, base_fields_changed):
-        new_variant = instance.pk is None
-        variant_modified = False
+    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields) -> bool:
+        refresh_product_search_index = False
         with traced_atomic_transaction():
-            if base_fields_changed:
-                instance.save()
-                variant_modified = True
+            if changed_fields:
+                cls._save_variant_instance(instance, changed_fields)
+                if "sku" in changed_fields or "name" in changed_fields:
+                    refresh_product_search_index = True
             if stocks := cleaned_input.get("stocks"):
                 cls.create_variant_stocks(instance, stocks)
-                variant_modified = True
             if attributes := cleaned_input.get("attributes"):
                 AttributeAssignmentMixin.save(instance, attributes)
-                variant_modified = True
+                refresh_product_search_index = True
 
-            if variant_modified:
-                product_update_fields = ["updated_at", "search_index_dirty"]
+            if refresh_product_search_index:
                 instance.product.search_index_dirty = True
-                if not instance.product.default_variant:
-                    instance.product.default_variant = instance
-                    product_update_fields.append("default_variant")
+                product_update_fields = ["updated_at", "search_index_dirty"]
+            else:
+                product_update_fields = []
+            if not instance.product.default_variant:
+                instance.product.default_variant = instance
+                product_update_fields.append("default_variant")
+            if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
+
+            if changed_fields or stocks or attributes:
                 manager = get_plugin_manager_promise(info.context).get()
-                event_to_call = (
-                    manager.product_variant_created
-                    if new_variant
-                    else manager.product_variant_updated
-                )
-                cls.call_event(event_to_call, instance)
+                cls.call_event(manager.product_variant_updated, instance)
+                return True
+
+            return False
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input):
@@ -207,25 +203,32 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        old_instance_data = model_to_dict(instance).copy()
-
+        old_instance_data = instance.serialize_for_comparison()
         cleaned_input = cls.clean_input(info, instance, input)
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
-        instance = cls.construct_instance(instance, cleaned_input)
 
+        instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
+        new_instance_data = instance.serialize_for_comparison()
 
-        base_fields_changed = old_instance_data != model_to_dict(instance)
-        cls._save(info, instance, cleaned_input, base_fields_changed)
+        changed_fields = cls.diff_instance_data_fields(
+            instance.comparison_fields,
+            old_instance_data,
+            new_instance_data,
+        )
+
+        variant_modified = cls._save(info, instance, cleaned_input, changed_fields)
         cls._save_m2m(info, instance, cleaned_input)
-        # add to cleaned_input popped metadata to allow running post save events
-        # that depends on the metadata inputs
-        if metadata_list:
-            cleaned_input["metadata"] = metadata_list
-        if private_metadata_list:
-            cleaned_input["private_metadata"] = private_metadata_list
 
-        cls.post_save_action(info, instance, cleaned_input)
+        if variant_modified:
+            # add to cleaned_input popped metadata to allow running post save events
+            # that depends on the metadata inputs
+            if metadata_list:
+                cleaned_input["metadata"] = metadata_list
+            if private_metadata_list:
+                cleaned_input["private_metadata"] = private_metadata_list
+            cls.post_save_action(info, instance, cleaned_input)
+
         return cls.success_response(instance)
