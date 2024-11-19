@@ -245,7 +245,10 @@ def propagate_order_discount_on_order_lines_prices(
                 share = (
                     line.base_unit_price_amount * line.quantity / base_subtotal.amount
                 )
-                discount = min(share * subtotal_discount, base_subtotal)
+                discount = quantize_price(
+                    min(share * subtotal_discount, base_subtotal),
+                    base_subtotal.currency,
+                )
                 yield (
                     line,
                     _get_total_price_with_subtotal_discount_for_order_line(
@@ -290,8 +293,7 @@ def apply_subtotal_discount_to_order_lines(
 
 
 def assign_order_line_prices(line: "OrderLine", total_price: Money):
-    currency = total_price.currency
-    line.total_price_net = quantize_price(total_price, currency)
+    line.total_price_net = total_price
     line.total_price_gross = line.total_price_net
     line.undiscounted_total_price_gross_amount = (
         line.undiscounted_total_price_net_amount

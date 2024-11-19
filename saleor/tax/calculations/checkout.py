@@ -102,14 +102,12 @@ def calculate_checkout_line_total(
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ) -> TaxedMoney:
-    base_total_price = base_calculations.calculate_base_line_total_price(
-        checkout_line_info,
-    )
-    total_price = base_calculations.apply_checkout_discount_on_checkout_line(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        base_total_price,
+    total_price = (
+        base_calculations.get_line_total_price_with_propagated_checkout_discount(
+            checkout_info,
+            lines,
+            checkout_line_info,
+        )
     )
     total_price = calculate_flat_rate_tax(
         total_price, tax_rate, prices_entered_with_tax

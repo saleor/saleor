@@ -448,15 +448,13 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
-        default_value = base_calculations.calculate_base_line_total_price(
-            checkout_line_info,
-        )
         # apply entire order discount or discount from order promotion
-        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            default_value,
+        default_value = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info,
+                lines,
+                checkout_line_info,
+            )
         )
         default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
@@ -525,15 +523,13 @@ class PluginsManager(PaymentInterface):
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
         quantity = checkout_line_info.line.quantity
-        default_value = base_calculations.calculate_base_line_unit_price(
-            checkout_line_info
-        )
         # apply entire order discount
-        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            default_value * quantity,
+        total_value = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info,
+                lines,
+                checkout_line_info,
+            )
         )
         default_taxed_value = TaxedMoney(
             net=total_value / quantity, gross=total_value / quantity
