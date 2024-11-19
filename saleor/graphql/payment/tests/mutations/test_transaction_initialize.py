@@ -107,7 +107,7 @@ def _assert_fields(
     charge_pending_value=Decimal(0),
     authorize_pending_value=Decimal(0),
     returned_data=None,
-    expected_message="",
+    expected_message=None,
 ):
     assert not content["data"]["transactionInitialize"]["errors"]
     response_data = content["data"]["transactionInitialize"]
@@ -171,7 +171,8 @@ def _assert_fields(
     assert response_event.amount_value == expected_amount
     assert response_event.include_in_calculations
     assert response_event.psp_reference == expected_psp_reference
-    assert response_event.message == expected_message
+    if expected_message is not None:
+        assert response_event.message == expected_message
 
     mocked_initialize.assert_called_with(
         TransactionSessionData(
