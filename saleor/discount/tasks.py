@@ -221,7 +221,7 @@ def decrease_voucher_code_usage_of_draft_orders(channel_id: int):
 
 
 @app.task
-def decrease_voucher_codes_usage_task(voucher_code_ids, codes):
+def decrease_voucher_codes_usage_task(voucher_code_ids, codes=None):
     # Batch of size 1000 takes ~1sec and consumes ~20mb at peak
     BATCH_SIZE = 1000
     ids = voucher_code_ids[:BATCH_SIZE]
@@ -232,9 +232,14 @@ def decrease_voucher_codes_usage_task(voucher_code_ids, codes):
     ):
         for voucher_code in voucher_codes:
             if voucher_code.voucher.usage_limit and voucher_code.used > 0:
-                used_in_draft_orders = len(
-                    list(filter(lambda x: voucher_code.code == x, codes))
-                )
+                # to ensure backward compatibility we must handle the case
+                # without `codes`
+                if not codes:
+                    used_in_draft_orders = 1
+                else:
+                    used_in_draft_orders = len(
+                        list(filter(lambda x: voucher_code.code == x, codes))
+                    )
                 total_used = voucher_code.used
                 voucher_code.used = max(total_used - used_in_draft_orders, 0)
             if voucher_code.voucher.single_use:
