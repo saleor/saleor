@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22
 - Add `customerNote` field to `Checkout` type to make it consistent with `Order` model - #16561 by @Air-t
 - Add `type` field to `TaxableObjectDiscount` type - #16630 by @zedzior
+- Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
 
 ### Webhooks
 
