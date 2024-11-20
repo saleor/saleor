@@ -980,7 +980,7 @@ def parse_transaction_action_data(
 
 
 def truncate_message(message: str):
-    return message[:509] + "..." if len(message) >= 512 else message
+    return message[:509] + "..." if len(message) > 512 else message
 
 
 def get_failed_transaction_event_type_for_request_event(
