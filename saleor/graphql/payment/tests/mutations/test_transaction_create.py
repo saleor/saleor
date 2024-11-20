@@ -2364,3 +2364,54 @@ def test_transaction_create_amount_with_lot_of_decimal_places(
     assert transaction.app == app_api_client.app
     assert transaction.user is None
     assert transaction.external_url == external_url
+
+
+def test_transaction_create_create_event_message_limit_exceeded(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    transaction_reference = "transaction reference"
+    transaction_msg = "m" * 513
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+        "transaction_event": {
+            "pspReference": transaction_reference,
+            "message": transaction_msg,
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    assert order_with_lines.events.count() == 1
+    event = order_with_lines.events.first()
+
+    assert event.type == OrderEvents.TRANSACTION_EVENT
+    assert event.parameters == {
+        "message": transaction_msg,
+        "reference": transaction_reference,
+    }
+
+    transaction = order_with_lines.payment_transactions.first()
+    event = transaction.events.last()
+    assert event.message == transaction_msg[:509] + "..."
+    assert event.psp_reference == transaction_reference
