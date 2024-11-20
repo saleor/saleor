@@ -740,6 +740,14 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
+    def diff_instance_data_fields(cls, fields, old_instance_data, new_instance_data):
+        diff_fields = []
+        for field in fields:
+            if old_instance_data.get(field) != new_instance_data.get(field):
+                diff_fields.append(field)
+        return diff_fields
+
+    @classmethod
     def get_type_for_model(cls):
         if not cls._meta.object_type:
             raise ImproperlyConfigured(
