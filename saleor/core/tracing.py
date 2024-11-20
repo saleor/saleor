@@ -23,7 +23,17 @@ def opentracing_trace(span_name, component_name, service_name):
 
 
 @contextmanager
-def webhooks_opentracing_trace(span_name, domain, sync=False, app=None):
+def webhooks_opentracing_trace(
+    span_name,
+    domain,
+    payload_size: int,
+    sync=False,
+    app=None,
+):
+    """Context manager for tracing webhooks.
+
+    :param payload_size: size of the payload in bytes
+    """
     with opentracing.global_tracer().start_active_span(
         f"webhooks.{span_name}"
     ) as scope:
@@ -35,4 +45,5 @@ def webhooks_opentracing_trace(span_name, domain, sync=False, app=None):
         span.set_tag("service.name", "webhooks")
         span.set_tag("webhooks.domain", domain)
         span.set_tag("webhooks.execution_mode", "sync" if sync else "async")
+        span.set_tag("webhooks.payload_size", payload_size)
         yield
