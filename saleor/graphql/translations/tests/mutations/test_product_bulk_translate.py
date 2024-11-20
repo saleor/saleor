@@ -35,7 +35,7 @@ description_pl = dummy_editorjs("description PL", True)
 description_de = dummy_editorjs("description DE", True)
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_product_bulk_translate_creates_translations(
     created_webhook_mock,
     staff_api_client,
@@ -79,10 +79,10 @@ def test_product_bulk_translate_creates_translations(
     assert data["results"][0]["translation"]["description"] == description_pl
     assert data["results"][1]["translation"]["name"] == "Product DE"
     assert data["results"][1]["translation"]["description"] == description_de
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_product_bulk_translate_updates_translations(
     updated_webhook_mock,
     staff_api_client,
@@ -130,10 +130,10 @@ def test_product_bulk_translate_updates_translations(
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "NewProduct PL"
     assert data["results"][1]["translation"]["name"] == "NewProduct DE"
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_product_bulk_translate_creates_translations_using_attr_external_ref(
     created_webhook_mock,
     staff_api_client,
@@ -177,10 +177,10 @@ def test_product_bulk_translate_creates_translations_using_attr_external_ref(
     assert data["results"][0]["translation"]["description"] == description_pl
     assert data["results"][1]["translation"]["name"] == "Product DE"
     assert data["results"][1]["translation"]["description"] == description_de
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_product_bulk_translate_updates_translations_using_attr_external_ref(
     updated_webhook_mock,
     staff_api_client,
@@ -231,7 +231,7 @@ def test_product_bulk_translate_updates_translations_using_attr_external_ref(
     assert data["results"][0]["translation"]["description"] == description_pl
     assert data["results"][1]["translation"]["name"] == "NewProduct DE"
     assert data["results"][1]["translation"]["description"] == description_de
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
 def test_product_bulk_translate_return_error_when_attr_id_and_external_ref(
