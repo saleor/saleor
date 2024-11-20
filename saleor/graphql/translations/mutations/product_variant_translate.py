@@ -51,8 +51,8 @@ class ProductVariantTranslate(BaseTranslateMutation):
         cls.call_event(manager.product_variant_updated, context.node)
 
         if created:
-            cls.call_event(manager.translation_created, translation)
+            cls.call_event(manager.translations_created, [translation])
         else:
-            cls.call_event(manager.translation_updated, translation)
+            cls.call_event(manager.translations_updated, [translation])
 
         return cls(**{cls._meta.return_field_name: context})
