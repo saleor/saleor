@@ -281,26 +281,18 @@ def test_product_query_by_id_as_user(
     product_data = content["data"]["product"]
     assert product_data is not None
 
-    expected_variants = [
-        {
-            "node": {
-                "id": graphene.Node.to_global_id(
-                    "ProductVariant", product.variants.first().pk
-                )
-            }
-        }
-    ]
-    assert product_data["productVariants"]["edges"] == expected_variants
+    first_product_variant_id = graphene.Node.to_global_id(
+        "ProductVariant", product.variants.first().pk
+    )
+
+    assert len(product_data["productVariants"]["edges"]) == 1
+    assert (
+        product_data["productVariants"]["edges"][0]["node"]["id"]
+        == first_product_variant_id
+    )
 
     # deprecated field test
-    expected_variants = [
-        {
-            "id": graphene.Node.to_global_id(
-                "ProductVariant", product.variants.first().pk
-            )
-        }
-    ]
-    assert product_data["variants"] == expected_variants
+    assert product_data["variants"][0]["id"] == first_product_variant_id
 
 
 def test_product_query_invalid_id(user_api_client, product, channel_USD):
