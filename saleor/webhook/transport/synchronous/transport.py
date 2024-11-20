@@ -97,6 +97,7 @@ def _send_webhook_request_sync(
     parts = urlparse(webhook.target_url)
     domain = get_domain()
     message = data.encode("utf-8")
+    payload_size = len(message)
     signature = signature_for_payload(message, webhook.secret_key)
 
     if parts.scheme.lower() not in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
@@ -115,7 +116,7 @@ def _send_webhook_request_sync(
 
     try:
         with webhooks_opentracing_trace(
-            delivery.event_type, domain, sync=True, app=webhook.app
+            delivery.event_type, domain, payload_size, sync=True, app=webhook.app
         ):
             response = send_webhook_using_http(
                 webhook.target_url,

@@ -175,6 +175,7 @@ class EventPayload(models.Model):
 
     objects = EventPayloadManager()
 
+    # TODO (PE-568): change typing of return payload to `bytes` to avoid unnecessary decoding.
     def get_payload(self):
         if self.payload_file:
             with self.payload_file.open("rb") as f:
