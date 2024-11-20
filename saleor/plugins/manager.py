@@ -2498,6 +2498,26 @@ class PluginsManager(PaymentInterface):
             webhooks=webhooks,
         )
 
+    def translations_created(self, translations: list["Translation"], webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "translations_created",
+            default_value,
+            translations,
+            channel_slug=None,
+            webhooks=webhooks,
+        )
+
+    def translations_updated(self, translations: list["Translation"], webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "translations_updated",
+            default_value,
+            translations,
+            channel_slug=None,
+            webhooks=webhooks,
+        )
+
     def get_all_plugins(self, active_only=False):
         if not self.loaded_all_channels:
             channels = Channel.objects.using(self.database).all()

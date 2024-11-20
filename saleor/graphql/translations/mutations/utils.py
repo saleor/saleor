@@ -479,21 +479,19 @@ class BaseBulkTranslateMutation(BaseMutation):
 
         if created_translations:
             webhooks = get_webhooks_for_event(WebhookEventAsyncType.TRANSLATION_CREATED)
-            for translation in created_translations:
-                cls.call_event(
-                    manager.translation_created,
-                    translation,
-                    webhooks=webhooks,
-                )
+            cls.call_event(
+                manager.translations_created,
+                created_translations,
+                webhooks=webhooks,
+            )
 
         if updated_translations:
             webhooks = get_webhooks_for_event(WebhookEventAsyncType.TRANSLATION_UPDATED)
-            for translation in updated_translations:
-                cls.call_event(
-                    manager.translation_updated,
-                    translation,
-                    webhooks=webhooks,
-                )
+            cls.call_event(
+                manager.translations_updated,
+                updated_translations,
+                webhooks=webhooks,
+            )
 
     @classmethod
     @traced_atomic_transaction()

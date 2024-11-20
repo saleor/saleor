@@ -2483,6 +2483,62 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
+    def translations_created(
+        self,
+        translations: list["Translation"],
+        previous_value: None,
+        webhooks=None,
+    ) -> None:
+        return self._handle_translations(
+            translations,
+            previous_value,
+            event_type=WebhookEventAsyncType.TRANSLATION_CREATED,
+            webhooks=webhooks,
+        )
+
+    def translations_updated(
+        self,
+        translations: list["Translation"],
+        previous_value: None,
+        webhooks=None,
+    ) -> None:
+        return self._handle_translations(
+            translations,
+            previous_value,
+            event_type=WebhookEventAsyncType.TRANSLATION_UPDATED,
+            webhooks=webhooks,
+        )
+
+    def _handle_translations(
+        self,
+        translations: list["Translation"],
+        previous_value: None,
+        event_type: str,
+        webhooks=None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+            webhook_payload_details = []
+            for translation in translations:
+                translation_data_generator = partial(
+                    generate_translation_payload, translation, self.requestor
+                )
+                webhook_payload_details.append(
+                    WebhookPayloadData(
+                        subscribable_object=translation,
+                        legacy_data_generator=translation_data_generator,
+                        data=None,
+                    )
+                )
+            trigger_webhooks_async_for_multiple_objects(
+                event_type,
+                webhooks,
+                webhook_payloads_data=webhook_payload_details,
+                requestor=self.requestor,
+            )
+        return previous_value
+
     def _trigger_warehouse_event(self, event_type, warehouse):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
