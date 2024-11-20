@@ -249,7 +249,7 @@ def send_webhook_request_async(self, event_delivery_id):
     webhook = delivery.webhook
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
-    delivery_status = EventDeliveryStatus.SUCCESS
+
     try:
         if not delivery.payload:
             raise ValueError(
@@ -266,10 +266,11 @@ def send_webhook_request_async(self, event_delivery_id):
                 webhook.custom_headers,
             )
 
-        attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
+            attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
             delivery_status = EventDeliveryStatus.FAILED
+            delivery_update(delivery, delivery_status)
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
                 "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
@@ -278,7 +279,9 @@ def send_webhook_request_async(self, event_delivery_id):
                 delivery.event_type,
                 delivery.id,
             )
-        delivery_update(delivery, delivery_status)
+            delivery.status = EventDeliveryStatus.SUCCESS
+            # update attempt without save to provide proper data in observability
+            attempt_update(attempt, response, with_save=False)
     except ValueError as e:
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)
