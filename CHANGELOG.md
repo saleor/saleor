@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Webhooks
 
 - Fixed webhookTrigger payload type for events related to ProductVariant - #16956 by @delemeator
+- Truncate lenghty responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
 
 ### Other changes
 
