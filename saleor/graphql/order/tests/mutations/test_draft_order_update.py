@@ -98,6 +98,7 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                     discounts {
                         amount {
                             amount
+                            currency
                         }
                         valueType
                         type
@@ -203,6 +204,7 @@ def test_draft_order_update_with_voucher_entire_order(
 ):
     # given
     order = draft_order
+    currency = order.currency
     assert not order.voucher
     assert not order.voucher_code
     assert not order.customer_note
@@ -247,6 +249,12 @@ def test_draft_order_update_with_voucher_entire_order(
         data["order"]["total"]["net"]["amount"]
         == order_total - voucher_listing.discount_value
     )
+    assert len(data["order"]["discounts"]) == 1
+    assert (
+        data["order"]["discounts"][0]["amount"]["amount"]
+        == voucher_listing.discount_value
+    )
+    assert data["order"]["discounts"][0]["amount"]["currency"] == currency
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -273,6 +281,7 @@ def test_draft_order_update_with_voucher_entire_order(
     assert order_discount.value_type == DiscountValueType.FIXED
     assert order_discount.value == voucher_listing.discount_value
     assert order_discount.amount_value == voucher_listing.discount_value
+    assert order_discount.currency == currency
 
 
 def test_draft_order_update_with_voucher_specific_product(
