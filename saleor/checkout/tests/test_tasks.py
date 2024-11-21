@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from ...order import OrderEvents
 from ...order.models import Order
+from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ..models import Checkout, CheckoutLine
 from ..tasks import (
     automatic_checkout_completion_task,
@@ -713,6 +714,60 @@ def test_automatic_checkout_completion_task_unavailable_variant(
     variant = line.variant
     product = line.variant.product
     product.channel_listings.update(is_published=False)
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout_pk, None, app.id)
+
+    # then
+    assert Checkout.objects.filter(pk=checkout_pk).exists()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == (
+        "The automatic checkout completion not triggered, as the checkout "
+        f"{checkout_id} contains unavailable variants: {variant_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_automatic_checkout_completion_task_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    # make the checkout line unavailable
+    line = checkout.lines.first()
+    variant = line.variant
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: variant.id},
+    ).delete()
 
     # allow catching the log in caplog
     parent_logger = task_logger.parent

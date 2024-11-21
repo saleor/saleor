@@ -6,7 +6,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
-from ....checkout.models import CheckoutLine
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.date_time import convert_to_utc_date_time
 from ....permission.enums import ProductPermissions
@@ -319,17 +318,6 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             product_channel_listing.delete()
 
     @classmethod
-    def perform_checkout_lines_delete(cls, variants, channel_id):
-        lines_id_and_checkout_id = list(
-            CheckoutLine.objects.filter(
-                variant__in=variants, checkout__channel__id__in=channel_id
-            ).values("id", "checkout__pk")
-        )
-        lines_ids = {line["id"] for line in lines_id_and_checkout_id}
-
-        CheckoutLine.objects.filter(id__in=lines_ids).delete()
-
-    @classmethod
     def remove_channels(cls, product: "ProductModel", remove_channels: list[dict]):
         ProductChannelListing.objects.filter(
             product=product, channel_id__in=remove_channels
@@ -337,8 +325,6 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         ProductVariantChannelListing.objects.filter(
             variant__product_id=product.pk, channel_id__in=remove_channels
         ).delete()
-        variant_ids = product.variants.all().values_list("id", flat=True)
-        cls.perform_checkout_lines_delete(variant_ids, remove_channels)
 
     @classmethod
     def save(cls, info: ResolveInfo, product: "ProductModel", cleaned_input: dict):

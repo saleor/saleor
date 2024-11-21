@@ -18,6 +18,7 @@ from .....checkout.utils import (
 from .....core.models import EventDelivery
 from .....plugins.base_plugin import ExcludedShippingMethod
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -145,6 +146,13 @@ def test_checkout_shipping_address_with_metadata_update(
     assert mocked_invalidate_checkout.call_count == 1
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
 @mock.patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_address_update."
     "update_checkout_shipping_method_if_invalid",
@@ -158,6 +166,8 @@ def test_checkout_shipping_address_with_metadata_update(
 def test_checkout_shipping_address_when_variant_without_listing(
     mocked_invalidate_checkout,
     mocked_update_shipping_method,
+    channel_listing_model,
+    listing_filter_field,
     user_api_client,
     checkout_with_item,
     graphql_address_data,
@@ -165,7 +175,10 @@ def test_checkout_shipping_address_when_variant_without_listing(
     # given
     checkout = checkout_with_item
     line = checkout.lines.first()
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
 
     assert checkout.shipping_address is None
     previous_last_change = checkout.last_change
