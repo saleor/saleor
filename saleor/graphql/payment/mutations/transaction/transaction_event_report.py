@@ -363,6 +363,12 @@ class TransactionEventReport(ModelMutation):
             # The mutation can be called multiple times by the app. That can cause a
             # thread race. We need to be sure, that we will always create a single event
             # on our side for specific action.
+            _transaction = (
+                payment_models.TransactionItem.objects.filter(pk=transaction.pk)
+                .select_for_update(of=("self",))
+                .first()
+            )
+
             existing_event = get_already_existing_event(transaction_event)
             if existing_event and existing_event.amount != transaction_event.amount:
                 error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
