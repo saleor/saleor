@@ -14290,16 +14290,6 @@ type Mutation {
   ): GiftCardSettingsUpdate @doc(category: "Gift cards")
 
   """
-  Re-enable sync webhooks for provided app. 
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  reenableSyncWebhooks(
-    """The app ID to re-enable sync webhooks for."""
-    appId: ID!
-  ): ReenableSyncWebhooks @doc(category: "Shop")
-
-  """
   Manage shipping method's availability in channels. 
   
   Requires one of the following permissions: MANAGE_SHIPPING.
@@ -18068,6 +18058,16 @@ type Mutation {
     id: ID!
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
+  """
+  Re-enable sync webhooks for provided app.Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  reenableSyncWebhooks(
+    """The app ID to re-enable sync webhooks for."""
+    appId: ID!
+  ): ReenableSyncWebhooks @doc(category: "Apps")
+
   """Create JWT token."""
   tokenCreate(
     """
@@ -19794,20 +19794,6 @@ input TimePeriodInputType {
 
   """The type of the period."""
   type: TimePeriodTypeEnum!
-}
-
-"""
-Re-enable sync webhooks for provided app. 
-
-Requires one of the following permissions: MANAGE_SETTINGS.
-"""
-type ReenableSyncWebhooks @doc(category: "Shop") {
-  """
-  Re-enable sync webhooks for the app if circuit breaker was tripped. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
-  """
-  app: App
-  shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [ShopError!]!
 }
 
 """
@@ -28400,6 +28386,18 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
+}
+
+"""
+Re-enable sync webhooks for provided app.Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
+
+Requires one of the following permissions: MANAGE_SETTINGS.
+"""
+type ReenableSyncWebhooks @doc(category: "Apps") {
+  """App for which sync webhooks were re-enabled."""
+  app: App
+  appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [AppError!]!
 }
 
 """Create JWT token."""

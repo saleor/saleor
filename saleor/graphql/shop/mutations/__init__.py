@@ -1,6 +1,5 @@
 from .gift_card_settings_update import GiftCardSettingsUpdate
 from .order_settings_update import OrderSettingsUpdate
-from .reenable_sync_webhooks import ReenableSyncWebhooks
 from .shop_address_update import ShopAddressUpdate
 from .shop_domain_update import ShopDomainUpdate
 from .shop_fetch_tax_rates import ShopFetchTaxRates
@@ -12,7 +11,6 @@ from .staff_notification_recipient_update import StaffNotificationRecipientUpdat
 __all__ = [
     "GiftCardSettingsUpdate",
     "OrderSettingsUpdate",
-    "ReenableSyncWebhooks",
     "ShopAddressUpdate",
     "ShopDomainUpdate",
     "ShopFetchTaxRates",

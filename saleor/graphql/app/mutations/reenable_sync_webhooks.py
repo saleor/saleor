@@ -2,13 +2,13 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from ....core.error_codes import ShopErrorCode
+from ....app.error_codes import AppErrorCode
 from ....graphql.app.types import App
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
-from ...core.doc_category import DOC_CATEGORY_SHOP
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
-from ...core.types import ShopError
+from ...core.types import AppError
 
 breaker_board = None
 if settings.ENABLE_BREAKER_BOARD:
@@ -22,11 +22,7 @@ if settings.ENABLE_BREAKER_BOARD:
 class ReenableSyncWebhooks(BaseMutation):
     app = graphene.Field(
         App,
-        description=(
-            "Re-enable sync webhooks for the app if circuit breaker was tripped. "
-            "Can be used to manually re-enable sync webhooks for the app before "
-            "the cooldown period ends."
-        ),
+        description="App for which sync webhooks were re-enabled. ",
     )
 
     class Arguments:
@@ -35,11 +31,15 @@ class ReenableSyncWebhooks(BaseMutation):
         )
 
     class Meta:
-        description = "Re-enable sync webhooks for provided app."
-        doc_category = DOC_CATEGORY_SHOP
+        description = (
+            "Re-enable sync webhooks for provided app."
+            "Can be used to manually re-enable sync webhooks for the app before "
+            "the cooldown period ends."
+        )
+        doc_category = DOC_CATEGORY_APPS
         permissions = (SitePermissions.MANAGE_SETTINGS,)
-        error_type_class = ShopError
-        error_type_field = "shop_errors"
+        error_type_class = AppError
+        error_type_field = "app_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -51,7 +51,7 @@ class ReenableSyncWebhooks(BaseMutation):
                     {
                         "app_id": ValidationError(
                             f"Cannot re-enable sync webhooks for the app {app.name}.",  # type: ignore[union-attr]
-                            code=ShopErrorCode.INVALID.value,
+                            code=AppErrorCode.INVALID.value,
                         )
                     }
                 )

@@ -12,7 +12,6 @@ from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
     OrderSettingsUpdate,
-    ReenableSyncWebhooks,
     ShopAddressUpdate,
     ShopDomainUpdate,
     ShopFetchTaxRates,
@@ -102,4 +101,3 @@ class ShopMutations(graphene.ObjectType):
         )
     )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
-    reenable_sync_webhooks = ReenableSyncWebhooks.Field()
