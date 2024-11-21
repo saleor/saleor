@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import call, patch
 
 import graphene
+import pytest
 from django.test import override_settings
 from django.utils import timezone
 from prices import Money
@@ -15,6 +16,7 @@ from .....core.models import EventDelivery
 from .....discount import RewardValueType
 from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -91,13 +93,28 @@ def test_checkout_remove_voucher_code(
     )
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
-def test_checkout_remove_voucher_code_when_variant_without_listing(
-    checkout_updated_webhook_mock, api_client, checkout_with_voucher
+def test_checkout_remove_voucher_code_when_line_without_listing(
+    checkout_updated_webhook_mock,
+    channel_listing_model,
+    listing_filter_field,
+    api_client,
+    checkout_with_voucher,
 ):
     # given
     line = checkout_with_voucher.lines.first()
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_voucher.channel_id,
+        **{listing_filter_field: line.variant_id},
+    ).delete()
 
     assert checkout_with_voucher.voucher_code is not None
     previous_checkout_last_change = checkout_with_voucher.last_change
