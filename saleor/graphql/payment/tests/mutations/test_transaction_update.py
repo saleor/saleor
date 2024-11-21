@@ -3302,3 +3302,44 @@ def test_transaction_update_amounts_with_lot_of_decimal_places(
     data = content["data"]["transactionUpdate"]["transaction"]
     assert str(data[response_field]["amount"]) == str(round(value, 2))
     assert getattr(transaction, db_field_name) == round(value, 2)
+
+
+def test_transaction_uodate_transaction_event_message_limit_exceeded(
+    transaction_item_created_by_app,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = transaction_item_created_by_app
+    transaction_reference = "transaction reference"
+    transaction_msg = "m" * 513
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction_event": {
+            "pspReference": transaction_reference,
+            "message": transaction_msg,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+    # then
+    event = order_with_lines.events.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]
+
+    assert not data["errors"]
+    assert event.type == OrderEvents.TRANSACTION_EVENT
+    assert event.parameters == {
+        "message": transaction_msg,
+        "reference": transaction_reference,
+    }
+
+    transaction = order_with_lines.payment_transactions.first()
+    event = transaction.events.last()
+    assert event.message == transaction_msg[:509] + "..."
+    assert event.psp_reference == transaction_reference

@@ -16973,7 +16973,9 @@ type Mutation {
     """The ID of the transaction. One of field id or token is required."""
     id: ID
 
-    """The message related to the event."""
+    """
+    The message related to the event. The maximum length is 512 characters; any text exceeding this limit will be truncated.
+    """
     message: String
 
     """PSP Reference of the event to report."""
