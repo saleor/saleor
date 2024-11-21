@@ -234,7 +234,7 @@ def decrease_voucher_codes_usage_task(voucher_code_ids, codes=None):
             if voucher_code.voucher.usage_limit and voucher_code.used > 0:
                 # to ensure backward compatibility we must handle the case
                 # without `codes`
-                if not codes:
+                if codes is None:
                     used_in_draft_orders = 1
                 else:
                     used_in_draft_orders = len(
