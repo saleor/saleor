@@ -397,6 +397,7 @@ def create_attempt(
 def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
+    with_save: bool = True,
 ):
     attempt.duration = webhook_response.duration
     attempt.response = webhook_response.content
@@ -404,16 +405,17 @@ def attempt_update(
     attempt.response_status_code = webhook_response.response_status_code
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
-    attempt.save(
-        update_fields=[
-            "duration",
-            "response",
-            "response_headers",
-            "response_status_code",
-            "request_headers",
-            "status",
-        ]
-    )
+    if with_save:
+        attempt.save(
+            update_fields=[
+                "duration",
+                "response",
+                "response_headers",
+                "response_status_code",
+                "request_headers",
+                "status",
+            ]
+        )
 
 
 def clear_successful_delivery(delivery: "EventDelivery"):
