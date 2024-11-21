@@ -29,7 +29,11 @@ from .....payment import TransactionEventType
 from .....payment.model_helpers import get_subtotal
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....plugins.manager import PluginsManager, get_plugins_manager
-from .....product.models import VariantChannelListingPromotionRule
+from .....product.models import (
+    ProductChannelListing,
+    ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
+)
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
@@ -1145,7 +1149,16 @@ def test_checkout_with_variant_without_price(
     assert errors[0]["variants"] == [variant_id]
 
 
-def test_checkout_with_variant_without_channel_listing(
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_with_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
     site_settings,
     user_api_client,
     checkout_with_item,
@@ -1167,7 +1180,11 @@ def test_checkout_with_variant_without_channel_listing(
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
-    checkout_line_variant.channel_listings.filter(channel=checkout.channel).delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: checkout_line.variant_id},
+    ).delete()
 
     variant_id = to_global_id_or_none(checkout_line_variant)
     redirect_url = "https://www.example.com"

@@ -12,6 +12,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
 from .....core.models import EventDelivery
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....shipping import models as shipping_models
 from .....shipping.utils import convert_to_shipping_method_data
 from .....warehouse import WarehouseClickAndCollectOption
@@ -135,6 +136,13 @@ def test_checkout_delivery_method_update(
 
 
 @pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+@pytest.mark.parametrize(
     ("delivery_method", "node_name", "attribute_name"),
     [
         ("warehouse", "Warehouse", "collection_point"),
@@ -142,16 +150,22 @@ def test_checkout_delivery_method_update(
     ],
     indirect=("delivery_method",),
 )
-def test_checkout_delivery_method_update_when_variant_without_channel_listing(
+def test_checkout_delivery_method_update_when_line_without_channel_listing(
     api_client,
     delivery_method,
     node_name,
     attribute_name,
+    channel_listing_model,
+    listing_filter_field,
     checkout_with_item_for_cc,
 ):
     # given
     line = checkout_with_item_for_cc.lines.first()
-    line.variant.channel_listings.all().delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_item_for_cc.channel_id,
+        **{listing_filter_field: line.variant_id},
+    ).delete()
 
     checkout = checkout_with_item_for_cc
 
