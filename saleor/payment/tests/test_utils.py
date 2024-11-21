@@ -1799,7 +1799,7 @@ def test_create_transaction_event_from_request_and_webhook_response_message_loo_
     # then
     transaction.refresh_from_db()
     assert len(transaction.available_actions) == 2
-    assert set(transaction.available_actions) == set(["charge", "cancel"])
+    assert set(transaction.available_actions) == {"charge", "cancel"}
     assert transaction.events.count() == 2
     request_event.refresh_from_db()
     assert request_event.psp_reference == expected_psp_reference
@@ -1807,7 +1807,7 @@ def test_create_transaction_event_from_request_and_webhook_response_message_loo_
     assert event
     assert event.psp_reference == expected_psp_reference
     assert event.amount_value == event_amount
-    assert event.created_at == datetime.fromisoformat(event_time)
+    assert event.created_at == datetime.datetime.fromisoformat(event_time)
     assert event.external_url == event_url
     assert event.message == event_message[:509] + "..."
     assert event.type == event_type
