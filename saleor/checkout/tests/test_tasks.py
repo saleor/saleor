@@ -8,9 +8,14 @@ import graphene
 import pytest
 from django.utils import timezone
 
-from ...order import OrderEvents
+from ...core.taxes import zero_money
+from ...order import OrderChargeStatus, OrderEvents
 from ...order.models import Order
+from ...plugins.manager import get_plugins_manager
+from .. import calculations
+from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout, CheckoutLine
+from ..payment_utils import update_checkout_payment_statuses
 from ..tasks import (
     automatic_checkout_completion_task,
     delete_expired_checkouts,
@@ -608,8 +613,20 @@ def test_automatic_checkout_completion_task_transaction_flow(
     parent_logger = task_logger.parent
     parent_logger.propagate = True
 
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
     transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
+        checkout_id=checkout.pk, charged_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
     )
 
     # when
@@ -620,6 +637,7 @@ def test_automatic_checkout_completion_task_transaction_flow(
     assert not Checkout.objects.filter(pk=checkout_pk).exists()
     order = Order.objects.filter(checkout_token=checkout_pk).first()
     assert order
+    assert order.charge_status == OrderChargeStatus.FULL
     assert order.events.filter(
         type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
     ).exists()
