@@ -593,8 +593,7 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
-            delivery_status = EventDeliveryStatus.FAILED
-            delivery_update(delivery, delivery_status)
+            delivery_update(delivery, EventDeliveryStatus.FAILED)
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
                 "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
