@@ -5,7 +5,12 @@ import pytest
 
 from ....core import EventDeliveryStatus
 from ...event_types import WebhookEventAsyncType
-from ..utils import send_webhook_using_aws_sqs
+from ..utils import (
+    WebhookResponse,
+    attempt_update,
+    create_attempt,
+    send_webhook_using_aws_sqs,
+)
 
 
 @pytest.fixture
@@ -116,3 +121,33 @@ def test_send_webhook_using_aws_sqs_with_fifo_queue(mocked_boto3_client):
     # then
     _, send_message_kwargs = mocked_boto3_client.send_message.call_args
     assert send_message_kwargs["MessageGroupId"] == domain
+
+
+@pytest.mark.parametrize(
+    ("content", "expected_attempt_response"),
+    [
+        ("", ""),
+        ("error", "error"),
+        ("errorerrorerrore", "errorerrorerrore"),
+        (100 * "error", "errorerrorerrore..."),
+    ],
+)
+def test_truncate_attempt_response(
+    content, expected_attempt_response, event_delivery, settings
+):
+    settings.EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT = 16
+
+    # given
+    attempt = create_attempt(event_delivery)
+    response = WebhookResponse(
+        content=content,
+        response_status_code=500,
+        status=EventDeliveryStatus.FAILED,
+    )
+
+    # when
+    attempt_update(attempt, response)
+
+    # then
+    attempt.refresh_from_db(fields=["response"])
+    assert attempt.response == expected_attempt_response

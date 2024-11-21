@@ -379,7 +379,11 @@ def attempt_update(
     webhook_response: "WebhookResponse",
 ):
     attempt.duration = webhook_response.duration
-    attempt.response = webhook_response.content
+    attempt.response = webhook_response.content[
+        : settings.EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT
+    ]
+    if attempt.response != webhook_response.content:
+        attempt.response += "..."
     attempt.response_headers = json.dumps(webhook_response.response_headers)
     attempt.response_status_code = webhook_response.response_status_code
     attempt.request_headers = json.dumps(webhook_response.request_headers)
