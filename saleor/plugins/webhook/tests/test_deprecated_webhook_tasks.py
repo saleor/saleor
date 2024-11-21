@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 from ....core.models import EventDeliveryAttempt
@@ -40,14 +41,24 @@ def test_send_webhook_request_async(
         event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
-    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
+    attempt = EventDeliveryAttempt.objects.get(delivery=event_delivery)
+    mocked_clear_delivery.assert_called_once_with(event_delivery)
 
-    assert attempt
     mocked_attempt_update.assert_called_once_with(
         attempt, webhook_response, with_save=False
     )
-    # Update attempt with the webhook response to make sure that overvability was called
-    # with up-to-date event
-    attempt_update(attempt, webhook_response, with_save=False)
-    mocked_observability.assert_called_once_with(attempt)
-    mocked_clear_delivery.assert_called_once_with(event_delivery)
+
+    mocked_observability.assert_called_once()
+    reported_attempt = mocked_observability.call_args.args[0]
+    assert reported_attempt.duration == webhook_response.duration
+    assert reported_attempt.response == webhook_response.content
+    assert reported_attempt.response_headers == json.dumps(
+        webhook_response.response_headers
+    )
+    assert (
+        reported_attempt.response_status_code == webhook_response.response_status_code
+    )
+    assert reported_attempt.request_headers == json.dumps(
+        webhook_response.request_headers
+    )
+    assert reported_attempt.status == webhook_response.status
