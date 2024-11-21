@@ -21,7 +21,7 @@ from .....payment import TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
-from .....payment.utils import create_manual_adjustment_events
+from .....payment.utils import create_manual_adjustment_events, truncate_message
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -277,7 +277,7 @@ class TransactionCreate(BaseMutation):
             app_identifier = app.identifier
         return transaction.events.create(
             psp_reference=transaction_event_input.get("psp_reference"),
-            message=transaction_event_input.get("message", ""),
+            message=truncate_message(transaction_event_input.get("message", "")),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
