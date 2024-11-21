@@ -9,6 +9,7 @@ from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 from .....core.prices import quantize_price
 from .....discount import DiscountType, DiscountValueType
 from .....order import OrderEvents, OrderStatus
+from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
 from ....discount.enums import DiscountValueTypeEnum
@@ -711,6 +712,14 @@ mutation OrderDiscountDelete($discountId: ID!){
       discounts {
         id
       }
+      total {
+        net {
+            amount
+        }
+        gross {
+            amount
+        }
+      }
     }
     errors{
       field
@@ -953,6 +962,59 @@ def test_delete_manual_discount_from_order_with_gift_promotion(
     assert gift_discount.value_type == DiscountValueType.FIXED
 
     assert order.total_net_amount == order.undiscounted_total_net_amount
+
+
+def test_delete_manual_discount_from_order_with_entire_order_voucher(
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher,
+    plugins_manager,
+    tax_configuration_flat_rates,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    currency = order.currency
+    manual_discount = draft_order_with_fixed_discount_order.discounts.get()
+    code = voucher.codes.first().code
+    order.voucher_code = code
+    order.voucher = voucher
+    order.save(update_fields=["voucher_code", "voucher"])
+    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    assert order.discounts.get() == manual_discount
+    voucher_discount_amount = voucher.channel_listings.get().discount
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "discountId": graphene.Node.to_global_id("OrderDiscount", manual_discount.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderDiscountDelete"]
+    assert not data["errors"]
+
+    with pytest.raises(manual_discount._meta.model.DoesNotExist):
+        manual_discount.refresh_from_db()
+
+    voucher_discount = order.discounts.get()
+    assert voucher_discount.type == DiscountType.VOUCHER
+    assert voucher_discount.amount == voucher_discount_amount
+    assert voucher_discount.reason == f"Voucher code: {code}"
+
+    assert (
+        order.undiscounted_total_net_amount
+        == order.total.net.amount + voucher_discount_amount.amount
+    )
+    assert order.total.net.amount == quantize_price(
+        Decimal(data["order"]["total"]["net"]["amount"]), currency
+    )
+    assert order.total.gross.amount == quantize_price(
+        Decimal(data["order"]["total"]["gross"]["amount"]), currency
+    )
 
 
 ORDER_LINE_DISCOUNT_UPDATE = """
@@ -1377,6 +1439,14 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
   orderLineDiscountRemove(orderLineId: $orderLineId){
     orderLine{
       id
+      totalPrice {
+        net {
+            amount
+        }
+        gross {
+            amount
+        }
+      }
     }
     errors{
       field
@@ -1624,14 +1694,13 @@ def test_delete_order_line_discount_order_is_not_draft(
 
 
 def test_delete_order_line_discount_line_with_catalogue_promotion(
-    order_with_lines,
+    order_with_lines_and_catalogue_promotion,
     staff_api_client,
     permission_group_manage_orders,
-    catalogue_promotion,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    order = order_with_lines
+    order = order_with_lines_and_catalogue_promotion
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
     line = order.lines.get(quantity=3)
@@ -1657,6 +1726,68 @@ def test_delete_order_line_discount_line_with_catalogue_promotion(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountRemove"]
     assert not data["errors"]
-    # Deleting manual discount should result in creating catalogue discount in this case
-    # https://github.com/saleor/saleor/issues/15517
-    # assert line.discounts.filter(type=DiscountType.PROMOTION).exists()
+    assert line.discounts.filter(type=DiscountType.PROMOTION).exists()
+
+
+def test_delete_order_line_discount_with_line_level_voucher(
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher_specific_product_type,
+    tax_configuration_flat_rates,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    voucher = voucher_specific_product_type
+    order = order_with_lines
+    currency = order.currency
+    line = order.lines.get(quantity=3)
+    voucher.products.add(line.variant.product)
+    order.status = OrderStatus.DRAFT
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+    order.save(update_fields=["status", "voucher", "voucher_code"])
+
+    assert voucher.discount_value_type == DiscountValueType.PERCENTAGE
+    line_undiscounted_total_price = line.undiscounted_total_price.net.amount
+    voucher_discount_value = voucher.channel_listings.get().discount_value
+    voucher_discount_amount = quantize_price(
+        line_undiscounted_total_price * voucher_discount_value / 100, currency
+    )
+
+    manual_reward_value = Decimal(1)
+    manual_line_discount = line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=manual_reward_value,
+        amount_value=manual_reward_value * line.quantity,
+        currency=order.currency,
+        reason="Manual line discount",
+    )
+
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountRemove"]
+    assert not data["errors"]
+
+    with pytest.raises(manual_line_discount._meta.model.DoesNotExist):
+        manual_line_discount.refresh_from_db()
+
+    voucher_discount = line.discounts.get()
+    assert voucher_discount.type == DiscountType.VOUCHER
+    assert voucher_discount.amount.amount == voucher_discount_amount
+    assert voucher_discount.reason == f"Voucher code: {code}"
+
+    order_line = data["orderLine"]
+    assert (
+        order_line["totalPrice"]["net"]["amount"]
+        == line_undiscounted_total_price - voucher_discount_amount
+    )

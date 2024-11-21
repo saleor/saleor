@@ -361,6 +361,7 @@ def create_or_update_discount_object_from_order_level_voucher(
         "value_type": voucher.discount_value_type,
         "value": voucher_channel_listing.discount_value,
         "amount_value": discount_amount.amount,
+        "currency": order.currency,
         "reason": discount_reason,
         "name": discount_name,
         "type": DiscountType.VOUCHER,
