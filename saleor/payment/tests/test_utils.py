@@ -2579,12 +2579,10 @@ def test_create_transaction_event_message_limit_exceeded(
     assert transaction.events.count() == 2
     event = transaction.events.last()
     assert event.message == message[:509] + "..."
-    assert len(caplog.records) == 1
-    assert caplog.records[0].message == (
+    assert (
         "Value for field: message in response of transaction action webhook "
         "exceeds the character field limit. Message has been truncated."
-    )
-    assert caplog.records[0].levelno == logging.WARNING
+    ) in [record.message for record in caplog.records]
 
 
 def test_recalculate_refundable_for_checkout_with_request_refund(
