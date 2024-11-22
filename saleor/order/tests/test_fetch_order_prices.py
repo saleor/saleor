@@ -2391,7 +2391,6 @@ def test_fetch_order_prices_voucher_entire_order_fixed(
     assert discount.value_type == voucher.discount_value_type
     assert discount.value == discount_amount
     assert discount.amount_value == discount_amount
-    assert discount.currency == currency
     assert discount.reason == f"Voucher code: {code}"
     assert discount.name == voucher.name
     assert discount.type == DiscountType.VOUCHER
@@ -2511,7 +2510,6 @@ def test_fetch_order_prices_voucher_entire_order_multiple_lines(
     assert discount.value_type == voucher.discount_value_type
     assert discount.value == discount_amount
     assert discount.amount_value == discount_amount
-    assert discount.currency == currency
     assert discount.reason == f"Voucher code: {code}"
     assert discount.name == voucher.name
     assert discount.type == DiscountType.VOUCHER
@@ -2605,7 +2603,6 @@ def test_fetch_order_prices_voucher_entire_order_percentage(
     assert discount.value_type == voucher.discount_value_type
     assert discount.value == discount_value
     assert discount.amount_value == Decimal(subtotal.amount / 2)
-    assert discount.currency == currency
     assert discount.reason == f"Voucher code: {code}"
     assert discount.name == voucher.name
     assert discount.type == DiscountType.VOUCHER

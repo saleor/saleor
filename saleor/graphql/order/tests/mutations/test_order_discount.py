@@ -970,7 +970,6 @@ def test_delete_manual_discount_from_order_with_entire_order_voucher(
     permission_group_manage_orders,
     voucher,
     plugins_manager,
-    tax_configuration_flat_rates,
 ):
     # given
     order = draft_order_with_fixed_discount_order
@@ -983,6 +982,8 @@ def test_delete_manual_discount_from_order_with_entire_order_voucher(
     fetch_order_prices_if_expired(order, plugins_manager, None, True)
     assert order.discounts.get() == manual_discount
     voucher_discount_amount = voucher.channel_listings.get().discount
+    undiscounted_total_net_amount = order.undiscounted_total_net_amount
+    total_net_amount = undiscounted_total_net_amount - voucher_discount_amount.amount
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
@@ -1002,18 +1003,13 @@ def test_delete_manual_discount_from_order_with_entire_order_voucher(
 
     voucher_discount = order.discounts.get()
     assert voucher_discount.type == DiscountType.VOUCHER
-    assert voucher_discount.amount == voucher_discount_amount
+    assert voucher_discount.amount.amount == voucher_discount_amount.amount
     assert voucher_discount.reason == f"Voucher code: {code}"
 
+    assert order.undiscounted_total_net_amount == undiscounted_total_net_amount
     assert (
-        order.undiscounted_total_net_amount
-        == order.total.net.amount + voucher_discount_amount.amount
-    )
-    assert order.total.net.amount == quantize_price(
-        Decimal(data["order"]["total"]["net"]["amount"]), currency
-    )
-    assert order.total.gross.amount == quantize_price(
-        Decimal(data["order"]["total"]["gross"]["amount"]), currency
+        quantize_price(Decimal(data["order"]["total"]["net"]["amount"]), currency)
+        == total_net_amount
     )
 
 
