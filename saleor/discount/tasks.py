@@ -217,11 +217,11 @@ def decrease_voucher_code_usage_of_draft_orders(channel_id: int):
     voucher_code_ids = VoucherCode.objects.filter(code__in=codes).values_list(
         "pk", flat=True
     )
-    decrease_voucher_codes_usage_task.delay(list(voucher_code_ids))
+    decrease_voucher_codes_usage_task.delay(list(voucher_code_ids), list(codes))
 
 
 @app.task
-def decrease_voucher_codes_usage_task(voucher_code_ids):
+def decrease_voucher_codes_usage_task(voucher_code_ids, codes=None):
     # Batch of size 1000 takes ~1sec and consumes ~20mb at peak
     BATCH_SIZE = 1000
     ids = voucher_code_ids[:BATCH_SIZE]
@@ -232,12 +232,21 @@ def decrease_voucher_codes_usage_task(voucher_code_ids):
     ):
         for voucher_code in voucher_codes:
             if voucher_code.voucher.usage_limit and voucher_code.used > 0:
-                voucher_code.used = F("used") - 1
+                # to ensure backward compatibility we must handle the case
+                # without `codes`
+                if codes is None:
+                    used_in_draft_orders = 1
+                else:
+                    used_in_draft_orders = len(
+                        list(filter(lambda x: voucher_code.code == x, codes))
+                    )
+                total_used = voucher_code.used
+                voucher_code.used = max(total_used - used_in_draft_orders, 0)
             if voucher_code.voucher.single_use:
                 voucher_code.is_active = True
         VoucherCode.objects.bulk_update(voucher_codes, ["used", "is_active"])
         if remaining_ids := list(set(voucher_code_ids) - set(ids)):
-            decrease_voucher_codes_usage_task.delay(remaining_ids)
+            decrease_voucher_codes_usage_task.delay(remaining_ids, codes)
 
 
 def disconnect_voucher_codes_from_draft_orders(channel_id: int):
