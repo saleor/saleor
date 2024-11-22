@@ -1,7 +1,6 @@
 from decimal import Decimal
 from unittest import mock
 
-import before_after
 import pytest
 from django.test import override_settings
 from prices import Money, TaxedMoney
@@ -14,6 +13,7 @@ from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
+from ...tests import race_condition
 from .. import calculations
 from ..complete_checkout import create_order_from_checkout
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
@@ -813,7 +813,7 @@ def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
         CheckoutLine.objects.get(id=checkout_with_item.lines.first().id).delete()
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
         delete_checkout_line,
     ):
@@ -848,7 +848,7 @@ def test_note_in_created_order_checkout_deleted_in_the_meantime(
         Checkout.objects.get(pk=checkout_with_item.pk).delete()
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
         delete_checkout,
     ):

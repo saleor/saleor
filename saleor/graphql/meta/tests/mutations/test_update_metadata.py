@@ -1,7 +1,6 @@
 import base64
 from unittest.mock import patch
 
-import before_after
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
@@ -10,6 +9,7 @@ from django.db import transaction
 from .....checkout.models import Checkout
 from .....core.error_codes import MetadataErrorCode
 from .....core.models import ModelWithMetadata
+from .....tests import race_condition
 from ....tests.utils import get_graphql_content
 from . import PUBLIC_KEY, PUBLIC_KEY2, PUBLIC_VALUE, PUBLIC_VALUE2
 
@@ -190,7 +190,7 @@ def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkou
             Checkout.objects.filter(pk=checkout.pk).delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.graphql.meta.mutations.update_metadata.save_instance",
         delete_checkout_object,
     ):

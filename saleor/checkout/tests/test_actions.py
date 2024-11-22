@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest.mock import call, patch
 
-import before_after
 import pytest
 from django.test import override_settings
 from django.utils import timezone
@@ -11,6 +10,7 @@ from freezegun import freeze_time
 from ...core.models import EventDelivery
 from ...core.utils.events import call_event_including_protected_events
 from ...plugins.manager import get_plugins_manager
+from ...tests import race_condition
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..actions import (
@@ -314,7 +314,7 @@ def test_transaction_amounts_automatic_checkout_complete_called_once(
         )
 
     with django_capture_on_commit_callbacks(execute=True):
-        with before_after.after(
+        with race_condition.RunAfter(
             "saleor.checkout.actions.update_last_transaction_modified_at_for_checkout",
             call_again,
         ):

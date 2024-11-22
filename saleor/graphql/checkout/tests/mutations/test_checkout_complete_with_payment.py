@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
-import before_after
 import graphene
 import pytest
 from django.conf import settings
@@ -30,6 +29,7 @@ from .....payment.interface import GatewayResponse
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
 from .....product.models import ProductChannelListing, ProductVariantChannelListing
+from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....core.utils import to_global_id_or_none
@@ -1953,7 +1953,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
         Promotion.objects.get(id=catalogue_promotion_without_rules.id).delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.checkout.complete_checkout.complete_checkout_with_payment",
         delete_promotion,
     ):
@@ -4817,7 +4817,7 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
         )
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment",
         call_payment_create_mutation,
     ):
@@ -4878,7 +4878,7 @@ def test_checkout_complete_payment_payment_deactivated_in_meantime(
         payment.save(update_fields=["is_active"])
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment",
         deactivate_payment,
     ):
@@ -4944,7 +4944,7 @@ def test_checkout_complete_line_deleted_in_the_meantime(
         CheckoutLine.objects.get(id=checkout.lines.first().id).delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.graphql.checkout.mutations.checkout_complete.complete_checkout",
         delete_order_line,
     ):

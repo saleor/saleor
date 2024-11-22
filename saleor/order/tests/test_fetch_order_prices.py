@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-import before_after
 import graphene
 import pytest
 
@@ -12,6 +11,7 @@ from ...discount.models import (
     OrderLineDiscount,
     PromotionRule,
 )
+from ...tests import race_condition
 from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
 
@@ -2335,7 +2335,7 @@ def test_fetch_order_prices_catalogue_discount_race_condition(
     def call_before_creating_catalogue_line_discount(*args, **kwargs):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.discount.utils.promotion."
         "prepare_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
