@@ -3229,3 +3229,83 @@ def test_transaction_event_report_message_limit_exceeded(
     assert event.app == app_api_client.app
     assert event.user is None
     assert event.message == message[:509] + "..."
+
+
+def test_transaction_event_report_empty_message(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = None
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [TransactionActionEnum.REFUND.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $time: DateTime
+        $externalUrl: String
+        $message: String
+        $availableActions: [TransactionActionEnum!]!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            time: $time
+            externalUrl: $externalUrl
+            message: $message
+            availableActions: $availableActions
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.created_at == event_time
+    assert event.external_url == external_url
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
+    assert event.user is None
+    assert event.message == ""

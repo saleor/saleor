@@ -288,9 +288,10 @@ class TransactionCreate(BaseMutation):
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
+        message = transaction_event_input.get("message") or ""
         return transaction.events.create(
             psp_reference=transaction_event_input.get("psp_reference"),
-            message=truncate_message(transaction_event_input.get("message", "")),
+            message=truncate_message(message),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,

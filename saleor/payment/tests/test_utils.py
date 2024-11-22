@@ -1795,6 +1795,57 @@ def test_create_transaction_event_from_request_and_webhook_response_message_loo_
     assert caplog.records[0].levelno == logging.WARNING
 
 
+def test_create_transaction_event_from_request_and_webhook_empty_message(
+    transaction_item_generator, app
+):
+    # given
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=Decimal(11.00),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_FAILURE
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": None,
+        "actions": ["CHARGE", "CHARGE", "CANCEL"],
+    }
+
+    # when
+    event = create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    transaction.refresh_from_db()
+    assert len(transaction.available_actions) == 2
+    assert set(transaction.available_actions) == set(["charge", "cancel"])
+    assert transaction.events.count() == 2
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == expected_psp_reference
+    assert request_event.include_in_calculations is True
+    assert event
+    assert event.psp_reference == expected_psp_reference
+    assert event.amount_value == event_amount
+    assert event.created_at == datetime.fromisoformat(event_time)
+    assert event.external_url == event_url
+    assert event.message == ""
+    assert event.type == event_type
+
+
 @pytest.mark.parametrize(
     ("db_field_name", "value", "event_type"),
     [
@@ -2585,6 +2636,39 @@ def test_create_transaction_event_message_limit_exceeded(
         "exceeds the character field limit. Message has been truncated."
     )
     assert caplog.records[0].levelno == logging.WARNING
+
+
+def test_create_transaction_event_empty_message(
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+    checkout,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["amount"] = expected_amount
+    response["message"] = None
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+
+    # when
+    create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then
+    transaction.refresh_from_db()
+    assert transaction.events.count() == 2
+    event = transaction.events.last()
+    assert event.message == ""
 
 
 def test_recalculate_refundable_for_checkout_with_request_refund(

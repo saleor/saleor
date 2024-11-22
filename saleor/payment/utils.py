@@ -880,8 +880,8 @@ def parse_transaction_event_data(
         logger.warning(missing_msg, "result")
         error_field_msg.append(missing_msg % "result")
 
-    message = event_data.get("message", "")
-    if len(message) > 512:
+    message = event_data.get("message") or ""
+    if message and len(message) > 512:
         message = truncate_message(message)
         field_limit_exceeded_msg = (
             "Value for field: %s in response of transaction action webhook "
