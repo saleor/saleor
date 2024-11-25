@@ -12,6 +12,8 @@ from ....core.models import EventDelivery, EventDeliveryAttempt
 from ...event_types import WebhookEventAsyncType
 from ..utils import (
     WebhookResponse,
+    attempt_update,
+    create_attempt,
     get_delivery_for_webhook,
     get_multiple_deliveries_for_webhooks,
     handle_webhook_retry,
@@ -265,3 +267,34 @@ def test_get_multiple_deliveries_for_webhooks_with_inactive(
 
     inactive_delivery.refresh_from_db()
     assert inactive_delivery.status == EventDeliveryStatus.FAILED
+
+
+@pytest.mark.parametrize(
+    ("content", "expected_attempt_response"),
+    [
+        ("", ""),
+        ("error", "error"),
+        ("errorerrorerrore", "errorerrorerrore"),
+        (100 * "error", "errorerrorerrore..."),
+        (None, None),
+    ],
+)
+def test_truncate_attempt_response(
+    content, expected_attempt_response, event_delivery, settings
+):
+    settings.EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT = 16
+
+    # given
+    attempt = create_attempt(event_delivery)
+    response = WebhookResponse(
+        content=content,
+        response_status_code=500,
+        status=EventDeliveryStatus.FAILED,
+    )
+
+    # when
+    attempt_update(attempt, response)
+
+    # then
+    attempt.refresh_from_db(fields=["response"])
+    assert attempt.response == expected_attempt_response
