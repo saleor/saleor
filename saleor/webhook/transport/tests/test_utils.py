@@ -130,6 +130,7 @@ def test_send_webhook_using_aws_sqs_with_fifo_queue(mocked_boto3_client):
         ("error", "error"),
         ("errorerrorerrore", "errorerrorerrore"),
         (100 * "error", "errorerrorerrore..."),
+        (None, None),
     ],
 )
 def test_truncate_attempt_response(
