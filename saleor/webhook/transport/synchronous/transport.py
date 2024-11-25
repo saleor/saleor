@@ -66,7 +66,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
             f"for transaction-request webhook."
         )
         return None
-    delivery = get_delivery_for_webhook(delivery_id)
+    delivery, _ = get_delivery_for_webhook(delivery_id)
     if not delivery:
         recalculate_refundable_for_checkout(request_event.transaction, request_event)
         logger.error(
