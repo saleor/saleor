@@ -52,8 +52,8 @@ class ShopSettingsTranslate(BaseMutation):
             )
 
         if created:
-            cls.call_event(manager.translation_created, translation)
+            cls.call_event(manager.translations_created, [translation])
         else:
-            cls.call_event(manager.translation_updated, translation)
+            cls.call_event(manager.translations_updated, [translation])
 
         return ShopSettingsTranslate(shop=Shop())

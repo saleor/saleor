@@ -48,8 +48,8 @@ class ProductTranslate(BaseTranslateMutationWithSlug):
             )
             product = ChannelContext(node=instance, channel_slug=None)
             if created:
-                cls.call_event(manager.translation_created, translation)
+                cls.call_event(manager.translations_created, [translation])
             else:
-                cls.call_event(manager.translation_updated, translation)
+                cls.call_event(manager.translations_updated, [translation])
 
         return cls(**{cls._meta.return_field_name: product})
