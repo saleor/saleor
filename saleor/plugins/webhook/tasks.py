@@ -13,6 +13,7 @@ from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.cache import cache
+from django.db import transaction
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
@@ -133,9 +134,11 @@ def create_deliveries_for_subscriptions(
                 webhook=webhook,
             )
         )
-
-    EventPayload.objects.bulk_create(event_payloads)
-    return EventDelivery.objects.bulk_create(event_deliveries)
+    # Use transaction to ensure EventPayload and EventDelivery are created together,
+    # preventing inconsistent DB state.
+    with transaction.atomic():
+        EventPayload.objects.bulk_create(event_payloads)
+        return EventDelivery.objects.bulk_create(event_deliveries)
 
 
 def create_delivery_for_subscription_sync_event(
@@ -186,13 +189,16 @@ def create_delivery_for_subscription_sync_event(
         # Return None so if subscription query returns no data Saleor will not crash but
         # log the issue and continue without creating a delivery.
         return None
-    event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
-    event_delivery = EventDelivery.objects.create(
-        status=EventDeliveryStatus.PENDING,
-        event_type=event_type,
-        payload=event_payload,
-        webhook=webhook,
-    )
+    # Use transaction to ensure EventPayload and EventDelivery are created together,
+    # preventing inconsistent DB state.
+    with transaction.atomic():
+        event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
+        event_delivery = EventDelivery.objects.create(
+            status=EventDeliveryStatus.PENDING,
+            event_type=event_type,
+            payload=event_payload,
+            webhook=webhook,
+        )
     return event_delivery
 
 
@@ -227,14 +233,17 @@ def trigger_webhooks_async(
         elif data is None:
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
-        payload = EventPayload.objects.create(payload=data)
-        deliveries.extend(
-            create_event_delivery_list_for_webhooks(
-                webhooks=regular_webhooks,
-                event_payload=payload,
-                event_type=event_type,
+        # Use transaction to ensure EventPayload and EventDelivery are created together,
+        # preventing inconsistent DB state.
+        with transaction.atomic():
+            payload = EventPayload.objects.create(payload=data)
+            deliveries.extend(
+                create_event_delivery_list_for_webhooks(
+                    webhooks=regular_webhooks,
+                    event_payload=payload,
+                    event_type=event_type,
+                )
             )
-        )
     if subscription_webhooks:
         deliveries.extend(
             create_deliveries_for_subscriptions(
@@ -324,13 +333,16 @@ def trigger_webhook_sync(
         if not delivery:
             return None
     else:
-        event_payload = EventPayload.objects.create(payload=payload)
-        delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        # Use transaction to ensure EventPayload and EventDelivery are created together,
+        # preventing inconsistent DB state.
+        with transaction.atomic():
+            event_payload = EventPayload.objects.create(payload=payload)
+            delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
 
     kwargs = {}
     if timeout:
@@ -381,14 +393,23 @@ def trigger_all_webhooks_sync(
             if not delivery:
                 return None
         else:
-            if event_payload is None:
-                event_payload = EventPayload.objects.create(payload=generate_payload())
-            delivery = EventDelivery.objects.create(
+            delivery = EventDelivery(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,
                 payload=event_payload,
                 webhook=webhook,
             )
+            if event_payload is None:
+                # Use transaction to ensure EventPayload and EventDelivery are created
+                # together, preventing inconsistent DB state.
+                with transaction.atomic():
+                    event_payload = EventPayload.objects.create(
+                        payload=generate_payload()
+                    )
+                    delivery.payload = event_payload
+                    delivery.save()
+            else:
+                delivery.save()
 
         response_data = send_webhook_request_sync(delivery)
         if parsed_response := parse_response(response_data):
@@ -903,13 +924,16 @@ def trigger_transaction_request(
         payload = generate_transaction_action_request_payload(
             transaction_data, requestor
         )
-        event_payload = EventPayload.objects.create(payload=payload)
-        delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        # Use transaction to ensure EventPayload and EventDelivery are created together,
+        # preventing inconsistent DB state.
+        with transaction.atomic():
+            event_payload = EventPayload.objects.create(payload=payload)
+            delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
 
     call_event(
         handle_transaction_request_task.delay,
