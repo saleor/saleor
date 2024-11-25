@@ -71,6 +71,7 @@ class InMemoryStorage(Storage):
 class RedisStorage(Storage):
     WARNING_MESSAGE = "An error occurred when interacting with Redis"
     KEY_PREFIX = "bbrs"  # as in "breaker board redis storage"
+    EVENT_KEYS = ["error", "total"]
 
     def __init__(self, client: Optional[Redis] = None):
         super().__init__()
@@ -134,9 +135,9 @@ class RedisStorage(Storage):
 
     def clear_state_for_app(self, app_id: int):
         try:
-            keys = self._client.keys(f"{self.KEY_PREFIX}-{app_id}*")
-            if keys:
-                self._client.delete(*keys)
+            keys = [f"{self.KEY_PREFIX}-{app_id}-{name}" for name in self.EVENT_KEYS]
+            keys.append(f"{self.KEY_PREFIX}-{app_id}")
+            self._client.delete(*keys)
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
             error = 1

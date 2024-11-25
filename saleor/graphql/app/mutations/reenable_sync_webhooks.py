@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
 from ....graphql.app.types import App
-from ....permission.enums import SitePermissions
+from ....permission.enums import AppPermission
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
@@ -37,13 +37,15 @@ class ReenableSyncWebhooks(BaseMutation):
             "the cooldown period ends."
         )
         doc_category = DOC_CATEGORY_APPS
-        permissions = (SitePermissions.MANAGE_SETTINGS,)
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        app = cls.get_node_or_error(info, data.get("app_id"), only_type="App")
+        app = cls.get_node_or_error(
+            info, data.get("app_id"), only_type="App", field="appId"
+        )
         if breaker_board:
             error = breaker_board.storage.clear_state_for_app(app.id)  # type: ignore[union-attr]
             if error:

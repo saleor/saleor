@@ -39,3 +39,27 @@ def test_register_event_returning_count(storage):
         datetime.datetime.fromtimestamp(NOW + TTL_SECONDS, tz=datetime.UTC)
     ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2
+
+
+def test_clear_state_for_app(storage):
+    # given
+    storage.update_open(APP_ID, 100)
+    assert storage._last_open == {APP_ID: 100}
+
+    # when
+    storage.clear_state_for_app(APP_ID)
+
+    # then
+    assert storage._last_open == {}
+
+
+def test_clear_state_for_app_missing_id(storage):
+    # given
+    storage.update_open(APP_ID, 100)
+    assert storage._last_open == {APP_ID: 100}
+
+    # when
+    storage.clear_state_for_app(9999)
+
+    # then
+    assert storage._last_open == {APP_ID: 100}
