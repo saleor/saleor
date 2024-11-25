@@ -276,6 +276,7 @@ def test_get_multiple_deliveries_for_webhooks_with_inactive(
         ("error", "error"),
         ("errorerrorerrore", "errorerrorerrore"),
         (100 * "error", "errorerrorerrore..."),
+        (None, None),
     ],
 )
 def test_truncate_attempt_response(
