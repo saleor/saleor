@@ -599,10 +599,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
-            manager.customer_created(customer=instance)
+            cls.call_event(manager.customer_created, instance)
             account_events.customer_account_created_event(user=instance)
         else:
-            manager.customer_updated(instance)
+            cls.call_event(manager.customer_updated, instance)
 
         if cleaned_input.get("redirect_url"):
             channel_slug = cleaned_input.get("channel")
