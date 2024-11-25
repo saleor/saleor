@@ -2,9 +2,8 @@ from decimal import Decimal
 
 import pytest
 
-from saleor.core.prices import quantize_price
-from saleor.discount import DiscountType, DiscountValueType
-
+from .....core.prices import quantize_price
+from .....discount import DiscountType, DiscountValueType
 from ... import DEFAULT_ADDRESS
 from ...product.utils.preparing_product import prepare_product
 from ...shop.utils.preparing_shop import prepare_shop
@@ -53,7 +52,7 @@ def prepare_voucher(
 
 
 @pytest.mark.e2e
-def test_manual_order_discount_and_voucher(
+def test_manual_order_discount_with_entire_order_voucher_CORE_0940(
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
@@ -206,7 +205,7 @@ def test_manual_order_discount_and_voucher(
     assert order_data["voucher"]["codes"]["edges"][0]["node"]["code"] == voucher_code
     assert order_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 1
 
-    # Step 3 - Add manual order discount
+    # Step 3 - dd manual order discountA
     # Manual discount should override voucher
     manual_discount_amount = Decimal(20)
     manual_discount_reason = "Staff discount"
