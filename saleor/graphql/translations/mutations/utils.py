@@ -155,9 +155,9 @@ class BaseTranslateMutation(ModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         if created:
-            cls.call_event(manager.translation_created, translation)
+            cls.call_event(manager.translations_created, [translation])
         else:
-            cls.call_event(manager.translation_updated, translation)
+            cls.call_event(manager.translations_updated, [translation])
 
         return cls(**{cls._meta.return_field_name: instance})
 

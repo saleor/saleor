@@ -2437,52 +2437,6 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
-    def translation_created(
-        self,
-        translation: "Translation",
-        previous_value: None,
-        webhooks=None,
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.TRANSLATION_CREATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            translation_data_generator = partial(
-                generate_translation_payload, translation, self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
-                event_type,
-                webhooks,
-                translation,
-                self.requestor,
-                legacy_data_generator=translation_data_generator,
-            )
-        return previous_value
-
-    def translation_updated(
-        self,
-        translation: "Translation",
-        previous_value: None,
-        webhooks=None,
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            translation_data_generator = partial(
-                generate_translation_payload, translation, self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
-                event_type,
-                webhooks,
-                translation,
-                self.requestor,
-                legacy_data_generator=translation_data_generator,
-            )
-        return previous_value
-
     def translations_created(
         self,
         translations: list["Translation"],
