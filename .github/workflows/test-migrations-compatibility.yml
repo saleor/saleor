@@ -38,7 +38,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          pip install poetry==1.7.0
+          pip install poetry==1.8.4
 
       - name: Restore venv from cache
         id: cached-poetry-dependencies-restore
