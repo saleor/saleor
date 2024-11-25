@@ -880,15 +880,7 @@ def parse_transaction_event_data(
         logger.warning(missing_msg, "result")
         error_field_msg.append(missing_msg % "result")
 
-    message = event_data.get("message") or ""
-    if message and len(message) > 512:
-        message = truncate_message(message)
-        field_limit_exceeded_msg = (
-            "Value for field: %s in response of transaction action webhook "
-            "exceeds the character field limit. Message has been truncated."
-        )
-        logger.warning(field_limit_exceeded_msg, "message")
-    parsed_event_data["message"] = message
+    parsed_event_data["message"] = _clean_message(event_data, invalid_msg)
 
     amount_data = event_data.get("amount")
     parse_transaction_event_amount(
@@ -920,6 +912,26 @@ def parse_transaction_event_data(
         parsed_event_data["time"] = timezone.now()
 
     parsed_event_data["external_url"] = event_data.get("externalUrl", "")
+
+
+def _clean_message(event_data, invalid_err_msg):
+    message = event_data.get("message") or ""
+    try:
+        message = str(message)
+    except UnicodeEncodeError:
+        logger.warning(invalid_err_msg, "message", message)
+        message = ""
+
+    field_length_limit = TransactionEvent._meta.get_field("message").max_length
+    if message and len(message) > field_length_limit:
+        message = truncate_transaction_event_message(message)
+        field_limit_exceeded_msg = (
+            "Value for field: %s in response of transaction action webhook "
+            "exceeds the character field limit. Message has been truncated."
+        )
+        logger.warning(field_limit_exceeded_msg, "message")
+
+    return message
 
 
 error_msg = str
@@ -964,7 +976,7 @@ def parse_transaction_action_data(
         # error field msg can contain details of the value returned by payment app
         # which means that we need to confirm that we don't exceed the field limit.
         msg = "\n".join(error_field_msg)
-        msg = truncate_message(msg)
+        msg = truncate_transaction_event_message(msg)
         return None, msg
 
     request_event_type = parsed_event_data.get("type", request_type)
@@ -985,8 +997,13 @@ def parse_transaction_action_data(
     )
 
 
-def truncate_message(message: str):
-    return message[:509] + "..." if len(message) > 512 else message
+def truncate_transaction_event_message(message: str):
+    field_length_limit = TransactionEvent._meta.get_field("message").max_length
+    return (
+        message[: field_length_limit - 3] + "..."
+        if len(message) > field_length_limit
+        else message
+    )
 
 
 def get_failed_transaction_event_type_for_request_event(

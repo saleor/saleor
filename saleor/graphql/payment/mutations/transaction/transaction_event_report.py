@@ -26,7 +26,7 @@ from .....payment.utils import (
     create_failed_transaction_event,
     get_already_existing_event,
     get_transaction_event_amount,
-    truncate_message,
+    truncate_transaction_event_message,
 )
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
@@ -332,7 +332,9 @@ class TransactionEventReport(ModelMutation):
                 psp_reference, transaction
             )
 
-        message = truncate_message(message) if message is not None else ""
+        message = (
+            truncate_transaction_event_message(message) if message is not None else ""
+        )
         transaction_event_data = {
             "psp_reference": psp_reference,
             "type": type,
