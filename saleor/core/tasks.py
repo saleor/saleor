@@ -41,7 +41,7 @@ def delete_event_payloads_task(expiration_date=None):
     payloads_to_delete = EventPayload.objects.filter(
         ~Exists(valid_deliveries.filter(payload_id=OuterRef("id")))
     ).order_by("-pk")
-    ids = payloads_to_delete.values_list("pk", flat=True)[:BATCH_SIZE]
+    ids = list(payloads_to_delete.values_list("pk", flat=True)[:BATCH_SIZE])
     qs = EventPayload.objects.filter(pk__in=ids)
     if ids:
         if expiration_date > timezone.now():
