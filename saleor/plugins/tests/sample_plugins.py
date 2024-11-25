@@ -258,6 +258,12 @@ class PluginSample(BasePlugin):
     def product_variant_stock_updated(self, stock, previous_value: Any):
         return None
 
+    def translation_created(self, translation, previous_value: Any):
+        return None
+
+    def translation_updated(self, translation, previous_value: Any):
+        return None
+
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",

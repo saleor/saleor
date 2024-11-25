@@ -669,6 +669,54 @@ def test_manager_with_fallback_to_previous_method_name(
     )
 
 
+@patch.object(PluginSample, "translation_created")
+@patch.object(WebhookPlugin, "translations_created")
+def test_manager_with_fallback_to_translation_created(
+    mocked_translations_created, mocked_translation_created, product_with_translations
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+    translation = product_with_translations.translations.first()
+
+    # when
+    PluginsManager(plugins=plugins).translations_created([translation])
+
+    # then
+    mocked_translations_created.assert_called_once_with(
+        [translation], previous_value=None, webhooks=None
+    )
+    mocked_translation_created.assert_called_once_with(
+        translation, previous_value=None, webhooks=None
+    )
+
+
+@patch.object(PluginSample, "translation_updated")
+@patch.object(WebhookPlugin, "translations_updated")
+def test_manager_with_fallback_to_translation_updatedd(
+    mocked_translations_updated, mocked_translation_updated, product_with_translations
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.webhook.plugin.WebhookPlugin",
+    ]
+    translation = product_with_translations.translations.first()
+
+    # when
+    PluginsManager(plugins=plugins).translations_updated([translation])
+
+    # then
+    mocked_translations_updated.assert_called_once_with(
+        [translation], previous_value=None, webhooks=None
+    )
+    mocked_translation_updated.assert_called_once_with(
+        translation, previous_value=None, webhooks=None
+    )
+
+
 def test_manager_get_plugin_configuration(plugin_configuration):
     plugins = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
