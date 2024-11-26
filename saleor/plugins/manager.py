@@ -2478,22 +2478,22 @@ class PluginsManager(PaymentInterface):
         )
         return response
 
-    def translation_created(self, translation: "Translation", webhooks=None):
+    def translations_created(self, translations: list["Translation"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_created",
+            "translations_created",
             default_value,
-            translation,
+            translations,
             channel_slug=None,
             webhooks=webhooks,
         )
 
-    def translation_updated(self, translation: "Translation", webhooks=None):
+    def translations_updated(self, translations: list["Translation"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_updated",
+            "translations_updated",
             default_value,
-            translation,
+            translations,
             channel_slug=None,
             webhooks=webhooks,
         )

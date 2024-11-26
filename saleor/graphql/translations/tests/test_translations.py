@@ -1,10 +1,8 @@
 import json
-from functools import partial
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-from django.utils.functional import SimpleLazyObject
 
 from ....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -15,6 +13,7 @@ from ....discount.error_codes import DiscountErrorCode
 from ....permission.models import Permission
 from ....tests.utils import dummy_editorjs
 from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.transport.asynchronous.transport import WebhookPayloadData
 from ...core.enums import LanguageCodeEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
 from ..schema import TranslatableKinds
@@ -846,9 +845,9 @@ PRODUCT_TRANSLATE_MUTATION = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -871,17 +870,15 @@ def test_product_create_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
     translation = product.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1000,9 +997,9 @@ def test_product_create_translation_by_invalid_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1027,17 +1024,15 @@ def test_product_update_translation(
     assert data["product"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1066,9 +1061,9 @@ mutation productVariantTranslate(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_variant_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1092,17 +1087,15 @@ def test_product_variant_create_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation = variant.translations.first()
-    mocked_webhook_trigger.assert_called_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1126,9 +1119,9 @@ def test_product_variant_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_product_variant_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1153,14 +1146,15 @@ def test_product_variant_update_translation(
     assert data["productVariant"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1215,9 +1209,9 @@ mutation collectionTranslate($collectionId: ID!, $input: TranslationInput!) {
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_collection_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1240,17 +1234,15 @@ def test_collection_create_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
     translation = published_collection.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1310,9 +1302,9 @@ def test_collection_create_translation_for_description_name_as_null(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_collection_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1339,17 +1331,15 @@ def test_collection_update_translation(
     assert data["collection"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1392,9 +1382,9 @@ mutation categoryTranslate($categoryId: ID!, $input: TranslationInput!) {
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_category_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1417,17 +1407,15 @@ def test_category_create_translation(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
     translation = category.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1487,9 +1475,9 @@ def test_category_create_translation_for_description_name_as_null(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_category_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1514,17 +1502,15 @@ def test_category_update_translation(
     assert data["category"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1547,9 +1533,9 @@ VOUCHER_TRANSLATE_MUTATION = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_voucher_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1572,17 +1558,15 @@ def test_voucher_create_translation(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
     translation = voucher.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1605,9 +1589,9 @@ def test_voucher_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_voucher_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1631,17 +1615,15 @@ def test_voucher_update_translation(
     assert data["voucher"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1668,9 +1650,9 @@ SALE_TRANSLATION_MUTATION = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_sale_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1700,17 +1682,15 @@ def test_sale_create_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
     translation = sale.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1740,9 +1720,9 @@ def test_sale_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_sale_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1774,17 +1754,15 @@ def test_sale_update_translation(
     assert data["sale"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1836,9 +1814,9 @@ mutation pageTranslate($pageId: ID!, $input: PageTranslationInput!) {
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_page_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1861,17 +1839,15 @@ def test_page_create_translation(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
     translation = page.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1928,9 +1904,9 @@ def test_page_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_page_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -1954,17 +1930,15 @@ def test_page_update_translation(
     assert data["page"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -1989,9 +1963,9 @@ ATTRIBUTE_TRANSLATE_MUTATION = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2014,17 +1988,15 @@ def test_attribute_create_translation(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
     translation = color_attribute.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2047,9 +2019,9 @@ def test_attribute_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2074,17 +2046,15 @@ def test_attribute_update_translation(
     assert data["attribute"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2114,9 +2084,9 @@ ATTRIBUTE_VALUE_TRANSLATE_MUTATION = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_value_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2141,17 +2111,15 @@ def test_attribute_value_create_translation(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
     translation = pink_attribute_value.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2241,9 +2209,9 @@ def test_attribute_value_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_attribute_value_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2272,17 +2240,15 @@ def test_attribute_value_update_translation(
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2705,9 +2671,9 @@ SHIPPING_PRICE_TRANSLATE = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shipping_method_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2737,17 +2703,15 @@ def test_shipping_method_create_translation(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
     translation = shipping_method.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2777,9 +2741,9 @@ def test_shipping_method_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shipping_method_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2823,17 +2787,15 @@ def test_shipping_method_update_translation(
     assert data["shippingMethod"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2857,9 +2819,9 @@ MENU_ITEM_TRANSLATE = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_menu_item_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2886,17 +2848,15 @@ def test_menu_item_update_translation(
     assert data["menuItem"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2917,9 +2877,9 @@ def test_menu_item_create_translation_by_translatable_content_id(
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shop_create_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -2955,17 +2915,15 @@ def test_shop_create_translation(
     assert data["shop"]["translation"]["language"]["code"] == "PL"
 
     translation = site_settings.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
@@ -2991,9 +2949,9 @@ SHOP_SETTINGS_TRANSLATE_MUTATION = """
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_shop_update_translation(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -3019,17 +2977,15 @@ def test_shop_update_translation(
     assert data["shop"]["translation"]["language"]["code"] == "PL"
 
     translation.refresh_from_db()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_UPDATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
-    )
-    assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 

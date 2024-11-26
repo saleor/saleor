@@ -2437,49 +2437,59 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
-    def translation_created(
+    def translations_created(
         self,
-        translation: "Translation",
+        translations: list["Translation"],
         previous_value: None,
         webhooks=None,
     ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.TRANSLATION_CREATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            translation_data_generator = partial(
-                generate_translation_payload, translation, self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
-                event_type,
-                webhooks,
-                translation,
-                self.requestor,
-                legacy_data_generator=translation_data_generator,
-            )
-        return previous_value
+        return self._handle_translations(
+            translations,
+            previous_value,
+            event_type=WebhookEventAsyncType.TRANSLATION_CREATED,
+            webhooks=webhooks,
+        )
 
-    def translation_updated(
+    def translations_updated(
         self,
-        translation: "Translation",
+        translations: list["Translation"],
         previous_value: None,
+        webhooks=None,
+    ) -> None:
+        return self._handle_translations(
+            translations,
+            previous_value,
+            event_type=WebhookEventAsyncType.TRANSLATION_UPDATED,
+            webhooks=webhooks,
+        )
+
+    def _handle_translations(
+        self,
+        translations: list["Translation"],
+        previous_value: None,
+        event_type: str,
         webhooks=None,
     ) -> None:
         if not self.active:
             return previous_value
-        event_type = WebhookEventAsyncType.TRANSLATION_UPDATED
         if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            translation_data_generator = partial(
-                generate_translation_payload, translation, self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
+            webhook_payload_details = []
+            for translation in translations:
+                translation_data_generator = partial(
+                    generate_translation_payload, translation, self.requestor
+                )
+                webhook_payload_details.append(
+                    WebhookPayloadData(
+                        subscribable_object=translation,
+                        legacy_data_generator=translation_data_generator,
+                        data=None,
+                    )
+                )
+            trigger_webhooks_async_for_multiple_objects(
                 event_type,
                 webhooks,
-                translation,
-                self.requestor,
-                legacy_data_generator=translation_data_generator,
+                webhook_payloads_data=webhook_payload_details,
+                requestor=self.requestor,
             )
         return previous_value
 

@@ -34,7 +34,7 @@ ATTRIBUTE_VALUE_BULK_TRANSLATE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_attribute_value_bulk_translate_creates_translations(
     created_webhook_mock,
     staff_api_client,
@@ -91,10 +91,10 @@ def test_attribute_value_bulk_translate_creates_translations(
     assert data["results"][1]["translation"]["name"] == "Rot"
     assert data["results"][1]["translation"]["plainText"] == expected_text
     assert data["results"][1]["translation"]["richText"] == expected_rich_text
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_attribute_value_bulk_translate_creates_name_from_translations_long_text(
     created_webhook_mock,
     staff_api_client,
@@ -137,7 +137,7 @@ def test_attribute_value_bulk_translate_creates_name_from_translations_long_text
     assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_attribute_value_bulk_translate_updates_translations(
     updated_webhook_mock,
     staff_api_client,
@@ -193,10 +193,10 @@ def test_attribute_value_bulk_translate_updates_translations(
     assert data["results"][1]["translation"]["name"] == "Rot"
     assert data["results"][1]["translation"]["plainText"] == expected_text
     assert data["results"][1]["translation"]["richText"] == expected_rich_text
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_attribute_value_bulk_translate_creates_translations_using_value_external_ref(
     created_webhook_mock,
     staff_api_client,
@@ -254,10 +254,10 @@ def test_attribute_value_bulk_translate_creates_translations_using_value_externa
     assert data["results"][1]["translation"]["name"] == "Rot"
     assert data["results"][1]["translation"]["plainText"] == expected_text
     assert data["results"][1]["translation"]["richText"] == expected_rich_text
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_attribute_value_bulk_translate_updates_translations_using_value_external_ref(
     updated_webhook_mock,
     staff_api_client,
@@ -315,7 +315,7 @@ def test_attribute_value_bulk_translate_updates_translations_using_value_externa
     assert data["results"][1]["translation"]["name"] == "Rot"
     assert data["results"][1]["translation"]["plainText"] == expected_text
     assert data["results"][1]["translation"]["richText"] == expected_rich_text
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
 def test_attribute_value_bulk_translate_return_error_when_value_id_and_external_ref(
