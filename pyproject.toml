@@ -12,6 +12,7 @@ readme = "README.md"
 homepage = "https://saleor.io/"
 repository = "https://github.com/saleor/saleor"
 documentation = "https://docs.saleor.io/"
+package-mode = false
 
   [tool.poetry.dependencies]
   python = "~3.12"
