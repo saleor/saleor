@@ -72,6 +72,9 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+TRANSACTION_EVENT_MSG_MAX_LENGTH: int = TransactionEvent._meta.get_field(  # type: ignore
+    "message"
+).max_length
 
 
 def _recalculate_last_refund_success_for_transaction(
@@ -880,7 +883,7 @@ def parse_transaction_event_data(
         logger.warning(missing_msg, "result")
         error_field_msg.append(missing_msg % "result")
 
-    parsed_event_data["message"] = _clean_message(event_data, invalid_msg)
+    parsed_event_data["message"] = _clean_message(event_data)
 
     amount_data = event_data.get("amount")
     parse_transaction_event_amount(
@@ -914,16 +917,18 @@ def parse_transaction_event_data(
     parsed_event_data["external_url"] = event_data.get("externalUrl", "")
 
 
-def _clean_message(event_data, invalid_err_msg):
+def _clean_message(event_data):
     message = event_data.get("message") or ""
     try:
         message = str(message)
-    except UnicodeEncodeError:
-        logger.warning(invalid_err_msg, "message", message)
+    except (UnicodeEncodeError, TypeError, ValueError):
+        invalid_err_msg = (
+            "Incorrect value for field: %s in response of transaction action webhook."
+        )
+        logger.warning(invalid_err_msg, "message")
         message = ""
 
-    field_length_limit = TransactionEvent._meta.get_field("message").max_length
-    if message and len(message) > field_length_limit:
+    if message and len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH:
         message = truncate_transaction_event_message(message)
         field_limit_exceeded_msg = (
             "Value for field: %s in response of transaction action webhook "
@@ -998,10 +1003,9 @@ def parse_transaction_action_data(
 
 
 def truncate_transaction_event_message(message: str):
-    field_length_limit = TransactionEvent._meta.get_field("message").max_length
     return (
-        message[: field_length_limit - 3] + "..."
-        if len(message) > field_length_limit
+        message[: TRANSACTION_EVENT_MSG_MAX_LENGTH - 3] + "..."
+        if len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH
         else message
     )
 
