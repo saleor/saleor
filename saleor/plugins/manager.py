@@ -2506,25 +2506,55 @@ class PluginsManager(PaymentInterface):
         )
         return response
 
-    def translation_created(self, translation: "Translation", webhooks=None):
+    def translations_created(self, translations: list["Translation"], webhooks=None):
         default_value = None
-        return self.__run_method_on_plugins(
-            "translation_created",
+        self.__run_method_on_plugins(
+            "translations_created",
             default_value,
-            translation,
+            translations,
             channel_slug=None,
             webhooks=webhooks,
+        )
+        self.__translation_previous_method_name_fallback(
+            translations, "translation_created", webhooks=webhooks
         )
 
-    def translation_updated(self, translation: "Translation", webhooks=None):
+    def translations_updated(self, translations: list["Translation"], webhooks=None):
         default_value = None
-        return self.__run_method_on_plugins(
-            "translation_updated",
+        self.__run_method_on_plugins(
+            "translations_updated",
             default_value,
-            translation,
+            translations,
             channel_slug=None,
             webhooks=webhooks,
         )
+        self.__translation_previous_method_name_fallback(
+            translations, "translation_updated", webhooks=webhooks
+        )
+
+    def __translation_previous_method_name_fallback(
+        self, translations: list["Translation"], method_name, webhooks=None
+    ):
+        plugin_ids_with_previous_event = []
+        plugins = self.get_plugins(
+            active_only=True,
+        )
+        for plugin in plugins:
+            plugin_method = getattr(plugin, method_name, NotImplemented)
+            if plugin_method == NotImplemented:
+                continue
+            plugin_ids_with_previous_event.append(plugin.PLUGIN_ID)
+
+        if plugin_ids_with_previous_event:
+            for translation in translations:
+                self.__run_method_on_plugins(
+                    method_name,
+                    None,
+                    translation,
+                    webhooks=webhooks,
+                    channel_slug=None,
+                    plugin_ids=plugin_ids_with_previous_event,
+                )
 
     def get_all_plugins(self, active_only=False):
         if not self.loaded_all_channels:

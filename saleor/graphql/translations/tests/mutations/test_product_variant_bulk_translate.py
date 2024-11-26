@@ -30,7 +30,7 @@ PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_product_variant_variant_bulk_translate_creates_translations(
     created_webhook_mock,
     staff_api_client,
@@ -72,10 +72,10 @@ def test_product_variant_variant_bulk_translate_creates_translations(
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "Product PL"
     assert data["results"][1]["translation"]["name"] == "Product DE"
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_product_variant_bulk_translate_updates_translations(
     updated_webhook_mock,
     staff_api_client,
@@ -123,10 +123,10 @@ def test_product_variant_bulk_translate_updates_translations(
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "NewVariant PL"
     assert data["results"][1]["translation"]["name"] == "NewVariant DE"
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_product_variant_bulk_translate_creates_translations_using_attr_external_ref(
     created_webhook_mock,
     staff_api_client,
@@ -172,10 +172,10 @@ def test_product_variant_bulk_translate_creates_translations_using_attr_external
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "Variant PL"
     assert data["results"][1]["translation"]["name"] == "Variant DE"
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_product_variant_bulk_translate_updates_translations_using_attr_external_ref(
     updated_webhook_mock,
     staff_api_client,
@@ -222,7 +222,7 @@ def test_product_variant_bulk_translate_updates_translations_using_attr_external
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "NewVariant PL"
     assert data["results"][1]["translation"]["name"] == "NewVariant DE"
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
 def test_product_variant_bulk_translate_return_error_when_attr_id_and_external_ref(

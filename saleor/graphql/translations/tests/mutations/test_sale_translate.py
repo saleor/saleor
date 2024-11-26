@@ -1,11 +1,11 @@
 from unittest.mock import ANY, patch
 
 import graphene
-from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.transport.asynchronous.transport import WebhookPayloadData
 from ....tests.utils import get_graphql_content
 
 SALE_TRANSLATE_MUTATION = """
@@ -41,9 +41,9 @@ SALE_TRANSLATE_MUTATION = """
 
 @freeze_time("2023-06-01 10:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
 def test_sale_translate(
-    mocked_webhook_trigger,
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     staff_api_client,
@@ -87,14 +87,15 @@ def test_sale_translate(
     assert type == "SaleTranslation"
 
     translation = promotion.translations.first()
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.TRANSLATION_CREATED,
         [any_webhook],
-        translation,
-        SimpleLazyObject(lambda: staff_api_client.user),
-        legacy_data_generator=ANY,
-        allow_replica=False,
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=translation, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=staff_api_client.user,
     )
 
 
