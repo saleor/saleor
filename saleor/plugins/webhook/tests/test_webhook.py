@@ -2087,9 +2087,11 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
     assert event_delivery.status == EventDeliveryStatus.FAILED
 
 
-@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
-@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
-@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.retry")
+@mock.patch("saleor.webhook.observability.utils.report_event_delivery_attempt")
+@mock.patch("saleor.webhook.transport.asynchronous.transport.clear_successful_delivery")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.retry"
+)
 def test_send_webhook_request_async_when_event_delivery_is_missing(
     mocked_retry, mocked_clear_delivery, mocked_observability
 ):
@@ -2104,8 +2106,8 @@ def test_send_webhook_request_async_when_event_delivery_is_missing(
         pass
 
     # then
-    mocked_clear_delivery.not_called()
-    mocked_observability.not_called()
+    mocked_clear_delivery.assert_not_called()
+    mocked_observability.assert_not_called()
     mocked_retry.assert_called_once()
 
 
