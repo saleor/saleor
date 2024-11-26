@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 import boto3
 import graphene
 import pytest
-from celery.exceptions import MaxRetriesExceededError
+from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
@@ -2041,6 +2041,29 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
     assert event_delivery.status == EventDeliveryStatus.FAILED
 
 
+@mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
+@mock.patch("saleor.plugins.webhook.tasks.clear_successful_delivery")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_async.retry")
+def test_send_webhook_request_async_when_event_delivery_is_missing(
+    mocked_retry, mocked_clear_delivery, mocked_observability
+):
+    # given
+    event_delivery_id = 123
+    mocked_retry.side_effect = Retry()
+
+    # when
+    try:
+        send_webhook_request_async(event_delivery_id)
+    except Retry:
+        pass
+
+    # then
+    mocked_clear_delivery.not_called()
+    mocked_observability.not_called()
+    mocked_retry.assert_called_once()
+
+
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
 def test_transaction_charge_requested(
