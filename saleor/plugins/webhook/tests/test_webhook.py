@@ -10,7 +10,6 @@ import boto3
 import graphene
 import pytest
 from celery.exceptions import MaxRetriesExceededError
-from celery.exceptions import Retry
 from celery.exceptions import Retry as CeleryTaskRetryError
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
@@ -1992,12 +1991,12 @@ def test_send_webhook_request_async_when_event_delivery_is_missing(
 ):
     # given
     event_delivery_id = 123
-    mocked_retry.side_effect = Retry()
+    mocked_retry.side_effect = CeleryTaskRetryError()
 
     # when
     try:
         send_webhook_request_async(event_delivery_id)
-    except Retry:
+    except CeleryTaskRetryError:
         pass
 
     # then
