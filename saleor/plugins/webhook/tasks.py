@@ -662,8 +662,10 @@ def handle_webhook_retry(
     retry_kwargs={"max_retries": 5},
 )
 def send_webhook_request_async(self, event_delivery_id):
-    delivery = get_delivery_for_webhook(event_delivery_id)
+    delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
+        if not_found:
+            raise self.retry(countdown=1)
         return None
 
     webhook = delivery.webhook
@@ -957,7 +959,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id):
         )
         return None
 
-    delivery = get_delivery_for_webhook(delivery_id)
+    delivery, _ = get_delivery_for_webhook(delivery_id)
     if not delivery:
         recalculate_refundable_for_checkout(request_event.transaction, request_event)
         logger.error(
