@@ -1140,6 +1140,11 @@ def _create_event_from_response(
         related_granted_refund_id=related_granted_refund_id,
     )
     with transaction.atomic():
+        _transaction = (
+            TransactionItem.objects.filter(pk=transaction_id)
+            .select_for_update(of=("self",))
+            .first()
+        )
         event, error_msg = deduplicate_event(event, app)
         if error_msg:
             return None, error_msg
