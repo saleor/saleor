@@ -2702,7 +2702,13 @@ def test_create_transaction_event_message_limit_exceeded(
     assert caplog.records[0].levelno == logging.WARNING
 
 
-def test_create_transaction_event_empty_message(
+@pytest.mark.parametrize(
+    ("input_message", "expected_message"),
+    [("m" * 512, "m" * 512), (None, ""), ("", ""), (5, "5"), ("你好世界", "你好世界")],
+)
+def test_create_transaction_event_with_message(
+    input_message,
+    expected_message,
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
@@ -2713,7 +2719,41 @@ def test_create_transaction_event_empty_message(
     expected_amount = Decimal("15")
     response = transaction_session_response.copy()
     response["amount"] = expected_amount
-    response["message"] = None
+    response["message"] = input_message
+
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+
+    # when
+    create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then
+    transaction.refresh_from_db()
+    assert transaction.events.count() == 2
+    event = transaction.events.last()
+    assert event.message == expected_message
+
+
+def test_create_transaction_event_with_invalid_message(
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+    checkout,
+    caplog,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["amount"] = expected_amount
+    response["message"] = NonParsableObject()
 
     transaction = transaction_item_generator(checkout_id=checkout.pk)
     request_event = TransactionEvent.objects.create(
@@ -2733,6 +2773,9 @@ def test_create_transaction_event_empty_message(
     assert transaction.events.count() == 2
     event = transaction.events.last()
     assert event.message == ""
+    assert (
+        "Incorrect value for field: message in response of transaction action webhook."
+    ) in (record.message for record in caplog.records)
 
 
 def test_recalculate_refundable_for_checkout_with_request_refund(
