@@ -241,6 +241,8 @@ def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
                 }
                 line_discounts_to_create_inputs.append(line_discount_input)
             else:
+                # TODO zedzior update amount only (except variant
+                # _update_catalogue_promotion_amount(discount_to_update, line_info.line)
                 _update_promotion_discount(
                     rule,
                     rule_info,
