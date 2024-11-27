@@ -196,8 +196,10 @@ def trigger_webhooks_async(
     retry_kwargs={"max_retries": 5},
 )
 def send_webhook_request_async(self, event_delivery_id):
-    delivery = get_delivery_for_webhook(event_delivery_id)
+    delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
+        if not_found:
+            raise self.retry(countdown=1)
         return None
 
     webhook = delivery.webhook

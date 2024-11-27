@@ -337,20 +337,24 @@ def handle_webhook_retry(
     return is_success
 
 
-def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
+def get_delivery_for_webhook(
+    event_delivery_id,
+) -> tuple[Optional["EventDelivery"], bool]:
+    not_found = False
     try:
         delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
             id=event_delivery_id
         )
     except EventDelivery.DoesNotExist:
+        not_found = True
         logger.error("Event delivery id: %r not found", event_delivery_id)
-        return None
+        return None, not_found
 
     if not delivery.webhook.is_active:
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
         logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
-        return None
-    return delivery
+        return None, not_found
+    return delivery, not_found
 
 
 @contextmanager
