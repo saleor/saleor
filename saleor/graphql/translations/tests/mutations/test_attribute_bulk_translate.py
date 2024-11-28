@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....core.enums import LanguageCodeEnum, TranslationErrorCode
 from ....tests.utils import get_graphql_content
+from ...mutations import AttributeBulkTranslate
 
 ATTRIBUTE_BULK_TRANSLATE_MUTATION = """
     mutation AttributeBulkTranslate(
@@ -28,6 +30,64 @@ ATTRIBUTE_BULK_TRANSLATE_MUTATION = """
         }
     }
 """
+
+
+def test_attribute_bulk_translate_get_translations_returns_valid_translations(
+    color_attribute_with_translations, second_color_attribute_with_translations
+):
+    # given
+    requested_language_code = LanguageCodeEnum.PL.value
+    translations = {
+        0: {
+            "id": color_attribute_with_translations.id,
+            "language_code": requested_language_code,
+            "translation_fields": {
+                "name": "Czerwony",
+            },
+        },
+    }
+
+    # when
+    translations = AttributeBulkTranslate.get_translations(
+        cleaned_inputs_map=translations,
+        base_objects=[color_attribute_with_translations.id],
+    )
+
+    # then
+    for translation in translations:
+        assert translation.attribute_id == color_attribute_with_translations.id
+        assert translation.language_code == requested_language_code
+
+
+@pytest.mark.parametrize("identifier_field", ["external_reference", "id"])
+def test_attribute_bulk_translate_get_base_objects_returns_valid_objects(
+    identifier_field,
+    color_attribute_with_translations,
+    second_color_attribute_with_translations,
+):
+    # given
+    requested_language_code = LanguageCodeEnum.PL.value
+
+    color_attribute_with_translations.external_reference = "ext_ref"
+    color_attribute_with_translations.save()
+
+    translations = {
+        0: {
+            identifier_field: getattr(
+                color_attribute_with_translations, identifier_field
+            ),
+            "language_code": requested_language_code,
+            "translation_fields": {
+                "name": "Czerwony",
+            },
+        },
+    }
+
+    # when
+    base_objects = AttributeBulkTranslate.get_base_objects(translations)
+
+    # then
+    assert base_objects == [color_attribute_with_translations]
 
 
 @patch("saleor.plugins.manager.PluginsManager.translations_created")

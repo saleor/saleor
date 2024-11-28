@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....tests.utils import dummy_editorjs
 from ....core.enums import LanguageCodeEnum, TranslationErrorCode
 from ....tests.utils import get_graphql_content
+from ...mutations import ProductBulkTranslate
 
 PRODUCT_BULK_TRANSLATE_MUTATION = """
     mutation ProductBulkTranslate(
@@ -33,6 +35,73 @@ PRODUCT_BULK_TRANSLATE_MUTATION = """
 
 description_pl = dummy_editorjs("description PL", True)
 description_de = dummy_editorjs("description DE", True)
+
+
+def test_product_bulk_translate_get_translations_returns_valid_translations(
+    product_list,
+):
+    # given
+    first_product = product_list[0]
+    first_product.translations.create(language_code="pl", name="name-in-pl")
+    first_product.translations.create(language_code="de", name="name-in-de")
+
+    second_product = product_list[1]
+    second_product.translations.create(language_code="pl", name="name-in-pl")
+    second_product.translations.create(language_code="de", name="name-in-de")
+
+    requested_language_code = LanguageCodeEnum.PL.value
+
+    translations = {
+        0: {
+            "id": first_product.id,
+            "languageCode": requested_language_code,
+            "translationFields": {"name": "Product PL", "description": description_pl},
+        }
+    }
+
+    # when
+    translations = ProductBulkTranslate.get_translations(
+        cleaned_inputs_map=translations, base_objects=[first_product.id]
+    )
+
+    # then
+    for translation in translations:
+        assert translation.product_id == first_product.id
+        assert translation.language_code == requested_language_code
+
+
+@pytest.mark.parametrize("identifier_field", ["external_reference", "id"])
+def test_product_bulk_translate_get_base_objects_returns_valid_objects(
+    identifier_field,
+    product_list,
+):
+    # given
+    first_product = product_list[0]
+    first_product.translations.create(language_code="pl", name="name-in-pl")
+    first_product.translations.create(language_code="de", name="name-in-de")
+
+    second_product = product_list[1]
+    second_product.translations.create(language_code="pl", name="name-in-pl")
+    second_product.translations.create(language_code="de", name="name-in-de")
+
+    first_product.external_reference = "ext_ref"
+    first_product.save()
+
+    requested_language_code = LanguageCodeEnum.PL.value
+
+    translations = {
+        0: {
+            identifier_field: getattr(first_product, identifier_field),
+            "languageCode": requested_language_code,
+            "translationFields": {"name": "Product PL", "description": description_pl},
+        }
+    }
+
+    # when
+    base_objects = ProductBulkTranslate.get_base_objects(translations)
+
+    # then
+    assert base_objects == [first_product]
 
 
 @patch("saleor.plugins.manager.PluginsManager.translations_created")
