@@ -427,12 +427,12 @@ def _apply_tax_data(
 
 def remove_tax(order, lines, prices_entered_with_taxes):
     if prices_entered_with_taxes:
-        _remove_tax_gross(order, lines)
-    else:
         _remove_tax_net(order, lines)
+    else:
+        _remove_tax_gross(order, lines)
 
 
-def _remove_tax_net(order, lines):
+def _remove_tax_gross(order, lines):
     """Set gross values equal to net values."""
     order.total_gross_amount = order.total_net_amount
     order.undiscounted_total_gross_amount = order.undiscounted_total_net_amount
@@ -452,7 +452,7 @@ def _remove_tax_net(order, lines):
         line.tax_rate = Decimal("0.00")
 
 
-def _remove_tax_gross(order, lines):
+def _remove_tax_net(order, lines):
     """Set net values equal to gross values."""
     order.total_net_amount = order.total_gross_amount
     order.undiscounted_total_net_amount = order.undiscounted_total_gross_amount
