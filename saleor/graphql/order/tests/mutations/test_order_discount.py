@@ -1787,3 +1787,57 @@ def test_delete_order_line_discount_with_line_level_voucher(
         order_line["totalPrice"]["net"]["amount"]
         == line_undiscounted_total_price - voucher_discount_amount
     )
+
+
+def test_delete_order_line_discount_with_line_level_voucher_deleted_in_meantime(
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher_specific_product_type,
+    tax_configuration_flat_rates,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    voucher = voucher_specific_product_type
+    order = order_with_lines
+    line = order.lines.get(quantity=3)
+    voucher.products.add(line.variant.product)
+    order.status = OrderStatus.DRAFT
+    order.voucher = voucher
+    code = voucher.codes.first().code
+    order.voucher_code = code
+    order.save(update_fields=["status", "voucher", "voucher_code"])
+
+    assert voucher.discount_value_type == DiscountValueType.PERCENTAGE
+    line_undiscounted_total_price = line.undiscounted_total_price.net.amount
+
+    manual_reward_value = Decimal(1)
+    manual_line_discount = line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=manual_reward_value,
+        amount_value=manual_reward_value * line.quantity,
+        currency=order.currency,
+        reason="Manual line discount",
+    )
+
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+    }
+
+    # when
+    voucher.delete()
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountRemove"]
+    assert not data["errors"]
+
+    with pytest.raises(manual_line_discount._meta.model.DoesNotExist):
+        manual_line_discount.refresh_from_db()
+
+    assert not line.discounts.first()
+
+    order_line = data["orderLine"]
+    assert order_line["totalPrice"]["net"]["amount"] == line_undiscounted_total_price
