@@ -2087,6 +2087,30 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
     assert event_delivery.status == EventDeliveryStatus.FAILED
 
 
+@mock.patch("saleor.webhook.observability.utils.report_event_delivery_attempt")
+@mock.patch("saleor.webhook.transport.asynchronous.transport.clear_successful_delivery")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.retry"
+)
+def test_send_webhook_request_async_when_event_delivery_is_missing(
+    mocked_retry, mocked_clear_delivery, mocked_observability
+):
+    # given
+    event_delivery_id = 123
+    mocked_retry.side_effect = CeleryTaskRetryError()
+
+    # when
+    try:
+        send_webhook_request_async(event_delivery_id)
+    except CeleryTaskRetryError:
+        pass
+
+    # then
+    mocked_clear_delivery.assert_not_called()
+    mocked_observability.assert_not_called()
+    mocked_retry.assert_called_once()
+
+
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
