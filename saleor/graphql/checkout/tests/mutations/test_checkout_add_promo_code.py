@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
 
-import before_after
 import graphene
 import pytest
 from django.test import override_settings
@@ -23,6 +22,7 @@ from .....product.models import (
     ProductChannelListing,
     ProductVariantChannelListing,
 )
+from .....tests import race_condition
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -544,7 +544,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale_collection_dele
     def delete_collections(*args, **kwargs):
         Collection.objects.all().delete()
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.graphql.product.dataloaders.products.CollectionsByProductIdLoader"
         ".batch_load",
         delete_collections,

@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
-import before_after
 import graphene
 import pytest
 from django.utils import timezone
@@ -18,6 +17,7 @@ from ....product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
+from ....tests import race_condition
 from ... import DiscountType, RewardType, RewardValueType
 from ...models import CheckoutDiscount, CheckoutLineDiscount, PromotionRule
 from ...utils.checkout import (
@@ -2111,7 +2111,7 @@ def test_create_discount_objects_for_order_promotions_race_condition(
             currency=channel.currency_code,
         )
 
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.discount.utils.checkout.create_checkout_discount_objects_for_order_promotions",
         call_before_creating_discount_object,
     ):
@@ -2156,7 +2156,7 @@ def test_create_or_update_order_discount_race_condition(
             save=True,
         )
 
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.discount.utils.checkout._set_checkout_base_prices", call_update
     ):
         call_update()
@@ -2181,7 +2181,7 @@ def test_create_or_update_order_discount_gift_reward_race_condition(
             save=True,
         )
 
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.discount.utils.checkout._set_checkout_base_prices", call_update
     ):
         call_update()
@@ -2302,7 +2302,7 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
         lines_info, _ = fetch_checkout_lines(checkout)
         create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
 
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.discount.utils.promotion.prepare_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
     ):

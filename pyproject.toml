@@ -102,7 +102,6 @@ package-mode = false
     platform = "win32"
 
   [tool.poetry.group.dev.dependencies]
-  before_after = "^1.0.1"
   coverage = "^7.2"
   deptry = "^0.20.0"
   django-extensions = "^3.1.2"

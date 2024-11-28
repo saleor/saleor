@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest import mock
 
-import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
@@ -28,6 +27,7 @@ from ...payment.interface import GatewayResponse
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
+from ...tests import race_condition
 from .. import calculations
 from ..complete_checkout import (
     _complete_checkout_fail_handler,
@@ -1681,7 +1681,7 @@ def test_complete_checkout_checkout_was_deleted_before_completing(
         order.save()
         Checkout.objects.filter(token=checkout.token).delete()
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", convert_checkout_to_order
     ):
         order_from_checkout, action_required, _ = complete_checkout(
@@ -1753,7 +1753,7 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
             app=app,
         )
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", call_checkout_complete
     ):
         order_from_checkout, action_required, _ = complete_checkout(
@@ -1821,7 +1821,7 @@ def test_complete_checkout_checkout_completed_in_the_meantime(
             app=app,
         )
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._reserve_stocks_without_availability_check",
         call_checkout_complete,
     ):
@@ -2475,7 +2475,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
         checkout.save(update_fields=["price_expiration"])
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", update_price_expiration
     ):
         order, action_required, _ = complete_checkout(

@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
-import before_after
 import graphene
 import pytest
 from django.db.models.aggregates import Sum
@@ -33,6 +32,7 @@ from .....product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
+from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....core.utils import to_global_id_or_none
@@ -4472,7 +4472,7 @@ def test_checkout_complete_line_deleted_in_the_meantime(
         CheckoutLine.objects.get(id=checkout.lines.first().id).delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.graphql.checkout.mutations.checkout_complete.complete_checkout",
         delete_order_line,
     ):
