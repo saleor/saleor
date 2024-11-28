@@ -2728,3 +2728,57 @@ def test_for_checkout_too_long_message_in_response(
         "Value for field: message in response of transaction action webhook "
         "exceeds the character field limit. Message has been truncated."
     ) in [record.message for record in caplog.records]
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_empty_message(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["message"] = None
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+        expected_message=expected_response["message"],
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL

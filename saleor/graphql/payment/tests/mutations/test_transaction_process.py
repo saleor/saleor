@@ -2306,3 +2306,64 @@ def test_for_order_too_long_message_in_response(
         "Value for field: message in response of transaction action webhook "
         "exceeds the character field limit. Message has been truncated."
     ) in [record.message for record in caplog.records]
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_for_order_empty_message(
+    mocked_process,
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+    caplog,
+):
+    # given
+    expected_amount = Decimal("10.00")
+
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(order_id=order.pk, app=webhook_app)
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=expected_amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = expected_amount
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    expected_response["message"] = None
+    del expected_response["data"]
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_process=mocked_process,
+        charged_value=expected_amount,
+        returned_data=None,
+        expected_message=expected_response["message"],
+    )
