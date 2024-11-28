@@ -831,7 +831,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         description=(
             "Value of the discount. Can store fixed value or percent value. "
             "This field shouldn't be used when multiple discounts affect the line. "
-            "There is known issue, that after running `checkoutComplete` mutation "
+            "There is a limitation, that after running `checkoutComplete` mutation "
             "the field always stores fixed value."
         ),
         required=True,
@@ -840,8 +840,8 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         DiscountValueTypeEnum,
         description=(
             "Type of the discount: `fixed` or `percent`. This field shouldn't be used "
-            "when multiple discounts affect the line. There is known issue, that after "
-            "running `checkoutComplete` mutation the field is always set to `fixed`."
+            "when multiple discounts affect the line. There is a limitation, that after"
+            " running `checkoutComplete` mutation the field is always set to `fixed`."
         ),
     )
     total_price = graphene.Field(

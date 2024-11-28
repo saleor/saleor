@@ -11068,12 +11068,12 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   unitDiscountReason: String
 
   """
-  Value of the discount. Can store fixed value or percent value. This field shouldn't be used when multiple discounts affect the line. There is known issue, that after running `checkoutComplete` mutation the field always stores fixed value.
+  Value of the discount. Can store fixed value or percent value. This field shouldn't be used when multiple discounts affect the line. There is a limitation, that after running `checkoutComplete` mutation the field always stores fixed value.
   """
   unitDiscountValue: PositiveDecimal!
 
   """
-  Type of the discount: `fixed` or `percent`. This field shouldn't be used when multiple discounts affect the line. There is known issue, that after running `checkoutComplete` mutation the field is always set to `fixed`.
+  Type of the discount: `fixed` or `percent`. This field shouldn't be used when multiple discounts affect the line. There is a limitation, that after running `checkoutComplete` mutation the field is always set to `fixed`.
   """
   unitDiscountType: DiscountValueTypeEnum
 
