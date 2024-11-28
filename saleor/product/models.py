@@ -452,6 +452,8 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
             "external_reference",
             "metadata",
             "private_metadata",
+            "preorder_end_date",
+            "preorder_global_threshold",
         ]
 
     def serialize_for_comparison(self):

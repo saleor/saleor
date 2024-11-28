@@ -177,6 +177,7 @@ QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
             $externalReference: String
             $metadata: [MetadataInput!]
             $privateMetadata: [MetadataInput!]
+            $preorder: PreorderSettingsInput
             $attributes: [AttributeValueInput!]) {
                 productVariantUpdate(
                     id: $id,
@@ -187,7 +188,8 @@ QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
                         externalReference: $externalReference
                         quantityLimitPerCustomer: $quantityLimitPerCustomer,
                         metadata: $metadata,
-                        privateMetadata: $privateMetadata
+                        preorder: $preorder,
+                        privateMetadata: $privateMetadata,
                     }) {
                     productVariant {
                         name
@@ -225,6 +227,18 @@ QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
         ({"metadata": [{"key": "test_key1", "value": "test_value2"}]}, ["metadata"]),
         ({"trackInventory": False}, ["track_inventory"]),
         ({"quantityLimitPerCustomer": 5}, ["quantity_limit_per_customer"]),
+        (
+            {"preorder": {"globalThreshold": 11, "endDate": "2024-12-03T00:00Z"}},
+            ["preorder_end_date", "preorder_global_threshold"],
+        ),
+        (
+            {"preorder": {"globalThreshold": 10, "endDate": "2024-12-03T00:00Z"}},
+            ["preorder_end_date"],
+        ),
+        (
+            {"preorder": {"globalThreshold": 11, "endDate": "2024-12-02T00:00Z"}},
+            ["preorder_global_threshold"],
+        ),
         ({"externalReference": "test-ext-ref2"}, ["external_reference"]),
         (
             {"sku": 1234, "trackInventory": False, "externalReference": "test-ext-ref"},
@@ -261,6 +275,9 @@ def test_update_product_variant_update_fields_when_necessary(
     variant.external_reference = external_reference
     variant.quantity_limit_per_customer = quantity_limit
     variant.track_inventory = True
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
     variant.save()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -303,6 +320,7 @@ def test_update_product_variant_update_fields_when_necessary(
         ["metadata", [{"key": "test_key1", "value": "test_value1"}]],
         ["trackInventory", True],
         ["quantityLimitPerCustomer", 9],
+        ["preorder", {"globalThreshold": 10, "endDate": "2024-12-02T00:00Z"}],
         ["externalReference", "test-ext-ref"],
     ],
 )
@@ -329,6 +347,9 @@ def test_update_product_variant_skip_updating_fields_when_unchanged(
     product.default_variant = variant
     product.save(update_fields=["default_variant"])
     variant.name = variant_name
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
     variant.metadata = {"test_key1": "test_value1"}
     variant.private_metadata = {"private_key1": "private_value_1"}
     variant.external_reference = external_reference
