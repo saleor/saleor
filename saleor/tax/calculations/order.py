@@ -116,7 +116,11 @@ def _set_order_totals(
 def _calculate_order_shipping(
     order: "Order", tax_rate: Decimal, prices_entered_with_tax: bool
 ) -> TaxedMoney:
-    shipping_price = order.shipping_price.net
+    shipping_price = (
+        order.shipping_price_gross
+        if prices_entered_with_tax
+        else order.shipping_price_net
+    )
     taxed_shipping_price = calculate_flat_rate_tax(
         shipping_price, tax_rate, prices_entered_with_tax
     )

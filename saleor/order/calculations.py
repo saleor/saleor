@@ -174,7 +174,7 @@ def _recalculate_prices(
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
             # tax from the original gross prices.
-            _remove_tax(order, lines, prices_entered_with_tax)
+            remove_tax(order, lines, prices_entered_with_tax)
 
     else:
         # Prices are entered without taxes.
@@ -196,7 +196,7 @@ def _recalculate_prices(
                     logger.warning(str(e), extra=order_info_for_logs(order, lines))
                 order.tax_error = str(e)
         else:
-            _remove_tax(order, lines, prices_entered_with_tax)
+            remove_tax(order, lines, prices_entered_with_tax)
 
 
 def _calculate_and_add_tax(
@@ -425,7 +425,7 @@ def _apply_tax_data(
     order.undiscounted_total = undiscounted_shipping_price + undiscounted_subtotal
 
 
-def _remove_tax(order, lines, prices_entered_with_taxes):
+def remove_tax(order, lines, prices_entered_with_taxes):
     if prices_entered_with_taxes:
         _remove_tax_gross(order, lines)
     else:
