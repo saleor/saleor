@@ -2,10 +2,12 @@ import json
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....tests.utils import dummy_editorjs
 from ....core.enums import LanguageCodeEnum, TranslationErrorCode
 from ....tests.utils import get_graphql_content
+from ...mutations import AttributeValueBulkTranslate
 
 ATTRIBUTE_VALUE_BULK_TRANSLATE_MUTATION = """
     mutation AttributeValueBulkTranslate(
@@ -32,6 +34,63 @@ ATTRIBUTE_VALUE_BULK_TRANSLATE_MUTATION = """
         }
     }
 """
+
+
+def test_attribute_value_bulk_translate_get_translations_returns_valid_translations(
+    color_attribute_with_translations, second_color_attribute_with_translations
+):
+    # given
+    attr_value = color_attribute_with_translations.values.first()
+
+    requested_language_code = LanguageCodeEnum.PL.value
+    translations = {
+        0: {
+            "id": attr_value.id,
+            "language_code": requested_language_code,
+            "translation_fields": {
+                "name": "Czerwony",
+            },
+        },
+    }
+
+    # when
+    translations = AttributeValueBulkTranslate.get_translations(
+        cleaned_inputs_map=translations, base_objects=[attr_value.id]
+    )
+
+    # then
+    for translation in translations:
+        assert translation.attribute_value_id == attr_value.id
+        assert translation.language_code == requested_language_code
+
+
+@pytest.mark.parametrize("identifier_field", ["external_reference", "id"])
+def test_attribute_value_bulk_translate_get_base_objects_returns_valid_objects(
+    identifier_field,
+    color_attribute_with_translations,
+    second_color_attribute_with_translations,
+):
+    # given
+    attr_value = color_attribute_with_translations.values.first()
+    attr_value.external_reference = "ext_ref"
+    attr_value.save()
+
+    requested_language_code = LanguageCodeEnum.PL.value
+    translations = {
+        0: {
+            identifier_field: getattr(attr_value, identifier_field),
+            "language_code": requested_language_code,
+            "translation_fields": {
+                "name": "Czerwony",
+            },
+        },
+    }
+
+    # when
+    base_objects = AttributeValueBulkTranslate.get_base_objects(translations)
+
+    # then
+    assert base_objects == [attr_value]
 
 
 @patch("saleor.plugins.manager.PluginsManager.translation_created")
