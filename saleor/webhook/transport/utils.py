@@ -399,14 +399,22 @@ def handle_webhook_retry(
     return is_success
 
 
-def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
-    delivery = get_multiple_deliveries_for_webhooks([event_delivery_id])
-    return delivery.get(event_delivery_id)
+def get_delivery_for_webhook(
+    event_delivery_id,
+) -> tuple[Optional["EventDelivery"], bool]:
+    delivery, inactive_delivery_ids = get_multiple_deliveries_for_webhooks(
+        [event_delivery_id]
+    )
+    delivery = delivery.get(event_delivery_id)
+    not_found = False
+    if not delivery and event_delivery_id not in inactive_delivery_ids:
+        not_found = True
+    return delivery, not_found
 
 
 def get_multiple_deliveries_for_webhooks(
     event_delivery_ids,
-) -> dict[int, "EventDelivery"]:
+) -> tuple[dict[int, "EventDelivery"], set[int]]:
     deliveries = EventDelivery.objects.select_related("payload", "webhook__app").filter(
         id__in=event_delivery_ids
     )
@@ -432,7 +440,7 @@ def get_multiple_deliveries_for_webhooks(
             status=EventDeliveryStatus.FAILED
         )
 
-    return active_deliveries
+    return active_deliveries, inactive_delivery_ids
 
 
 @contextmanager

@@ -470,7 +470,9 @@ def generate_deferred_payloads(
     deferred_payload_data: dict,
     send_webhook_queue: Optional[str] = None,
 ):
-    deliveries = list(get_multiple_deliveries_for_webhooks(event_delivery_ids).values())
+    deliveries = list(
+        get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
+    )
     args_obj = DeferredPayloadData(**deferred_payload_data)
     requestor = None
     if args_obj.requestor_object_id and args_obj.requestor_model_name in (
@@ -560,8 +562,10 @@ def generate_deferred_payloads(
 )
 @allow_writer()
 def send_webhook_request_async(self, event_delivery_id) -> None:
-    delivery = get_delivery_for_webhook(event_delivery_id)
+    delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
+        if not_found:
+            raise self.retry(countdown=1)
         return
 
     webhook = delivery.webhook
