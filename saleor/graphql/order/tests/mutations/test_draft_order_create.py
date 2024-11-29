@@ -2863,6 +2863,9 @@ def test_draft_order_create_product_catalogue_promotion(
 
     reward_value = Decimal("1.0")
     rule = promotion.rules.first()
+    rule.reward_value = reward_value
+    rule.save(update_fields=["reward_value"])
+
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
 
     variant_channel_listing.discounted_price_amount = (
@@ -2994,6 +2997,8 @@ def test_draft_order_create_product_catalogue_promotion_flat_taxes(
 
     reward_value = Decimal("1.0")
     rule = promotion.rules.first()
+    rule.reward_value = reward_value
+    rule.save(update_fields=["reward_value"])
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
 
     variant_channel_listing.discounted_price_amount = (

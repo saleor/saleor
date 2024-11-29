@@ -22,7 +22,7 @@ from ..utils import (
     add_variant_to_order,
     calculate_order_granted_refund_status,
     change_order_line_quantity,
-    create_order_line_discounts,
+    create_order_line_catalogue_discounts,
     get_order_country,
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
@@ -638,7 +638,7 @@ def test_create_order_line_discounts(
     ]
 
     # when
-    line_discounts = create_order_line_discounts(order_line, rules_info)
+    line_discounts = create_order_line_catalogue_discounts(order_line, rules_info)
 
     # then
     assert len(line_discounts) == 2
