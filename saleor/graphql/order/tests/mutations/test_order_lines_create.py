@@ -14,7 +14,8 @@ from .....order import events as order_events
 from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent, OrderLine
-from .....product.models import ProductVariant
+from .....product.models import Product, ProductVariant
+from .....product.utils.variant_prices import update_discounted_prices_for_promotion
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1173,6 +1174,8 @@ def test_order_lines_create_with_custom_price_force_new_line_and_catalogue_disco
     promotion_rule.reward_value = reward_value
     promotion_rule.reward_value_type = RewardValueType.FIXED
     promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
+
+    update_discounted_prices_for_promotion(Product.objects.all())
 
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
