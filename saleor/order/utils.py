@@ -234,7 +234,6 @@ def create_order_line(
     total_price = unit_price * quantity
     undiscounted_total_price = undiscounted_unit_price * quantity
 
-    tax_class = None
     if product.tax_class_id:
         tax_class = product.tax_class
     else:
@@ -273,7 +272,7 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
-            line_discounts = create_order_line_discounts(line, rules_info)
+            line_discounts = create_order_line_catalogue_discounts(line, rules_info)
             promotion = rules_info[0].promotion
             line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
@@ -320,7 +319,7 @@ def create_order_line(
     return line
 
 
-def create_order_line_discounts(
+def create_order_line_catalogue_discounts(
     line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
 ) -> Iterable["OrderLineDiscount"]:
     line_discounts_to_create: list[OrderLineDiscount] = []
@@ -335,11 +334,11 @@ def create_order_line_discounts(
                 type=DiscountType.PROMOTION,
                 value_type=rule.reward_value_type,
                 value=rule.reward_value,
-                amount_value=rule_discount_amount,
+                amount_value=rule_discount_amount * line.quantity,
                 currency=line.currency,
                 name=get_discount_name(rule, rule_info.promotion),
                 translated_name=get_discount_translated_name(rule_info),
-                reason=None,
+                reason=prepare_promotion_discount_reason(rule),
                 promotion_rule=rule,
             )
         )
