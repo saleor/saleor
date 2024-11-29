@@ -71,6 +71,9 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+TRANSACTION_EVENT_MSG_MAX_LENGTH: int = TransactionEvent._meta.get_field(  # type: ignore[assignment]
+    "message"
+).max_length
 
 
 def _recalculate_last_refund_success_for_transaction(
@@ -879,15 +882,7 @@ def parse_transaction_event_data(
         logger.warning(missing_msg, "result")
         error_field_msg.append(missing_msg % "result")
 
-    message = event_data.get("message", "")
-    if len(message) > 512:
-        message = truncate_message(message)
-        field_limit_exceeded_msg = (
-            "Value for field: %s in response of transaction action webhook "
-            "exceeds the character field limit. Message has been truncated."
-        )
-        logger.warning(field_limit_exceeded_msg, "message")
-    parsed_event_data["message"] = message
+    parsed_event_data["message"] = _clean_message(event_data)
 
     amount_data = event_data.get("amount")
     parse_transaction_event_amount(
@@ -914,6 +909,28 @@ def parse_transaction_event_data(
         parsed_event_data["time"] = timezone.now()
 
     parsed_event_data["external_url"] = event_data.get("externalUrl", "")
+
+
+def _clean_message(event_data):
+    message = event_data.get("message") or ""
+    try:
+        message = str(message)
+    except (UnicodeEncodeError, TypeError, ValueError):
+        invalid_err_msg = (
+            "Incorrect value for field: %s in response of transaction action webhook."
+        )
+        logger.warning(invalid_err_msg, "message")
+        message = ""
+
+    if message and len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH:
+        message = truncate_transaction_event_message(message)
+        field_limit_exceeded_msg = (
+            "Value for field: %s in response of transaction action webhook "
+            "exceeds the character field limit. Message has been truncated."
+        )
+        logger.warning(field_limit_exceeded_msg, "message")
+
+    return message
 
 
 error_msg = str
@@ -958,7 +975,7 @@ def parse_transaction_action_data(
         # error field msg can contain details of the value returned by payment app
         # which means that we need to confirm that we don't exceed the field limit.
         msg = "\n".join(error_field_msg)
-        msg = truncate_message(msg)
+        msg = truncate_transaction_event_message(msg)
         return None, msg
 
     request_event_type = parsed_event_data.get("type", request_type)
@@ -979,8 +996,12 @@ def parse_transaction_action_data(
     )
 
 
-def truncate_message(message: str):
-    return message[:509] + "..." if len(message) > 512 else message
+def truncate_transaction_event_message(message: str):
+    return (
+        message[: TRANSACTION_EVENT_MSG_MAX_LENGTH - 3] + "..."
+        if len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH
+        else message
+    )
 
 
 def get_failed_transaction_event_type_for_request_event(
