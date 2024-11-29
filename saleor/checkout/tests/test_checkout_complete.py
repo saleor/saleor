@@ -20,7 +20,7 @@ from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
-from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
+from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
@@ -41,7 +41,7 @@ from ..complete_checkout import (
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
 from ..payment_utils import update_checkout_payment_statuses
-from ..utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout, add_voucher_to_checkout
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
@@ -1261,6 +1261,7 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
     assert order
     assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert order.charge_status == OrderChargeStatus.FULL
+    assert order.status == OrderStatus.UNFULFILLED
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
@@ -2692,3 +2693,77 @@ def test_complete_checkout_fail_handler_with_voucher_and_payment(
     assert not checkout.completing_started_at
     _payment_refund_or_void_mock.assert_called_once()
     _release_checkout_voucher_usage_mock.assert_called_once()
+
+
+def test_checkout_complete_with_voucher_0_total(
+    shipping_method,
+    checkout_with_item,
+    customer_user,
+    voucher_percentage,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    channel = checkout.channel
+
+    voucher_listing = voucher_percentage.channel_listings.get(channel=channel)
+    voucher_listing.discount_value = 100
+    voucher_listing.save(update_fields=["discount_value"])
+
+    shipping_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_listing.price_amount = 0
+    shipping_listing.save(update_fields=["price_amount"])
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    add_voucher_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_percentage,
+        voucher_percentage.codes.first(),
+    )
+    checkout_info, lines = calculations.fetch_checkout_data(
+        checkout_info, manager, lines, force_status_update=True
+    )
+
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.allow_unpaid_orders = True
+    channel.automatically_confirm_all_new_orders = True
+    channel.save(
+        update_fields=[
+            "order_mark_as_paid_strategy",
+            "allow_unpaid_orders",
+            "automatically_confirm_all_new_orders",
+        ]
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        order, _, _ = complete_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=customer_user,
+            app=None,
+        )
+
+    # then
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.lines.count() == 1
+    assert order.discounts.count() == 1
+    discount = order.discounts.first()
+    assert (
+        discount.amount_value == (order.undiscounted_total - order.total).gross.amount
+    )
