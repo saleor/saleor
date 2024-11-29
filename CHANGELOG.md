@@ -45,3 +45,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed playground not displaying docs if api is hidden behind reverse proxy - #16810 by @jqob
 - Drop tax data line number validation for Avatax plugin - #16917 by @zedzior
 - Fix decreasing voucher code usage after changing `includeDraftOrderInVoucherUsage` to false - #17028 by @zedzior
+- Added missing currency to order-level voucher discounts - #17059 by @zedzior
