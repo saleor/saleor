@@ -20,12 +20,12 @@ from ..models import (
 )
 from .manual_discount import apply_discount_to_value
 from .promotion import (
-    _get_discount_reason,
     _get_rule_discount_amount,
     create_discount_objects_for_order_promotions,
     delete_gift_line,
     get_discount_name,
     get_discount_translated_name,
+    prepare_promotion_discount_reason,
 )
 from .shared import update_line_info_cached_discounts
 from .voucher import create_or_update_discount_objects_from_voucher
@@ -114,7 +114,7 @@ def prepare_order_line_discount_objects_for_catalogue_promotions(lines_info):
                 )
                 discount_name = get_discount_name(rule, rule_info.promotion)
                 translated_name = get_discount_translated_name(rule_info)
-                reason = _get_discount_reason(rule)
+                reason = prepare_promotion_discount_reason(rule)
 
                 line_discount_input = {
                     "line": line,
