@@ -13,6 +13,7 @@ on:
 jobs:
   # Enforces the update of a changelog file on every pull request
   changelog:
+    if: github.event.pull_request.draft == false || contains(github.event.pull_request.labels.*.name, 'run CI')
     runs-on: ubuntu-latest
     steps:
     - uses: dangoslen/changelog-enforcer@83e1e992a730c447cca6e9ecf8e7b21cb9a7463e
