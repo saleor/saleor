@@ -15,9 +15,14 @@ from ..models import (
     CheckoutLineDiscount,
 )
 from .promotion import (
+    _get_discount_reason,
+    _get_rule_discount_amount,
+    _is_discounted_line_by_catalogue_promotion,
+    _update_catalogue_promotion_discount,
     create_discount_objects_for_order_promotions,
     delete_gift_line,
-    prepare_line_discount_objects_for_catalogue_promotions,
+    get_discount_name,
+    get_discount_translated_name,
 )
 from .shared import update_line_info_cached_discounts
 
@@ -39,7 +44,9 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
 def create_checkout_line_discount_objects_for_catalogue_promotions(
     lines_info: list["CheckoutLineInfo"],
 ):
-    discount_data = prepare_line_discount_objects_for_catalogue_promotions(lines_info)
+    discount_data = prepare_checkout_line_discount_objects_for_catalogue_promotions(
+        lines_info
+    )
     if not discount_data or not lines_info:
         return
 
@@ -83,6 +90,96 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
 
     update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
+    )
+
+
+def prepare_checkout_line_discount_objects_for_catalogue_promotions(lines_info):
+    line_discounts_to_create_inputs: list[dict] = []
+    line_discounts_to_update: list[CheckoutLineDiscount] = []
+    line_discounts_to_remove: list[CheckoutLineDiscount] = []
+    updated_fields: list[str] = []
+
+    if not lines_info:
+        return None
+
+    for line_info in lines_info:
+        line = line_info.line
+
+        # if channel_listing is not present, we can't close the checkout. User needs to
+        # remove the line for the checkout first. Until that moment, we return the same
+        # price as we did when listing was present - including line discount.
+        if not line_info.channel_listing:
+            continue
+
+        # get the existing catalogue discount for the line
+        discount_to_update = None
+        if discounts_to_update := line_info.get_catalogue_discounts():
+            discount_to_update = discounts_to_update[0]
+            # Line should never have multiple catalogue discounts associated. Before
+            # introducing unique_type on discount models, there was such a possibility.
+            line_discounts_to_remove.extend(discounts_to_update[1:])
+
+        # manual line discount do not stack with other line discounts
+        if [
+            discount
+            for discount in line_info.discounts
+            if discount.type == DiscountType.MANUAL
+        ]:
+            line_discounts_to_remove.extend(discounts_to_update)
+            continue
+
+        # check if the line price is discounted by catalogue promotion
+        discounted_line = _is_discounted_line_by_catalogue_promotion(
+            line_info.channel_listing
+        )
+
+        # delete all existing discounts if the line is not discounted or it is a gift
+        if not discounted_line or line.is_gift:
+            line_discounts_to_remove.extend(discounts_to_update)
+            continue
+
+        if line_info.rules_info:
+            rule_info = line_info.rules_info[0]
+            rule = rule_info.rule
+            rule_discount_amount = _get_rule_discount_amount(
+                line, rule_info, line_info.channel
+            )
+            discount_name = get_discount_name(rule, rule_info.promotion)
+            translated_name = get_discount_translated_name(rule_info)
+            reason = _get_discount_reason(rule)
+            if not discount_to_update:
+                line_discount_input = {
+                    "line": line,
+                    "type": DiscountType.PROMOTION,
+                    "value_type": rule.reward_value_type,
+                    "value": rule.reward_value,
+                    "amount_value": rule_discount_amount,
+                    "currency": line.currency,
+                    "name": discount_name,
+                    "translated_name": translated_name,
+                    "reason": reason,
+                    "promotion_rule": rule,
+                    "unique_type": DiscountType.PROMOTION,
+                }
+                line_discounts_to_create_inputs.append(line_discount_input)
+            else:
+                _update_catalogue_promotion_discount(
+                    rule,
+                    rule_info,
+                    rule_discount_amount,
+                    discount_to_update,
+                    updated_fields,
+                )
+                line_discounts_to_update.append(discount_to_update)
+        else:
+            # Fallback for unlike mismatch between discount_amount and rules_info
+            line_discounts_to_remove.extend(discounts_to_update)
+
+    return (
+        line_discounts_to_create_inputs,
+        line_discounts_to_update,
+        line_discounts_to_remove,
+        updated_fields,
     )
 
 

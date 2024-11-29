@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from decimal import Decimal
 from itertools import chain
-from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Union, overload
+from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Union
 from uuid import UUID
 
 import graphene
@@ -17,7 +17,6 @@ from ...checkout.fetch import CheckoutLineInfo
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.db.connection import allow_writer
 from ...core.exceptions import InsufficientStock
-from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...order.fetch import EditableOrderLineInfo
 from ...order.models import Order
@@ -45,7 +44,6 @@ from ..models import (
     Promotion,
     PromotionRule,
 )
-from .manual_discount import apply_discount_to_value
 from .shared import update_discount
 
 if TYPE_CHECKING:
@@ -157,102 +155,6 @@ def get_product_discount_on_promotion(
     raise NotApplicable("Promotion rule not applicable for this product")
 
 
-@overload
-def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: list["CheckoutLineInfo"],
-) -> tuple[
-    list[dict], list["CheckoutLineDiscount"], list["CheckoutLineDiscount"], list[str]
-]: ...
-
-
-@overload
-def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: list["EditableOrderLineInfo"],
-) -> tuple[
-    list[dict], list["OrderLineDiscount"], list["OrderLineDiscount"], list[str]
-]: ...
-
-
-def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
-    line_discounts_to_create_inputs: list[dict] = []
-    line_discounts_to_update: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
-    line_discounts_to_remove: list[Union[CheckoutLineDiscount, OrderLineDiscount]] = []
-    updated_fields: list[str] = []
-
-    if not lines_info:
-        return None
-
-    for line_info in lines_info:
-        line = line_info.line
-
-        # if channel_listing is not present, we can't close the checkout. User needs to
-        # remove the line for the checkout first. Until that moment, we return the same
-        # price as we did when listing was present - including line discount.
-        if isinstance(line_info, CheckoutLineInfo) and not line_info.channel_listing:
-            continue
-
-        # get the existing catalogue discount for the line
-        discount_to_update = None
-        if discounts_to_update := line_info.get_catalogue_discounts():
-            discount_to_update = discounts_to_update[0]
-            # Line should never have multiple catalogue discounts associated. Before
-            # introducing unique_type on discount models, there was such a possibility.
-            line_discounts_to_remove.extend(discounts_to_update[1:])
-
-        # manual line discount do not stack with other line discounts
-        if [
-            discount
-            for discount in line_info.discounts
-            if discount.type == DiscountType.MANUAL
-        ]:
-            line_discounts_to_remove.extend(discounts_to_update)
-            continue
-
-        # delete all existing discounts if the line is a gift
-        if line.is_gift:
-            line_discounts_to_remove.extend(discounts_to_update)
-            continue
-
-        if not discount_to_update:
-            if line_info.rules_info:
-                rule_info = line_info.rules_info[0]
-                rule = rule_info.rule
-                rule_discount_amount = _get_rule_discount_amount(
-                    line, rule_info, line_info.channel
-                )
-                discount_name = get_discount_name(rule, rule_info.promotion)
-                translated_name = get_discount_translated_name(rule_info)
-                reason = _get_discount_reason(rule)
-
-                line_discount_input = {
-                    "line": line,
-                    "type": DiscountType.PROMOTION,
-                    "value_type": rule.reward_value_type,
-                    "value": rule.reward_value,
-                    "amount_value": rule_discount_amount,
-                    "currency": line.currency,
-                    "name": discount_name,
-                    "translated_name": translated_name,
-                    "reason": reason,
-                    "promotion_rule": rule,
-                    "unique_type": DiscountType.PROMOTION,
-                }
-                line_discounts_to_create_inputs.append(line_discount_input)
-
-        else:
-            if _update_catalogue_promotion_discount(
-                discount_to_update, line_info.line, updated_fields
-            ):
-                line_discounts_to_update.append(discount_to_update)
-
-    return (
-        line_discounts_to_create_inputs,
-        line_discounts_to_update,
-        line_discounts_to_remove,
-        updated_fields,
-    )
-
-
 def _is_discounted_line_by_catalogue_promotion(
     variant_channel_listing: "ProductVariantChannelListing",
 ) -> bool:
@@ -330,7 +232,7 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     return None
 
 
-def _update_promotion_discount(
+def _update_catalogue_promotion_discount(
     rule: PromotionRule,
     rule_info: VariantPromotionRuleInfo,
     rule_discount_amount: Decimal,
@@ -362,40 +264,6 @@ def _update_promotion_discount(
         updated_fields=updated_fields,
         voucher_code=None,
     )
-
-
-def _update_catalogue_promotion_discount(
-    discount_to_update: Union["CheckoutLineDiscount", "OrderLineDiscount"],
-    line: Union["CheckoutLine", "OrderLine"],
-    updated_fields: list[str],
-) -> bool:
-    """Update catalogue promotion discount amount in case of line quantity update.
-
-    Return True if the discount requires update.
-    """
-    # TODO zedzior: jesli to tylko w przy quantity to moze lepiej przeniesc do mutacji
-    # we can't simply get difference between undiscounted price and base price,
-    # because base price can have other line-level disocunt included, ie. voucher
-
-    if isinstance(line, CheckoutLine):
-        undiscounted_unit_price = line.undiscounted_unit_price
-    else:
-        undiscounted_unit_price = line.undiscounted_base_unit_price
-
-    unit_discount = apply_discount_to_value(
-        discount_to_update.value,
-        discount_to_update.value_type,
-        line.currency,
-        undiscounted_unit_price,
-    )
-    discount_amount = quantize_price(unit_discount * line.quantity, line.currency)
-    if discount_amount != discount_to_update.amount:
-        discount_to_update.amount_value = discount_amount.amount
-        if "amount_value" not in updated_fields:
-            updated_fields.append("amount_value")
-        return True
-
-    return False
 
 
 def get_best_rule(
@@ -893,7 +761,7 @@ def _handle_order_promotion(
 
     if not created:
         fields_to_update: list[str] = []
-        _update_promotion_discount(
+        _update_catalogue_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_amount,
@@ -937,7 +805,7 @@ def _handle_gift_reward(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        _update_promotion_discount(
+        _update_catalogue_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_object_defaults["amount_value"],
