@@ -57,8 +57,11 @@ CatalogueInfo = defaultdict[str, set[Union[int, str]]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):
-    return f"{'Sale' if promotion.old_sale_id else 'Promotion'}: {sale_id}"
+def prepare_promotion_discount_reason(rule: PromotionRule):
+    promotion = rule.promotion
+    if promotion.old_sale_id:
+        return f"Sale: {graphene.Node.to_global_id('Sale', promotion.old_sale_id)}"
+    return f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}"
 
 
 def get_sale_id(promotion: "Promotion"):
@@ -213,13 +216,6 @@ def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
     return rule.name or promotion.name
 
 
-def _get_discount_reason(rule: PromotionRule):
-    promotion = rule.promotion
-    if promotion.old_sale_id:
-        return f"Sale: {graphene.Node.to_global_id('Sale', promotion.old_sale_id)}"
-    return f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}"
-
-
 def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     promotion_translation = rule_info.promotion_translation
     rule_translation = rule_info.rule_translation
@@ -232,7 +228,7 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     return None
 
 
-def _update_catalogue_promotion_discount(
+def _update_promotion_discount(
     rule: PromotionRule,
     rule_info: VariantPromotionRuleInfo,
     rule_discount_amount: Decimal,
@@ -243,9 +239,7 @@ def _update_catalogue_promotion_discount(
 ):
     discount_name = get_discount_name(rule, rule_info.promotion)
     translated_name = get_discount_translated_name(rule_info)
-    reason = prepare_promotion_discount_reason(
-        rule_info.promotion, get_sale_id(rule_info.promotion)
-    )
+    reason = prepare_promotion_discount_reason(rule_info.rule)
     # gift rule has empty reward_value_type
     value_type = rule.reward_value_type or RewardValueType.FIXED
     # gift rule has empty reward_value
@@ -724,7 +718,7 @@ def create_discount_objects_for_order_promotions(
         "currency": currency,
         "name": get_discount_name(best_rule, promotion),
         "translated_name": get_discount_translated_name(rule_info),
-        "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+        "reason": prepare_promotion_discount_reason(rule_info.rule),
     }
     if gift_listing:
         _handle_gift_reward(
@@ -761,7 +755,7 @@ def _handle_order_promotion(
 
     if not created:
         fields_to_update: list[str] = []
-        _update_catalogue_promotion_discount(
+        _update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_amount,
@@ -805,7 +799,7 @@ def _handle_gift_reward(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        _update_catalogue_promotion_discount(
+        _update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_object_defaults["amount_value"],
