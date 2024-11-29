@@ -277,7 +277,7 @@ def create_order_line(
             promotion = rules_info[0].promotion
             line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
-                prepare_promotion_discount_reason(promotion, line.sale_id)
+                prepare_promotion_discount_reason(rules_info[0].rule)
                 if line_discounts
                 else None
             )
