@@ -1,6 +1,8 @@
 from decimal import Decimal
 
 import graphene
+import pytest
+from django.db import IntegrityError
 
 from ....order.fetch import fetch_draft_order_lines_info
 from ....product.models import (
@@ -9,8 +11,12 @@ from ....product.models import (
 )
 from ....warehouse.models import Stock
 from ... import DiscountType, RewardType, RewardValueType
+from ...interface import VariantPromotionRuleInfo
 from ...models import OrderDiscount, OrderLineDiscount
-from ...utils.order import create_or_update_discount_objects_from_promotion_for_order
+from ...utils.order import (
+    create_or_update_discount_objects_from_promotion_for_order,
+    create_order_line_discount_objects_for_catalogue_promotions,
+)
 
 
 def test_create_catalogue_discount_fixed(
@@ -524,3 +530,69 @@ def test_update_gift_discount_new_gift_available(
 
     assert gift_line.quantity == 1
     assert gift_line.variant == variant
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_multiple_catalogue_discounts_for_the_same_line_raise_unique_error(
+    order_line,
+    catalogue_promotion,
+    promotion_translation_fr,
+    promotion_rule_translation_fr,
+):
+    # given
+    promotion = catalogue_promotion
+    rules = promotion.rules.all()
+    rule_1 = rules[0]
+    rule_2 = rules[1]
+
+    order = order_line.order
+    variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(
+        channel_id=order_line.order.channel_id
+    )
+
+    (
+        listing_promotion_rule_1,
+        listing_promotion_rule_2,
+    ) = VariantChannelListingPromotionRule.objects.bulk_create(
+        [
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_channel_listing,
+                promotion_rule=rule_1,
+                discount_amount=Decimal("10.0"),
+                currency=order.currency,
+            ),
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_channel_listing,
+                promotion_rule=rule_2,
+                discount_amount=Decimal("5.0"),
+                currency=order.currency,
+            ),
+        ]
+    )
+
+    promotion_rule_translation_fr.promotion_rule = rule_1
+    promotion_rule_translation_fr.save(update_fields=["promotion_rule"])
+
+    rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule_1,
+            variant_listing_promotion_rule=listing_promotion_rule_1,
+            promotion=promotion,
+            promotion_translation=promotion_translation_fr,
+            rule_translation=promotion_rule_translation_fr,
+        ),
+        VariantPromotionRuleInfo(
+            rule=rule_2,
+            variant_listing_promotion_rule=listing_promotion_rule_2,
+            promotion=promotion,
+            promotion_translation=promotion_translation_fr,
+            rule_translation=None,
+        ),
+    ]
+
+    # when & then
+    with pytest.raises(IntegrityError):
+        create_order_line_discount_objects_for_catalogue_promotions(
+            order_line, rules_info, order.channel
+        )
