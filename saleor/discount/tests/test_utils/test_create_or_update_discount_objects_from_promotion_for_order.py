@@ -283,7 +283,6 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
 ):
     # given
     order, rule_catalogue, rule_total, rule_gift = draft_order_and_promotions
-    channel = order.channel
     lines_info = fetch_draft_order_lines_info(order)
     discounted_variant_global_id = rule_catalogue.catalogue_predicate[
         "variantPredicate"
@@ -291,15 +290,8 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
     _, discounted_variant_id = graphene.Node.from_global_id(
         discounted_variant_global_id
     )
-    line_1, line_2 = (line_info.line for line_info in lines_info)
-    assert discounted_variant_id == str(line_2.variant_id)
-    listing = line_2.variant.channel_listings.get(channel=channel)
-    rules_info = fetch_variant_rules_info(listing, "en")
 
     # when
-    create_order_line_discount_objects_for_catalogue_promotions(
-        line_2, rules_info, order.channel
-    )
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
 
     # then
@@ -331,22 +323,14 @@ def test_multiple_rules_gift_and_catalogue_discount_applied(draft_order_and_prom
     rule_total.reward_value = Decimal(0)
     rule_total.save(update_fields=["reward_value"])
 
-    channel = order.channel
     discounted_variant_global_id = rule_catalogue.catalogue_predicate[
         "variantPredicate"
     ]["ids"][0]
     _, discounted_variant_id = graphene.Node.from_global_id(
         discounted_variant_global_id
     )
-    line_1, line_2 = (line_info.line for line_info in lines_info)
-    assert discounted_variant_id == str(line_2.variant_id)
-    listing = line_2.variant.channel_listings.get(channel=channel)
-    rules_info = fetch_variant_rules_info(listing, "en")
 
     # when
-    create_order_line_discount_objects_for_catalogue_promotions(
-        line_2, rules_info, order.channel
-    )
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
 
     # then
@@ -381,6 +365,7 @@ def test_multiple_rules_no_discount_applied(
 ):
     # given
     order, rule_catalogue, rule_total, rule_gift = draft_order_and_promotions
+    OrderLineDiscount.objects.all().delete()
     rule_total.order_predicate = {
         "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 100000}}}
     }
@@ -619,6 +604,7 @@ def test_create_multiple_catalogue_discounts_for_the_same_line_raise_unique_erro
     ]
 
     # when & then
+    # TODO zedzior: sprawdz czy w funkcji nie trzeba dodac ignore_conflicts=True
     with pytest.raises(IntegrityError):
         create_order_line_discount_objects_for_catalogue_promotions(
             order_line, rules_info, order.channel
