@@ -19,17 +19,12 @@ from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
 
 
-@pytest.mark.parametrize("create_new_discounts", [True, False])
 def test_fetch_order_prices_catalogue_discount_flat_rates(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
-    create_new_discounts,
     tax_configuration_flat_rates,
 ):
     # given
-    if create_new_discounts:
-        OrderLineDiscount.objects.all().delete()
-
     order = order_with_lines_and_catalogue_promotion
     order.status = OrderStatus.UNCONFIRMED
     channel = order.channel
@@ -2324,29 +2319,28 @@ def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_orde
     assert manual_line_discount.type == DiscountType.MANUAL
 
 
-def test_fetch_order_prices_catalogue_discount_race_condition(
-    order_with_lines_and_catalogue_promotion,
+def test_fetch_order_prices_order_promotion_discount_race_condition(
+    order_with_lines_and_order_promotion,
     plugins_manager,
     tax_configuration_flat_rates,
 ):
     # given
-    order = order_with_lines_and_catalogue_promotion
+    order = order_with_lines_and_order_promotion
     order.status = OrderStatus.UNCONFIRMED
-    OrderLineDiscount.objects.all().delete()
+    OrderDiscount.objects.all().delete()
 
     # when
-    def call_before_creating_catalogue_line_discount(*args, **kwargs):
+    def call_before_creating_order_promotion_line_discount(*args, **kwargs):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     with race_condition.RunBefore(
-        "saleor.discount.utils.promotion."
-        "prepare_line_discount_objects_for_catalogue_promotions",
-        call_before_creating_catalogue_line_discount,
+        "saleor.discount.utils.promotion._handle_order_promotion",
+        call_before_creating_order_promotion_line_discount,
     ):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     # then
-    assert OrderLineDiscount.objects.count() == 1
+    assert OrderDiscount.objects.count() == 1
 
 
 def test_fetch_order_prices_voucher_entire_order_fixed(
@@ -3394,96 +3388,43 @@ def test_fetch_order_prices_catalogue_discount_and_specific_product_voucher_flat
 
 
 def test_fetch_order_prices_removing_catalogue_promotion_doesnt_remove_discount(
-    order_with_lines,
+    order_with_lines_and_catalogue_promotion,
     plugins_manager,
     tax_configuration_flat_rates,
-    catalogue_promotion_with_single_rule,
 ):
     # given
-    order = order_with_lines
+    order = order_with_lines_and_catalogue_promotion
     currency = order.currency
     order.status = OrderStatus.UNCONFIRMED
     channel = order.channel
     line_1, line_2 = order.lines.all()
-    variant_1_id = graphene.Node.to_global_id("ProductVariant", line_1.variant_id)
+    catalogue_discount = line_1.discounts.get()
+    assert catalogue_discount.type == DiscountType.PROMOTION
 
-    promotion = catalogue_promotion_with_single_rule
-    rule = promotion.rules.first()
+    rule = catalogue_discount.promotion_rule
+    promotion = rule.promotion
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     catalogue_reward_value = rule.reward_value
     catalogue_reward_value_type = rule.reward_value_type
-    rule.catalogue_predicate = {"variantPredicate": {"ids": [variant_1_id]}}
-    rule.save(update_fields=["catalogue_predicate"])
-    assert catalogue_reward_value_type == DiscountValueType.FIXED
+    catalogue_unit_discount_amount = catalogue_reward_value
 
     tax_rate = Decimal("1.23")
-
-    # when
-    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
-    update_discounted_prices_for_promotion(Product.objects.all())
     order, lines = calculations.fetch_order_prices_if_expired(
         order, plugins_manager, None, True
     )
-
-    # then
-    assert OrderLineDiscount.objects.count() == 1
-    assert not OrderDiscount.objects.exists()
-
-    line_1, line_2 = lines
-    catalogue_discount = line_1.discounts.get(type=DiscountType.PROMOTION)
-    catalogue_unit_discount_amount = catalogue_reward_value
-    catalogue_discount_amount = catalogue_unit_discount_amount * line_1.quantity
-    assert catalogue_discount.amount_value == catalogue_discount_amount
-    assert catalogue_discount.value == catalogue_reward_value
-    assert catalogue_discount.value_type == catalogue_reward_value_type
-    assert catalogue_discount.type == DiscountType.PROMOTION
-    assert catalogue_discount.reason == f"Promotion: {promotion_id}"
-
     variant_1 = line_1.variant
     variant_1_listing = variant_1.channel_listings.get(channel=channel)
     variant_1_undiscounted_unit_price = variant_1_listing.price_amount
-    assert (
-        line_1.undiscounted_base_unit_price_amount == variant_1_undiscounted_unit_price
-    )
-
-    assert (
-        line_1.undiscounted_total_price_net_amount
-        == variant_1_undiscounted_unit_price * line_1.quantity
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_total_price_net_amount * tax_rate
-    )
-    assert (
-        line_1.undiscounted_unit_price_net_amount == variant_1_undiscounted_unit_price
-    )
-    assert (
-        line_1.undiscounted_unit_price_gross_amount
-        == variant_1_undiscounted_unit_price * tax_rate
-    )
-
     line_1_base_unit_price = (
         variant_1_undiscounted_unit_price - catalogue_unit_discount_amount
     )
-    assert variant_1_listing.discounted_price_amount == line_1_base_unit_price
+    line_1 = lines[0]
     assert line_1.base_unit_price_amount == line_1_base_unit_price
-    assert line_1.unit_price_net_amount == line_1_base_unit_price
-    assert line_1.unit_price_gross_amount == quantize_price(
-        line_1_base_unit_price * tax_rate, currency
-    )
-    assert (
-        line_1.total_price_net_amount == line_1.unit_price_net_amount * line_1.quantity
-    )
-    assert line_1.total_price_gross_amount == quantize_price(
-        line_1.total_price_net_amount * tax_rate, currency
-    )
 
     # when
     promotion.delete()
     fetch_variants_for_promotion_rules(PromotionRule.objects.all())
     update_discounted_prices_for_promotion(Product.objects.all())
-    # line_1.quantity += 1
-    # line_1.save(update_fields=["quantity"])
     order, lines = calculations.fetch_order_prices_if_expired(
         order, plugins_manager, None, True
     )
@@ -3497,14 +3438,14 @@ def test_fetch_order_prices_removing_catalogue_promotion_doesnt_remove_discount(
     assert not OrderDiscount.objects.exists()
 
     line_1, line_2 = lines
-    catalogue_discount = line_1.discounts.get(type=DiscountType.PROMOTION)
-    catalogue_unit_discount_amount = catalogue_reward_value
+    catalogue_discount.refresh_from_db()
     catalogue_discount_amount = catalogue_unit_discount_amount * line_1.quantity
     assert catalogue_discount.amount_value == catalogue_discount_amount
     assert catalogue_discount.value == catalogue_reward_value
     assert catalogue_discount.value_type == catalogue_reward_value_type
     assert catalogue_discount.type == DiscountType.PROMOTION
     assert catalogue_discount.reason == f"Promotion: {promotion_id}"
+    assert catalogue_discount.promotion_rule_id is None
 
     variant_1 = line_1.variant
     variant_1_listing = variant_1.channel_listings.get(channel=channel)

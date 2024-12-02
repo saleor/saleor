@@ -8,7 +8,11 @@ from prices import Money, TaxedMoney, fixed_discount
 
 from ....core.taxes import zero_money
 from ....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
+from ....discount.interface import fetch_variant_rules_info
 from ....discount.models import VoucherCode
+from ....discount.utils.order import (
+    create_order_line_discount_objects_for_catalogue_promotions,
+)
 from ....discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
 )
@@ -201,6 +205,12 @@ def draft_order_and_promotions(
         promotion_rule=rule_catalogue,
         discount_amount=Decimal(3),
         currency=currency,
+    )
+
+    # create catalogue discount
+    rules_info = fetch_variant_rules_info(listing, "en")
+    create_order_line_discount_objects_for_catalogue_promotions(
+        line_2, rules_info, channel_USD
     )
 
     # prepare order promotion - subtotal

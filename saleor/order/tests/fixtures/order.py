@@ -549,6 +549,7 @@ def order_with_lines_and_catalogue_promotion(
         amount_value=reward_value * line.quantity,
         currency=order.currency,
         promotion_rule=rule,
+        reason=f"Promotion: {graphene.Node.to_global_id("Promotion", promotion.id)}",
     )
     return order
 

@@ -339,11 +339,13 @@ def add_variant_to_order(
     channel = order.channel
 
     if line_data.line_id:
+        # TODO zedzior: obczaj co tu sie odpierdala
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
         line_info = OrderLineInfo(line=line, quantity=old_quantity)
         update_fields: list[str] = []
+        # TODO zedzior: a jak nie ma nowego quantity to juz nie musimy updatowac cen?
         if new_quantity and line_data.price_override is not None:
             update_line_base_unit_prices_with_custom_price(
                 order, line_data, line, update_fields
@@ -369,6 +371,7 @@ def add_variant_to_order(
                 [
                     OrderLineInfo(
                         line=line,
+                        # TODO zedzior: czy to nie powinna byc roznica miedzy quantity?
                         quantity=line_data.quantity,
                         variant=line_data.variant,
                         warehouse_pk=None,
