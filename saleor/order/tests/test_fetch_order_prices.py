@@ -11,10 +11,10 @@ from ...discount.models import (
     OrderLineDiscount,
     PromotionRule,
 )
-from ...tests import race_condition
 from ...product.models import Product
 from ...product.utils.variant_prices import update_discounted_prices_for_promotion
 from ...product.utils.variants import fetch_variants_for_promotion_rules
+from ...tests import race_condition
 from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
 
