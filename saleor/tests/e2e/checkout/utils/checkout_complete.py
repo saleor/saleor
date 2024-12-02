@@ -60,6 +60,7 @@ mutation CheckoutComplete($checkoutId: ID!) {
       }
       lines {
         id
+        quantity
         unitPrice {
           gross {
             amount

@@ -12,6 +12,7 @@ from .checkout_create_from_order import checkout_create_from_order
 from .checkout_delivery_method_update import checkout_delivery_method_update
 from .checkout_email_update import checkout_update_email
 from .checkout_lines_add import checkout_lines_add
+from .checkout_lines_delete import checkout_lines_delete
 from .checkout_lines_update import checkout_lines_update
 from .checkout_payment_create import (
     checkout_dummy_payment_create,
@@ -42,4 +43,5 @@ __all__ = [
     "get_checkout",
     "checkout_remove_promo_code",
     "checkout_update_email",
+    "checkout_lines_delete",
 ]

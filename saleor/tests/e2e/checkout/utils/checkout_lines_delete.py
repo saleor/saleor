@@ -1,8 +1,8 @@
 from ...utils import get_graphql_content
 
-CHECKOUT_LINES_UPDATE_MUTATION = """
-mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!]!) {
-  checkoutLinesUpdate(lines: $lines, checkoutId: $checkoutId) {
+CHECKOUT_LINES_DELETE_MUTATION = """
+mutation CheckoutLinesDelete($checkoutId: ID!, $linesIds: [ID!]!) {
+  checkoutLinesDelete(id: $checkoutId, linesIds: $linesIds) {
     checkout {
       discountName
       discount {
@@ -55,17 +55,18 @@ mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!
 """
 
 
-def checkout_lines_update(
+def checkout_lines_delete(
     staff_api_client,
     checkout_id,
-    lines,
+    linesIds,
 ):
     variables = {
         "checkoutId": checkout_id,
-        "lines": lines,
+        "linesIds": linesIds,
     }
 
-    response = staff_api_client.post_graphql(CHECKOUT_LINES_UPDATE_MUTATION, variables)
+    response = staff_api_client.post_graphql(CHECKOUT_LINES_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
 
-    return content["data"]["checkoutLinesUpdate"]
+    assert content["data"]["checkoutLinesDelete"]["errors"] == []
+    return content["data"]["checkoutLinesDelete"]["checkout"]
