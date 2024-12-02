@@ -11,7 +11,7 @@ from ....product.models import (
 )
 from ....warehouse.models import Stock
 from ... import DiscountType, RewardType, RewardValueType
-from ...interface import VariantPromotionRuleInfo
+from ...interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ...models import OrderDiscount, OrderLineDiscount
 from ...utils.order import (
     create_or_update_discount_objects_from_promotion_for_order,
@@ -56,10 +56,12 @@ def test_create_catalogue_discount_fixed(
         discount_amount=reward_value,
         currency=currency,
     )
-    lines_info = fetch_draft_order_lines_info(order)
+    rules_info = fetch_variant_rules_info(listing, "en")
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_line_discount_objects_for_catalogue_promotions(
+        line_1, rules_info, channel
+    )
 
     # then
     assert OrderLineDiscount.objects.count() == 1
@@ -73,9 +75,6 @@ def test_create_catalogue_discount_fixed(
     assert discount.amount_value == reward_value * line_1.quantity == Decimal(9)
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
-
-    line = [line_info.line for line_info in lines_info if line_info.line == line_1][0]
-    assert line.base_unit_price_amount == Decimal(7)
 
 
 def test_create_catalogue_discount_percentage(
@@ -116,10 +115,12 @@ def test_create_catalogue_discount_percentage(
         discount_amount=discount_amount,
         currency=currency,
     )
-    lines_info = fetch_draft_order_lines_info(order)
+    rules_info = fetch_variant_rules_info(listing, "en")
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_line_discount_objects_for_catalogue_promotions(
+        line_1, rules_info, channel
+    )
 
     # then
     assert OrderLineDiscount.objects.count() == 1
@@ -134,9 +135,6 @@ def test_create_catalogue_discount_percentage(
     assert discount.currency == channel.currency_code
     assert discount.name == f"{promotion.name}: {rule.name}"
     assert discount.reason == f"Promotion: {promotion_id}"
-
-    line = [line_info.line for line_info in lines_info if line_info.line == line_1][0]
-    assert line.base_unit_price_amount == Decimal(5)
 
 
 def test_create_order_discount_subtotal_fixed(
@@ -285,6 +283,7 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
 ):
     # given
     order, rule_catalogue, rule_total, rule_gift = draft_order_and_promotions
+    channel = order.channel
     lines_info = fetch_draft_order_lines_info(order)
     discounted_variant_global_id = rule_catalogue.catalogue_predicate[
         "variantPredicate"
@@ -292,8 +291,15 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
     _, discounted_variant_id = graphene.Node.from_global_id(
         discounted_variant_global_id
     )
+    line_1, line_2 = (line_info.line for line_info in lines_info)
+    assert discounted_variant_id == str(line_2.variant_id)
+    listing = line_2.variant.channel_listings.get(channel=channel)
+    rules_info = fetch_variant_rules_info(listing, "en")
 
     # when
+    create_order_line_discount_objects_for_catalogue_promotions(
+        line_2, rules_info, order.channel
+    )
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
 
     # then
@@ -325,7 +331,22 @@ def test_multiple_rules_gift_and_catalogue_discount_applied(draft_order_and_prom
     rule_total.reward_value = Decimal(0)
     rule_total.save(update_fields=["reward_value"])
 
+    channel = order.channel
+    discounted_variant_global_id = rule_catalogue.catalogue_predicate[
+        "variantPredicate"
+    ]["ids"][0]
+    _, discounted_variant_id = graphene.Node.from_global_id(
+        discounted_variant_global_id
+    )
+    line_1, line_2 = (line_info.line for line_info in lines_info)
+    assert discounted_variant_id == str(line_2.variant_id)
+    listing = line_2.variant.channel_listings.get(channel=channel)
+    rules_info = fetch_variant_rules_info(listing, "en")
+
     # when
+    create_order_line_discount_objects_for_catalogue_promotions(
+        line_2, rules_info, order.channel
+    )
     create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
 
     # then
@@ -394,7 +415,7 @@ def test_multiple_rules_no_discount_applied(
     assert not OrderDiscount.objects.exists()
 
 
-def test_update_catalogue_discount(
+def test_update_catalogue_discount_updates_discount_amount_only(
     order_with_lines_and_catalogue_promotion, catalogue_promotion_without_rules
 ):
     # given
@@ -402,33 +423,41 @@ def test_update_catalogue_discount(
     promotion = catalogue_promotion_without_rules
 
     channel = order.channel
-    line = order.lines.get(quantity=3)
+    line = order.lines.first()
+    new_line_quantity = line.quantity + 1
+    line.quantity = new_line_quantity
+    line.save(update_fields=["quantity"])
+
     variant = line.variant
     assert OrderLineDiscount.objects.count() == 1
     discount_to_update = line.discounts.get()
 
-    reward_value = Decimal(6)
-    assert reward_value > promotion.rules.first().reward_value
-    rule = promotion.rules.create(
+    new_reward_value = Decimal(6)
+    initial_rule = promotion.rules.first()
+    initial_rule_reward_value = initial_rule.reward_value
+    assert new_reward_value > initial_rule_reward_value
+    new_rule = promotion.rules.create(
         name="New catalogue rule fixed",
         catalogue_predicate={
             "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant)]
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
             }
         },
         reward_value_type=RewardValueType.FIXED,
-        reward_value=reward_value,
+        reward_value=new_reward_value,
     )
-    rule.channels.add(channel)
+    new_rule.channels.add(channel)
 
     variant_channel_listing = variant.channel_listings.get(channel=channel)
     undiscounted_price = variant_channel_listing.price_amount
-    variant_channel_listing.discounted_price_amount = undiscounted_price - reward_value
+    variant_channel_listing.discounted_price_amount = (
+        undiscounted_price - new_reward_value
+    )
     variant_channel_listing.save(update_fields=["discounted_price_amount"])
 
     variant_rule_listing = variant_channel_listing.variantlistingpromotionrule.get()
-    variant_rule_listing.discount_amount = reward_value
-    variant_rule_listing.promotion_rule = rule
+    variant_rule_listing.discount_amount = new_reward_value
+    variant_rule_listing.promotion_rule = new_rule
     variant_rule_listing.save(update_fields=["discount_amount", "promotion_rule"])
 
     lines_info = fetch_draft_order_lines_info(order)
@@ -439,18 +468,16 @@ def test_update_catalogue_discount(
     # then
     assert OrderLineDiscount.objects.count() == 1
     discount = OrderLineDiscount.objects.get()
+    assert discount.amount_value == initial_rule_reward_value * new_line_quantity
+
+    # other fields shoudn't be changed
     assert discount_to_update.id == discount.id
     assert discount.line == line
-    assert discount.promotion_rule == rule
+    assert discount.promotion_rule == initial_rule
     assert discount.type == DiscountType.PROMOTION
     assert discount.value_type == RewardValueType.FIXED
-    assert discount.value == reward_value == Decimal(6)
-    assert discount.amount_value == reward_value * line.quantity == Decimal(18)
+    assert discount.value == initial_rule_reward_value
     assert discount.currency == channel.currency_code
-    assert discount.name == f"{promotion.name}: {rule.name}"
-
-    line = [line_info.line for line_info in lines_info if line_info.line == line][0]
-    assert line.base_unit_price_amount == Decimal(4)
 
 
 def test_update_order_discount_subtotal(
