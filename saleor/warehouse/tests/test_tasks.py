@@ -3,11 +3,26 @@ from datetime import timedelta
 import pytest
 from django.utils import timezone
 
-from ..models import PreorderReservation, Reservation
+from ..models import Allocation, PreorderReservation, Reservation
 from ..tasks import (
+    delete_empty_allocations_task,
     delete_expired_reservations_task,
     update_stocks_quantity_allocated_task,
 )
+
+
+def test_delete_empty_allocations_task(allocations):
+    # given
+    allocation = allocations[0]
+    allocation.quantity_allocated = 0
+    allocation.save()
+
+    # when
+    delete_empty_allocations_task()
+
+    # then
+    assert Allocation.objects.count() == len(allocations) - 1
+    assert not Allocation.objects.filter(id=allocation.id).exists()
 
 
 def test_delete_expired_reservations_task_deletes_expired_stock_reservations(
