@@ -7,6 +7,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
+from ....warehouse.management import stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...channel import ChannelContext
@@ -129,4 +130,4 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             webhooks=webhooks_stock_update,
         )
 
-        warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
+        stock_bulk_update(stocks, ["quantity"])

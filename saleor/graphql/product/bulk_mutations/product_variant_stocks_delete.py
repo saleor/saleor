@@ -5,6 +5,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
+from ....warehouse.management import delete_stocks
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...channel import ChannelContext
@@ -80,8 +81,7 @@ class ProductVariantStocksDelete(BaseMutation):
             cls.call_event(
                 manager.product_variant_out_of_stock, stock, webhooks=webhooks
             )
-
-        stocks_to_delete.delete()
+        delete_stocks([stock.id for stock in stocks_to_delete])
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)
 
