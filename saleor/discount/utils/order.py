@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
@@ -5,13 +6,14 @@ from django.conf import settings
 from django.db import transaction
 from prices import TaxedMoney
 
+from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order, OrderLine
-from ...order.utils import get_order_country
 from .. import DiscountType
+from ..interface import VariantPromotionRuleInfo
 from ..models import (
     DiscountValueType,
     OrderLineDiscount,
@@ -52,7 +54,7 @@ def create_or_update_discount_objects_from_promotion_for_order(
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    create_order_line_discount_objects_for_catalogue_promotions(lines_info)
+    update_order_line_discount_objects_for_catalogue_promotions(lines_info)
     # base unit price must reflect all actual catalogue discounts
     _update_base_unit_price_amount_for_catalogue_promotion(lines_info)
     create_order_discount_objects_for_order_promotions(
@@ -60,23 +62,15 @@ def create_or_update_discount_objects_from_promotion_for_order(
     )
 
 
-def create_order_line_discount_objects_for_catalogue_promotions(
+def update_order_line_discount_objects_for_catalogue_promotions(
     lines_info: list["EditableOrderLineInfo"],
 ):
-    discount_data = prepare_order_line_discount_objects_for_catalogue_promotions(
-        lines_info
-    )
-    create_order_line_discount_objects(lines_info, discount_data)
-
-
-def prepare_order_line_discount_objects_for_catalogue_promotions(lines_info):
-    line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[OrderLineDiscount] = []
     line_discounts_to_remove: list[OrderLineDiscount] = []
     updated_fields: list[str] = []
 
     if not lines_info:
-        return None
+        return
 
     for line_info in lines_info:
         line = line_info.line
@@ -103,44 +97,23 @@ def prepare_order_line_discount_objects_for_catalogue_promotions(lines_info):
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        if not discount_to_update:
-            if line_info.rules_info:
-                rule_info = line_info.rules_info[0]
-                rule = rule_info.rule
-                rule_discount_amount = _get_rule_discount_amount(
-                    line, rule_info, line_info.channel
-                )
-                discount_name = get_discount_name(rule, rule_info.promotion)
-                translated_name = get_discount_translated_name(rule_info)
-                reason = prepare_promotion_discount_reason(rule)
+        if discount_to_update and _update_catalogue_promotion_discount_for_order(
+            discount_to_update, line_info.line, updated_fields
+        ):
+            line_discounts_to_update.append(discount_to_update)
 
-                line_discount_input = {
-                    "line": line,
-                    "type": DiscountType.PROMOTION,
-                    "value_type": rule.reward_value_type,
-                    "value": rule.reward_value,
-                    "amount_value": rule_discount_amount,
-                    "currency": line.currency,
-                    "name": discount_name,
-                    "translated_name": translated_name,
-                    "reason": reason,
-                    "promotion_rule": rule,
-                    "unique_type": DiscountType.PROMOTION,
-                }
-                line_discounts_to_create_inputs.append(line_discount_input)
-
-        else:
-            if _update_catalogue_promotion_discount_for_order(
-                discount_to_update, line_info.line, updated_fields
-            ):
-                line_discounts_to_update.append(discount_to_update)
-
-    return (
-        line_discounts_to_create_inputs,
+    discount_data: tuple[
+        list[dict],
+        list[OrderLineDiscount],
+        list[OrderLineDiscount],
+        list[str],
+    ] = (
+        [],
         line_discounts_to_update,
         line_discounts_to_remove,
         updated_fields,
     )
+    create_order_line_discount_objects(lines_info, discount_data)
 
 
 def create_order_line_discount_objects(
@@ -266,6 +239,7 @@ def _update_base_unit_price_amount_for_catalogue_promotion(
     for line_info in lines_info:
         line = line_info.line
         base_unit_price = line.undiscounted_base_unit_price_amount
+        # TODO zedzior: sprawdz czy get_catalogue_discount istenieje jesli ja wczesniej usuniemy
         for discount in line_info.get_catalogue_discounts():
             unit_discount = discount.amount_value / line.quantity
             base_unit_price -= unit_discount
@@ -277,6 +251,8 @@ def create_order_discount_objects_for_order_promotions(
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
+    from ...order.utils import get_order_country
+
     # If voucher is set or manual discount applied, then skip order promotions
     if order.voucher_code or order.discounts.filter(type=DiscountType.MANUAL):
         _clear_order_discount(order, lines_info)
@@ -361,3 +337,49 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
 
     if discount_to_update:
         OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
+
+
+def create_order_line_discount_objects_for_catalogue_promotions(
+    line: "OrderLine",
+    rules_info: Iterable[VariantPromotionRuleInfo],
+    channel: Channel,
+) -> Iterable["OrderLineDiscount"]:
+    from ...order.utils import order_qs_select_for_update
+
+    line_discounts_to_create_inputs: list[dict] = []
+    for rule_info in rules_info:
+        rule = rule_info.rule
+        rule_discount_amount = _get_rule_discount_amount(line, rule_info, channel)
+        discount_name = get_discount_name(rule, rule_info.promotion)
+        translated_name = get_discount_translated_name(rule_info)
+        reason = prepare_promotion_discount_reason(rule)
+
+        line_discount_input = {
+            "line": line,
+            "type": DiscountType.PROMOTION,
+            "value_type": rule.reward_value_type,
+            "value": rule.reward_value,
+            "amount_value": rule_discount_amount,
+            "currency": line.currency,
+            "name": discount_name,
+            "translated_name": translated_name,
+            "reason": reason,
+            "promotion_rule": rule,
+            "unique_type": DiscountType.PROMOTION,
+        }
+        line_discounts_to_create_inputs.append(line_discount_input)
+
+    if line_discounts_to_create_inputs:
+        with allow_writer():
+            with transaction.atomic():
+                order_id = line.order_id
+                _order_lock = list(order_qs_select_for_update().filter(id=order_id))
+                new_line_discounts = [
+                    OrderLineDiscount(**input)
+                    for input in line_discounts_to_create_inputs
+                ]
+
+                return OrderLineDiscount.objects.bulk_create(
+                    new_line_discounts, ignore_conflicts=True
+                )
+    return []

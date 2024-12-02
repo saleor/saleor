@@ -21,9 +21,10 @@ from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
 from ..discount.utils.manual_discount import apply_discount_to_value
+from ..discount.utils.order import (
+    create_order_line_discount_objects_for_catalogue_promotions,
+)
 from ..discount.utils.promotion import (
-    get_discount_name,
-    get_discount_translated_name,
     get_sale_id,
     prepare_promotion_discount_reason,
 )
@@ -64,7 +65,6 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
-    from ..discount.interface import VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -272,7 +272,11 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
-            line_discounts = create_order_line_catalogue_discounts(line, rules_info)
+            line_discounts = (
+                create_order_line_discount_objects_for_catalogue_promotions(
+                    line, rules_info, channel
+                )
+            )
             promotion = rules_info[0].promotion
             line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
@@ -317,33 +321,6 @@ def create_order_line(
         )
 
     return line
-
-
-def create_order_line_catalogue_discounts(
-    line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
-) -> Iterable["OrderLineDiscount"]:
-    line_discounts_to_create: list[OrderLineDiscount] = []
-    for rule_info in rules_info:
-        rule = rule_info.rule
-        if not rule_info.variant_listing_promotion_rule:
-            continue
-        rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
-        line_discounts_to_create.append(
-            OrderLineDiscount(
-                line=line,
-                type=DiscountType.PROMOTION,
-                value_type=rule.reward_value_type,
-                value=rule.reward_value,
-                amount_value=rule_discount_amount * line.quantity,
-                currency=line.currency,
-                name=get_discount_name(rule, rule_info.promotion),
-                translated_name=get_discount_translated_name(rule_info),
-                reason=prepare_promotion_discount_reason(rule),
-                promotion_rule=rule,
-            )
-        )
-
-    return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
 
 
 @traced_atomic_transaction()
@@ -1317,3 +1294,7 @@ def clean_order_line_quantities(order_lines, quantities_for_lines):
                     )
                 }
             )
+
+
+def order_qs_select_for_update():
+    return Order.objects.order_by("id").select_for_update(of=(["self"]))
