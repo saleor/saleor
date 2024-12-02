@@ -817,15 +817,15 @@ def _handle_gift_reward(
             "product": variant.product,
             "product_type": variant.product.product_type,
             "collections": [],
-            "channel_listing": gift_listing,
             "discounts": [line_discount],
-            "rules_info": [rule_info],
             "channel": channel,
             "voucher": None,
             "voucher_code": None,
         }
         gift_line_info: CheckoutLineInfo | EditableOrderLineInfo
         if isinstance(order_or_checkout, Checkout):
+            init_values["channel_listing"] = gift_listing
+            init_values["rules_info"] = [rule_info]
             gift_line_info = CheckoutLineInfo(**init_values)
         else:
             gift_line_info = EditableOrderLineInfo(**init_values)

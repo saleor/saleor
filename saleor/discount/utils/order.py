@@ -98,7 +98,7 @@ def update_order_line_discount_objects_for_catalogue_promotions(
             continue
 
         if discount_to_update and _update_catalogue_promotion_discount_for_order(
-            discount_to_update, line_info.line, updated_fields
+            discount_to_update, line_info, updated_fields
         ):
             line_discounts_to_update.append(discount_to_update)
 
@@ -179,7 +179,7 @@ def create_order_line_discount_objects(
 
 def _update_catalogue_promotion_discount_for_order(
     discount_to_update: "OrderLineDiscount",
-    line: "OrderLine",
+    line_info: "EditableOrderLineInfo",
     updated_fields: list[str],
 ) -> bool:
     """Update catalogue promotion discount amount in case of line quantity update.
@@ -189,6 +189,7 @@ def _update_catalogue_promotion_discount_for_order(
     # TODO zedzior: jesli to tylko w przy quantity to moze lepiej przeniesc do mutacji
     # we can't simply get difference between undiscounted price and base price,
     # because base price can have other line-level discount included, ie. voucher
+    line = line_info.line
     undiscounted_unit_price = line.undiscounted_base_unit_price
     unit_price = apply_discount_to_value(
         discount_to_update.value,

@@ -1253,16 +1253,6 @@ def order_info_for_logs(order: Order, lines: Iterable[OrderLine]):
                 "total_price_net_amount": line_info.line.total_price_net_amount,
                 "total_price_gross_amount": line_info.line.total_price_gross_amount,
                 "has_voucher_code": bool(line_info.line.voucher_code),
-                "variant_listing_price": (
-                    line_info.channel_listing.price_amount
-                    if line_info.channel_listing
-                    else None
-                ),
-                "variant_listing_discounted_price": (
-                    line_info.channel_listing.discounted_price_amount
-                    if line_info.channel_listing
-                    else None
-                ),
                 "unit_discount_amount": line_info.line.unit_discount_amount,
                 "unit_discount_type": line_info.line.unit_discount_type,
                 "unit_discount_reason": line_info.line.unit_discount_reason,
