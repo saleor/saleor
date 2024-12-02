@@ -77,6 +77,11 @@ mutation CheckoutComplete($checkoutId: ID!) {
             amount
           }
         }
+        totalPrice {
+          gross {
+            amount
+          }
+        }
       }
       discounts {
         id
