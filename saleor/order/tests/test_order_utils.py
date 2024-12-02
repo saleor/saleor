@@ -7,6 +7,9 @@ from prices import Money, TaxedMoney
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...discount import DiscountType, DiscountValueType
 from ...discount.interface import VariantPromotionRuleInfo
+from ...discount.utils.order import (
+    create_order_line_discount_objects_for_catalogue_promotions,
+)
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
@@ -22,7 +25,6 @@ from ..utils import (
     add_variant_to_order,
     calculate_order_granted_refund_status,
     change_order_line_quantity,
-    create_order_line_catalogue_discounts,
     get_order_country,
     get_total_order_discount_excluding_shipping,
     get_valid_shipping_methods_for_order,
@@ -638,7 +640,9 @@ def test_create_order_line_discounts(
     ]
 
     # when
-    line_discounts = create_order_line_catalogue_discounts(order_line, rules_info)
+    line_discounts = create_order_line_discount_objects_for_catalogue_promotions(
+        order_line, rules_info, order.channel
+    )
 
     # then
     assert len(line_discounts) == 2
@@ -648,9 +652,15 @@ def test_create_order_line_discounts(
         assert discount.line == order_line
         assert discount.type == DiscountType.PROMOTION
         assert discount.currency == order.currency
-        assert discount.reason is None
+        assert (
+            discount.reason
+            == f"Promotion: {graphene.Node.to_global_id("Promotion", promotion.id)}"
+        )
 
-    assert discount_1.amount_value == listing_promotion_rule_1.discount_amount
+    assert (
+        discount_1.amount_value
+        == listing_promotion_rule_1.discount_amount * order_line.quantity
+    )
     assert discount_1.value_type == rule_1.reward_value_type
     assert discount_1.value == rule_1.reward_value
     assert discount_1.name == f"{promotion.name}: {rule_1.name}"
@@ -660,7 +670,10 @@ def test_create_order_line_discounts(
     )
     assert discount_1.promotion_rule == rule_1
 
-    assert discount_2.amount_value == listing_promotion_rule_2.discount_amount
+    assert (
+        discount_2.amount_value
+        == listing_promotion_rule_2.discount_amount * order_line.quantity
+    )
     assert discount_2.value_type == rule_2.reward_value_type
     assert discount_2.value == rule_2.reward_value
     assert discount_2.name == f"{promotion.name}: {rule_2.name}"
