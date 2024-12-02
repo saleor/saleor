@@ -6,16 +6,11 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...discount import DiscountType, DiscountValueType
-from ...discount.interface import VariantPromotionRuleInfo
-from ...discount.utils.order import (
-    create_order_line_discount_objects_for_catalogue_promotions,
-)
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
 from ...payment import TransactionEventType
 from ...plugins.manager import get_plugins_manager
-from ...product.models import VariantChannelListingPromotionRule
 from .. import OrderGrantedRefundStatus, OrderStatus
 from ..events import OrderEvents
 from ..fetch import OrderLineInfo
@@ -579,106 +574,6 @@ def test_get_order_country_use_channel_country(order):
 
     # then
     assert country == order.channel.default_country
-
-
-def test_create_order_line_discounts(
-    order_line,
-    catalogue_promotion,
-    promotion_translation_fr,
-    promotion_rule_translation_fr,
-):
-    # given
-    promotion = catalogue_promotion
-    rules = promotion.rules.all()
-    rule_1 = rules[0]
-    rule_2 = rules[1]
-
-    order = order_line.order
-    variant = order_line.variant
-    variant_channel_listing = variant.channel_listings.get(
-        channel_id=order_line.order.channel_id
-    )
-
-    (
-        listing_promotion_rule_1,
-        listing_promotion_rule_2,
-    ) = VariantChannelListingPromotionRule.objects.bulk_create(
-        [
-            VariantChannelListingPromotionRule(
-                variant_channel_listing=variant_channel_listing,
-                promotion_rule=rule_1,
-                discount_amount=Decimal("10.0"),
-                currency=order.currency,
-            ),
-            VariantChannelListingPromotionRule(
-                variant_channel_listing=variant_channel_listing,
-                promotion_rule=rule_2,
-                discount_amount=Decimal("5.0"),
-                currency=order.currency,
-            ),
-        ]
-    )
-
-    promotion_rule_translation_fr.promotion_rule = rule_1
-    promotion_rule_translation_fr.save(update_fields=["promotion_rule"])
-
-    rules_info = [
-        VariantPromotionRuleInfo(
-            rule=rule_1,
-            variant_listing_promotion_rule=listing_promotion_rule_1,
-            promotion=promotion,
-            promotion_translation=promotion_translation_fr,
-            rule_translation=promotion_rule_translation_fr,
-        ),
-        VariantPromotionRuleInfo(
-            rule=rule_2,
-            variant_listing_promotion_rule=listing_promotion_rule_2,
-            promotion=promotion,
-            promotion_translation=promotion_translation_fr,
-            rule_translation=None,
-        ),
-    ]
-
-    # when
-    line_discounts = create_order_line_discount_objects_for_catalogue_promotions(
-        order_line, rules_info, order.channel
-    )
-
-    # then
-    assert len(line_discounts) == 2
-    discount_1, discount_2 = line_discounts
-
-    for discount in [discount_1, discount_2]:
-        assert discount.line == order_line
-        assert discount.type == DiscountType.PROMOTION
-        assert discount.currency == order.currency
-        assert (
-            discount.reason
-            == f"Promotion: {graphene.Node.to_global_id("Promotion", promotion.id)}"
-        )
-
-    assert (
-        discount_1.amount_value
-        == listing_promotion_rule_1.discount_amount * order_line.quantity
-    )
-    assert discount_1.value_type == rule_1.reward_value_type
-    assert discount_1.value == rule_1.reward_value
-    assert discount_1.name == f"{promotion.name}: {rule_1.name}"
-    assert (
-        discount_1.translated_name
-        == f"{promotion_translation_fr.name}: {promotion_rule_translation_fr.name}"
-    )
-    assert discount_1.promotion_rule == rule_1
-
-    assert (
-        discount_2.amount_value
-        == listing_promotion_rule_2.discount_amount * order_line.quantity
-    )
-    assert discount_2.value_type == rule_2.reward_value_type
-    assert discount_2.value == rule_2.reward_value
-    assert discount_2.name == f"{promotion.name}: {rule_2.name}"
-    assert discount_2.translated_name == f"{promotion_translation_fr.name}"
-    assert discount_2.promotion_rule == rule_2
 
 
 @pytest.mark.parametrize(
