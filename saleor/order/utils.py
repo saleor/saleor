@@ -21,9 +21,10 @@ from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
 from ..discount.utils.manual_discount import apply_discount_to_value
+from ..discount.utils.order import (
+    create_order_line_discount_objects_for_catalogue_promotions,
+)
 from ..discount.utils.promotion import (
-    get_discount_name,
-    get_discount_translated_name,
     get_sale_id,
     prepare_promotion_discount_reason,
 )
@@ -64,7 +65,6 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
-    from ..discount.interface import VariantPromotionRuleInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -96,7 +96,7 @@ def order_line_needs_automatic_fulfillment(line_data: OrderLineInfo) -> bool:
     return False
 
 
-def order_needs_automatic_fulfillment(lines_data: Iterable["OrderLineInfo"]) -> bool:
+def order_needs_automatic_fulfillment(lines_data: list["OrderLineInfo"]) -> bool:
     """Check if order has digital products which should be automatically fulfilled."""
     for line_data in lines_data:
         if line_data.is_digital and order_line_needs_automatic_fulfillment(line_data):
@@ -205,7 +205,7 @@ def create_order_line(
     line_data,
     manager,
     allocate_stock=False,
-):
+) -> OrderLine:
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
@@ -272,7 +272,11 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
-            line_discounts = create_order_line_catalogue_discounts(line, rules_info)
+            line_discounts = (
+                create_order_line_discount_objects_for_catalogue_promotions(
+                    line, rules_info, channel
+                )
+            )
             promotion = rules_info[0].promotion
             line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
@@ -319,33 +323,6 @@ def create_order_line(
     return line
 
 
-def create_order_line_catalogue_discounts(
-    line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
-) -> Iterable["OrderLineDiscount"]:
-    line_discounts_to_create: list[OrderLineDiscount] = []
-    for rule_info in rules_info:
-        rule = rule_info.rule
-        if not rule_info.variant_listing_promotion_rule:
-            continue
-        rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
-        line_discounts_to_create.append(
-            OrderLineDiscount(
-                line=line,
-                type=DiscountType.PROMOTION,
-                value_type=rule.reward_value_type,
-                value=rule.reward_value,
-                amount_value=rule_discount_amount * line.quantity,
-                currency=line.currency,
-                name=get_discount_name(rule, rule_info.promotion),
-                translated_name=get_discount_translated_name(rule_info),
-                reason=prepare_promotion_discount_reason(rule),
-                promotion_rule=rule,
-            )
-        )
-
-    return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
-
-
 @traced_atomic_transaction()
 def add_variant_to_order(
     order,
@@ -354,7 +331,7 @@ def add_variant_to_order(
     app,
     manager,
     allocate_stock=False,
-):
+) -> OrderLine:
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
@@ -403,13 +380,12 @@ def add_variant_to_order(
 
         return line
 
-    if line_data.variant_id:
-        return create_order_line(
-            order,
-            line_data,
-            manager,
-            allocate_stock,
-        )
+    return create_order_line(
+        order,
+        line_data,
+        manager,
+        allocate_stock,
+    )
 
 
 def update_line_base_unit_prices_with_custom_price(
@@ -803,7 +779,7 @@ def create_order_discount_for_order(
 ):
     """Add new order discount and update the prices."""
 
-    current_total = order.undiscounted_total
+    current_total: TaxedMoney = order.undiscounted_total
     currency = order.currency
 
     gross_total = apply_discount_to_value(
@@ -817,7 +793,7 @@ def create_order_discount_for_order(
         value_type=value_type,
         value=value,
         reason=reason,
-        amount=new_amount,  # type: ignore
+        amount=new_amount,  # type: ignore[misc]
         **kwargs,
     )
     return order_discount
@@ -1292,6 +1268,10 @@ def order_info_for_logs(order: Order, lines: Iterable[OrderLine]):
             for line_info in lines_info
         ],
     }
+
+
+def order_qs_select_for_update():
+    return Order.objects.order_by("id").select_for_update(of=(["self"]))
 
 
 def clean_order_line_quantities(order_lines, quantities_for_lines):
