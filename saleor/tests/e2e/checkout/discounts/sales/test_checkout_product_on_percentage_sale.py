@@ -62,9 +62,6 @@ def prepare_products(
     number_of_products,
     prices,
 ):
-    if len(prices) < number_of_products:
-        raise ValueError("Not enough prices provided for the number of products.")
-
     products_data = []
 
     for i in range(number_of_products):
@@ -144,15 +141,20 @@ def test_checkout_products_on_percentage_sale_core_1004(
     # ones
     recalculate_discounted_price_for_products_task()
 
+    product1_quantity = 2
+    product2_quantity = 4
+    product3_quantity = 1
+    product4_quantity = 1
+
     # Step 1 - checkoutCreate for product on sale
     lines = [
         {
             "variantId": product1_variant_id,
-            "quantity": 2,
+            "quantity": product1_quantity,
         },
         {
             "variantId": product2_variant_id,
-            "quantity": 4,
+            "quantity": product2_quantity,
         },
     ]
     checkout_data = checkout_create(
@@ -168,33 +170,32 @@ def test_checkout_products_on_percentage_sale_core_1004(
     checkout_line2 = checkout_data["lines"][1]
 
     assert checkout_line1["variant"]["id"] == product1_variant_id
-    assert checkout_line1["quantity"] == 2
+    assert checkout_line1["quantity"] == product1_quantity
     line1_discount = round(product1_variant_price * sale_discount_value / 100, 2)
     line1_unit_price = product1_variant_price - line1_discount
     assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
     assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
 
     assert checkout_line2["variant"]["id"] == product2_variant_id
-    assert checkout_line2["quantity"] == 4
+    assert checkout_line2["quantity"] == product2_quantity
     line2_discount = round(product2_variant_price * sale_discount_value / 100, 2)
     line2_unit_price = product2_variant_price - line2_discount
     assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
     assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
-
-    assert (
-        checkout_data["subtotalPrice"]["gross"]["amount"]
-        == 2 * line1_unit_price + 4 * line2_unit_price
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
     )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
 
     # Step 2 - Add Lines
     lines = [
         {
             "variantId": product3_variant_id,
-            "quantity": 1,
+            "quantity": product3_quantity,
         },
         {
             "variantId": product4_variant_id,
-            "quantity": 1,
+            "quantity": product4_quantity,
         },
     ]
     checkout_data = checkout_lines_add(
@@ -204,7 +205,7 @@ def test_checkout_products_on_percentage_sale_core_1004(
     )
     checkout_line3 = checkout_data["lines"][2]
     assert checkout_line3["variant"]["id"] == product3_variant_id
-    assert checkout_line3["quantity"] == 1
+    assert checkout_line3["quantity"] == product3_quantity
     line3_discount = round(product3_variant_price * sale_discount_value / 100, 2)
     line3_unit_price = product3_variant_price - line3_discount
     assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
@@ -216,13 +217,14 @@ def test_checkout_products_on_percentage_sale_core_1004(
     line4_unit_price = product4_variant_price
     assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
     assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
-    assert (
-        checkout_data["subtotalPrice"]["gross"]["amount"]
-        == 2 * line1_unit_price
-        + 4 * line2_unit_price
-        + line3_unit_price
-        + line4_unit_price
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price
+        + product2_quantity * line2_unit_price
+        + product3_quantity * line3_unit_price
+        + product4_quantity * line4_unit_price,
+        2,
     )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
 
     # Step 3 - Remove lines
     checkout_data = checkout_lines_delete(
@@ -238,21 +240,21 @@ def test_checkout_products_on_percentage_sale_core_1004(
     new_checkout_line3 = checkout_data["lines"][2]  # not on sale
 
     assert new_checkout_line1["variant"]["id"] == product2_variant_id
-    assert new_checkout_line1["quantity"] == 4
+    assert new_checkout_line1["quantity"] == product2_quantity
     line1_discount = round(product2_variant_price * sale_discount_value / 100, 2)
     line1_unit_price = product2_variant_price - line1_discount
     assert new_checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
-    assert new_checkout_line1["undiscountedUnitPrice"]["amount"] == float(
-        product2_variant_price
+    assert (
+        new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
     )
 
     assert new_checkout_line2["variant"]["id"] == product3_variant_id
-    assert new_checkout_line2["quantity"] == 1
+    assert new_checkout_line2["quantity"] == product3_quantity
     line2_discount = round(product3_variant_price * sale_discount_value / 100, 2)
     line2_unit_price = product3_variant_price - line2_discount
     assert new_checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
-    assert new_checkout_line2["undiscountedUnitPrice"]["amount"] == float(
-        product3_variant_price
+    assert (
+        new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
     )
 
     assert new_checkout_line3["variant"]["id"] == product4_variant_id
@@ -260,19 +262,24 @@ def test_checkout_products_on_percentage_sale_core_1004(
     line3_unit_price = product4_variant_price
     assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
-    assert (
-        checkout_data["subtotalPrice"]["gross"]["amount"]
-        == (4 * line1_unit_price) + line2_unit_price + line3_unit_price
+    calculated_subtotal = round(
+        +product2_quantity * line1_unit_price
+        + product3_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
     )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
 
     # Step 4 - Update lines
+    product2_new_quantity = 3
+    product3_new_quantity = 2
     lines = [
         {
-            "quantity": 3,
+            "quantity": product2_new_quantity,
             "lineId": new_checkout_line1["id"],
         },
         {
-            "quantity": 2,
+            "quantity": product3_new_quantity,
             "lineId": new_checkout_line2["id"],
         },
     ]
@@ -289,30 +296,29 @@ def test_checkout_products_on_percentage_sale_core_1004(
     checkout_line3 = checkout_data["lines"][2]  # not on sale
 
     assert checkout_line1["variant"]["id"] == product2_variant_id
-    assert checkout_line1["quantity"] == 3
+    assert checkout_line1["quantity"] == product2_new_quantity
     line1_discount = round(product2_variant_price * sale_discount_value / 100, 2)
     line1_unit_price = product2_variant_price - line1_discount
     assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
-    assert checkout_line1["undiscountedUnitPrice"]["amount"] == float(
-        product2_variant_price
-    )
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
 
     assert checkout_line2["variant"]["id"] == product3_variant_id
-    assert checkout_line2["quantity"] == 2
+    assert checkout_line2["quantity"] == product3_new_quantity
     line2_discount = round(product3_variant_price * sale_discount_value / 100, 2)
     line2_unit_price = product3_variant_price - line2_discount
     assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
-    assert checkout_line2["undiscountedUnitPrice"]["amount"] == float(
-        product3_variant_price
-    )
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
 
     assert checkout_line3["variant"]["id"] == product4_variant_id
-    assert checkout_line3["quantity"] == 1
+    assert checkout_line3["quantity"] == product4_quantity
     line3_unit_price = product4_variant_price
     assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
-    calculated_subtotal = (
-        (3 * line1_unit_price) + 2 * line2_unit_price + line3_unit_price
+    calculated_subtotal = round(
+        +product2_new_quantity * line1_unit_price
+        + product3_new_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
     )
     assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
 
@@ -352,7 +358,7 @@ def test_checkout_products_on_percentage_sale_core_1004(
 
     assert len(order_data["lines"]) == 3
 
-    assert order_line1["quantity"] == 3
+    assert order_line1["quantity"] == product2_new_quantity
     assert order_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
     assert order_line1["unitDiscount"]["amount"] == line1_discount
     assert order_line1["unitDiscountReason"] == f"Sale: {sale_id}"
@@ -361,7 +367,7 @@ def test_checkout_products_on_percentage_sale_core_1004(
         == product2_variant_price
     )
 
-    assert order_line2["quantity"] == 2
+    assert order_line2["quantity"] == product3_new_quantity
     assert order_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
     assert order_line2["unitDiscount"]["amount"] == line2_discount
     assert order_line2["unitDiscountReason"] == f"Sale: {sale_id}"
@@ -370,7 +376,7 @@ def test_checkout_products_on_percentage_sale_core_1004(
         == product3_variant_price
     )
 
-    assert order_line3["quantity"] == 1
+    assert order_line3["quantity"] == product4_quantity
     assert order_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert order_line3["unitDiscount"]["amount"] == 0
     assert order_line3["unitDiscountReason"] is None
