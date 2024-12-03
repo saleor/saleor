@@ -628,13 +628,20 @@ def get_taxed_money(
     attr: Literal["unit", "total", "subtotal", "shipping_price"],
     currency: str,
     exempt_taxes: bool = False,
+    prices_entered_with_taxes: bool = False,
 ) -> TaxedMoney:
-    net_value = Money(getattr(obj, f"{attr}_net_amount"), currency)
-
-    if exempt_taxes:
-        gross_value = net_value
-    else:
+    if prices_entered_with_taxes:
         gross_value = Money(getattr(obj, f"{attr}_gross_amount"), currency)
+        if exempt_taxes:
+            net_value = gross_value
+        else:
+            net_value = Money(getattr(obj, f"{attr}_net_amount"), currency)
+    else:
+        net_value = Money(getattr(obj, f"{attr}_net_amount"), currency)
+        if exempt_taxes:
+            gross_value = net_value
+        else:
+            gross_value = Money(getattr(obj, f"{attr}_gross_amount"), currency)
 
     return TaxedMoney(net_value, gross_value)
 
@@ -846,13 +853,23 @@ def test_fetch_order_prices_when_tax_exemption(
     # then
     order_with_lines.refresh_from_db()
     shipping_price = get_taxed_money(
-        tax_data, "shipping_price", currency, exempt_taxes=True
+        tax_data,
+        "shipping_price",
+        currency,
+        exempt_taxes=True,
+        prices_entered_with_taxes=prices_entered_with_tax,
     )
     assert order_with_lines.shipping_price == shipping_price
     assert order_with_lines.shipping_tax_rate == Decimal("0.00")
     subtotal = zero_taxed_money(currency)
     for order_line, tax_line in zip(order_with_lines.lines.all(), tax_data.lines):
-        line_total = get_taxed_money(tax_line, "total", currency, exempt_taxes=True)
+        line_total = get_taxed_money(
+            tax_line,
+            "total",
+            currency,
+            exempt_taxes=True,
+            prices_entered_with_taxes=prices_entered_with_tax,
+        )
         subtotal += line_total
         assert order_line.total_price == line_total
         assert order_line.unit_price == quantize_price(
