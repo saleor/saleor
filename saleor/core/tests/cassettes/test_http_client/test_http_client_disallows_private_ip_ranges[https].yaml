@@ -1,0 +1,62 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Connection:
+      - keep-alive
+      Host:
+      - example.com
+      User-Agent:
+      - Saleor/3.21
+    method: GET
+    uri: https://93.184.215.14/
+  response:
+    body:
+      string: !!binary |
+        H4sIAMIVqF0AA31UTXPbIBC9+1ds1UsyIyQnaRqPLWn6mWkPaQ9pDz0SsbKYCFAByfZ08t+7Qo4j
+        N5makYFdeLvvsZC9Eqb0uxah9qopZtljh1wUM6Bf5qVvsPi85aptED4ZxaXO0tE6G5co9BzKmluH
+        Po86X7FFBGkxcdbetwx/d7LPo49Ge9SeDWEjKMdZHnnc+nQIvzpAvYSkucI86iVuWmP9ZP9GCl/n
+        AntZIguTGKSWXvKGuZI3mJ89QTm/IzJDBvvApXPR6LszYgd/wjBMeXm/tqbTgpWmMXYJr6s5tfPV
+        YYnidi31EuZPppYLIfX6yFZRpqziSja7JTDekpzM7ZxHFcPYs07G8KGR+v6Gl7fBdE2bYohucW0Q
+        fn6NaPy9RQ23XLth8gWbHr0sOXzDDslyMMTw3hJ3wqalzKGV1VMuYfAQ/oXsJ3SDcEt4O5+32+cM
+        L1EB77x5geg5qtV/RRPUJhncGSvQMsuF7BzplFweAZgtczUXZkPI7RYu6Luibxjb9R0/mcehJfPz
+        09WEDF8O6sXU99JJj2JC7TGTi8WbxWKSyXD+TGBpLPfSEEttNE5B3ykUksOJ4lu21+dq0Od0An6s
+        4lFV/KPYROVjx8MkZJaGCi3CWWXpeB1n2VCbdDsp2L6O67NnN5NMo68tftTSgQh2oFFlLHQOYZg1
+        Tef8QLhHwBHBDQ56DjpF98kl8Mt0RGIXtnhCGqtlj6ahIXkJoLNIdHxtOg+tlRSiNHS0Ugcxgebc
+        3VOFhOgtWiWdI0eSpe0hz4weCItVHg3PhFum6WazSSTXPDF2nY4hXbpPMypujB1IEKAKQZKE0HgR
+        ELM0iJOle6nS8UH7CyjrfG/oBAAA
+    headers:
+      Accept-Ranges:
+      - bytes
+      Age:
+      - '400176'
+      Cache-Control:
+      - max-age=604800
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '648'
+      Content-Type:
+      - text/html; charset=UTF-8
+      Date:
+      - Tue, 03 Dec 2024 09:52:42 GMT
+      Etag:
+      - '"3147526947+gzip"'
+      Expires:
+      - Tue, 10 Dec 2024 09:52:42 GMT
+      Last-Modified:
+      - Thu, 17 Oct 2019 07:18:26 GMT
+      Server:
+      - ECAcc (nyd/D120)
+      Vary:
+      - Accept-Encoding
+      X-Cache:
+      - HIT
+    status:
+      code: 200
+      message: OK
+version: 1
