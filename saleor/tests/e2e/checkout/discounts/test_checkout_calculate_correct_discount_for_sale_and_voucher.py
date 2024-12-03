@@ -188,6 +188,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     line1_unit_price = product1_variant_price - line1_discount
     assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
     assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
 
     assert checkout_line2["variant"]["id"] == product2_variant_id
     assert checkout_line2["quantity"] == product2_quantity
@@ -195,6 +198,10 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     line2_unit_price = product2_variant_price - line2_discount
     assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
     assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
     )
@@ -223,6 +230,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     line3_unit_price = product3_variant_price - line3_discount
     assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
 
     checkout_line4 = checkout_data["lines"][3]
     assert checkout_line4["variant"]["id"] == product4_variant_id
@@ -230,6 +240,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     line4_unit_price = product4_variant_price
     assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
     assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
     calculated_subtotal = round(
         product1_quantity * line1_unit_price
         + product2_quantity * line2_unit_price
@@ -260,6 +273,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     assert (
         new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
     )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
 
     assert new_checkout_line2["variant"]["id"] == product3_variant_id
     assert new_checkout_line2["quantity"] == product3_quantity
@@ -269,12 +285,19 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     assert (
         new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
     )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
 
     assert new_checkout_line3["variant"]["id"] == product4_variant_id
     assert new_checkout_line3["quantity"] == 1
     line3_unit_price = product4_variant_price
     assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         +product2_quantity * line1_unit_price
         + product3_quantity * line2_unit_price
@@ -584,6 +607,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     line1_unit_price = product1_variant_price - line1_discount
     assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
     assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
 
     assert checkout_line2["variant"]["id"] == product2_variant_id
     assert checkout_line2["quantity"] == product2_quantity
@@ -591,6 +617,10 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     line2_unit_price = round(product2_variant_price - line2_discount, 2)
     assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
     assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
     )
@@ -619,6 +649,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     line3_unit_price = round(product3_variant_price - line3_discount, 2)
     assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
 
     checkout_line4 = checkout_data["lines"][3]
     assert checkout_line4["variant"]["id"] == product4_variant_id
@@ -626,6 +659,10 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     line4_unit_price = product4_variant_price
     assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
     assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price
         + product2_quantity * line2_unit_price
@@ -656,6 +693,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     assert (
         new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
     )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
 
     assert new_checkout_line2["variant"]["id"] == product3_variant_id
     assert new_checkout_line2["quantity"] == product3_quantity
@@ -665,12 +705,19 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     assert (
         new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
     )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
 
     assert new_checkout_line3["variant"]["id"] == product4_variant_id
     assert new_checkout_line3["quantity"] == 1
     line3_unit_price = product4_variant_price
     assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         +product2_quantity * line1_unit_price
         + product3_quantity * line2_unit_price
@@ -981,6 +1028,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     line1_unit_price = product1_variant_price - line1_discount
     assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
     assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
 
     assert checkout_line2["variant"]["id"] == product2_variant_id
     assert checkout_line2["quantity"] == product2_quantity
@@ -988,6 +1038,10 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     line2_unit_price = product2_variant_price - line2_discount
     assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
     assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
     )
@@ -1016,6 +1070,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     line3_unit_price = product3_variant_price - line3_discount
     assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
 
     checkout_line4 = checkout_data["lines"][3]
     assert checkout_line4["variant"]["id"] == product4_variant_id
@@ -1023,6 +1080,10 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     line4_unit_price = product4_variant_price
     assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
     assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price
         + product2_quantity * line2_unit_price
@@ -1053,6 +1114,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     assert (
         new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
     )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
 
     assert new_checkout_line2["variant"]["id"] == product3_variant_id
     assert new_checkout_line2["quantity"] == product3_quantity
@@ -1062,12 +1126,19 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     assert (
         new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
     )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
 
     assert new_checkout_line3["variant"]["id"] == product4_variant_id
     assert new_checkout_line3["quantity"] == 1
     line3_unit_price = product4_variant_price
     assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         +product2_quantity * line1_unit_price
         + product3_quantity * line2_unit_price
@@ -1377,6 +1448,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     line1_unit_price = product1_variant_price - line1_discount
     assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
     assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
 
     assert checkout_line2["variant"]["id"] == product2_variant_id
     assert checkout_line2["quantity"] == product2_quantity
@@ -1384,6 +1458,10 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     line2_unit_price = product2_variant_price - line2_discount
     assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
     assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
     )
@@ -1412,6 +1490,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     line3_unit_price = product3_variant_price - line3_discount
     assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
 
     checkout_line4 = checkout_data["lines"][3]
     assert checkout_line4["variant"]["id"] == product4_variant_id
@@ -1419,6 +1500,10 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     line4_unit_price = product4_variant_price
     assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
     assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         product1_quantity * line1_unit_price
         + product2_quantity * line2_unit_price
@@ -1449,6 +1534,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     assert (
         new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
     )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
 
     assert new_checkout_line2["variant"]["id"] == product3_variant_id
     assert new_checkout_line2["quantity"] == product3_quantity
@@ -1458,12 +1546,19 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     assert (
         new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
     )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
 
     assert new_checkout_line3["variant"]["id"] == product4_variant_id
     assert new_checkout_line3["quantity"] == 1
     line3_unit_price = product4_variant_price
     assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
     assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
     calculated_subtotal = round(
         +product2_quantity * line1_unit_price
         + product3_quantity * line2_unit_price
