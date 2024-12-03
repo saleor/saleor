@@ -13,6 +13,7 @@ from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
 from ....warehouse import models as warehouse_models
+from ....warehouse.management import delete_stocks, stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
@@ -692,7 +693,9 @@ class ProductVariantBulkUpdate(BaseMutation):
             warehouse_models.Stock.objects.bulk_create(
                 stocks_to_create, ignore_conflicts=True
             )
-        warehouse_models.Stock.objects.bulk_update(stocks_to_update, ["quantity"])
+        if stocks_to_update:
+            stock_bulk_update(stocks_to_update, ["quantity"])
+
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
         models.ProductVariantChannelListing.objects.bulk_update(
             listings_to_update,
@@ -703,7 +706,9 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "preorder_quantity_threshold",
             ],
         )
-        warehouse_models.Stock.objects.filter(id__in=stocks_to_remove).delete()
+        if stocks_to_remove:
+            delete_stocks(stocks_to_remove)
+
         locked_ids = (
             models.ProductVariantChannelListing.objects.filter(
                 id__in=listings_to_remove

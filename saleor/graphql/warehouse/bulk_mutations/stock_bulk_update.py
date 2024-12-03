@@ -8,6 +8,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.error_codes import StockBulkUpdateErrorCode
+from ....warehouse.management import stock_qs_select_for_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
@@ -364,7 +365,7 @@ class StockBulkUpdate(BaseMutation):
             variant_lookup = Q(product_variant__external_reference__in=variants)
 
         stocks = (
-            models.Stock.objects.select_for_update()
+            stock_qs_select_for_update()
             .filter(warehouse_lookup & variant_lookup)
             .annotate(
                 variant_external_reference=F("product_variant__external_reference"),
@@ -386,6 +387,7 @@ class StockBulkUpdate(BaseMutation):
             if stock_data["instance"] and stock_data.get("quantity_updated")
         ]
 
+        # Stocks are locked in `get_stocks`
         models.Stock.objects.bulk_update(stocks_to_update, fields=["quantity"])
 
         return stocks_to_update
@@ -409,9 +411,11 @@ class StockBulkUpdate(BaseMutation):
                 for data in instances_data_with_errors_list
             ]
         return [
-            StockBulkResult(stock=data.get("instance"), errors=data.get("errors"))
-            if data.get("instance")
-            else StockBulkResult(stock=None, errors=data.get("errors"))
+            (
+                StockBulkResult(stock=data.get("instance"), errors=data.get("errors"))
+                if data.get("instance")
+                else StockBulkResult(stock=None, errors=data.get("errors"))
+            )
             for data in instances_data_with_errors_list
         ]
 

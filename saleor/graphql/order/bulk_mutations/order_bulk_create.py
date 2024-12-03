@@ -45,6 +45,7 @@ from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....tax.models import TaxClass
+from ....warehouse.management import stock_bulk_update
 from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -2273,7 +2274,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
 
-        Stock.objects.bulk_update(stocks, ["quantity"])
+        stock_bulk_update(stocks, ["quantity"])
 
         transactions: list[TransactionItem] = sum(
             [

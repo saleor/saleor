@@ -4,6 +4,7 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from ..celeryconf import app
+from .management import delete_allocations, stock_bulk_update
 from .models import Allocation, PreorderReservation, Reservation, Stock
 
 task_logger = get_task_logger(__name__)
@@ -11,7 +12,10 @@ task_logger = get_task_logger(__name__)
 
 @app.task
 def delete_empty_allocations_task():
-    count, _ = Allocation.objects.filter(quantity_allocated=0).delete()
+    ids_to_delete = list(
+        Allocation.objects.filter(quantity_allocated=0).values_list("id", flat=True)
+    )
+    count, _ = delete_allocations(ids_to_delete)
     if count:
         task_logger.debug("Removed %s allocations", count)
 
@@ -52,7 +56,8 @@ def update_stocks_quantity_allocated_task():
         mismatched_stock.quantity_allocated = allocations_allocated
         stocks_to_update.append(mismatched_stock)
 
-    Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+    stock_bulk_update(stocks_to_update, ["quantity_allocated"])
+
     task_logger.info(
         "Finished updating quantity_allocated on stocks, %d were corrected.",
         len(stocks_to_update),
