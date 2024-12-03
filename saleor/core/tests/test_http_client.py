@@ -21,7 +21,7 @@ def test_user_agent_override():
     assert request.headers.get("User-Agent") == user_agent_version
 
 
-@pytest.mark.vcr(record_mode="once")
+@pytest.mark.vcr
 @pytest.mark.parametrize("protocol", ["https", "http"])
 def test_http_client_disallows_private_ip_ranges(protocol):
     """Ensure requests made to private IP address ranges leads to an error to be raised.

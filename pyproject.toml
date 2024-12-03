@@ -65,7 +65,7 @@ package-mode = false
   prices = "^1.0"
   promise = "^2.3"
   pybars3 = "^0.9.7"
-  pyjwt = "^2.9.0"
+  pyjwt = "^2.10.1"
   python-dateutil = "^2.8.2"
   python-http-client = "^3.3.7"
   python-json-logger = ">=0.1.11,<2.1.0"
