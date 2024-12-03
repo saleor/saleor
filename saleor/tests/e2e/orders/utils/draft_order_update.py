@@ -37,6 +37,17 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
         id
         code
         discountValue
+        codes(first: 10) {
+            edges {
+              node {
+                id
+                code
+                isActive
+                used
+              }
+            }
+            totalCount
+          }
       }
       discounts {
         id
