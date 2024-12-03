@@ -1,7 +1,7 @@
 import pytest
 
 from ......product.tasks import recalculate_discounted_price_for_products_task
-from ....product.utils.preparing_product import prepare_product
+from ....product.utils.preparing_product import prepare_products
 from ....sales.utils import (
     create_sale,
     create_sale_channel_listing,
@@ -55,34 +55,6 @@ def prepare_sale_for_products(
     return sale_id
 
 
-def prepare_products(
-    e2e_staff_api_client,
-    warehouse_id,
-    channel_id,
-    number_of_products,
-    prices,
-):
-    products_data = []
-
-    for i in range(number_of_products):
-        variant_price = prices[i]
-        product_id, variant_id, price = prepare_product(
-            e2e_staff_api_client,
-            warehouse_id,
-            channel_id,
-            variant_price,
-            product_type_slug=f"test-{i}",
-        )
-        product_data = {
-            "product_id": product_id,
-            "variant_id": variant_id,
-            "price": price,
-        }
-        products_data.append(product_data)
-
-    return products_data
-
-
 @pytest.mark.e2e
 def test_checkout_products_on_fixed_sale_core_1002(
     e2e_not_logged_api_client,
@@ -109,7 +81,6 @@ def test_checkout_products_on_fixed_sale_core_1002(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        4,
         ["9.99", "12", "102.33", "20.5"],
     )
     product1_id = products_data[0]["product_id"]
@@ -361,6 +332,9 @@ def test_checkout_products_on_fixed_sale_core_1002(
         order_line1["undiscountedUnitPrice"]["gross"]["amount"]
         == product2_variant_price
     )
+    assert order_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_new_quantity, 2
+    )
 
     assert order_line2["quantity"] == product3_new_quantity
     assert order_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
@@ -369,6 +343,9 @@ def test_checkout_products_on_fixed_sale_core_1002(
     assert (
         order_line2["undiscountedUnitPrice"]["gross"]["amount"]
         == product3_variant_price
+    )
+    assert order_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_new_quantity, 2
     )
 
     assert order_line3["quantity"] == product4_quantity
@@ -379,7 +356,18 @@ def test_checkout_products_on_fixed_sale_core_1002(
         order_line3["undiscountedUnitPrice"]["gross"]["amount"]
         == product4_variant_price
     )
+    assert order_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
 
     assert order_data["total"]["gross"]["amount"] == calculated_total
     assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price

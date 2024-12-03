@@ -1,7 +1,7 @@
 import pytest
 
 from .....product.tasks import recalculate_discounted_price_for_products_task
-from ...product.utils.preparing_product import prepare_product
+from ...product.utils.preparing_product import prepare_products
 from ...sales.utils import (
     create_sale,
     create_sale_channel_listing,
@@ -20,34 +20,6 @@ from ..utils import (
     checkout_lines_delete,
     checkout_lines_update,
 )
-
-
-def prepare_products(
-    e2e_staff_api_client,
-    warehouse_id,
-    channel_id,
-    number_of_products,
-    prices,
-):
-    products_data = []
-
-    for i in range(number_of_products):
-        variant_price = prices[i]
-        product_id, variant_id, price = prepare_product(
-            e2e_staff_api_client,
-            warehouse_id,
-            channel_id,
-            variant_price,
-            product_type_slug=f"test-{i}",
-        )
-        product_data = {
-            "product_id": product_id,
-            "variant_id": variant_id,
-            "price": price,
-        }
-        products_data.append(product_data)
-
-    return products_data
 
 
 def prepare_sale_for_products(
@@ -141,7 +113,6 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        4,
         ["13.33", "16", "9.99", "20.5"],
     )
     product1_id = products_data[0]["product_id"]
@@ -445,19 +416,26 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
         e2e_not_logged_api_client,
         checkout_id,
     )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == calculated_total
     assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
 
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["discounts"][0]["value"] == calculated_discount
-
-    assert len(order_data["lines"]) == 3
-    order_line1 = order_data["lines"][0]
-    order_line2 = order_data["lines"][1]
-    order_line3 = order_data["lines"][2]
 
     assert order_line1["quantity"] == product2_new_quantity
     assert order_line1["unitDiscountReason"] == (
@@ -468,6 +446,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
         == product2_variant_price
     )
     assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
     assert order_line1["unitDiscount"]["amount"] == round(
         line1_discount + (calculated_line1_discount / product2_new_quantity), 2
     )
@@ -480,6 +461,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
         == product3_variant_price
     )
     assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
     assert order_line2["unitDiscount"]["amount"] == round(
         line2_discount + (calculated_line2_discount / product3_new_quantity), 2
     )
@@ -493,6 +477,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
         == product4_variant_price
     )
     assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
     assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
 
 
@@ -522,7 +509,6 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        4,
         ["13.33", "16", "19.99", "20.5"],
     )
     product1_id = products_data[0]["product_id"]
@@ -827,19 +813,26 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
         e2e_not_logged_api_client,
         checkout_id,
     )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == calculated_total
     assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
 
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["discounts"][0]["value"] == calculated_discount
-
-    assert len(order_data["lines"]) == 3
-    order_line1 = order_data["lines"][0]
-    order_line2 = order_data["lines"][1]
-    order_line3 = order_data["lines"][2]
 
     assert order_line1["quantity"] == product2_new_quantity
     assert order_line1["unitDiscountReason"] == (
@@ -850,6 +843,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
         == product2_variant_price
     )
     assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
     assert order_line1["unitDiscount"]["amount"] == round(
         line1_discount + (calculated_line1_discount / product2_new_quantity), 2
     )
@@ -862,6 +858,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
         == product3_variant_price
     )
     assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
     assert order_line2["unitDiscount"]["amount"] == round(
         line2_discount + (calculated_line2_discount / product3_new_quantity), 2
     )
@@ -875,6 +874,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
         == product4_variant_price
     )
     assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
     assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
 
 
@@ -904,7 +906,6 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        4,
         ["13.33", "16", "9.99", "20.5"],
     )
     product1_id = products_data[0]["product_id"]
@@ -1208,19 +1209,26 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
         e2e_not_logged_api_client,
         checkout_id,
     )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == calculated_total
     assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
 
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["discounts"][0]["value"] == calculated_discount
-
-    assert len(order_data["lines"]) == 3
-    order_line1 = order_data["lines"][0]
-    order_line2 = order_data["lines"][1]
-    order_line3 = order_data["lines"][2]
 
     assert order_line1["quantity"] == product2_new_quantity
     assert order_line1["unitDiscountReason"] == (
@@ -1231,6 +1239,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
         == product2_variant_price
     )
     assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
     assert order_line1["unitDiscount"]["amount"] == round(
         line1_discount + (calculated_line1_discount / product2_new_quantity), 2
     )
@@ -1243,6 +1254,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
         == product3_variant_price
     )
     assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
     assert order_line2["unitDiscount"]["amount"] == round(
         line2_discount + (calculated_line2_discount / product3_new_quantity), 2
     )
@@ -1256,6 +1270,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
         == product4_variant_price
     )
     assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
     assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
 
 
@@ -1285,7 +1302,6 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        4,
         ["13.33", "16", "9.99", "20.5"],
     )
     product1_id = products_data[0]["product_id"]
@@ -1589,19 +1605,26 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
         e2e_not_logged_api_client,
         checkout_id,
     )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == calculated_total
     assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
 
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["discounts"][0]["value"] == calculated_discount
-
-    assert len(order_data["lines"]) == 3
-    order_line1 = order_data["lines"][0]
-    order_line2 = order_data["lines"][1]
-    order_line3 = order_data["lines"][2]
 
     assert order_line1["quantity"] == product2_new_quantity
     assert order_line1["unitDiscountReason"] == (
@@ -1612,6 +1635,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
         == product2_variant_price
     )
     assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
     assert order_line1["unitDiscount"]["amount"] == round(
         line1_discount + (calculated_line1_discount / product2_new_quantity), 2
     )
@@ -1624,6 +1650,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
         == product3_variant_price
     )
     assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
     assert order_line2["unitDiscount"]["amount"] == round(
         line2_discount + (calculated_line2_discount / product3_new_quantity), 2
     )
@@ -1637,4 +1666,7 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
         == product4_variant_price
     )
     assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
     assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
