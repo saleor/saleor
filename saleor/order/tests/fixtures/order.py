@@ -29,6 +29,7 @@ from ....tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_lin
 from ....warehouse.models import Allocation, PreorderAllocation, Stock
 from ... import OrderOrigin, OrderStatus
 from ...actions import cancel_fulfillment, fulfill_order_lines
+from ...calculations import remove_tax
 from ...events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -420,6 +421,32 @@ def order_with_lines(
     recalculate_order(order)
 
     order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
+def order_with_lines_untaxed(order_with_lines):
+    order = order_with_lines
+    lines = order.lines.all()
+    remove_tax(order, lines, False)
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "total_price_gross_amount",
+            "undiscounted_total_price_gross_amount",
+            "tax_rate",
+        ],
+    )
+    order.save(
+        update_fields=[
+            "subtotal_gross_amount",
+            "total_gross_amount",
+            "undiscounted_total_gross_amount",
+            "shipping_price_gross_amount",
+        ]
+    )
     return order
 
 
