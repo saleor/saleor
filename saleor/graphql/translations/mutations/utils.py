@@ -270,28 +270,37 @@ class BaseBulkTranslateMutation(BaseMutation):
     @classmethod
     def get_base_objects(cls, cleaned_inputs_map: dict):
         lookup = Q()
+        pks_to_get = set()
+        external_reference_to_get = set()
         for data in cleaned_inputs_map.values():
             if not data:
                 continue
 
             if pk := data.get("id"):
-                lookup |= Q(pk=pk)
+                pks_to_get.add(pk)
             else:
-                lookup |= Q(external_reference=data.get("external_reference"))
+                external_reference_to_get.add(data.get("external_reference"))
 
-        attributes = cls._meta.base_model.objects.filter(lookup)
-        return list(attributes)
+        if pks_to_get:
+            lookup |= Q(pk__in=pks_to_get)
+        if external_reference_to_get:
+            lookup |= Q(external_reference__in=external_reference_to_get)
+
+        base_objects = cls._meta.base_model.objects.filter(lookup)
+        return list(base_objects)
 
     @classmethod
     def get_translations(cls, cleaned_inputs_map: dict, base_objects: list):
         lookup = Q(**{f"{cls._meta.base_model_relation_field}__in": base_objects})
 
+        language_code_to_get = set()
         for data in cleaned_inputs_map.values():
             if not data:
                 continue
+            if language_code := data.get("language_code"):
+                language_code_to_get.add(language_code)
 
-            single_lookup = Q(language_code=data.get("language_code"))
-            lookup |= single_lookup
+        lookup &= Q(language_code__in=language_code_to_get)
 
         if hasattr(cls._meta.base_model, "external_reference"):
             translations = cls._meta.translation_model.objects.filter(lookup).annotate(
@@ -465,11 +474,13 @@ class BaseBulkTranslateMutation(BaseMutation):
                 for data in instances_data_with_errors_list
             ]
         return [
-            cls._meta.result_type(
-                translation=data.get("instance"), errors=data.get("errors")
+            (
+                cls._meta.result_type(
+                    translation=data.get("instance"), errors=data.get("errors")
+                )
+                if data.get("instance")
+                else cls._meta.result_type(translation=None, errors=data.get("errors"))
             )
-            if data.get("instance")
-            else cls._meta.result_type(translation=None, errors=data.get("errors"))
             for data in instances_data_with_errors_list
         ]
 
