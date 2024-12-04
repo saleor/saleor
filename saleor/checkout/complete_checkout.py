@@ -420,7 +420,7 @@ def _create_order_line_discounts(
 
 def _get_sale_id(line_discounts: list[OrderLineDiscount]):
     for discount in line_discounts:
-        if discount.type == DiscountType.PROMOTION:
+        if discount.type in [DiscountType.PROMOTION, DiscountType.CATALOGUE_PROMOTION]:
             if rule := discount.promotion_rule:
                 return get_sale_id(rule.promotion)
 
