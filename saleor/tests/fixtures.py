@@ -92,6 +92,7 @@ from ..menu.models import Menu, MenuItem, MenuItemTranslation
 from ..order import OrderOrigin, OrderStatus
 from ..order.actions import cancel_fulfillment, fulfill_order_lines
 from ..order.base_calculations import base_order_subtotal
+from ..order.calculations import remove_tax
 from ..order.events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -10024,3 +10025,29 @@ def tax_configuration_tax_app(channel_USD):
     tc.tax_app_id = "avatax.app"
     tc.save()
     return tc
+
+
+@pytest.fixture
+def order_with_lines_untaxed(order_with_lines):
+    order = order_with_lines
+    lines = order.lines.all()
+    remove_tax(order, lines, False)
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "total_price_gross_amount",
+            "undiscounted_total_price_gross_amount",
+            "tax_rate",
+        ],
+    )
+    order.save(
+        update_fields=[
+            "subtotal_gross_amount",
+            "total_gross_amount",
+            "undiscounted_total_gross_amount",
+            "shipping_price_gross_amount",
+        ]
+    )
+    return order

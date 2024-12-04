@@ -174,7 +174,7 @@ def _recalculate_prices(
         if not should_charge_tax:
             # If charge_taxes is disabled or order is exempt from taxes, remove the
             # tax from the original gross prices.
-            _remove_tax(order, lines)
+            remove_tax(order, lines, prices_entered_with_tax)
 
     else:
         # Prices are entered without taxes.
@@ -196,7 +196,7 @@ def _recalculate_prices(
                     logger.warning(str(e), extra=order_info_for_logs(order, lines))
                 order.tax_error = str(e)
         else:
-            _remove_tax(order, lines)
+            remove_tax(order, lines, prices_entered_with_tax)
 
 
 def _calculate_and_add_tax(
@@ -424,7 +424,15 @@ def _apply_tax_data(
     order.undiscounted_total = undiscounted_shipping_price + undiscounted_subtotal
 
 
-def _remove_tax(order, lines):
+def remove_tax(order, lines, prices_entered_with_taxes):
+    if prices_entered_with_taxes:
+        _remove_tax_net(order, lines)
+    else:
+        _remove_tax_gross(order, lines)
+
+
+def _remove_tax_gross(order, lines):
+    """Set gross values equal to net values."""
     order.total_gross_amount = order.total_net_amount
     order.undiscounted_total_gross_amount = order.undiscounted_total_net_amount
     order.subtotal_gross_amount = order.subtotal_net_amount
@@ -440,6 +448,28 @@ def _remove_tax(order, lines):
         line.undiscounted_unit_price_gross_amount = undiscounted_unit_price_net_amount
         line.total_price_gross_amount = total_price_net_amount
         line.undiscounted_total_price_gross_amount = undiscounted_total_price_net_amount
+        line.tax_rate = Decimal("0.00")
+
+
+def _remove_tax_net(order, lines):
+    """Set net values equal to gross values."""
+    order.total_net_amount = order.total_gross_amount
+    order.undiscounted_total_net_amount = order.undiscounted_total_gross_amount
+    order.subtotal_net_amount = order.subtotal_gross_amount
+    order.shipping_price_net_amount = order.shipping_price_gross_amount
+    order.shipping_tax_rate = Decimal("0.00")
+
+    for line in lines:
+        total_price_gross_amount = line.total_price_gross_amount
+        unit_price_gross_amount = line.unit_price_gross_amount
+        undiscounted_unit_price_gross_amount = line.undiscounted_unit_price_gross_amount
+        undiscounted_total_price_gross_amount = (
+            line.undiscounted_total_price_gross_amount
+        )
+        line.unit_price_net_amount = unit_price_gross_amount
+        line.undiscounted_unit_price_net_amount = undiscounted_unit_price_gross_amount
+        line.total_price_net_amount = total_price_gross_amount
+        line.undiscounted_total_price_net_amount = undiscounted_total_price_gross_amount
         line.tax_rate = Decimal("0.00")
 
 
