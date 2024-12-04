@@ -325,8 +325,7 @@ def trigger_webhook_sync(
     return send_webhook_request_sync(delivery, **kwargs)
 
 
-if settings.ENABLE_BREAKER_BOARD:
-    breaker_board = initialize_breaker_board()
+if breaker_board := initialize_breaker_board():
     trigger_webhook_sync = breaker_board(trigger_webhook_sync)
 
 

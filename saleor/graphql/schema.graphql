@@ -18059,7 +18059,7 @@ type Mutation {
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """
-  Re-enable sync webhooks for provided app.Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
+  Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
   
   Requires one of the following permissions: MANAGE_APPS.
   """
@@ -28389,7 +28389,7 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
 }
 
 """
-Re-enable sync webhooks for provided app.Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
+Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
 
 Requires one of the following permissions: MANAGE_APPS.
 """

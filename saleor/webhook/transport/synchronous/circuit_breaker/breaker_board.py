@@ -95,6 +95,8 @@ class BreakerBoard:
 
 
 def initialize_breaker_board():
+    if not settings.ENABLE_BREAKER_BOARD:
+        return None
     storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)  # type: ignore[arg-type]
     return BreakerBoard(
         storage=storage_class(),
