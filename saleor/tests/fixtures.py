@@ -2006,6 +2006,26 @@ def color_attribute_with_translations(db):
 
 
 @pytest.fixture
+def second_color_attribute_with_translations(db):
+    attribute = Attribute.objects.create(
+        slug="second-color",
+        name="Second color",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    value1 = AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
+    AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    attribute.translations.create(language_code="pl", name="Czerwony")
+    attribute.translations.create(language_code="de", name="Rot")
+    value1.translations.create(language_code="pl", plain_text="Old Kolor")
+    value1.translations.create(language_code="de", name="Rot", plain_text="Old Kolor")
+
+    return attribute
+
+
+@pytest.fixture
 def attribute_without_values():
     return Attribute.objects.create(
         slug="dropdown",
