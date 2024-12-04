@@ -114,3 +114,29 @@ def prepare_digital_product(
 
     product_variant_price = variant_listing["channelListings"][0]["price"]["amount"]
     return product_id, product_variant_id, product_variant_price
+
+
+def prepare_products(
+    e2e_staff_api_client,
+    warehouse_id,
+    channel_id,
+    prices,
+):
+    products_data = []
+
+    for i, variant_price in enumerate(prices):
+        product_id, variant_id, price = prepare_product(
+            e2e_staff_api_client,
+            warehouse_id,
+            channel_id,
+            variant_price,
+            product_type_slug=f"test-{i}",
+        )
+        product_data = {
+            "product_id": product_id,
+            "variant_id": variant_id,
+            "price": price,
+        }
+        products_data.append(product_data)
+
+    return products_data
