@@ -11,8 +11,8 @@ from django.utils import timezone
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..product.models import ProductVariant, ProductVariantChannelListing
-from .management import sort_stocks
-from .models import Allocation, PreorderReservation, Reservation, Stock
+from .management import sort_stocks, stock_qs_select_for_update
+from .models import Allocation, PreorderReservation, Reservation
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -106,7 +106,7 @@ def reserve_stocks(
         return
 
     stocks = list(
-        Stock.objects.select_for_update(of=("self",))
+        stock_qs_select_for_update()
         .get_variants_stocks_for_country(country_code, channel.slug, variants)
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
