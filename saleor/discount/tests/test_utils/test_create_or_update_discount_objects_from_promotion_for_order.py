@@ -2,7 +2,6 @@ from decimal import Decimal
 
 import graphene
 import pytest
-from django.db import IntegrityError
 
 from ....order.fetch import fetch_draft_order_lines_info
 from ....product.models import (
@@ -545,7 +544,7 @@ def test_update_gift_discount_new_gift_available(
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_multiple_catalogue_discounts_for_the_same_line_raise_unique_error(
+def test_create_multiple_catalogue_discounts_for_the_same_line_is_not_allowed(
     order_line,
     catalogue_promotion,
     promotion_translation_fr,
@@ -603,9 +602,10 @@ def test_create_multiple_catalogue_discounts_for_the_same_line_raise_unique_erro
         ),
     ]
 
-    # when & then
-    # TODO zedzior: sprawdz czy w funkcji nie trzeba dodac ignore_conflicts=True
-    with pytest.raises(IntegrityError):
-        create_order_line_discount_objects_for_catalogue_promotions(
-            order_line, rules_info, order.channel
-        )
+    # when
+    create_order_line_discount_objects_for_catalogue_promotions(
+        order_line, rules_info, order.channel
+    )
+
+    # then
+    assert order_line.discounts.count() == 1
