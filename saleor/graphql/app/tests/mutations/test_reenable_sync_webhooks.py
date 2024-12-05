@@ -28,6 +28,7 @@ def test_reenable_sync_webhooks(
     permission_manage_apps,
     staff_api_client,
     staff_user,
+    caplog,
 ):
     # given
     breaker_board_mock.storage.clear_state_for_app.side_effect = lambda id: None
@@ -41,6 +42,9 @@ def test_reenable_sync_webhooks(
     data = content["data"]["reenableSyncWebhooks"]
     breaker_board_mock.storage.clear_state_for_app.assert_called_once_with(app.id)
     assert not data["errors"]
+    assert caplog.messages == [
+        f"[App ID: {app.id!r}] Circuit breaker manually reset by {staff_user!r}."
+    ]
 
 
 @patch("saleor.graphql.app.mutations.reenable_sync_webhooks.breaker_board")
