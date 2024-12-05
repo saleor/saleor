@@ -382,5 +382,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
                     for input in line_discounts_to_create_inputs
                 ]
 
-                return OrderLineDiscount.objects.bulk_create(new_line_discounts)
+                return OrderLineDiscount.objects.bulk_create(
+                    new_line_discounts, ignore_conflicts=True
+                )
     return []
