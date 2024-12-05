@@ -6,6 +6,8 @@ from uuid import UUID
 
 import graphene
 import pytest
+from celery.exceptions import Retry as CeleryTaskRetryError
+from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
 
 from ...core.taxes import zero_money
@@ -843,4 +845,150 @@ def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
     )
     assert caplog.records[1].checkout_id == checkout_id
     assert caplog.records[1].error
+    assert caplog.records[1].levelno == logging.WARNING
+
+
+@pytest.mark.parametrize(
+    "error",
+    [IntegrityError, DatabaseError],
+)
+@mock.patch("saleor.checkout.tasks.complete_checkout")
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.retry")
+def test_automatic_checkout_completion_task_checkout_error_task_retried(
+    mocked_retry,
+    mocked_complete_checkout,
+    error,
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    mocked_complete_checkout.side_effect = error()
+    mocked_retry.side_effect = CeleryTaskRetryError()
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        try:
+            automatic_checkout_completion_task(checkout_pk, None, app.id)
+        except CeleryTaskRetryError:
+            pass
+
+    # then
+    # Checkout exists so task is retired
+    mocked_retry.assert_called_once()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 3
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion failed for checkout: {checkout_id}."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
+    assert caplog.records[1].levelno == logging.WARNING
+
+    assert caplog.records[2].message == (
+        f"Retrying automatic checkout completion for checkout: {checkout_id}."
+    )
+    assert caplog.records[2].checkout_id == checkout_id
+    assert caplog.records[2].levelno == logging.INFO
+
+
+@pytest.mark.parametrize(
+    "error",
+    [IntegrityError, DatabaseError],
+)
+@mock.patch("saleor.checkout.tasks.complete_checkout")
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.retry")
+def test_automatic_checkout_completion_task_checkout_deleted_in_meantime(
+    mocked_retry,
+    mocked_complete_checkout,
+    error,
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    def delete_checkout_and_raise_an_error(*args, **kwargs):
+        checkout.delete()
+        raise error()
+
+    mocked_complete_checkout.side_effect = delete_checkout_and_raise_an_error
+    mocked_retry.side_effect = CeleryTaskRetryError()
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout_pk, None, app.id)
+
+    # then
+    # Checkout exists so task is retired
+    mocked_retry.assert_not_called()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 2
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion failed for checkout: {checkout_id}. "
+        "The checkout no longer exists."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
     assert caplog.records[1].levelno == logging.WARNING
