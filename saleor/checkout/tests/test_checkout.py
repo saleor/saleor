@@ -39,7 +39,7 @@ from ..fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
 )
-from ..models import Checkout, CheckoutLine
+from ..models import Checkout, CheckoutLine, CheckoutMetadata
 from ..utils import (
     PRIVATE_META_APP_SHIPPING_ID,
     add_voucher_to_checkout,
@@ -357,6 +357,52 @@ def test_clear_delivery_method(checkout, shipping_method):
     checkout.refresh_from_db()
     assert not checkout.shipping_method
     assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+
+
+@patch.object(CheckoutMetadata, "save")
+def test_clear_delivery_method_do_not_update_metadata_when_no_external_shipping(
+    mocked_metadata_save, checkout, shipping_method
+):
+    # given
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+
+    # when
+    clear_delivery_method(checkout_info)
+
+    # then
+    checkout.refresh_from_db()
+    assert not mocked_metadata_save.called
+    assert not checkout.shipping_method
+    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+
+
+@patch.object(CheckoutMetadata, "save")
+def test_clear_delivery_method_update_metadata_when_external_shipping(
+    mocked_metadata_save, checkout, shipping_method
+):
+    # given
+    checkout.shipping_method = shipping_method
+    checkout.metadata_storage.private_metadata = {PRIVATE_META_APP_SHIPPING_ID: "ID"}
+    checkout.metadata_storage.save()
+    checkout.save()
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+
+    # when
+    clear_delivery_method(checkout_info)
+
+    # then
+    checkout.refresh_from_db()
+    checkout.metadata_storage.refresh_from_db()
+    assert mocked_metadata_save.called
+    assert not checkout.shipping_method
+    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
 
 
 def test_last_change_update(checkout):
@@ -2227,19 +2273,62 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-def test_manage_external_shipping_id(checkout):
+def test_set_external_shipping_id(checkout):
+    # given
     app_shipping_id = "abcd"
     initial_private_metadata = {"test": 123}
     checkout.metadata_storage.private_metadata = initial_private_metadata
     checkout.metadata_storage.save()
 
+    # when
     set_external_shipping_id(checkout, app_shipping_id)
+
+    # then
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
 
+
+def test_get_external_shipping_id(checkout):
+    # given
+    app_shipping_id = "abcd"
+    initial_private_metadata = {"test": 123}
+    checkout.metadata_storage.private_metadata = initial_private_metadata
+    checkout.metadata_storage.save()
+    set_external_shipping_id(checkout, app_shipping_id)
+
+    # when
     shipping_id = get_external_shipping_id(checkout)
+
+    # then
     assert shipping_id == app_shipping_id
 
-    delete_external_shipping_id(checkout)
+
+def test_delete_external_shipping_id(checkout):
+    # given
+    app_shipping_id = "abcd"
+    initial_private_metadata = {"test": 123}
+    checkout.metadata_storage.private_metadata = initial_private_metadata
+    checkout.metadata_storage.save()
+    set_external_shipping_id(checkout, app_shipping_id)
+
+    # when
+    deleted = delete_external_shipping_id(checkout)
+
+    # then
+    assert deleted
+    assert checkout.metadata_storage.private_metadata == initial_private_metadata
+
+
+def test_delete_external_shipping_id_when_external_shipping_missing(checkout):
+    # given
+    initial_private_metadata = {"test": 123}
+    checkout.metadata_storage.private_metadata = initial_private_metadata
+    checkout.metadata_storage.save()
+
+    # when
+    deleted = delete_external_shipping_id(checkout)
+
+    # then
+    assert not deleted
     assert checkout.metadata_storage.private_metadata == initial_private_metadata
 
 

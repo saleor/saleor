@@ -6,7 +6,7 @@ from django.conf import settings
 from ....checkout import AddressType, models
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.utils import add_variants_to_checkout
+from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
 from ....product import models as product_models
@@ -376,6 +376,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 instance.billing_address = billing_address.get_copy()
 
             instance.save()
+            create_checkout_metadata(instance)
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
