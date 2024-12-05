@@ -23,6 +23,7 @@ from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
 from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.order import (
     create_order_line_discount_objects_for_catalogue_promotions,
+    update_catalogue_promotion_discount_amount_for_order,
 )
 from ..discount.utils.promotion import (
     get_sale_id,
@@ -339,6 +340,7 @@ def add_variant_to_order(
     channel = order.channel
 
     if line_data.line_id:
+        # It means there is an update of the order line with new quantity
         # TODO zedzior: obczaj co tu sie odpierdala
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
@@ -411,7 +413,6 @@ def update_line_base_unit_prices_with_custom_price(
     line.undiscounted_base_unit_price_amount = price_override
     line.undiscounted_unit_price_gross_amount = price_override
     line.undiscounted_unit_price_net_amount = price_override
-
     update_fields.extend(
         [
             "is_price_overridden",
@@ -536,6 +537,7 @@ def change_order_line_quantity(
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
+    currency = channel.currency_code
     if new_quantity:
         if line.order.is_unconfirmed():
             _update_allocations_for_line(
@@ -544,9 +546,9 @@ def change_order_line_quantity(
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount
-        line.total_price_net_amount = total_price_net_amount.quantize(Decimal("0.001"))
-        line.total_price_gross_amount = total_price_gross_amount.quantize(
-            Decimal("0.001")
+        line.total_price_net_amount = quantize_price(total_price_net_amount, currency)
+        line.total_price_gross_amount = quantize_price(
+            total_price_gross_amount, currency
         )
         undiscounted_total_price_gross_amount = (
             line.quantity * line.undiscounted_unit_price_gross_amount
@@ -554,11 +556,11 @@ def change_order_line_quantity(
         undiscounted_total_price_net_amount = (
             line.quantity * line.undiscounted_unit_price_net_amount
         )
-        line.undiscounted_total_price_gross_amount = (
-            undiscounted_total_price_gross_amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price_gross_amount = quantize_price(
+            undiscounted_total_price_gross_amount, currency
         )
-        line.undiscounted_total_price_net_amount = (
-            undiscounted_total_price_net_amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price_net_amount = quantize_price(
+            undiscounted_total_price_net_amount, currency
         )
         fields = [
             "quantity",
@@ -571,6 +573,14 @@ def change_order_line_quantity(
             update_fields.extend(fields)
         else:
             line.save(update_fields=fields)
+
+        if catalogue_discount := line.discounts.filter(
+            type=DiscountType.PROMOTION
+        ).first():
+            update_catalogue_promotion_discount_amount_for_order(
+                catalogue_discount, line, new_quantity, currency
+            )
+
     else:
         delete_order_line(line_info, manager)
 
