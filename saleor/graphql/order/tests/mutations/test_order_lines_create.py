@@ -8,7 +8,8 @@ from django.db.models import Sum
 from django.test import override_settings
 
 from .....core.models import EventDelivery
-from .....discount import DiscountType, RewardValueType
+from .....core.prices import quantize_price
+from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.actions import call_order_event
@@ -51,6 +52,22 @@ ORDER_LINES_CREATE_MUTATION = """
                 productSku
                 productVariantId
                 saleId
+                totalPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
+                undiscountedTotalPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
                 unitPrice {
                     gross {
                         amount
@@ -63,6 +80,9 @@ ORDER_LINES_CREATE_MUTATION = """
                 }
                 undiscountedUnitPrice {
                     gross {
+                        amount
+                    }
+                    net {
                         amount
                     }
                 }
@@ -1109,11 +1129,8 @@ def test_order_lines_create_with_custom_price_and_catalogue_discount(
     variant_listings = variant.channel_listings.get(channel=order.channel)
     promotion_rule = variant_listings.promotion_rules.first()
     promotion_rule.variants.add(variant)
-
-    reward_value = Decimal("5")
-    promotion_rule.reward_value = reward_value
-    promotion_rule.reward_value_type = RewardValueType.FIXED
-    promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
+    reward_value = promotion_rule.reward_value
+    assert promotion_rule.reward_value_type == DiscountValueType.FIXED
 
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -1169,11 +1186,8 @@ def test_order_lines_create_with_custom_price_force_new_line_and_catalogue_disco
     variant_listings = variant.channel_listings.get(channel=order.channel)
     promotion_rule = variant_listings.promotion_rules.first()
     promotion_rule.variants.add(variant)
-
-    reward_value = Decimal("5")
-    promotion_rule.reward_value = reward_value
-    promotion_rule.reward_value_type = RewardValueType.FIXED
-    promotion_rule.save(update_fields=["reward_value", "reward_value_type"])
+    reward_value = promotion_rule.reward_value
+    assert promotion_rule.reward_value_type == DiscountValueType.FIXED
 
     update_discounted_prices_for_promotion(Product.objects.all())
 
@@ -1331,3 +1345,80 @@ def test_order_lines_create_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+def test_order_lines_create_update_catalogue_discount(
+    order_with_lines_and_catalogue_promotion,
+    permission_group_manage_orders,
+    staff_api_client,
+    tax_configuration_flat_rates,
+):
+    # give
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    tax_rate = Decimal(1.23)
+
+    currency = order.currency
+    line = order.lines.first()
+    variant = line.variant
+    old_qty = line.quantity
+    lines_count = len(order.lines.all())
+    undiscounted_unit_price = line.undiscounted_base_unit_price_amount
+
+    discount = line.discounts.get()
+    initial_discount_amount = discount.amount_value
+    unit_discount = quantize_price(initial_discount_amount / old_qty, currency)
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "forceNewLine": False,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    new_qty = quantity + old_qty
+
+    assert order.lines.count() == lines_count
+    line.refresh_from_db()
+    data = content["data"]["orderLinesCreate"]
+    line_data = data["orderLines"][0]
+    assert line_data["productSku"] == variant.sku
+    assert line_data["quantity"] == new_qty
+    unit_price = undiscounted_unit_price - unit_discount
+    assert line_data["unitPrice"]["net"]["amount"] == unit_price
+    assert Decimal(str(line_data["unitPrice"]["gross"]["amount"])) == quantize_price(
+        unit_price * tax_rate, currency
+    )
+    assert (
+        line_data["undiscountedUnitPrice"]["net"]["amount"] == undiscounted_unit_price
+    )
+    assert Decimal(
+        str(line_data["undiscountedUnitPrice"]["gross"]["amount"])
+    ) == quantize_price(undiscounted_unit_price * tax_rate, currency)
+    total_price = unit_price * new_qty
+    assert line_data["totalPrice"]["net"]["amount"] == total_price
+    assert Decimal(str(line_data["totalPrice"]["gross"]["amount"])) == quantize_price(
+        total_price * tax_rate, currency
+    )
+    assert (
+        line_data["undiscountedTotalPrice"]["net"]["amount"]
+        == undiscounted_unit_price * new_qty
+    )
+    assert Decimal(
+        str(line_data["undiscountedTotalPrice"]["gross"]["amount"])
+    ) == quantize_price(undiscounted_unit_price * new_qty * tax_rate, currency)
+
+    discount.refresh_from_db()
+    assert discount.amount_value != initial_discount_amount
+    assert discount.amount_value == unit_discount * new_qty
