@@ -317,8 +317,6 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
         OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
 
 
-# TODO zedzior sprawdz czy nie trzeba zrobic checka czy juz istnieje catalogowa promka
-# dodaj test na race condition
 def create_order_line_discount_objects_for_catalogue_promotions(
     line: "OrderLine",
     rules_info: Iterable[VariantPromotionRuleInfo],

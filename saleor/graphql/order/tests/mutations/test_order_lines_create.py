@@ -1120,7 +1120,6 @@ def test_order_lines_create_with_custom_price_and_catalogue_discount(
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
 
-    order_line = order.lines.first()
     old_qty = order_line.quantity
 
     lines_count = len(order.lines.all())
