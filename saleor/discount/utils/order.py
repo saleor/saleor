@@ -54,7 +54,7 @@ def create_or_update_discount_objects_from_promotion_for_order(
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    update_order_line_discount_objects_for_catalogue_promotions(lines_info)
+    delete_order_line_discount_objects_for_catalogue_promotions(lines_info)
     # base unit price must reflect all actual catalogue discounts
     _update_base_unit_price_amount_for_catalogue_promotion(lines_info)
     create_order_discount_objects_for_order_promotions(
@@ -62,12 +62,15 @@ def create_or_update_discount_objects_from_promotion_for_order(
     )
 
 
-def update_order_line_discount_objects_for_catalogue_promotions(
+def delete_order_line_discount_objects_for_catalogue_promotions(
     lines_info: list["EditableOrderLineInfo"],
 ):
-    line_discounts_to_update: list[OrderLineDiscount] = []
+    """Delete catalogue discounts if other conflicting discounts exist.
+
+    - manual line discounts do not stuck with catalogue discounts
+    - gift line should not have any catalogue discounts associated
+    """
     line_discounts_to_remove: list[OrderLineDiscount] = []
-    updated_fields: list[str] = []
 
     if not lines_info:
         return
@@ -76,12 +79,10 @@ def update_order_line_discount_objects_for_catalogue_promotions(
         line = line_info.line
 
         # get the existing catalogue discount for the line
-        discount_to_update = None
-        if discounts_to_update := line_info.get_catalogue_discounts():
-            discount_to_update = discounts_to_update[0]
+        if existing_discounts := line_info.get_catalogue_discounts():
             # Line should never have multiple catalogue discounts associated. Before
             # introducing unique_type on discount models, there was such a possibility.
-            line_discounts_to_remove.extend(discounts_to_update[1:])
+            line_discounts_to_remove.extend(existing_discounts[1:])
 
         # manual line discount do not stack with other line discounts
         if [
@@ -89,31 +90,17 @@ def update_order_line_discount_objects_for_catalogue_promotions(
             for discount in line_info.discounts
             if discount.type == DiscountType.MANUAL
         ]:
-            line_discounts_to_remove.extend(discounts_to_update)
+            line_discounts_to_remove.extend(existing_discounts)
             continue
 
         # delete all existing discounts if the line is a gift
         if line.is_gift:
-            line_discounts_to_remove.extend(discounts_to_update)
+            line_discounts_to_remove.extend(existing_discounts)
             continue
 
-        if discount_to_update and _update_catalogue_promotion_discount_for_order(
-            discount_to_update, line_info, updated_fields
-        ):
-            line_discounts_to_update.append(discount_to_update)
-
-    discount_data: tuple[
-        list[dict],
-        list[OrderLineDiscount],
-        list[OrderLineDiscount],
-        list[str],
-    ] = (
-        [],
-        line_discounts_to_update,
-        line_discounts_to_remove,
-        updated_fields,
+    create_order_line_discount_objects(
+        lines_info, ([], [], line_discounts_to_remove, [])
     )
-    create_order_line_discount_objects(lines_info, discount_data)
 
 
 def create_order_line_discount_objects(
@@ -177,35 +164,28 @@ def create_order_line_discount_objects(
     return modified_lines_info
 
 
-def _update_catalogue_promotion_discount_for_order(
+def update_catalogue_promotion_discount_amount_for_order(
     discount_to_update: "OrderLineDiscount",
-    line_info: "EditableOrderLineInfo",
-    updated_fields: list[str],
-) -> bool:
-    """Update catalogue promotion discount amount in case of line quantity update.
+    line: OrderLine,
+    quantity: int,
+    currency: str,
+):
+    """Update catalogue promotion discount amount.
 
-    Return True if the discount requires update.
+    The discount amount must be updated when:
+    - line quantity has changed
+    - line is updated with custom price
     """
-    # TODO zedzior: jesli to tylko w przy quantity to moze lepiej przeniesc do mutacji
-    # we can't simply get difference between undiscounted price and base price,
-    # because base price can have other line-level discount included, ie. voucher
-    line = line_info.line
-    undiscounted_unit_price = line.undiscounted_base_unit_price
     unit_price = apply_discount_to_value(
         discount_to_update.value,
         discount_to_update.value_type,
-        line.currency,
-        undiscounted_unit_price,
+        currency,
+        line.undiscounted_base_unit_price,
     )
-    unit_discount = undiscounted_unit_price - unit_price
-    discount_amount = quantize_price(unit_discount * line.quantity, line.currency)
-    if discount_amount != discount_to_update.amount:
-        discount_to_update.amount_value = discount_amount.amount
-        if "amount_value" not in updated_fields:
-            updated_fields.append("amount_value")
-        return True
-
-    return False
+    unit_discount = line.undiscounted_base_unit_price_amount - unit_price.amount
+    discount_amount = quantize_price(unit_discount * quantity, currency)
+    discount_to_update.amount_value = discount_amount
+    discount_to_update.save(update_fields=["amount_value"])
 
 
 def _copy_unit_discount_data_to_order_line(
@@ -240,7 +220,7 @@ def _update_base_unit_price_amount_for_catalogue_promotion(
     for line_info in lines_info:
         line = line_info.line
         base_unit_price = line.undiscounted_base_unit_price_amount
-        # TODO zedzior: sprawdz czy get_catalogue_discount istenieje jesli ja wczesniej usuniemy
+        # TODO zedzior test when discount was deleted
         for discount in line_info.get_catalogue_discounts():
             unit_discount = discount.amount_value / line.quantity
             base_unit_price -= unit_discount

@@ -228,7 +228,7 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     return None
 
 
-def _update_promotion_discount(
+def update_promotion_discount(
     rule: PromotionRule,
     rule_info: VariantPromotionRuleInfo,
     rule_discount_amount: Decimal,
@@ -755,7 +755,7 @@ def _handle_order_promotion(
 
     if not created:
         fields_to_update: list[str] = []
-        _update_promotion_discount(
+        update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_amount,
@@ -799,7 +799,7 @@ def _handle_gift_reward(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        _update_promotion_discount(
+        update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_object_defaults["amount_value"],

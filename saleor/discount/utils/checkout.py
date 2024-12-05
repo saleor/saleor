@@ -17,12 +17,12 @@ from ..models import (
 from .promotion import (
     _get_rule_discount_amount,
     _is_discounted_line_by_catalogue_promotion,
-    _update_promotion_discount,
     create_discount_objects_for_order_promotions,
     delete_gift_line,
     get_discount_name,
     get_discount_translated_name,
     prepare_promotion_discount_reason,
+    update_promotion_discount,
 )
 from .shared import update_line_info_cached_discounts
 
@@ -163,7 +163,7 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(lines_info):
                 }
                 line_discounts_to_create_inputs.append(line_discount_input)
             else:
-                _update_promotion_discount(
+                update_promotion_discount(
                     rule,
                     rule_info,
                     rule_discount_amount,
