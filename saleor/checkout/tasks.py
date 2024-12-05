@@ -124,6 +124,7 @@ def delete_expired_checkouts(
 @app.task(
     queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME,
     bind=True,
+    default_retry_delay=60,
     retry_kwargs={"max_retries": 5},
 )
 def automatic_checkout_completion_task(
@@ -211,7 +212,7 @@ def automatic_checkout_completion_task(
                 checkout_id,
                 extra={"checkout_id": checkout_id},
             )
-            raise self.retry(countdown=1)
+            raise self.retry()
     else:
         task_logger.info(
             "Automatic checkout completion succeeded for checkout: %s.",
