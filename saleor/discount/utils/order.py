@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.conf import settings
@@ -55,7 +54,9 @@ def create_or_update_discount_objects_from_promotion_for_order(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     delete_order_line_discount_objects_for_catalogue_promotions(lines_info)
-    # base unit price must reflect all actual catalogue discounts
+    # Update base price with catalogue discount reward. This price will be further used:
+    # - to qualify order for order promotion
+    # - to apply vouchers
     _update_base_unit_price_amount_for_catalogue_promotion(lines_info)
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
@@ -98,9 +99,10 @@ def delete_order_line_discount_objects_for_catalogue_promotions(
             line_discounts_to_remove.extend(existing_discounts)
             continue
 
-    create_order_line_discount_objects(
-        lines_info, ([], [], line_discounts_to_remove, [])
-    )
+    if line_discounts_to_remove:
+        create_order_line_discount_objects(
+            lines_info, ([], [], line_discounts_to_remove, [])
+        )
 
 
 def create_order_line_discount_objects(
@@ -218,13 +220,7 @@ def _update_base_unit_price_amount_for_catalogue_promotion(
     lines_info: list["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
-        line = line_info.line
-        base_unit_price = line.undiscounted_base_unit_price_amount
-        # TODO zedzior test when discount was deleted
-        for discount in line_info.get_catalogue_discounts():
-            unit_discount = discount.amount_value / line.quantity
-            base_unit_price -= unit_discount
-        line.base_unit_price_amount = max(base_unit_price, Decimal(0))
+        line_info.line.base_unit_price = line_info.variant_discounted_price
 
 
 def create_order_discount_objects_for_order_promotions(
@@ -300,6 +296,7 @@ def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
         if not manual_discount:
             continue
         line = line_info.line
+        # manual line discounts do not combine with other line-level discounts
         base_unit_price = line.undiscounted_base_unit_price
         reduced_unit_price = apply_discount_to_value(
             manual_discount.value,
