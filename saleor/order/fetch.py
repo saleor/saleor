@@ -11,10 +11,10 @@ from ..channel.models import Channel
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
+from ..core.taxes import zero_money
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
 from ..discount.models import OrderLineDiscount
-from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.voucher import apply_voucher_to_line
 from ..payment.models import Payment
 from ..product.models import DigitalContent, ProductVariant
@@ -83,16 +83,13 @@ class EditableOrderLineInfo(LineInfo):
     @cached_property
     def variant_discounted_price(self) -> Money:
         """Return the variant price discounted by catalogue promotion."""
-        undiscounted_unit_price = self.line.undiscounted_base_unit_price
-        if catalogue_discounts := self.get_catalogue_discounts():
-            unit_price = apply_discount_to_value(
-                catalogue_discounts[0].value,
-                catalogue_discounts[0].value_type,
-                self.line.currency,
-                undiscounted_unit_price,
-            )
-        else:
-            unit_price = undiscounted_unit_price
+        catalogue_discounts = self.get_catalogue_discounts()
+        total_price = self.line.undiscounted_base_unit_price * self.line.quantity
+        for discount in catalogue_discounts:
+            total_price -= discount.amount
+        unit_price = max(
+            total_price / self.line.quantity, zero_money(self.line.currency)
+        )
         return quantize_price(unit_price, self.line.currency)
 
     def get_manual_line_discount(
