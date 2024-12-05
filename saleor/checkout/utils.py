@@ -8,7 +8,7 @@ from uuid import UUID
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
@@ -44,6 +44,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout_or_error,
 )
+from ..order.models import Order, OrderLine
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
@@ -62,7 +63,6 @@ if TYPE_CHECKING:
 
     from ..account.models import Address
     from ..core.pricing.interface import LineInfo
-    from ..order.models import Order, OrderLine
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
@@ -1001,7 +1001,6 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
 
-    delete_external_shipping_id(checkout=checkout)
     checkout.save(
         update_fields=[
             "shipping_method",
@@ -1009,7 +1008,8 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    get_checkout_metadata(checkout).save()
+    if delete_external_shipping_id(checkout=checkout):
+        checkout.metadata_storage.save()
 
 
 def is_fully_paid(
@@ -1088,18 +1088,38 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
+    metadata_container: CheckoutMetadata | Order | None
+
     if type(container) == Checkout:
-        container = get_checkout_metadata(container)
-    return container.get_value_from_private_metadata(  # type:ignore
+        metadata_container = get_checkout_metadata(container)
+    else:
+        container = cast(Order, container)
+        metadata_container = container
+
+    if not metadata_container:
+        return None
+
+    return metadata_container.get_value_from_private_metadata(
         PRIVATE_META_APP_SHIPPING_ID
     )
 
 
-def delete_external_shipping_id(checkout: Checkout, save: bool = False):
+def delete_external_shipping_id(checkout: Checkout, save: bool = False) -> bool:
     metadata = get_or_create_checkout_metadata(checkout)
-    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
-    if save:
+    field_deleted = metadata.delete_value_from_private_metadata(
+        PRIVATE_META_APP_SHIPPING_ID
+    )
+    if save and field_deleted:
         metadata.save(update_fields=["private_metadata"])
+    return field_deleted
+
+
+@allow_writer()
+def create_checkout_metadata(checkout: "Checkout"):
+    try:
+        return CheckoutMetadata.objects.create(checkout=checkout)
+    except IntegrityError:
+        return checkout.metadata_storage
 
 
 @allow_writer()
@@ -1111,12 +1131,11 @@ def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
 
 
 @allow_writer()
-def get_checkout_metadata(checkout: "Checkout"):
+def get_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata | None:
     if hasattr(checkout, "metadata_storage"):
         # TODO: load metadata_storage with dataloader and pass as an argument
         return checkout.metadata_storage
-    else:
-        return CheckoutMetadata(checkout=checkout)
+    return None
 
 
 def calculate_checkout_weight(lines: Iterable["CheckoutLineInfo"]) -> "Weight":
