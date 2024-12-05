@@ -3097,6 +3097,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
     #     (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate, 2
     # )
 
+
 def test_fetch_order_prices_catalogue_discount_prices_entered_with_tax_tax_exemption(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
