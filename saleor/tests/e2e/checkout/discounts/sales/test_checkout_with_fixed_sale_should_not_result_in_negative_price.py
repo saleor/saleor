@@ -56,7 +56,7 @@ def prepare_sale_for_products(
 
 
 @pytest.mark.e2e
-def test_checkout_with_fixed_sale_should_not_result_in_negative_price_CORE_2111(
+def test_checkout_with_fixed_sale_should_not_result_in_negative_price_CORE_1005(
     e2e_staff_api_client,
     e2e_not_logged_api_client,
     shop_permissions,
@@ -245,7 +245,7 @@ def test_checkout_with_fixed_sale_should_not_result_in_negative_price_CORE_2111(
     assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
     assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_subtotal
 
-    # Step 5 - Set DeliveryMethod for checkout.
+    # Step 6 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
         checkout_id,
@@ -258,14 +258,14 @@ def test_checkout_with_fixed_sale_should_not_result_in_negative_price_CORE_2111(
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert total_gross_amount == calculated_total
 
-    # Step 6 - Create payment for checkout.
+    # Step 7 - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_not_logged_api_client,
         checkout_id,
         total_gross_amount,
     )
 
-    # Step 7 - Complete checkout.
+    # Step 8 - Complete checkout.
     order_data = checkout_complete(
         e2e_not_logged_api_client,
         checkout_id,
