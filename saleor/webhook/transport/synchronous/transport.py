@@ -8,6 +8,10 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 
+from saleor.webhook.transport.synchronous.circuit_breaker.breaker_board import (
+    initialize_breaker_board,
+)
+
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -321,6 +325,10 @@ def trigger_webhook_sync(
         kwargs = {"timeout": timeout}
 
     return send_webhook_request_sync(delivery, **kwargs)
+
+
+if breaker_board := initialize_breaker_board():
+    trigger_webhook_sync = breaker_board(trigger_webhook_sync)
 
 
 def trigger_all_webhooks_sync(
