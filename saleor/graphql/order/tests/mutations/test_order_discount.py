@@ -1694,6 +1694,7 @@ def test_delete_order_line_discount_line_with_catalogue_promotion(
     staff_api_client,
     permission_group_manage_orders,
 ):
+    """Deleting the discount should restore undiscounted prices for the line."""
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines_and_catalogue_promotion
@@ -1722,7 +1723,10 @@ def test_delete_order_line_discount_line_with_catalogue_promotion(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountRemove"]
     assert not data["errors"]
-    assert line.discounts.filter(type=DiscountType.PROMOTION).exists()
+    line.refresh_from_db()
+    assert not line.discounts.filter(type=DiscountType.PROMOTION).exists()
+    assert line.unit_price_net_amount == line.undiscounted_unit_price_net_amount
+    assert line.total_price_net_amount == line.undiscounted_total_price_net_amount
 
 
 def test_delete_order_line_discount_with_line_level_voucher(

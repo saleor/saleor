@@ -46,3 +46,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop tax data line number validation for Avatax plugin - #16917 by @zedzior
 - Fix decreasing voucher code usage after changing `includeDraftOrderInVoucherUsage` to false - #17028 by @zedzior
 - Fix undiscounted price taxation when prices are entered with taxes - #16992 by @zedzior
+- Use denormalized prices during order update for catalogue discounts - #17125 by @zedzior

@@ -6,9 +6,14 @@ import pytest
 from django.conf import settings
 from prices import Money, TaxedMoney, fixed_discount
 
+from ....core.prices import quantize_price
 from ....core.taxes import zero_money
 from ....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
+from ....discount.interface import fetch_variant_rules_info
 from ....discount.models import VoucherCode
+from ....discount.utils.order import (
+    create_order_line_discount_objects_for_catalogue_promotions,
+)
 from ....discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
 )
@@ -179,6 +184,7 @@ def draft_order_and_promotions(
     catalogue_promotion = catalogue_promotion_without_rules
     variant_1 = line_1.variant
     variant_2 = line_2.variant
+    catalogue_reward = Decimal(3)
     rule_catalogue = catalogue_promotion.rules.create(
         name="Catalogue rule fixed",
         catalogue_predicate={
@@ -187,7 +193,7 @@ def draft_order_and_promotions(
             }
         },
         reward_value_type=RewardValueType.FIXED,
-        reward_value=Decimal(3),
+        reward_value=catalogue_reward,
     )
     rule_catalogue.channels.add(channel_USD)
 
@@ -199,8 +205,29 @@ def draft_order_and_promotions(
     VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule_catalogue,
-        discount_amount=Decimal(3),
+        discount_amount=catalogue_reward,
         currency=currency,
+    )
+
+    # create catalogue discount
+    rules_info = fetch_variant_rules_info(listing, "en")
+    create_order_line_discount_objects_for_catalogue_promotions(
+        line_2, rules_info, channel_USD
+    )
+
+    # update base price with catalogue promotion
+    line_2.base_unit_price_amount = (
+        line_2.undiscounted_base_unit_price_amount - catalogue_reward
+    )
+    total = quantize_price(line_2.base_unit_price_amount * line_2.quantity, currency)
+    line_2.total_price_net_amount = total
+    line_2.total_price_gross_amount = quantize_price(total * Decimal("1.23"), currency)
+    line_2.save(
+        update_fields=[
+            "base_unit_price_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ]
     )
 
     # prepare order promotion - subtotal
