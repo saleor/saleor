@@ -1,8 +1,8 @@
 from saleor.graphql.tests.utils import get_graphql_content
 
-ORDER_LINES_CREATE_MUTATION = """
-mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
-  orderLinesCreate(id: $id, input: $input) {
+ORDER_LINE_DELETE_MUTATION = """
+mutation orderLineDelete($lineId: ID!) {
+  orderLineDelete(id: $lineId) {
     order {
       id
       shippingMethods {
@@ -10,12 +10,6 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
         price {
           amount
         }
-      }
-      undiscountedShippingPrice {
-        amount
-      }
-      shippingPrice {
-        ...BaseTaxedMoney
       }
       total {
         ...BaseTaxedMoney
@@ -27,6 +21,9 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
         ...BaseTaxedMoney
       }
       isShippingRequired
+      shippingPrice {
+        ...BaseTaxedMoney
+      }
       lines {
         id
         quantity
@@ -40,11 +37,15 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
           ...BaseTaxedMoney
         }
         unitDiscountReason
-        undiscountedUnitPrice {
-          ...BaseTaxedMoney
+        unitDiscountType
+        unitDiscountValue
+        unitDiscount {
+          amount
         }
-        undiscountedTotalPrice {
-          ...BaseTaxedMoney
+        undiscountedUnitPrice {
+          gross {
+            amount
+          }
         }
       }
     }
@@ -71,14 +72,13 @@ fragment BaseTaxedMoney on TaxedMoney {
 """
 
 
-def order_lines_create(
+def order_line_delete(
     api_client,
-    order_id,
-    input,
+    order_line_id,
 ):
-    variables = {"id": order_id, "input": input}
+    variables = {"lineId": order_line_id}
 
-    response = api_client.post_graphql(ORDER_LINES_CREATE_MUTATION, variables)
+    response = api_client.post_graphql(ORDER_LINE_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
 
-    return content["data"]["orderLinesCreate"]
+    return content["data"]["orderLineDelete"]
