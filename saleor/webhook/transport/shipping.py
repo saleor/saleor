@@ -12,6 +12,7 @@ from ...app.models import App
 from ...checkout.models import Checkout
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
+from ...graphql.webhook.utils import get_pregenerated_subscription_payload
 from ...order.models import Order
 from ...plugins.base_plugin import ExcludedShippingMethod, RequestorOrLazyObject
 from ...settings import WEBHOOK_SYNC_TIMEOUT
@@ -119,16 +120,22 @@ def get_excluded_shipping_methods_or_fetch(
     subscribable_object: Optional[Union["Order", "Checkout"]],
     allow_replica: bool,
     requestor: Optional[RequestorOrLazyObject],
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
     The data will be fetched from the cache. If missing it will fetch it from all
     defined webhooks by calling a request to each of them one by one.
     """
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
     cache_data = get_cache_data_for_exclude_shipping_methods(payload)
     excluded_methods = []
     # Gather responses from webhooks
     for webhook in webhooks:
+        pregenerated_subscription_payload = get_pregenerated_subscription_payload(
+            webhook, pregenerated_subscription_payloads
+        )
         response_data = trigger_webhook_sync_if_not_cached(
             event_type=event_type,
             payload=payload,
@@ -139,6 +146,7 @@ def get_excluded_shipping_methods_or_fetch(
             request_timeout=WEBHOOK_SYNC_TIMEOUT,
             cache_timeout=CACHE_EXCLUDED_SHIPPING_TIME,
             requestor=requestor,
+            pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
         if response_data and isinstance(response_data, dict):
             excluded_methods.extend(
@@ -154,6 +162,7 @@ def get_excluded_shipping_data(
     subscribable_object: Optional[Union["Order", "Checkout"]],
     allow_replica: bool,
     requestor: Optional[RequestorOrLazyObject] = None,
+    pregenerated_subscription_payloads: Optional[dict] = None,
 ) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 
@@ -166,14 +175,21 @@ def get_excluded_shipping_data(
     The function will fetch the payload only in the case that we have any defined
     webhook.
     """
-
+    if pregenerated_subscription_payloads is None:
+        pregenerated_subscription_payloads = {}
     excluded_methods_map: dict[str, list[ExcludedShippingMethod]] = defaultdict(list)
     webhooks = get_webhooks_for_event(event_type)
     if webhooks:
         payload = payload_fun()
 
         excluded_methods_map = get_excluded_shipping_methods_or_fetch(
-            webhooks, event_type, payload, subscribable_object, allow_replica, requestor
+            webhooks,
+            event_type,
+            payload,
+            subscribable_object,
+            allow_replica,
+            requestor,
+            pregenerated_subscription_payloads,
         )
 
     # Gather responses for previous plugins
