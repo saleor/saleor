@@ -10,6 +10,7 @@ from .app_token_create import AppTokenCreate
 from .app_token_delete import AppTokenDelete
 from .app_token_verify import AppTokenVerify
 from .app_update import AppUpdate
+from .reenable_sync_webhooks import ReenableSyncWebhooks
 
 __all__ = [
     "AppActivate",
@@ -24,4 +25,5 @@ __all__ = [
     "AppTokenDelete",
     "AppTokenVerify",
     "AppUpdate",
+    "ReenableSyncWebhooks",
 ]

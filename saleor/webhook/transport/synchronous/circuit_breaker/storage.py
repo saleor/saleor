@@ -24,6 +24,9 @@ class Storage:
     ) -> int:
         pass
 
+    def clear_state_for_app(self, app_id: int):
+        pass
+
 
 class InMemoryStorage(Storage):
     def __init__(self):
@@ -53,10 +56,22 @@ class InMemoryStorage(Storage):
         self._events[key] = filtered_entries
         return len(filtered_entries)
 
+    def clear_state_for_app(self, app_id: int):
+        self._last_open.pop(app_id, None)
+        self._events = defaultdict(
+            list,
+            {
+                key: value
+                for key, value in self._events.items()
+                if not key.startswith(str(app_id))
+            },
+        )
+
 
 class RedisStorage(Storage):
     WARNING_MESSAGE = "An error occurred when interacting with Redis"
     KEY_PREFIX = "bbrs"  # as in "breaker board redis storage"
+    EVENT_KEYS = ["error", "total"]
 
     def __init__(self, client: Optional[Redis] = None):
         super().__init__()
@@ -80,8 +95,7 @@ class RedisStorage(Storage):
 
         if result is None:
             return 0
-        else:
-            return int(str(result, "utf-8"))
+        return int(str(result, "utf-8"))
 
     def update_open(self, app_id: int, open_time_seconds: int):
         try:
@@ -118,3 +132,13 @@ class RedisStorage(Storage):
         except (RedisError, IndexError):
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
             return 0
+
+    def clear_state_for_app(self, app_id: int):
+        try:
+            keys = [f"{self.KEY_PREFIX}-{app_id}-{name}" for name in self.EVENT_KEYS]
+            keys.append(f"{self.KEY_PREFIX}-{app_id}")
+            self._client.delete(*keys)
+        except RedisError:
+            logger.warning(self.WARNING_MESSAGE, exc_info=True)
+            error = 1
+            return error

@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from unittest.mock import Mock, patch
 
 import fakeredis
@@ -6,6 +6,7 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 from freezegun import freeze_time
 from redis.client import Pipeline
+from redis.exceptions import RedisError
 
 from saleor.webhook.transport.synchronous.circuit_breaker.storage import RedisStorage
 
@@ -41,14 +42,27 @@ def test_update_open(storage):
     assert storage.last_open(APP_ID) == 0
 
 
+def test_manually_clear_state_for_app(storage):
+    storage.update_open(APP_ID, 100)
+    assert storage.last_open(APP_ID) == 100
+
+    error = storage.clear_state_for_app(APP_ID)
+    assert not error
+    assert storage.last_open(APP_ID) == 0
+
+
 def test_register_event_returning_count(storage):
-    with freeze_time(datetime.fromtimestamp(NOW)):
+    with freeze_time(datetime.datetime.fromtimestamp(NOW, tz=datetime.UTC)):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 1
 
-    with freeze_time(datetime.fromtimestamp(NOW + TTL_SECONDS - 1)):
+    with freeze_time(
+        datetime.datetime.fromtimestamp(NOW + TTL_SECONDS - 1, tz=datetime.UTC)
+    ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2
 
-    with freeze_time(datetime.fromtimestamp(NOW + TTL_SECONDS)):
+    with freeze_time(
+        datetime.datetime.fromtimestamp(NOW + TTL_SECONDS, tz=datetime.UTC)
+    ):
         assert storage.register_event_returning_count(APP_ID, NAME, TTL_SECONDS) == 2
 
 
@@ -80,3 +94,11 @@ def test_storage_raises_on_non_redis_cache_url(settings):
 
     with pytest.raises(ImproperlyConfigured):
         RedisStorage()
+
+
+def test_storage_clear_state_raises_error(storage):
+    delete_mock = Mock(side_effect=RedisError)
+    storage._client.delete = delete_mock
+    storage.update_open(APP_ID, 100)
+    error = storage.clear_state_for_app(APP_ID)
+    assert error

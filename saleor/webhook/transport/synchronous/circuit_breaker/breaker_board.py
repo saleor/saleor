@@ -1,10 +1,10 @@
 import time
 from typing import TYPE_CHECKING
 
+from django.conf import settings
+from django.utils.module_loading import import_string
+
 from saleor.webhook.event_types import WebhookEventSyncType
-from saleor.webhook.transport.synchronous.circuit_breaker.storage import (
-    Storage,
-)
 
 if TYPE_CHECKING:
     from .....webhook.models import Webhook
@@ -22,11 +22,11 @@ class BreakerBoard:
 
     def __init__(
         self,
-        storage: Storage,
+        storage,
         failure_threshold: int,
         failure_min_count: int,
         cooldown_seconds: int,
-        ttl: int,
+        ttl_seconds: int,
     ):
         self.storage = storage
 
@@ -37,15 +37,19 @@ class BreakerBoard:
         self.failure_threshold = failure_threshold
         self.failure_min_count = failure_min_count
         self.cooldown_seconds = cooldown_seconds
-        self.ttl = ttl
+        self.ttl_seconds = ttl_seconds
 
     def is_closed(self, app_id: int):
         # TODO - cache last open to optimize?
         return self.storage.last_open(app_id) < (time.time() - self.cooldown_seconds)
 
     def register_error(self, app_id: int):
-        errors = self.storage.register_event_returning_count(app_id, "error", self.ttl)
-        total = self.storage.register_event_returning_count(app_id, "total", self.ttl)
+        errors = self.storage.register_event_returning_count(
+            app_id, "error", self.ttl_seconds
+        )
+        total = self.storage.register_event_returning_count(
+            app_id, "total", self.ttl_seconds
+        )
 
         if total < self.failure_min_count:
             return
@@ -54,7 +58,7 @@ class BreakerBoard:
             self.storage.update_open(app_id, int(time.time()))
 
     def register_success(self, app_id: int):
-        self.storage.register_event_returning_count(app_id, "total", self.ttl)
+        self.storage.register_event_returning_count(app_id, "total", self.ttl_seconds)
 
         last_open = self.storage.last_open(app_id)
         if last_open == 0:
@@ -88,3 +92,16 @@ class BreakerBoard:
         inner.__wrapped__ = func  # type: ignore[attr-defined]
 
         return inner
+
+
+def initialize_breaker_board():
+    if not settings.ENABLE_BREAKER_BOARD:
+        return None
+    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)  # type: ignore[arg-type]
+    return BreakerBoard(
+        storage=storage_class(),
+        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
+        failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
+        cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
+        ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
+    )
