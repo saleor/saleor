@@ -19,7 +19,7 @@ from ...utils import (
 
 
 @pytest.mark.e2e
-def test_checkout_custom_price_and_percentage_promotion_core_2139(
+def test_checkout_custom_price_and_percentage_sale_CORE_1007(
     e2e_logged_api_client,
     e2e_staff_api_client,
     e2e_app_api_client,
