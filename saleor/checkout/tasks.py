@@ -6,6 +6,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
+from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
 
 from ..account.models import User
@@ -124,9 +125,15 @@ def delete_expired_checkouts(
     return total_deleted, has_more
 
 
-@app.task(queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME)
+@app.task(
+    queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME,
+    bind=True,
+    default_retry_delay=60,
+    retry_kwargs={"max_retries": 5},
+)
 @allow_writer()
 def automatic_checkout_completion_task(
+    self,
     checkout_pk,
     user_id,
     app_id,
@@ -171,6 +178,8 @@ def automatic_checkout_completion_task(
         checkout_id,
         extra={"checkout_id": checkout_id},
     )
+
+    failed_error_msg = "Automatic checkout completion failed for checkout: %s."
     try:
         complete_checkout(
             manager=manager,
@@ -184,13 +193,32 @@ def automatic_checkout_completion_task(
         )
     except ValidationError as error:
         task_logger.warning(
-            "Automatic checkout completion failed for checkout: %s.",
+            failed_error_msg,
             checkout_id,
             extra={
                 "checkout_id": checkout_id,
                 "error": str(error),
             },
         )
+    except (IntegrityError, DatabaseError) as error:
+        if checkout_not_exists := not Checkout.objects.filter(pk=checkout_pk).exists():
+            failed_error_msg = failed_error_msg + " The checkout no longer exists."
+
+        task_logger.warning(
+            failed_error_msg,
+            checkout_id,
+            extra={
+                "checkout_id": checkout_id,
+                "error": str(error),
+            },
+        )
+        if not checkout_not_exists:
+            task_logger.info(
+                "Retrying automatic checkout completion for checkout: %s.",
+                checkout_id,
+                extra={"checkout_id": checkout_id},
+            )
+            raise self.retry() from error
     else:
         task_logger.info(
             "Automatic checkout completion succeeded for checkout: %s.",
