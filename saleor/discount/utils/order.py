@@ -114,6 +114,8 @@ def create_order_line_discount_objects(
         list[str],
     ],
 ) -> None | list["EditableOrderLineInfo"]:
+    from ...order.utils import order_qs_select_for_update
+
     if not discount_data or not lines_info:
         return None
 
@@ -130,9 +132,7 @@ def create_order_line_discount_objects(
             # Protect against potential thread race. OrderLine object can have only
             # single catalogue discount applied.
             order_id = lines_info[0].line.order_id
-            _order_lock = list(
-                Order.objects.filter(id=order_id).select_for_update(of=(["self"]))
-            )
+            _order_lock = list(order_qs_select_for_update().filter(id=order_id))
 
             if discount_ids_to_remove := [
                 discount.id for discount in discount_to_remove
