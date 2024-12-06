@@ -1,6 +1,5 @@
 import pytest
 
-from ....discount.models import OrderLineDiscount
 from ... import OrderStatus
 from ...calculations import fetch_order_prices_if_expired
 
@@ -15,10 +14,9 @@ def test_fetch_order_prices(
     count_queries,
 ):
     # given
-    OrderLineDiscount.objects.all().delete()
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
 
     # when & then
-    with django_assert_num_queries(39):
+    with django_assert_num_queries(36):
         fetch_order_prices_if_expired(order, plugins_manager, None, True)

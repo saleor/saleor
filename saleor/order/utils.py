@@ -371,7 +371,6 @@ def add_variant_to_order(
                 [
                     OrderLineInfo(
                         line=line,
-                        # TODO zedzior: czy to nie powinna byc roznica miedzy quantity?
                         quantity=line_data.quantity,
                         variant=line_data.variant,
                         warehouse_pk=None,
