@@ -33,20 +33,27 @@ def not_connected_storage():
 
 
 def test_update_open(storage):
+    # given
     assert storage.last_open(APP_ID) == 0
-
     storage.update_open(APP_ID, 100)
     assert storage.last_open(APP_ID) == 100
 
+    # when
     storage.update_open(APP_ID, 0)
+
+    # then
     assert storage.last_open(APP_ID) == 0
 
 
 def test_manually_clear_state_for_app(storage):
+    # given
     storage.update_open(APP_ID, 100)
     assert storage.last_open(APP_ID) == 100
 
+    # when
     error = storage.clear_state_for_app(APP_ID)
+
+    # then
     assert not error
     assert storage.last_open(APP_ID) == 0
 
@@ -97,8 +104,13 @@ def test_storage_raises_on_non_redis_cache_url(settings):
 
 
 def test_storage_clear_state_raises_error(storage):
+    # given
     delete_mock = Mock(side_effect=RedisError)
     storage._client.delete = delete_mock
+
+    # when
     storage.update_open(APP_ID, 100)
     error = storage.clear_state_for_app(APP_ID)
+
+    # then
     assert error

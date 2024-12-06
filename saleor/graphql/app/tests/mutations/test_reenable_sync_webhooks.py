@@ -28,6 +28,7 @@ def test_reenable_sync_webhooks(
     permission_manage_apps,
     staff_api_client,
     staff_user,
+    caplog,
 ):
     # given
     breaker_board_mock.storage.clear_state_for_app.side_effect = lambda id: None
@@ -35,12 +36,18 @@ def test_reenable_sync_webhooks(
     variables = {
         "appId": graphene.Node.to_global_id("App", app.id),
     }
+
     # when
     response = staff_api_client.post_graphql(REENABLE_BREAKER_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["reenableSyncWebhooks"]
+
+    # then
     breaker_board_mock.storage.clear_state_for_app.assert_called_once_with(app.id)
+    data = content["data"]["reenableSyncWebhooks"]
     assert not data["errors"]
+    assert caplog.messages == [
+        f"[App ID: {app.id!r}] Circuit breaker manually reset by {staff_user!r}."
+    ]
 
 
 @patch("saleor.graphql.app.mutations.reenable_sync_webhooks.breaker_board")
@@ -57,12 +64,14 @@ def test_reenable_sync_webhooks_id_not_in_storage(
     variables = {
         "appId": graphene.Node.to_global_id("App", app.id),
     }
+
     # when
     response = staff_api_client.post_graphql(REENABLE_BREAKER_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["reenableSyncWebhooks"]
+
+    # then
     breaker_board_mock.storage.clear_state_for_app.assert_called_once_with(app.id)
-    error = data["errors"][0]
+    error = content["data"]["reenableSyncWebhooks"]["errors"][0]
     assert error["field"] == "appId"
     assert error["code"] == AppErrorCode.INVALID.name
 
@@ -80,11 +89,13 @@ def test_reenable_sync_webhooks_non_existing_app_id(
     variables = {
         "appId": graphene.Node.to_global_id("App", 9999),
     }
+
     # when
     response = staff_api_client.post_graphql(REENABLE_BREAKER_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["reenableSyncWebhooks"]
+
+    # then
     breaker_board_mock.storage.clear_state_for_app.assert_not_called()
-    error = data["errors"][0]
+    error = content["data"]["reenableSyncWebhooks"]["errors"][0]
     assert error["field"] == "appId"
     assert error["code"] == AppErrorCode.NOT_FOUND.name

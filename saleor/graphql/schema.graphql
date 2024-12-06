@@ -2794,6 +2794,9 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
 
   """App's brand data."""
   brand: AppBrand
+
+  """App sync webhooks operation state."""
+  breakerState: String
 }
 
 interface ObjectWithMetadata {

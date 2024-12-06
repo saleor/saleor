@@ -1,3 +1,5 @@
+import logging
+
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -9,6 +11,9 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
+from ...utils import get_user_or_app_from_context
+
+logger = logging.getLogger(__name__)
 
 # TODO: Remove the conditional when unit tests circular import is solved.
 breaker_board = None
@@ -58,4 +63,10 @@ class ReenableSyncWebhooks(BaseMutation):
                         )
                     }
                 )
+            requestor = get_user_or_app_from_context(info.context)
+            logger.info(
+                "[App ID: %r] Circuit breaker manually reset by %r.",
+                app.id,  # type: ignore[union-attr]
+                requestor,
+            )
         return ReenableSyncWebhooks(app=app)

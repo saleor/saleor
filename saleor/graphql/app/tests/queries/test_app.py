@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 from freezegun import freeze_time
@@ -9,6 +11,7 @@ from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
 from ....tests.fixtures import ApiClient
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...utils import CircuitBreakerState
 
 QUERY_APP = """
     query ($id: ID){
@@ -52,6 +55,7 @@ QUERY_APP = """
                     default
                 }
             }
+            breakerState
             metafield(key: "test")
             metafields(keys: ["test"])
             metadata{
@@ -119,6 +123,7 @@ def test_app_query(
     assert app_data["appUrl"] == app.app_url
     assert app_data["author"] == app.author
     assert app_data["brand"] is None
+    assert app_data["breakerState"] == CircuitBreakerState.CLOSED
     if app_type == "external":
         assert app_data["accessToken"] == create_access_token_for_app(
             app, staff_api_client.user
@@ -683,3 +688,36 @@ def test_app_query_with_metafields_staff_user_without_permissions(
 
     # then
     assert_no_permission(response)
+
+
+@pytest.mark.parametrize(
+    ("is_closed", "breaker_state"),
+    [
+        (False, CircuitBreakerState.OPEN),
+        (True, CircuitBreakerState.CLOSED),
+    ],
+)
+@patch("saleor.graphql.app.types.breaker_board")
+def test_app_query_open_breaker(
+    breaker_board_mock,
+    is_closed,
+    breaker_state,
+    staff_api_client,
+    permission_manage_apps,
+    app,
+):
+    # given
+    breaker_board_mock.is_closed.side_effect = lambda id: is_closed
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["app"]["breakerState"] == breaker_state
