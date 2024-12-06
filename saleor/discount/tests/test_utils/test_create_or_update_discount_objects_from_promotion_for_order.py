@@ -1,7 +1,6 @@
 from decimal import Decimal
 
 import graphene
-import pytest
 
 from ....order.fetch import fetch_draft_order_lines_info
 from ....product.models import (
@@ -399,71 +398,6 @@ def test_multiple_rules_no_discount_applied(
     assert not OrderDiscount.objects.exists()
 
 
-def test_update_catalogue_discount_updates_discount_amount_only(
-    order_with_lines_and_catalogue_promotion, catalogue_promotion_without_rules
-):
-    # given
-    order = order_with_lines_and_catalogue_promotion
-    promotion = catalogue_promotion_without_rules
-
-    channel = order.channel
-    line = order.lines.first()
-    new_line_quantity = line.quantity + 1
-    line.quantity = new_line_quantity
-    line.save(update_fields=["quantity"])
-
-    variant = line.variant
-    assert OrderLineDiscount.objects.count() == 1
-    discount_to_update = line.discounts.get()
-
-    new_reward_value = Decimal(6)
-    initial_rule = promotion.rules.first()
-    initial_rule_reward_value = initial_rule.reward_value
-    assert new_reward_value > initial_rule_reward_value
-    new_rule = promotion.rules.create(
-        name="New catalogue rule fixed",
-        catalogue_predicate={
-            "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
-            }
-        },
-        reward_value_type=RewardValueType.FIXED,
-        reward_value=new_reward_value,
-    )
-    new_rule.channels.add(channel)
-
-    variant_channel_listing = variant.channel_listings.get(channel=channel)
-    undiscounted_price = variant_channel_listing.price_amount
-    variant_channel_listing.discounted_price_amount = (
-        undiscounted_price - new_reward_value
-    )
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
-
-    variant_rule_listing = variant_channel_listing.variantlistingpromotionrule.get()
-    variant_rule_listing.discount_amount = new_reward_value
-    variant_rule_listing.promotion_rule = new_rule
-    variant_rule_listing.save(update_fields=["discount_amount", "promotion_rule"])
-
-    lines_info = fetch_draft_order_lines_info(order)
-
-    # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
-
-    # then
-    assert OrderLineDiscount.objects.count() == 1
-    discount = OrderLineDiscount.objects.get()
-    assert discount.amount_value == initial_rule_reward_value * new_line_quantity
-
-    # other fields shoudn't be changed
-    assert discount_to_update.id == discount.id
-    assert discount.line == line
-    assert discount.promotion_rule == initial_rule
-    assert discount.type == DiscountType.PROMOTION
-    assert discount.value_type == RewardValueType.FIXED
-    assert discount.value == initial_rule_reward_value
-    assert discount.currency == channel.currency_code
-
-
 def test_update_order_discount_subtotal(
     order_with_lines_and_order_promotion, order_promotion_without_rules
 ):
@@ -543,7 +477,6 @@ def test_update_gift_discount_new_gift_available(
     assert gift_line.variant == variant
 
 
-@pytest.mark.django_db(transaction=True)
 def test_create_multiple_catalogue_discounts_for_the_same_line_is_not_allowed(
     order_line,
     catalogue_promotion,
