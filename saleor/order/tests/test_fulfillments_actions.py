@@ -768,6 +768,7 @@ def test_create_fulfillments_validate_lines_raise_error(
     warehouse,
     site_settings,
 ):
+    # given
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     order_line1.quantity_fulfilled = 3
@@ -781,6 +782,7 @@ def test_create_fulfillments_validate_lines_raise_error(
         ]
     }
     manager = get_plugins_manager(allow_replica=False)
+    # when & then
     with pytest.raises(ValidationError):
         create_fulfillments(
             staff_user,
