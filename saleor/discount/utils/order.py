@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from django.conf import settings
 from django.db import transaction
@@ -113,7 +113,7 @@ def create_order_line_discount_objects(
         list[OrderLineDiscount],
         list[str],
     ],
-) -> None | list["EditableOrderLineInfo"]:
+) -> Union[None, list["EditableOrderLineInfo"]]:
     from ...order.utils import order_qs_select_for_update
 
     if not discount_data or not lines_info:
@@ -263,7 +263,7 @@ def _set_order_base_prices(order: Order, lines_info: list["EditableOrderLineInfo
     """Set base order prices that includes only catalogue discounts."""
     lines = [line_info.line for line_info in lines_info]
     subtotal = base_order_subtotal(order, lines)
-    shipping_price = order.undiscounted_base_shipping_price
+    shipping_price = order.base_shipping_price
     total = subtotal + shipping_price
 
     update_fields = []

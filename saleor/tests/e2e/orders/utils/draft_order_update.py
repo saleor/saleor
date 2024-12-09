@@ -38,6 +38,9 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
       total {
         ...BaseTaxedMoney
       }
+      undiscountedTotal {
+        ...BaseTaxedMoney
+      }
       voucherCode
       voucher {
         id
