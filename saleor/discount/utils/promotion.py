@@ -404,12 +404,12 @@ def _get_available_for_purchase_variant_ids(
 @allow_writer()
 def delete_gift_line(
     order_or_checkout: Union[Checkout, Order],
-    lines_info: Union[list["CheckoutLineInfo"], list["EditableOrderLineInfo"]],
+    lines_info: Iterable[Union["CheckoutLineInfo", "EditableOrderLineInfo"]],
 ):
     if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
         order_or_checkout.lines.filter(is_gift=True).delete()  # type: ignore[misc]
         for gift_line_info in gift_line_infos:
-            lines_info.remove(gift_line_info)  # type: ignore[arg-type]
+            list(lines_info).remove(gift_line_info)
 
 
 def create_gift_line(
@@ -667,7 +667,7 @@ def update_rule_variant_relation(
 
 def create_discount_objects_for_order_promotions(
     order_or_checkout: Union[Checkout, Order],
-    lines_info: Union[list["EditableOrderLineInfo"], list["CheckoutLineInfo"]],
+    lines_info: Iterable[Union["EditableOrderLineInfo", "CheckoutLineInfo"]],
     subtotal: Money,
     channel: "Channel",
     country: str,
@@ -744,7 +744,7 @@ def create_discount_objects_for_order_promotions(
 @allow_writer()
 def _handle_order_promotion(
     order_or_checkout: Union[Order, Checkout],
-    lines_info: Union[list["EditableOrderLineInfo"], list["CheckoutLineInfo"]],
+    lines_info: Iterable[Union[EditableOrderLineInfo, CheckoutLineInfo]],
     discount_object_defaults: dict,
     rule_info: VariantPromotionRuleInfo,
 ):
@@ -773,7 +773,7 @@ def _handle_order_promotion(
 @allow_writer()
 def _handle_gift_reward(
     order_or_checkout: Union[Order, Checkout],
-    lines_info: Union[list[EditableOrderLineInfo], list[CheckoutLineInfo]],
+    lines_info: Iterable[Union[EditableOrderLineInfo, CheckoutLineInfo]],
     gift_listing: ProductVariantChannelListing,
     channel: "Channel",
     discount_object_defaults: dict,
@@ -823,14 +823,14 @@ def _handle_gift_reward(
             "voucher": None,
             "voucher_code": None,
         }
-        gift_line_info: CheckoutLineInfo | EditableOrderLineInfo
+        gift_line_info: Union[CheckoutLineInfo, EditableOrderLineInfo]
         if isinstance(order_or_checkout, Checkout):
             init_values["channel_listing"] = gift_listing
             init_values["rules_info"] = [rule_info]
             gift_line_info = CheckoutLineInfo(**init_values)
         else:
             gift_line_info = EditableOrderLineInfo(**init_values)
-        lines_info.append(gift_line_info)  # type: ignore[arg-type]
+        list(lines_info).append(gift_line_info)
     else:
         line_info = next(
             line_info for line_info in lines_info if line_info.line.pk == line.id

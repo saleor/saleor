@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_lines
 from ....order.search import update_order_search_vector
@@ -135,7 +135,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     @staticmethod
     def add_lines_to_order(order, lines_data, user, app, manager):
-        added_lines: list[OrderLine] = []
+        added_lines: list[models.OrderLine] = []
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(
