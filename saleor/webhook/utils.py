@@ -109,9 +109,19 @@ def get_webhooks_for_multiple_events(
         .prefetch_related("permissions__content_type")
         .in_bulk()
     )
+    return calculate_webhooks_for_multiple_events(
+        set_event_types, apps, list(webhooks), webhook_id_to_event_types_map
+    )
 
+
+def calculate_webhooks_for_multiple_events(
+    set_event_types: set[str],
+    app_by_id_map: dict[int, App],
+    webhooks: list[Webhook],
+    events_types_by_webhook_id_map: dict[int, set[str]],
+) -> dict[str, set[Webhook]]:
     app_perm_map = {}
-    for app in apps.values():
+    for app in app_by_id_map.values():
         app_perms = app.permissions.all()
         app_permission_codenames = [
             (permission.content_type.app_label, permission.codename)
@@ -120,12 +130,12 @@ def get_webhooks_for_multiple_events(
         app_perm_map[app.id] = app_permission_codenames
     active_event_map = defaultdict(set)
     for webhook in webhooks:
-        if webhook.app_id not in apps:
+        if webhook.app_id not in app_by_id_map:
             continue
-        app = apps[webhook.app_id]
+        app = app_by_id_map[webhook.app_id]
         webhook.app = app
         app_permissions = app_perm_map.get(webhook.app_id, [])
-        events = webhook_id_to_event_types_map.get(webhook.id, set())
+        events = events_types_by_webhook_id_map.get(webhook.id, set())
         for event in events:
             required_permission = WebhookEventAsyncType.PERMISSIONS.get(
                 event, WebhookEventSyncType.PERMISSIONS.get(event)

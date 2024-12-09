@@ -46,3 +46,16 @@ class AppByTokenLoader(DataLoader[str, App]):
         )
 
         return [apps.get(authed_apps.get(key)) for key in keys]
+
+
+class ActiveAppByIdLoader(DataLoader):
+    context_key = "active_app_by_id"
+
+    def batch_load(self, keys):
+        apps_map = (
+            App.objects.using(self.database_connection_name)
+            .filter(is_active=True, removed_at__isnull=True)
+            .prefetch_related("permissions__content_type")
+            .in_bulk()
+        )
+        return [apps_map.get(app_id) for app_id in keys]
