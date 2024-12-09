@@ -13,8 +13,8 @@ from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....order import events as order_events
-from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
+from ....order.utils import order_lines_qs_select_for_update
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.search import prepare_product_search_vector_value
@@ -120,7 +120,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             response = super().perform_mutation(_root, info, ids=ids, **data)
 
             # delete order lines for deleted variants, they are ordered by Meta
-            order_models.OrderLine.objects.select_for_update(of=("self",)).filter(
+            order_lines_qs_select_for_update().filter(
                 pk__in=draft_order_lines_data.line_pks
             ).delete()
 

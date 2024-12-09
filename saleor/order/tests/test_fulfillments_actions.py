@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
 from ...order import OrderEvents
@@ -759,3 +760,36 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
+
+
+def test_create_fulfillments_validate_lines_raise_error(
+    staff_user,
+    order_with_lines,
+    warehouse,
+    site_settings,
+):
+    # given
+    order = order_with_lines
+    order_line1, order_line2 = order.lines.all()
+    order_line1.quantity_fulfilled = 3
+    order_line1.save()
+    order_line2.quantity_fulfilled = 2
+    order_line2.save()
+    fulfillment_lines_for_warehouses = {
+        warehouse.pk: [
+            {"order_line": order_line1, "quantity": 3},
+            {"order_line": order_line2, "quantity": 2},
+        ]
+    }
+    manager = get_plugins_manager(allow_replica=False)
+    # when & then
+    with pytest.raises(ValidationError):
+        create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            True,
+        )

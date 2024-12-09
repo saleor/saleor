@@ -13,6 +13,7 @@ from .....order.actions import call_order_events, order_fulfilled
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
+from .....tests import race_condition
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1657,3 +1658,50 @@ def test_order_fulfill_triggers_webhooks(
         any_order=True,
     )
     assert wrapped_call_order_events.called
+
+
+def test_order_fulfill_fulfilled_order_race_condition(
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_group_manage_orders,
+    warehouse,
+):
+    # given
+    query = ORDER_FULFILL_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 100, "warehouse": warehouse_id}],
+                }
+            ]
+        },
+    }
+
+    def fulfill_line():
+        order_line.quantity_fulfilled = 100
+        order_line.save()
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.order.actions.create_fulfillments", fulfill_line
+    ):
+        response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderFulfill"]
+    assert data["errors"]
+    error = data["errors"][0]
+    assert error["field"] == "orderLineId"
+    assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
+    assert error["orderLines"] == [order_line_id]
+    assert not error["warehouse"]
