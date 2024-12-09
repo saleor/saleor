@@ -21,7 +21,6 @@ from graphql.validation import validate
 from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
-from ...graphql.api import schema
 from .sensitive_data import ALLOWED_HEADERS, SENSITIVE_HEADERS, SensitiveFieldsMap
 
 if TYPE_CHECKING:
@@ -201,6 +200,9 @@ def anonymize_event_payload(
 ) -> Any:
     if not subscription_query:
         return payload
+
+    from ...graphql.api import schema
+
     graphql_backend = get_default_backend()
     document = graphql_backend.document_from_string(schema, subscription_query)
     if _contain_sensitive_field(document, sensitive_fields):

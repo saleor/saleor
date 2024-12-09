@@ -8,10 +8,6 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
 
-from saleor.webhook.transport.synchronous.circuit_breaker.breaker_board import (
-    initialize_breaker_board,
-)
-
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -28,6 +24,9 @@ from ....payment.models import TransactionEvent
 from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
+)
+from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
+    initialize_breaker_board,
 )
 from ... import observability
 from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT

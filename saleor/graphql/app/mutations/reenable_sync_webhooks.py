@@ -1,23 +1,18 @@
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
 from ....graphql.app.types import App
 from ....permission.enums import AppPermission
+from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
+    initialize_breaker_board,
+)
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 
-# TODO: Remove the conditional when unit tests circular import is solved.
-breaker_board = None
-if settings.ENABLE_BREAKER_BOARD:
-    from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
-        initialize_breaker_board,
-    )
-
-    breaker_board = initialize_breaker_board()
+breaker_board = initialize_breaker_board()
 
 
 class ReenableSyncWebhooks(BaseMutation):
