@@ -101,8 +101,9 @@ def _set_order_totals(
         undiscounted_subtotal += line.undiscounted_total_price
 
     shipping_tax_rate = order.shipping_tax_rate or 0
-    undiscounted_base_shipping_price = base_calculations.undiscounted_order_shipping(
-        order
+    undiscounted_base_shipping_price = (
+        order.undiscounted_base_shipping_price
+        or base_calculations.undiscounted_order_shipping(order)
     )
     undiscounted_shipping_price = calculate_flat_rate_tax(
         undiscounted_base_shipping_price,

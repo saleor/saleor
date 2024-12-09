@@ -40,6 +40,11 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
           ...BaseTaxedMoney
         }
         unitDiscountReason
+        unitDiscountType
+        unitDiscountValue
+        unitDiscount {
+          amount
+        }
         undiscountedUnitPrice {
           ...BaseTaxedMoney
         }
