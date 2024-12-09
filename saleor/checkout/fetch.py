@@ -135,6 +135,7 @@ class CheckoutInfo:
     collection_point: Optional["Warehouse"] = None
     voucher: Optional["Voucher"] = None
     voucher_code: Optional["VoucherCode"] = None
+    pregenerated_payloads_for_excluded_shipping_method: Optional[dict] = None
 
     @cached_property
     def all_shipping_methods(self) -> list["ShippingMethodData"]:
@@ -147,7 +148,9 @@ class CheckoutInfo:
         )
         # Filter shipping methods using sync webhooks
         excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
-            self.checkout, all_methods
+            self.checkout,
+            all_methods,
+            self.pregenerated_payloads_for_excluded_shipping_method,
         )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods

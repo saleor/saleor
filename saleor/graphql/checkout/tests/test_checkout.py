@@ -1,4 +1,5 @@
 import datetime
+from collections import defaultdict
 from decimal import Decimal
 from unittest import mock
 
@@ -226,6 +227,7 @@ def test_checkout_available_payment_gateways_valid_info_sent(
     api_client.post_graphql(query, variables)
 
     # then
+    checkout_info.pregenerated_payloads_for_excluded_shipping_method = defaultdict(dict)
     mocked_list_gateways.assert_called_with(
         currency=currency,
         checkout_info=checkout_info,

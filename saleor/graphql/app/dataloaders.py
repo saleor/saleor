@@ -11,6 +11,7 @@ from ...core.auth import get_token_from_request
 from ...core.utils.lazyobjects import unwrap_lazy
 from ..core import SaleorContext
 from ..core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
+from ..webhook.dataloaders.models import WebhooksByEventTypeLoader
 
 
 class AppByIdLoader(DataLoader):
@@ -143,3 +144,50 @@ def app_promise_callback(func):
         )
 
     return _wrapper
+
+
+class ActiveAppByIdLoader(DataLoader):
+    context_key = "active_app_by_id"
+
+    def batch_load(self, keys):
+        apps_map = (
+            App.objects.using(self.database_connection_name)
+            .filter(is_active=True, removed_at__isnull=True)
+            .prefetch_related("permissions__content_type")
+            .in_bulk()
+        )
+        return [apps_map.get(app_id) for app_id in keys]
+
+
+class AppsByEventTypeLoader(DataLoader):
+    context_key = "app_by_event_type"
+
+    def batch_load(self, keys):
+        app_ids_by_event_type: dict[str, list[int]] = defaultdict(list)
+        app_ids = set()
+
+        def return_apps_for_webhooks(webhooks_by_event_type):
+            for event_type, webhooks in zip(keys, webhooks_by_event_type):
+                ids = [webhook.app_id for webhook in webhooks]
+                app_ids_by_event_type[event_type] = ids
+                app_ids.update(ids)
+
+            def return_apps(
+                apps, app_ids_by_event_type=app_ids_by_event_type, keys=keys
+            ):
+                apps_by_event_type = defaultdict(list)
+                app_by_id = defaultdict(list)
+                for app in apps:
+                    app_by_id[app.id] = app
+                for event_type in keys:
+                    for app_id in app_ids_by_event_type[event_type]:
+                        apps_by_event_type[event_type].append(app_by_id[app_id])
+                return [apps_by_event_type[event_type] for event_type in keys]
+
+            return AppByIdLoader(self.context).load_many(app_ids).then(return_apps)
+
+        return (
+            WebhooksByEventTypeLoader(self.context)
+            .load_many(keys)
+            .then(return_apps_for_webhooks)
+        )
