@@ -1,6 +1,5 @@
 from unittest.mock import ANY, call, patch
 
-import before_after
 import graphene
 import pytest
 from django.test import override_settings
@@ -14,6 +13,7 @@ from .....order.actions import call_order_events, order_fulfilled
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
+from .....tests import race_condition
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1691,7 +1691,9 @@ def test_order_fulfill_fulfilled_order_race_condition(
         order_line.save()
 
     # when
-    with before_after.before("saleor.order.actions.create_fulfillments", fulfill_line):
+    with race_condition.RunBefore(
+        "saleor.order.actions.create_fulfillments", fulfill_line
+    ):
         response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
