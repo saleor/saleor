@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import events, models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_lines
 from ....order.search import update_order_search_vector
@@ -62,7 +62,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def validate_lines(
-        cls, info: ResolveInfo, data, existing_lines_info, variants_data
+        cls, info: ResolveInfo, data, existing_lines_info, variant_rule_map
     ):
         grouped_lines_data: list[OrderLineData] = []
         lines_data_map: dict[str, OrderLineData] = defaultdict(OrderLineData)
@@ -75,8 +75,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         for input_line in data:
             variant_id: str = input_line["variant_id"]
             force_new_line = input_line["force_new_line"]
-            variant_data = variants_data.get(variant_id)
-            variant = variant_data.variant
+            variant_rule_data = variant_rule_map.get(variant_id)
+            variant = variant_rule_data.variant
             quantity = input_line["quantity"]
 
             custom_price = input_line.get("price")
@@ -88,7 +88,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                             variant=variant,
                             quantity=quantity,
                             price_override=custom_price,
-                            rules_info=variant_data.rules_info,
+                            rules_info=variant_rule_data.rules_info,
                         )
                     )
                 else:
@@ -106,7 +106,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     line_data.variant = variant
                     line_data.quantity += quantity
                     line_data.price_override = custom_price
-                    line_data.rules_info = variant_data.rules_info
+                    line_data.rules_info = variant_rule_data.rules_info
             else:
                 invalid_ids.append(variant_id)
         if invalid_ids:
@@ -135,7 +135,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     @staticmethod
     def add_lines_to_order(order, lines_data, user, app, manager):
-        added_lines: list[OrderLine] = []
+        added_lines: list[models.OrderLine] = []
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(
@@ -165,12 +165,12 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         variant_pks = cls.get_global_ids_or_error(
             [line["variant_id"] for line in input], ProductVariant, "variant_id"
         )
-        variants_data = get_variant_rule_info_map(
+        variants_rule_map = get_variant_rule_info_map(
             variant_pks, order.channel_id, order.language_code
         )
 
         lines_to_add = cls.validate_lines(
-            info, input, existing_lines_info, variants_data
+            info, input, existing_lines_info, variants_rule_map
         )
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)

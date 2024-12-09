@@ -50,6 +50,7 @@ from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.postgres import FlatConcatSearchVector
+from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
@@ -4473,8 +4474,10 @@ def order_line_on_promotion(order_line, catalogue_promotion):
     channel = order_line.order.channel
     reward_value = Decimal("1.0")
     rule = catalogue_promotion.rules.first()
-    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    rule.reward_value = reward_value
+    rule.save(update_fields=["reward_value"])
 
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
     variant_channel_listing.discounted_price_amount = (
         variant_channel_listing.price_amount - reward_value
     )
@@ -4512,6 +4515,18 @@ def order_line_on_promotion(order_line, catalogue_promotion):
 
     order_line.unit_discount_amount = reward_value
     order_line.save()
+
+    order_line.discounts.create(
+        type=DiscountType.PROMOTION,
+        promotion_rule=rule,
+        value_type=rule.reward_value_type,
+        value=reward_value,
+        amount_value=reward_value * order_line.quantity,
+        currency=channel.currency_code,
+        reason="Catalogue promotion reason",
+        unique_type=DiscountType.PROMOTION,
+    )
+
     return order_line
 
 
@@ -5239,7 +5254,9 @@ def order_with_lines_and_catalogue_promotion(
     order_with_lines, channel_USD, catalogue_promotion_without_rules
 ):
     order = order_with_lines
+    currency = order.currency
     promotion = catalogue_promotion_without_rules
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     line = order.lines.get(quantity=3)
     variant = line.variant
     reward_value = Decimal(3)
@@ -5261,7 +5278,7 @@ def order_with_lines_and_catalogue_promotion(
     listing.variantlistingpromotionrule.create(
         promotion_rule=rule,
         discount_amount=reward_value,
-        currency=order.currency,
+        currency=currency,
     )
 
     line.discounts.create(
@@ -5269,9 +5286,25 @@ def order_with_lines_and_catalogue_promotion(
         value_type=RewardValueType.FIXED,
         value=reward_value,
         amount_value=reward_value * line.quantity,
-        currency=order.currency,
+        currency=currency,
         promotion_rule=rule,
+        reason=f"Promotion: {promotion_id}",
     )
+
+    line.base_unit_price_amount = (
+        line.undiscounted_base_unit_price_amount - reward_value
+    )
+    total = quantize_price(line.base_unit_price_amount * line.quantity, currency)
+    line.total_price_net_amount = total
+    line.total_price_gross_amount = quantize_price(total * Decimal("1.23"), currency)
+    line.save(
+        update_fields=[
+            "base_unit_price_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ]
+    )
+
     return order
 
 

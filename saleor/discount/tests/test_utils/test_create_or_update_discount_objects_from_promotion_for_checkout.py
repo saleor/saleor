@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -2258,7 +2258,7 @@ def test_get_best_gift_reward_no_available_for_purchase_variants(
     variants = gift_promotion_rule.gifts.all()
     product_ids = [variant.product_id for variant in variants]
     ProductChannelListing.objects.filter(product__in=product_ids[:1]).update(
-        available_for_purchase_at=timezone.now() + timedelta(days=1)
+        available_for_purchase_at=timezone.now() + datetime.timedelta(days=1)
     )
     ProductChannelListing.objects.filter(product__in=product_ids[1:]).delete()
 
@@ -2303,7 +2303,7 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
         create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
 
     with before_after.before(
-        "saleor.discount.utils.promotion.prepare_line_discount_objects_for_catalogue_promotions",
+        "saleor.discount.utils.checkout.prepare_checkout_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
     ):
         lines_info, _ = fetch_checkout_lines(checkout)
