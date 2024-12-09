@@ -27,7 +27,10 @@ from .promotion import (
     prepare_promotion_discount_reason,
 )
 from .shared import update_line_info_cached_discounts
-from .voucher import create_or_update_discount_objects_from_voucher
+from .voucher import (
+    create_or_update_discount_object_from_order_level_voucher,
+    create_or_update_line_discount_objects_from_voucher,
+)
 
 if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
@@ -38,71 +41,16 @@ def create_or_update_discount_objects_for_order(
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    create_or_update_discount_objects_from_promotion_for_order(
-        order, lines_info, database_connection_name
-    )
-    create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    create_or_update_discount_objects_from_voucher(
-        order, lines_info, database_connection_name
-    )
-    _copy_unit_discount_data_to_order_line(lines_info)
-
-
-def create_or_update_discount_objects_from_promotion_for_order(
-    order: "Order",
-    lines_info: list["EditableOrderLineInfo"],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    delete_order_line_discount_objects_for_catalogue_promotions(lines_info)
-    # Update base price with catalogue discount reward. This price will be further used:
-    # - to qualify order for order promotion
-    # - to apply vouchers
     _update_base_unit_price_amount_for_catalogue_promotion(lines_info)
+    create_or_update_line_discount_objects_from_voucher(lines_info)
+    create_or_update_line_discount_objects_for_manual_discounts(lines_info)
+    create_or_update_discount_object_from_order_level_voucher(
+        order, database_connection_name
+    )
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
-
-
-def delete_order_line_discount_objects_for_catalogue_promotions(
-    lines_info: list["EditableOrderLineInfo"],
-):
-    """Delete catalogue discounts if other conflicting discounts exist.
-
-    - manual line discounts do not stuck with catalogue discounts
-    - gift line should not have any catalogue discounts associated
-    """
-    line_discounts_to_remove: list[OrderLineDiscount] = []
-
-    if not lines_info:
-        return
-
-    for line_info in lines_info:
-        line = line_info.line
-
-        # get the existing catalogue discount for the line
-        if existing_discounts := line_info.get_catalogue_discounts():
-            # Line should never have multiple catalogue discounts associated. Before
-            # introducing unique_type on discount models, there was such a possibility.
-            line_discounts_to_remove.extend(existing_discounts[1:])
-
-        # manual line discount do not stack with other line discounts
-        if [
-            discount
-            for discount in line_info.discounts
-            if discount.type == DiscountType.MANUAL
-        ]:
-            line_discounts_to_remove.extend(existing_discounts)
-            continue
-
-        # delete all existing discounts if the line is a gift
-        if line.is_gift:
-            line_discounts_to_remove.extend(existing_discounts)
-            continue
-
-    if line_discounts_to_remove:
-        create_order_line_discount_objects(
-            lines_info, ([], [], line_discounts_to_remove, [])
-        )
+    _copy_unit_discount_data_to_order_line(lines_info)
 
 
 def create_order_line_discount_objects(

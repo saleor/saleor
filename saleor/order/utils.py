@@ -249,6 +249,7 @@ def create_order_line(
         translated_product_name = ""
     if translated_variant_name == variant_name:
         translated_variant_name = ""
+    # TODO zedzior: this trigger multiple db calls for multiple lines
     line = order.lines.create(
         product_name=product_name,
         variant_name=variant_name,
@@ -273,6 +274,7 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
+            # TODO zedzior: this trigger multiple db calls for multiple lines
             line_discounts = (
                 create_order_line_discount_objects_for_catalogue_promotions(
                     line, rules_info, channel

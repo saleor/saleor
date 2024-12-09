@@ -1358,23 +1358,27 @@ def test_update_order_line_discount_line_with_catalogue_promotion(
     order_with_lines_and_catalogue_promotion,
     staff_api_client,
     permission_group_manage_orders,
+    tax_configuration_flat_rates,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines_and_catalogue_promotion
+    currency = order.currency
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
     line = order.lines.get(quantity=3)
     assert line.discounts.filter(type=DiscountType.PROMOTION).exists()
+    unidscounted_unit_price = line.undiscounted_base_unit_price.amount
+    tax_rate = Decimal("1.23")
 
-    value = Decimal("5")
+    manual_discount_value = Decimal("5")
     value_type = DiscountValueTypeEnum.FIXED
     reason = "Manual fixed line discount"
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
         "input": {
             "valueType": value_type.name,
-            "value": value,
+            "value": manual_discount_value,
             "reason": reason,
         },
     }
@@ -1386,13 +1390,44 @@ def test_update_order_line_discount_line_with_catalogue_promotion(
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountUpdate"]
     assert not data["errors"]
+    line.refresh_from_db()
 
     line_discount = line.discounts.get()
     assert line_discount.type == DiscountType.MANUAL
-    assert line_discount.value == value
+    assert line_discount.value == manual_discount_value
     assert line_discount.value_type == value_type.value
     assert line_discount.reason == reason
-    assert line_discount.amount_value == value * line.quantity
+    assert line_discount.amount_value == manual_discount_value * line.quantity
+
+    line_unit_price = unidscounted_unit_price - manual_discount_value
+    line_undiscounted_total_net_amount = quantize_price(
+        unidscounted_unit_price * line.quantity,
+        currency,
+    )
+    line_total_net_amount = quantize_price(
+        line.base_unit_price_amount * line.quantity,
+        currency,
+    )
+    assert line.undiscounted_unit_price_net_amount == unidscounted_unit_price
+    assert line.undiscounted_unit_price_gross_amount == quantize_price(
+        unidscounted_unit_price * tax_rate, currency
+    )
+    assert line.undiscounted_base_unit_price_amount == unidscounted_unit_price
+    assert line.base_unit_price_amount == line_unit_price
+    assert line.unit_price_net_amount == line_unit_price
+    assert line.unit_price_gross_amount == quantize_price(
+        line_unit_price * tax_rate, currency
+    )
+    assert line.total_price_net_amount == line_total_net_amount
+    assert line.total_price_gross_amount == quantize_price(
+        line_total_net_amount * tax_rate, currency
+    )
+    assert (
+        line.undiscounted_total_price_net_amount == line_undiscounted_total_net_amount
+    )
+    assert line.undiscounted_total_price_gross_amount == quantize_price(
+        line_undiscounted_total_net_amount * tax_rate, currency
+    )
 
 
 def test_update_order_line_discount_order_is_not_draft(

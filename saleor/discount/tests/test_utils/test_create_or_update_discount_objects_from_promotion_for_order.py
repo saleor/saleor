@@ -12,7 +12,7 @@ from ... import DiscountType, RewardType, RewardValueType
 from ...interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ...models import OrderDiscount, OrderLineDiscount
 from ...utils.order import (
-    create_or_update_discount_objects_from_promotion_for_order,
+    create_order_discount_objects_for_order_promotions,
     create_order_line_discount_objects_for_catalogue_promotions,
 )
 
@@ -158,7 +158,7 @@ def test_create_order_discount_subtotal_fixed(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -198,7 +198,7 @@ def test_create_order_discount_subtotal_percentage(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -238,7 +238,7 @@ def test_create_order_discount_gift(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     assert OrderLineDiscount.objects.count() == 1
@@ -290,7 +290,7 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
     )
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     order.refresh_from_db()
@@ -329,7 +329,7 @@ def test_multiple_rules_gift_and_catalogue_discount_applied(draft_order_and_prom
     )
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     order.refresh_from_db()
@@ -391,7 +391,7 @@ def test_multiple_rules_no_discount_applied(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     assert not OrderLineDiscount.objects.exists()
@@ -422,7 +422,7 @@ def test_update_order_discount_subtotal(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     assert OrderDiscount.objects.count() == 1
@@ -457,7 +457,7 @@ def test_update_gift_discount_new_gift_available(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    create_or_update_discount_objects_from_promotion_for_order(order, lines_info)
+    create_order_discount_objects_for_order_promotions(order, lines_info)
 
     # then
     assert OrderLineDiscount.objects.count() == 1

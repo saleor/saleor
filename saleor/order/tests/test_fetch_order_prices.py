@@ -838,6 +838,7 @@ def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
     plugins_manager,
     tax_configuration_flat_rates,
 ):
+    """Manual order discount do not combine with order promotions."""
     # given
     order = order_with_lines_and_order_promotion
     order.status = OrderStatus.UNCONFIRMED
@@ -974,6 +975,7 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
     plugins_manager,
     tax_configuration_flat_rates,
 ):
+    """Manual order discount do not combine with order promotions."""
     # given
     order = order_with_lines_and_gift_promotion
     order.status = OrderStatus.UNCONFIRMED
@@ -1279,59 +1281,6 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     assert order.shipping_price_gross_amount == quantize_price(
         order.shipping_price_net_amount * tax_rate, currency
     )
-
-
-def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rates(
-    order_with_lines_and_catalogue_promotion,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines_and_catalogue_promotion
-    order.status = OrderStatus.UNCONFIRMED
-
-    line_1 = order.lines.get(quantity=3)
-    variant_1 = line_1.variant
-    variant_1_listing = variant_1.channel_listings.get(channel=order.channel)
-
-    manual_discount_value = Decimal("5")
-    manual_discount_value_type = DiscountValueType.FIXED
-    manual_discount_reason = "Manual line discount"
-    manual_discount = line_1.discounts.create(
-        value_type=manual_discount_value_type,
-        value=manual_discount_value,
-        name="Manual order line discount",
-        type=DiscountType.MANUAL,
-        reason=manual_discount_reason,
-    )
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    assert OrderLineDiscount.objects.count() == 1
-    assert not OrderDiscount.objects.exists()
-    manual_discount.refresh_from_db()
-
-    line_1 = [line for line in lines if line.quantity == 3][0]
-
-    assert (
-        line_1.base_unit_price_amount
-        == variant_1_listing.price_amount - manual_discount_value
-    )
-    assert manual_discount.line == line_1
-    assert manual_discount.value == manual_discount_value
-    assert manual_discount.value_type == manual_discount_value_type
-    assert manual_discount.type == DiscountType.MANUAL
-    assert manual_discount.reason == manual_discount_reason
-
-    line_1_total_net_amount = quantize_price(
-        (variant_1_listing.price_amount - manual_discount_value) * line_1.quantity,
-        order.currency,
-    )
-    assert line_1.total_price_net_amount == line_1_total_net_amount
 
 
 def test_fetch_order_prices_voucher_specific_product_fixed(

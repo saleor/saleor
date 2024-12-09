@@ -314,6 +314,7 @@ def test_draft_order_update_uses_denormalized_prices_CORE_0251(
 
     order_data = data["order"]
     assert not order_data["discounts"]
+    # TODO zedzior: check if shipping price should 0 for orders without lines
     assert order_data["shippingPrice"]["net"]["amount"] == new_shipping_price
     assert order_data["shippingPrice"]["gross"]["amount"] == quantize_price(
         new_shipping_price * tax_rate, currency
