@@ -34,6 +34,9 @@ from ...tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChan
 from ...warehouse.dataloaders import (
     WarehouseByIdLoader,
 )
+from ...webhook.dataloaders.pregenerated_payloads_for_checkout_filter_shipping_methods import (
+    PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader,
+)
 from .models import CheckoutByTokenLoader, CheckoutLinesByCheckoutTokenLoader
 from .promotion_rule_infos import VariantPromotionRuleInfoByCheckoutLineIdLoader
 
@@ -43,7 +46,13 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
 
     def batch_load(self, keys):
         def with_checkout(data):
-            checkouts, checkout_line_infos, checkout_discounts, manager = data
+            (
+                checkouts,
+                checkout_line_infos,
+                checkout_discounts,
+                manager,
+                pregenerated_payloads_for_excluded_shipping_methods,
+            ) = data
 
             channel_pks = [checkout.channel_id for checkout in checkouts]
 
@@ -132,12 +141,20 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                     }
 
                     checkout_info_map = {}
-                    for key, checkout, channel, checkout_lines, discounts in zip(
+                    for (
+                        key,
+                        checkout,
+                        channel,
+                        checkout_lines,
+                        discounts,
+                        pregenerated_payloads_for_excluded_shipping_method,
+                    ) in zip(
                         keys,
                         checkouts,
                         channels,
                         checkout_line_infos,
                         checkout_discounts,
+                        pregenerated_payloads_for_excluded_shipping_methods,
                     ):
                         shipping_method = shipping_method_map.get(
                             checkout.shipping_method_id
@@ -176,6 +193,9 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             voucher=voucher_code.voucher if voucher_code else None,
                             voucher_code=voucher_code,
                             database_connection_name=self.database_connection_name,
+                            pregenerated_payloads_for_excluded_shipping_method=(
+                                pregenerated_payloads_for_excluded_shipping_method
+                            ),
                         )
                         checkout_info_map[key] = checkout_info
 
@@ -205,9 +225,20 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
         ).load_many(keys)
         discounts = CheckoutDiscountByCheckoutIdLoader(self.context).load_many(keys)
         manager = get_plugin_manager_promise(self.context)
-        return Promise.all([checkouts, checkout_line_infos, discounts, manager]).then(
-            with_checkout
+        pregenerated_payloads_for_excluded_shipping_methods_loader = (
+            PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader(
+                self.context
+            ).load_many(keys)
         )
+        return Promise.all(
+            [
+                checkouts,
+                checkout_line_infos,
+                discounts,
+                manager,
+                pregenerated_payloads_for_excluded_shipping_methods_loader,
+            ]
+        ).then(with_checkout)
 
 
 class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, list[CheckoutLineInfo]]):

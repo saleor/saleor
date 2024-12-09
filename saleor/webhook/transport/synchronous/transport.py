@@ -179,6 +179,7 @@ def trigger_webhook_sync_if_not_cached(
     cache_timeout=None,
     request=None,
     requestor=None,
+    pregenerated_subscription_payload: Optional[dict] = None,
 ) -> Optional[dict]:
     """Get response for synchronous webhook.
 
@@ -200,6 +201,7 @@ def trigger_webhook_sync_if_not_cached(
             timeout=request_timeout,
             request=request,
             requestor=requestor,
+            pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
         if response_data is not None:
             cache.set(
