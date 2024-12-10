@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Optional
 
-from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
-
 if TYPE_CHECKING:
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..payment.interface import (
         CustomerSource,
         GatewayResponse,

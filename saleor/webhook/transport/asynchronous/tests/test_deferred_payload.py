@@ -10,7 +10,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
 from ....event_types import WebhookEventAsyncType
-from ...utils import get_webhooks_for_event
+from ....utils import get_webhooks_for_event
 from ..transport import (
     DeferredPayloadData,
     generate_deferred_payloads,
