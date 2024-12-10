@@ -9,6 +9,7 @@ from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
 from requests_hardened import HTTPSession
 
+from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.transport import signature_for_payload
@@ -158,9 +159,13 @@ def test_trigger_webhooks_with_google_pub_sub(
     permission_manage_users,
     permission_manage_products,
     monkeypatch,
+    settings,
 ):
+    # given
+    mocked_future_result = MagicMock()
+    mocked_future_result.return_value = "message_id"
     mocked_publisher = MagicMock(spec=PublisherClient)
-    mocked_publisher.publish.return_value.result.return_value = "message_id"
+    mocked_publisher.publish.return_value.result = mocked_future_result
     monkeypatch.setattr(
         "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
         lambda: mocked_publisher,
@@ -171,11 +176,70 @@ def test_trigger_webhooks_with_google_pub_sub(
     expected_data = serialize("json", [order_with_lines])
     expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
 
+    # when
     trigger_webhooks_async(
         expected_data,
         WebhookEventAsyncType.ORDER_CREATED,
         [webhook],
         allow_replica=False,
+    )
+
+    # then
+    mocked_future_result.assert_called_once_with(
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+    )
+    mocked_publisher.publish.assert_called_once_with(
+        "projects/saleor/topics/test",
+        expected_data.encode("utf-8"),
+        saleorDomain="mirumee.com",
+        saleorApiUrl="http://mirumee.com/graphql/",
+        eventType=WebhookEventAsyncType.ORDER_CREATED,
+        signature=expected_signature,
+    )
+
+
+@patch("saleor.webhook.transport.asynchronous.transport.handle_webhook_retry")
+def test_trigger_webhooks_with_google_pub_sub_when_timout_error_raised(
+    mocked_retry,
+    webhook,
+    order_with_lines,
+    permission_manage_orders,
+    permission_manage_users,
+    permission_manage_products,
+    monkeypatch,
+    settings,
+):
+    # given
+    mocked_future_result = MagicMock()
+    mocked_future_result.side_effect = TimeoutError
+
+    mocked_publisher = MagicMock(spec=PublisherClient)
+    mocked_publisher.publish.return_value.result = mocked_future_result
+    monkeypatch.setattr(
+        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
+        lambda: mocked_publisher,
+    )
+    webhook.app.permissions.add(permission_manage_orders)
+    webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
+    webhook.save()
+    expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
+
+    # when
+    trigger_webhooks_async(
+        expected_data,
+        WebhookEventAsyncType.ORDER_CREATED,
+        [webhook],
+        allow_replica=False,
+    )
+
+    # then
+    event_delivery = EventDelivery.objects.get()
+    assert event_delivery.status == EventDeliveryStatus.FAILED
+    assert mocked_retry.called
+
+    mocked_future_result.assert_called_once_with(
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
     )
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",

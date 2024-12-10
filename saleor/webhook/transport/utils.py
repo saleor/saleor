@@ -296,10 +296,16 @@ def send_webhook_using_google_cloud_pubsub(
                 eventType=event_type,
                 signature=signature,
             )
-        except (pubsub_v1.publisher.exceptions.MessageTooLargeError, RuntimeError) as e:
+            response = future.result(
+                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+            )
+        except (
+            pubsub_v1.publisher.exceptions.MessageTooLargeError,
+            RuntimeError,
+            TimeoutError,
+        ) as e:
             return WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         response_duration = duration()
-        response = future.result()
         return WebhookResponse(content=response, duration=response_duration)
 
 
