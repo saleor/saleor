@@ -54,13 +54,18 @@ from .dataloaders import (
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
     app_promise_callback,
 )
-from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
+from .enums import (
+    AppExtensionMountEnum,
+    AppExtensionTargetEnum,
+    AppTypeEnum,
+    CircuitBreakerState,
+    CircuitBreakerStateEnum,
+)
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
     resolve_app_extension_url,
 )
-from .utils import CircuitBreakerState
 
 # TODO: Remove the conditional when unit tests circular import is solved.
 breaker_board = None
@@ -535,7 +540,10 @@ class App(ModelObjectType[models.App]):
         required=True,
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
-    breaker_state = graphene.String(description="App sync webhooks operation state.")
+    breaker_state = CircuitBreakerStateEnum(
+        description="Circuit breaker state, if open, sync webhooks operation is disrupted.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents app data."

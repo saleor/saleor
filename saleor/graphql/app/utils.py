@@ -40,8 +40,3 @@ def validate_app_is_not_removed(
                 )
             }
         )
-
-
-class CircuitBreakerState:
-    CLOSED = "closed"
-    OPEN = "open"

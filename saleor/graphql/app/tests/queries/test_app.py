@@ -9,9 +9,9 @@ from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
 from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
+from ....app.enums import CircuitBreakerStateEnum
 from ....tests.fixtures import ApiClient
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...utils import CircuitBreakerState
 
 QUERY_APP = """
     query ($id: ID){
@@ -123,7 +123,7 @@ def test_app_query(
     assert app_data["appUrl"] == app.app_url
     assert app_data["author"] == app.author
     assert app_data["brand"] is None
-    assert app_data["breakerState"] == CircuitBreakerState.CLOSED
+    assert app_data["breakerState"] == CircuitBreakerStateEnum.CLOSED.name
     if app_type == "external":
         assert app_data["accessToken"] == create_access_token_for_app(
             app, staff_api_client.user
@@ -693,8 +693,8 @@ def test_app_query_with_metafields_staff_user_without_permissions(
 @pytest.mark.parametrize(
     ("is_closed", "breaker_state"),
     [
-        (False, CircuitBreakerState.OPEN),
-        (True, CircuitBreakerState.CLOSED),
+        (False, CircuitBreakerStateEnum.OPEN.name),
+        (True, CircuitBreakerStateEnum.CLOSED.name),
     ],
 )
 @patch("saleor.graphql.app.types.breaker_board")
