@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Optional, cast
 
 import graphene
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import QuerySet, Sum
+from django.template.defaultfilters import pluralize
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -54,6 +56,7 @@ from . import (
     OrderStatus,
     events,
 )
+from .error_codes import OrderErrorCode
 from .fetch import OrderLineInfo, fetch_draft_order_lines_info
 from .models import Order, OrderGrantedRefund, OrderLine
 
@@ -66,6 +69,10 @@ if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
+
+
+def order_lines_qs_select_for_update():
+    return OrderLine.objects.order_by("pk").select_for_update(of=["self"])
 
 
 def get_order_country(order: Order) -> str:
@@ -1285,3 +1292,27 @@ def order_info_for_logs(order: Order, lines: Iterable[OrderLine]):
             for line_info in lines_info
         ],
     }
+
+
+def clean_order_line_quantities(order_lines, quantities_for_lines):
+    for order_line, line_quantities in zip(order_lines, quantities_for_lines):
+        line_total_quantity = sum(line_quantities)
+        line_quantity_unfulfilled = order_line.quantity_unfulfilled
+
+        if line_total_quantity > line_quantity_unfulfilled:
+            msg = ("Only %(quantity)d item%(item_pluralize)s remaining to fulfill.") % {
+                "quantity": line_quantity_unfulfilled,
+                "item_pluralize": pluralize(line_quantity_unfulfilled),
+            }
+            order_line_global_id = graphene.Node.to_global_id(
+                "OrderLine", order_line.pk
+            )
+            raise ValidationError(
+                {
+                    "order_line_id": ValidationError(
+                        msg,
+                        code=OrderErrorCode.FULFILL_ORDER_LINE.value,
+                        params={"order_lines": [order_line_global_id]},
+                    )
+                }
+            )
