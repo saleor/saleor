@@ -47,7 +47,6 @@ from ..models import (
 from .shared import update_discount
 
 if TYPE_CHECKING:
-    from ...checkout.fetch import CheckoutLineInfo
     from ...order.fetch import EditableOrderLineInfo
     from ...order.models import OrderLine
     from ...product.managers import ProductVariantQueryset

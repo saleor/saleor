@@ -17,7 +17,6 @@ from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db import transaction
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests import RequestException
@@ -36,21 +35,13 @@ from ...core.models import (
 from ...core.tasks import delete_files_from_private_storage_task
 from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
-from ...core.utils.events import call_event
 from ...core.utils.url import sanitize_url_for_logging
-from ...payment import PaymentError
 from ...payment.interface import (
     GatewayResponse,
     PaymentData,
     PaymentGateway,
     PaymentMethodInfo,
-    TransactionActionData,
 )
-from ...payment.utils import (
-    create_failed_transaction_event,
-    recalculate_refundable_for_checkout,
-)
-from ...webhook.utils import get_webhooks_for_event
 from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventSyncType
@@ -544,80 +535,6 @@ def save_unsuccessful_delivery_attempt(attempt: "EventDeliveryAttempt"):
     delivery.save()
     if not attempt.id:
         attempt.save()
-
-
-def trigger_transaction_request(
-    transaction_data: "TransactionActionData", event_type: str, requestor
-) -> None:
-    from ..payloads import generate_transaction_action_request_payload
-    from .synchronous.transport import (
-        create_delivery_for_subscription_sync_event,
-        handle_transaction_request_task,
-    )
-
-    if not transaction_data.transaction_app_owner:
-        create_failed_transaction_event(
-            transaction_data.event,
-            cause=(
-                "Cannot process the action as the given transaction is not "
-                "attached to any app."
-            ),
-        )
-        recalculate_refundable_for_checkout(
-            transaction_data.transaction, transaction_data.event
-        )
-        return
-    webhook = get_webhooks_for_event(
-        event_type, apps_ids=[transaction_data.transaction_app_owner.pk]
-    ).first()
-    if not webhook:
-        create_failed_transaction_event(
-            transaction_data.event,
-            cause="Cannot find a webhook that can process the action.",
-        )
-        recalculate_refundable_for_checkout(
-            transaction_data.transaction, transaction_data.event
-        )
-        return
-
-    if webhook.subscription_query:
-        delivery = None
-        try:
-            delivery = create_delivery_for_subscription_sync_event(
-                event_type=event_type,
-                subscribable_object=transaction_data,
-                webhook=webhook,
-            )
-        except PaymentError as e:
-            logger.warning("Failed to create delivery for subscription webhook: %s", e)
-        if not delivery:
-            create_failed_transaction_event(
-                transaction_data.event,
-                cause="Cannot generate a payload for the action.",
-            )
-            recalculate_refundable_for_checkout(
-                transaction_data.transaction, transaction_data.event
-            )
-            return
-    else:
-        payload = generate_transaction_action_request_payload(
-            transaction_data, requestor
-        )
-        with allow_writer():
-            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-            with transaction.atomic():
-                event_payload = EventPayload.objects.create_with_payload_file(payload)
-                delivery = EventDelivery.objects.create(
-                    status=EventDeliveryStatus.PENDING,
-                    event_type=event_type,
-                    payload=event_payload,
-                    webhook=webhook,
-                )
-    call_event(
-        handle_transaction_request_task.delay,
-        delivery.id,
-        transaction_data.event.id,
-    )
 
 
 def parse_tax_data(

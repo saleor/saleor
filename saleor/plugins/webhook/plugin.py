@@ -102,6 +102,7 @@ from ...webhook.transport.shipping import (
 )
 from ...webhook.transport.synchronous.transport import (
     trigger_all_webhooks_sync,
+    trigger_transaction_request,
     trigger_webhook_sync,
     trigger_webhook_sync_if_not_cached,
 )
@@ -116,7 +117,6 @@ from ...webhook.transport.utils import (
     parse_list_payment_gateways_response,
     parse_payment_action_response,
     parse_tax_data,
-    trigger_transaction_request,
 )
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
