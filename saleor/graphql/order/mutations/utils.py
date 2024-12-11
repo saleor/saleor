@@ -201,7 +201,6 @@ def get_variant_rule_info_map(
     variants = product_models.ProductVariant.objects.filter(
         pk__in=variant_ids
     ).prefetch_related(
-        "channel_listings__variantlistingpromotionrule__promotion_rule__promotion",
         "channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "channel_listings__variantlistingpromotionrule__promotion_rule__translations",
     )

@@ -64,7 +64,7 @@ def fetch_variants_for_promotion_rules(
     for rule in rules.iterator():
         variants = get_variants_for_catalogue_predicate(
             rule.catalogue_predicate,
-            database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
+            database_connection_name=database_connection_name,
         )
         new_rules_variants.extend(
             [
