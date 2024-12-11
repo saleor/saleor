@@ -31,6 +31,7 @@ jobs:
         javascript
       # Grant rules (https://github.com/anchore/grant/blob/4362dc22cf5ea9baeccfa59b2863879afe0c30d7/README.md#usage)
       rules: |
+        # Explicitly allow LGPL as "*GPL*" rule will cause to reject them otherwise.
         - pattern: "*lgpl*"
           name: "allow-lgpl"
           mode: "allow"
@@ -38,7 +39,7 @@ jobs:
         - pattern: "*gpl*"
           name: "deny-gpl"
           mode: "deny"
-          reason: "GPL licenses are not allowed per xxx-xx company policy"
+          reason: "GPL licenses are not compatible with BSD-3-Clause"
         - pattern: "*proprietary*"
           name: "deny-proprietary"
           mode: "deny"
