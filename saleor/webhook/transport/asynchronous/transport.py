@@ -317,6 +317,14 @@ def trigger_webhooks_async_for_multiple_objects(
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
     """
+    if transaction.get_connection().in_atomic_block:
+        # Async webhooks should be delivered after the transaction is committed.
+        # Otherwise the delivery task may not be able to fetch all the required data and
+        # the delivery may fail.
+        logger.warning(
+            "Async webhook was triggered inside a transaction: %s", event_type
+        )
+
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
 
     is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(event_type, {}).get(
