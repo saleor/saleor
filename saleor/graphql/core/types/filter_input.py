@@ -8,12 +8,7 @@ from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
 from ...core.scalars import DateTime, Decimal
-from ..descriptions import (
-    ADDED_IN_311,
-    ADDED_IN_314,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
@@ -167,11 +162,7 @@ class StringFilterInput(graphene.InputObjectType):
     )
 
     class Meta:
-        description = (
-            "Define the filtering options for string fields."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
-        )
+        description = "Define the filtering options for string fields."
 
 
 class IntFilterInput(graphene.InputObjectType):
@@ -182,11 +173,7 @@ class IntFilterInput(graphene.InputObjectType):
     range = IntRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
-        description = (
-            "Define the filtering options for integer fields."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
-        )
+        description = "Define the filtering options for integer fields."
 
 
 class DecimalFilterInput(graphene.InputObjectType):
@@ -197,11 +184,7 @@ class DecimalFilterInput(graphene.InputObjectType):
     range = DecimalRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
-        description = (
-            "Define the filtering options for decimal fields."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        )
+        description = "Define the filtering options for decimal fields."
 
 
 class DateFilterInput(graphene.InputObjectType):
@@ -212,11 +195,7 @@ class DateFilterInput(graphene.InputObjectType):
     range = DateRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
-        description = (
-            "Define the filtering options for date fields."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
-        )
+        description = "Define the filtering options for date fields."
 
 
 class DateTimeFilterInput(graphene.InputObjectType):
@@ -231,11 +210,7 @@ class DateTimeFilterInput(graphene.InputObjectType):
     )
 
     class Meta:
-        description = (
-            "Define the filtering options for date time fields."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
-        )
+        description = "Define the filtering options for date time fields."
 
 
 class GlobalIDFilterInput(graphene.InputObjectType):
@@ -247,8 +222,4 @@ class GlobalIDFilterInput(graphene.InputObjectType):
     )
 
     class Meta:
-        description = (
-            "Define the filtering options for foreign key fields."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        )
+        description = "Define the filtering options for foreign key fields."

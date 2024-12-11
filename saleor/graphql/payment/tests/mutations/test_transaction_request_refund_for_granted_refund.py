@@ -212,9 +212,9 @@ def test_transaction_belongs_to_different_order_than_granted_refund_order(
     error_class = TransactionRequestRefundForGrantedRefundErrorCode
     data = content["data"]["transactionRequestRefundForGrantedRefund"]
     assert len(data["errors"]) == 2
-    assert any([err["field"] == "grantedRefundId" for err in data["errors"]])
-    assert any([err["field"] == "id" for err in data["errors"]])
-    assert all([err["code"] == error_class.INVALID.name for err in data["errors"]])
+    assert any(err["field"] == "grantedRefundId" for err in data["errors"])
+    assert any(err["field"] == "id" for err in data["errors"])
+    assert all(err["code"] == error_class.INVALID.name for err in data["errors"])
 
 
 @patch("saleor.payment.gateway.get_webhooks_for_event")

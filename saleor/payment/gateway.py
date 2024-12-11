@@ -222,7 +222,7 @@ def _create_transaction_data(
 
 
 def _request_payment_action(
-    transaction_action_data: "TransactionActionData",
+    transaction_action_data: TransactionActionData,
     manager: "PluginsManager",
     channel_slug: str,
     event_type: str,
@@ -564,12 +564,12 @@ def payment_refund_or_void(
 
 def _get_success_transaction(
     kind: str, payment: Payment, transaction_id: Optional[str]
-):
+) -> None | Transaction:
     if not transaction_id:
         try:
             transaction_id = _get_past_transaction_token(payment, kind)
         except PaymentError:
-            return
+            return None
     return payment.transactions.filter(
         token=transaction_id,
         action_required=False,

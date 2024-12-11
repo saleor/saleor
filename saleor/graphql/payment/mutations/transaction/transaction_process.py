@@ -19,12 +19,6 @@ from .....payment.utils import (
     get_final_session_statuses,
     handle_transaction_process_session,
 )
-from ....core.descriptions import (
-    ADDED_IN_313,
-    ADDED_IN_314,
-    ADDED_IN_316,
-    PREVIEW_FEATURE,
-)
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import JSON, UUID
@@ -62,8 +56,7 @@ class TransactionProcess(BaseMutation):
             description=(
                 "The token of the transaction to process. "
                 "One of field id or token is required."
-            )
-            + ADDED_IN_314,
+            ),
             required=False,
         )
         data = graphene.Argument(
@@ -76,7 +69,7 @@ class TransactionProcess(BaseMutation):
                 "The customer's IP address will be passed to the payment app. "
                 "The IP should be in ipv4 or ipv6 format. "
                 "The field can be used only by an app that has `HANDLE_PAYMENTS` "
-                "permission." + ADDED_IN_316
+                "permission."
             )
         )
 
@@ -85,8 +78,6 @@ class TransactionProcess(BaseMutation):
         description = (
             "Processes a transaction session. It triggers the webhook "
             "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionProcessError
 
@@ -94,9 +85,8 @@ class TransactionProcess(BaseMutation):
     def get_action(cls, event: payment_models.TransactionEvent, channel: "Channel"):
         if event.type == TransactionEventType.AUTHORIZATION_REQUEST:
             return TransactionFlowStrategy.AUTHORIZATION
-        elif event.type == TransactionEventType.CHARGE_REQUEST:
+        if event.type == TransactionEventType.CHARGE_REQUEST:
             return TransactionFlowStrategy.CHARGE
-
         return channel.default_transaction_flow_strategy
 
     @classmethod

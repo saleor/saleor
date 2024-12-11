@@ -527,7 +527,7 @@ def create_fake_user(user_password, save=True, generate_id=False):
         "default_shipping_address": address,
         "is_active": True,
         "note": fake.paragraph(),
-        "date_joined": fake.date_time(tzinfo=timezone.get_current_timezone()),
+        "date_joined": fake.date_time(tzinfo=datetime.UTC),
     }
 
     if generate_id:
@@ -740,14 +740,16 @@ def create_fulfillments(order):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
             allocation = line.allocations.get()
-            fulfillment.lines.create(
-                order_line=line, quantity=quantity, stock=allocation.stock
-            )
+            stock = allocation.stock
+            fulfillment.lines.create(order_line=line, quantity=quantity, stock=stock)
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
 
             allocation.quantity_allocated = F("quantity_allocated") - quantity
             allocation.save(update_fields=["quantity_allocated"])
+
+            stock.quantity_allocated = F("quantity_allocated") - quantity
+            stock.save(update_fields=["quantity_allocated"])
 
     update_order_status(order)
 

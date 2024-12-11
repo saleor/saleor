@@ -6,6 +6,7 @@ from unittest.mock import Mock
 import graphene
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT, Client
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
@@ -13,7 +14,6 @@ from django.utils.functional import SimpleLazyObject
 from ...account.models import User
 from ...core.jwt import create_access_token
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
@@ -111,8 +111,8 @@ class ApiClient(BaseApiClient):
                 self.app.permissions.add(*permissions)
             else:
                 self.user.user_permissions.add(*permissions)
-        result = super(Client, self).post(self.api_path, data, **kwargs)
-        flush_post_commit_hooks()
+        with TestCase.captureOnCommitCallbacks(execute=True):
+            result = super(Client, self).post(self.api_path, data, **kwargs)
         return result
 
     def post_multipart(self, *args, permissions=None, **kwargs):
@@ -127,8 +127,8 @@ class ApiClient(BaseApiClient):
             response = super(Client, self).post(self.api_path, *args, **kwargs)
             assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
-        result = super(Client, self).post(self.api_path, *args, **kwargs)
-        flush_post_commit_hooks()
+        with TestCase.captureOnCommitCallbacks(execute=True):
+            result = super(Client, self).post(self.api_path, *args, **kwargs)
         return result
 
 

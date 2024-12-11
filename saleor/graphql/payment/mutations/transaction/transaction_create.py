@@ -21,11 +21,13 @@ from .....payment import TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
-from .....payment.utils import create_manual_adjustment_events
+from .....payment.utils import (
+    create_manual_adjustment_events,
+    truncate_transaction_event_message,
+)
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_34, ADDED_IN_313, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType
@@ -39,16 +41,10 @@ from ..payment.payment_check_balance import MoneyInput
 
 
 class TransactionCreateInput(BaseInputObjectType):
-    name = graphene.String(
-        description="Payment name of the transaction." + ADDED_IN_313
-    )
-    message = graphene.String(
-        description="The message of the transaction." + ADDED_IN_313
-    )
+    name = graphene.String(description="Payment name of the transaction.")
+    message = graphene.String(description="The message of the transaction.")
 
-    psp_reference = graphene.String(
-        description=("PSP Reference of the transaction. " + ADDED_IN_313)
-    )
+    psp_reference = graphene.String(description=("PSP Reference of the transaction. "))
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -57,9 +53,7 @@ class TransactionCreateInput(BaseInputObjectType):
     amount_charged = MoneyInput(description="Amount charged by this transaction.")
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
 
-    amount_canceled = MoneyInput(
-        description="Amount canceled by this transaction." + ADDED_IN_313
-    )
+    amount_canceled = MoneyInput(description="Amount canceled by this transaction.")
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -74,7 +68,7 @@ class TransactionCreateInput(BaseInputObjectType):
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
-            "payment provider page with transaction event details." + ADDED_IN_313
+            "payment provider page with transaction event details."
         )
     )
 
@@ -84,12 +78,10 @@ class TransactionCreateInput(BaseInputObjectType):
 
 class TransactionEventInput(BaseInputObjectType):
     psp_reference = graphene.String(
-        description=("PSP Reference related to this action." + ADDED_IN_313)
+        description=("PSP Reference related to this action.")
     )
 
-    message = graphene.String(
-        description="The message related to the event." + ADDED_IN_313
-    )
+    message = graphene.String(description="The message related to the event.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
@@ -112,9 +104,7 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Create transaction for checkout or order." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Create transaction for checkout or order."
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -126,14 +116,14 @@ class TransactionCreate(BaseMutation):
         validator = URLValidator()
         try:
             validator(external_url)
-        except ValidationError:
+        except ValidationError as e:
             raise ValidationError(
                 {
                     "transaction": ValidationError(
                         "Invalid format of `externalUrl`.", code=error_code
                     )
                 }
-            )
+            ) from e
 
     @classmethod
     def validate_metadata_keys(  # type: ignore[override]
@@ -288,9 +278,10 @@ class TransactionCreate(BaseMutation):
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
+        message = transaction_event_input.get("message") or ""
         return transaction.events.create(
             psp_reference=transaction_event_input.get("psp_reference"),
-            message=transaction_event_input.get("message", ""),
+            message=truncate_transaction_event_message(message),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
@@ -394,7 +385,9 @@ class TransactionCreate(BaseMutation):
                 previous_refunded_value=Decimal(0),
             )
         if transaction_data.get("checkout_id") and money_data:
-            transaction_amounts_for_checkout_updated(new_transaction, manager)
+            transaction_amounts_for_checkout_updated(
+                new_transaction, manager, user, app
+            )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)

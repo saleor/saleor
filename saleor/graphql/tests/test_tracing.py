@@ -112,12 +112,10 @@ def test_tracing_query_hashing_different_vars_same_checksum(
         staff_api_client.post_graphql(query, {"first": i + 1})
 
     # then
-    fingerprints = list(
-        map(
-            lambda span: span.tags["graphql.query_fingerprint"],
-            _get_graphql_spans(tracer.finished_spans()),
-        )
-    )
+    fingerprints = [
+        span.tags["graphql.query_fingerprint"]
+        for span in _get_graphql_spans(tracer.finished_spans())
+    ]
     assert len(fingerprints) == QUERIES
     assert len(set(fingerprints)) == 1
 

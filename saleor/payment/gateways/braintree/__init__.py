@@ -319,8 +319,8 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
                 transaction_id=payment_information.token,
                 amount_or_options=str(payment_information.amount),
             )
-    except braintree_sdk.exceptions.NotFoundError:
-        raise BraintreeException(DEFAULT_ERROR_MESSAGE)
+    except braintree_sdk.exceptions.NotFoundError as e:
+        raise BraintreeException(DEFAULT_ERROR_MESSAGE) from e
 
     gateway_response = extract_gateway_response(result)
     error = get_error_for_client(gateway_response["errors"])

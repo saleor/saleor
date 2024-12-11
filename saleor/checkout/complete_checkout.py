@@ -1,6 +1,6 @@
+import datetime
 import logging
 from collections.abc import Iterable
-from datetime import timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from uuid import UUID
@@ -28,10 +28,7 @@ from ..core.utils.url import validate_storefront_url
 from ..discount import DiscountType, DiscountValueType, VoucherType
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils.promotion import get_sale_id
-from ..discount.utils.voucher import (
-    increase_voucher_usage,
-    release_voucher_code_usage,
-)
+from ..discount.utils.voucher import increase_voucher_usage, release_voucher_code_usage
 from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
@@ -84,9 +81,11 @@ from .fetch import (
 from .models import Checkout
 from .utils import (
     calculate_checkout_weight,
+    delete_checkouts,
     get_checkout_metadata,
     get_or_create_checkout_metadata,
     get_voucher_for_checkout_info,
+    log_unknown_discount_reason,
 )
 
 if TYPE_CHECKING:
@@ -174,7 +173,7 @@ def _process_shipping_data_for_order(
     base_shipping_price: Money,
     shipping_price: TaxedMoney,
     manager: "PluginsManager",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ) -> dict[str, Any]:
     """Fetch, process and return shipping data from checkout."""
     delivery_method_info = checkout_info.delivery_method_info
@@ -233,7 +232,7 @@ def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
 def _create_line_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     products_translation: dict[int, Optional[str]],
     variants_translation: dict[int, Optional[str]],
@@ -423,12 +422,13 @@ def _get_sale_id(line_discounts: list[OrderLineDiscount]):
         if discount.type == DiscountType.PROMOTION:
             if rule := discount.promotion_rule:
                 return get_sale_id(rule.promotion)
+    return None
 
 
 def _create_lines_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
@@ -477,7 +477,7 @@ def _create_lines_for_order(
         replace=True,
         check_reservations=True,
     )
-    return [
+    order_lines_info = [
         _create_line_for_order(
             manager,
             checkout_info,
@@ -490,12 +490,18 @@ def _create_lines_for_order(
         for checkout_line_info in lines
     ]
 
+    log_unknown_discount_reason(
+        [line_info.line for line_info in order_lines_info], checkout_info, lines, logger
+    )
+
+    return order_lines_info
+
 
 def _prepare_order_data(
     *,
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
@@ -610,7 +616,7 @@ def _prepare_order_data(
 def _create_order(
     *,
     checkout_info: "CheckoutInfo",
-    checkout_lines: Iterable["CheckoutLineInfo"],
+    checkout_lines: list["CheckoutLineInfo"],
     order_data: dict,
     user: User,
     app: Optional["App"],
@@ -618,6 +624,7 @@ def _create_order(
     site_settings: Optional["SiteSettings"] = None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> Order:
     """Create an order from the checkout.
 
@@ -737,6 +744,7 @@ def _create_order(
             app=app,
             manager=manager,
             site_settings=site_settings,
+            automatic=is_automatic_completion,
         )
     )
 
@@ -751,7 +759,7 @@ def _create_order(
 def _prepare_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     redirect_url,
 ):
     """Prepare checkout object to complete the checkout process."""
@@ -769,10 +777,10 @@ def _prepare_checkout(
     if redirect_url:
         try:
             validate_storefront_url(redirect_url)
-        except ValidationError as error:
+        except ValidationError as e:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID.value
-            )
+                {"redirect_url": e}, code=AccountErrorCode.INVALID.value
+            ) from e
 
     to_update = []
     if redirect_url and redirect_url != checkout.redirect_url:
@@ -787,7 +795,7 @@ def _prepare_checkout(
 def _prepare_checkout_with_transactions(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     redirect_url: Optional[str],
 ):
     """Prepare checkout object with transactions to complete the checkout process."""
@@ -822,17 +830,17 @@ def _prepare_checkout_with_transactions(
     )
     try:
         manager.preprocess_order_creation(checkout_info, lines)
-    except TaxError as tax_error:
+    except TaxError as e:
         raise ValidationError(
-            f"Unable to calculate taxes - {str(tax_error)}",
+            f"Unable to calculate taxes - {str(e)}",
             code=CheckoutErrorCode.TAX_ERROR.value,
-        )
+        ) from e
 
 
 def _prepare_checkout_with_payment(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     redirect_url: Optional[str],
     payment: Optional[Payment],
 ):
@@ -855,7 +863,7 @@ def _prepare_checkout_with_payment(
 def _get_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
@@ -870,19 +878,19 @@ def _get_order_data(
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
-        raise error
-    except NotApplicable:
+        raise error from e
+    except NotApplicable as e:
         raise ValidationError(
             "Voucher not applicable",
             code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
-        )
+        ) from e
     except GiftCardNotApplicable as e:
-        raise ValidationError(e.message, code=e.code)
-    except TaxError as tax_error:
+        raise ValidationError(e.message, code=e.code) from e
+    except TaxError as e:
         raise ValidationError(
-            f"Unable to calculate taxes - {str(tax_error)}",
+            f"Unable to calculate taxes - {str(e)}",
             code=CheckoutErrorCode.TAX_ERROR.value,
-        )
+        ) from e
     return order_data
 
 
@@ -922,14 +930,14 @@ def _process_payment(
             raise PaymentError(txn.error)
     except PaymentError as e:
         _complete_checkout_fail_handler(checkout_info, manager)
-        raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value)
+        raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR.value) from e
     return txn
 
 
 def complete_checkout_pre_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     user,
     site_settings=None,
     redirect_url=None,
@@ -975,7 +983,7 @@ def complete_checkout_pre_payment_part(
 def complete_checkout_post_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     payment: Optional[Payment],
     txn: Optional[Transaction],
     order_data,
@@ -984,6 +992,7 @@ def complete_checkout_post_payment_part(
     site_settings=None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> tuple[Optional[Order], bool, dict]:
     action_required = False
     action_data: dict[str, str] = {}
@@ -1015,9 +1024,11 @@ def complete_checkout_post_payment_part(
                 site_settings=site_settings,
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
+                is_automatic_completion=is_automatic_completion,
             )
             # remove checkout after order is successfully created
-            checkout_info.checkout.delete()
+            delete_checkouts([checkout_info.checkout.pk])
+            checkout_info.checkout.pk = None
         except InsufficientStock as e:
             _complete_checkout_fail_handler(
                 checkout_info,
@@ -1027,7 +1038,7 @@ def complete_checkout_post_payment_part(
                 payment=payment,
             )
             error = prepare_insufficient_stock_checkout_validation_error(e)
-            raise error
+            raise error from e
         except GiftCardNotApplicable as e:
             _complete_checkout_fail_handler(
                 checkout_info,
@@ -1036,7 +1047,7 @@ def complete_checkout_post_payment_part(
                 voucher=checkout_info.voucher,
                 payment=payment,
             )
-            raise ValidationError(code=e.code, message=e.message)
+            raise ValidationError(code=e.code, message=e.message) from e
 
         # if the order total value is 0 it is paid from the definition
         if order.total.net.amount == 0:
@@ -1161,9 +1172,9 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
             currency=checkout.currency,
             amount_value=checkout.discount_amount,
             voucher=checkout_info.voucher,
-            voucher_code=checkout_info.voucher_code.code
-            if checkout_info.voucher_code
-            else None,
+            voucher_code=(
+                checkout_info.voucher_code.code if checkout_info.voucher_code else None
+            ),
         )
 
 
@@ -1175,6 +1186,7 @@ def _post_create_order_actions(
     user: Optional[User],
     app: Optional["App"],
     site_settings: "SiteSettings",
+    is_automatic_completion: bool,
 ):
     order_info = OrderInfo(
         order=order,
@@ -1191,6 +1203,7 @@ def _post_create_order_actions(
             app=app,
             manager=manager,
             site_settings=site_settings,
+            automatic=is_automatic_completion,
         )
     )
 
@@ -1210,6 +1223,7 @@ def _create_order_from_checkout(
     app: Optional["App"],
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ):
     from ..order.utils import add_gift_cards_to_order
 
@@ -1231,6 +1245,9 @@ def _create_order_from_checkout(
 
     # voucher
     voucher = checkout_info.voucher
+    voucher_code = (
+        checkout_info.voucher_code.code if checkout_info.voucher_code else None
+    )
 
     # shipping
     undiscounted_base_shipping_price = base_checkout_undiscounted_delivery_price(
@@ -1280,6 +1297,7 @@ def _create_order_from_checkout(
         total=taxed_total,  # money field not supported by mypy_django_plugin
         shipping_tax_rate=shipping_tax_rate,
         voucher=voucher,
+        voucher_code=voucher_code,
         checkout_token=str(checkout_info.checkout.token),
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
@@ -1374,6 +1392,7 @@ def _create_order_from_checkout(
         user=user,
         app=app,
         site_settings=site_settings,
+        is_automatic_completion=is_automatic_completion,
     )
     return order
 
@@ -1386,6 +1405,7 @@ def create_order_from_checkout(
     delete_checkout: bool = True,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> Order:
     """Crate order from checkout.
 
@@ -1435,9 +1455,11 @@ def create_order_from_checkout(
                 app=app,
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
+                is_automatic_completion=is_automatic_completion,
             )
             if delete_checkout:
-                checkout_info.checkout.delete()
+                delete_checkouts([checkout_info.checkout.pk])
+                checkout_info.checkout.pk = None
             return order
         except InsufficientStock:
             _complete_checkout_fail_handler(
@@ -1473,7 +1495,7 @@ def assign_checkout_user(
 def complete_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     payment_data: dict[Any, Any],
     store_source: bool,
     user: Optional["User"],
@@ -1482,6 +1504,7 @@ def complete_checkout(
     redirect_url: Optional[str] = None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> tuple[Optional[Order], bool, dict]:
     checkout = checkout_info.checkout
     transactions = checkout_info.checkout.payment_transactions.all()
@@ -1529,6 +1552,7 @@ def complete_checkout(
             redirect_url=redirect_url,
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
+            is_automatic_completion=is_automatic_completion,
         )
         return order, False, {}
 
@@ -1543,18 +1567,20 @@ def complete_checkout(
         redirect_url=redirect_url,
         metadata_list=metadata_list,
         private_metadata_list=private_metadata_list,
+        is_automatic_completion=is_automatic_completion,
     )
 
 
 def complete_checkout_with_transaction(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
     user: Optional["User"],
     app: Optional["App"],
     redirect_url: Optional[str] = None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> Optional[Order]:
     try:
         _prepare_checkout_with_transactions(
@@ -1572,8 +1598,9 @@ def complete_checkout_with_transaction(
             delete_checkout=True,
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
+            is_automatic_completion=is_automatic_completion,
         )
-    except NotApplicable:
+    except NotApplicable as e:
         raise ValidationError(
             {
                 "voucher_code": ValidationError(
@@ -1581,12 +1608,12 @@ def complete_checkout_with_transaction(
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }
-        )
+        ) from e
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
-        raise error
+        raise error from e
     except GiftCardNotApplicable as e:
-        raise ValidationError({"gift_cards": e})
+        raise ValidationError({"gift_cards": e}) from e
 
 
 def complete_checkout_with_payment(
@@ -1600,6 +1627,7 @@ def complete_checkout_with_payment(
     redirect_url=None,
     metadata_list: Optional[list] = None,
     private_metadata_list: Optional[list] = None,
+    is_automatic_completion: bool = False,
 ) -> tuple[Optional[Order], bool, dict]:
     """Logic required to finalize the checkout and convert it to order.
 
@@ -1711,6 +1739,7 @@ def complete_checkout_with_payment(
             site_settings=site_settings,
             metadata_list=metadata_list,
             private_metadata_list=private_metadata_list,
+            is_automatic_completion=is_automatic_completion,
         )
         if checkout.pk:
             checkout.completing_started_at = None
@@ -1721,7 +1750,7 @@ def complete_checkout_with_payment(
 
 def _reserve_stocks_without_availability_check(
     checkout_info: CheckoutInfo,
-    lines: Iterable[CheckoutLineInfo],
+    lines: list[CheckoutLineInfo],
 ):
     """Add additional temporary reservation for stock.
 
@@ -1743,7 +1772,7 @@ def _reserve_stocks_without_availability_check(
                 Reservation(
                     quantity_reserved=line.line.quantity,
                     reserved_until=timezone.now()
-                    + timedelta(seconds=settings.RESERVE_DURATION),
+                    + datetime.timedelta(seconds=settings.RESERVE_DURATION),
                     stock=variants_stocks_map[line.variant.id],
                     checkout_line=line.line,
                 )

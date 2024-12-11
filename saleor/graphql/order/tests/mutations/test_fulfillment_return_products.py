@@ -12,7 +12,6 @@ from .....order.fetch import OrderLineInfo
 from .....order.models import FulfillmentStatus, Order
 from .....payment import ChargeStatus, PaymentError
 from .....payment.interface import RefundData
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1132,7 +1131,6 @@ def test_fulfillment_return_products_calls_order_refunded(
     staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
 
     # then
-    flush_post_commit_hooks()
     amount = order_line.unit_price_gross_amount * 2
     amount = amount.quantize(Decimal("0.001"))
 

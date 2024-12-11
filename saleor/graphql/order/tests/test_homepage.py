@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 
 import pytest
 from prices import Money
@@ -351,8 +351,11 @@ def test_orders_total_count_without_channel(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         }
     }
 
@@ -375,8 +378,11 @@ def test_orders_total_count_channel_USD(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         },
         "channel": channel_USD.slug,
     }
@@ -400,8 +406,11 @@ def test_orders_total_count_channel_PLN(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         },
         "channel": channel_PLN.slug,
     }
@@ -425,8 +434,11 @@ def test_orders_total_count_as_staff(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         },
         "channel": channel_USD.slug,
     }
@@ -449,8 +461,11 @@ def test_orders_total_count_as_app(
     # given
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         },
         "channel": channel_USD.slug,
     }
@@ -474,8 +489,11 @@ def test_orders_total_count_as_customer(
     # given
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         },
         "channel": channel_USD.slug,
     }
@@ -496,8 +514,11 @@ def test_orders_total_count_as_anonymous(
     # given
     variables = {
         "created": {
-            "gte": str(date.today() - timedelta(days=3)),
-            "lte": str(date.today()),
+            "gte": str(
+                datetime.datetime.now(tz=datetime.UTC).date()
+                - datetime.timedelta(days=3)
+            ),
+            "lte": str(datetime.datetime.now(tz=datetime.UTC).date()),
         },
         "channel": channel_USD.slug,
     }

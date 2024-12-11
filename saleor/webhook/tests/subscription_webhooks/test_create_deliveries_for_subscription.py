@@ -559,7 +559,7 @@ def test_category_deleted(category, subscription_category_deleted_webhook):
     webhooks = [subscription_category_deleted_webhook]
 
     category_query = Category.objects.filter(pk=category.id)
-    category_instances = [cat for cat in category_query]
+    category_instances = list(category_query)
     category_query.delete()
 
     event_type = WebhookEventAsyncType.CATEGORY_DELETED
@@ -615,7 +615,7 @@ def test_channel_deleted(channel_USD, subscription_channel_deleted_webhook):
     webhooks = [subscription_channel_deleted_webhook]
 
     channel_query = Channel.objects.filter(pk=channel_USD.id)
-    channel_instances = [channel for channel in channel_query]
+    channel_instances = list(channel_query)
     channel_query.delete()
 
     event_type = WebhookEventAsyncType.CHANNEL_DELETED
@@ -694,7 +694,7 @@ def test_gift_card_deleted(gift_card, subscription_gift_card_deleted_webhook):
     webhooks = [subscription_gift_card_deleted_webhook]
 
     gift_card_query = GiftCard.objects.filter(pk=gift_card.id)
-    gift_card_instances = [card for card in gift_card_query]
+    gift_card_instances = list(gift_card_query)
     gift_card_query.delete()
 
     event_type = WebhookEventAsyncType.GIFT_CARD_DELETED
@@ -718,7 +718,7 @@ def test_gift_card_sent(gift_card, channel_USD, subscription_gift_card_sent_webh
     webhooks = [subscription_gift_card_sent_webhook]
 
     gift_card_query = GiftCard.objects.filter(pk=gift_card.id)
-    gift_card_instances = [card for card in gift_card_query]
+    gift_card_instances = list(gift_card_query)
     gift_card_query.delete()
 
     event_type = WebhookEventAsyncType.GIFT_CARD_SENT
@@ -850,7 +850,7 @@ def test_menu_deleted(menu, subscription_menu_deleted_webhook):
     webhooks = [subscription_menu_deleted_webhook]
 
     menu_query = Menu.objects.filter(pk=menu.id)
-    menu_instances = [menu for menu in menu_query]
+    menu_instances = list(menu_query)
     menu_query.delete()
 
     event_type = WebhookEventAsyncType.MENU_DELETED
@@ -906,7 +906,7 @@ def test_menu_item_deleted(menu_item, subscription_menu_item_deleted_webhook):
     webhooks = [subscription_menu_item_deleted_webhook]
 
     menu_item_query = MenuItem.objects.filter(pk=menu_item.id)
-    menu_item_instances = [menu for menu in menu_item_query]
+    menu_item_instances = list(menu_item_query)
     menu_item_query.delete()
 
     event_type = WebhookEventAsyncType.MENU_ITEM_DELETED
@@ -973,7 +973,7 @@ def test_shipping_price_deleted(
     event_type = WebhookEventAsyncType.SHIPPING_PRICE_DELETED
 
     shipping_methods_query = ShippingMethod.objects.filter(pk=shipping_method.id)
-    method_instances = [method for method in shipping_methods_query]
+    method_instances = list(shipping_methods_query)
     shipping_methods_query.delete()
 
     shipping_method_id = graphene.Node.to_global_id(
@@ -1062,7 +1062,7 @@ def test_shipping_zone_deleted(
     event_type = WebhookEventAsyncType.SHIPPING_ZONE_DELETED
 
     shipping_zones_query = ShippingZone.objects.filter(pk=shipping_zone.id)
-    zones_instances = [zone for zone in shipping_zones_query]
+    zones_instances = list(shipping_zones_query)
     shipping_zones_query.delete()
 
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", zones_instances[0].id)

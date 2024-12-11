@@ -4,7 +4,7 @@ from ...csv.models import ExportEvent
 from ..core.dataloaders import DataLoader
 
 
-class EventsByExportFileIdLoader(DataLoader):
+class EventsByExportFileIdLoader(DataLoader[int, list[ExportEvent]]):
     context_key = "events_by_export_file_id"
 
     def batch_load(self, keys):

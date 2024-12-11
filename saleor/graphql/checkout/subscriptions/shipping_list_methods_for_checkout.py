@@ -2,7 +2,6 @@ from django.conf import settings
 
 from ...core import ResolveInfo
 from ...core.context import get_database_connection_name
-from ...core.descriptions import ADDED_IN_36
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.types import NonNullList, SubscriptionObjectType
 from ...plugins.dataloaders import plugin_manager_promise_callback
@@ -48,8 +47,7 @@ def resolve_shipping_methods_for_checkout(
 class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
     shipping_methods = NonNullList(
         ShippingMethod,
-        description="Shipping methods that can be used with this checkout."
-        + ADDED_IN_36,
+        description="Shipping methods that can be used with this checkout.",
     )
 
     @staticmethod
@@ -65,5 +63,5 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "List shipping methods for checkout." + ADDED_IN_36
+        description = "List shipping methods for checkout."
         doc_category = DOC_CATEGORY_CHECKOUT

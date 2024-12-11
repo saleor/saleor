@@ -1,3 +1,4 @@
+import copy
 import datetime
 from collections.abc import Iterable
 from decimal import Decimal
@@ -5,13 +6,13 @@ from typing import Optional
 from uuid import uuid4
 
 import graphene
-import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import JSONField, TextField
+from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils import timezone
 from django_measurement.models import MeasurementField
@@ -342,7 +343,7 @@ class ProductChannelListing(PublishableModel):
     def is_available_for_purchase(self):
         return (
             self.available_for_purchase_at is not None
-            and datetime.datetime.now(pytz.UTC) >= self.available_for_purchase_at
+            and datetime.datetime.now(tz=datetime.UTC) >= self.available_for_purchase_at
         )
 
 
@@ -449,6 +450,25 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         return self.is_preorder and (
             self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
         )
+
+    @property
+    def comparison_fields(self):
+        return [
+            "sku",
+            "name",
+            "track_inventory",
+            "is_preorder",
+            "quantity_limit_per_customer",
+            "weight",
+            "external_reference",
+            "metadata",
+            "private_metadata",
+            "preorder_end_date",
+            "preorder_global_threshold",
+        ]
+
+    def serialize_for_comparison(self):
+        return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
 
 
 class ProductVariantTranslation(Translation):

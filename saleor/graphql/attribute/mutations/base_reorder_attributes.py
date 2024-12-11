@@ -87,9 +87,9 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
 
         try:
             operations = cls.prepare_operations(moves, values_m2m)
-        except ValidationError as error:
-            error.code = error_code_enum.NOT_FOUND.value
-            raise ValidationError({"moves": error})
+        except ValidationError as e:
+            e.code = error_code_enum.NOT_FOUND.value
+            raise ValidationError({"moves": e}) from e
 
         with traced_atomic_transaction():
             perform_reordering(values_m2m, operations)
@@ -112,7 +112,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
             attribute_assignment = instance.attributes.prefetch_related("values").get(
                 assignment__attribute_id=attribute_pk
             )
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "attribute_id": ValidationError(
@@ -121,7 +121,7 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
                         code=error_code_enum.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
         return attribute_assignment
 
     @classmethod

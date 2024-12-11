@@ -9,10 +9,18 @@ from django.core.management.base import BaseCommand
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
 from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
-from ....discount.models import OrderDiscount
+from ....discount.models import OrderDiscount, OrderLineDiscount
 from ....giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ....invoice.models import Invoice, InvoiceEvent
-from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from ....order.models import (
+    Fulfillment,
+    FulfillmentLine,
+    Order,
+    OrderEvent,
+    OrderGrantedRefund,
+    OrderGrantedRefundLine,
+    OrderLine,
+)
 from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
 from ....warehouse.models import (
     Allocation,
@@ -76,8 +84,14 @@ class Command(BaseCommand):
         self.stdout.write("Removed checkouts")
 
     def delete_payments(self):
+        order_granted_refund_lines = OrderGrantedRefundLine.objects.all()
+        order_granted_refund_lines._raw_delete(order_granted_refund_lines.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
         transaction_events = TransactionEvent.objects.all()
         transaction_events._raw_delete(transaction_events.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
+        order_granted_refunds = OrderGrantedRefund.objects.all()
+        order_granted_refunds._raw_delete(order_granted_refunds.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
         transaction_items = TransactionItem.objects.all()
         transaction_items._raw_delete(transaction_items.db)  # type: ignore[attr-defined] # raw access # noqa: E501
@@ -109,6 +123,9 @@ class Command(BaseCommand):
         self.stdout.write("Removed gift cards")
 
     def delete_orders(self):
+        line_discounts = OrderLineDiscount.objects.all()
+        line_discounts._raw_delete(line_discounts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+
         discounts = OrderDiscount.objects.all()
         discounts._raw_delete(discounts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 

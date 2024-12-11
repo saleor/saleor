@@ -9,7 +9,6 @@ from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_39
 from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
@@ -37,7 +36,7 @@ from .types import (
 class TaxQueries(graphene.ObjectType):
     tax_configuration = PermissionsField(
         TaxConfiguration,
-        description="Look up a tax configuration." + ADDED_IN_39,
+        description="Look up a tax configuration.",
         id=graphene.Argument(
             graphene.ID, description="ID of a tax configuration.", required=True
         ),
@@ -49,7 +48,7 @@ class TaxQueries(graphene.ObjectType):
     )
     tax_configurations = FilterConnectionField(
         TaxConfigurationCountableConnection,
-        description="List of tax configurations." + ADDED_IN_39,
+        description="List of tax configurations.",
         filter=TaxConfigurationFilterInput(
             description="Filtering options for tax configurations."
         ),
@@ -61,7 +60,7 @@ class TaxQueries(graphene.ObjectType):
     )
     tax_class = PermissionsField(
         TaxClass,
-        description="Look up a tax class." + ADDED_IN_39,
+        description="Look up a tax class.",
         id=graphene.Argument(
             graphene.ID, description="ID of a tax class.", required=True
         ),
@@ -73,7 +72,7 @@ class TaxQueries(graphene.ObjectType):
     )
     tax_classes = FilterConnectionField(
         TaxClassCountableConnection,
-        description="List of tax classes." + ADDED_IN_39,
+        description="List of tax classes.",
         sort_by=TaxClassSortingInput(description="Sort tax classes."),
         filter=TaxClassFilterInput(description="Filtering options for tax classes."),
         permissions=[

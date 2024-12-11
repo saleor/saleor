@@ -131,7 +131,7 @@ def resolve_users(info, ids=None, emails=None):
 
     if ids and emails:
         return qs.filter(Q(id__in=ids) | Q(email__in=emails))
-    elif ids:
+    if ids:
         return qs.filter(id__in=ids)
     return qs.filter(email__in=emails)
 

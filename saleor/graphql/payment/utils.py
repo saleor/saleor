@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 def metadata_contains_empty_key(metadata_list: list[dict]) -> bool:
-    return not all([data["key"].strip() for data in metadata_list])
+    return not all(data["key"].strip() for data in metadata_list)
 
 
 def check_if_requestor_has_access(

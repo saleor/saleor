@@ -77,7 +77,7 @@ def test_sale_channel_listing_add_channels(
         len({(rule.reward_value_type, str(rule.catalogue_predicate)) for rule in rules})
         == 1
     )
-    assert all([rule.old_channel_listing_id for rule in rules])
+    assert all(rule.old_channel_listing_id for rule in rules)
 
     for rule in promotion.rules.all():
         assert rule.variants_dirty is True
@@ -327,12 +327,10 @@ def test_sale_channel_listing_add_update_remove_channels(
     channel_listings = data["channelListings"]
     assert len(channel_listings) == 2
     assert all(
-        [
-            listing["channel"]["slug"] in [channel_USD.slug, channel_JPY.slug]
-            for listing in channel_listings
-        ]
+        listing["channel"]["slug"] in [channel_USD.slug, channel_JPY.slug]
+        for listing in channel_listings
     )
-    assert all([listing["discountValue"] == discounted for listing in channel_listings])
+    assert all(listing["discountValue"] == discounted for listing in channel_listings)
 
     promotion.refresh_from_db()
     rules = promotion.rules.all()

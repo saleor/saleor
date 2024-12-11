@@ -2,8 +2,7 @@ import datetime
 from collections.abc import Iterable
 from typing import Any, TypeVar
 
-import pytz
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import GinIndex, PostgresIndex
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
@@ -51,7 +50,7 @@ T = TypeVar("T", bound="PublishableModel")
 
 class PublishedQuerySet(models.QuerySet[T]):
     def published(self):
-        today = datetime.datetime.now(pytz.UTC)
+        today = datetime.datetime.now(tz=datetime.UTC)
         return self.filter(
             Q(published_at__lte=today) | Q(published_at__isnull=True),
             is_published=True,
@@ -74,7 +73,7 @@ class PublishableModel(models.Model):
     def is_visible(self):
         return self.is_published and (
             self.published_at is None
-            or self.published_at <= datetime.datetime.now(pytz.UTC)
+            or self.published_at <= datetime.datetime.now(tz=datetime.UTC)
         )
 
 
@@ -85,7 +84,7 @@ class ModelWithMetadata(models.Model):
     metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
-        indexes = [
+        indexes: list[PostgresIndex] = [
             GinIndex(fields=["private_metadata"], name="%(class)s_p_meta_idx"),
             GinIndex(fields=["metadata"], name="%(class)s_meta_idx"),
         ]
@@ -160,7 +159,8 @@ class EventPayloadManager(models.Manager["EventPayload"]):
     ) -> list["EventPayload"]:
         created_objs = self.bulk_create(objs)
         for obj, payload_data in zip(created_objs, payloads):
-            obj.save_payload_file(payload_data)
+            obj.save_payload_file(payload_data, save_instance=False)
+        self.bulk_update(created_objs, ["payload_file"])
         return created_objs
 
 
@@ -175,6 +175,7 @@ class EventPayload(models.Model):
 
     objects = EventPayloadManager()
 
+    # TODO (PE-568): change typing of return payload to `bytes` to avoid unnecessary decoding.
     def get_payload(self):
         if self.payload_file:
             with self.payload_file.open("rb") as f:
@@ -182,12 +183,20 @@ class EventPayload(models.Model):
                 return payload_data.decode("utf-8")
         return self.payload
 
-    def save_payload_file(self, payload_data: str):
+    def save_payload_file(self, payload_data: str, save_instance=True):
         payload_bytes = payload_data.encode("utf-8")
         prefix = get_random_string(length=12)
         file_name = f"{self.pk}.json"
         file_path = safe_join(prefix, file_name)
-        self.payload_file.save(file_path, ContentFile(payload_bytes))
+        self.payload_file.save(
+            file_path, ContentFile(payload_bytes), save=save_instance
+        )
+
+    def save_as_file(self):
+        payload_data = self.payload
+        self.payload = ""
+        self.save()
+        self.save_payload_file(payload_data)
 
 
 class EventDelivery(models.Model):

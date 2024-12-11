@@ -18,7 +18,6 @@ mutation UpdateMetadata(
     }
   }
 }
-
 """
 
 

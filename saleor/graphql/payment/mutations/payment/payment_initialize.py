@@ -43,7 +43,7 @@ class PaymentInitialize(BaseMutation):
     def validate_channel(cls, channel_slug):
         try:
             channel = Channel.objects.get(slug=channel_slug)
-        except Channel.DoesNotExist:
+        except Channel.DoesNotExist as e:
             raise ValidationError(
                 {
                     "channel": ValidationError(
@@ -51,7 +51,7 @@ class PaymentInitialize(BaseMutation):
                         code=PaymentErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
         if not channel.is_active:
             raise ValidationError(
                 {
@@ -80,5 +80,5 @@ class PaymentInitialize(BaseMutation):
                         str(e), code=PaymentErrorCode.INVALID.value
                     )
                 }
-            )
+            ) from e
         return PaymentInitialize(initialized_payment=response)

@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+import datetime
 
 import pytest
-import pytz
 from django.urls import reverse
 from freezegun import freeze_time
 
@@ -52,10 +51,12 @@ def test_refresh_token_with_audience(api_client, customer_user, settings):
     assert token
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
     assert (
-        datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + settings.JWT_TTL_ACCESS
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
     )
     assert payload["type"] == JWT_ACCESS_TYPE
     assert payload["token"] == customer_user.jwt_token_key
@@ -84,10 +85,12 @@ def test_refresh_token_get_token_from_cookie(api_client, customer_user, settings
     assert token
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
     assert (
-        datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + settings.JWT_TTL_ACCESS
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
     )
     assert payload["type"] == JWT_ACCESS_TYPE
     assert payload["token"] == customer_user.jwt_token_key
@@ -110,10 +113,12 @@ def test_refresh_token_get_token_from_input(api_client, customer_user, settings)
     assert token
     payload = jwt_decode(token)
     assert payload["email"] == customer_user.email
-    assert datetime.fromtimestamp(payload["iat"]) == datetime.utcnow()
+    assert datetime.datetime.fromtimestamp(
+        payload["iat"], tz=datetime.UTC
+    ) == datetime.datetime.now(tz=datetime.UTC)
     assert (
-        datetime.fromtimestamp(payload["exp"])
-        == datetime.utcnow() + settings.JWT_TTL_ACCESS
+        datetime.datetime.fromtimestamp(payload["exp"], tz=datetime.UTC)
+        == datetime.datetime.now(tz=datetime.UTC) + settings.JWT_TTL_ACCESS
     )
     assert payload["type"] == JWT_ACCESS_TYPE
 
@@ -308,7 +313,7 @@ def test_refresh_token_do_not_update_last_login_when_in_threshold(
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
 
-    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
 
     expected_last_login = customer_user.last_login
@@ -316,7 +321,7 @@ def test_refresh_token_do_not_update_last_login_when_in_threshold(
 
     variables = {"token": None, "csrf_token": csrf_token}
 
-    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_in_threshold = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD - 1
     )
 
@@ -344,7 +349,7 @@ def test_refresh_token_do_update_last_login_when_out_of_threshold(
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME] = refresh_token
     api_client.cookies[JWT_REFRESH_TOKEN_COOKIE_NAME]["httponly"] = True
 
-    customer_user.last_login = datetime.now(tz=pytz.UTC)
+    customer_user.last_login = datetime.datetime.now(tz=datetime.UTC)
     customer_user.save()
 
     previous_last_login = customer_user.last_login
@@ -352,12 +357,12 @@ def test_refresh_token_do_update_last_login_when_out_of_threshold(
 
     variables = {"token": None, "csrf_token": csrf_token}
 
-    time_in_threshold = datetime.now(tz=pytz.UTC) + timedelta(
+    time_ouf_of_threshold = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
         seconds=settings.TOKEN_UPDATE_LAST_LOGIN_THRESHOLD + 1
     )
 
     # when
-    with freeze_time(time_in_threshold):
+    with freeze_time(time_ouf_of_threshold):
         response = api_client.post_graphql(MUTATION_TOKEN_REFRESH, variables)
 
     # then
@@ -365,5 +370,5 @@ def test_refresh_token_do_update_last_login_when_out_of_threshold(
     customer_user.refresh_from_db()
     assert customer_user.updated_at != previous_updated_at
     assert customer_user.last_login != previous_last_login
-    assert customer_user.updated_at == time_in_threshold
-    assert customer_user.last_login == time_in_threshold
+    assert customer_user.updated_at == time_ouf_of_threshold
+    assert customer_user.last_login == time_ouf_of_threshold

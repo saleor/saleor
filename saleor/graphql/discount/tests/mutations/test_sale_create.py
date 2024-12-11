@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 import graphene
@@ -51,8 +51,8 @@ def test_create_sale(
 ):
     # given
     query = SALE_CREATE_MUTATION
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     product_ids = [
         graphene.Node.to_global_id("Product", product.id) for product in product_list
     ]
@@ -115,7 +115,7 @@ def test_create_sale_only_start_date(
 ):
     # given
     query = SALE_CREATE_MUTATION
-    start_date = timezone.now() - timedelta(days=10)
+    start_date = timezone.now() - datetime.timedelta(days=10)
     product_ids = [
         graphene.Node.to_global_id("Product", product.id) for product in product_list
     ]
@@ -160,8 +160,8 @@ def test_create_sale_with_end_date_before_startdate(
 ):
     # given
     query = SALE_CREATE_MUTATION
-    start_date = timezone.now() + timedelta(days=365)
-    end_date = timezone.now() - timedelta(days=365)
+    start_date = timezone.now() + datetime.timedelta(days=365)
+    end_date = timezone.now() - datetime.timedelta(days=365)
     variables = {
         "input": {
             "name": "test sale",
@@ -196,8 +196,8 @@ def test_create_sale_start_date_and_end_date_before_current_date(
 ):
     # given
     query = SALE_CREATE_MUTATION
-    start_date = timezone.now() - timedelta(days=20)
-    end_date = timezone.now() - timedelta(days=10)
+    start_date = timezone.now() - datetime.timedelta(days=20)
+    end_date = timezone.now() - datetime.timedelta(days=10)
     product_ids = [
         graphene.Node.to_global_id("Product", product.id) for product in product_list
     ]
@@ -248,8 +248,8 @@ def test_create_sale_start_date_and_end_date_after_current_date(
 ):
     # given
     query = SALE_CREATE_MUTATION
-    start_date = timezone.now() + timedelta(days=10)
-    end_date = timezone.now() + timedelta(days=20)
+    start_date = timezone.now() + datetime.timedelta(days=10)
+    end_date = timezone.now() + datetime.timedelta(days=20)
     product_ids = [
         graphene.Node.to_global_id("Product", product.id) for product in product_list
     ]
@@ -300,8 +300,8 @@ def test_create_sale_empty_predicate(
 ):
     # given
     query = SALE_CREATE_MUTATION
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     variables = {
         "input": {
             "name": "test sale",

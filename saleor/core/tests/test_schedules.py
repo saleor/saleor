@@ -1,6 +1,8 @@
-from datetime import timedelta
+import datetime
 
+from celery.schedules import BaseSchedule
 from django.utils import timezone
+from django.utils.module_loading import import_string
 from freezegun import freeze_time
 
 from ...discount.models import Promotion
@@ -23,7 +25,7 @@ def test_promotion_webhook_schedule_remaining_estimate_initial_state():
 def test_promotion_webhook_schedule_remaining_estimate():
     # given
     schedule = promotion_webhook_schedule()
-    time_delta = timedelta(seconds=30)
+    time_delta = datetime.timedelta(seconds=30)
 
     # when
     remaining = schedule.remaining_estimate(last_run_at=timezone.now() - time_delta)
@@ -40,18 +42,18 @@ def test_is_due_not_promotion_to_notify_about_not_upcoming_promotion(promotion_l
     promotion_1 = promotion_list[0]
     promotion_2 = promotion_list[1]
 
-    promotion_1.start_date = now - timedelta(days=1)
-    promotion_1.last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotion_1.start_date = now - datetime.timedelta(days=1)
+    promotion_1.last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
-    promotion_2.start_date = now - timedelta(days=2)
-    promotion_2.last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotion_2.start_date = now - datetime.timedelta(days=2)
+    promotion_2.last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
     Promotion.objects.bulk_update(
         [promotion_1, promotion_2], ["start_date", "last_notification_scheduled_at"]
     )
 
     # when
-    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
 
     # then
     assert is_due is False
@@ -66,11 +68,11 @@ def test_is_due_promotion_started_to_notify_and_not_upcoming_promotion(promotion
     promotion_1 = promotion_list[0]
     promotion_2 = promotion_list[1]
 
-    promotion_1.start_date = now - timedelta(minutes=5)
-    promotion_1.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_1.start_date = now - datetime.timedelta(minutes=5)
+    promotion_1.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
-    promotion_2.start_date = now - timedelta(days=2)
-    promotion_2.last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotion_2.start_date = now - datetime.timedelta(days=2)
+    promotion_2.last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
     Promotion.objects.bulk_update(
         [promotion_1, promotion_2],
@@ -78,7 +80,7 @@ def test_is_due_promotion_started_to_notify_and_not_upcoming_promotion(promotion
     )
 
     # when
-    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
 
     # then
     assert is_due is True
@@ -93,12 +95,12 @@ def test_is_due_promotion_ended_to_notify_and_not_upcoming_promotion(promotion_l
     promotion_1 = promotion_list[0]
     promotion_2 = promotion_list[1]
 
-    promotion_1.start_date = now - timedelta(days=2)
-    promotion_1.last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotion_1.start_date = now - datetime.timedelta(days=2)
+    promotion_1.last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
-    promotion_2.start_date = now - timedelta(days=1)
-    promotion_2.end_date = now - timedelta(minutes=5)
-    promotion_2.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_2.start_date = now - datetime.timedelta(days=1)
+    promotion_2.end_date = now - datetime.timedelta(minutes=5)
+    promotion_2.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
     Promotion.objects.bulk_update(
         [promotion_1, promotion_2],
@@ -110,7 +112,7 @@ def test_is_due_promotion_ended_to_notify_and_not_upcoming_promotion(promotion_l
     )
 
     # when
-    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
 
     # then
     assert is_due is True
@@ -126,13 +128,13 @@ def test_is_due_promotion_started_to_notify_and_upcoming_promotion(promotion_lis
     promotion_1 = promotion_list[0]
     promotion_2 = promotion_list[1]
 
-    promotion_1.start_date = now - timedelta(minutes=5)
-    promotion_1.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_1.start_date = now - datetime.timedelta(minutes=5)
+    promotion_1.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
-    time_delta = timedelta(seconds=44)
-    promotion_2.start_date = now - timedelta(minutes=7)
+    time_delta = datetime.timedelta(seconds=44)
+    promotion_2.start_date = now - datetime.timedelta(minutes=7)
     promotion_2.end_date = timezone.now() + time_delta
-    promotion_2.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_2.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
     Promotion.objects.bulk_update(
         [promotion_1, promotion_2],
@@ -144,7 +146,7 @@ def test_is_due_promotion_started_to_notify_and_upcoming_promotion(promotion_lis
     )
 
     # when
-    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
 
     # then
     assert is_due is True
@@ -162,13 +164,13 @@ def test_is_due_no_promotion_to_notify_about_and_upcoming_promotion_exists(
     promotion_1 = promotion_list[0]
     promotion_2 = promotion_list[1]
 
-    promotion_1.start_date = now - timedelta(minutes=8)
-    promotion_1.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_1.start_date = now - datetime.timedelta(minutes=8)
+    promotion_1.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
-    time_delta = timedelta(seconds=22)
-    promotion_2.start_date = now - timedelta(minutes=7)
+    time_delta = datetime.timedelta(seconds=22)
+    promotion_2.start_date = now - datetime.timedelta(minutes=7)
     promotion_2.end_date = timezone.now() + time_delta
-    promotion_2.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_2.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
     Promotion.objects.bulk_update(
         [promotion_1, promotion_2],
@@ -176,7 +178,7 @@ def test_is_due_no_promotion_to_notify_about_and_upcoming_promotion_exists(
     )
 
     # when
-    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
 
     # then
     assert is_due is False
@@ -194,13 +196,13 @@ def test_is_due_no_promo_to_notify_about_upcoming_promo_exists_initial_time_retu
     promotion_1 = promotion_list[0]
     promotion_2 = promotion_list[1]
 
-    promotion_1.start_date = now - timedelta(minutes=8)
-    promotion_1.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_1.start_date = now - datetime.timedelta(minutes=8)
+    promotion_1.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
-    time_delta = timedelta(minutes=3)
-    promotion_2.start_date = now - timedelta(minutes=7)
+    time_delta = datetime.timedelta(minutes=3)
+    promotion_2.start_date = now - datetime.timedelta(minutes=7)
     promotion_2.end_date = timezone.now() + time_delta
-    promotion_2.last_notification_scheduled_at = now - timedelta(minutes=6)
+    promotion_2.last_notification_scheduled_at = now - datetime.timedelta(minutes=6)
 
     Promotion.objects.bulk_update(
         [promotion_1, promotion_2],
@@ -208,8 +210,19 @@ def test_is_due_no_promo_to_notify_about_upcoming_promo_exists_initial_time_retu
     )
 
     # when
-    is_due, next_run = schedule.is_due(timezone.now() - timedelta(minutes=1))
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(minutes=1))
 
     # then
     assert is_due is False
     assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+def test_promotion_webhook_schedule_import_path():
+    # given
+    schedule = promotion_webhook_schedule()
+
+    # when
+    scheduler_instance = import_string(schedule.import_path)
+
+    # then
+    assert isinstance(scheduler_instance, BaseSchedule)

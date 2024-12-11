@@ -10,6 +10,10 @@ mutation DraftOrderComplete($id: ID!) {
     }
     order {
       id
+      user {
+        id
+        email
+      }
       undiscountedTotal {
         ...BaseTaxedMoney
       }
@@ -22,6 +26,9 @@ mutation DraftOrderComplete($id: ID!) {
       subtotal {
         ...BaseTaxedMoney
       }
+      undiscountedShippingPrice {
+        amount
+      }
       shippingPrice {
         ...BaseTaxedMoney
       }
@@ -29,6 +36,17 @@ mutation DraftOrderComplete($id: ID!) {
       voucher {
         id
         code
+      }
+      discounts {
+        id
+        type
+        name
+        valueType
+        value
+        reason
+        amount {
+          amount
+        }
       }
       paymentStatus
       isPaid
@@ -38,6 +56,7 @@ mutation DraftOrderComplete($id: ID!) {
         }
       }
       lines {
+        id
         productVariantId
         quantity
         unitDiscount {
@@ -49,9 +68,16 @@ mutation DraftOrderComplete($id: ID!) {
         unitPrice {
           ...BaseTaxedMoney
         }
+        undiscountedTotalPrice {
+          ...BaseTaxedMoney
+        }
+        totalPrice {
+          ...BaseTaxedMoney
+        }
         unitDiscountReason
         unitDiscountType
         unitDiscountValue
+        isGift
       }
     }
   }

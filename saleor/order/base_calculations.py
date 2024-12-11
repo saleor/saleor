@@ -7,10 +7,10 @@ from prices import Money, TaxedMoney
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
-from ..discount import DiscountType, DiscountValueType, VoucherType
+from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount
 from ..discount.utils.manual_discount import apply_discount_to_value
-from ..discount.utils.voucher import is_order_level_voucher
+from ..discount.utils.voucher import is_order_level_voucher, is_shipping_voucher
 from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 
@@ -95,11 +95,10 @@ def propagate_order_discount_on_order_prices(
     """
     base_subtotal = base_order_subtotal(order, lines)
     subtotal = base_subtotal
-    shipping_price = order.undiscounted_base_shipping_price
+    shipping_price = order.base_shipping_price
     currency = order.currency
     order_discounts_to_update = []
 
-    shipping_voucher_discount = None
     for order_discount in order.discounts.all():
         subtotal_before_discount = subtotal
         shipping_price_before_discount = shipping_price
@@ -112,8 +111,12 @@ def propagate_order_discount_on_order_prices(
                     currency=currency,
                     price_to_discount=subtotal,
                 )
-            elif voucher and voucher.type == VoucherType.SHIPPING:
-                shipping_voucher_discount = order_discount
+            # Shipping voucher is tricky: it is associated with an order, but it
+            # decreases base price, similar to line level discounts, so we should
+            # exclude it
+            if is_shipping_voucher(order_discount.voucher):
+                continue
+
         elif order_discount.type == DiscountType.ORDER_PROMOTION:
             subtotal = apply_discount_to_value(
                 value=order_discount.value,
@@ -158,19 +161,6 @@ def propagate_order_discount_on_order_prices(
         if order_discount.amount != total_discount_amount:
             order_discount.amount = total_discount_amount
             order_discounts_to_update.append(order_discount)
-
-    # Apply shipping voucher discount
-    if shipping_voucher_discount:
-        shipping_price = apply_discount_to_value(
-            value=shipping_voucher_discount.value,
-            value_type=shipping_voucher_discount.value_type,
-            currency=currency,
-            price_to_discount=shipping_price,
-        )
-        discount_amount = shipping_price_before_discount - shipping_price
-        if shipping_voucher_discount.amount != discount_amount:
-            shipping_voucher_discount.amount = discount_amount
-            order_discounts_to_update.append(shipping_voucher_discount)
 
     if order_discounts_to_update:
         OrderDiscount.objects.bulk_update(order_discounts_to_update, ["amount_value"])
@@ -255,7 +245,10 @@ def propagate_order_discount_on_order_lines_prices(
                 share = (
                     line.base_unit_price_amount * line.quantity / base_subtotal.amount
                 )
-                discount = min(share * subtotal_discount, base_subtotal)
+                discount = quantize_price(
+                    min(share * subtotal_discount, base_subtotal),
+                    base_subtotal.currency,
+                )
                 yield (
                     line,
                     _get_total_price_with_subtotal_discount_for_order_line(
@@ -300,8 +293,7 @@ def apply_subtotal_discount_to_order_lines(
 
 
 def assign_order_line_prices(line: "OrderLine", total_price: Money):
-    currency = total_price.currency
-    line.total_price_net = quantize_price(total_price, currency)
+    line.total_price_net = total_price
     line.total_price_gross = line.total_price_net
     line.undiscounted_total_price_gross_amount = (
         line.undiscounted_total_price_net_amount
@@ -313,7 +305,7 @@ def assign_order_line_prices(line: "OrderLine", total_price: Money):
         line.unit_price_net = unit_price
         line.unit_price_gross = unit_price
 
-        undiscounted_unit_price = line.undiscounted_total_price_net_amount / quantity
+        undiscounted_unit_price = line.undiscounted_base_unit_price_amount
         line.undiscounted_unit_price_net_amount = undiscounted_unit_price
         line.undiscounted_unit_price_gross_amount = undiscounted_unit_price
 
@@ -326,7 +318,6 @@ def assign_order_prices(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     shipping_price = quantize_price(shipping_price, order.currency)
-    order.base_shipping_price_amount = shipping_price.amount
     order.shipping_price_net_amount = shipping_price.amount
     order.shipping_price_gross_amount = shipping_price.amount
     order.total_net_amount = subtotal.amount + shipping_price.amount

@@ -1,12 +1,14 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 import graphene
+import pytest
 from django.test import override_settings
 
 from .....account.models import User
 from .....checkout.actions import call_checkout_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -43,6 +45,55 @@ def test_checkout_customer_attach(
     response = user_api_client.post_graphql(
         query, variables, permissions=[permission_impersonate_user]
     )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutCustomerAttach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user2
+    assert checkout.email == customer_user2.email
+    assert checkout.last_change != previous_last_change
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_customer_attach_when_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item,
+    customer_user2,
+    permission_impersonate_user,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+
+    line = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
+
+    assert checkout.user is None
+    previous_last_change = checkout.last_change
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    customer_id = graphene.Node.to_global_id("User", customer_user2.pk)
+    variables = {"id": to_global_id_or_none(checkout), "customerId": customer_id}
+
+    # when
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutCustomerAttach"]
@@ -281,20 +332,12 @@ def test_checkout_customer_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutCustomerAttach"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    assert wrapped_call_checkout_event.called
+
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -302,11 +345,31 @@ def test_checkout_customer_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_event.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id

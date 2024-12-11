@@ -92,9 +92,15 @@ class VoucherUpdate(VoucherCreate):
     def is_voucher_used(cls, instance) -> bool:
         voucher_codes = instance.codes.all()
         used_codes = voucher_codes.filter(
-            Exists(order_models.Order.objects.filter(voucher_code=OuterRef("code")))
+            Exists(
+                order_models.Order.objects.filter(
+                    voucher_code=OuterRef("code"), voucher_id=OuterRef("voucher_id")
+                )
+            )
             | Exists(
-                order_models.OrderLine.objects.filter(voucher_code=OuterRef("code"))
+                order_models.OrderLine.objects.filter(
+                    voucher_code=OuterRef("code"),
+                )
             )
             | Exists(
                 checkout_models.Checkout.objects.filter(voucher_code=OuterRef("code"))
@@ -120,15 +126,14 @@ class VoucherUpdate(VoucherCreate):
                 code_instance = voucher_instance.codes.first()
                 code_instance.code = code
                 return [code_instance]
-            else:
-                raise ValidationError(
-                    {
-                        "code": ValidationError(
-                            "Cannot update code when multiple codes exists.",
-                            code=DiscountErrorCode.INVALID.value,
-                        )
-                    }
-                )
+            raise ValidationError(
+                {
+                    "code": ValidationError(
+                        "Cannot update code when multiple codes exists.",
+                        code=DiscountErrorCode.INVALID.value,
+                    )
+                }
+            )
 
         return []
 

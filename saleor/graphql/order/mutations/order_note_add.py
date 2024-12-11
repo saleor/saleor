@@ -6,10 +6,8 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import (
-    ADDED_IN_315,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_IN_3X_MUTATION,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import BaseInputObjectType, Error, OrderError
@@ -41,7 +39,7 @@ class OrderNoteAdd(OrderNoteCommon):
         )
 
     class Meta:
-        description = "Adds note to the order." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Adds note to the order."
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderNoteAddError

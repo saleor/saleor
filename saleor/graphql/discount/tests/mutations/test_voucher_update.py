@@ -512,3 +512,44 @@ def test_update_voucher_with_deprecated_code_field(
 
     code_instance.refresh_from_db()
     assert code_instance.code == new_code
+
+
+def test_update_voucher_usage_limit_order_with_given_voucher_code_exists(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    order,
+):
+    """Ensure the voucher limit can be updated when the order has the same voucher code.
+
+    The voucher usage limit should be updated if an order contains a voucher code that
+    matches an existing order’s voucher code, but the voucher associated with
+    this code no longer exists.
+    """
+    # given
+    assert voucher.usage_limit is None
+    code_instance = voucher.codes.first()
+
+    # set the voucher code for the order, but left the voucher field empty,
+    # it simulates the situation when the voucher was deleted, and this code was the
+    # part of the different voucher
+    order.voucher_code = code_instance.code
+    order.voucher = None
+    order.save(update_fields=["voucher_code", "voucher"])
+
+    usage_limit = 10
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.id),
+        "input": {"usageLimit": usage_limit},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["voucherUpdate"]["errors"]
+    assert not errors
+    assert content["data"]["voucherUpdate"]["voucher"]["usageLimit"] == usage_limit

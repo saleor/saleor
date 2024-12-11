@@ -10,7 +10,6 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -69,7 +68,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update tax class rates for a specific country." + ADDED_IN_39
+        description = "Update tax class rates for a specific country."
         doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationUpdateError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)

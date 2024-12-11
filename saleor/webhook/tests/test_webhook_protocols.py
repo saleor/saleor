@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
@@ -240,7 +240,7 @@ def test_trigger_webhooks_with_http(
     mock_request.return_value = MagicMock(
         text="{response: body}",
         headers={"response": "header"},
-        elapsed=timedelta(seconds=2),
+        elapsed=datetime.timedelta(seconds=2),
         status_code=200,
         ok=True,
     )
@@ -289,7 +289,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
     mock_request.return_value = MagicMock(
         text="{response: body}",
         headers={"response": "header"},
-        elapsed=timedelta(seconds=2),
+        elapsed=datetime.timedelta(seconds=2),
         status_code=200,
         ok=True,
     )
@@ -338,7 +338,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
     mock_request.return_value = MagicMock(
         text="{response: body}",
         headers={"response": "header"},
-        elapsed=timedelta(seconds=2),
+        elapsed=datetime.timedelta(seconds=2),
         status_code=200,
         ok=True,
     )
@@ -459,7 +459,7 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     expected_data = serialize("json", [order_with_lines])
 
     # when
-    with django_assert_num_queries(5):
+    with django_assert_num_queries(7):
         trigger_webhooks_async(
             expected_data,
             WebhookEventAsyncType.ORDER_CREATED,

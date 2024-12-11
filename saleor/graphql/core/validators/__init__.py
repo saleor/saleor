@@ -21,7 +21,7 @@ def validate_one_of_args_is_in_mutation(*args, **kwargs):
     try:
         validate_one_of_args_is_in_query(*args, **kwargs)
     except GraphQLError as e:
-        raise ValidationError(str(e), code="graphql_error")
+        raise ValidationError(str(e), code="graphql_error") from e
 
 
 def validate_one_of_args_is_in_query(*args, **kwargs):
@@ -213,5 +213,5 @@ def validate_if_int_or_uuid(id):
     except ValueError:
         try:
             UUID(id)
-        except (AttributeError, ValueError):
-            raise ValidationError("Must receive an int or UUID.")
+        except (AttributeError, ValueError) as e:
+            raise ValidationError("Must receive an int or UUID.") from e

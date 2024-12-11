@@ -41,12 +41,12 @@ def test_get_products_data(product, product_with_image, collection, image, chann
     variant_without_sku.save()
 
     products = Product.objects.all()
-    export_fields = set(
+    export_fields = {
         value
         for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
         for value in mapping.values()
         if value
-    )
+    }
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
     channel_ids = [str(channel.pk) for channel in Channel.objects.all()]

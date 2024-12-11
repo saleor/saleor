@@ -59,7 +59,7 @@ class AttributeReorderValues(BaseMutation):
 
         try:
             attribute = models.Attribute.objects.prefetch_related("values").get(pk=pk)
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "attribute_id": ValidationError(
@@ -67,7 +67,7 @@ class AttributeReorderValues(BaseMutation):
                         code=AttributeErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
 
         values_m2m = attribute.values.all()
         operations = {}
@@ -80,7 +80,7 @@ class AttributeReorderValues(BaseMutation):
 
             try:
                 m2m_info = values_m2m.get(pk=int(value_pk))
-            except ObjectDoesNotExist:
+            except ObjectDoesNotExist as e:
                 raise ValidationError(
                     {
                         "moves": ValidationError(
@@ -88,7 +88,7 @@ class AttributeReorderValues(BaseMutation):
                             code=AttributeErrorCode.NOT_FOUND.value,
                         )
                     }
-                )
+                ) from e
             operations[m2m_info.pk] = move_info.sort_order
 
         with traced_atomic_transaction():

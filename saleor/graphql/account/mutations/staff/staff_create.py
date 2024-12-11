@@ -167,7 +167,7 @@ class StaffCreate(ModelMutation):
         send_notification=True,
         redirect_url=None,
     ):
-        if any([field in cleaned_input for field in USER_SEARCH_FIELDS]):
+        if any(field in cleaned_input for field in USER_SEARCH_FIELDS):
             user.search_document = prepare_user_search_document_value(
                 user, attach_addresses_data=False
             )

@@ -2,6 +2,7 @@ from typing import Optional
 
 import graphene
 from graphene import relay
+from promise import Promise
 
 from ....permission.utils import has_one_of_permissions
 from ....product import models
@@ -21,11 +22,7 @@ from ...core.connection import (
 )
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
-    ADDED_IN_310,
-    ADDED_IN_314,
-    ADDED_IN_317,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -65,8 +62,7 @@ class Category(ModelObjectType[models.Category]):
     )
     updated_at = DateTime(
         required=True,
-        description="The date and time when the category was last updated."
-        + ADDED_IN_317,
+        description="The date and time when the category was last updated.",
     )
     ancestors = ConnectionField(
         lambda: CategoryCountableConnection,
@@ -74,15 +70,9 @@ class Category(ModelObjectType[models.Category]):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(
-            description="Filtering options for products." + ADDED_IN_310
-        ),
-        where=ProductWhereInput(
-            description="Filtering options for products."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        ),
-        sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
+        filter=ProductFilterInput(description="Filtering options for products."),
+        where=ProductWhereInput(description="Filtering options for products."),
+        sort_by=ProductOrder(description="Sort products."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -129,9 +119,9 @@ class Category(ModelObjectType[models.Category]):
         info,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> None | Image | Promise[Image]:
         if not root.background_image:
-            return
+            return None
 
         alt = root.background_image_alt
         if size == 0:
@@ -216,8 +206,7 @@ class Category(ModelObjectType[models.Category]):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def __resolve_references(roots: list["Category"], info):

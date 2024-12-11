@@ -20,7 +20,6 @@ from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout import base_calculations
-from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..checkout.utils import get_checkout_metadata
 from ..core.db.connection import allow_writer
@@ -32,7 +31,6 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..discount import VoucherType
 from ..discount.utils.shared import is_order_level_discount
 from ..discount.utils.voucher import is_order_level_voucher
 from ..order import FulfillmentStatus, OrderStatus
@@ -57,8 +55,10 @@ from .serializers import (
     serialize_product_attributes,
     serialize_variant_attributes,
 )
+from .transport.utils import from_payment_app_id
 
 if TYPE_CHECKING:
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
@@ -120,7 +120,7 @@ def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
         return {"id": None, "type": None}
     if isinstance(requestor, User):
         return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
-    return {"id": requestor.name, "type": "app"}  # type: ignore
+    return {"id": requestor.name, "type": "app"}  # type: ignore[union-attr]
 
 
 def generate_meta(*, requestor_data: dict[str, Any], camel_case=False, **kwargs):
@@ -1066,8 +1066,6 @@ def _generate_refund_data_payload(data):
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
-    from .transport.utils import from_payment_app_id
-
     data = asdict(payment_data)
 
     if refund_data := data.get("refund_data"):
@@ -1136,6 +1134,7 @@ def _generate_sample_order_payload(event_name):
     if order:
         anonymized_order = anonymize_order(order)
         return generate_order_payload(anonymized_order)
+    return None
 
 
 @allow_writer()
@@ -1284,7 +1283,7 @@ def generate_excluded_shipping_methods_for_checkout_payload(
 @traced_payload_generator
 def generate_checkout_payload_for_tax_calculation(
     checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    lines: list["CheckoutLineInfo"],
 ):
     checkout = checkout_info.checkout
     tax_configuration = checkout_info.tax_configuration
@@ -1336,15 +1335,6 @@ def generate_checkout_payload_for_tax_calculation(
         base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,
     )
-    is_shipping_voucher = (
-        checkout_info.voucher.type == VoucherType.SHIPPING
-        if checkout_info.voucher
-        else False
-    )
-    if is_shipping_voucher:
-        shipping_method_amount = max(
-            shipping_method_amount - discount_amount, Decimal("0.0")
-        )
 
     # Prepare line data
     lines_dict_data = serialize_checkout_lines_for_tax_calculation(checkout_info, lines)

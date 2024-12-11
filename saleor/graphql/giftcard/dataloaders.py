@@ -1,4 +1,5 @@
 from collections import defaultdict
+from uuid import UUID
 
 from ...checkout.models import Checkout
 from ...giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
@@ -6,7 +7,7 @@ from ...order.models import Order
 from ..core.dataloaders import DataLoader
 
 
-class GiftCardsByUserLoader(DataLoader):
+class GiftCardsByUserLoader(DataLoader[int, list[GiftCard]]):
     context_key = "gift_cards_by_user"
 
     def batch_load(self, keys):
@@ -19,7 +20,7 @@ class GiftCardsByUserLoader(DataLoader):
         return [gift_cards_by_user_map.get(user_id, []) for user_id in keys]
 
 
-class GiftCardEventsByGiftCardIdLoader(DataLoader):
+class GiftCardEventsByGiftCardIdLoader(DataLoader[int, list[GiftCardEvent]]):
     context_key = "giftcardevents_by_giftcard"
 
     def batch_load(self, keys):
@@ -32,7 +33,7 @@ class GiftCardEventsByGiftCardIdLoader(DataLoader):
         return [events_map.get(gift_card_id, []) for gift_card_id in keys]
 
 
-class GiftCardTagsByGiftCardIdLoader(DataLoader):
+class GiftCardTagsByGiftCardIdLoader(DataLoader[int, list[GiftCardTag]]):
     context_key = "giftcardtags_by_giftcard"
 
     def batch_load(self, keys):
@@ -56,7 +57,7 @@ class GiftCardTagsByGiftCardIdLoader(DataLoader):
         return [tags_map.get(gift_card_id, []) for gift_card_id in keys]
 
 
-class GiftCardsByOrderIdLoader(DataLoader):
+class GiftCardsByOrderIdLoader(DataLoader[UUID, list[GiftCard]]):
     context_key = "gift_cards_by_order_id"
 
     def batch_load(self, keys):
@@ -76,7 +77,7 @@ class GiftCardsByOrderIdLoader(DataLoader):
         return [cards_map.get(order_id, []) for order_id in keys]
 
 
-class GiftCardsByCheckoutIdLoader(DataLoader):
+class GiftCardsByCheckoutIdLoader(DataLoader[UUID, list[GiftCard]]):
     context_key = "gift_cards_by_checkout_id"
 
     def batch_load(self, keys):

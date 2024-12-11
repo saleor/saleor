@@ -14,11 +14,12 @@ from ...payment import TransactionEventType
 from ...payment.interface import TransactionActionData
 from ...payment.models import TransactionEvent
 from ...payment.transaction_item_calculations import recalculate_transaction_amounts
-from ...tests.utils import flush_post_commit_hooks
 from ..event_types import WebhookEventSyncType
 from ..payloads import generate_transaction_action_request_payload
-from ..transport.synchronous.transport import handle_transaction_request_task
-from ..transport.utils import trigger_transaction_request
+from ..transport.synchronous.transport import (
+    handle_transaction_request_task,
+    trigger_transaction_request,
+)
 
 
 @pytest.fixture
@@ -44,6 +45,7 @@ def test_trigger_transaction_request(
     staff_user,
     permission_manage_payments,
     app,
+    django_capture_on_commit_callbacks,
 ):
     # given
     event = transaction_item_created_by_app.events.create(
@@ -65,12 +67,14 @@ def test_trigger_transaction_request(
     )
 
     # when
-    trigger_transaction_request(
-        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        trigger_transaction_request(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+            staff_user,
+        )
 
     # then
-    flush_post_commit_hooks()
     generated_payload = EventPayload.objects.first()
     generated_delivery = EventDelivery.objects.first()
 
@@ -100,6 +104,7 @@ def test_trigger_transaction_request_with_webhook_subscription(
     staff_user,
     permission_manage_payments,
     app,
+    django_capture_on_commit_callbacks,
 ):
     # given
     subscription = """
@@ -139,12 +144,14 @@ def test_trigger_transaction_request_with_webhook_subscription(
     )
 
     # when
-    trigger_transaction_request(
-        transaction_data, WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED, staff_user
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        trigger_transaction_request(
+            transaction_data,
+            WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED,
+            staff_user,
+        )
 
     # then
-    flush_post_commit_hooks()
     generated_payload = EventPayload.objects.first()
     generated_delivery = EventDelivery.objects.first()
 
@@ -1056,13 +1063,11 @@ def test_handle_transaction_request_task_with_available_actions(
     assert success_event.amount_value == event_amount
 
     transaction.refresh_from_db()
-    assert set(transaction.available_actions) == set(
-        [
-            "charge",
-            "refund",
-            "cancel",
-        ]
-    )
+    assert set(transaction.available_actions) == {
+        "charge",
+        "refund",
+        "cancel",
+    }
 
     mocked_post_request.assert_called_once_with(
         "POST",

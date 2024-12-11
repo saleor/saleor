@@ -1,7 +1,7 @@
 import math
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, NamedTuple, Optional, cast
 from uuid import UUID
 
 from django.db import transaction
@@ -38,12 +38,65 @@ if TYPE_CHECKING:
     from ..order.models import Order
 
 
-StockData = namedtuple("StockData", ["pk", "quantity"])
+class StockData(NamedTuple):
+    pk: int
+    quantity: int
+
+
+def stock_select_for_update_for_existing_qs(qs):
+    return qs.order_by("pk").select_for_update(of=(["self"]))
+
+
+def stock_qs_select_for_update():
+    return stock_select_for_update_for_existing_qs(Stock.objects.all())
+
+
+def delete_stocks(stock_pks_to_delete: list[int]):
+    with transaction.atomic():
+        return Stock.objects.filter(
+            id__in=Stock.objects.order_by("pk")
+            .select_for_update(of=["self"])
+            .values_list("pk", flat=True)
+            .filter(id__in=stock_pks_to_delete)
+        ).delete()
+
+
+def stock_bulk_update(stocks: list[Stock], fields_to_update: list[str]):
+    with transaction.atomic():
+        _locked_stocks = list(
+            stock_qs_select_for_update()
+            .filter(id__in=[stock.id for stock in stocks])
+            .values_list("id", flat=True)
+        )
+        Stock.objects.bulk_update(stocks, fields_to_update)
+
+
+def allocation_with_stock_qs_select_for_update():
+    return (
+        Allocation.objects.select_related("stock")
+        .select_for_update(
+            of=(
+                "self",
+                "stock",
+            )
+        )
+        .order_by("stock__pk")
+    )
+
+
+def delete_allocations(allocation_pks_to_delete: list[int]):
+    with transaction.atomic():
+        return Allocation.objects.filter(
+            id__in=Allocation.objects.order_by("stock_id")
+            .select_for_update(of=["self"])
+            .values_list("pk", flat=True)
+            .filter(id__in=allocation_pks_to_delete)
+        ).delete()
 
 
 @traced_atomic_transaction()
 def allocate_stocks(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     country_code: str,
     channel: "Channel",
     manager: PluginsManager,
@@ -84,9 +137,8 @@ def allocate_stocks(
     )
 
     stocks = list(
-        stocks.select_for_update(of=("self",))
+        stock_select_for_update_for_existing_qs(stocks)
         .filter(**filter_lookup)
-        .order_by("pk")
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
     stocks_id = (stock.pop("id") for stock in stocks)
@@ -241,7 +293,7 @@ def _create_allocations(
     stocks_allocations: dict,
     stocks_reservations: dict,
     insufficient_stock: list[InsufficientStockData],
-):
+) -> tuple[list[InsufficientStockData], list[Any]]:
     quantity = line_info.quantity
     quantity_allocated = 0
     allocations = []
@@ -275,11 +327,10 @@ def _create_allocations(
             )
         )
         return insufficient_stock, []
+    return [], allocations
 
 
-def deallocate_stock(
-    order_lines_data: Iterable["OrderLineInfo"], manager: PluginsManager
-):
+def deallocate_stock(order_lines_data: list["OrderLineInfo"], manager: PluginsManager):
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -289,16 +340,8 @@ def deallocate_stock(
     raise an exception.
     """
     lines = [line_info.line for line_info in order_lines_data]
-    lines_allocations = (
-        Allocation.objects.filter(order_line__in=lines)
-        .select_related("stock")
-        .select_for_update(
-            of=(
-                "self",
-                "stock",
-            )
-        )
-        .order_by("stock__pk")
+    lines_allocations = allocation_with_stock_qs_select_for_update().filter(
+        order_line__in=lines
     )
 
     line_to_allocations: dict[UUID, list[Allocation]] = defaultdict(list)
@@ -380,7 +423,7 @@ def increase_stock(
     """
     assert order_line.variant
     stock = (
-        Stock.objects.select_for_update(of=("self",))
+        stock_qs_select_for_update()
         .filter(warehouse=warehouse, product_variant=order_line.variant)
         .first()
     )
@@ -405,15 +448,16 @@ def increase_stock(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: Iterable["OrderLineInfo"], channel: "Channel", manager: PluginsManager
+    lines_info: list["OrderLineInfo"], channel: "Channel", manager: PluginsManager
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
     allocations = list(
-        Allocation.objects.filter(order_line__in=line_pks)
-        .select_related("stock", "order_line")
-        .select_for_update(of=("self", "stock"))
+        allocation_with_stock_qs_select_for_update()
+        .select_related("order_line")
+        .filter(order_line__in=line_pks)
     )
+
     # evaluate allocations query to trigger select_for_update lock
     allocation_pks_to_delete = [alloc.pk for alloc in allocations]
     allocation_quantity_map: dict[UUID, list] = defaultdict(list)
@@ -434,7 +478,7 @@ def increase_allocations(
     Allocation.objects.filter(pk__in=allocation_pks_to_delete).delete()
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
-    order = lines_info[0].line.order  # type: ignore[index]
+    order = lines_info[0].line.order
     country_code = get_active_country(
         channel, order.shipping_address, order.billing_address
     )
@@ -446,7 +490,7 @@ def increase_allocations(
     )
 
 
-def decrease_allocations(lines_info: Iterable["OrderLineInfo"], manager):
+def decrease_allocations(lines_info: list["OrderLineInfo"], manager):
     """Decreate allocations for provided order lines."""
     tracked_lines = get_order_lines_with_track_inventory(lines_info)
     if not tracked_lines:
@@ -456,7 +500,7 @@ def decrease_allocations(lines_info: Iterable["OrderLineInfo"], manager):
 
 @traced_atomic_transaction()
 def decrease_stock(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     manager,
     update_stocks=True,
     allow_stock_to_be_exceeded: bool = False,
@@ -477,16 +521,15 @@ def decrease_stock(
     try:
         deallocate_stock(order_lines_info, manager)
     except AllocationError as exc:
-        Allocation.objects.filter(order_line__in=exc.order_lines).update(
-            quantity_allocated=0
-        )
+        Allocation.objects.order_by("stock_id").filter(
+            order_line__in=exc.order_lines
+        ).update(quantity_allocated=0)
 
     stocks = (
-        Stock.objects.select_for_update(of=("self",))
+        stock_qs_select_for_update()
         .filter(product_variant__in=variants)
         .filter(warehouse_id__in=warehouse_pks)
         .select_related("product_variant", "warehouse")
-        .order_by("pk")
     )
 
     variant_and_warehouse_to_stock: dict[int, dict[UUID, Stock]] = defaultdict(dict)
@@ -528,7 +571,7 @@ def decrease_stock(
 
 
 def _decrease_stocks_quantity(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     variant_and_warehouse_to_stock: dict[int, dict[UUID, Stock]],
     quantity_allocation_for_stocks: dict[int, int],
     allow_stock_to_be_exceeded: bool = False,
@@ -537,11 +580,11 @@ def _decrease_stocks_quantity(
     stocks_to_update = []
     for line_info in order_lines_info:
         variant = line_info.variant
+        if not variant:
+            continue
         warehouse_pk = line_info.warehouse_pk
         stock = (
-            variant_and_warehouse_to_stock.get(variant.pk, {}).get(  # type: ignore
-                warehouse_pk
-            )
+            variant_and_warehouse_to_stock.get(variant.pk, {}).get(warehouse_pk)
             if warehouse_pk
             else None
         )
@@ -582,8 +625,8 @@ def _decrease_stocks_quantity(
 
 
 def get_order_lines_with_track_inventory(
-    order_lines_info: Iterable["OrderLineInfo"],
-) -> Iterable["OrderLineInfo"]:
+    order_lines_info: list["OrderLineInfo"],
+) -> list["OrderLineInfo"]:
     """Return order lines with variants with track inventory set to True."""
     return [
         line_info
@@ -598,9 +641,9 @@ def get_order_lines_with_track_inventory(
 def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
     """Remove all allocations for given order."""
     lines = OrderLine.objects.filter(order_id=order.id)
-    allocations = Allocation.objects.filter(
+    allocations = allocation_with_stock_qs_select_for_update().filter(
         Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
-    ).select_related("stock")
+    )
 
     stocks_to_update = []
     for alloc in allocations:
@@ -608,7 +651,10 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
         stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
         stocks_to_update.append(stock)
 
-    for allocation in allocations.annotate_stock_available_quantity():
+    allocations_for_back_in_stock = Allocation.objects.filter(
+        id__in=[allocation.id for allocation in allocations]
+    )
+    for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
             transaction.on_commit(
                 lambda: manager.product_variant_back_in_stock(allocation.stock)
@@ -622,9 +668,9 @@ def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
 def deallocate_stock_for_orders(orders_id, manager: PluginsManager):
     """Remove all allocations for given order."""
     lines = OrderLine.objects.filter(order_id__in=orders_id)
-    allocations = Allocation.objects.filter(
+    allocations = allocation_with_stock_qs_select_for_update().filter(
         Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
-    ).select_related("stock")
+    )
 
     stocks_to_update = []
     for alloc in allocations:
@@ -632,7 +678,10 @@ def deallocate_stock_for_orders(orders_id, manager: PluginsManager):
         stock.quantity_allocated = F("quantity_allocated") - alloc.quantity_allocated
         stocks_to_update.append(stock)
 
-    for allocation in allocations.annotate_stock_available_quantity():
+    allocations_for_back_in_stock = Allocation.objects.filter(
+        id__in=[allocation.id for allocation in allocations]
+    )
+    for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
             transaction.on_commit(
                 lambda: manager.product_variant_back_in_stock(allocation.stock)
@@ -644,7 +693,7 @@ def deallocate_stock_for_orders(orders_id, manager: PluginsManager):
 
 @traced_atomic_transaction()
 def allocate_preorders(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     channel_slug: str,
     check_reservations: bool = False,
     checkout_lines: Optional[Iterable["CheckoutLine"]] = None,
@@ -745,8 +794,8 @@ def allocate_preorders(
 
 
 def get_order_lines_with_preorder(
-    order_lines_info: Iterable["OrderLineInfo"],
-) -> Iterable["OrderLineInfo"]:
+    order_lines_info: list["OrderLineInfo"],
+) -> list["OrderLineInfo"]:
     """Return order lines with variants with preorder flag set to True."""
     return [
         line_info
@@ -888,7 +937,7 @@ def _get_stock_for_preorder_allocation(
 
     if shipping_method_id is not None:
         warehouse = Warehouse.objects.filter(
-            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore
+            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore[misc,union-attr]
         ).first()
     else:
         from ..order.utils import get_order_country
@@ -902,7 +951,7 @@ def _get_stock_for_preorder_allocation(
         raise PreorderAllocationError(preorder_allocation.order_line)
 
     stock = list(
-        Stock.objects.select_for_update(of=("self",)).filter(
+        stock_qs_select_for_update().filter(
             warehouse=warehouse, product_variant=product_variant
         )
     )

@@ -10,7 +10,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseBulkMutation
 from ...core.types import GiftCardError, NonNullList
 from ...core.utils import WebhookEventInfo
@@ -25,7 +24,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = "Activate gift cards." + ADDED_IN_31
+        description = "Activate gift cards."
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

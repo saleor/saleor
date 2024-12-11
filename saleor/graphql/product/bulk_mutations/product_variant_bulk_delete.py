@@ -13,8 +13,8 @@ from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....order import events as order_events
-from ....order import models as order_models
 from ....order.tasks import recalculate_orders_task
+from ....order.utils import order_lines_qs_select_for_update
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.search import prepare_product_search_vector_value
@@ -22,7 +22,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
 from ...core.validators import validate_one_of_args_is_in_mutation
@@ -41,7 +40,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         skus = NonNullList(
             graphene.String,
             required=False,
-            description="List of product variant SKUs to delete." + ADDED_IN_38,
+            description="List of product variant SKUs to delete.",
         )
 
     class Meta:
@@ -121,7 +120,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             response = super().perform_mutation(_root, info, ids=ids, **data)
 
             # delete order lines for deleted variants, they are ordered by Meta
-            order_models.OrderLine.objects.select_for_update(of=("self",)).filter(
+            order_lines_qs_select_for_update().filter(
                 pk__in=draft_order_lines_data.line_pks
             ).delete()
 

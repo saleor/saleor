@@ -517,7 +517,7 @@ class ImagesByProductVariantIdLoader(DataLoader):
 
         return (
             ProductMediaByIdLoader(self.context)
-            .load_many(set(media_id for variant_id, media_id in variant_media))
+            .load_many({media_id for variant_id, media_id in variant_media})
             .then(map_variant_media)
         )
 
@@ -557,7 +557,7 @@ class CollectionsByProductIdLoader(DataLoader):
 
         return (
             CollectionByIdLoader(self.context)
-            .load_many(set(cid for pid, cid in product_collection_pairs))
+            .load_many({cid for pid, cid in product_collection_pairs})
             .then(map_collections)
         )
 

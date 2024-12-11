@@ -1,8 +1,8 @@
+import datetime
 from decimal import Decimal
 from unittest import mock
 
 import pytest
-import pytz
 from django.conf import settings
 from django.test import override_settings
 from django.utils import timezone
@@ -12,8 +12,10 @@ from .....channel import TransactionFlowStrategy
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
 from .....core.prices import quantize_price
-from .....order import OrderChargeStatus, OrderStatus
+from .....order import OrderChargeStatus, OrderEvents, OrderStatus
+from .....order.models import Order
 from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
 from .....payment.interface import (
     PaymentGatewayData,
@@ -105,6 +107,7 @@ def _assert_fields(
     charge_pending_value=Decimal(0),
     authorize_pending_value=Decimal(0),
     returned_data=None,
+    expected_message=None,
 ):
     assert not content["data"]["transactionInitialize"]["errors"]
     response_data = content["data"]["transactionInitialize"]
@@ -168,6 +171,8 @@ def _assert_fields(
     assert response_event.amount_value == expected_amount
     assert response_event.include_in_calculations
     assert response_event.psp_reference == expected_psp_reference
+    if expected_message is not None:
+        assert response_event.message == expected_message
 
     mocked_initialize.assert_called_with(
         TransactionSessionData(
@@ -270,7 +275,7 @@ def test_for_checkout_transactions_limit_on_transaction_initialize(
     assert error["code"] == TransactionInitializeErrorCode.INVALID.name
     assert error["field"] == "id"
     assert error["message"] == (
-        "Checkout transactions limit of " f"{settings.TRANSACTION_ITEMS_LIMIT} reached."
+        f"Checkout transactions limit of {settings.TRANSACTION_ITEMS_LIMIT} reached."
     )
 
 
@@ -1814,11 +1819,13 @@ def test_order_doesnt_exists(
 @pytest.mark.parametrize(
     "result", [TransactionEventType.CHARGE_REQUEST, TransactionEventType.CHARGE_SUCCESS]
 )
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
 def test_checkout_fully_paid(
     mocked_initialize,
     mocked_fully_paid,
+    mocked_automatic_checkout_completion_task,
     result,
     user_api_client,
     checkout_with_prices,
@@ -1834,6 +1841,8 @@ def test_checkout_fully_paid(
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
+
+    assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
 
     expected_psp_reference = "ppp-123"
     expected_response = transaction_session_response.copy()
@@ -1859,8 +1868,300 @@ def test_checkout_fully_paid(
     assert not content["data"]["transactionInitialize"]["errors"]
     checkout.refresh_from_db()
     mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+    mocked_automatic_checkout_completion_task.assert_not_called()
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_checkout_fully_paid_automatic_completion(
+    mocked_initialize,
+    mocked_fully_paid,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_token = checkout.token
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    order = Order.objects.get(checkout_token=checkout_token)
+    assert order.charge_status == CheckoutChargeStatus.FULL
+    assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_checkout_fully_paid_pending_charge_automatic_completion(
+    mocked_initialize,
+    mocked_fully_paid,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_token = checkout.token
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    order = Order.objects.get(checkout_token=checkout_token)
+    assert order.charge_status == CheckoutChargeStatus.NONE
+    assert order.authorize_status == CheckoutAuthorizeStatus.NONE
+    mocked_fully_paid.assert_called_once_with(checkout, webhooks=set())
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+    ],
+)
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_checkout_fully_authorized(
+    mocked_initialize,
+    mocked_fully_paid,
+    mocked_automatic_checkout_completion_task,
+    result,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    assert checkout_info.channel.automatically_complete_fully_paid_checkouts is False
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = result.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_automatic_checkout_completion_task.assert_not_called()
+    mocked_fully_paid.assert_not_called()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_checkout_fully_authorized_automatic_completion(
+    mocked_initialize,
+    mocked_fully_paid,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_token = checkout.token
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.AUTHORIZATION_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    order = Order.objects.get(checkout_token=checkout_token)
+    assert order.charge_status == CheckoutChargeStatus.NONE
+    assert order.authorize_status == CheckoutAuthorizeStatus.FULL
+    assert order.events.filter(
+        type=OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
+    ).exists()
+    mocked_fully_paid.assert_not_called()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_checkout_fully_authorizaed_pending_authorization_automatic_completion(
+    mocked_initialize,
+    mocked_fully_paid,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_token = checkout.token
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    channel = checkout_info.channel
+    channel.automatically_complete_fully_paid_checkouts = True
+    channel.save(update_fields=["automatically_complete_fully_paid_checkouts"])
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.AUTHORIZATION_REQUEST.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    with pytest.raises(Checkout.DoesNotExist):
+        checkout.refresh_from_db()
+
+    order = Order.objects.get(checkout_token=checkout_token)
+    assert order.charge_status == CheckoutChargeStatus.NONE
+    assert order.authorize_status == CheckoutAuthorizeStatus.NONE
+    mocked_fully_paid.assert_not_called()
 
 
 def test_user_missing_permission_for_customer_ip_address(
@@ -2134,7 +2435,7 @@ def test_customer_ip_address_ipv6(
 @freeze_time("2023-03-18 12:00:00")
 @pytest.mark.parametrize(
     "previous_last_transaction_modified_at",
-    [None, timezone.datetime(2020, 1, 1, tzinfo=pytz.UTC)],
+    [None, datetime.datetime(2020, 1, 1, tzinfo=datetime.UTC)],
 )
 @mock.patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -2369,3 +2670,115 @@ def test_for_checkout_with_payments_error_raised(
         payment.refresh_from_db()
     assert payments[0].is_active is True
     assert payments[1].is_active is False
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_too_long_message_in_response(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["message"] = "m" * 513
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+        expected_message=expected_response["message"][:509] + "...",
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    assert (
+        "Value for field: message in response of transaction action webhook "
+        "exceeds the character field limit. Message has been truncated."
+    ) in [record.message for record in caplog.records]
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_empty_message(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["message"] = None
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        returned_data=expected_response["data"],
+        expected_message=expected_response["message"],
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL

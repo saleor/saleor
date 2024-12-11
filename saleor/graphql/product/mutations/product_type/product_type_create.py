@@ -112,9 +112,9 @@ class ProductTypeCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
 
         clean_tax_code(cleaned_input)
 

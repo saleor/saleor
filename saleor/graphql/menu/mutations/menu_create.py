@@ -54,9 +54,9 @@ class MenuCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = MenuErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = MenuErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
 
         items = []
         for item in cleaned_input.get("items", []):

@@ -21,15 +21,6 @@ from ...permission.enums import (
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_35,
-    ADDED_IN_36,
-    ADDED_IN_37,
-    ADDED_IN_312,
-    ADDED_IN_313,
-    ADDED_IN_314,
-    ADDED_IN_315,
-    ADDED_IN_316,
     ADDED_IN_318,
     ADDED_IN_320,
     DEPRECATED_IN_3X_FIELD,
@@ -181,7 +172,7 @@ class StockSettings(BaseObjectType):
     )
 
     class Meta:
-        description = "Represents the channel stock settings." + ADDED_IN_37
+        description = "Represents the channel stock settings."
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
@@ -197,17 +188,25 @@ class CheckoutSettings(ObjectType):
             "Some of the `problems` can block the finalizing checkout process. "
             "The legacy flow will be removed in Saleor 4.0. "
             "The flow with `checkout.problems` will be the default one."
-            + ADDED_IN_315
             + DEPRECATED_IN_3X_FIELD
         ),
     )
+    automatically_complete_fully_paid_checkouts = graphene.Boolean(
+        required=True,
+        description=(
+            "Default `false`. Determines if the paid checkouts should be automatically "
+            "completed. This setting applies only to checkouts where payment "
+            "was processed through transactions."
+            "When enabled, the checkout will be automatically completed once the "
+            "checkout `charge_status` reaches `FULL`. This occurs when the total sum "
+            "of charged and authorized transaction amounts equals or exceeds the "
+            "checkout's total amount."
+        )
+        + ADDED_IN_320,
+    )
 
     class Meta:
-        description = (
-            "Represents the channel-specific checkout settings."
-            + ADDED_IN_315
-            + PREVIEW_FEATURE
-        )
+        description = "Represents the channel-specific checkout settings."
         doc_category = DOC_CATEGORY_CHECKOUT
 
 
@@ -231,8 +230,6 @@ class OrderSettings(ObjectType):
         required=False,
         description=(
             "Expiration time in minutes. Default null - means do not expire any orders."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
         ),
     )
 
@@ -244,23 +241,17 @@ class OrderSettings(ObjectType):
             "and attached to the order when it's manually marked as paid."
             "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
             "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
         ),
     )
     delete_expired_orders_after = Day(
         required=True,
-        description=(
-            "The time in days after expired orders will be deleted."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        ),
+        description=("The time in days after expired orders will be deleted."),
     )
     allow_unpaid_orders = graphene.Boolean(
         required=True,
         description=(
             "Determine if it is possible to place unpaid order by calling "
-            "`checkoutComplete` mutation." + ADDED_IN_315 + PREVIEW_FEATURE
+            "`checkoutComplete` mutation."
         ),
     )
     include_draft_order_in_voucher_usage = graphene.Boolean(
@@ -282,7 +273,7 @@ class PaymentSettings(ObjectType):
         description=(
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
-            "requested action for the transaction." + ADDED_IN_316 + PREVIEW_FEATURE
+            "requested action for the transaction."
         ),
     )
 
@@ -338,7 +329,7 @@ class Channel(ModelObjectType):
         description=(
             "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided." + ADDED_IN_31
+            "when the country was not explicitly provided."
         ),
         required=True,
         permissions=[
@@ -348,7 +339,7 @@ class Channel(ModelObjectType):
     )
     warehouses = PermissionsField(
         NonNullList(Warehouse),
-        description="List of warehouses assigned to this channel." + ADDED_IN_35,
+        description="List of warehouses assigned to this channel.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -357,18 +348,17 @@ class Channel(ModelObjectType):
     )
     countries = NonNullList(
         CountryDisplay,
-        description="List of shippable countries for the channel." + ADDED_IN_36,
+        description="List of shippable countries for the channel.",
     )
 
     available_shipping_methods_per_country = graphene.Field(
         NonNullList("saleor.graphql.shipping.types.ShippingMethodsPerCountry"),
         countries=graphene.Argument(NonNullList(CountryCodeEnum)),
-        description="Shipping methods that are available for the channel."
-        + ADDED_IN_36,
+        description="Shipping methods that are available for the channel.",
     )
     stock_settings = PermissionsField(
         StockSettings,
-        description=("Define the stock setting for this channel." + ADDED_IN_37),
+        description=("Define the stock setting for this channel."),
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -377,7 +367,7 @@ class Channel(ModelObjectType):
     )
     order_settings = PermissionsField(
         OrderSettings,
-        description="Channel-specific order settings." + ADDED_IN_312,
+        description="Channel-specific order settings.",
         required=True,
         permissions=[
             ChannelPermissions.MANAGE_CHANNELS,
@@ -387,9 +377,7 @@ class Channel(ModelObjectType):
 
     checkout_settings = PermissionsField(
         CheckoutSettings,
-        description="Channel-specific checkout settings."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="Channel-specific checkout settings.",
         required=True,
         permissions=[
             ChannelPermissions.MANAGE_CHANNELS,
@@ -398,9 +386,7 @@ class Channel(ModelObjectType):
     )
     payment_settings = PermissionsField(
         PaymentSettings,
-        description="Channel-specific payment settings."
-        + ADDED_IN_316
-        + PREVIEW_FEATURE,
+        description="Channel-specific payment settings.",
         required=True,
         permissions=[
             ChannelPermissions.MANAGE_CHANNELS,
@@ -423,7 +409,6 @@ class Channel(ModelObjectType):
         description = "Represents channel."
         model = models.Channel
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
-        metadata_since = ADDED_IN_315
 
     @staticmethod
     def resolve_tax_configuration(root: models.Channel, info: ResolveInfo):
@@ -577,8 +562,10 @@ class Channel(ModelObjectType):
 
     @staticmethod
     def resolve_checkout_settings(root: models.Channel, _info):
+        complete_paid_checkouts = root.automatically_complete_fully_paid_checkouts
         return CheckoutSettings(
-            use_legacy_error_flow=root.use_legacy_error_flow_for_checkout
+            use_legacy_error_flow=root.use_legacy_error_flow_for_checkout,
+            automatically_complete_fully_paid_checkouts=complete_paid_checkouts,
         )
 
     @staticmethod

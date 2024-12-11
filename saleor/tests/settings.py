@@ -9,7 +9,7 @@ from django.utils.functional import SimpleLazyObject
 # without this line pytest will start sending traces to Jaeger agent.
 os.environ["JAEGER_AGENT_HOST"] = ""
 
-from ..settings import *  # noqa
+from ..settings import *  # noqa: F403
 
 
 def lazy_re_compile(regex, flags=0):
@@ -19,9 +19,8 @@ def lazy_re_compile(regex, flags=0):
         # Compile the regex if it was not passed pre-compiled.
         if isinstance(regex, str):
             return re.compile(regex, flags)
-        else:
-            assert not flags, "flags must be empty if regex is passed pre-compiled"
-            return regex
+        assert not flags, "flags must be empty if regex is passed pre-compiled"
+        return regex
 
     return SimpleLazyObject(_compile)
 
@@ -33,10 +32,6 @@ CELERY_TASK_ALWAYS_EAGER = True
 SECRET_KEY = "NOTREALLY"
 
 ALLOWED_CLIENT_HOSTS = ["www.example.com"]
-
-TIME_ZONE = "America/Chicago"
-LANGUAGE_CODE = "en"
-
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 

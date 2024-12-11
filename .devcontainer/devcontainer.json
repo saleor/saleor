@@ -23,6 +23,7 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "be5invis.toml",
         "Cameron.vscode-pytest",
         "charliermarsh.ruff",
         "editorconfig.editorconfig",

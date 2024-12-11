@@ -23,7 +23,7 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -40,7 +40,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -257,7 +257,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info, lines, delivery_method=delivery_method
         )
 
-        set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)  # type: ignore # deliver_method is not None here
+        set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)  # type: ignore[union-attr]
         checkout.shipping_method = None
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False

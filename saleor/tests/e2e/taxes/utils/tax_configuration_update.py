@@ -40,9 +40,13 @@ def update_tax_configuration(
     tax_calculation_strategy="FLAT_RATES",
     display_gross_prices=True,
     prices_entered_with_tax=True,
-    update_countries_configuration=[],
-    remove_countries_configuration=[],
+    update_countries_configuration=None,
+    remove_countries_configuration=None,
 ):
+    if remove_countries_configuration is None:
+        remove_countries_configuration = []
+    if update_countries_configuration is None:
+        update_countries_configuration = []
     variables = {
         "id": tax_config_id,
         "input": {

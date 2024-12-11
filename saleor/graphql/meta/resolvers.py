@@ -90,7 +90,7 @@ def resolve_object_with_metadata_type(instance):
             return discount_types.Sale, instance.pk
         return MODEL_TO_TYPE_MAP.get(instance.__class__, None), instance.pk
 
-    elif dataclasses.is_dataclass(instance):
+    if dataclasses.is_dataclass(instance):
         DATACLASS_TO_TYPE_MAP = {ShippingMethodData: shipping_types.ShippingMethod}
         return DATACLASS_TO_TYPE_MAP.get(instance.__class__, None), instance.id
     raise ValueError(f"Unknown type: {instance.__class__}")

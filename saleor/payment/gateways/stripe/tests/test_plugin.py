@@ -107,17 +107,13 @@ def test_pre_save_plugin_configuration_removes_webhook_when_disabled(
     plugin.pre_save_plugin_configuration(configuration)
 
     assert all(
-        [
-            c_field["value"] != "endpoint"
-            for c_field in configuration.configuration
-            if c_field["name"] == "webhook_endpoint_id"
-        ]
+        c_field["value"] != "endpoint"
+        for c_field in configuration.configuration
+        if c_field["name"] == "webhook_endpoint_id"
     )
     assert all(
-        [
-            c_field["name"] != "webhook_secret_key"
-            for c_field in configuration.configuration
-        ]
+        c_field["name"] != "webhook_secret_key"
+        for c_field in configuration.configuration
     )
     assert mocked_stripe.called
 

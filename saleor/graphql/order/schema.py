@@ -11,7 +11,7 @@ from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -111,7 +111,7 @@ class OrderQueries(graphene.ObjectType):
         external_reference=graphene.Argument(
             graphene.String,
             description=(
-                f"External ID of an order. {ADDED_IN_310}."
+                "External ID of an order. "
                 "\n\nRequires one of the following permissions: MANAGE_ORDERS."
             ),
         ),

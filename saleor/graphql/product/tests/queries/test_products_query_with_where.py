@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import graphene
 import pytest
@@ -374,7 +374,7 @@ def test_product_filter_by_is_available(
     # given
     ProductChannelListing.objects.filter(
         product=product_list[1], channel=channel_USD
-    ).update(available_for_purchase_at=timezone.now() + timedelta(days=1))
+    ).update(available_for_purchase_at=timezone.now() + datetime.timedelta(days=1))
     variables = {
         "channel": channel_USD.slug,
         "where": where,
@@ -488,10 +488,10 @@ def test_product_filter_by_published_from(api_client, product_list, channel_USD)
     timestamp = timezone.now()
     ProductChannelListing.objects.filter(
         product__in=product_list, channel=channel_USD
-    ).update(published_at=timestamp + timedelta(days=1))
+    ).update(published_at=timestamp + datetime.timedelta(days=1))
     ProductChannelListing.objects.filter(
         product=product_list[0], channel=channel_USD
-    ).update(published_at=timestamp - timedelta(days=1))
+    ).update(published_at=timestamp - datetime.timedelta(days=1))
     variables = {
         "channel": channel_USD.slug,
         "where": {"publishedFrom": timestamp},
@@ -514,10 +514,10 @@ def test_product_filter_by_none_as_published_from(
     timestamp = timezone.now()
     ProductChannelListing.objects.filter(
         product__in=product_list, channel=channel_USD
-    ).update(published_at=timestamp + timedelta(days=1))
+    ).update(published_at=timestamp + datetime.timedelta(days=1))
     ProductChannelListing.objects.filter(
         product=product_list[0], channel=channel_USD
-    ).update(published_at=timestamp - timedelta(days=1))
+    ).update(published_at=timestamp - datetime.timedelta(days=1))
     variables = {
         "channel": channel_USD.slug,
         "where": {"publishedFrom": None},
@@ -537,10 +537,10 @@ def test_product_filter_by_available_from(api_client, product_list, channel_USD)
     timestamp = timezone.now()
     ProductChannelListing.objects.filter(
         product__in=product_list, channel=channel_USD
-    ).update(available_for_purchase_at=timestamp - timedelta(days=1))
+    ).update(available_for_purchase_at=timestamp - datetime.timedelta(days=1))
     ProductChannelListing.objects.filter(
         product=product_list[0], channel=channel_USD
-    ).update(available_for_purchase_at=timestamp + timedelta(days=1))
+    ).update(available_for_purchase_at=timestamp + datetime.timedelta(days=1))
     variables = {
         "channel": channel_USD.slug,
         "where": {"availableFrom": timestamp},
@@ -564,10 +564,10 @@ def test_product_filter_by_none_as_available_from(
     timestamp = timezone.now()
     ProductChannelListing.objects.filter(
         product__in=product_list, channel=channel_USD
-    ).update(available_for_purchase_at=timestamp - timedelta(days=1))
+    ).update(available_for_purchase_at=timestamp - datetime.timedelta(days=1))
     ProductChannelListing.objects.filter(
         product=product_list[0], channel=channel_USD
-    ).update(available_for_purchase_at=timestamp + timedelta(days=1))
+    ).update(available_for_purchase_at=timestamp + datetime.timedelta(days=1))
     variables = {
         "channel": channel_USD.slug,
         "where": {"availableFrom": None},
@@ -988,7 +988,7 @@ def test_products_filter_by_date_range_date_attributes(
         attribute=date_attribute,
         name="Third",
         slug="third",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
 
     associate_attribute_values_to_instance(
@@ -1043,7 +1043,7 @@ def test_products_filter_by_date_range_date_variant_attributes(
         attribute=date_attribute,
         name="First",
         slug="first",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=date_attribute, name="Second", slug="second", date_time=date_value
@@ -1113,7 +1113,7 @@ def test_products_filter_by_date_range_date_time_attributes(
         attribute=date_time_attribute,
         name="Third",
         slug="third",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
 
     associate_attribute_values_to_instance(
@@ -1168,7 +1168,7 @@ def test_products_filter_by_date_range_date_time_variant_attributes(
         attribute=date_time_attribute,
         name="First",
         slug="first",
-        date_time=date_value - timedelta(days=1),
+        date_time=date_value - datetime.timedelta(days=1),
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=date_time_attribute,
@@ -1233,19 +1233,19 @@ def test_products_filter_by_date_time_range_date_time_attributes(
         attribute=date_time_attribute,
         name="First",
         slug="first",
-        date_time=date_value - timedelta(hours=2),
+        date_time=date_value - datetime.timedelta(hours=2),
     )
     attr_value_2 = AttributeValue.objects.create(
         attribute=date_time_attribute,
         name="Second",
         slug="second",
-        date_time=date_value + timedelta(hours=3),
+        date_time=date_value + datetime.timedelta(hours=3),
     )
     attr_value_3 = AttributeValue.objects.create(
         attribute=date_time_attribute,
         name="Third",
         slug="third",
-        date_time=date_value - timedelta(hours=6),
+        date_time=date_value - datetime.timedelta(hours=6),
     )
 
     associate_attribute_values_to_instance(
@@ -1268,8 +1268,8 @@ def test_products_filter_by_date_time_range_date_time_attributes(
                 {
                     "slug": date_time_attribute.slug,
                     "dateTime": {
-                        "gte": date_value - timedelta(hours=4),
-                        "lte": date_value + timedelta(hours=4),
+                        "gte": date_value - datetime.timedelta(hours=4),
+                        "lte": date_value + datetime.timedelta(hours=4),
                     },
                 }
             ],
@@ -1362,19 +1362,19 @@ def test_products_filter_by_stock_availability_including_reservations(
                 checkout_line=checkout_line,
                 stock=stocks[0],
                 quantity_reserved=50,
-                reserved_until=timezone.now() + timedelta(minutes=5),
+                reserved_until=timezone.now() + datetime.timedelta(minutes=5),
             ),
             Reservation(
                 checkout_line=checkout_line,
                 stock=stocks[1],
                 quantity_reserved=100,
-                reserved_until=timezone.now() - timedelta(minutes=5),
+                reserved_until=timezone.now() - datetime.timedelta(minutes=5),
             ),
             Reservation(
                 checkout_line=checkout_line,
                 stock=stocks[2],
                 quantity_reserved=50,
-                reserved_until=timezone.now() + timedelta(minutes=5),
+                reserved_until=timezone.now() + datetime.timedelta(minutes=5),
             ),
         ]
     )
@@ -1731,7 +1731,7 @@ def test_products_filter_by_has_preordered_variants_before_end_date(
 ):
     # given
     variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() + timedelta(days=3)
+    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=3)
     variant.save(update_fields=["preorder_end_date"])
 
     product = preorder_variant_global_threshold.product
@@ -1754,7 +1754,7 @@ def test_products_filter_by_has_preordered_variants_after_end_date(
 ):
     # given
     variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() - timedelta(days=3)
+    variant.preorder_end_date = timezone.now() - datetime.timedelta(days=3)
     variant.save(update_fields=["preorder_end_date"])
 
     variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
@@ -1780,7 +1780,7 @@ def test_product_filter_by_updated_at(api_client, product_list, channel_USD):
             "updatedAt": {
                 "range": {
                     "gte": timestamp,
-                    "lte": timezone.now() + timedelta(days=1),
+                    "lte": timezone.now() + datetime.timedelta(days=1),
                 }
             }
         },

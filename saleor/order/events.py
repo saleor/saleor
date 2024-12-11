@@ -323,10 +323,17 @@ def draft_order_created_from_replace_event(
 
 
 def order_created_event(
-    *, order: Order, user: Optional[User], app: Optional[App], from_draft=False
+    *,
+    order: Order,
+    user: Optional[User],
+    app: Optional[App],
+    from_draft=False,
+    automatic=False,
 ) -> OrderEvent:
     if from_draft:
         event_type = OrderEvents.PLACED_FROM_DRAFT
+    elif automatic:
+        event_type = OrderEvents.PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT
     else:
         event_type = OrderEvents.PLACED
         if user:

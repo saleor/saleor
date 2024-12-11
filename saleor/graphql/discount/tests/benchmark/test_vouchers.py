@@ -1,47 +1,6 @@
 import pytest
 
-from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from ....tests.utils import get_graphql_content
-
-
-@pytest.fixture
-def vouchers_list(channel_USD, channel_PLN):
-    vouchers = Voucher.objects.bulk_create(
-        [
-            Voucher(name="Voucher1"),
-            Voucher(name="Voucher2"),
-            Voucher(name="Voucher3"),
-        ]
-    )
-    VoucherCode.objects.bulk_create(
-        [
-            VoucherCode(code="Voucher1", voucher=vouchers[0]),
-            VoucherCode(code="Voucher2", voucher=vouchers[1]),
-            VoucherCode(code="Voucher3", voucher=vouchers[2]),
-        ]
-    )
-    values = [15, 5, 25]
-    voucher_channel_listings = []
-    for voucher, value in zip(vouchers, values):
-        voucher_channel_listings.append(
-            VoucherChannelListing(
-                voucher=voucher,
-                channel=channel_USD,
-                discount_value=value,
-                currency=channel_USD.currency_code,
-            )
-        )
-        voucher_channel_listings.append(
-            VoucherChannelListing(
-                voucher=voucher,
-                channel=channel_PLN,
-                discount_value=value * 2,
-                currency=channel_PLN.currency_code,
-            )
-        )
-    VoucherChannelListing.objects.bulk_create(voucher_channel_listings)
-    return vouchers
-
 
 VOUCHERS_QUERY = """
 query GetVouchers($channel: String){

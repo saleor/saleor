@@ -13,9 +13,7 @@ def sort_active_key(plugin: Plugin, sort_reverse: bool):
         name = plugin.name
     else:
         active = False
-        if any(
-            [configuration.active for configuration in plugin.channel_configurations]
-        ):
+        if any(configuration.active for configuration in plugin.channel_configurations):
             active = True
         name = plugin.name
     return not active if sort_reverse else active, name

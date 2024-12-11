@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 
 from ....tests.utils import get_graphql_content
 
@@ -59,8 +59,8 @@ def test_create_never_expiry_gift_card(
     initial_balance = 100
     currency = "USD"
     tag = "gift-card-tag"
-    start_date = date(day=1, month=1, year=2018)
-    end_date = date(day=1, month=1, year=2019)
+    start_date = datetime.date(day=1, month=1, year=2018)
+    end_date = datetime.date(day=1, month=1, year=2019)
     initial_balance = 100
     variables = {
         "balance": {

@@ -157,7 +157,7 @@ class RedisBuffer(BaseBuffer):
         events = []
         with self.client.pipeline(transaction=False) as pipe:
             pipe.llen(key)
-            for i in range(max(1, batch_size)):
+            for _i in range(max(1, batch_size)):
                 pipe.rpop(key)
             result = pipe.execute()
         size = result.pop(0)

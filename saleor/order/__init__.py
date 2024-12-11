@@ -89,6 +89,7 @@ class OrderEvents:
 
     PLACED = "placed"
     PLACED_FROM_DRAFT = "placed_from_draft"
+    PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT = "placed_automatically_from_paid_checkout"
 
     OVERSOLD_ITEMS = "oversold_items"
     CANCELED = "canceled"
@@ -152,6 +153,10 @@ class OrderEvents:
         (REMOVED_PRODUCTS, "Some products were removed from the order"),
         (PLACED, "The order was placed"),
         (PLACED_FROM_DRAFT, "The draft order was placed"),
+        (
+            PLACED_AUTOMATICALLY_FROM_PAID_CHECKOUT,
+            "The order was placed automatically from fully paid checkout",
+        ),
         (OVERSOLD_ITEMS, "The draft order was placed with oversold items"),
         (CANCELED, "The order was canceled"),
         (EXPIRED, "The order was automatically expired"),

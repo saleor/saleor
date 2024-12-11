@@ -10,24 +10,28 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="menu",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="menu_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="menu",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="menu_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="menuitem",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="menuitem_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="menuitem",
             index=django.contrib.postgres.indexes.GinIndex(

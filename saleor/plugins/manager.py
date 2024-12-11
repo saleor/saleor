@@ -248,7 +248,9 @@ class PluginsManager(PaymentInterface):
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
-        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)  # type:ignore
+        if not callable(plugin_method):
+            raise ValueError(f"Method {method_name} is not callable")
+        returned_value = plugin_method(*args, **kwargs, previous_value=previous_value)
         if returned_value == NotImplemented:
             return previous_value
         return returned_value
@@ -279,7 +281,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
@@ -313,7 +315,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_subtotal(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
@@ -337,7 +339,7 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_shipping(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
@@ -407,7 +409,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_shipping_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         shipping_price: TaxedMoney,
         plugin_ids: Optional[list[str]] = None,
@@ -441,20 +443,18 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
-        default_value = base_calculations.calculate_base_line_total_price(
-            checkout_line_info,
-        )
         # apply entire order discount or discount from order promotion
-        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            default_value,
+        default_value = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info,
+                lines,
+                checkout_line_info,
+            )
         )
         default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
@@ -517,21 +517,19 @@ class PluginsManager(PaymentInterface):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
         quantity = checkout_line_info.line.quantity
-        default_value = base_calculations.calculate_base_line_unit_price(
-            checkout_line_info
-        )
         # apply entire order discount
-        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            default_value * quantity,
+        total_value = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info,
+                lines,
+                checkout_line_info,
+            )
         )
         default_taxed_value = TaxedMoney(
             net=total_value / quantity, gross=total_value / quantity
@@ -597,7 +595,7 @@ class PluginsManager(PaymentInterface):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         price: TaxedMoney,
@@ -681,7 +679,7 @@ class PluginsManager(PaymentInterface):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+        lines: Optional[list["CheckoutLineInfo"]] = None,
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -892,12 +890,12 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_stock_updated(self, stock: "Stock", webhooks=None):
+    def product_variant_stocks_updated(self, stocks: list["Stock"], webhooks=None):
         default_value = None
         self.__run_method_on_plugins(
-            "product_variant_stock_updated",
+            "product_variant_stocks_updated",
             default_value,
-            stock,
+            stocks,
             webhooks=webhooks,
             channel_slug=None,
         )
@@ -1411,10 +1409,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def page_type_deleted(self, page_type: "PageType"):
+    def page_type_deleted(self, page_type: "PageType", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "page_type_deleted", default_value, page_type, channel_slug=None
+            "page_type_deleted",
+            default_value,
+            page_type,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
@@ -1699,10 +1701,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def attribute_created(self, attribute: "Attribute"):
+    def attribute_created(self, attribute: "Attribute", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_created", default_value, attribute, channel_slug=None
+            "attribute_created",
+            default_value,
+            attribute,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
@@ -2458,16 +2464,24 @@ class PluginsManager(PaymentInterface):
         )
         return response
 
-    def translation_created(self, translation: "Translation"):
+    def translations_created(self, translations: list["Translation"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_created", default_value, translation, channel_slug=None
+            "translations_created",
+            default_value,
+            translations,
+            channel_slug=None,
+            webhooks=webhooks,
         )
 
-    def translation_updated(self, translation: "Translation"):
+    def translations_updated(self, translations: list["Translation"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_updated", default_value, translation, channel_slug=None
+            "translations_updated",
+            default_value,
+            translations,
+            channel_slug=None,
+            webhooks=webhooks,
         )
 
     def get_all_plugins(self, active_only=False):
@@ -2504,7 +2518,7 @@ class PluginsManager(PaymentInterface):
         self,
         currency: Optional[str] = None,
         checkout_info: Optional["CheckoutInfo"] = None,
-        checkout_lines: Optional[Iterable["CheckoutLineInfo"]] = None,
+        checkout_lines: Optional[list["CheckoutLineInfo"]] = None,
         channel_slug: Optional[str] = None,
         active_only: bool = True,
     ) -> list["PaymentGateway"]:
@@ -2628,7 +2642,7 @@ class PluginsManager(PaymentInterface):
 
     def save_plugin_configuration(
         self, plugin_id, channel_slug: Optional[str], cleaned_data: dict
-    ):
+    ) -> None | PluginConfiguration:
         if channel_slug:
             plugins = self.get_plugins(channel_slug=channel_slug)
             channel = (
@@ -2657,6 +2671,7 @@ class PluginsManager(PaymentInterface):
                 plugin.active = configuration.active
                 plugin.configuration = configuration.configuration
                 return configuration
+        return None
 
     def get_plugin(
         self, plugin_id: str, channel_slug: Optional[str] = None
@@ -2750,7 +2765,7 @@ class PluginsManager(PaymentInterface):
         self, plugin_id: str, data: dict, request: SaleorContext
     ) -> dict:
         """Handle authentication request."""
-        default_value = {}  # type: ignore
+        default_value: dict = {}
         plugin = self.get_plugin(plugin_id)
         return self.__run_method_on_single_plugin(
             plugin, "external_authentication_url", default_value, data, request
@@ -2787,7 +2802,7 @@ class PluginsManager(PaymentInterface):
         self, plugin_id: str, data: dict, request: SaleorContext
     ) -> tuple[Optional["User"], dict]:
         """Verify the provided authentication data."""
-        default_data: dict[str, str] = dict()
+        default_data: dict[str, str] = {}
         default_user: Optional[User] = None
         default_value = default_user, default_data
         plugin = self.get_plugin(plugin_id)
@@ -2813,12 +2828,16 @@ class PluginsManager(PaymentInterface):
         checkout: "Checkout",
         channel: "Channel",
         available_shipping_methods: list["ShippingMethodData"],
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> list[ExcludedShippingMethod]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],
             checkout,
             available_shipping_methods,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             channel_slug=channel.slug,
         )
 
@@ -2831,7 +2850,7 @@ class PluginsManager(PaymentInterface):
             self.plugins_per_channel[channel_slug] if channel_slug else self.all_plugins
         )
         only_active_plugins = [plugin for plugin in plugins if plugin.active]
-        return any([plugin.is_event_active(event) for plugin in only_active_plugins])
+        return any(plugin.is_event_active(event) for plugin in only_active_plugins)
 
 
 def get_plugins_manager(
@@ -2841,6 +2860,5 @@ def get_plugins_manager(
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
         if allow_replica:
             return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
-        else:
-            with allow_writer():
-                return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
+        with allow_writer():
+            return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

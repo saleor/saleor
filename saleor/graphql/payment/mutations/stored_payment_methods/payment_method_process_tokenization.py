@@ -5,7 +5,6 @@ from .....payment.interface import PaymentMethodProcessTokenizationRequestData
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
-from ....core.descriptions import ADDED_IN_316, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import PaymentMethodProcessTokenizationErrorCode
 from ....core.mutations import BaseMutation
@@ -44,7 +43,7 @@ class PaymentMethodProcessTokenization(BaseMutation):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
-        description = "Tokenize payment method." + ADDED_IN_316 + PREVIEW_FEATURE
+        description = "Tokenize payment method."
         webhook_events_info = [
             WebhookEventInfo(
                 type=(WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION),

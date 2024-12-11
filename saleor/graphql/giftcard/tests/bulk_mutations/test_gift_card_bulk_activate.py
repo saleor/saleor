@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 from unittest import mock
 
 import graphene
@@ -150,8 +150,12 @@ def test_gift_card_bulk_activate_expired_cards(
     # given
     gift_card.is_active = False
     gift_card_expiry_date.is_active = True
-    gift_card_created_by_staff.expiry_date = date.today() - timedelta(days=2)
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card_created_by_staff.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=2)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_cards = [gift_card, gift_card_expiry_date, gift_card_created_by_staff]
     GiftCard.objects.bulk_update(gift_cards, ["is_active", "expiry_date"])
 

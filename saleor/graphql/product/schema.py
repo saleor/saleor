@@ -1,4 +1,5 @@
 import graphene
+from promise import Promise
 
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
@@ -10,11 +11,8 @@ from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
-    ADDED_IN_310,
-    ADDED_IN_314,
     ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import LanguageCodeEnum, ReportingPeriod
@@ -175,9 +173,7 @@ class ProductQueries(graphene.ObjectType):
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
-        where=CategoryWhereInput(
-            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
-        ),
+        where=CategoryWhereInput(description="Where filtering options."),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
             graphene.Int,
@@ -224,9 +220,7 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterConnectionField(
         CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
-        where=CollectionWhereInput(
-            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
-        ),
+        where=CollectionWhereInput(description="Where filtering options."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
             "List of the shop's collections. Requires one of the following permissions "
@@ -251,7 +245,7 @@ class ProductQueries(graphene.ObjectType):
             + ADDED_IN_321,
         ),
         external_reference=graphene.Argument(
-            graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
+            graphene.String, description="External ID of the product."
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -266,11 +260,9 @@ class ProductQueries(graphene.ObjectType):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
-        where=ProductWhereInput(
-            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
-        ),
+        where=ProductWhereInput(description="Where filtering options."),
         sort_by=ProductOrder(description="Sort products."),
-        search=graphene.String(description="Search products." + ADDED_IN_314),
+        search=graphene.String(description="Search products."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -308,7 +300,7 @@ class ProductQueries(graphene.ObjectType):
             graphene.String, description="SKU of the product variant."
         ),
         external_reference=graphene.Argument(
-            graphene.String, description=f"External ID of the product. {ADDED_IN_310}"
+            graphene.String, description="External ID of the product."
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -331,9 +323,7 @@ class ProductQueries(graphene.ObjectType):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
-        where=ProductVariantWhereInput(
-            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
-        ),
+        where=ProductVariantWhereInput(description="Where filtering options."),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of product variants. Requires one of the following permissions to "
@@ -376,7 +366,7 @@ class ProductQueries(graphene.ObjectType):
         slug=None,
         slug_language_code=None,
         **kwargs,
-    ):
+    ) -> Promise[Category] | None | Category:
         validate_one_of_args_is_in_query("id", id, "slug", slug)
         if id:
             _, id = from_global_id_or_error(id, Category)
@@ -390,6 +380,7 @@ class ProductQueries(graphene.ObjectType):
                     info, slug, slug_language_code
                 )
             return CategoryBySlugLoader(info.context).load(slug)
+        return None
 
     @staticmethod
     @traced_resolver
@@ -513,8 +504,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_product)
             )
-        else:
-            return _resolve_product(None)
+        return _resolve_product(None)
 
     @staticmethod
     @traced_resolver
@@ -550,8 +540,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def resolve_product_type(_root, info: ResolveInfo, *, id):
@@ -612,8 +601,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_product_variant)
             )
-        else:
-            return _resolve_product_variant(None)
+        return _resolve_product_variant(None)
 
     @staticmethod
     def resolve_product_variants(
@@ -651,8 +639,7 @@ class ProductQueries(graphene.ObjectType):
                 .load(str(channel))
                 .then(_resolve_product_variants)
             )
-        else:
-            return _resolve_product_variants(None)
+        return _resolve_product_variants(None)
 
     @staticmethod
     @traced_resolver

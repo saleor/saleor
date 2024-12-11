@@ -26,7 +26,6 @@ def test_associate_guest_checkout_with_account_if_exists(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.channel.order_mark_as_paid_strategy == paid_strategy
 
     # call the complete_checkout function with the checkout object
     order, _, _ = complete_checkout(
@@ -65,7 +64,6 @@ def test_associate_guest_checkout_with_account_if_exists_with_guest_user(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.channel.order_mark_as_paid_strategy == paid_strategy
 
     # call the complete_checkout function with the checkout object
     order, _, _ = complete_checkout(
@@ -104,7 +102,6 @@ def test_associate_guest_checkout_with_account_if_exists_with_inactive_user(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_info.channel.order_mark_as_paid_strategy == paid_strategy
 
     # call the complete_checkout function with the checkout object
     order, _, _ = complete_checkout(

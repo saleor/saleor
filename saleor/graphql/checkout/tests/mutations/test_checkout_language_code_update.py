@@ -1,9 +1,11 @@
-from unittest.mock import call, patch
+from unittest.mock import patch
 
+import pytest
 from django.test import override_settings
 
 from .....checkout.actions import call_checkout_event
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -38,6 +40,48 @@ def test_checkout_update_language_code(
         MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
     )
 
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLanguageCodeUpdate"]
+    assert not data["errors"]
+
+    assert data["checkout"]["languageCode"] == language_code
+    checkout.refresh_from_db()
+    assert checkout.language_code == language_code.lower()
+    assert checkout.last_change != previous_last_change
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_update_language_code_when_variant_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_gift_card,
+):
+    # given
+    language_code = "PL"
+    checkout = checkout_with_gift_card
+    previous_last_change = checkout.last_change
+
+    line = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
+
+    variables = {"id": to_global_id_or_none(checkout), "languageCode": language_code}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
+    )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutLanguageCodeUpdate"]
     assert not data["errors"]
@@ -110,20 +154,12 @@ def test_checkout_update_language_code_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutLanguageCodeUpdate"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    assert wrapped_call_checkout_event.called
+
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -131,11 +167,31 @@ def test_checkout_update_language_code_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_event.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id

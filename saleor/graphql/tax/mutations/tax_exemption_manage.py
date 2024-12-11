@@ -10,7 +10,6 @@ from ....order.models import Order
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
@@ -45,7 +44,7 @@ class TaxExemptionManage(BaseMutation):
             "Exempt checkout or order from charging the taxes. When tax exemption is "
             "enabled, taxes won't be charged for the checkout or order. Taxes may "
             "still be calculated in cases when product prices are entered with the "
-            "tax included and the net price needs to be known." + ADDED_IN_38
+            "tax included and the net price needs to be known."
         )
         doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxExemptionManageError

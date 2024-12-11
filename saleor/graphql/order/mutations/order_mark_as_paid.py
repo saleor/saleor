@@ -97,7 +97,7 @@ class OrderMarkAsPaid(BaseMutation):
                         message, code=OrderErrorCode.TRANSACTION_ERROR.value
                     )
                 }
-            )
+            ) from e
         mark_order_as_paid_with_transaction(
             order=order,
             request_user=request_user,

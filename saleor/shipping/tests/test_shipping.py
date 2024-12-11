@@ -56,7 +56,7 @@ def test_applicable_shipping_methods_price(
         country_code="PL",
         channel_id=channel_USD.id,
     )
-    result_ids = set([method.id for method in result])
+    result_ids = {method.id for method in result}
     assert len(result_ids) == len(result)
     assert (method in result) == shipping_included
 

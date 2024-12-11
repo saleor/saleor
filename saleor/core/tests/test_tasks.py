@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 from django.core.files.storage import default_storage
 from django.utils import timezone
@@ -39,8 +39,8 @@ def test_delete_from_storage_task_file_that_not_exists(media_root):
 def test_delete_event_payloads_task(webhook, settings):
     delete_period = settings.EVENT_PAYLOAD_DELETE_PERIOD
     start_time = timezone.now()
-    before_delete_period = start_time - delete_period - timedelta(seconds=1)
-    after_delete_period = start_time - delete_period + timedelta(seconds=1)
+    before_delete_period = start_time - delete_period - datetime.timedelta(seconds=1)
+    after_delete_period = start_time - delete_period + datetime.timedelta(seconds=1)
     payload_files = {}
     for creation_time in [before_delete_period, after_delete_period]:
         with freeze_time(creation_time):
@@ -51,7 +51,7 @@ def test_delete_event_payloads_task(webhook, settings):
                 payload=payload,
                 webhook=webhook,
             )
-        with freeze_time(creation_time + timedelta(seconds=2)):
+        with freeze_time(creation_time + datetime.timedelta(seconds=2)):
             EventDeliveryAttempt.objects.create(delivery=delivery)
 
     with freeze_time(start_time):

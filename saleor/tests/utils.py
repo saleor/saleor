@@ -3,7 +3,7 @@ import math
 from decimal import Decimal
 
 from django.conf import settings
-from django.db import connections, transaction
+from django.db import connections
 
 from ..core.db.connection import allow_writer
 
@@ -52,21 +52,7 @@ def prepare_test_db_connections():
     https://docs.djangoproject.com/en/4.2/topics/testing/advanced/#testing-primary-replica-configurations
     """
     replica = settings.DATABASE_CONNECTION_REPLICA_NAME
-    connections[replica] = FakeDbReplicaConnection(connections[replica])  # type: ignore
-
-
-def flush_post_commit_hooks():
-    """Run all pending `transaction.on_commit()` callbacks.
-
-    Forces all `on_commit()` hooks to run even if the transaction was not committed yet.
-    """
-    connection = transaction.get_connection(settings.DATABASE_CONNECTION_DEFAULT_NAME)
-    was_atomic = connection.in_atomic_block
-    was_commit_on_exit = connection.commit_on_exit
-    connection.in_atomic_block = False
-    connection.run_and_clear_commit_hooks()
-    connection.in_atomic_block = was_atomic
-    connection.commit_on_exit = was_commit_on_exit
+    connections[replica] = FakeDbReplicaConnection(connections[replica])  # type: ignore[assignment]
 
 
 def dummy_editorjs(text, json_format=False):

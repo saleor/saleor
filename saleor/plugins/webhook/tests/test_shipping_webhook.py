@@ -7,6 +7,7 @@ import pytest
 
 from ....core.models import EventDelivery
 from ....graphql.tests.utils import get_graphql_content
+from ....graphql.webhook.utils import get_subscription_query_hash
 from ....order import OrderStatus
 from ....webhook.const import CACHE_EXCLUDED_SHIPPING_TIME
 from ....webhook.event_types import WebhookEventSyncType
@@ -131,6 +132,7 @@ def test_excluded_shipping_methods_for_order(
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
     expected_cache_key = generate_cache_key_for_webhook(
         payload_dict,
@@ -222,6 +224,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
@@ -232,7 +235,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_order(
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
+    assert mocked_webhook.call_count == 2
     expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
         payload_dict,
         shipping_webhook.target_url,
@@ -351,6 +356,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
@@ -361,7 +367,9 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
+    assert mocked_webhook.call_count == 2
 
     expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
         payload_dict,
@@ -681,8 +689,8 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     trigger_webhook_sync(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, data, webhook, False
     )
-    event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(event_delivery)
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
@@ -691,7 +699,7 @@ def test_trigger_webhook_sync(mock_request, shipping_app):
     "saleor.plugins.webhook.plugin."
     "generate_excluded_shipping_methods_for_checkout_payload"
 )
-def test_excluded_shipping_methods_for_checkout_webhook(
+def test_excluded_shipping_methods_for_checkout_webhook_without_pregenerated_payload(
     mocked_payload,
     mocked_webhook,
     mocked_cache_set,
@@ -750,6 +758,7 @@ def test_excluded_shipping_methods_for_checkout_webhook(
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
     expected_cache_key = generate_cache_key_for_webhook(
         payload_dict,
@@ -763,6 +772,95 @@ def test_excluded_shipping_methods_for_checkout_webhook(
         webhook_response,
         timeout=CACHE_EXCLUDED_SHIPPING_TIME,
     )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.cache.set")
+@mock.patch("saleor.webhook.transport.synchronous.transport.trigger_webhook_sync")
+@mock.patch(
+    "saleor.plugins.webhook.plugin."
+    "generate_excluded_shipping_methods_for_checkout_payload"
+)
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+)
+def test_excluded_shipping_methods_for_checkout_webhook_with_subscription_base_pregenerated_payload(
+    mocked_subscription_payload,
+    mocked_static_payload,
+    mocked_webhook,
+    mocked_cache_set,
+    webhook_plugin,
+    checkout_with_items,
+    available_shipping_methods_factory,
+    exclude_shipping_app_with_subscription,
+    settings,
+):
+    # given
+    shipping_app = exclude_shipping_app_with_subscription
+    shipping_webhook = shipping_app.webhooks.get()
+    webhook_reason = "Checkout contains dangerous products."
+    other_reason = "Shipping is not applicable for this checkout."
+
+    webhook_response = {
+        "excluded_methods": [
+            {
+                "id": graphene.Node.to_global_id("ShippingMethod", "1"),
+                "reason": webhook_reason,
+            }
+        ]
+    }
+
+    mocked_webhook.return_value = webhook_response
+
+    payload_dict = {"checkout": {"id": 1, "some_field": "12"}}
+    query_hash = get_subscription_query_hash(shipping_webhook.subscription_query)
+    pregenerated_payloads = {shipping_app.id: {query_hash: payload_dict}}
+    payload = json.dumps(payload_dict)
+    mocked_static_payload.return_value = payload
+
+    plugin = webhook_plugin()
+    available_shipping_methods = available_shipping_methods_factory(num_methods=2)
+    previous_value = [
+        ExcludedShippingMethod(id="1", reason=other_reason),
+        ExcludedShippingMethod(id="2", reason=other_reason),
+    ]
+    # when
+    excluded_methods = plugin.excluded_shipping_methods_for_checkout(
+        checkout_with_items,
+        available_shipping_methods=available_shipping_methods,
+        previous_value=previous_value,
+        pregenerated_subscription_payloads=pregenerated_payloads,
+    )
+    # then
+    assert len(excluded_methods) == 2
+    em = excluded_methods[0]
+    assert em.id == "1"
+    assert webhook_reason in em.reason
+    assert other_reason in em.reason
+
+    mocked_webhook.assert_called_once_with(
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        payload,
+        shipping_webhook,
+        False,
+        subscribable_object=checkout_with_items,
+        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+        request=None,
+        requestor=None,
+        pregenerated_subscription_payload=payload_dict,
+    )
+    expected_cache_key = generate_cache_key_for_webhook(
+        payload_dict,
+        shipping_webhook.target_url,
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+        shipping_app.id,
+    )
+
+    mocked_cache_set.assert_called_once_with(
+        expected_cache_key,
+        webhook_response,
+        timeout=CACHE_EXCLUDED_SHIPPING_TIME,
+    )
+    mocked_subscription_payload.assert_not_called()
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -890,6 +988,7 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
@@ -900,7 +999,9 @@ def test_multiple_app_with_excluded_shipping_methods_for_checkout(
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
+    assert mocked_webhook.call_count == 2
 
     expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
         payload_dict, shipping_webhook.target_url, event_type, shipping_app.id
@@ -1019,6 +1120,7 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
     mocked_webhook.assert_any_call(
         event_type,
@@ -1029,7 +1131,9 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_ch
         timeout=settings.WEBHOOK_SYNC_TIMEOUT,
         request=None,
         requestor=None,
+        pregenerated_subscription_payload=None,
     )
+    assert mocked_webhook.call_count == 2
 
     expected_cache_for_first_webhook_key = generate_cache_key_for_webhook(
         payload_dict, first_webhook.target_url, event_type, shipping_app.id
@@ -1172,3 +1276,62 @@ def test_parse_list_shipping_methods_with_metadata(app):
     # then
     assert response[0].metadata == response_data_with_meta[0]["metadata"]
     assert response[0].description == response_data_with_meta[0]["description"]
+
+
+def test_parse_list_shipping_methods_with_metadata_in_incorrect_format(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+            "metadata": {"field": None},
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == {}
+
+
+def test_parse_list_shipping_methods_metadata_absent_in_response(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == {}
+
+
+def test_parse_list_shipping_methods_metadata_is_none(app):
+    # given
+    response_data_with_meta = [
+        {
+            "id": 123,
+            "amount": 10,
+            "currency": "USD",
+            "name": "shipping",
+            "description": "Description",
+            "maximum_delivery_days": 10,
+            "minimum_delivery_days": 2,
+            "metadata": None,
+        }
+    ]
+    # when
+    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    # then
+    assert response[0].metadata == {}

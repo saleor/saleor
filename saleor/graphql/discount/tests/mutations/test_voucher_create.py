@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import timedelta
 from unittest.mock import call, patch
 
 import graphene
@@ -66,8 +66,8 @@ def test_create_voucher(
     category,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
 
     name = "test voucher"
     variables = {
@@ -127,8 +127,8 @@ def test_create_voucher_no_codes(
     category,
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
 
     name = "test voucher"
     variables = {
@@ -171,8 +171,8 @@ def test_create_voucher_return_error_when_code_and_codes_args_combined(
     staff_api_client, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
 
     variables = {
         "input": {
@@ -208,8 +208,8 @@ def test_create_voucher_return_error_when_code_or_codes_arg_not_in_input(
     staff_api_client, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
 
     variables = {
         "input": {
@@ -254,8 +254,8 @@ def test_create_voucher_trigger_webhook(
     mocked_get_webhooks_for_voucher_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
 
     code_1 = "testcode123"
     code_2 = "testcode456"
@@ -330,8 +330,8 @@ def test_create_voucher_trigger_webhook(
 
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     variables = {
         "input": {
             "name": "test voucher",
@@ -361,8 +361,8 @@ def test_create_voucher_with_spaces_in_code(
     staff_api_client, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     variables = {
         "input": {
             "name": "test voucher",
@@ -392,8 +392,8 @@ def test_create_voucher_with_duplicated_codes(
     staff_api_client, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     variables = {
         "input": {
             "name": "test voucher",
@@ -426,8 +426,8 @@ def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     variables = {
         "input": {
             "name": "test voucher",
@@ -462,8 +462,8 @@ def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
+    start_date = timezone.now() - datetime.timedelta(days=365)
+    end_date = timezone.now() + datetime.timedelta(days=365)
     code = voucher_shipping_type.codes.first().code
     variables = {
         "input": {
@@ -495,8 +495,8 @@ def test_create_voucher_with_enddate_before_startdate(
     staff_api_client, permission_manage_discounts
 ):
     # given
-    start_date = timezone.now() + timedelta(days=365)
-    end_date = timezone.now() - timedelta(days=365)
+    start_date = timezone.now() + datetime.timedelta(days=365)
+    end_date = timezone.now() - datetime.timedelta(days=365)
 
     variables = {
         "input": {

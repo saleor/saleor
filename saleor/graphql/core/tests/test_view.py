@@ -1,8 +1,10 @@
 import json
 from unittest import mock
+from unittest.mock import patch
 
 import graphene
 import pytest
+from django.shortcuts import render
 from django.test import override_settings
 from graphql.execution.base import ExecutionResult
 
@@ -350,3 +352,37 @@ def test_graphql_view_clears_context(rf, staff_user, product, channel_USD):
     assert json_data["data"]["product"]["category"]["name"] == product.category.name
     assert response.status_code == 200
     assert request.dataloaders == {}
+
+
+@pytest.mark.parametrize(
+    ("public_url", "expected_url_base"),
+    [
+        (None, "http://testserver"),
+        ("http://some_custom_domain.com", "http://some_custom_domain.com"),
+    ],
+)
+@patch("saleor.graphql.views.render", wraps=render)
+def test_playground_is_rendered_with_proper_api_url_if_public_url_is_set(
+    mocked_render, rf, settings, public_url, expected_url_base
+):
+    # given
+    request = rf.get(
+        path="/",
+    )
+    request.app = None
+    request.user = None
+    settings.PUBLIC_URL = public_url
+
+    # when
+    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view(request)
+
+    # then
+    mocked_render.assert_called_once_with(
+        request,
+        "graphql/playground.html",
+        {
+            "api_url": f"{expected_url_base}/graphql/",
+            "plugins_url": f"{expected_url_base}/plugins/",
+        },
+    )

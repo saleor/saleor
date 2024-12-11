@@ -1,8 +1,7 @@
+import datetime
 import json
 import logging
-from collections.abc import Iterable
 from dataclasses import dataclass
-from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from urllib.parse import urljoin
@@ -199,7 +198,7 @@ def _validate_order(order: "Order") -> bool:
 
 
 def _validate_checkout(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
+    checkout_info: "CheckoutInfo", lines: list["CheckoutLineInfo"]
 ) -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
     if not lines:
@@ -284,7 +283,7 @@ def append_shipping_to_data(
 
 def generate_request_data_from_checkout_lines(
     checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
     config: AvataxConfiguration,
 ) -> list[dict[str, Union[str, int, bool, None]]]:
     data: list[dict[str, Union[str, int, bool, None]]] = []
@@ -487,7 +486,7 @@ def generate_request_data(
         "type": transaction_type,
         "lines": lines,
         "code": transaction_token,
-        "date": str(date.today()),
+        "date": str(datetime.datetime.now(tz=datetime.UTC).date()),
         # https://developer.avalara.com/avatax/dev-guide/transactions/simple-transaction/
         "customerCode": 0,
         # https://developer.avalara.com/avatax/dev-guide/discounts-and-overrides/discounts/
@@ -502,7 +501,7 @@ def generate_request_data(
 
 def generate_request_data_from_checkout(
     checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
     config: AvataxConfiguration,
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
@@ -605,7 +604,7 @@ def get_cached_response_or_fetch(
 
 def get_checkout_tax_data(
     checkout_info: "CheckoutInfo",
-    lines_info: Iterable["CheckoutLineInfo"],
+    lines_info: list["CheckoutLineInfo"],
     config: AvataxConfiguration,
 ) -> dict[str, Any]:
     data = generate_request_data_from_checkout(checkout_info, lines_info, config)

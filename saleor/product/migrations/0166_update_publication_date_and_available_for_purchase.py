@@ -43,6 +43,7 @@ class Migration(migrations.Migration):
             old_name="publication_date",
             new_name="published_at",
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="productchannellisting",
             index=models.Index(

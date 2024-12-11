@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+import datetime
 
 import graphene
-import pytz
 
 from .....page.error_codes import PageErrorCode
 from .....page.models import Page
@@ -54,7 +53,9 @@ def test_update_page_publication_date(
         "page_type": page_type,
     }
     page = Page.objects.create(**data)
-    publication_date = datetime.now(pytz.utc) + timedelta(days=5)
+    publication_date = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        days=5
+    )
     page_id = graphene.Node.to_global_id("Page", page.id)
     variables = {
         "id": page_id,
@@ -85,8 +86,10 @@ def test_page_update_mutation_publication_date_and_published_at_provided(
         "page_type": page_type,
     }
     page = Page.objects.create(**data)
-    published_at = datetime.now(pytz.utc) + timedelta(days=5)
-    publication_date = datetime.now(pytz.utc) + timedelta(days=5)
+    published_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=5)
+    publication_date = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        days=5
+    )
     page_id = graphene.Node.to_global_id("Page", page.id)
 
     # test creating root page

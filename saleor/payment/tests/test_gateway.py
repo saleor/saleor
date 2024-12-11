@@ -1371,7 +1371,7 @@ def test_payment_refund_or_void_no_payment(refund_mock, void_mock):
 def test_payment_refund_or_void_refund_called(refund_mock, payment):
     """Test that refund is called when there is no matching transaction."""
     # given
-    payment.transactions.count() == 0
+    assert payment.transactions.count() == 0
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.save(update_fields=["charge_status"])
 
@@ -1484,7 +1484,7 @@ def test_payment_refund_or_void_void_called(void_mock, payment):
     # given
     payment.can_void = Mock(return_value=True)
     assert payment.can_void() is True
-    payment.transactions.count() == 0
+    assert payment.transactions.count() == 0
 
     # when
     gateway.payment_refund_or_void(

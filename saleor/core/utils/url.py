@@ -21,8 +21,8 @@ def validate_storefront_url(url):
             raise ValidationError(
                 "Invalid URL. Please check if URL is in RFC 1808 format."
             )
-    except ValueError as error:
-        raise ValidationError(str(error))
+    except ValueError as e:
+        raise ValidationError(str(e)) from e
     if not validate_host(domain, settings.ALLOWED_CLIENT_HOSTS):
         error_message = (
             f"{domain or url} is not allowed. Please check "
@@ -49,3 +49,15 @@ def get_default_storage_root_url():
     # `path` is stripped to get the actual root URL
     tmp_path = "path"
     return build_absolute_uri(default_storage.url(tmp_path)).rstrip(tmp_path)
+
+
+def sanitize_url_for_logging(url: str) -> str:
+    """Remove sensitive data from a URL to make it safe for logging."""
+    url_parts = urlparse(url)
+    if url_parts.username or url_parts.password:
+        url_parts = url_parts._replace(
+            netloc=f"***:***@{url_parts.hostname}:{url_parts.port}"
+            if url_parts.port
+            else f"***:***@{url_parts.hostname}"
+        )
+    return url_parts.geturl()

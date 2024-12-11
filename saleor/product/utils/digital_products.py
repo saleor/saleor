@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 from django.contrib.sites.models import Site
 from django.utils.timezone import now
@@ -33,7 +33,7 @@ def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
         max_downloads = content_url.content.max_downloads
 
     if url_valid_days is not None:
-        valid_days = timedelta(days=url_valid_days)
+        valid_days = datetime.timedelta(days=url_valid_days)
         valid_until = content_url.created_at + valid_days
         if now() > valid_until:
             return False

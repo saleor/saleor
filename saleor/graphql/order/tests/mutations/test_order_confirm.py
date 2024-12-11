@@ -625,7 +625,6 @@ def test_order_confirm_triggers_webhooks(
     permission_group_manage_orders,
     payment_txn_preauth,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -655,11 +654,10 @@ def test_order_confirm_triggers_webhooks(
     assert not OrderEvent.objects.exists()
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(
-            ORDER_CONFIRM_MUTATION,
-            {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
-        )
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
 
     # then
     assert not get_graphql_content(response)["data"]["orderConfirm"]["errors"]

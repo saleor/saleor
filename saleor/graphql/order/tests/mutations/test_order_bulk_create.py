@@ -1,5 +1,5 @@
 import copy
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -9,7 +9,9 @@ from django.utils import timezone
 
 from .....account.models import Address
 from .....core import JobStatus
+from .....core.prices import quantize_price
 from .....discount.models import OrderDiscount
+from .....discount.utils.manual_discount import DiscountValueType
 from .....invoice.models import Invoice
 from .....order import (
     OrderAuthorizeStatus,
@@ -70,6 +72,7 @@ ORDER_BULK_CREATE = """
                             id
                         }
                         productName
+                        productSku
                         variantName
                         translatedVariantName
                         translatedProductName
@@ -88,6 +91,9 @@ ORDER_BULK_CREATE = """
                         unitDiscount {
                             amount
                         }
+                        unitDiscountValue
+                        unitDiscountReason
+                        unitDiscountType
                         totalPrice {
                             gross {
                                 amount
@@ -154,6 +160,14 @@ ORDER_BULK_CREATE = """
                         value
                     }
                     shippingPrice {
+                        gross {
+                            amount
+                        }
+                        net {
+                            amount
+                        }
+                    }
+                    subtotal{
                         gross {
                             amount
                         }
@@ -300,8 +314,8 @@ def order_bulk_input(
         ),
         "shippingTaxClassName": "Denormalized name",
         "shippingPrice": {
-            "gross": 120,
-            "net": 100,
+            "gross": 60,
+            "net": 50,
         },
         "shippingTaxRate": 0.2,
         "shippingTaxClassMetadata": [
@@ -481,6 +495,126 @@ def order_bulk_input_with_multiple_order_lines_and_fulfillments(
     return order
 
 
+@pytest.mark.parametrize(
+    ("discount_type_enum", "discount_type", "discount_value"),
+    [
+        (DiscountValueTypeEnum.FIXED, DiscountValueType.FIXED, Decimal("10")),
+        (DiscountValueTypeEnum.PERCENTAGE, DiscountValueType.PERCENTAGE, Decimal("50")),
+    ],
+)
+def test_order_bulk_create_unit_discount(
+    discount_type_enum,
+    discount_type,
+    discount_value,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input,
+    channel_PLN,
+    variant,
+):
+    # given
+    discount_reason = "test"
+
+    order = order_bulk_input
+    order["externalReference"] = "ext-ref-1"
+    order["lines"][0]["unitDiscountValue"] = discount_value
+    order["lines"][0]["unitDiscountType"] = discount_type_enum.name
+    order["lines"][0]["unitDiscountReason"] = discount_reason
+
+    order["lines"][0]["totalPrice"]["net"] = 50
+    order["lines"][0]["totalPrice"]["gross"] = 60
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    order = data[0]["order"]
+    assert order["externalReference"] == "ext-ref-1"
+    assert order["created"]
+    assert order["status"] == OrderStatus.DRAFT.upper()
+    db_order = Order.objects.get()
+    assert db_order.external_reference == "ext-ref-1"
+    assert db_order.created_at
+    assert db_order.status == OrderStatus.DRAFT
+
+    order_line = order["lines"][0]
+    assert order_line["variant"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant.id
+    )
+    assert order_line["unitDiscountType"] == discount_type_enum.name
+    assert order_line["unitDiscountValue"] == discount_value
+    assert order_line["unitDiscountReason"] == discount_reason
+    db_order_line = OrderLine.objects.get()
+    assert db_order_line.variant == variant
+    assert db_order_line.unit_discount_type == discount_type
+    assert db_order_line.unit_discount_value == discount_value
+    assert db_order_line.unit_discount_reason == discount_reason
+    assert db_order.lines.first() == db_order_line
+
+
+def test_order_bulk_create_unit_discount_mismatched_discount(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input,
+    channel_PLN,
+    variant,
+):
+    # given
+    discount_reason = "test"
+
+    order = order_bulk_input
+    order["externalReference"] = "ext-ref-1"
+    order["lines"][0]["unitDiscountValue"] = 50
+    order["lines"][0]["unitDiscountType"] = DiscountValueTypeEnum.FIXED.name
+    order["lines"][0]["unitDiscountReason"] = discount_reason
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert len(errors) == 1
+
+    error0 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error0["message"]
+        == "Provided discount value doesn't match with provided line amounts."
+    )
+    assert error0["path"] == "lines.0.unit_discount_value"
+    assert error0["code"] == OrderBulkCreateErrorCode.PRICE_ERROR.name
+
+
 def test_order_bulk_create(
     staff_api_client,
     permission_manage_orders,
@@ -508,6 +642,29 @@ def test_order_bulk_create(
     invoice_count = Invoice.objects.count()
     discount_count = OrderDiscount.objects.count()
     voucher_code = "mirumee"
+
+    expected_shipping_net_price = Decimal(50)
+    expected_shipping_gross_price = Decimal(60)
+
+    expected_order_line_quantity = Decimal(5)
+    expected_order_line_unit_net = Decimal(20)
+    expected_order_line_unit_gross = Decimal(24)
+    expected_order_line_total_net = Decimal(100)
+    expected_order_line_total_gross = Decimal(120)
+
+    expected_order_subtotal_net = quantize_price(
+        expected_order_line_unit_net * expected_order_line_quantity,
+        channel_PLN.currency_code,
+    )
+    expected_order_subtotal_gross = quantize_price(
+        expected_order_line_unit_gross * expected_order_line_quantity,
+        channel_PLN.currency_code,
+    )
+
+    expected_order_total_gross = (
+        expected_order_subtotal_gross + expected_shipping_gross_price
+    )
+    expected_order_total_net = expected_order_subtotal_net + expected_shipping_net_price
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -542,12 +699,14 @@ def test_order_bulk_create(
     assert order["shippingTaxClassMetadata"][0]["value"] == "md value"
     assert order["shippingTaxClassPrivateMetadata"][0]["key"] == "pmd key"
     assert order["shippingTaxClassPrivateMetadata"][0]["value"] == "pmd value"
-    assert order["shippingPrice"]["gross"]["amount"] == 120
-    assert order["shippingPrice"]["net"]["amount"] == 100
-    assert order["total"]["gross"]["amount"] == 120
-    assert order["total"]["net"]["amount"] == 100
-    assert order["undiscountedTotal"]["gross"]["amount"] == 120
-    assert order["undiscountedTotal"]["net"]["amount"] == 100
+    assert order["shippingPrice"]["gross"]["amount"] == expected_shipping_gross_price
+    assert order["shippingPrice"]["net"]["amount"] == expected_shipping_net_price
+    assert order["subtotal"]["gross"]["amount"] == expected_order_subtotal_gross
+    assert order["subtotal"]["net"]["amount"] == expected_order_subtotal_net
+    assert order["total"]["gross"]["amount"] == expected_order_total_gross
+    assert order["total"]["net"]["amount"] == expected_order_total_net
+    assert order["undiscountedTotal"]["gross"]["amount"] == expected_order_total_gross
+    assert order["undiscountedTotal"]["net"]["amount"] == expected_order_total_net
     assert order["redirectUrl"] == "https://www.example.com"
     assert order["origin"] == OrderOrigin.BULK_CREATE.upper()
     assert order["weight"]["value"] == 10.15
@@ -575,14 +734,18 @@ def test_order_bulk_create(
     assert db_order.shipping_tax_rate == Decimal("0.2")
     assert db_order.shipping_tax_class_metadata["md key"] == "md value"
     assert db_order.shipping_tax_class_private_metadata["pmd key"] == "pmd value"
-    assert db_order.shipping_price_gross_amount == 120
-    assert db_order.shipping_price_net_amount == 100
-    assert db_order.base_shipping_price_amount == 100
-    assert db_order.undiscounted_base_shipping_price_amount == 100
-    assert db_order.total_gross_amount == 120
-    assert db_order.total_net_amount == 100
-    assert db_order.undiscounted_total_gross_amount == 120
-    assert db_order.undiscounted_total_net_amount == 100
+    assert db_order.shipping_price_gross_amount == expected_shipping_gross_price
+    assert db_order.shipping_price_net_amount == expected_shipping_net_price
+    assert db_order.base_shipping_price_amount == expected_shipping_net_price
+    assert (
+        db_order.undiscounted_base_shipping_price_amount == expected_shipping_net_price
+    )
+    assert db_order.subtotal_gross_amount == expected_order_subtotal_gross
+    assert db_order.subtotal_net_amount == expected_order_subtotal_net
+    assert db_order.total_gross_amount == expected_order_total_gross
+    assert db_order.total_net_amount == expected_order_total_net
+    assert db_order.undiscounted_total_gross_amount == expected_order_total_gross
+    assert db_order.undiscounted_total_net_amount == expected_order_total_net
     assert db_order.redirect_url == "https://www.example.com"
     assert db_order.origin == OrderOrigin.BULK_CREATE
     assert db_order.weight.g == 10.15 * 1000
@@ -603,19 +766,28 @@ def test_order_bulk_create(
         "ProductVariant", variant.id
     )
     assert order_line["productName"] == "Product Name"
+    assert order_line["productSku"] is None
     assert order_line["variantName"] == "Variant Name"
     assert order_line["translatedProductName"] == "Nazwa Produktu"
     assert order_line["translatedVariantName"] == "Nazwa Wariantu"
     assert order_line["isShippingRequired"]
-    assert order_line["quantity"] == 5
+    assert order_line["quantity"] == expected_order_line_quantity
     assert order_line["quantityFulfilled"] == 5
-    assert order_line["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
-    assert order_line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
-    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == Decimal(120 / 5)
-    assert order_line["undiscountedUnitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert order_line["unitPrice"]["gross"]["amount"] == expected_order_line_unit_gross
+    assert order_line["unitPrice"]["net"]["amount"] == expected_order_line_unit_net
+    assert (
+        order_line["undiscountedUnitPrice"]["gross"]["amount"]
+        == expected_order_line_unit_gross
+    )
+    assert (
+        order_line["undiscountedUnitPrice"]["net"]["amount"]
+        == expected_order_line_unit_net
+    )
     assert order_line["unitDiscount"]["amount"] == 0
-    assert order_line["totalPrice"]["gross"]["amount"] == 120
-    assert order_line["totalPrice"]["net"]["amount"] == 100
+    assert (
+        order_line["totalPrice"]["gross"]["amount"] == expected_order_line_total_gross
+    )
+    assert order_line["totalPrice"]["net"]["amount"] == expected_order_line_total_net
     assert order_line["metadata"][0]["key"] == "md key"
     assert order_line["metadata"][0]["value"] == "md value"
     assert order_line["privateMetadata"][0]["key"] == "pmd key"
@@ -632,21 +804,33 @@ def test_order_bulk_create(
     db_order_line = OrderLine.objects.get()
     assert db_order_line.variant == variant
     assert db_order_line.product_name == "Product Name"
+    assert db_order_line.product_sku is None
     assert db_order_line.variant_name == "Variant Name"
     assert db_order_line.translated_product_name == "Nazwa Produktu"
     assert db_order_line.translated_variant_name == "Nazwa Wariantu"
     assert db_order_line.is_shipping_required
-    assert db_order_line.quantity == 5
+    assert db_order_line.quantity == expected_order_line_quantity
     assert db_order_line.quantity_fulfilled == 5
-    assert db_order_line.unit_price.gross.amount == Decimal(120 / 5)
-    assert db_order_line.unit_price.net.amount == Decimal(100 / 5)
-    assert db_order_line.undiscounted_unit_price.gross.amount == Decimal(120 / 5)
-    assert db_order_line.undiscounted_unit_price.net.amount == Decimal(100 / 5)
+    assert db_order_line.unit_price.gross.amount == expected_order_line_unit_gross
+    assert db_order_line.unit_price.net.amount == expected_order_line_unit_net
+    assert (
+        db_order_line.undiscounted_unit_price.gross.amount
+        == expected_order_line_unit_gross
+    )
+    assert (
+        db_order_line.undiscounted_unit_price.net.amount == expected_order_line_unit_net
+    )
     assert db_order_line.unit_discount_amount == 0
-    assert db_order_line.total_price.gross.amount == 120
-    assert db_order_line.total_price.net.amount == 100
-    assert db_order_line.undiscounted_total_price.gross.amount == 120
-    assert db_order_line.undiscounted_total_price.net.amount == 100
+    assert db_order_line.total_price.gross.amount == expected_order_line_total_gross
+    assert db_order_line.total_price.net.amount == expected_order_line_total_net
+    assert (
+        db_order_line.undiscounted_total_price.gross.amount
+        == expected_order_line_total_gross
+    )
+    assert (
+        db_order_line.undiscounted_total_price.net.amount
+        == expected_order_line_total_net
+    )
     assert db_order_line.metadata["md key"] == "md value"
     assert db_order_line.private_metadata["pmd key"] == "pmd value"
     assert db_order_line.tax_class == default_tax_class
@@ -812,17 +996,54 @@ def test_order_bulk_create_multiple_lines(
     permission_manage_orders_import,
     order_bulk_input,
     product_variant_list,
+    channel_PLN,
 ):
     # given
     lines_count = OrderLine.objects.count()
 
     order = order_bulk_input
+
+    assert len(order["lines"]) == 1
+
+    expected_shipping_net_price = Decimal(50)
+    expected_shipping_gross_price = Decimal(60)
+
+    expected_first_order_line_quantity = Decimal(5)
+    expected_first_order_line_unit_net = Decimal(20)
+    expected_first_order_line_unit_gross = Decimal(24)
+
+    expected_second_order_line_quantity = Decimal(3)
+    expected_second_order_line_unit_net = Decimal(10)
+    expected_second_order_line_unit_gross = Decimal(12)
+
     line_2 = copy.deepcopy(order["lines"][0])
     variant_2 = product_variant_list[2]
     line_2["variantId"] = graphene.Node.to_global_id("ProductVariant", variant_2.id)
-    line_2["totalPrice"]["gross"] = 60
-    line_2["totalPrice"]["net"] = 50
+    line_2["totalPrice"]["gross"] = (
+        expected_second_order_line_unit_gross * expected_second_order_line_quantity
+    )
+    line_2["totalPrice"]["net"] = (
+        expected_second_order_line_unit_net * expected_second_order_line_quantity
+    )
+    line_2["quantity"] = expected_second_order_line_quantity
+    line_2["productSku"] = "TEST-SKU"
     order["lines"].append(line_2)
+
+    expected_order_subtotal_net = quantize_price(
+        expected_first_order_line_unit_net * expected_first_order_line_quantity
+        + expected_second_order_line_unit_net * expected_second_order_line_quantity,
+        channel_PLN.currency_code,
+    )
+    expected_order_subtotal_gross = quantize_price(
+        expected_first_order_line_unit_gross * expected_first_order_line_quantity
+        + expected_second_order_line_unit_gross * expected_second_order_line_quantity,
+        channel_PLN.currency_code,
+    )
+
+    expected_order_total_gross = (
+        expected_order_subtotal_gross + expected_shipping_gross_price
+    )
+    expected_order_total_net = expected_order_subtotal_net + expected_shipping_net_price
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -843,25 +1064,33 @@ def test_order_bulk_create_multiple_lines(
     order = content["data"]["orderBulkCreate"]["results"][0]["order"]
 
     line_1 = order["lines"][0]
-    assert line_1["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
-    assert line_1["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert (
+        line_1["unitPrice"]["gross"]["amount"] == expected_first_order_line_unit_gross
+    )
+    assert line_1["unitPrice"]["net"]["amount"] == expected_first_order_line_unit_net
+    assert line_1["productSku"] is None
     line_2 = order["lines"][1]
-    assert line_2["unitPrice"]["gross"]["amount"] == Decimal(60 / 5)
-    assert line_2["unitPrice"]["net"]["amount"] == Decimal(50 / 5)
+    assert (
+        line_2["unitPrice"]["gross"]["amount"] == expected_second_order_line_unit_gross
+    )
+    assert line_2["unitPrice"]["net"]["amount"] == expected_second_order_line_unit_net
+    assert line_2["productSku"] == "TEST-SKU"
 
     db_lines = OrderLine.objects.all()
     db_line_1 = db_lines[0]
-    assert db_line_1.unit_price.gross.amount == Decimal(120 / 5)
-    assert db_line_1.unit_price.net.amount == Decimal(100 / 5)
+    assert db_line_1.unit_price.gross.amount == expected_first_order_line_unit_gross
+    assert db_line_1.unit_price.net.amount == expected_first_order_line_unit_net
+    assert db_line_1.product_sku is None
     db_line_2 = db_lines[1]
-    assert db_line_2.unit_price.gross.amount == Decimal(60 / 5)
-    assert db_line_2.unit_price.net.amount == Decimal(50 / 5)
+    assert db_line_2.unit_price.gross.amount == expected_second_order_line_unit_gross
+    assert db_line_2.unit_price.net.amount == expected_second_order_line_unit_net
+    assert db_line_2.product_sku == "TEST-SKU"
 
-    assert order["total"]["gross"]["amount"] == 180
-    assert order["total"]["net"]["amount"] == 150
+    assert order["total"]["gross"]["amount"] == expected_order_total_gross
+    assert order["total"]["net"]["amount"] == expected_order_total_net
     db_order = Order.objects.get()
-    assert db_order.total_gross_amount == 180
-    assert db_order.total_net_amount == 150
+    assert db_order.total_gross_amount == expected_order_total_gross
+    assert db_order.total_net_amount == expected_order_total_net
 
     assert OrderLine.objects.count() == lines_count + 2
 
@@ -871,6 +1100,7 @@ def test_order_bulk_create_line_without_variant(
     permission_manage_orders,
     permission_manage_orders_import,
     order_bulk_input,
+    channel_PLN,
 ):
     # given
     lines_count = OrderLine.objects.count()
@@ -879,6 +1109,27 @@ def test_order_bulk_create_line_without_variant(
     order["lines"][0]["variantId"] = None
     order["lines"][0]["variantName"] = None
     order["fulfillments"][0]["lines"][0]["variantId"] = None
+
+    expected_shipping_net_price = Decimal(50)
+    expected_shipping_gross_price = Decimal(60)
+
+    expected_order_line_quantity = Decimal(5)
+    expected_order_line_unit_net = Decimal(20)
+    expected_order_line_unit_gross = Decimal(24)
+
+    expected_order_subtotal_net = quantize_price(
+        expected_order_line_unit_net * expected_order_line_quantity,
+        channel_PLN.currency_code,
+    )
+    expected_order_subtotal_gross = quantize_price(
+        expected_order_line_unit_gross * expected_order_line_quantity,
+        channel_PLN.currency_code,
+    )
+
+    expected_order_total_gross = (
+        expected_order_subtotal_gross + expected_shipping_gross_price
+    )
+    expected_order_total_net = expected_order_subtotal_net + expected_shipping_net_price
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -901,19 +1152,19 @@ def test_order_bulk_create_line_without_variant(
     order = content["data"]["orderBulkCreate"]["results"][0]["order"]
 
     line_1 = order["lines"][0]
-    assert line_1["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
-    assert line_1["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert line_1["unitPrice"]["gross"]["amount"] == expected_order_line_unit_gross
+    assert line_1["unitPrice"]["net"]["amount"] == expected_order_line_unit_net
 
     db_lines = OrderLine.objects.all()
     db_line_1 = db_lines[0]
-    assert db_line_1.unit_price.gross.amount == Decimal(120 / 5)
-    assert db_line_1.unit_price.net.amount == Decimal(100 / 5)
+    assert db_line_1.unit_price.gross.amount == expected_order_line_unit_gross
+    assert db_line_1.unit_price.net.amount == expected_order_line_unit_net
 
-    assert order["total"]["gross"]["amount"] == 120
-    assert order["total"]["net"]["amount"] == 100
+    assert order["total"]["gross"]["amount"] == expected_order_total_gross
+    assert order["total"]["net"]["amount"] == expected_order_total_net
     db_order = Order.objects.get()
-    assert db_order.total_gross_amount == 120
-    assert db_order.total_net_amount == 100
+    assert db_order.total_gross_amount == expected_order_total_gross
+    assert db_order.total_net_amount == expected_order_total_net
 
     error0 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error0["message"] == (
@@ -1149,34 +1400,37 @@ def test_order_bulk_create_multiple_transactions(
 ):
     # given
     transactions_count = TransactionItem.objects.count()
-
+    authorized_amount = Decimal("80")
     transaction_1 = {
-        "name": "Authorized for 10$",
+        "name": "Authorized for 80$",
         "amountAuthorized": {
-            "amount": Decimal("20"),
+            "amount": authorized_amount,
             "currency": "PLN",
         },
     }
 
+    charged_amount = Decimal("100")
     transaction_2 = {
         "message": "Credit Card",
         "amountCharged": {
-            "amount": Decimal("100"),
+            "amount": charged_amount,
             "currency": "PLN",
         },
     }
 
+    refunded_amount = Decimal("15")
     transaction_3 = {
         "pspReference": "PSP reference - 123",
         "amountRefunded": {
-            "amount": Decimal("15"),
+            "amount": refunded_amount,
             "currency": "PLN",
         },
     }
 
+    canceled_amount = Decimal("20")
     transaction_4 = {
         "amountCanceled": {
-            "amount": Decimal("20"),
+            "amount": canceled_amount,
             "currency": "PLN",
         },
     }
@@ -1208,15 +1462,15 @@ def test_order_bulk_create_multiple_transactions(
     order = data[0]["order"]
 
     transaction_1, transaction_2, transaction_3, transaction_4 = order["transactions"]
-    assert transaction_1["name"] == "Authorized for 10$"
-    assert transaction_1["authorizedAmount"]["amount"] == Decimal("20")
+    assert transaction_1["name"] == "Authorized for 80$"
+    assert transaction_1["authorizedAmount"]["amount"] == authorized_amount
     assert transaction_2["message"] == "Credit Card"
-    assert transaction_2["chargedAmount"]["amount"] == Decimal("100")
+    assert transaction_2["chargedAmount"]["amount"] == charged_amount
     assert transaction_2["chargedAmount"]["currency"] == "PLN"
     assert transaction_3["pspReference"] == "PSP reference - 123"
-    assert transaction_3["refundedAmount"]["amount"] == Decimal("15")
+    assert transaction_3["refundedAmount"]["amount"] == refunded_amount
     assert transaction_3["refundedAmount"]["currency"] == "PLN"
-    assert transaction_4["canceledAmount"]["amount"] == Decimal("20")
+    assert transaction_4["canceledAmount"]["amount"] == canceled_amount
     assert transaction_4["canceledAmount"]["currency"] == "PLN"
 
     db_order = Order.objects.get()
@@ -1226,20 +1480,20 @@ def test_order_bulk_create_multiple_transactions(
         db_transaction_3,
         db_transaction_4,
     ) = TransactionItem.objects.all()
-    assert db_transaction_1.name == "Authorized for 10$"
-    assert db_transaction_1.authorized_value == Decimal("20")
+    assert db_transaction_1.name == "Authorized for 80$"
+    assert db_transaction_1.authorized_value == authorized_amount
     assert db_transaction_2.message == "Credit Card"
-    assert db_transaction_2.charged_value == Decimal("100")
+    assert db_transaction_2.charged_value == charged_amount
     assert db_transaction_3.psp_reference == "PSP reference - 123"
-    assert db_transaction_3.refunded_value == Decimal("15")
-    assert db_transaction_4.canceled_value == Decimal("20")
+    assert db_transaction_3.refunded_value == refunded_amount
+    assert db_transaction_4.canceled_value == canceled_amount
     assert db_transaction_1.order_id == db_order.id
     assert db_transaction_2.order_id == db_order.id
     assert db_transaction_3.order_id == db_order.id
     assert db_transaction_4.order_id == db_order.id
 
-    assert db_order.total_authorized_amount == Decimal("20")
-    assert db_order.total_charged_amount == Decimal("100")
+    assert db_order.total_authorized_amount == authorized_amount
+    assert db_order.total_charged_amount == charged_amount
     assert db_order.authorize_status == OrderAuthorizeStatus.FULL.lower()
     assert db_order.charge_status == OrderChargeStatus.PARTIAL.lower()
 
@@ -1991,7 +2245,7 @@ def test_order_bulk_create_error_order_future_date(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["createdAt"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    order["createdAt"] = timezone.now() + datetime.timedelta(minutes=MINUTES_DIFF + 1)
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -2027,7 +2281,9 @@ def test_order_bulk_create_invalid_date_format(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    current_time = datetime.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    current_time = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        minutes=MINUTES_DIFF + 1
+    )
     order["createdAt"] = current_time.strftime("%Y-%m-%dT%H:%M:%S")
 
     staff_api_client.user.user_permissions.add(
@@ -2064,7 +2320,7 @@ def test_order_bulk_create_error_order_line_future_date(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["lines"][0]["createdAt"] = timezone.now() + timedelta(
+    order["lines"][0]["createdAt"] = timezone.now() + datetime.timedelta(
         minutes=MINUTES_DIFF + 1
     )
 
@@ -2373,7 +2629,9 @@ def test_order_bulk_create_error_note_with_future_date(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["notes"][0]["date"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
+    order["notes"][0]["date"] = timezone.now() + datetime.timedelta(
+        minutes=MINUTES_DIFF + 1
+    )
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -3080,7 +3338,7 @@ def test_order_bulk_create_error_invoice_future_date(
     invoice_count = Order.objects.count()
 
     order = order_bulk_input
-    order["invoices"][0]["createdAt"] = timezone.now() + timedelta(
+    order["invoices"][0]["createdAt"] = timezone.now() + datetime.timedelta(
         minutes=MINUTES_DIFF + 1
     )
 
@@ -3151,7 +3409,7 @@ def test_order_bulk_create_error_invoice_invalid_url(
     [
         (
             DiscountValueTypeEnum.FIXED.name,
-            "The value (999999) cannot be higher than 120 PLN",
+            "The value (999999) cannot be higher than 180 PLN",
         ),
         (
             DiscountValueTypeEnum.PERCENTAGE.name,
@@ -3757,3 +4015,41 @@ def test_order_bulk_create_skip_address_validation(
     assert db_order.shipping_address.validation_skipped is True
     assert db_order.billing_address.postal_code == invalid_postal_code
     assert db_order.billing_address.validation_skipped is True
+
+
+def test_order_bulk_create_shipping_price_zero(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order_data = order_bulk_input
+    order_data["deliveryMethod"]["shippingPrice"] = {
+        "gross": 0,
+        "net": 0,
+    }
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order_data],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderBulkCreate"]["results"][0]
+    assert not data["errors"]
+    order_data = data["order"]
+    assert order_data["shippingPrice"]["gross"]["amount"] == 0
+    assert order_data["shippingPrice"]["net"]["amount"] == 0
+
+    db_order = Order.objects.last()
+    assert db_order.shipping_price_net_amount == 0
+    assert db_order.shipping_price_gross_amount == 0

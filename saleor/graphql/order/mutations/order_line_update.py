@@ -97,11 +97,11 @@ class OrderLineUpdate(
                     instance.order.channel,
                     manager,
                 )
-            except InsufficientStock:
+            except InsufficientStock as e:
                 raise ValidationError(
                     "Cannot set new quantity because of insufficient stock.",
                     code=OrderErrorCode.INSUFFICIENT_STOCK.value,
-                )
+                ) from e
             invalidate_order_prices(instance.order)
             recalculate_order_weight(instance.order)
             instance.order.save(update_fields=["should_refresh_prices", "weight"])

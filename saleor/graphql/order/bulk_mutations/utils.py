@@ -66,12 +66,12 @@ def get_instance(
                         str(input.get(data_key)), model_name, raise_error=True
                     )
                     input[data_key] = id
-                except GraphQLError as err:
+                except GraphQLError as e:
                     raise ValidationError(
-                        message=err.message,
+                        message=e.message,
                         code=error_enum.INVALID.value,
                         params={"path": f"{path}.{data_key}" if path else data_key},
-                    )
+                    ) from e
 
             lookup_key = ".".join((model_name, db_key, input[data_key]))
             instance = instance_storage.get(lookup_key)

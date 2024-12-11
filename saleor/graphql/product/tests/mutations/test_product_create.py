@@ -1,10 +1,9 @@
+import datetime
 import json
-from datetime import datetime
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-import pytz
 from django.conf import settings
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -747,7 +746,7 @@ def test_create_product_no_value_for_plain_text_attribute(
     assert expected_attributes_data in data["product"]["attributes"]
 
 
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_product_with_date_time_attribute(
     staff_api_client,
     product_type,
@@ -765,7 +764,7 @@ def test_create_product_with_date_time_attribute(
     date_time_attribute_id = graphene.Node.to_global_id(
         "Attribute", date_time_attribute.id
     )
-    value = datetime.now(tz=pytz.utc)
+    value = datetime.datetime.now(tz=datetime.UTC)
 
     # test creating root product
     variables = {
@@ -811,7 +810,7 @@ def test_create_product_with_date_time_attribute(
     assert expected_attributes_data in data["product"]["attributes"]
 
 
-@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+@freeze_time(datetime.datetime(2020, 5, 5, 5, 5, 5, tzinfo=datetime.UTC))
 def test_create_product_with_date_attribute(
     staff_api_client,
     product_type,
@@ -827,7 +826,7 @@ def test_create_product_with_date_attribute(
     # Add second attribute
     product_type.product_attributes.add(date_attribute)
     date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
-    value = datetime.now(tz=pytz.utc).date()
+    value = datetime.datetime.now(tz=datetime.UTC).date()
 
     # test creating root product
     variables = {

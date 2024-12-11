@@ -73,7 +73,7 @@ def test_sale_add_catalogues(
     assert collection_id in current_catalogue["collections"]
     assert category_id in current_catalogue["categories"]
     assert product_id in current_catalogue["products"]
-    assert all([variant in current_catalogue["variants"] for variant in variant_ids])
+    assert all(variant in current_catalogue["variants"] for variant in variant_ids)
 
     updated_webhook_mock.assert_called_once_with(
         promotion, previous_catalogue, current_catalogue

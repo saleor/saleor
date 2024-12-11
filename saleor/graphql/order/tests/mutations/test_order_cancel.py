@@ -152,7 +152,6 @@ def test_order_cancel_skip_trigger_webhooks(
     permission_group_manage_orders,
     order_with_lines,
     settings,
-    django_capture_on_commit_callbacks,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -174,8 +173,7 @@ def test_order_cancel_skip_trigger_webhooks(
     variables = {"id": order_id}
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        response = staff_api_client.post_graphql(MUTATION_ORDER_CANCEL, variables)
+    response = staff_api_client.post_graphql(MUTATION_ORDER_CANCEL, variables)
 
     # then
     content = get_graphql_content(response)

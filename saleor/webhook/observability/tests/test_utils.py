@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import datetime, timezone
 from unittest.mock import patch
 
 import pytest
@@ -131,8 +131,14 @@ def test_json_truncate_text_comparison():
     ("retry", "next_retry_date"),
     [
         (Retry(), None),
-        (Retry(when=60 * 10), datetime(2004, 5, 1, 0, 10, tzinfo=timezone.utc)),
-        (Retry(when=datetime(2004, 5, 1, 12)), datetime(2004, 5, 1, 12)),
+        (
+            Retry(when=60 * 10),
+            datetime.datetime(2004, 5, 1, 0, 10, tzinfo=datetime.UTC),
+        ),
+        (
+            Retry(when=datetime.datetime(2004, 5, 1, 12, tzinfo=datetime.UTC)),
+            datetime.datetime(2004, 5, 1, 12, tzinfo=datetime.UTC),
+        ),
     ],
 )
 @freeze_time("2004-05-01 0:00")

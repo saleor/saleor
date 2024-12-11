@@ -19,6 +19,7 @@ mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!
         }
       }
       lines {
+        id
         quantity
         undiscountedTotalPrice {
           amount

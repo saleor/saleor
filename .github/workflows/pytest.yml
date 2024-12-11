@@ -30,7 +30,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: python:3.9
+    container: python:3.12
 
     services:
       postgres:
@@ -53,7 +53,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          pip install poetry==1.7.0
+          pip install poetry==1.8.4
 
       - name: Cache the venv
         id: cached-poetry-dependencies
@@ -64,7 +64,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry env use python3.9
+          poetry env use python3.12
           poetry install --no-root
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 

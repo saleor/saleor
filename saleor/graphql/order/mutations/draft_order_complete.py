@@ -164,9 +164,9 @@ class DraftOrderComplete(BaseMutation):
                                     site.settings
                                 ),
                             )
-                    except InsufficientStock as exc:
-                        errors = prepare_insufficient_stock_order_validation_errors(exc)
-                        raise ValidationError({"lines": errors})
+                    except InsufficientStock as e:
+                        errors = prepare_insufficient_stock_order_validation_errors(e)
+                        raise ValidationError({"lines": errors}) from e
 
             order_info = OrderInfo(
                 order=order,

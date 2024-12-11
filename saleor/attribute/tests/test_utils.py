@@ -57,7 +57,7 @@ def test_associate_attribute_to_non_product_instance(color_attribute):
         associate_attribute_values_to_instance(
             instance,
             {attribute.id: [value]},
-        )  # noqa
+        )
 
     assert exc.value.args == ("ProductType is unsupported",)
 

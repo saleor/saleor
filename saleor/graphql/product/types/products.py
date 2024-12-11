@@ -57,10 +57,7 @@ from ...core.connection import (
 )
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_39,
-    ADDED_IN_310,
-    ADDED_IN_312,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
@@ -149,8 +146,9 @@ from ..dataloaders import (
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
+from ..filters import ProductVariantFilterInput, ProductVariantWhereInput
 from ..resolvers import resolve_product_variants, resolve_products
-from ..sorters import MediaSortingInput
+from ..sorters import MediaSortingInput, ProductVariantSortingInput
 from .channels import ProductChannelListing, ProductVariantChannelListing
 from .digital_contents import DigitalContent
 
@@ -210,9 +208,7 @@ class VariantPricingInfo(BasePricingInfo):
 
 class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
-        description=(
-            "Determines whether displayed prices should include taxes." + ADDED_IN_39
-        ),
+        description=("Determines whether displayed prices should include taxes."),
         required=True,
     )
     price_range = graphene.Field(
@@ -398,7 +394,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=("Preorder data for product variant." + ADDED_IN_31),
+        description=("Preorder data for product variant."),
     )
     created = DateTime(
         required=True,
@@ -409,7 +405,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         description="The date and time when the product variant was last updated.",
     )
     external_reference = graphene.String(
-        description=f"External ID of this product. {ADDED_IN_310}",
+        description="External ID of this product.",
         required=False,
     )
 
@@ -443,8 +439,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
             return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
                 info.context
             ).load((root.node.id, country_code, root.channel_slug))
-        else:
-            return StocksByProductVariantIdLoader(info.context).load(root.node.id)
+        return StocksByProductVariantIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     @load_site_callback
@@ -915,10 +910,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             description="Slug of the attribute",
             required=True,
         ),
-        description=(
-            f"Get a single attribute attached to product by attribute slug."
-            f"{ADDED_IN_39}"
-        ),
+        description="Get a single attribute attached to product by attribute slug.",
     )
     attributes = NonNullList(
         SelectedAttribute,
@@ -947,7 +939,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         ProductVariant,
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
-        description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+        description="Get a single variant by SKU or ID.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use top-level `variant` query.",
     )
     variants = NonNullList(
@@ -957,12 +949,24 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "include the unpublished items: "
             f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `productVariants` field instead.",
+    )
+    product_variants = FilterConnectionField(
+        ProductVariantCountableConnection,
+        filter=ProductVariantFilterInput(
+            description="Filtering options for product variant."
+        ),
+        where=ProductVariantWhereInput(description="Where filtering options."),
+        sort_by=ProductVariantSortingInput(description="Sort products variants."),
+        description=(
+            "List of variants for the product. Requires the following permissions to "
+            "include the unpublished items: "
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}." + ADDED_IN_321
+        ),
     )
     media = NonNullList(
         lambda: ProductMedia,
-        sort_by=graphene.Argument(
-            MediaSortingInput, description=f"Sort media. {ADDED_IN_39}"
-        ),
+        sort_by=graphene.Argument(MediaSortingInput, description="Sort media."),
         description="List of media for the product.",
     )
     images = NonNullList(
@@ -1015,7 +1019,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         ],
     )
     external_reference = graphene.String(
-        description=f"External ID of this product. {ADDED_IN_310}",
+        description="External ID of this product.",
         required=False,
     )
 
@@ -1307,12 +1311,11 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                 .load(root.node.id)
                 .then(get_selected_attribute_by_slug)
             )
-        else:
-            return (
-                SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
-                .load(root.node.id)
-                .then(get_selected_attribute_by_slug)
-            )
+        return (
+            SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(get_selected_attribute_by_slug)
+        )
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
@@ -1325,10 +1328,9 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             return SelectedAttributesAllByProductIdLoader(info.context).load(
                 root.node.id
             )
-        else:
-            return SelectedAttributesVisibleInStorefrontByProductIdLoader(
-                info.context
-            ).load(root.node.id)
+        return SelectedAttributesVisibleInStorefrontByProductIdLoader(
+            info.context
+        ).load(root.node.id)
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
@@ -1441,6 +1443,32 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             ]
 
         return variants.then(map_channel_context)
+
+    @staticmethod
+    def resolve_product_variants(root: ChannelContext[models.Product], info, **kwargs):
+        requestor = get_user_or_app_from_context(info.context)
+
+        def _resolve_product_variants(channel_obj):
+            qs = resolve_product_variants(
+                info,
+                channel=channel_obj,
+                product_id=root.node.pk,
+                limited_channel_access=True,
+                requestor=requestor,
+            )
+            kwargs["channel"] = qs.channel_slug
+            qs = filter_connection_queryset(
+                qs, kwargs, allow_replica=info.context.allow_replica
+            )
+            return create_connection_slice(
+                qs, info, kwargs, ProductVariantCountableConnection
+            )
+
+        return (
+            ChannelBySlugLoader(info.context)
+            .load(root.channel_slug)
+            .then(_resolve_product_variants)
+        )
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Product], info):
@@ -1698,7 +1726,6 @@ class ProductType(ModelObjectType[models.ProductType]):
         AssignedVariantAttribute,
         description=(
             "Variant attributes of that product type with attached variant selection."
-            + ADDED_IN_31
         ),
         variant_selection=graphene.Argument(
             VariantAttributeScope,
@@ -1755,12 +1782,11 @@ class ProductType(ModelObjectType[models.ProductType]):
                 .load(root.pk)
                 .then(unpack_attributes)
             )
-        else:
-            return (
-                ProductAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
-                .load(root.pk)
-                .then(unpack_attributes)
-            )
+        return (
+            ProductAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(unpack_attributes)
+        )
 
     @staticmethod
     @traced_resolver
@@ -1792,12 +1818,11 @@ class ProductType(ModelObjectType[models.ProductType]):
                 .load(root.pk)
                 .then(apply_variant_selection_filter)
             )
-        else:
-            return (
-                VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
-                .load(root.pk)
-                .then(apply_variant_selection_filter)
-            )
+        return (
+            VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     @traced_resolver
@@ -1835,12 +1860,11 @@ class ProductType(ModelObjectType[models.ProductType]):
                 .load(root.pk)
                 .then(apply_variant_selection_filter)
             )
-        else:
-            return (
-                VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
-                .load(root.pk)
-                .then(apply_variant_selection_filter)
-            )
+        return (
+            VariantAttributesVisibleInStorefrontByProductTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(apply_variant_selection_filter)
+        )
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, *, channel=None, **kwargs):
@@ -1865,8 +1889,7 @@ class ProductType(ModelObjectType[models.ProductType]):
                 .load(str(channel))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
@@ -1892,7 +1915,7 @@ class ProductType(ModelObjectType[models.ProductType]):
         )
 
     @staticmethod
-    def __resolve_references(roots: list["ProductType"], info):
+    def __resolve_references(roots: list[models.ProductType], info):
         database_connection_name = get_database_connection_name(info.context)
         return resolve_federation_references(
             ProductType,
@@ -1919,15 +1942,12 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     url = ThumbnailField(
         graphene.String, required=True, description="The URL of the media."
     )
-    product_id = graphene.ID(
-        description="Product id the media refers to." + ADDED_IN_312
-    )
+    product_id = graphene.ID(description="Product id the media refers to.")
 
     class Meta:
         description = "Represents a product media."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
-        metadata_since = ADDED_IN_312
 
     @staticmethod
     def resolve_url(
@@ -1936,12 +1956,12 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         *,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> str | None | Promise[str]:
         if root.external_url:
             return root.external_url
 
         if not root.image:
-            return
+            return None
 
         if size == 0:
             return build_absolute_uri(root.image.url)
@@ -1949,7 +1969,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         format = get_thumbnail_format(format)
         selected_size = get_thumbnail_size(size)
 
-        def _resolve_url(thumbnail):
+        def _resolve_url(thumbnail) -> str:
             url = get_image_or_proxy_url(
                 thumbnail, str(root.id), "ProductMedia", selected_size, format
             )
@@ -1971,7 +1991,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         )
 
     @staticmethod
-    def resolve_product_id(root: models.ProductMedia, info):
+    def resolve_product_id(root: models.ProductMedia, info) -> str:
         return graphene.Node.to_global_id("Product", root.product_id)
 
 
@@ -1995,7 +2015,7 @@ class ProductImage(BaseObjectType):
         description = "Represents a product image."
 
     @staticmethod
-    def resolve_id(root: models.ProductMedia, info):
+    def resolve_id(root: models.ProductMedia, info) -> str:
         return graphene.Node.to_global_id("ProductImage", root.id)
 
     @staticmethod
@@ -2005,9 +2025,9 @@ class ProductImage(BaseObjectType):
         *,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> None | str | Promise[str]:
         if not root.image:
-            return
+            return None
 
         if size == 0:
             return build_absolute_uri(root.image.url)

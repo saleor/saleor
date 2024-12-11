@@ -4,7 +4,6 @@ from ....giftcard import models
 from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import GiftCardError
 from ...core.utils import WebhookEventInfo
@@ -17,7 +16,7 @@ class GiftCardDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of the gift card to delete.", required=True)
 
     class Meta:
-        description = "Delete gift card." + ADDED_IN_31
+        description = "Delete gift card."
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)

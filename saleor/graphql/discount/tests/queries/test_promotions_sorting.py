@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -102,7 +102,7 @@ def test_sorting_promotions_by_start_date(
 ):
     # given
     promotion = catalogue_promotion
-    promotion.start_date = timezone.now() + timedelta(days=3)
+    promotion.start_date = timezone.now() + datetime.timedelta(days=3)
     promotion.save(update_fields=["start_date"])
     promotion_list.insert(1, promotion)
     variables = {

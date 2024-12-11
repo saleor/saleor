@@ -1,5 +1,4 @@
 from collections import defaultdict
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
@@ -115,7 +114,7 @@ class PluginSample(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         previous_value: TaxedMoney,
@@ -143,7 +142,7 @@ class PluginSample(BasePlugin):
     def calculate_checkout_line_unit_price(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         previous_value: TaxedMoney,
@@ -255,7 +254,7 @@ class PluginSample(BasePlugin):
     def get_checkout_line_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
         previous_value: Decimal,
@@ -275,7 +274,7 @@ class PluginSample(BasePlugin):
     def get_checkout_shipping_tax_rate(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Iterable["CheckoutLineInfo"],
+        lines: list["CheckoutLineInfo"],
         address: Optional["Address"],
         previous_value: Decimal,
     ):

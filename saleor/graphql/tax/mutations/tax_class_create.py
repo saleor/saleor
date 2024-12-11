@@ -3,7 +3,6 @@ import graphene
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
-from ...core.descriptions import ADDED_IN_39
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -59,7 +58,7 @@ class TaxClassCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Create a tax class." + ADDED_IN_39
+        description = "Create a tax class."
         error_type_class = TaxClassCreateError
         model = models.TaxClass
         object_type = TaxClass

@@ -33,10 +33,10 @@ def brand_validator(brand):
         return
     try:
         logo_url = brand["logo"]["default"]
-    except (TypeError, KeyError):
+    except (TypeError, KeyError) as e:
         raise ValidationError(
             "Missing required field: logo.default.", code=AppErrorCode.REQUIRED.value
-        )
+        ) from e
     image_url_validator(logo_url)
     filetype = mimetypes.guess_type(logo_url)[0]
     if filetype not in ICON_MIME_TYPES:

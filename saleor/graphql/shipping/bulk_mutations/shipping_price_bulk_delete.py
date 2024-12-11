@@ -46,7 +46,7 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
-        shipping_methods = [sm for sm in queryset]
+        shipping_methods = list(queryset)
         queryset.delete()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.SHIPPING_PRICE_DELETED)
         manager = get_plugin_manager_promise(info.context).get()

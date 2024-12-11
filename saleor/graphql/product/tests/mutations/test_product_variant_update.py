@@ -1,19 +1,18 @@
+import datetime
 import json
-from datetime import datetime, timedelta
-from unittest.mock import ANY, patch
+from unittest.mock import ANY, call, patch
 from uuid import uuid4
 
 import graphene
 import pytest
-import pytz
 from django.conf import settings
 from django.utils.text import slugify
 
 from .....attribute import AttributeInputType
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....product.error_codes import ProductErrorCode
-from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
 
@@ -154,7 +153,6 @@ def test_update_product_variant_by_id(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]["productVariant"]
 
     assert data["name"] == variant.name
@@ -165,6 +163,223 @@ def test_update_product_variant_by_id(
         product.variants.last()
     )
     product_variant_created_webhook_mock.assert_not_called()
+
+
+QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
+        mutation updateVariant (
+            $id: ID!
+            $sku: String!
+            $quantityLimitPerCustomer: Int!
+            $trackInventory: Boolean!
+            $externalReference: String
+            $metadata: [MetadataInput!]
+            $privateMetadata: [MetadataInput!]
+            $preorder: PreorderSettingsInput
+            $attributes: [AttributeValueInput!]) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        sku: $sku,
+                        trackInventory: $trackInventory,
+                        attributes: $attributes,
+                        externalReference: $externalReference
+                        quantityLimitPerCustomer: $quantityLimitPerCustomer,
+                        metadata: $metadata,
+                        preorder: $preorder,
+                        privateMetadata: $privateMetadata,
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                        quantityLimitPerCustomer
+                        externalReference
+                        channelListings {
+                            channel {
+                                slug
+                            }
+                        }
+                        metadata {
+                            key
+                            value
+                        }
+                        privateMetadata {
+                            key
+                            value
+                        }
+                    }
+                    errors {
+                      field
+                      message
+                      attributes
+                      code}
+                }
+            }
+    """
+
+
+@pytest.mark.parametrize(
+    ("fields", "changed_fields"),
+    [
+        ({"sku": 1234}, ["sku"]),
+        ({"metadata": [{"key": "test_key1", "value": "test_value2"}]}, ["metadata"]),
+        ({"trackInventory": False}, ["track_inventory"]),
+        ({"quantityLimitPerCustomer": 5}, ["quantity_limit_per_customer"]),
+        (
+            {"preorder": {"globalThreshold": 11, "endDate": "2024-12-03T00:00Z"}},
+            ["preorder_end_date", "preorder_global_threshold"],
+        ),
+        (
+            {"preorder": {"globalThreshold": 10, "endDate": "2024-12-03T00:00Z"}},
+            ["preorder_end_date"],
+        ),
+        (
+            {"preorder": {"globalThreshold": 11, "endDate": "2024-12-02T00:00Z"}},
+            ["preorder_global_threshold"],
+        ),
+        ({"externalReference": "test-ext-ref2"}, ["external_reference"]),
+        (
+            {"sku": 1234, "trackInventory": False, "externalReference": "test-ext-ref"},
+            ["sku", "track_inventory"],
+        ),
+    ],
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
+def test_update_product_variant_update_fields_when_necessary(
+    save_variant_mock,
+    call_event_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    fields,
+    changed_fields,
+):
+    # given
+    variant = product.variants.first()
+    quantity_limit = 9
+    external_reference = "test-ext-ref"
+    variant_name = variant.attributes.first().values.first().name
+    variant_sku = "123"
+    product.default_variant = variant
+    product.save(update_fields=["default_variant"])
+    variant.name = variant_name
+    variant.metadata = {"test_key1": "test_value1"}
+    variant.private_metadata = {"private_key1": "private_value_1"}
+    variant.external_reference = external_reference
+    variant.quantity_limit_per_customer = quantity_limit
+    variant.track_inventory = True
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": variant_sku,
+        "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit,
+        "externalReference": external_reference,
+        "metadata": [{"key": "test_key1", "value": "test_value1"}],
+        "privateMetadata": [{"key": "private_key1", "value": "private_value_1"}],
+    }
+
+    for field, value in fields.items():
+        variables[field] = value
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_CHANGING_FIELDS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    variant.refresh_from_db()
+    get_graphql_content(response)
+    save_variant_mock.assert_called_once_with(variant, changed_fields)
+    call_event_mock.assert_has_calls(
+        [
+            call(ANY, variant),
+            call(mark_active_catalogue_promotion_rules_as_dirty, ANY),
+        ]
+    )
+
+
+@pytest.mark.parametrize(
+    "field_values",
+    [
+        ["sku", 123],
+        ["metadata", [{"key": "test_key1", "value": "test_value1"}]],
+        ["trackInventory", True],
+        ["quantityLimitPerCustomer", 9],
+        ["preorder", {"globalThreshold": 10, "endDate": "2024-12-02T00:00Z"}],
+        ["externalReference", "test-ext-ref"],
+    ],
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
+def test_update_product_variant_skip_updating_fields_when_unchanged(
+    save_variant_mock,
+    call_event_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    field_values,
+):
+    # given
+    variant = product.variants.first()
+    quantity_limit = 9
+    external_reference = "test-ext-ref"
+    variant_name = variant.attributes.first().values.first().name
+    variant_sku = "123"
+    product.default_variant = variant
+    product.save(update_fields=["default_variant"])
+    variant.name = variant_name
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.metadata = {"test_key1": "test_value1"}
+    variant.private_metadata = {"private_key1": "private_value_1"}
+    variant.external_reference = external_reference
+    variant.quantity_limit_per_customer = quantity_limit
+    variant.track_inventory = True
+    variant.save()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": variant_sku,
+        "trackInventory": True,
+        "quantityLimitPerCustomer": quantity_limit,
+        "externalReference": external_reference,
+        "metadata": [{"key": "test_key1", "value": "test_value1"}],
+        "privateMetadata": [{"key": "private_key1", "value": "private_value_1"}],
+    }
+
+    field, value = field_values
+    variables[field] = value
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_CHANGING_FIELDS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    variant.refresh_from_db()
+    get_graphql_content(response)
+    save_variant_mock.assert_not_called()
+    call_event_mock.assert_not_called()
 
 
 def test_update_product_variant_marks_prices_as_dirty(
@@ -208,7 +423,6 @@ def test_update_product_variant_marks_prices_as_dirty(
     # then
     variant.refresh_from_db()
     get_graphql_content(response)
-    flush_post_commit_hooks()
     assert not catalogue_promotion.rules.filter(variants_dirty=False).exists()
 
 
@@ -278,9 +492,9 @@ def test_update_product_variant_by_sku(
     response = staff_api_client.post_graphql(
         UPDATE_VARIANT_BY_SKU, variables, permissions=[permission_manage_products]
     )
+
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]["productVariant"]
 
     # then
@@ -320,7 +534,6 @@ def test_update_product_variant_by_sku_return_error_when_sku_dont_exists(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]
 
     # then
@@ -382,7 +595,6 @@ def test_update_product_variant_by_external_reference(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]
 
     # then
@@ -1353,7 +1565,7 @@ def test_update_variant_with_date_attribute(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "123"
     date_attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.id)
-    date_time_value = datetime(2025, 5, 5, 5, 5, 5, tzinfo=pytz.utc)
+    date_time_value = datetime.datetime(2025, 5, 5, 5, 5, 5, tzinfo=datetime.UTC)
     date_value = date_time_value.date()
     date_values_count = date_attribute.values.count()
 
@@ -1416,7 +1628,7 @@ def test_update_variant_with_date_time_attribute(
     date_time_attribute_id = graphene.Node.to_global_id(
         "Attribute", date_time_attribute.id
     )
-    date_time_value = datetime(2025, 5, 5, 5, 5, 5, tzinfo=pytz.utc)
+    date_time_value = datetime.datetime(2025, 5, 5, 5, 5, 5, tzinfo=datetime.UTC)
     date_time_values_count = date_time_attribute.values.count()
 
     variables = {
@@ -2269,7 +2481,7 @@ def test_update_product_variant_change_preorder_data(
     new_global_threshold = variant.preorder_global_threshold + 5
     assert variant.preorder_end_date is None
     new_preorder_end_date = (
-        (datetime.now() + timedelta(days=3))
+        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
         .astimezone()
         .replace(microsecond=0)
         .isoformat()
@@ -2290,7 +2502,6 @@ def test_update_product_variant_change_preorder_data(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]["productVariant"]
 
     assert data["sku"] == sku
@@ -2317,7 +2528,6 @@ def test_update_product_variant_can_not_turn_off_preorder(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantUpdate"]["productVariant"]
 
     assert data["sku"] == sku

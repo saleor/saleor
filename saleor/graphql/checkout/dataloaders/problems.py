@@ -119,15 +119,7 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
             product_channel_listings = (
                 ProductChannelListingByProductIdAndChannelSlugLoader(
                     self.context
-                ).load_many(
-                    [
-                        (
-                            product_id,
-                            channel_slug,
-                        )
-                        for product_id, channel_slug in product_data_list
-                    ]
-                )
+                ).load_many(product_data_list)
             )
 
             return Promise.all([variant_stocks, product_channel_listings]).then(

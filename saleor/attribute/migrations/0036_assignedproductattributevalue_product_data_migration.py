@@ -41,7 +41,7 @@ def update_product_assignment():
                     FOR UPDATE
                     LIMIT %s
                 );
-                """,  # noqa
+                """,
                 [PRODUCT_BATCH_SIZE],
             )
 

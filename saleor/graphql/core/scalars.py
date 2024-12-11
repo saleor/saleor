@@ -1,8 +1,7 @@
+import datetime
 import decimal
-from datetime import MAXYEAR, MINYEAR, datetime
 
 import graphene
-import pytz
 from graphene.types.generic import GenericScalar
 from graphql.language import ast
 from measurement.measures import Weight
@@ -21,11 +20,13 @@ class Decimal(graphene.Float):
     """
 
     @staticmethod
-    def parse_literal(node):
-        try:
-            return decimal.Decimal(node.value)
-        except decimal.DecimalException:
-            return None
+    def parse_literal(node) -> decimal.Decimal | None:
+        if isinstance(node, (ast.FloatValue, ast.IntValue)):
+            try:
+                return decimal.Decimal(node.value)
+            except decimal.DecimalException:
+                return None
+        return None
 
     @staticmethod
     def parse_value(value):
@@ -67,7 +68,7 @@ class JSON(GenericScalar):
                 field.name.value: GenericScalar.parse_literal(field.value)
                 for field in node.fields
             }
-        elif isinstance(node, ast.ListValue):
+        if isinstance(node, ast.ListValue):
             return [GenericScalar.parse_literal(value) for value in node.values]
         return None
 
@@ -161,10 +162,10 @@ class DateTime(graphene.DateTime):
     @staticmethod
     def parse_value(value):
         parsed_value = graphene.DateTime.parse_value(value)
-        if parsed_value is not None and isinstance(parsed_value, datetime):
-            if parsed_value.year in [MINYEAR, MAXYEAR]:
+        if parsed_value is not None and isinstance(parsed_value, datetime.datetime):
+            if parsed_value.year in [datetime.MINYEAR, datetime.MAXYEAR]:
                 try:
-                    parsed_value.astimezone(tz=pytz.UTC)
+                    parsed_value.astimezone(tz=datetime.UTC)
                 except OverflowError:
                     return None
         return parsed_value

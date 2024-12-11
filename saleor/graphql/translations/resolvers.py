@@ -8,9 +8,10 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
+from ..core.dataloaders import DataLoader
 from . import dataloaders
 
-TYPE_TO_TRANSLATION_LOADER_MAP = {
+TYPE_TO_TRANSLATION_LOADER_MAP: dict[type, type[DataLoader]] = {
     attribute_models.Attribute: (
         dataloaders.AttributeTranslationByIdAndLanguageCodeLoader
     ),

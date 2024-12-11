@@ -4,7 +4,6 @@ import graphene
 
 from .....payment import TransactionKind
 from .....payment.models import ChargeStatus
-from .....tests.utils import flush_post_commit_hooks
 from ....core.enums import PaymentErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -61,7 +60,6 @@ def test_payment_refund_success(
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(payment.order, webhooks=set())
     mock_order_refunded.assert_called_once_with(payment.order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(payment.order, webhooks=set())
@@ -130,7 +128,6 @@ def test_payment_refund_success_by_app(
     txn = payment.transactions.last()
     assert txn.kind == TransactionKind.REFUND
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(payment.order, webhooks=set())
     mock_order_refunded.assert_called_once_with(payment.order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(payment.order, webhooks=set())

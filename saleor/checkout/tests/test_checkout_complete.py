@@ -1,8 +1,7 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest import mock
 
-import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
@@ -20,7 +19,7 @@ from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
-from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
+from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
@@ -28,7 +27,7 @@ from ...payment.interface import GatewayResponse
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
-from ...tests.utils import flush_post_commit_hooks
+from ...tests import race_condition
 from .. import calculations
 from ..complete_checkout import (
     _complete_checkout_fail_handler,
@@ -42,7 +41,7 @@ from ..complete_checkout import (
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
 from ..payment_utils import update_checkout_payment_statuses
-from ..utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout, add_voucher_to_checkout
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
@@ -54,6 +53,7 @@ def test_create_order_captured_payment_creates_expected_events(
     payment_txn_captured,
     channel_USD,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -76,20 +76,20 @@ def test_create_order_captured_payment_creates_expected_events(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    order = _create_order(
-        checkout_info=checkout_info,
-        checkout_lines=lines,
-        order_data=_prepare_order_data(
-            manager=manager,
+    with django_capture_on_commit_callbacks(execute=True):
+        order = _create_order(
             checkout_info=checkout_info,
-            lines=lines,
-            prices_entered_with_tax=True,
-        ),
-        user=customer_user,
-        app=None,
-        manager=manager,
-    )
-    flush_post_commit_hooks()
+            checkout_lines=lines,
+            order_data=_prepare_order_data(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                prices_entered_with_tax=True,
+            ),
+            user=customer_user,
+            app=None,
+            manager=manager,
+        )
 
     (
         order_placed_event,
@@ -216,6 +216,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     payment_txn_captured,
     channel_USD,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -239,20 +240,20 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    order = _create_order(
-        checkout_info=checkout_info,
-        checkout_lines=lines,
-        order_data=_prepare_order_data(
-            manager=manager,
+    with django_capture_on_commit_callbacks(execute=True):
+        order = _create_order(
             checkout_info=checkout_info,
-            lines=lines,
-            prices_entered_with_tax=True,
-        ),
-        user=None,
-        app=None,
-        manager=manager,
-    )
-    flush_post_commit_hooks()
+            checkout_lines=lines,
+            order_data=_prepare_order_data(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                prices_entered_with_tax=True,
+            ),
+            user=None,
+            app=None,
+            manager=manager,
+        )
 
     (
         order_placed_event,
@@ -375,6 +376,7 @@ def test_create_order_preauth_payment_creates_expected_events(
     payment_txn_preauth,
     channel_USD,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     checkout = checkout_with_item
     checkout_user = customer_user
@@ -397,20 +399,20 @@ def test_create_order_preauth_payment_creates_expected_events(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    order = _create_order(
-        checkout_info=checkout_info,
-        checkout_lines=lines,
-        order_data=_prepare_order_data(
-            manager=manager,
+    with django_capture_on_commit_callbacks(execute=True):
+        order = _create_order(
             checkout_info=checkout_info,
-            lines=lines,
-            prices_entered_with_tax=True,
-        ),
-        user=customer_user,
-        app=None,
-        manager=manager,
-    )
-    flush_post_commit_hooks()
+            checkout_lines=lines,
+            order_data=_prepare_order_data(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                prices_entered_with_tax=True,
+            ),
+            user=customer_user,
+            app=None,
+            manager=manager,
+        )
 
     (
         order_placed_event,
@@ -489,6 +491,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     payment_txn_preauth,
     channel_USD,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     checkout = checkout_with_item
     checkout_user = None
@@ -512,20 +515,20 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    order = _create_order(
-        checkout_info=checkout_info,
-        checkout_lines=lines,
-        order_data=_prepare_order_data(
-            manager=manager,
+    with django_capture_on_commit_callbacks(execute=True):
+        order = _create_order(
             checkout_info=checkout_info,
-            lines=lines,
-            prices_entered_with_tax=True,
-        ),
-        user=None,
-        app=None,
-        manager=manager,
-    )
-    flush_post_commit_hooks()
+            checkout_lines=lines,
+            order_data=_prepare_order_data(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                prices_entered_with_tax=True,
+            ),
+            user=None,
+            app=None,
+            manager=manager,
+        )
 
     (
         order_placed_event,
@@ -845,6 +848,7 @@ def test_create_order_gift_card_bought(
     shipping_method,
     is_anonymous_user,
     non_shippable_gift_card_product,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout_user = None if is_anonymous_user else customer_user
@@ -892,24 +896,23 @@ def test_create_order_gift_card_bought(
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
     # when
-    order = _create_order(
-        checkout_info=checkout_info,
-        checkout_lines=lines,
-        order_data=_prepare_order_data(
-            manager=manager,
+    with django_capture_on_commit_callbacks(execute=True):
+        order = _create_order(
             checkout_info=checkout_info,
-            lines=lines,
-            prices_entered_with_tax=True,
-        ),
-        user=customer_user if not is_anonymous_user else None,
-        app=None,
-        manager=manager,
-    )
+            checkout_lines=lines,
+            order_data=_prepare_order_data(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                prices_entered_with_tax=True,
+            ),
+            user=customer_user if not is_anonymous_user else None,
+            app=None,
+            manager=manager,
+        )
 
     # then
-    flush_post_commit_hooks()
     assert order.total.gross == total_gross
-    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert (
         gift_card.initial_balance
@@ -918,7 +921,6 @@ def test_create_order_gift_card_bought(
         ).unit_price_gross
     )
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         checkout_user,
         None,
@@ -939,6 +941,7 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
     customer_user,
     shipping_method,
     is_anonymous_user,
+    django_capture_on_commit_callbacks,
 ):
     """Check that digital gift cards are not issued if the payment is not captured."""
     # given
@@ -971,23 +974,22 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
     # when
-    order = _create_order(
-        checkout_info=checkout_info,
-        checkout_lines=lines,
-        order_data=_prepare_order_data(
-            manager=manager,
+    with django_capture_on_commit_callbacks(execute=True):
+        order = _create_order(
             checkout_info=checkout_info,
-            lines=lines,
-            prices_entered_with_tax=True,
-        ),
-        user=customer_user if not is_anonymous_user else None,
-        app=None,
-        manager=manager,
-    )
+            checkout_lines=lines,
+            order_data=_prepare_order_data(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                prices_entered_with_tax=True,
+            ),
+            user=customer_user if not is_anonymous_user else None,
+            app=None,
+            manager=manager,
+        )
 
     # then
-    flush_post_commit_hooks()
-    flush_post_commit_hooks()
     assert order.total.gross == total_gross
     assert not GiftCard.objects.exists()
     send_notification_mock.assert_not_called()
@@ -1223,6 +1225,7 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
     checkout_with_item_total_0,
     customer_user,
     app,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_item_total_0
@@ -1243,22 +1246,22 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
-    order, _, _ = complete_checkout(
-        checkout_info=checkout_info,
-        manager=manager,
-        lines=lines,
-        payment_data={},
-        store_source=False,
-        user=customer_user,
-        app=app,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        order, _, _ = complete_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=customer_user,
+            app=app,
+        )
 
     # then
-    flush_post_commit_hooks()
-
     assert order
     assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert order.charge_status == OrderChargeStatus.FULL
+    assert order.status == OrderStatus.UNFULFILLED
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
@@ -1269,6 +1272,7 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     channel_USD,
     app,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     checkout = checkout_with_item_total_0
     checkout_user = customer_user
@@ -1291,17 +1295,17 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    order, action_required, action_data = complete_checkout(
-        checkout_info=checkout_info,
-        lines=lines,
-        manager=manager,
-        payment_data={},
-        store_source=False,
-        user=customer_user,
-        app=app,
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        order, action_required, action_data = complete_checkout(
+            checkout_info=checkout_info,
+            lines=lines,
+            manager=manager,
+            payment_data={},
+            store_source=False,
+            user=customer_user,
+            app=app,
+        )
 
-    flush_post_commit_hooks()
     (
         order_marked_as_paid,
         order_placed_event,
@@ -1678,7 +1682,7 @@ def test_complete_checkout_checkout_was_deleted_before_completing(
         order.save()
         Checkout.objects.filter(token=checkout.token).delete()
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", convert_checkout_to_order
     ):
         order_from_checkout, action_required, _ = complete_checkout(
@@ -1750,7 +1754,7 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
             app=app,
         )
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", call_checkout_complete
     ):
         order_from_checkout, action_required, _ = complete_checkout(
@@ -1818,7 +1822,7 @@ def test_complete_checkout_checkout_completed_in_the_meantime(
             app=app,
         )
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._reserve_stocks_without_availability_check",
         call_checkout_complete,
     ):
@@ -2184,6 +2188,7 @@ def test_checkout_complete_pick_transaction_flow(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2235,6 +2240,7 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2294,6 +2300,7 @@ def test_checkout_complete_pick_transaction_flow_not_authorized_no_active_paymen
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2344,6 +2351,7 @@ def test_checkout_complete_pick_payment_flow(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2404,6 +2412,7 @@ def test_checkout_complete_pick_payment_flow_not_authorized_active_payment(
         redirect_url=None,
         metadata_list=None,
         private_metadata_list=None,
+        is_automatic_completion=False,
     )
 
 
@@ -2455,7 +2464,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     checkout.shipping_method = shipping_method
     checkout.tracking_code = ""
     checkout.redirect_url = "https://www.example.com"
-    checkout.price_expiration = timezone.now() + timedelta(hours=2)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(hours=2)
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
@@ -2463,11 +2472,11 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
 
     def update_price_expiration(*args, **kwargs):
         # Invalidate checkout prices just after processing payment
-        checkout.price_expiration = timezone.now() - timedelta(hours=2)
+        checkout.price_expiration = timezone.now() - datetime.timedelta(hours=2)
         checkout.save(update_fields=["price_expiration"])
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", update_price_expiration
     ):
         order, action_required, _ = complete_checkout(
@@ -2684,3 +2693,77 @@ def test_complete_checkout_fail_handler_with_voucher_and_payment(
     assert not checkout.completing_started_at
     _payment_refund_or_void_mock.assert_called_once()
     _release_checkout_voucher_usage_mock.assert_called_once()
+
+
+def test_checkout_complete_with_voucher_0_total(
+    shipping_method,
+    checkout_with_item,
+    customer_user,
+    voucher_percentage,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    channel = checkout.channel
+
+    voucher_listing = voucher_percentage.channel_listings.get(channel=channel)
+    voucher_listing.discount_value = 100
+    voucher_listing.save(update_fields=["discount_value"])
+
+    shipping_listing = shipping_method.channel_listings.get(channel=channel)
+    shipping_listing.price_amount = 0
+    shipping_listing.save(update_fields=["price_amount"])
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    add_voucher_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_percentage,
+        voucher_percentage.codes.first(),
+    )
+    checkout_info, lines = calculations.fetch_checkout_data(
+        checkout_info, manager, lines, force_status_update=True
+    )
+
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.allow_unpaid_orders = True
+    channel.automatically_confirm_all_new_orders = True
+    channel.save(
+        update_fields=[
+            "order_mark_as_paid_strategy",
+            "allow_unpaid_orders",
+            "automatically_confirm_all_new_orders",
+        ]
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        order, _, _ = complete_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=customer_user,
+            app=None,
+        )
+
+    # then
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.lines.count() == 1
+    assert order.discounts.count() == 1
+    discount = order.discounts.first()
+    assert (
+        discount.amount_value == (order.undiscounted_total - order.total).gross.amount
+    )

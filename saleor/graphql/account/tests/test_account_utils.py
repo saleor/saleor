@@ -41,7 +41,7 @@ def test_can_user_manage_group_is_true(
     can_manage = can_user_manage_group(info, staff_user, permission_group_manage_users)
 
     # then
-    can_manage is True
+    assert can_manage is True
 
 
 def test_can_user_manage_group_superuser(
@@ -53,7 +53,7 @@ def test_can_user_manage_group_superuser(
     )
 
     # then
-    can_manage is True
+    assert can_manage is True
 
 
 def test_can_user_manage_group_no_channel_access(
@@ -69,7 +69,7 @@ def test_can_user_manage_group_no_channel_access(
     can_manage = can_user_manage_group(info, staff_user, permission_group_manage_apps)
 
     # then
-    can_manage is False
+    assert can_manage is False
 
 
 def test_can_user_manage_group_no_permissions(
@@ -87,7 +87,7 @@ def test_can_user_manage_group_no_permissions(
     )
 
     # then
-    can_manage is False
+    assert can_manage is False
 
 
 def test_can_manage_group_user_without_permissions(

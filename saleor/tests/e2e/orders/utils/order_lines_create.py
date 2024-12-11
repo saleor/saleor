@@ -11,6 +11,12 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
           amount
         }
       }
+      undiscountedShippingPrice {
+        amount
+      }
+      shippingPrice {
+        ...BaseTaxedMoney
+      }
       total {
         ...BaseTaxedMoney
       }

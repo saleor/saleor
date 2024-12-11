@@ -10,8 +10,6 @@ from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import (
-    ADDED_IN_313,
-    ADDED_IN_315,
     ADDED_IN_320,
     PREVIEW_FEATURE,
 )
@@ -44,9 +42,7 @@ class OrderGrantRefundCreateError(Error):
     code = OrderGrantRefundCreateErrorCode(description="The error code.", required=True)
     lines = NonNullList(
         OrderGrantRefundCreateLineError,
-        description="List of lines which cause the error."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="List of lines which cause the error.",
         required=False,
     )
 
@@ -76,15 +72,11 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund.")
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,
-        description="Lines to assign to granted refund."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="Lines to assign to granted refund.",
         required=False,
     )
     grant_refund_for_shipping = graphene.Boolean(
-        description="Determine if granted refund should include shipping costs."
-        + ADDED_IN_315
-        + PREVIEW_FEATURE,
+        description="Determine if granted refund should include shipping costs.",
         required=False,
     )
     transaction_id = graphene.ID(
@@ -122,9 +114,7 @@ class OrderGrantRefundCreate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Adds granted refund to the order." + ADDED_IN_313 + PREVIEW_FEATURE
-        )
+        description = "Adds granted refund to the order."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundCreateError
         doc_category = DOC_CATEGORY_ORDERS

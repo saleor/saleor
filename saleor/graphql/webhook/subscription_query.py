@@ -30,7 +30,7 @@ class SubscriptionQuery:
         self.events: list[str] = []
         self.error_code: Optional[str] = None
         self.errors = self.validate_query()
-        self.error_msg: str = ";".join(set([str(err.message) for err in self.errors]))
+        self.error_msg: str = ";".join({str(err.message) for err in self.errors})
 
     def get_filterable_channel_slugs(self) -> list[str]:
         """Get filterable channel slugs from the subscription.
@@ -157,7 +157,7 @@ class SubscriptionQuery:
                 code=WebhookErrorCode.MISSING_EVENT.value,
             )
 
-        return sorted(list(map(to_snake_case, events)))
+        return sorted(map(to_snake_case, events))
 
     @staticmethod
     def _get_subscription(ast: Document) -> Optional[OperationDefinition]:

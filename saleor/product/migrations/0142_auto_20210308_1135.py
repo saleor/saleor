@@ -10,72 +10,84 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="category",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="category_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="category",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="category_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="collection",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="collection_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="collection",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="collection_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="digitalcontent",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="digitalcontent_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="digitalcontent",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="digitalcontent_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="product_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="product_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="producttype",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="producttype_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="producttype",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="producttype_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="productvariant",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="productvariant_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="productvariant",
             index=django.contrib.postgres.indexes.GinIndex(

@@ -1,7 +1,6 @@
 from decimal import Decimal
 from unittest.mock import patch
 
-import before_after
 import graphene
 import pytest
 from django.utils import timezone
@@ -15,6 +14,7 @@ from .....payment.error_codes import PaymentErrorCode
 from .....payment.interface import StorePaymentMethodEnum
 from .....payment.models import ChargeStatus, Payment
 from .....plugins.manager import get_plugins_manager
+from .....tests import race_condition
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -763,7 +763,7 @@ def test_checkout_add_payment_run_multiple_times(
         user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.graphql.payment.mutations.payment."
         "checkout_payment_create.cancel_active_payments",
         call_payment_create_mutation,

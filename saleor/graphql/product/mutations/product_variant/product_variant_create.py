@@ -16,7 +16,6 @@ from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, ADDED_IN_310
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import DateTime, WeightScalar
@@ -64,32 +63,27 @@ class ProductVariantInput(BaseInputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=("Determines if variant is in preorder." + ADDED_IN_31)
+        description=("Determines if variant is in preorder.")
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
             "Determines maximum quantity of `ProductVariant`,"
-            "that can be bought in a single checkout." + ADDED_IN_31
+            "that can be bought in a single checkout."
         ),
     )
     metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the product variant metadata." + ADDED_IN_38
-        ),
+        description=("Fields required to update the product variant metadata."),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=(
-            "Fields required to update the product variant private metadata."
-            + ADDED_IN_38
-        ),
+        description=("Fields required to update the product variant private metadata."),
         required=False,
     )
     external_reference = graphene.String(
-        description="External ID of this product variant." + ADDED_IN_310,
+        description="External ID of this product variant.",
         required=False,
     )
 
@@ -164,8 +158,7 @@ class ProductVariantCreate(ModelMutation):
                 code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
                 params={"attributes": attribute_values.keys()},
             )
-        else:
-            used_attribute_values.append(attribute_values)
+        used_attribute_values.append(attribute_values)
 
     @classmethod
     def clean_input(
@@ -268,8 +261,8 @@ class ProductVariantCreate(ModelMutation):
                         "All required attributes must take a value.",
                         ProductErrorCode.REQUIRED.value,
                     )
-            except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
         else:
             if attributes:
                 raise ValidationError(

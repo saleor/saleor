@@ -103,15 +103,14 @@ def resolve_product(
     if id:
         _type, id = from_global_id_or_error(id, "Product")
         return qs.filter(id=id).first()
-    elif slug:
+    if slug:
         if slug_language_code:
             return qs.filter(
                 translations__language_code=slug_language_code, translations__slug=slug
             ).first()
 
         return qs.filter(slug=slug).first()
-    else:
-        return qs.filter(external_reference=external_reference).first()
+    return qs.filter(external_reference=external_reference).first()
 
 
 @traced_resolver
@@ -181,10 +180,9 @@ def resolve_variant(
     if id:
         _, id = from_global_id_or_error(id, "ProductVariant")
         return qs.filter(pk=id).first()
-    elif sku:
+    if sku:
         return qs.filter(sku=sku).first()
-    else:
-        return qs.filter(external_reference=external_reference).first()
+    return qs.filter(external_reference=external_reference).first()
 
 
 @traced_resolver
@@ -193,6 +191,7 @@ def resolve_product_variants(
     requestor,
     ids=None,
     channel: Optional[Channel] = None,
+    product_id: Optional[int] = None,
     limited_channel_access: bool = False,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
@@ -206,6 +205,9 @@ def resolve_product_variants(
             from_global_id_or_error(node_id, "ProductVariant")[1] for node_id in ids
         ]
         qs = qs.filter(pk__in=db_ids)
+
+    if product_id:
+        qs = qs.filter(product_id=product_id)
 
     channel_slug = channel.slug if channel else None
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)

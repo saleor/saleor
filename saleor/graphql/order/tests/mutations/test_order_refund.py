@@ -7,7 +7,6 @@ from .....order import FulfillmentStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....payment import ChargeStatus
-from .....tests.utils import flush_post_commit_hooks
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -75,7 +74,6 @@ def test_order_refund(
     assert refunded_fulfillment.total_refund_amount == amount
     assert refunded_fulfillment.shipping_refund_amount is None
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_refunded.assert_called_once_with(order, webhooks=set())
     assert amount < order.total.gross.amount
@@ -130,7 +128,6 @@ def test_order_fully_refunded(
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_refunded.assert_called_once_with(order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())
@@ -205,7 +202,6 @@ def test_order_refund_by_app(
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
 
-    flush_post_commit_hooks()
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_refunded.assert_called_once_with(order, webhooks=set())
     mock_order_fully_refunded.assert_called_once_with(order, webhooks=set())

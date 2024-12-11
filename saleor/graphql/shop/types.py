@@ -19,10 +19,6 @@ from ..app.types import App
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_35,
-    ADDED_IN_314,
-    ADDED_IN_315,
     ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
@@ -190,9 +186,7 @@ class Shop(graphene.ObjectType):
     )
     channel_currencies = PermissionsField(
         NonNullList(graphene.String),
-        description=(
-            "List of all currencies supported by shop's channels." + ADDED_IN_31
-        ),
+        description="List of all currencies supported by shop's channels.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -244,11 +238,11 @@ class Shop(graphene.ObjectType):
     )
     header_text = graphene.String(description="Header text.")
     fulfillment_auto_approve = graphene.Boolean(
-        description="Automatically approve all new fulfillments." + ADDED_IN_31,
+        description="Automatically approve all new fulfillments.",
         required=True,
     )
     fulfillment_allow_unpaid = graphene.Boolean(
-        description="Allow to approve fulfillments which are unpaid." + ADDED_IN_31,
+        description="Allow to approve fulfillments which are unpaid.",
         required=True,
     )
     track_inventory_by_default = graphene.Boolean(
@@ -269,7 +263,6 @@ class Shop(graphene.ObjectType):
         description=(
             "Default number of minutes stock will be reserved for "
             "anonymous checkout or null when stock reservation is disabled."
-            + ADDED_IN_31
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -278,7 +271,6 @@ class Shop(graphene.ObjectType):
         description=(
             "Default number of minutes stock will be reserved for "
             "authenticated checkout or null when stock reservation is disabled."
-            + ADDED_IN_31
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -286,7 +278,7 @@ class Shop(graphene.ObjectType):
         graphene.Int,
         description=(
             "Default number of maximum line quantity in single checkout "
-            "(per single checkout line)." + ADDED_IN_31
+            "(per single checkout line)."
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -315,16 +307,14 @@ class Shop(graphene.ObjectType):
     )
     enable_account_confirmation_by_email = PermissionsField(
         graphene.Boolean,
-        description=(
-            "Determines if account confirmation by email is enabled." + ADDED_IN_314
-        ),
+        description="Determines if account confirmation by email is enabled.",
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     allow_login_without_confirmation = PermissionsField(
         graphene.Boolean,
         description=(
             "Determines if user can login without confirmation when "
-            "`enableAccountConfirmation` is enabled." + ADDED_IN_315
+            "`enableAccountConfirmation` is enabled."
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -345,7 +335,7 @@ class Shop(graphene.ObjectType):
         ],
     )
     schema_version = graphene.String(
-        description="Minor Saleor API version." + ADDED_IN_35,
+        description="Minor Saleor API version.",
         required=True,
     )
     available_tax_apps = PermissionsField(

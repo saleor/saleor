@@ -12,6 +12,7 @@ mutation CreateCustomer ($input: UserCreateInput!) {
     }
     user {
       id
+      email
       metadata {
         key
         value
@@ -28,19 +29,9 @@ mutation CreateCustomer ($input: UserCreateInput!) {
 
 def create_customer(
     staff_api_client,
-    email,
-    metadata=None,
-    private_metadata=None,
-    is_active=False,
+    input_data,
 ):
-    variables = {
-        "input": {
-            "email": email,
-            "metadata": metadata,
-            "privateMetadata": private_metadata,
-            "isActive": is_active,
-        }
-    }
+    variables = {"input": input_data}
 
     response = staff_api_client.post_graphql(
         CUSTOMER_CREATE_MUTATION,

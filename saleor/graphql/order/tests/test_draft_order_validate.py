@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
+import datetime
 from unittest.mock import patch
 
 import pytest
-import pytz
 from django.core.exceptions import ValidationError
 
 from ....order.error_codes import OrderErrorCode
@@ -124,7 +123,8 @@ def test_validate_draft_order_with_product_available_for_purchase_in_future(
     line = order.lines.first()
     variant = line.variant
     variant.product.channel_listings.update(
-        available_for_purchase_at=datetime.now(pytz.UTC) + timedelta(days=2)
+        available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC)
+        + datetime.timedelta(days=2)
     )
     line.refresh_from_db()
 

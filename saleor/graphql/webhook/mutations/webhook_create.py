@@ -16,12 +16,7 @@ from ....webhook.validators import (
 from ...app.dataloaders import get_app_promise
 from ...app.utils import validate_app_is_not_removed
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_32,
-    ADDED_IN_312,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
@@ -65,17 +60,14 @@ class WebhookCreateInput(BaseInputObjectType):
         required=False,
     )
     query = graphene.String(
-        description="Subscription query used to define a webhook payload."
-        + ADDED_IN_32,
+        description="Subscription query used to define a webhook payload.",
         required=False,
     )
     custom_headers = JSONString(
         description=f"Custom headers, which will be added to HTTP request. "
         f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
         f"and {HEADERS_LENGTH_LIMIT} characters per header."
-        f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed."
-        + ADDED_IN_312
-        + PREVIEW_FEATURE,
+        f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.",
         required=False,
     )
 

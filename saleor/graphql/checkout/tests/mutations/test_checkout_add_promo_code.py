@@ -1,9 +1,8 @@
-from datetime import date, timedelta
+import datetime
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import call, patch
+from unittest.mock import patch
 
-import before_after
 import graphene
 import pytest
 from django.test import override_settings
@@ -18,7 +17,12 @@ from .....checkout.utils import add_variant_to_checkout, set_external_shipping_i
 from .....core.models import EventDelivery
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
-from .....product.models import Collection, ProductVariantChannelListing
+from .....product.models import (
+    Collection,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
+from .....tests import race_condition
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -272,15 +276,24 @@ def test_checkout_add_voucher_code_without_display_gross_prices(
     assert checkout_with_item.last_change == previous_checkout_last_change
 
 
-def test_checkout_add_voucher_code_variant_unavailable(
-    api_client, checkout_with_item, voucher
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_add_voucher_code_line_without_listing(
+    channel_listing_model, listing_filter_field, api_client, checkout_with_item, voucher
 ):
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
-    checkout_with_item.lines.first().variant.channel_listings.filter(
-        channel=checkout_with_item.channel
+    line = checkout_with_item.lines.first()
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_item.channel_id,
+        **{listing_filter_field: line.variant_id},
     ).delete()
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
@@ -531,7 +544,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale_collection_dele
     def delete_collections(*args, **kwargs):
         Collection.objects.all().delete()
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.graphql.product.dataloaders.products.CollectionsByProductIdLoader"
         ".batch_load",
         delete_collections,
@@ -1078,7 +1091,9 @@ def test_checkout_add_expired_gift_card_code(
     staff_api_client, checkout_with_item, gift_card
 ):
     # given
-    gift_card.expiry_date = date.today() - timedelta(days=10)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
     gift_card.save(update_fields=["expiry_date"])
 
     variables = {
@@ -1229,7 +1244,9 @@ def test_checkout_add_gift_card_code_in_active_gift_card(
 def test_checkout_add_gift_card_code_in_expired_gift_card(
     api_client, checkout_with_item, gift_card
 ):
-    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
     gift_card.save()
 
     variables = {
@@ -1582,20 +1599,12 @@ def test_checkout_add_voucher_triggers_webhooks(
     content = get_graphql_content(response)
     assert not content["data"]["checkoutAddPromoCode"]["errors"]
 
-    # confirm that event delivery was generated for each webhook.
+    assert wrapped_call_checkout_info_event.called
+
+    # confirm that event delivery was generated for each async webhook.
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    tax_delivery = EventDelivery.objects.get(webhook_id=tax_webhook.id)
-    shipping_methods_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_webhook.id,
-        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-    )
-    filter_shipping_delivery = EventDelivery.objects.get(
-        webhook_id=shipping_filter_webhook.id,
-        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
-    )
-
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": checkout_update_delivery.id},
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
@@ -1603,11 +1612,31 @@ def test_checkout_add_voucher_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-    mocked_send_webhook_request_sync.assert_has_calls(
-        [
-            call(shipping_methods_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(filter_shipping_delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT),
-            call(tax_delivery),
-        ]
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 3
+    assert not EventDelivery.objects.exclude(
+        webhook_id=checkout_updated_webhook.id
+    ).exists()
+
+    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
+        mocked_send_webhook_request_sync.mock_calls
     )
-    assert wrapped_call_checkout_info_event.called
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
+    assert (
+        shipping_methods_delivery.event_type
+        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    )
+    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id

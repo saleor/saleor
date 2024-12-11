@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -177,9 +176,7 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         price: Money,
         shipping_address: Optional["Address"] = None,
         country_code: Optional[str] = None,
-        lines: Union[
-            Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"], None
-        ] = None,
+        lines: Union[list["CheckoutLineInfo"], list["OrderLineInfo"], None] = None,
     ):
         if not shipping_address:
             return None

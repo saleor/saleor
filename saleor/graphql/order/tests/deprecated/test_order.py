@@ -63,9 +63,7 @@ def test_orders_total(
     # then
     amount = str(content["data"]["ordersTotal"]["gross"]["amount"])
     assert Money(amount, "USD") == order.total.gross
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 ORDER_LINE_DELETE_MUTATION = """

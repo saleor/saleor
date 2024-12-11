@@ -1,6 +1,6 @@
 import datetime
 import json
-from collections import namedtuple
+from typing import NamedTuple
 from unittest import mock
 
 import pytest
@@ -54,7 +54,11 @@ def payment_removed_app(payment_dummy):
     return payment_dummy
 
 
-WebhookTestData = namedtuple("WebhookTestData", "secret, event_type, data, message")
+class WebhookTestData(NamedTuple):
+    secret: str
+    event_type: WebhookEventAsyncType
+    data: str
+    message: bytes
 
 
 @pytest.fixture
@@ -72,8 +76,8 @@ def test_trigger_webhook_sync(mock_request, payment_app):
     trigger_webhook_sync(
         WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first(), False
     )
-    event_delivery = EventDelivery.objects.first()
-    mock_request.assert_called_once_with(event_delivery)
+    mock_request.assert_called_once()
+    assert not EventDelivery.objects.exists()
 
 
 @mock.patch(
@@ -155,10 +159,12 @@ def test_send_webhook_request_sync_successful_attempt(
     # when
     response_data = send_webhook_request_sync(event_delivery)
 
-    attempt = EventDeliveryAttempt.objects.first()
-
     # then
     mock_clear_delivery.assert_called_once_with(event_delivery)
+    mock_observability.assert_called_once()
+    assert not EventDeliveryAttempt.objects.exists()
+
+    attempt = mock_observability.mock_calls[0].args[0]
     assert event_delivery.status == EventDeliveryStatus.SUCCESS
     assert attempt.status == EventDeliveryStatus.SUCCESS
     assert attempt.duration == expected_data["duration"].total_seconds()

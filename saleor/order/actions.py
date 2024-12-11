@@ -1,6 +1,5 @@
 import logging
 from collections import defaultdict
-from collections.abc import Iterable
 from copy import deepcopy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, TypedDict
@@ -20,6 +19,7 @@ from ..core.utils.events import (
     webhook_async_event_requires_sync_webhooks_to_trigger,
 )
 from ..giftcard import GiftCardLineData
+from ..order.utils import order_lines_qs_select_for_update
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -70,6 +70,7 @@ from .notifications import (
     send_payment_confirmation,
 )
 from .utils import (
+    clean_order_line_quantities,
     get_valid_shipping_methods_for_order,
     order_line_needs_automatic_fulfillment,
     restock_fulfillment_lines,
@@ -283,9 +284,12 @@ def order_created(
     manager: "PluginsManager",
     from_draft: bool = False,
     site_settings: Optional["SiteSettings"] = None,
+    automatic: bool = False,
 ):
     order = order_info.order
-    events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
+    events.order_created_event(
+        order=order, user=user, app=app, from_draft=from_draft, automatic=automatic
+    )
 
     webhook_event_map = get_webhooks_for_multiple_events(
         WEBHOOK_EVENTS_FOR_ORDER_CREATED
@@ -1050,7 +1054,7 @@ def _increase_order_line_quantity(order_lines_info):
 
 
 def fulfill_order_lines(
-    order_lines_info: Iterable["OrderLineInfo"],
+    order_lines_info: list["OrderLineInfo"],
     manager: "PluginsManager",
     allow_stock_to_be_exceeded: bool = False,
 ):
@@ -1296,7 +1300,23 @@ def create_fulfillments(
         if approved
         else FulfillmentStatus.WAITING_FOR_APPROVAL
     )
+
+    order_line_quantities_to_fulfill: defaultdict[UUID, list[int]] = defaultdict(list)
+    for _, lines in fulfillment_lines_for_warehouses.items():
+        for line in lines:
+            order_line = line["order_line"]
+            order_line_quantities_to_fulfill[order_line.pk].append(line["quantity"])
+
     with traced_atomic_transaction():
+        # refresh order lines from db to prevent race condition
+        order_lines = order_lines_qs_select_for_update().filter(
+            pk__in=order_line_quantities_to_fulfill.keys()
+        )
+        quantities_for_lines: list[list[int]] = [
+            order_line_quantities_to_fulfill[line.pk] for line in order_lines
+        ]
+        clean_order_line_quantities(order_lines, quantities_for_lines)
+
         for warehouse_pk in fulfillment_lines_for_warehouses:
             fulfillment = Fulfillment.objects.create(
                 order=order, status=status, tracking_number=tracking_number
@@ -1609,7 +1629,7 @@ def create_replace_order(
     """Create draft order with lines to replace."""
 
     replace_order = _populate_replace_order_fields(original_order)
-    order_line_to_create: dict[OrderLineIDType, OrderLine] = dict()
+    order_line_to_create: dict[OrderLineIDType, OrderLine] = {}
     # transaction is needed to ensure data consistency for order lines
     with traced_atomic_transaction():
         # iterate over lines without fulfillment to get the items for replace.
@@ -1769,7 +1789,7 @@ def create_return_fulfillment(
             shipping_refund_amount=shipping_refund_amount,
             manager=manager,
         )
-        returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = dict()
+        returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
             [line_data.line.order_line_id for line_data in fulfillment_lines]
         )
@@ -1979,7 +1999,7 @@ def _process_refund(
     refund_shipping_costs: bool,
     manager: "PluginsManager",
 ):
-    lines_to_refund: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = dict()
+    lines_to_refund: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
     refund_data = RefundData(
         order_lines_to_refund=order_lines_to_refund,
         fulfillment_lines_to_refund=fulfillment_lines_to_refund,

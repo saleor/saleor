@@ -210,7 +210,7 @@ class I18nMixin:
                     )
                 }
             )
-        elif info and not all_permissions_required(info.context, required_permissions):
+        if info and not all_permissions_required(info.context, required_permissions):
             raise PermissionDenied(
                 f"To skip address validation, you need following permissions: "
                 f"{', '.join(perm.name for perm in required_permissions)}.",

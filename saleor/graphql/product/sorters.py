@@ -21,7 +21,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
 )
-from ..core.descriptions import ADDED_IN_38, CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
 
@@ -192,7 +192,7 @@ class ProductOrderField(BaseEnum):
             ),
             ProductOrderField.LAST_MODIFIED_AT.name: "update date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ProductOrderField.RATING.name: "rating.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            ProductOrderField.CREATED_AT.name: "creation date." + ADDED_IN_38,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}"

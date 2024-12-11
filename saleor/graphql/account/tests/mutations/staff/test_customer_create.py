@@ -191,7 +191,7 @@ def test_customer_create(
 
     mocked_customer_metadata_updated.assert_called_once_with(new_user)
 
-    assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
+    assert {shipping_address, billing_address} == set(new_user.addresses.all())
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer
@@ -314,7 +314,7 @@ def test_customer_create_as_app(
 
     mocked_customer_metadata_updated.assert_called_once_with(new_user)
 
-    assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
+    assert {shipping_address, billing_address} == set(new_user.addresses.all())
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer

@@ -8,7 +8,6 @@ from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....order import OrderEvents, OrderStatus
 from .....order.models import OrderEvent, OrderLine
 from .....product.models import ProductVariant
-from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
 DELETE_VARIANT_BY_SKU_MUTATION = """
@@ -44,7 +43,6 @@ def test_delete_variant_by_sku(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     # then
@@ -87,7 +85,6 @@ def test_delete_variant(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -113,7 +110,6 @@ def test_delete_variant_remove_checkout_lines(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     assert data["productVariant"]["sku"] == variant.sku
@@ -146,7 +142,6 @@ def test_delete_variant_with_image(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -399,7 +394,6 @@ def test_delete_variant_delete_product_channel_listing_without_available_channel
 
     # then
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -438,7 +432,6 @@ def test_delete_variant_delete_product_channel_listing_not_deleted(
 
     # then
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     product_variant_deleted_webhook_mock.assert_called_once_with(variant)
@@ -490,7 +483,6 @@ def test_delete_variant_by_external_reference(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["productVariantDelete"]
 
     # then

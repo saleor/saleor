@@ -4,7 +4,6 @@ from graphql.error import GraphQLError
 
 from ....permission.enums import SitePermissions
 from ....product import models
-from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import LanguageCodeEnum, ProductVariantTranslateErrorCode
 from ...core.types import (
@@ -74,11 +73,7 @@ class ProductVariantBulkTranslate(BaseBulkTranslateMutation):
         )
 
     class Meta:
-        description = (
-            "Creates/updates translations for products variants."
-            + ADDED_IN_315
-            + PREVIEW_FEATURE
-        )
+        description = "Creates/updates translations for products variants."
         base_model = models.ProductVariant
         translation_model = models.ProductVariantTranslation
         translation_fields = ["name"]

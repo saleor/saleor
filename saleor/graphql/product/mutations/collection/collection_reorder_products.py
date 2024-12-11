@@ -65,7 +65,7 @@ class CollectionReorderProducts(BaseMutation):
             collection = models.Collection.objects.prefetch_related(
                 "collectionproduct"
             ).get(pk=pk)
-        except ObjectDoesNotExist:
+        except ObjectDoesNotExist as e:
             raise ValidationError(
                 {
                     "collection_id": ValidationError(
@@ -73,7 +73,7 @@ class CollectionReorderProducts(BaseMutation):
                         code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
-            )
+            ) from e
 
         m2m_related_field = collection.collectionproduct
 
@@ -87,7 +87,7 @@ class CollectionReorderProducts(BaseMutation):
 
             try:
                 m2m_info = m2m_related_field.get(product_id=int(product_pk))
-            except ObjectDoesNotExist:
+            except ObjectDoesNotExist as e:
                 raise ValidationError(
                     {
                         "moves": ValidationError(
@@ -95,7 +95,7 @@ class CollectionReorderProducts(BaseMutation):
                             code=CollectionErrorCode.NOT_FOUND.value,
                         )
                     }
-                )
+                ) from e
             operations[m2m_info.pk] = move_info.sort_order
 
         with traced_atomic_transaction():

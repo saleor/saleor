@@ -158,8 +158,10 @@ class AuthorizeNetGatewayPlugin(BasePlugin):
             return previous_value
         try:
             payment = Payment.objects.get(pk=payment_information.payment_id)
-        except Payment.DoesNotExist:
-            raise PaymentError(f"Cannot find Payment {payment_information.payment_id}.")
+        except Payment.DoesNotExist as e:
+            raise PaymentError(
+                f"Cannot find Payment {payment_information.payment_id}."
+            ) from e
         return refund(
             payment_information, payment.cc_last_digits, self._get_gateway_config()
         )

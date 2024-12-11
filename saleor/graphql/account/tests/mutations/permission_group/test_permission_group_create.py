@@ -94,7 +94,7 @@ def test_permission_group_create_mutation(
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
-        == set(perm.lower() for perm in variables["input"]["addPermissions"])
+        == {perm.lower() for perm in variables["input"]["addPermissions"]}
     )
     assert (
         {user["email"] for user in permission_group_data["users"]}
@@ -359,7 +359,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
-        == set(perm.lower() for perm in variables["input"]["addPermissions"])
+        == {perm.lower() for perm in variables["input"]["addPermissions"]}
     )
 
 
@@ -547,7 +547,7 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
-        == set(perm.lower() for perm in variables["input"]["addPermissions"])
+        == {perm.lower() for perm in variables["input"]["addPermissions"]}
     )
     assert (
         {user["email"] for user in data["group"]["users"]}

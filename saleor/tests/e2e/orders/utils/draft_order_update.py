@@ -11,6 +11,7 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
     order {
       id
       lines {
+        id
         totalPrice {
           ...BaseTaxedMoney
         }
@@ -28,11 +29,25 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
       total {
         ...BaseTaxedMoney
       }
+      undiscountedTotal {
+        ...BaseTaxedMoney
+      }
       voucherCode
       voucher {
         id
         code
         discountValue
+        codes(first: 10) {
+            edges {
+              node {
+                id
+                code
+                isActive
+                used
+              }
+            }
+            totalCount
+          }
       }
       discounts {
         id

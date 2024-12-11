@@ -12,7 +12,6 @@ from .....product import models
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -25,7 +24,7 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         id = graphene.ID(required=False, description="ID of a product to delete.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a product to delete. {ADDED_IN_310}",
+            description="External ID of a product to delete.",
         )
 
     class Meta:

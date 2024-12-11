@@ -80,7 +80,7 @@ class PaymentCheckBalance(BaseMutation):
         except PaymentError as e:
             raise ValidationError(
                 str(e), code=PaymentErrorCode.BALANCE_CHECK_ERROR.value
-            )
+            ) from e
 
         return PaymentCheckBalance(data=data)
 

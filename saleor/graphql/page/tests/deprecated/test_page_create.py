@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+import datetime
 
 import graphene
-import pytz
 from django.utils.text import slugify
 
 from .....page.error_codes import PageErrorCode
@@ -58,7 +57,9 @@ def test_page_create_mutation_with_publication_date(
     page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
-    publication_date = datetime.now(pytz.utc) + timedelta(days=5)
+    publication_date = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        days=5
+    )
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
     # Default attributes defined in product_type fixture
@@ -116,8 +117,10 @@ def test_page_create_mutation_publication_date_and_published_at_provided(
     page_content = dummy_editorjs("test content", True)
     page_title = "test title"
     page_is_published = True
-    publication_date = datetime.now(pytz.utc) + timedelta(days=5)
-    published_at = datetime.now(pytz.utc) + timedelta(days=5)
+    publication_date = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
+        days=5
+    )
+    published_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=5)
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
     # test creating root page

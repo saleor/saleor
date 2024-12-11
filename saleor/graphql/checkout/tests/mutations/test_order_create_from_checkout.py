@@ -1,10 +1,9 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
-import pytz
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -22,8 +21,7 @@ from .....order import OrderOrigin, OrderStatus
 from .....order.models import Fulfillment, Order
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
-from .....product.models import ProductVariantChannelListing
-from .....tests.utils import flush_post_commit_hooks
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -538,13 +536,11 @@ def test_order_from_checkout_gift_card_bought(
     assert not data["errors"]
 
     assert Order.objects.count() == orders_count + 1
-    flush_post_commit_hooks()
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
-    flush_post_commit_hooks()
     send_notification_mock.assert_called_once_with(
         None,
         app,
@@ -775,6 +771,7 @@ def test_order_from_checkout_with_voucher(
     assert order_discount.type == DiscountType.VOUCHER
     assert order_discount.voucher == voucher_percentage
     assert order_discount.voucher_code == code.code
+    assert order.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -1411,6 +1408,9 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     top_price, variant_id = max(
         variant_listings.values_list("discounted_price_amount", "variant")
     )
+    variant_listing = [
+        listing for listing in variant_listings if listing.variant_id == variant_id
+    ][0]
 
     # add gift reward
     gift_line = CheckoutLine.objects.create(
@@ -1419,6 +1419,7 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
         variant_id=variant_id,
         is_gift=True,
         currency="USD",
+        undiscounted_unit_price_amount=variant_listing.price_amount,
     )
     CheckoutLineDiscount.objects.create(
         line=gift_line,
@@ -1624,12 +1625,15 @@ def test_order_from_checkout_insufficient_stock_reserved_by_other_user(
     other_checkout_line = other_checkout.lines.create(
         variant=checkout_line.variant,
         quantity=quantity_available,
+        undiscounted_unit_price_amount=checkout_line.variant.channel_listings.get(
+            channel_id=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     checkout_line.quantity = 1
@@ -1679,7 +1683,7 @@ def test_order_from_checkout_own_reservation(
         checkout_line=checkout_line,
         stock=stock,
         quantity_reserved=quantity_available,
-        reserved_until=timezone.now() + timedelta(minutes=5),
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
     )
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -2061,7 +2065,7 @@ def test_order_from_draft_create_with_preorder_variant(
 
     assert order.lines.count() == len(variants_and_quantities)
     for variant_id, quantity in variants_and_quantities.items():
-        order.lines.get(variant_id=variant_id).quantity == quantity
+        assert order.lines.get(variant_id=variant_id).quantity == quantity
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
 
@@ -2139,7 +2143,16 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     assert Order.objects.count() == initial_order_count
 
 
-def test_order_from_draft_create_variant_channel_listing_does_not_exist(
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_order_from_checkout_create_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
     checkout_with_items,
     address,
     shipping_method,
@@ -2160,7 +2173,11 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
-    checkout_line_variant.channel_listings.get(channel__id=checkout.channel_id).delete()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: checkout_line_variant.id},
+    ).delete()
 
     lines, _ = fetch_checkout_lines(checkout)
 
@@ -2303,7 +2320,8 @@ def test_order_from_draft_create_product_channel_listing_does_not_exist(
 
 
 @pytest.mark.parametrize(
-    "available_for_purchase", [None, datetime.now(pytz.UTC) + timedelta(days=1)]
+    "available_for_purchase",
+    [None, datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=1)],
 )
 def test_order_from_draft_create_product_channel_listing_not_available_for_purchase(
     app_api_client,

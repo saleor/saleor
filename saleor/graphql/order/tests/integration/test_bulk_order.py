@@ -20,7 +20,7 @@ from ..mutations.test_draft_order_complete import DRAFT_ORDER_COMPLETE_MUTATION
 from ..mutations.test_fulfillment_return_products import ORDER_FULFILL_RETURN_MUTATION
 from ..mutations.test_order_bulk_create import (
     ORDER_BULK_CREATE,
-    order_bulk_input,  # noqa F401
+    order_bulk_input,  # noqa: F401
 )
 from ..mutations.test_order_fulfill import ORDER_FULFILL_MUTATION
 
@@ -30,7 +30,7 @@ def test_create_order_from_imported_draft_order(
     staff_api_client,
     permission_manage_orders_import,
     permission_group_manage_orders,
-    order_bulk_input,  # noqa F881
+    order_bulk_input,  # noqa: F811
     product,
     channel_USD,
 ):
@@ -76,7 +76,7 @@ def test_fulfill_imported_order(
     staff_api_client,
     permission_manage_orders_import,
     permission_group_manage_orders,
-    order_bulk_input,  # noqa F881
+    order_bulk_input,  # noqa: F811
     product,
     warehouse,
     channel_USD,
@@ -140,7 +140,7 @@ def test_return_and_refund_imported_order(
     permission_manage_orders_import,
     permission_group_manage_orders,
     permission_manage_payments,
-    order_bulk_input,  # noqa F881
+    order_bulk_input,  # noqa: F811
     product,
     warehouse,
     channel_USD,
@@ -224,7 +224,7 @@ def test_filter_imported_orders(
     staff_api_client,
     permission_manage_orders_import,
     permission_group_manage_orders,
-    order_bulk_input,  # noqa F881
+    order_bulk_input,  # noqa: F811
     product,
     channel_USD,
 ):

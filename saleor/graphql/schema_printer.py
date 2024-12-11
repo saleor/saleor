@@ -232,7 +232,11 @@ def print_implemented_interfaces(type_: GraphQLObjectType) -> str:
 
 
 def print_object(type_: GrapheneObjectType) -> str:
-    include_doc_category_directives = type_.name in ["Mutation", "Query"]
+    include_doc_category_directives = type_.name in [
+        "Mutation",
+        "Query",
+        "Subscription",
+    ]
     return (
         print_description(type_)
         + f"type {type_.name}"

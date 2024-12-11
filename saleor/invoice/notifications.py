@@ -31,7 +31,7 @@ def send_invoice(
     def _generate_payload():
         payload = {
             "invoice": get_invoice_payload(invoice),
-            "recipient_email": invoice.order.get_customer_email(),  # type: ignore
+            "recipient_email": invoice.order.get_customer_email(),  # type: ignore[union-attr]
             "requester_user_id": to_global_id_or_none(staff_user),
             "requester_app_id": to_global_id_or_none(app) if app else None,
             **get_site_context(),

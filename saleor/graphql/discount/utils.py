@@ -271,7 +271,7 @@ def _handle_or_data(
 
 
 def contains_filter_operator(input: dict[str, Union[dict, str, list, bool]]) -> bool:
-    return any([operator in input for operator in ["AND", "OR", "NOT"]])
+    return any(operator in input for operator in ["AND", "OR", "NOT"])
 
 
 def _handle_predicate(
@@ -284,14 +284,15 @@ def _handle_predicate(
 ):
     if predicate_type == PredicateObjectType.CATALOGUE:
         return _handle_catalogue_predicate(result_qs, base_qs, predicate_data, operator)
-    elif predicate_type == PredicateObjectType.CHECKOUT:
+    if predicate_type == PredicateObjectType.CHECKOUT:
         return _handle_checkout_predicate(
             result_qs, base_qs, predicate_data, operator, currency
         )
-    elif predicate_type == PredicateObjectType.ORDER:
+    if predicate_type == PredicateObjectType.ORDER:
         return _handle_order_predicate(
             result_qs, base_qs, predicate_data, operator, currency
         )
+    return None
 
 
 def _handle_catalogue_predicate(

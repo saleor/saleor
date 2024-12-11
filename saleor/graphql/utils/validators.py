@@ -65,8 +65,7 @@ def __queries_or_introspection_in_inline_fragment(
         is_query and not fragment.type_condition
     ):
         return __queries_or_introspection_in_selections(selections, is_query=True)
-    else:
-        return __queries_or_introspection_in_selections(selections, is_query=False)
+    return __queries_or_introspection_in_selections(selections, is_query=False)
 
 
 def __queries_or_introspection_in_operation_definition(definition: OperationDefinition):

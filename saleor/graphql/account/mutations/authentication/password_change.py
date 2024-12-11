@@ -62,8 +62,8 @@ class PasswordChange(BaseMutation):
             cls.raise_invalid_credentials()
         try:
             password_validation.validate_password(new_password, user)
-        except ValidationError as error:
-            raise ValidationError({"new_password": error})
+        except ValidationError as e:
+            raise ValidationError({"new_password": e}) from e
 
         user.set_password(new_password)
         user.save(update_fields=["password", "updated_at"])
