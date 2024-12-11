@@ -20,6 +20,19 @@ def description(enum):
     return None
 
 
+class CircuitBreakerState:
+    CLOSED = "closed"
+    OPEN = "open"
+
+    CHOICES = [
+        (CLOSED, "closed"),
+        (OPEN, "open"),
+    ]
+
+
+CircuitBreakerStateEnum = to_enum(CircuitBreakerState)
+CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
+
 AppTypeEnum = to_enum(AppType, description=description)
 AppTypeEnum.doc_category = DOC_CATEGORY_APPS
 
