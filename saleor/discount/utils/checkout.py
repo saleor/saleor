@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from django.conf import settings
 from django.db import transaction
@@ -93,7 +93,11 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     )
 
 
-def prepare_checkout_line_discount_objects_for_catalogue_promotions(lines_info):
+def prepare_checkout_line_discount_objects_for_catalogue_promotions(
+    lines_info: list["CheckoutLineInfo"],
+) -> Optional[
+    tuple[list[dict], list[CheckoutLineDiscount], list[CheckoutLineDiscount], list[str]]
+]:
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[CheckoutLineDiscount] = []
     line_discounts_to_remove: list[CheckoutLineDiscount] = []

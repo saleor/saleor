@@ -1,13 +1,17 @@
 from collections import defaultdict
+from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....account.models import User
+from ....app.models import App
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
-from ....order import events, models
+from ....order import events
+from ....order import models as order_models
 from ....order.error_codes import OrderErrorCode
-from ....order.fetch import fetch_order_lines
+from ....order.fetch import OrderLineInfo, fetch_order_lines
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     add_variant_to_order,
@@ -15,6 +19,8 @@ from ....order.utils import (
     recalculate_order_weight,
 )
 from ....permission.enums import OrderPermissions
+from ....plugins.manager import PluginsManager
+from ....product import models as product_models
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -31,6 +37,7 @@ from ..utils import (
 from .draft_order_create import OrderLineCreateInput
 from .utils import (
     EditableOrderValidationMixin,
+    VariantData,
     call_event_by_order_status,
     get_variant_rule_info_map,
 )
@@ -60,7 +67,11 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     @classmethod
     def validate_lines(
-        cls, info: ResolveInfo, data, existing_lines_info, variant_rule_map
+        cls,
+        info: ResolveInfo,
+        data: list,
+        existing_lines_info: list[OrderLineInfo],
+        variant_rule_map: dict[str, VariantData],
     ):
         grouped_lines_data: list[OrderLineData] = []
         lines_data_map: dict[str, OrderLineData] = defaultdict(OrderLineData)
@@ -73,7 +84,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         for input_line in data:
             variant_id: str = input_line["variant_id"]
             force_new_line = input_line["force_new_line"]
-            variant_rule_data = variant_rule_map.get(variant_id)
+            variant_rule_data = variant_rule_map[variant_id]
             variant = variant_rule_data.variant
             quantity = input_line["quantity"]
 
@@ -122,7 +133,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return grouped_lines_data
 
     @classmethod
-    def validate_variants(cls, order, variants):
+    def validate_variants(
+        cls, order: order_models.Order, variants: list[product_models.ProductVariant]
+    ):
         try:
             channel = order.channel
             validate_product_is_published_in_channel(variants, channel)
@@ -132,8 +145,14 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(e) from e
 
     @staticmethod
-    def add_lines_to_order(order, lines_data, user, app, manager):
-        added_lines: list[models.OrderLine] = []
+    def add_lines_to_order(
+        order: order_models.Order,
+        lines_data: list[OrderLineData],
+        user: Optional[User],
+        app: Optional[App],
+        manager: PluginsManager,
+    ):
+        added_lines: list[order_models.OrderLine] = []
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(
@@ -207,7 +226,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return OrderLinesCreate(order=order, order_lines=added_lines)
 
     @classmethod
-    def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info) -> None | str:
+    def _find_line_id_for_variant_if_exist(
+        cls, variant_id: int, lines_info: list[OrderLineInfo]
+    ) -> None | str:
         """Return line id by using provided variantId parameter."""
         if not lines_info:
             return None

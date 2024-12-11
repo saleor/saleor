@@ -66,6 +66,7 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
+    from ..graphql.order.utils import OrderLineData
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
@@ -328,12 +329,12 @@ def create_order_line(
 
 @traced_atomic_transaction()
 def add_variant_to_order(
-    order,
-    line_data,
-    user,
-    app,
-    manager,
-    allocate_stock=False,
+    order: Order,
+    line_data: "OrderLineData",
+    user: Optional["User"],
+    app: Optional["App"],
+    manager: "PluginsManager",
+    allocate_stock: bool = False,
 ) -> OrderLine:
     """Add total_quantity of variant to order.
 
@@ -524,15 +525,15 @@ def _update_allocations_for_line(
 
 
 def change_order_line_quantity(
-    user,
-    app,
-    line_info,
+    user: Optional["User"],
+    app: Optional["App"],
+    line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
     channel: "Channel",
     manager: "PluginsManager",
-    send_event=True,
-    update_fields=None,
+    send_event: bool = True,
+    update_fields: Optional[list[str]] = None,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
