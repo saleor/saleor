@@ -32,6 +32,11 @@ mutation checkoutLinesAdd($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
           amount
         }
       }
+      totalPrice {
+        gross {
+          amount
+        }
+      }
     }
     errors {
       field
