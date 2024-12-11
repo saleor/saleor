@@ -2794,6 +2794,9 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
 
   """App's brand data."""
   brand: AppBrand
+
+  """Circuit breaker state, if open, sync webhooks operation is disrupted."""
+  breakerState: CircuitBreakerStateEnum!
 }
 
 interface ObjectWithMetadata {
@@ -3000,6 +3003,11 @@ type AppBrandLogo @doc(category: "Apps") {
 enum IconThumbnailFormatEnum {
   ORIGINAL
   WEBP
+}
+
+enum CircuitBreakerStateEnum @doc(category: "Apps") {
+  CLOSED
+  OPEN
 }
 
 type EventDeliveryCountableConnection {

@@ -1,3 +1,4 @@
+import logging
 import time
 from typing import TYPE_CHECKING
 
@@ -8,6 +9,9 @@ from saleor.webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
     from .....webhook.models import Webhook
+
+
+logger = logging.getLogger(__name__)
 
 
 # TODO - check - given how this is running in production (gunicorn, uvicorn) does this code NEED
@@ -56,6 +60,11 @@ class BreakerBoard:
 
         if (errors / total) * 100 >= self.failure_threshold:
             self.storage.update_open(app_id, int(time.time()))
+            logger.info(
+                "[App ID: %r] Circuit breaker tripped, cooldown is %r [seconds].",
+                app_id,
+                self.cooldown_seconds,
+            )
 
     def register_success(self, app_id: int):
         self.storage.register_event_returning_count(app_id, "total", self.ttl_seconds)
@@ -65,6 +74,7 @@ class BreakerBoard:
             return
 
         if last_open < (time.time() - self.cooldown_seconds):
+            logger.info("[App ID: %r] Circuit breaker recovered.", app_id)
             self.storage.update_open(app_id, 0)
 
     def __call__(self, func):
@@ -97,6 +107,7 @@ class BreakerBoard:
 def initialize_breaker_board():
     if not settings.ENABLE_BREAKER_BOARD:
         return None
+
     storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)  # type: ignore[arg-type]
     return BreakerBoard(
         storage=storage_class(),
