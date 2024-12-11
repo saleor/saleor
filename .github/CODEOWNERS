@@ -1,2 +1,1 @@
-.github/workflows/* @saleor/infra-guild
 /saleor/plugins/openid_connect/ @saleor/platform-experience
