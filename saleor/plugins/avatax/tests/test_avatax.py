@@ -6372,12 +6372,12 @@ def test_get_checkout_tax_data_set_tax_error(
     assert checkout_with_item.tax_error == "Empty tax data."
 
 
-def test_validate_plugin_tax_data_no_data(order_with_lines, lines_info):
+def test_validate_plugin_tax_data_no_data(lines_info):
     # given
     tax_data = {}
 
     # when
-    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info)
 
     # then
     assert error_message == TaxDataErrorMessage.EMPTY
@@ -6406,34 +6406,10 @@ def test_validate_plugin_tax_data_with_negative_values(lines_info, caplog):
     }
 
     # when
-    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info)
 
     # then
     assert error_message == TaxDataErrorMessage.NEGATIVE_VALUE
-
-
-def test_validate_plugin_tax_data_line_number(lines_info, caplog):
-    # given
-    tax_data = {
-        "lines": [
-            {
-                "lineAmount": 30.0000,
-                "quantity": 3.0,
-                "itemCode": "SKU_A",
-            },
-            {
-                "lineAmount": 8.1300,
-                "quantity": 1.0,
-                "itemCode": "Shipping",
-            },
-        ]
-    }
-
-    # when
-    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
-
-    # then
-    assert error_message == TaxDataErrorMessage.LINE_NUMBER
 
 
 def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
@@ -6459,7 +6435,7 @@ def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
     }
 
     # when
-    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info, True)
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info)
 
     # then
     assert error_message == TaxDataErrorMessage.OVERFLOW

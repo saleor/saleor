@@ -1,12 +1,12 @@
 import datetime
 from unittest.mock import patch
 
-import graphene
 import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ....account.error_codes import AccountErrorCode
+from ....account.models import User
 from ....account.throttling import (
     get_cache_key_blocked_ip,
     get_cache_key_failed_ip,
@@ -75,9 +75,9 @@ def test_customer_should_not_be_able_to_perform_credential_guessing_attacks_core
         user_password,
         channel_slug,
     )
-    user_id = user_account["user"]["id"]
-    assert user_id is not None
-    _, user_db_id = graphene.Node.from_global_id(user_id)
+    user_object = User.objects.last()
+    assert user_object
+    user_db_id = user_object.pk
     assert user_account["user"]["isActive"] is True
 
     # Step 2 - First attempt of logging with an invalid password

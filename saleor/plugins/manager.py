@@ -448,15 +448,13 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
-        default_value = base_calculations.calculate_base_line_total_price(
-            checkout_line_info,
-        )
         # apply entire order discount or discount from order promotion
-        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            default_value,
+        default_value = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info,
+                lines,
+                checkout_line_info,
+            )
         )
         default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
@@ -525,15 +523,13 @@ class PluginsManager(PaymentInterface):
         plugin_ids: Optional[list[str]] = None,
     ) -> TaxedMoney:
         quantity = checkout_line_info.line.quantity
-        default_value = base_calculations.calculate_base_line_unit_price(
-            checkout_line_info
-        )
         # apply entire order discount
-        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info,
-            lines,
-            checkout_line_info,
-            default_value * quantity,
+        total_value = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info,
+                lines,
+                checkout_line_info,
+            )
         )
         default_taxed_value = TaxedMoney(
             net=total_value / quantity, gross=total_value / quantity
@@ -908,12 +904,12 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_stock_updated(self, stock: "Stock", webhooks=None):
+    def product_variant_stocks_updated(self, stocks: list["Stock"], webhooks=None):
         default_value = None
         self.__run_method_on_plugins(
-            "product_variant_stock_updated",
+            "product_variant_stocks_updated",
             default_value,
-            stock,
+            stocks,
             webhooks=webhooks,
             channel_slug=None,
         )
@@ -1427,10 +1423,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def page_type_deleted(self, page_type: "PageType"):
+    def page_type_deleted(self, page_type: "PageType", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "page_type_deleted", default_value, page_type, channel_slug=None
+            "page_type_deleted",
+            default_value,
+            page_type,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
@@ -1715,10 +1715,14 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def attribute_created(self, attribute: "Attribute"):
+    def attribute_created(self, attribute: "Attribute", webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "attribute_created", default_value, attribute, channel_slug=None
+            "attribute_created",
+            default_value,
+            attribute,
+            webhooks=webhooks,
+            channel_slug=None,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.
@@ -2474,16 +2478,24 @@ class PluginsManager(PaymentInterface):
         )
         return response
 
-    def translation_created(self, translation: "Translation"):
+    def translations_created(self, translations: list["Translation"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_created", default_value, translation, channel_slug=None
+            "translations_created",
+            default_value,
+            translations,
+            channel_slug=None,
+            webhooks=webhooks,
         )
 
-    def translation_updated(self, translation: "Translation"):
+    def translations_updated(self, translations: list["Translation"], webhooks=None):
         default_value = None
         return self.__run_method_on_plugins(
-            "translation_updated", default_value, translation, channel_slug=None
+            "translations_updated",
+            default_value,
+            translations,
+            channel_slug=None,
+            webhooks=webhooks,
         )
 
     def get_all_plugins(self, active_only=False):
@@ -2868,12 +2880,16 @@ class PluginsManager(PaymentInterface):
         checkout: "Checkout",
         channel: "Channel",
         available_shipping_methods: list["ShippingMethodData"],
+        pregenerated_subscription_payloads: Optional[dict] = None,
     ) -> list[ExcludedShippingMethod]:
+        if pregenerated_subscription_payloads is None:
+            pregenerated_subscription_payloads = {}
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
             [],
             checkout,
             available_shipping_methods,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             channel_slug=channel.slug,
         )
 

@@ -29,6 +29,7 @@ from ....tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_lin
 from ....warehouse.models import Allocation, PreorderAllocation, Stock
 from ... import OrderOrigin, OrderStatus
 from ...actions import cancel_fulfillment, fulfill_order_lines
+from ...calculations import remove_tax
 from ...events import (
     OrderEvents,
     fulfillment_refunded_event,
@@ -260,6 +261,73 @@ def order_list_with_cc_orders(orders, warehouse_for_cc):
 
 
 @pytest.fixture
+def order_lines_generator():
+    def create_order_line(
+        order, variants, unit_prices, quantities, create_allocations=True
+    ):
+        channel = order.channel
+        order_lines = []
+        allocations = []
+        stocks_to_update = []
+        variant_channel_listings_map = {
+            cl.variant_id: cl
+            for cl in ProductVariantChannelListing.objects.filter(
+                variant__in=variants, channel=channel
+            )
+        }
+        for variant, price, quantity in zip(variants, unit_prices, quantities):
+            product = variant.product
+            variant_channel_listing = variant_channel_listings_map[variant.id]
+            currency = channel.currency_code
+            base_price = Money(price, currency)
+            net = Money(price, channel.currency_code)
+            gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+            unit_price = TaxedMoney(net=net, gross=gross)
+            order_line = OrderLine(
+                order=order,
+                product_name=str(product),
+                variant_name=str(variant),
+                product_sku=variant.sku,
+                product_variant_id=variant.get_global_id(),
+                is_shipping_required=variant.is_shipping_required(),
+                is_gift_card=variant.is_gift_card(),
+                quantity=quantity,
+                variant=variant,
+                unit_price=unit_price,
+                total_price=unit_price * quantity,
+                undiscounted_unit_price=unit_price,
+                undiscounted_total_price=unit_price * quantity,
+                base_unit_price=base_price,
+                undiscounted_base_unit_price=base_price,
+                tax_rate=Decimal("0.23"),
+                **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
+            )
+            order_lines.append(order_line)
+            variant_channel_listing.price_amount = price
+            variant_channel_listing.discounted_price_amount = price
+            if create_allocations:
+                stock = variant.stocks.first()
+                allocation = Allocation(
+                    order_line=order_line, stock=stock, quantity_allocated=quantity
+                )
+                allocations.append(allocation)
+                stock.quantity_allocated += quantity
+                stocks_to_update.append(stock)
+
+        OrderLine.objects.bulk_create(order_lines)
+        if allocations:
+            Allocation.objects.bulk_create(allocations)
+            Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+        ProductVariantChannelListing.objects.bulk_update(
+            variant_channel_listings_map.values(),
+            ["price_amount", "discounted_price_amount"],
+        )
+        return order_lines
+
+    return create_order_line
+
+
+@pytest.fixture
 def order_with_lines(
     order,
     product_type,
@@ -268,6 +336,7 @@ def order_with_lines(
     warehouse,
     channel_USD,
     default_tax_class,
+    order_lines_generator,
 ):
     product = Product.objects.create(
         name="Test product",
@@ -283,44 +352,17 @@ def order_with_lines(
         visible_in_listings=True,
         available_for_purchase_at=datetime.datetime.now(tz=datetime.UTC),
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_AA")
-    channel_listing = ProductVariantChannelListing.objects.create(
-        variant=variant,
+    variant_1_quantity = 3
+    variant_1 = ProductVariant.objects.create(product=product, sku="SKU_AA")
+    ProductVariantChannelListing.objects.create(
+        variant=variant_1,
         channel=channel_USD,
         price_amount=Decimal(10),
         discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
-    stock = Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=5
-    )
-    base_price = variant.get_price(channel_listing)
-    currency = base_price.currency
-    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
-    quantity = 3
-    unit_price = TaxedMoney(net=base_price, gross=gross)
-    line = order.lines.create(
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        product_variant_id=variant.get_global_id(),
-        is_shipping_required=variant.is_shipping_required(),
-        is_gift_card=variant.is_gift_card(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=unit_price,
-        total_price=unit_price * quantity,
-        undiscounted_unit_price=unit_price,
-        undiscounted_total_price=unit_price * quantity,
-        base_unit_price=base_price,
-        undiscounted_base_unit_price=base_price,
-        tax_rate=Decimal("0.23"),
-        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
-    )
-    Allocation.objects.create(
-        order_line=line, stock=stock, quantity_allocated=line.quantity
-    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant_1, quantity=5)
 
     product = Product.objects.create(
         name="Test product 2",
@@ -336,45 +378,23 @@ def order_with_lines(
         visible_in_listings=True,
         available_for_purchase_at=timezone.now(),
     )
-    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
-    channel_listing = ProductVariantChannelListing.objects.create(
-        variant=variant,
+    variant_2 = ProductVariant.objects.create(product=product, sku="SKU_B")
+    variant_2_quantity = 2
+    ProductVariantChannelListing.objects.create(
+        variant=variant_2,
         channel=channel_USD,
         price_amount=Decimal(20),
         discounted_price_amount=Decimal(20),
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
-    stock = Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=2
-    )
-    stock.refresh_from_db()
+    Stock.objects.create(warehouse=warehouse, product_variant=variant_2, quantity=2)
 
-    base_price = variant.get_price(channel_listing)
-    currency = base_price.currency
-    gross = Money(amount=base_price.amount * Decimal(1.23), currency=currency)
-    unit_price = TaxedMoney(net=base_price, gross=gross)
-    quantity = 2
-    line = order.lines.create(
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        product_variant_id=variant.get_global_id(),
-        is_shipping_required=variant.is_shipping_required(),
-        is_gift_card=variant.is_gift_card(),
-        quantity=quantity,
-        variant=variant,
-        unit_price=unit_price,
-        total_price=unit_price * quantity,
-        undiscounted_unit_price=unit_price,
-        undiscounted_total_price=unit_price * quantity,
-        base_unit_price=base_price,
-        undiscounted_base_unit_price=base_price,
-        tax_rate=Decimal("0.23"),
-        **get_tax_class_kwargs_for_order_line(product_type.tax_class),
-    )
-    Allocation.objects.create(
-        order_line=line, stock=stock, quantity_allocated=line.quantity
+    order_lines_generator(
+        order,
+        [variant_1, variant_2],
+        [10, 20],
+        [variant_1_quantity, variant_2_quantity],
     )
 
     order.shipping_address = order.billing_address.get_copy()
@@ -401,6 +421,32 @@ def order_with_lines(
     recalculate_order(order)
 
     order.refresh_from_db()
+    return order
+
+
+@pytest.fixture
+def order_with_lines_untaxed(order_with_lines):
+    order = order_with_lines
+    lines = order.lines.all()
+    remove_tax(order, lines, False)
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "total_price_gross_amount",
+            "undiscounted_total_price_gross_amount",
+            "tax_rate",
+        ],
+    )
+    order.save(
+        update_fields=[
+            "subtotal_gross_amount",
+            "total_gross_amount",
+            "undiscounted_total_gross_amount",
+            "shipping_price_gross_amount",
+        ]
+    )
     return order
 
 

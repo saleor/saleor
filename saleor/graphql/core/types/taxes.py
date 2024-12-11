@@ -7,6 +7,7 @@ from promise import Promise
 
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
+from ....core.db.connection import allow_writer_in_context
 from ....core.prices import quantize_price
 from ....discount import DiscountType
 from ....discount.utils.checkout import has_checkout_order_promotion
@@ -185,6 +186,7 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
             checkout = CheckoutByTokenLoader(info.context).load(root.checkout_id)
 
+            @allow_writer_in_context(info.context)
             def load_channel_for_checkout(checkout):
                 country_code = checkout.get_country()
                 load_tax_config_with_country = partial(

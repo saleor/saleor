@@ -79,7 +79,9 @@ from ..tax.dataloaders import (
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
-from ..webhook.dataloaders import PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader
+from ..webhook.dataloaders.pregenerated_payload_for_checkout_tax import (
+    PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader,
+)
 from .dataloaders import (
     CheckoutByTokenLoader,
     CheckoutInfoByCheckoutTokenLoader,

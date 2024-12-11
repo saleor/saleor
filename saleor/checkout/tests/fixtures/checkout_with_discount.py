@@ -131,6 +131,9 @@ def checkout_with_item_and_gift_promotion(checkout_with_item, gift_promotion_rul
     top_price, variant_id = max(
         variant_listings.values_list("discounted_price_amount", "variant")
     )
+    variant_listing = [
+        listing for listing in variant_listings if listing.variant_id == variant_id
+    ][0]
 
     line = CheckoutLine.objects.create(
         checkout=checkout_with_item,
@@ -138,6 +141,7 @@ def checkout_with_item_and_gift_promotion(checkout_with_item, gift_promotion_rul
         variant_id=variant_id,
         is_gift=True,
         currency="USD",
+        undiscounted_unit_price_amount=variant_listing.price_amount,
     )
 
     CheckoutLineDiscount.objects.create(

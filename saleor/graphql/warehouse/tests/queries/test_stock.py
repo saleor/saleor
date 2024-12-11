@@ -64,6 +64,26 @@ def test_query_stock(staff_api_client, stock, permission_manage_products):
     assert content_stock["quantityReserved"] == 0
 
 
+def test_query_stock_use_denormalized_quantity_allocated(
+    staff_api_client, stock, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    stock_id = graphene.Node.to_global_id("Stock", stock.pk)
+    expected_quantity_allocated = 10
+    stock.quantity_allocated = expected_quantity_allocated
+    stock.save(update_fields=["quantity_allocated"])
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
+
+    # then
+    content = get_graphql_content(response)
+    content_stock = content["data"]["stock"]
+    assert content_stock["quantityAllocated"] == expected_quantity_allocated
+    assert stock.allocations.count() == 0
+
+
 def test_query_stock_with_reservations(
     site_settings_with_reservations,
     staff_api_client,

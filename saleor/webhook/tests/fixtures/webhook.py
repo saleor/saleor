@@ -83,7 +83,22 @@ def setup_checkout_webhooks(
     permission_manage_checkouts,
 ):
     subscription_async_webhooks = """
+    fragment IssuingPrincipal on IssuingPrincipal {
+      ... on App {
+        id
+        name
+      }
+      ... on User {
+        id
+        email
+      }
+    }
+
     fragment CheckoutFragment on Checkout {
+      shippingMethods {
+        id
+        name
+      }
       shippingPrice {
         gross {
           amount
@@ -99,21 +114,33 @@ def setup_checkout_webhooks(
     subscription {
       event {
         ... on CheckoutCreated {
+          issuingPrincipal {
+            ...IssuingPrincipal
+          }
           checkout {
             ...CheckoutFragment
           }
         }
         ... on CheckoutUpdated {
+          issuingPrincipal {
+            ...IssuingPrincipal
+          }
           checkout {
             ...CheckoutFragment
           }
         }
         ... on CheckoutFullyPaid {
+          issuingPrincipal {
+            ...IssuingPrincipal
+          }
           checkout {
             ...CheckoutFragment
           }
         }
         ... on CheckoutMetadataUpdated {
+          issuingPrincipal {
+            ...IssuingPrincipal
+          }
           checkout {
             ...CheckoutFragment
           }

@@ -2,12 +2,12 @@ import datetime
 import logging
 from unittest.mock import patch
 
-import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...tests import race_condition
 from ..error_codes import AccountErrorCode
 from ..throttling import (
     MAX_DELAY,
@@ -349,7 +349,7 @@ def test_authenticate_race_condition(
     def login_attempt(*args, **kwargs):
         authenticate_with_throttling(request, EXISTING_EMAIL, INCORRECT_PASSWORD)
 
-    with before_after.before("saleor.account.throttling.add_block", login_attempt):
+    with race_condition.RunBefore("saleor.account.throttling.add_block", login_attempt):
         with pytest.raises(ValidationError) as e:
             authenticate_with_throttling(request, EXISTING_EMAIL, INCORRECT_PASSWORD)
 

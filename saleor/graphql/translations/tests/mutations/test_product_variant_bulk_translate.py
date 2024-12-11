@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....core.enums import LanguageCodeEnum, TranslationErrorCode
 from ....tests.utils import get_graphql_content
+from ...mutations import ProductVariantBulkTranslate
 
 PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION = """
     mutation ProductVariantBulkTranslate(
@@ -30,7 +32,74 @@ PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+def test_product_variant_bulk_translate_get_translations_returns_valid_translations(
+    product_list,
+):
+    # given
+    first_variant = product_list[0].variants.first()
+    first_variant.translations.create(language_code="pl", name="name-in-pl")
+    first_variant.translations.create(language_code="de", name="name-in-de")
+
+    second_variant = product_list[1].variants.first()
+    second_variant.translations.create(language_code="pl", name="name-in-pl")
+    second_variant.translations.create(language_code="de", name="name-in-de")
+
+    requested_language_code = LanguageCodeEnum.PL.value
+
+    translations = {
+        0: {
+            "id": first_variant.id,
+            "languageCode": requested_language_code,
+            "translationFields": {"name": "Product PL"},
+        }
+    }
+
+    # when
+    translations = ProductVariantBulkTranslate.get_translations(
+        cleaned_inputs_map=translations, base_objects=[first_variant.id]
+    )
+
+    # then
+    for translation in translations:
+        assert translation.product_variant_id == first_variant.id
+        assert translation.language_code == requested_language_code
+
+
+@pytest.mark.parametrize("identifier_field", ["external_reference", "id"])
+def test_product_variant_bulk_translate_get_base_objects_returns_valid_objects(
+    identifier_field,
+    product_list,
+):
+    # given
+    first_variant = product_list[0].variants.first()
+    first_variant.translations.create(language_code="pl", name="name-in-pl")
+    first_variant.translations.create(language_code="de", name="name-in-de")
+
+    second_variant = product_list[1].variants.first()
+    second_variant.translations.create(language_code="pl", name="name-in-pl")
+    second_variant.translations.create(language_code="de", name="name-in-de")
+
+    first_variant.external_reference = "ext_ref"
+    first_variant.save()
+
+    requested_language_code = LanguageCodeEnum.PL.value
+
+    translations = {
+        0: {
+            identifier_field: getattr(first_variant, identifier_field),
+            "languageCode": requested_language_code,
+            "translationFields": {"name": "Product PL"},
+        }
+    }
+
+    # when
+    base_objects = ProductVariantBulkTranslate.get_base_objects(translations)
+
+    # then
+    assert base_objects == [first_variant]
+
+
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_product_variant_variant_bulk_translate_creates_translations(
     created_webhook_mock,
     staff_api_client,
@@ -72,10 +141,10 @@ def test_product_variant_variant_bulk_translate_creates_translations(
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "Product PL"
     assert data["results"][1]["translation"]["name"] == "Product DE"
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_product_variant_bulk_translate_updates_translations(
     updated_webhook_mock,
     staff_api_client,
@@ -123,10 +192,10 @@ def test_product_variant_bulk_translate_updates_translations(
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "NewVariant PL"
     assert data["results"][1]["translation"]["name"] == "NewVariant DE"
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_created")
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
 def test_product_variant_bulk_translate_creates_translations_using_attr_external_ref(
     created_webhook_mock,
     staff_api_client,
@@ -172,10 +241,10 @@ def test_product_variant_bulk_translate_creates_translations_using_attr_external
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "Variant PL"
     assert data["results"][1]["translation"]["name"] == "Variant DE"
-    assert created_webhook_mock.call_count == 2
+    assert created_webhook_mock.call_count == 1
 
 
-@patch("saleor.plugins.manager.PluginsManager.translation_updated")
+@patch("saleor.plugins.manager.PluginsManager.translations_updated")
 def test_product_variant_bulk_translate_updates_translations_using_attr_external_ref(
     updated_webhook_mock,
     staff_api_client,
@@ -222,7 +291,7 @@ def test_product_variant_bulk_translate_updates_translations_using_attr_external
     assert data["count"] == 2
     assert data["results"][0]["translation"]["name"] == "NewVariant PL"
     assert data["results"][1]["translation"]["name"] == "NewVariant DE"
-    assert updated_webhook_mock.call_count == 2
+    assert updated_webhook_mock.call_count == 1
 
 
 def test_product_variant_bulk_translate_return_error_when_attr_id_and_external_ref(

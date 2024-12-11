@@ -30,15 +30,40 @@ mutation OrderDiscountAdd($input: OrderDiscountCommonInput!, $id: ID!) {
         amount {
           amount
         }
+        reason
       }
       shippingPrice {
         ...BaseTaxedMoney
       }
-      total {
-        ...BaseTaxedMoney
-      }
       subtotal {
         ...BaseTaxedMoney
+      }
+      lines {
+        id
+        totalPrice {
+          ...BaseTaxedMoney
+        }
+        unitPrice {
+          ...BaseTaxedMoney
+        }
+        unitDiscountReason
+      }
+      voucherCode
+      voucher {
+        id
+        code
+        discountValue
+        codes(first: 10) {
+            edges {
+              node {
+                id
+                code
+                isActive
+                used
+              }
+            }
+            totalCount
+          }
       }
     }
   }

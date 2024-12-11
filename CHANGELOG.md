@@ -1,4 +1,3 @@
-
 # Changelog
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
@@ -11,14 +10,25 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
 - Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
+- Change error codes related to user enumeration bad habbit. Included mutations will now not reveal information in error codes if email was already registered:
+  - `AccountRegister`,
+    `AccountRegister` mutation will additionaly not return `ID` of the user.
+  - `ConfirmAccount`,
+  - `RequestPasswordReset`,
+    `RequestPasswordReset` will now require `channel` as input for staff users,
+  - `SetPassword` - #16243 by @kadewu
 
 ### GraphQL API
 
 - Add `CheckoutCustomerNoteUpdate` mutation - #16315 by @pitkes22
 - Add `customerNote` field to `Checkout` type to make it consistent with `Order` model - #16561 by @Air-t
 - Add `type` field to `TaxableObjectDiscount` type - #16630 by @zedzior
+- Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
 
 ### Webhooks
+
+- Fixed webhookTrigger payload type for events related to ProductVariant - #16956 by @delemeator
+- Truncate lenghty responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
 
 ### Other changes
 
@@ -33,3 +43,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Skipped obsolete payload save and cleanup for successful sync webhooks - #16632 by @cmiacz
 - Removed support for the django-debug-toolbar debugging tool and the `ENABLE_DEBUG_TOOLBAR` env variable - #16902 by @patrys
 - Fixed playground not displaying docs if api is hidden behind reverse proxy - #16810 by @jqob
+- Drop tax data line number validation for Avatax plugin - #16917 by @zedzior
+- Fix decreasing voucher code usage after changing `includeDraftOrderInVoucherUsage` to false - #17028 by @zedzior
+- Fix undiscounted price taxation when prices are entered with taxes - #16992 by @zedzior

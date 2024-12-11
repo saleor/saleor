@@ -1,11 +1,11 @@
 from decimal import Decimal
 
-import before_after
 import graphene
 
 from ...discount import RewardValueType
 from ...discount.models import PromotionRule
 from ...discount.utils.promotion import update_rule_variant_relation
+from ...tests import race_condition
 from ..utils.variants import fetch_variants_for_promotion_rules
 
 
@@ -166,7 +166,7 @@ def test_fetch_variants_for_promotion_rules_discount_race_condition(
     rule.variants.add(existing_variant)
 
     # when
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.product.utils.variants.update_rule_variant_relation",
         update_rule_variant_relation,
     ):

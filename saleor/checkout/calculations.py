@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -254,6 +255,18 @@ def checkout_line_tax_rate(
     return checkout_line_info.line.tax_rate
 
 
+def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
+    """Update line undiscounted unit price amount.
+
+    Undiscounted unit price stores the denormalized price of the variant.
+    """
+    for line_info in lines:
+        if not line_info.channel_listing or line_info.channel_listing.price is None:
+            continue
+
+        line_info.line.undiscounted_unit_price = line_info.undiscounted_unit_price
+
+
 def _fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -295,6 +308,8 @@ def _fetch_checkout_prices_if_expired(
     )
 
     lines = cast(list, lines)
+    update_undiscounted_unit_price_for_lines(lines)
+
     create_or_update_discount_objects_from_promotion_for_checkout(
         checkout_info, lines, database_connection_name
     )
@@ -378,19 +393,23 @@ def _fetch_checkout_prices_if_expired(
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
+    from .utils import checkout_lines_bulk_update
+
     with allow_writer():
-        checkout.save(
-            update_fields=checkout_update_fields,
-            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-        )
-        checkout.lines.bulk_update(
-            [line_info.line for line_info in lines],
-            [
-                "total_price_net_amount",
-                "total_price_gross_amount",
-                "tax_rate",
-            ],
-        )
+        with transaction.atomic():
+            checkout.save(
+                update_fields=checkout_update_fields,
+                using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+            )
+            checkout_lines_bulk_update(
+                [line_info.line for line_info in lines],
+                [
+                    "total_price_net_amount",
+                    "total_price_gross_amount",
+                    "tax_rate",
+                    "undiscounted_unit_price_amount",
+                ],
+            )
     return checkout_info, lines
 
 
@@ -616,11 +635,10 @@ def _set_checkout_base_prices(
 
     for line_info in lines:
         line = line_info.line
-        quantity = line.quantity
-
-        unit_price = base_calculations.calculate_base_line_unit_price(line_info)
-        total_price = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info, lines, line_info, unit_price * quantity
+        total_price = (
+            base_calculations.get_line_total_price_with_propagated_checkout_discount(
+                checkout_info, lines, line_info
+            )
         )
         line_total_price = quantize_price(total_price, currency)
         subtotal += line_total_price

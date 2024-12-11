@@ -116,6 +116,7 @@ def test_stocks_bulk_update_queries_count(
 
         content = get_graphql_content(response)
         data = content["data"]["stockBulkUpdate"]
+
         assert data["count"] == 4
         webhook_queries_count = sum(
             [

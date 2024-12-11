@@ -50,17 +50,17 @@ class SetPassword(CreateToken):
 
     @classmethod
     def _set_password_for_user(cls, email, password, token):
+        error = False
         try:
             user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist as e:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND.value
-                    )
-                }
-            ) from e
-        if not default_token_generator.check_token(user, token):
+        except ObjectDoesNotExist:
+            # If user doesn't exists in the database we create fake user for calculation
+            # purpose, as we don't want to indicate non existence of user in the system.
+            error = True
+            user = models.User()
+
+        valid_token = default_token_generator.check_token(user, token)
+        if not valid_token or error:
             raise ValidationError(
                 {
                     "token": ValidationError(

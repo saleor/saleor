@@ -20,7 +20,6 @@ from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout import base_calculations
-from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
 from ..checkout.utils import get_checkout_metadata
 from ..core.db.connection import allow_writer
@@ -56,8 +55,10 @@ from .serializers import (
     serialize_product_attributes,
     serialize_variant_attributes,
 )
+from .transport.utils import from_payment_app_id
 
 if TYPE_CHECKING:
+    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..discount.models import Promotion
     from ..invoice.models import Invoice
     from ..payment.interface import (
@@ -1065,8 +1066,6 @@ def _generate_refund_data_payload(data):
 def generate_payment_payload(
     payment_data: "PaymentData", requestor: Optional["RequestorOrLazyObject"] = None
 ):
-    from .transport.utils import from_payment_app_id
-
     data = asdict(payment_data)
 
     if refund_data := data.get("refund_data"):

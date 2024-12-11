@@ -1,11 +1,12 @@
 from unittest.mock import patch
 
+import pytest
 from django.test import override_settings
 
-from saleor.checkout.actions import call_checkout_event
-from saleor.core.models import EventDelivery
-from saleor.webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-
+from .....checkout.actions import call_checkout_event
+from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -37,6 +38,46 @@ def test_checkout_customer_note_update(user_api_client, checkout_with_item):
     checkout.note = ""
     checkout.save(update_fields=["note"])
     previous_last_change = checkout.last_change
+
+    customer_note = "New customer note value"
+    variables = {"id": to_global_id_or_none(checkout), "customerNote": customer_note}
+
+    # when
+    response = user_api_client.post_graphql(
+        CHECKOUT_CUSTOMER_NOTE_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerNoteUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.note == customer_note
+    assert data["checkout"]["customerNote"] == data["checkout"]["note"] == customer_note
+    assert checkout.last_change != previous_last_change
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_customer_note_update_when_line_without_listing(
+    channel_listing_model, listing_filter_field, user_api_client, checkout_with_item
+):
+    # given
+    checkout = checkout_with_item
+    checkout.note = ""
+    checkout.save(update_fields=["note"])
+    previous_last_change = checkout.last_change
+
+    line = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
 
     customer_note = "New customer note value"
     variables = {"id": to_global_id_or_none(checkout), "customerNote": customer_note}

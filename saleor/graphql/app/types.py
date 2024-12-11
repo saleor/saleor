@@ -24,6 +24,7 @@ from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
+from ..core.dataloaders import DataLoader
 from ..core.descriptions import (
     ADDED_IN_319,
     DEPRECATED_IN_3X_FIELD,
@@ -49,7 +50,6 @@ from .dataloaders import (
     AppByIdLoader,
     AppExtensionByAppIdLoader,
     AppTokensByAppIdLoader,
-    DataLoader,
     ThumbnailByAppIdSizeAndFormatLoader,
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
     app_promise_callback,

@@ -1,12 +1,14 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.test import override_settings
 
 from .....account.models import User
 from .....checkout.actions import call_checkout_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -43,6 +45,55 @@ def test_checkout_customer_attach(
     response = user_api_client.post_graphql(
         query, variables, permissions=[permission_impersonate_user]
     )
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutCustomerAttach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user2
+    assert checkout.email == customer_user2.email
+    assert checkout.last_change != previous_last_change
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_customer_attach_when_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item,
+    customer_user2,
+    permission_impersonate_user,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.email = "old@email.com"
+    checkout.save()
+
+    line = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
+
+    assert checkout.user is None
+    previous_last_change = checkout.last_change
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    customer_id = graphene.Node.to_global_id("User", customer_user2.pk)
+    variables = {"id": to_global_id_or_none(checkout), "customerId": customer_id}
+
+    # when
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutCustomerAttach"]

@@ -117,6 +117,19 @@ class NonNullList(graphene.List):
         super().__init__(of_type, *args, **kwargs)
 
 
+class SecureGlobalID(graphene.GlobalID):
+    @staticmethod
+    def id_resolver(parent_resolver, node, root, info, parent_type_name=None, **args):
+        if (
+            hasattr(root, "RETURN_ID_IN_API_RESPONSE")
+            and not root.RETURN_ID_IN_API_RESPONSE
+        ):
+            return ""
+        return graphene.GlobalID.id_resolver(
+            parent_resolver, node, root, info, parent_type_name, **args
+        )
+
+
 class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description="Country code.", required=True)
     country = graphene.String(description="Country name.", required=True)

@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
+import pytest
 from django.test import override_settings
 
 from .....checkout.actions import call_checkout_event
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -38,6 +40,48 @@ def test_checkout_update_language_code(
         MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
     )
 
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLanguageCodeUpdate"]
+    assert not data["errors"]
+
+    assert data["checkout"]["languageCode"] == language_code
+    checkout.refresh_from_db()
+    assert checkout.language_code == language_code.lower()
+    assert checkout.last_change != previous_last_change
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_update_language_code_when_variant_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_gift_card,
+):
+    # given
+    language_code = "PL"
+    checkout = checkout_with_gift_card
+    previous_last_change = checkout.last_change
+
+    line = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
+    ).delete()
+
+    variables = {"id": to_global_id_or_none(checkout), "languageCode": language_code}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_UPDATE_LANGUAGE_CODE, variables
+    )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutLanguageCodeUpdate"]
     assert not data["errors"]

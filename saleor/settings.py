@@ -3,7 +3,7 @@ import logging
 import os
 import os.path
 import warnings
-from typing import Optional
+from typing import Optional, cast
 from urllib.parse import urlparse
 
 import dj_database_url
@@ -124,7 +124,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"
-LANGUAGES = CORE_LANGUAGES
+LANGUAGES: list[tuple[str, str]] = CORE_LANGUAGES
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
 USE_TZ = True
@@ -419,7 +419,7 @@ AUTH_PASSWORD_VALIDATORS = [
     }
 ]
 
-DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
+DEFAULT_COUNTRY: str = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_DECIMAL_PLACES = 3
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
@@ -671,6 +671,9 @@ EVENT_PAYLOAD_DELETE_PERIOD = datetime.timedelta(
 )
 EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT = datetime.timedelta(
     seconds=parse(os.environ.get("EVENT_PAYLOAD_DELETE_TASK_TIME_LIMIT", "1 hour"))
+)
+EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT = int(
+    os.environ.get("EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT", 1024)
 )
 # Time between marking app "to remove" and removing the app from the database.
 # App is not visible for the user after removing, but it still exists in the database.
@@ -954,8 +957,8 @@ TOKEN_UPDATE_LAST_LOGIN_THRESHOLD = parse(
 
 # Max lock time for checkout processing.
 # It prevents locking checkout when unhandled issue appears.
-CHECKOUT_COMPLETION_LOCK_TIME = parse(
-    os.environ.get("CHECKOUT_COMPLETION_LOCK_TIME", "3 minutes")
+CHECKOUT_COMPLETION_LOCK_TIME: int = cast(
+    int, parse(os.environ.get("CHECKOUT_COMPLETION_LOCK_TIME", "3 minutes"))
 )
 
 # Default timeout (sec) for establishing a connection when performing external requests.
@@ -964,8 +967,10 @@ REQUESTS_CONN_EST_TIMEOUT = 2
 # Default timeout for external requests.
 COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
-WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
-WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
+WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT = 18
+
+WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT)
+WEBHOOK_SYNC_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT)
 
 # The max number of rules with order_predicate defined
 ORDER_RULES_LIMIT = os.environ.get("ORDER_RULES_LIMIT", 100)

@@ -6,11 +6,19 @@ from uuid import UUID
 
 import graphene
 import pytest
+from celery.exceptions import Retry as CeleryTaskRetryError
+from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
 
+from ...core.taxes import zero_money
 from ...order import OrderEvents
 from ...order.models import Order
-from ..models import Checkout
+from ...plugins.manager import get_plugins_manager
+from ...product.models import ProductChannelListing, ProductVariantChannelListing
+from .. import calculations
+from ..fetch import fetch_checkout_info, fetch_checkout_lines
+from ..models import Checkout, CheckoutLine
+from ..payment_utils import update_checkout_payment_statuses
 from ..tasks import (
     automatic_checkout_completion_task,
     delete_expired_checkouts,
@@ -23,13 +31,26 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     now = timezone.now()
     checkout_count = Checkout.objects.count()
 
+    variant_listings_map = {
+        listing.channel_id: listing.price_amount
+        for listing in variant.channel_listings.all()
+    }
+    lines_to_create = []
+
     expired_anonymous_checkout = checkouts_list[0]
     expired_anonymous_checkout.email = None
     expired_anonymous_checkout.user = None
     expired_anonymous_checkout.created_at = now - datetime.timedelta(days=40)
     expired_anonymous_checkout.last_change = now - datetime.timedelta(days=35)
-    expired_anonymous_checkout.lines.create(
-        checkout=expired_anonymous_checkout, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_anonymous_checkout,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_anonymous_checkout.channel_id, Decimal("11")
+            ),
+        )
     )
 
     not_expired_checkout_1 = checkouts_list[1]
@@ -37,8 +58,15 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     not_expired_checkout_1.user = None
     not_expired_checkout_1.created_at = now - datetime.timedelta(days=35)
     not_expired_checkout_1.last_change = now - datetime.timedelta(days=29)
-    not_expired_checkout_1.lines.create(
-        checkout=not_expired_checkout_1, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=not_expired_checkout_1,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                not_expired_checkout_1.channel_id, Decimal("11")
+            ),
+        )
     )
 
     not_expired_checkout_2 = checkouts_list[2]
@@ -46,8 +74,15 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     not_expired_checkout_2.user = customer_user
     not_expired_checkout_2.created_at = now - datetime.timedelta(days=45)
     not_expired_checkout_2.last_change = now - datetime.timedelta(days=40)
-    not_expired_checkout_2.lines.create(
-        checkout=not_expired_checkout_2, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=not_expired_checkout_2,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                not_expired_checkout_2.channel_id, Decimal("11")
+            ),
+        )
     )
 
     not_expired_checkout_3 = checkouts_list[3]
@@ -55,13 +90,22 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
     not_expired_checkout_3.user = None
     not_expired_checkout_3.created_at = now - datetime.timedelta(days=45)
     not_expired_checkout_3.last_change = now - datetime.timedelta(days=40)
-    not_expired_checkout_3.lines.create(
-        checkout=not_expired_checkout_3, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=not_expired_checkout_3,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                not_expired_checkout_3.channel_id, Decimal("11")
+            ),
+        )
     )
 
     empty_checkout = checkouts_list[4]
     empty_checkout.last_change = now - datetime.timedelta(hours=8)
     assert empty_checkout.lines.count() == 0
+
+    CheckoutLine.objects.bulk_create(lines_to_create)
 
     Checkout.objects.bulk_update(
         [
@@ -87,13 +131,26 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     now = timezone.now()
     checkout_count = Checkout.objects.count()
 
+    variant_listings_map = {
+        listing.channel_id: listing.price_amount
+        for listing in variant.channel_listings.all()
+    }
+    lines_to_create = []
+
     expired_user_checkout_1 = checkouts_list[0]
     expired_user_checkout_1.email = None
     expired_user_checkout_1.user = customer_user
     expired_user_checkout_1.created_at = now - datetime.timedelta(days=100)
     expired_user_checkout_1.last_change = now - datetime.timedelta(days=98)
-    expired_user_checkout_1.lines.create(
-        checkout=expired_user_checkout_1, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_user_checkout_1,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_user_checkout_1.channel_id, Decimal("11")
+            ),
+        )
     )
 
     expired_user_checkout_2 = checkouts_list[1]
@@ -101,8 +158,15 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     expired_user_checkout_2.user = None
     expired_user_checkout_2.created_at = now - datetime.timedelta(days=100)
     expired_user_checkout_2.last_change = now - datetime.timedelta(days=91)
-    expired_user_checkout_2.lines.create(
-        checkout=expired_user_checkout_2, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_user_checkout_2,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_user_checkout_2.channel_id, Decimal("11")
+            ),
+        )
     )
 
     not_expired_checkout_1 = checkouts_list[2]
@@ -110,8 +174,15 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     not_expired_checkout_1.user = None
     not_expired_checkout_1.created_at = now - datetime.timedelta(days=35)
     not_expired_checkout_1.last_change = now - datetime.timedelta(days=29)
-    not_expired_checkout_1.lines.create(
-        checkout=not_expired_checkout_1, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=not_expired_checkout_1,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                not_expired_checkout_1.channel_id, Decimal("11")
+            ),
+        )
     )
 
     not_expired_checkout_2 = checkouts_list[3]
@@ -119,8 +190,15 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     not_expired_checkout_2.user = None
     not_expired_checkout_2.created_at = now - datetime.timedelta(days=100)
     not_expired_checkout_2.last_change = now - datetime.timedelta(days=60)
-    not_expired_checkout_2.lines.create(
-        checkout=not_expired_checkout_2, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=not_expired_checkout_2,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                not_expired_checkout_2.channel_id, Decimal("11")
+            ),
+        )
     )
 
     not_expired_checkout_3 = checkouts_list[4]
@@ -128,10 +206,17 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
     not_expired_checkout_3.user = customer_user
     not_expired_checkout_3.created_at = now - datetime.timedelta(days=100)
     not_expired_checkout_3.last_change = now - datetime.timedelta(days=89)
-    not_expired_checkout_3.lines.create(
-        checkout=not_expired_checkout_3, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=not_expired_checkout_3,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                not_expired_checkout_3.channel_id, Decimal("11")
+            ),
+        )
     )
-
+    CheckoutLine.objects.bulk_create(lines_to_create)
     Checkout.objects.bulk_update(
         [
             expired_user_checkout_1,
@@ -175,7 +260,12 @@ def test_delete_empty_checkouts(checkouts_list, customer_user, variant):
     not_empty_checkout = checkouts_list[3]
     not_empty_checkout.last_change = now - datetime.timedelta(days=2)
     not_empty_checkout.lines.create(
-        checkout=not_empty_checkout, variant=variant, quantity=1
+        checkout=not_empty_checkout,
+        variant=variant,
+        quantity=1,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=not_empty_checkout.channel_id
+        ).price_amount,
     )
 
     Checkout.objects.bulk_update(
@@ -198,26 +288,47 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
     now = timezone.now()
     checkout_count = Checkout.objects.count()
 
+    lines_to_create = []
+    variant_listings_map = {
+        listing.channel_id: listing.price_amount
+        for listing in variant.channel_listings.all()
+    }
+
     expired_anonymous_checkout = checkouts_list[0]
     expired_anonymous_checkout.email = None
     expired_anonymous_checkout.created_at = now - datetime.timedelta(days=40)
     expired_anonymous_checkout.last_change = now - datetime.timedelta(days=35)
-    expired_anonymous_checkout.lines.create(
-        checkout=expired_anonymous_checkout, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_anonymous_checkout,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_anonymous_checkout.channel_id, Decimal("11")
+            ),
+        )
     )
 
     expired_user_checkout = checkouts_list[2]
     expired_user_checkout.user = customer_user
     expired_user_checkout.created_at = now - datetime.timedelta(days=100)
     expired_user_checkout.last_change = now - datetime.timedelta(days=95)
-    expired_user_checkout.lines.create(
-        checkout=expired_user_checkout, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_user_checkout,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_user_checkout.channel_id, Decimal("11")
+            ),
+        )
     )
 
     empty_checkout = checkouts_list[4]
     empty_checkout.last_change = now - datetime.timedelta(hours=8)
     assert empty_checkout.lines.count() == 0
 
+    CheckoutLine.objects.bulk_create(lines_to_create)
     Checkout.objects.bulk_update(
         [expired_anonymous_checkout, expired_user_checkout, empty_checkout],
         ["created_at", "last_change", "email", "user"],
@@ -277,12 +388,25 @@ def test_delete_expired_checkouts_doesnt_delete_when_transaction_amount_exists(
     # given
     now = timezone.now()
 
+    lines_to_create = []
+    variant_listings_map = {
+        listing.channel_id: listing.price_amount
+        for listing in variant.channel_listings.all()
+    }
+
     expired_anonymous_checkout = checkouts_list[0]
     expired_anonymous_checkout.email = None
     expired_anonymous_checkout.created_at = now - datetime.timedelta(days=40)
     expired_anonymous_checkout.last_change = now - datetime.timedelta(days=35)
-    expired_anonymous_checkout.lines.create(
-        checkout=expired_anonymous_checkout, variant=variant, quantity=1
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_anonymous_checkout,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_anonymous_checkout.channel_id, Decimal("11")
+            ),
+        )
     )
     expired_anonymous_checkout.payment_transactions.create(
         authorized_value=Decimal(authorized),
@@ -314,7 +438,16 @@ def test_delete_expired_checkouts_doesnt_delete_when_transaction_amount_exists(
     expired_user_checkout.user = customer_user
     expired_user_checkout.created_at = now - datetime.timedelta(days=100)
     expired_user_checkout.last_change = now - datetime.timedelta(days=98)
-    expired_user_checkout.lines.create(variant=variant, quantity=1)
+    lines_to_create.append(
+        CheckoutLine(
+            checkout=expired_user_checkout,
+            variant=variant,
+            quantity=1,
+            undiscounted_unit_price_amount=variant_listings_map.get(
+                expired_user_checkout.channel_id, Decimal("11")
+            ),
+        )
+    )
     expired_user_checkout.payment_transactions.create(
         authorized_value=Decimal(authorized),
         authorize_pending_value=Decimal(auth_pending),
@@ -326,6 +459,7 @@ def test_delete_expired_checkouts_doesnt_delete_when_transaction_amount_exists(
         cancel_pending_value=Decimal(cancel_pending),
     )
 
+    CheckoutLine.objects.bulk_create(lines_to_create)
     Checkout.objects.bulk_update(
         [expired_anonymous_checkout, expired_user_checkout, empty_checkout],
         ["created_at", "last_change", "email", "user"],
@@ -571,6 +705,102 @@ def test_automatic_checkout_completion_task_missing_checkout(checkout, caplog):
     assert not caplog.records
 
 
+def test_automatic_checkout_completion_task_unavailable_variant(
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    # make the checkout line unavailable
+    line = checkout.lines.first()
+    variant = line.variant
+    product = line.variant.product
+    product.channel_listings.update(is_published=False)
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout_pk, None, app.id)
+
+    # then
+    assert Checkout.objects.filter(pk=checkout_pk).exists()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == (
+        "The automatic checkout completion not triggered, as the checkout "
+        f"{checkout_id} contains unavailable variants: {variant_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_automatic_checkout_completion_task_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    # make the checkout line unavailable
+    line = checkout.lines.first()
+    variant = line.variant
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: variant.id},
+    ).delete()
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=checkout.total.gross.amount
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout_pk, None, app.id)
+
+    # then
+    assert Checkout.objects.filter(pk=checkout_pk).exists()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == (
+        "The automatic checkout completion not triggered, as the checkout "
+        f"{checkout_id} contains unavailable variants: {variant_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+
 def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
     # given
     checkout_pk = checkout.pk
@@ -599,4 +829,150 @@ def test_automatic_checkout_completion_task_error_raised(checkout, app, caplog):
     )
     assert caplog.records[1].checkout_id == checkout_id
     assert caplog.records[1].error
+    assert caplog.records[1].levelno == logging.WARNING
+
+
+@pytest.mark.parametrize(
+    "error",
+    [IntegrityError, DatabaseError],
+)
+@mock.patch("saleor.checkout.tasks.complete_checkout")
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.retry")
+def test_automatic_checkout_completion_task_checkout_error_task_retried(
+    mocked_retry,
+    mocked_complete_checkout,
+    error,
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    mocked_complete_checkout.side_effect = error()
+    mocked_retry.side_effect = CeleryTaskRetryError()
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        try:
+            automatic_checkout_completion_task(checkout_pk, None, app.id)
+        except CeleryTaskRetryError:
+            pass
+
+    # then
+    # Checkout exists so task is retired
+    mocked_retry.assert_called_once()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 3
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion failed for checkout: {checkout_id}."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
+    assert caplog.records[1].levelno == logging.WARNING
+
+    assert caplog.records[2].message == (
+        f"Retrying automatic checkout completion for checkout: {checkout_id}."
+    )
+    assert caplog.records[2].checkout_id == checkout_id
+    assert caplog.records[2].levelno == logging.INFO
+
+
+@pytest.mark.parametrize(
+    "error",
+    [IntegrityError, DatabaseError],
+)
+@mock.patch("saleor.checkout.tasks.complete_checkout")
+@mock.patch("saleor.checkout.tasks.automatic_checkout_completion_task.retry")
+def test_automatic_checkout_completion_task_checkout_deleted_in_meantime(
+    mocked_retry,
+    mocked_complete_checkout,
+    error,
+    checkout_with_prices,
+    transaction_item_generator,
+    app,
+    caplog,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout_pk = checkout.pk
+
+    def delete_checkout_and_raise_an_error(*args, **kwargs):
+        checkout.delete()
+        raise error()
+
+    mocked_complete_checkout.side_effect = delete_checkout_and_raise_an_error
+    mocked_retry.side_effect = CeleryTaskRetryError()
+
+    # allow catching the log in caplog
+    parent_logger = task_logger.parent
+    parent_logger.propagate = True
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+    )
+    transaction_item_generator(
+        checkout_id=checkout.pk, charged_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        automatic_checkout_completion_task(checkout_pk, None, app.id)
+
+    # then
+    # Checkout exists so task is retired
+    mocked_retry.assert_not_called()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    assert len(caplog.records) == 2
+    assert caplog.records[0].message == (
+        f"Automatic checkout completion triggered for checkout: {checkout_id}."
+    )
+    assert caplog.records[0].checkout_id == checkout_id
+    assert caplog.records[0].levelno == logging.INFO
+
+    assert caplog.records[1].message == (
+        f"Automatic checkout completion failed for checkout: {checkout_id}. "
+        "The checkout no longer exists."
+    )
+    assert caplog.records[1].checkout_id == checkout_id
     assert caplog.records[1].levelno == logging.WARNING

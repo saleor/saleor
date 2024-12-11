@@ -71,6 +71,9 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
+TRANSACTION_EVENT_MSG_MAX_LENGTH: int = TransactionEvent._meta.get_field(  # type: ignore[assignment]
+    "message"
+).max_length
 
 
 def _recalculate_last_refund_success_for_transaction(
@@ -879,6 +882,8 @@ def parse_transaction_event_data(
         logger.warning(missing_msg, "result")
         error_field_msg.append(missing_msg % "result")
 
+    parsed_event_data["message"] = _clean_message(event_data)
+
     amount_data = event_data.get("amount")
     parse_transaction_event_amount(
         amount_data,
@@ -904,7 +909,28 @@ def parse_transaction_event_data(
         parsed_event_data["time"] = timezone.now()
 
     parsed_event_data["external_url"] = event_data.get("externalUrl", "")
-    parsed_event_data["message"] = event_data.get("message", "")
+
+
+def _clean_message(event_data):
+    message = event_data.get("message") or ""
+    try:
+        message = str(message)
+    except (UnicodeEncodeError, TypeError, ValueError):
+        invalid_err_msg = (
+            "Incorrect value for field: %s in response of transaction action webhook."
+        )
+        logger.warning(invalid_err_msg, "message")
+        message = ""
+
+    if message and len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH:
+        message = truncate_transaction_event_message(message)
+        field_limit_exceeded_msg = (
+            "Value for field: %s in response of transaction action webhook "
+            "exceeds the character field limit. Message has been truncated."
+        )
+        logger.warning(field_limit_exceeded_msg, "message")
+
+    return message
 
 
 error_msg = str
@@ -949,14 +975,13 @@ def parse_transaction_action_data(
         # error field msg can contain details of the value returned by payment app
         # which means that we need to confirm that we don't exceed the field limit.
         msg = "\n".join(error_field_msg)
-        if len(msg) >= 512:
-            msg = msg[:509] + "..."
+        msg = truncate_transaction_event_message(msg)
         return None, msg
 
     request_event_type = parsed_event_data.get("type", request_type)
     if not psp_reference and request_event_type not in OPTIONAL_PSP_REFERENCE_EVENTS:
         msg = f"Providing `pspReference` is required for {request_event_type.upper()}."
-        logger.error(msg)
+        logger.warning(msg)
         return None, msg
 
     return (
@@ -968,6 +993,14 @@ def parse_transaction_action_data(
             else None,
         ),
         None,
+    )
+
+
+def truncate_transaction_event_message(message: str):
+    return (
+        message[: TRANSACTION_EVENT_MSG_MAX_LENGTH - 3] + "..."
+        if len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH
+        else message
     )
 
 
@@ -1091,7 +1124,7 @@ def deduplicate_event(
                 "authorization amount."
             )
     if error_message:
-        logger.error(
+        logger.warning(
             msg=error_message,
             extra={
                 "transaction_id": event.transaction_id,
@@ -1128,6 +1161,11 @@ def _create_event_from_response(
         related_granted_refund_id=related_granted_refund_id,
     )
     with transaction.atomic():
+        _transaction = (
+            TransactionItem.objects.filter(pk=transaction_id)
+            .select_for_update(of=("self",))
+            .first()
+        )
         event, error_msg = deduplicate_event(event, app)
         if error_msg:
             return None, error_msg
@@ -1313,9 +1351,10 @@ def create_transaction_event_from_request_and_webhook_response(
         return failure_event
 
     psp_reference = transaction_request_response.psp_reference
-    request_event.psp_reference = psp_reference
-    request_event.include_in_calculations = True
-    request_event.save(update_fields=["psp_reference", "include_in_calculations"])
+    if psp_reference is not None:
+        request_event.psp_reference = psp_reference
+        request_event.include_in_calculations = True
+        request_event.save(update_fields=["psp_reference", "include_in_calculations"])
     event = None
     if response_event := transaction_request_response.event:
         event, error_msg = _create_event_from_response(

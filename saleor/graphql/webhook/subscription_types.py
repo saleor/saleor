@@ -941,7 +941,7 @@ class ProductVariantBase(AbstractType):
 
 class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
-        root_type = "Product"
+        root_type = "ProductVariant"
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when new product variant is created."
@@ -949,7 +949,7 @@ class ProductVariantCreated(SubscriptionObjectType, ProductVariantBase):
 
 class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
-        root_type = "Product"
+        root_type = "ProductVariant"
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when product variant is updated."
@@ -957,7 +957,7 @@ class ProductVariantUpdated(SubscriptionObjectType, ProductVariantBase):
 
 class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
     class Meta:
-        root_type = "Product"
+        root_type = "ProductVariant"
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when product variant is deleted."
@@ -965,7 +965,7 @@ class ProductVariantDeleted(SubscriptionObjectType, ProductVariantBase):
 
 class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
     class Meta:
-        root_type = "Product"
+        root_type = "ProductVariant"
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when product variant metadata is updated."

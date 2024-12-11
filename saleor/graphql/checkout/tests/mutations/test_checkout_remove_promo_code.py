@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.test import override_settings
 from django.utils import timezone
 from prices import Money
@@ -15,7 +16,10 @@ from .....core.models import EventDelivery
 from .....discount import RewardValueType
 from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import send_webhook_request_async
+from .....webhook.transport.utils import WebhookResponse
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -68,6 +72,52 @@ def test_checkout_remove_voucher_code(
     checkout_updated_webhook_mock, api_client, checkout_with_voucher
 ):
     # given
+    assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_when_line_without_listing(
+    checkout_updated_webhook_mock,
+    channel_listing_model,
+    listing_filter_field,
+    api_client,
+    checkout_with_voucher,
+):
+    # given
+    line = checkout_with_voucher.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_voucher.channel_id,
+        **{listing_filter_field: line.variant_id},
+    ).delete()
+
     assert checkout_with_voucher.voucher_code is not None
     previous_checkout_last_change = checkout_with_voucher.last_change
 
@@ -735,10 +785,15 @@ def test_with_active_problems_flow(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
+    wraps=send_webhook_request_async.apply_async,
+)
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_remove_triggers_webhooks(
+    mocked_send_webhook_using_scheme_method,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
@@ -748,6 +803,7 @@ def test_checkout_remove_triggers_webhooks(
     checkout_with_voucher,
 ):
     # given
+    mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
     mocked_send_webhook_request_sync.return_value = []
     (
         tax_webhook,
@@ -766,20 +822,8 @@ def test_checkout_remove_triggers_webhooks(
 
     # then
     assert not content["errors"]
-
     assert wrapped_call_checkout_info_event.called
-
-    # confirm that event delivery was generated for each async webhook.
-    checkout_update_delivery = EventDelivery.objects.get(
-        webhook_id=checkout_updated_webhook.id
-    )
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_update_delivery.id},
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
-    )
+    assert mocked_send_webhook_request_async.call_count == 1
 
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
@@ -787,24 +831,23 @@ def test_checkout_remove_triggers_webhooks(
         webhook_id=checkout_updated_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
-    )
-    shipping_methods_delivery = shipping_methods_call.args[0]
+    sync_deliveries = {
+        call.args[0].event_type: call.args[0]
+        for call in mocked_send_webhook_request_sync.mock_calls
+    }
+
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in sync_deliveries
+    shipping_methods_delivery = sync_deliveries[
+        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
+    ]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
-    assert (
-        shipping_methods_delivery.event_type
-        == WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    )
-    assert shipping_methods_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS in sync_deliveries
+    filter_shipping_delivery = sync_deliveries[
+        WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    ]
     assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
-    assert (
-        filter_shipping_delivery.event_type
-        == WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    )
-    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    tax_delivery = tax_delivery_call.args[0]
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
+    tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     assert tax_delivery.webhook_id == tax_webhook.id

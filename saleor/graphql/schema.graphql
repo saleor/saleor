@@ -5528,7 +5528,39 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
-  variants: [ProductVariant!]
+  variants: [ProductVariant!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `productVariants` field instead.")
+
+  """
+  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  
+  Added in Saleor 3.21.
+  """
+  productVariants(
+    """Filtering options for product variant."""
+    filter: ProductVariantFilterInput
+
+    """Where filtering options."""
+    where: ProductVariantWhereInput
+
+    """Sort products variants."""
+    sortBy: ProductVariantSortingInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductVariantCountableConnection
 
   """List of media for the product."""
   media(
@@ -7651,6 +7683,55 @@ type Margin @doc(category: "Products") {
   stop: Int
 }
 
+type ProductVariantCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [ProductVariantCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type ProductVariantCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: ProductVariant!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input ProductVariantFilterInput @doc(category: "Products") {
+  search: String
+  sku: [String!]
+  metadata: [MetadataFilter!]
+  isPreorder: Boolean
+  updatedAt: DateTimeRangeInput
+}
+
+input ProductVariantWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [ProductVariantWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductVariantWhereInput!]
+}
+
+input ProductVariantSortingInput @doc(category: "Products") {
+  """Specifies the direction in which to sort productVariants."""
+  direction: OrderDirection!
+
+  """Sort productVariants by the selected field."""
+  field: ProductVariantSortField!
+}
+
+enum ProductVariantSortField @doc(category: "Products") {
+  """Sort products variants by last modified at."""
+  LAST_MODIFIED_AT
+}
+
 input MediaSortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort media."""
   direction: OrderDirection!
@@ -8646,23 +8727,6 @@ type CollectionCountableConnection @doc(category: "Products") {
 type CollectionCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Collection!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-type ProductVariantCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [ProductVariantCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type ProductVariantCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: ProductVariant!
 
   """A cursor for use in pagination."""
   cursor: String!
@@ -10976,9 +11040,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Number of variant items fulfilled."""
   quantityFulfilled: Int!
 
-  """Reason for any discounts applied on a product in the order."""
-  unitDiscountReason: String
-
   """Rate of tax applied on product variant."""
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
@@ -10994,19 +11055,35 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
-  """Price of the single item in the order line."""
+  """
+  Price of the single item in the order line with all the line-level discounts and order-level discount portions applied.
+  """
   unitPrice: TaxedMoney!
 
   """
-  Price of the single item in the order line without applied an order line discount.
+  Price of the single item in the order line without any discount applied.
   """
   undiscountedUnitPrice: TaxedMoney!
 
-  """The discount applied to the single order line."""
+  """
+  Sum of the line-level discounts applied to the order line. Order-level discounts which affect the line are not visible in this field. For order-level discount portion (if any), please query `order.discounts` field.
+  """
   unitDiscount: Money!
 
-  """Value of the discount. Can store fixed value or percent value"""
+  """
+  Reason for line-level discounts applied on the order line. Order-level discounts which affect the line are not visible in this field. For order-level discount reason (if any), please query `order.discounts` field.
+  """
+  unitDiscountReason: String
+
+  """
+  Value of the discount. Can store fixed value or percent value. This field shouldn't be used when multiple discounts affect the line. There is a limitation, that after running `checkoutComplete` mutation the field always stores fixed value.
+  """
   unitDiscountValue: PositiveDecimal!
+
+  """
+  Type of the discount: `fixed` or `percent`. This field shouldn't be used when multiple discounts affect the line. There is a limitation, that after running `checkoutComplete` mutation the field is always set to `fixed`.
+  """
+  unitDiscountType: DiscountValueTypeEnum
 
   """Price of the order line."""
   totalPrice: TaxedMoney!
@@ -11042,9 +11119,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """A quantity of items remaining to be fulfilled."""
   quantityToFulfill: Int!
-
-  """Type of the discount: fixed or percent"""
-  unitDiscountType: DiscountValueTypeEnum
 
   """
   Denormalized tax class of the product in this order line.
@@ -12387,38 +12461,6 @@ enum ProductTypeSortField @doc(category: "Products") {
 
   """Sort products by shipping."""
   SHIPPING_REQUIRED
-}
-
-input ProductVariantFilterInput @doc(category: "Products") {
-  search: String
-  sku: [String!]
-  metadata: [MetadataFilter!]
-  isPreorder: Boolean
-  updatedAt: DateTimeRangeInput
-}
-
-input ProductVariantWhereInput @doc(category: "Products") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-
-  """List of conditions that must be met."""
-  AND: [ProductVariantWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [ProductVariantWhereInput!]
-}
-
-input ProductVariantSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort productVariants."""
-  direction: OrderDirection!
-
-  """Sort productVariants by the selected field."""
-  field: ProductVariantSortField!
-}
-
-enum ProductVariantSortField @doc(category: "Products") {
-  """Sort products variants by last modified at."""
-  LAST_MODIFIED_AT
 }
 
 type PaymentCountableConnection @doc(category: "Payments") {
@@ -15360,7 +15402,9 @@ type Mutation {
     """The ID of the transaction. One of field id or token is required."""
     id: ID
 
-    """The message related to the event."""
+    """
+    The message related to the event. The maximum length is 512 characters; any text exceeding this limit will be truncated.
+    """
     message: String
 
     """PSP Reference of the event to report."""
@@ -18170,9 +18214,7 @@ type Mutation {
   - STAFF_SET_PASSWORD_REQUESTED (async): Setting a new password for the staff account is requested.
   """
   requestPasswordReset(
-    """
-    Slug of a channel which will be used for notify user. Optional when only one channel exists.
-    """
+    """Slug of a channel which will be used for notify user."""
     channel: String
 
     """Email of the user that will be used for password recovery."""

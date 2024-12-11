@@ -192,6 +192,7 @@ class User(
     uuid = models.UUIDField(default=uuid4, unique=True)
 
     USERNAME_FIELD = "email"
+    RETURN_ID_IN_API_RESPONSE = True
 
     objects = UserManager()
 

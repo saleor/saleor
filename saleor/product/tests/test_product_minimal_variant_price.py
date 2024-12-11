@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
-import before_after
 import graphene
 import pytest
 from django.core.management import call_command
@@ -11,6 +10,7 @@ from prices import Money
 from ...discount import RewardValueType
 from ...discount.models import Promotion, PromotionRule
 from ...product.models import Product, VariantChannelListingPromotionRule
+from ...tests import race_condition
 from ..utils.variant_prices import update_discounted_prices_for_promotion
 
 
@@ -521,7 +521,7 @@ def test_update_discounted_price_for_promotion_promotion_rule_deleted_in_meantim
         PromotionRule.objects.all().delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.product.utils.variant_prices._get_discounted_variants_prices_for_promotions",
         delete_promotion_rule,
     ):
@@ -582,7 +582,7 @@ def test_update_discounted_price_rule_deleted_in_meantime_promotion_listing_exis
         rule.delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.product.utils.variant_prices._update_or_create_listings",
         delete_promotion_rule,
     ):

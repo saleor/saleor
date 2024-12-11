@@ -16,8 +16,10 @@ from ...payment.models import TransactionEvent
 from ...payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..event_types import WebhookEventSyncType
 from ..payloads import generate_transaction_action_request_payload
-from ..transport.synchronous.transport import handle_transaction_request_task
-from ..transport.utils import trigger_transaction_request
+from ..transport.synchronous.transport import (
+    handle_transaction_request_task,
+    trigger_transaction_request,
+)
 
 
 @pytest.fixture

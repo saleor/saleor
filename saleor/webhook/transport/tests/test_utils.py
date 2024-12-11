@@ -8,9 +8,17 @@ from celery.exceptions import Retry
 from celery.utils.threads import LocalStack
 
 from ....core import EventDeliveryStatus
-from ....core.models import EventDeliveryAttempt
+from ....core.models import EventDelivery, EventDeliveryAttempt
 from ...event_types import WebhookEventAsyncType
-from ..utils import WebhookResponse, handle_webhook_retry, send_webhook_using_aws_sqs
+from ..utils import (
+    WebhookResponse,
+    attempt_update,
+    create_attempt,
+    get_delivery_for_webhook,
+    get_multiple_deliveries_for_webhooks,
+    handle_webhook_retry,
+    send_webhook_using_aws_sqs,
+)
 
 
 @pytest.fixture
@@ -187,3 +195,109 @@ def test_send_webhook_using_aws_sqs_with_fifo_queue(mocked_boto3_client):
     # then
     _, send_message_kwargs = mocked_boto3_client.send_message.call_args
     assert send_message_kwargs["MessageGroupId"] == domain
+
+
+def test_get_delivery_for_webhook(event_delivery):
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery == event_delivery
+    assert not_found is False
+
+
+def test_get_delivery_for_webhook_invalid_id(caplog):
+    # when
+    invalid_pk = 99999
+    delivery, not_found = get_delivery_for_webhook(invalid_pk)
+
+    # then
+    assert delivery is None
+    assert caplog.records[0].message == (f"Event delivery id: {invalid_pk} not found")
+    assert not_found is True
+
+
+def test_get_delivery_for_webhook_inactive_webhook(event_delivery, caplog):
+    # given
+    event_delivery.webhook.is_active = False
+    event_delivery.webhook.save(update_fields=["is_active"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery is None
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.FAILED
+    assert caplog.records[0].message == (
+        f"Event delivery id: {event_delivery.pk} webhook is disabled."
+    )
+    assert not_found is False
+
+
+def test_get_multiple_deliveries_for_webhooks(event_deliveries):
+    # given
+    all_deliveries = EventDelivery.objects.all()
+    ids = [event_delivery.pk for event_delivery in all_deliveries]
+
+    # when
+    deliveries, _ = get_multiple_deliveries_for_webhooks(ids)
+
+    # then
+    assert len(all_deliveries) == len(deliveries)
+    assert set(deliveries.keys()) == set(ids)
+
+
+def test_get_multiple_deliveries_for_webhooks_with_inactive(
+    any_webhook, event_deliveries
+):
+    # given
+    all_deliveries = EventDelivery.objects.all()
+    ids = [event_delivery.pk for event_delivery in all_deliveries]
+    inactive_delivery = all_deliveries[0]
+
+    any_webhook.is_active = False
+    any_webhook.save(update_fields=["is_active"])
+    inactive_delivery.webhook = any_webhook
+    inactive_delivery.save(update_fields=["webhook"])
+
+    # when
+    deliveries, _ = get_multiple_deliveries_for_webhooks(ids)
+
+    # then
+    assert len(deliveries) == len(all_deliveries) - 1
+    assert set(deliveries.keys()) == set(ids) - {inactive_delivery.pk}
+
+    inactive_delivery.refresh_from_db()
+    assert inactive_delivery.status == EventDeliveryStatus.FAILED
+
+
+@pytest.mark.parametrize(
+    ("content", "expected_attempt_response"),
+    [
+        ("", ""),
+        ("error", "error"),
+        ("errorerrorerrore", "errorerrorerrore"),
+        (100 * "error", "errorerrorerrore..."),
+        (None, None),
+    ],
+)
+def test_truncate_attempt_response(
+    content, expected_attempt_response, event_delivery, settings
+):
+    settings.EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT = 16
+
+    # given
+    attempt = create_attempt(event_delivery)
+    response = WebhookResponse(
+        content=content,
+        response_status_code=500,
+        status=EventDeliveryStatus.FAILED,
+    )
+
+    # when
+    attempt_update(attempt, response)
+
+    # then
+    attempt.refresh_from_db(fields=["response"])
+    assert attempt.response == expected_attempt_response

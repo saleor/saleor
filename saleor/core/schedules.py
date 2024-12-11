@@ -37,7 +37,7 @@ class promotion_webhook_schedule(CustomSchedule):
             schedule=self,
             nowfun=nowfun,
             app=app,
-            import_path="saleor.core.schedules.promotion_webhook_schedule",
+            import_path="saleor.core.schedules.initiated_promotion_webhook_schedule",
         )
         # Seconds left to next batch processing
         self.NEXT_BATCH_RUN_TIME = 5

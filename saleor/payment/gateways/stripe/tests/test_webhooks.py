@@ -3,7 +3,6 @@ import logging
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
-import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -15,6 +14,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order.actions import order_charged, order_refunded, order_voided
 from .....payment.models import Transaction
 from .....plugins.manager import get_plugins_manager
+from .....tests import race_condition
 from .... import ChargeStatus, TransactionKind
 from ....utils import price_to_minor_unit
 from ..consts import (
@@ -452,7 +452,7 @@ def test_handle_successful_payment_intent_checkout_with_voucher_ongoing_completi
     def call_webhook_success_event(*args, **kwargs):
         handle_successful_payment_intent(payment_intent, plugin.config, channel.slug)
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", call_webhook_success_event
     ):
         order_from_checkout, action_required, _ = complete_checkout(
@@ -1698,7 +1698,7 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
             payment_intent, plugin.config, channel_USD.slug
         )
 
-    with before_after.after(
+    with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment",
         call_webhook_notification,
     ):

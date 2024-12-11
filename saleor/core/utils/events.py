@@ -8,6 +8,19 @@ from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.models import Webhook
 
 
+def get_is_deferred_payload(event_name: str) -> bool:
+    """Return True if the event has deferred payload.
+
+    When the event has deferred payload, the payload will be generated in the Celery
+    task during webhook delivery. In such case, any additional sync calls needed to
+    generated the payload are also run in this task, and we don't need to call them
+    manually before.
+    """
+    return WebhookEventAsyncType.EVENT_MAP.get(event_name, {}).get(
+        "is_deferred_payload", False
+    )
+
+
 def any_webhook_has_subscription(
     events: list[str], webhook_event_map: dict[str, set["Webhook"]]
 ) -> bool:
@@ -66,8 +79,11 @@ def webhook_async_event_requires_sync_webhooks_to_trigger(
     means that sync webhook should be triggered first, before calling async webhook.
     """
     _validate_event_name(event_name, webhook_event_map)
-
     _validate_webhook_event_map(webhook_event_map, possible_sync_events)
+
+    is_deferred_payload = get_is_deferred_payload(event_name)
+    if is_deferred_payload:
+        return False
 
     if not webhook_event_map[event_name] and not webhook_event_map.get(
         WebhookEventAsyncType.ANY

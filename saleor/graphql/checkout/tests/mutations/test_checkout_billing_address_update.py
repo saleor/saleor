@@ -7,6 +7,7 @@ from django.test import override_settings
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.utils import invalidate_checkout
 from .....core.models import EventDelivery
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -42,6 +43,58 @@ def test_checkout_billing_address_update_by_id(
     user_api_client, checkout_with_item, graphql_address_data
 ):
     checkout = checkout_with_item
+    assert checkout.shipping_address is None
+
+    query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
+    billing_address = graphql_address_data
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "billingAddress": billing_address,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.billing_address is not None
+    assert checkout.billing_address.first_name == billing_address["firstName"]
+    assert checkout.billing_address.last_name == billing_address["lastName"]
+    assert (
+        checkout.billing_address.street_address_1 == billing_address["streetAddress1"]
+    )
+    assert (
+        checkout.billing_address.street_address_2 == billing_address["streetAddress2"]
+    )
+    assert checkout.billing_address.postal_code == billing_address["postalCode"]
+    assert checkout.billing_address.country == billing_address["country"]
+    assert checkout.billing_address.city == billing_address["city"].upper()
+    assert checkout.billing_address.validation_skipped is False
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_billing_address_update_when_line_without_listing(
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+):
+    checkout = checkout_with_item
+    line_without_listing = checkout.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
+
     assert checkout.shipping_address is None
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE

@@ -6,6 +6,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.1/howto/deployment/asgi/
 """
 
+import gc
 import os
 
 from django.core.asgi import get_asgi_application
@@ -24,6 +25,8 @@ def preload_app() -> None:
     from django.urls import get_resolver
 
     getattr(get_resolver(settings.ROOT_URLCONF), "url_patterns")
+    gc.collect()
+    gc.freeze()  # mark anything that remains as uncollectable to speed up future collections
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")

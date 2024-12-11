@@ -1,5 +1,7 @@
 import pytest
 
+from ....account.models import User
+from ....graphql.core.utils import to_global_id_or_none
 from ..account.utils import account_register
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
@@ -136,7 +138,9 @@ def test_guest_checkout_should_be_assigned_to_user_after_creating_the_account_CO
         channel_slug,
         redirect_url,
     )
-    user_id = user_account["user"]["id"]
+    user = User.objects.last()
+    assert user
+    user_id = to_global_id_or_none(user)
     assert user_account["user"]["isActive"] is True
 
     # Step 6 - Confirm new account

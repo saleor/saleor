@@ -251,6 +251,9 @@ def test_stock_reservation_accounts_for_order_allocations(
     checkout_line = checkout.lines.create(
         quantity=4,
         variant=variant,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=checkout.channel_id
+        ).price_amount,
     )
 
     with pytest.raises(InsufficientStock):
@@ -273,9 +276,13 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
         currency=channel_USD.currency_code, channel=channel_USD
     )
     other_checkout.set_country("US", commit=True)
+    undiscounted_unit_price_amount = variant.channel_listings.get(
+        channel_id=checkout.channel_id
+    ).price_amount
     other_checkout_line = checkout.lines.create(
         quantity=2,
         variant=variant,
+        undiscounted_unit_price_amount=undiscounted_unit_price_amount,
     )
 
     Reservation.objects.create(
@@ -288,6 +295,7 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
     checkout_line = checkout.lines.create(
         quantity=2,
         variant=variant,
+        undiscounted_unit_price_amount=undiscounted_unit_price_amount,
     )
 
     with pytest.raises(InsufficientStock):

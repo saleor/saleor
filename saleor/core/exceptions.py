@@ -23,6 +23,12 @@ class InsufficientStockData:
     warehouse_pk: Union[UUID, None] = None
 
 
+class NonExistingCheckoutLines(Exception):
+    def __init__(self, line_pks: set[UUID]):
+        self.line_pks = line_pks
+        super().__init__("Checkout lines don't exist.")
+
+
 class InsufficientStock(Exception):
     def __init__(self, items: list[InsufficientStockData]):
         details = [str(item.variant or item.order_line) for item in items]

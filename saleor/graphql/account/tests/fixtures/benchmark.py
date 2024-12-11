@@ -1,50 +1,19 @@
-import random
-import uuid
-
 import pytest
 from prices import Money, TaxedMoney
 
-from .....account import CustomerEvents
-from .....account.models import CustomerEvent, Group, User
+from .....account.models import CustomerEvent, User
 from .....giftcard.models import GiftCard
 from .....order.models import Order
-
-ORDER_COUNT_IN_BENCHMARKS = 10
-GIFT_CARDS_PER_USER = 5
-EVENTS_PER_USER = 5
-GROUPS_PER_USER = 5
-
-
-def _prepare_events_for_user(user):
-    events = [
-        CustomerEvent(type=random.choice(CustomerEvents.CHOICES)[0], user=user)
-        for i in range(EVENTS_PER_USER)
-    ]
-    return events
-
-
-def _prepare_gift_cards_for_user(user):
-    gift_cards = [
-        GiftCard(
-            created_by=user,
-            initial_balance_amount=random.randint(10, 20),
-            current_balance_amount=random.randint(10, 20),
-            code=str(uuid.uuid4())[:16],
-        )
-        for i in range(GIFT_CARDS_PER_USER)
-    ]
-    return gift_cards
-
-
-def _create_permission_groups(user):
-    _groups = [Group(name=str(uuid.uuid4())) for i in range(GROUPS_PER_USER)]
-    groups = Group.objects.bulk_create(_groups)
-    user.groups.add(*groups)
-    return groups
+from .utils import (
+    create_permission_groups,
+    prepare_events_for_user,
+    prepare_gift_cards_for_user,
+)
 
 
 @pytest.fixture
 def users_for_customers_benchmarks(channel_USD, address, shipping_method):
+    ORDER_COUNT_IN_BENCHMARKS = 10
     users = [
         User(
             email=f"jane.doe.{i}@example.com",
@@ -77,9 +46,9 @@ def users_for_customers_benchmarks(channel_USD, address, shipping_method):
     gift_cards = []
 
     for user in users_for_customers_benchmarks:
-        gift_cards.extend(_prepare_gift_cards_for_user(user))
-        events.extend(_prepare_events_for_user(user))
-        _create_permission_groups(user)
+        gift_cards.extend(prepare_gift_cards_for_user(user))
+        events.extend(prepare_events_for_user(user))
+        create_permission_groups(user)
 
     CustomerEvent.objects.bulk_create(events)
     GiftCard.objects.bulk_create(gift_cards)

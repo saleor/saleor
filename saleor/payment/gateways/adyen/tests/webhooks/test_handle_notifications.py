@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
-import before_after
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
@@ -13,6 +12,7 @@ from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
+from ......tests import race_condition
 from ......warehouse.models import Stock
 from ..... import ChargeStatus, TransactionKind
 from .....models import Transaction
@@ -335,7 +335,7 @@ def test_handle_authorization_for_checkout_out_of_stock_after_payment(
     def call_after_finalizing_payment(*args, **kwargs):
         Stock.objects.all().update(quantity=0)
 
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.checkout.complete_checkout._create_order",
         call_after_finalizing_payment,
     ):

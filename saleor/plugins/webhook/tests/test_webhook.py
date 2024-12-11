@@ -53,9 +53,11 @@ from ....webhook.payloads import (
 )
 from ....webhook.transport import signature_for_payload
 from ....webhook.transport.asynchronous.transport import (
+    WebhookPayloadData,
     send_webhook_request_async,
     trigger_webhooks_async,
 )
+from ....webhook.transport.utils import attempt_update
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
 from .utils import generate_request_headers
@@ -904,32 +906,41 @@ def test_product_variant_back_in_stock(
 
 @freeze_time("2014-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
-@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_product_variant_stock_updated(
-    mocked_webhook_trigger,
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async_for_multiple_objects")
+def test_product_variant_stocks_updated(
+    mocked_webhook_trigger_for_multiple_objects,
     mocked_get_webhooks_for_event,
     any_webhook,
     settings,
     variant_with_many_stocks,
 ):
-    variant = variant_with_many_stocks.stocks.first()
+    stock = variant_with_many_stocks.stocks.first()
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager(allow_replica=False)
-    manager.product_variant_stock_updated(variant)
+    manager.product_variant_stocks_updated([stock])
 
-    mocked_webhook_trigger.assert_called_once_with(
-        None,
+    mocked_webhook_trigger_for_multiple_objects.assert_called_once_with(
         WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
         [any_webhook],
-        variant,
-        None,
-        legacy_data_generator=ANY,
-        allow_replica=False,
+        webhook_payloads_data=[
+            WebhookPayloadData(
+                subscribable_object=stock, legacy_data_generator=ANY, data=None
+            )
+        ],
+        requestor=None,
     )
-    assert callable(mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"])
+
+    assert callable(
+        mocked_webhook_trigger_for_multiple_objects.call_args.kwargs[
+            "webhook_payloads_data"
+        ][0].legacy_data_generator
+    )
     assert isinstance(
-        mocked_webhook_trigger.call_args.kwargs["legacy_data_generator"], partial
+        mocked_webhook_trigger_for_multiple_objects.call_args.kwargs[
+            "webhook_payloads_data"
+        ][0].legacy_data_generator,
+        partial,
     )
 
 
@@ -1913,44 +1924,80 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
 
 
 @mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.attempt_update",
+    wraps=attempt_update,
+)
+@mock.patch(
     "saleor.webhook.transport.asynchronous.transport.observability.report_event_delivery_attempt"
 )
 @mock.patch("saleor.webhook.transport.asynchronous.transport.clear_successful_delivery")
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-def test_send_webhook_request_async(
+def test_send_webhook_request_async_with_success_response(
     mocked_send_response,
     mocked_clear_delivery,
     mocked_observability,
+    mocked_attempt_update,
     event_delivery,
     webhook_response,
 ):
+    # given
     mocked_send_response.return_value = webhook_response
+
+    # when
     send_webhook_request_async(event_delivery.pk)
 
+    # then
     mocked_send_response.assert_called_once_with(
         event_delivery.webhook.target_url,
         "mirumee.com",
         event_delivery.webhook.secret_key,
         event_delivery.event_type,
-        event_delivery.payload.get_payload(),
+        event_delivery.payload.get_payload().encode("utf-8"),
         event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
-    attempt = EventDeliveryAttempt.objects.filter(delivery=event_delivery).first()
-    delivery = EventDelivery.objects.get(id=event_delivery.pk)
+    attempt = EventDeliveryAttempt.objects.get(delivery=event_delivery)
 
-    assert attempt
-    assert delivery
-    assert attempt.status == EventDeliveryStatus.SUCCESS
-    assert attempt.response == webhook_response.content
-    assert attempt.response_headers == json.dumps(webhook_response.response_headers)
-    assert attempt.response_status_code == webhook_response.response_status_code
-    assert attempt.request_headers == json.dumps(webhook_response.request_headers)
-    assert attempt.duration == webhook_response.duration
-    assert delivery.status == EventDeliveryStatus.SUCCESS
-    mocked_observability.assert_called_once_with(attempt)
+    mocked_attempt_update.assert_called_once_with(
+        attempt, webhook_response, with_save=False
+    )
+    mocked_observability.assert_called_once()
+    reported_attempt = mocked_observability.call_args.args[0]
+    assert reported_attempt.duration == webhook_response.duration
+    assert reported_attempt.response == webhook_response.content
+    assert reported_attempt.response_headers == json.dumps(
+        webhook_response.response_headers
+    )
+    assert (
+        reported_attempt.response_status_code == webhook_response.response_status_code
+    )
+    assert reported_attempt.request_headers == json.dumps(
+        webhook_response.request_headers
+    )
+    assert reported_attempt.status == webhook_response.status
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
+def test_send_webhook_request_async_with_success_response_deletes_event_deliveries(
+    mocked_send_response,
+    event_delivery,
+    webhook_response,
+):
+    # given
+    mocked_send_response.return_value = webhook_response
+    assert webhook_response.status == EventDeliveryStatus.SUCCESS
+
+    # when
+    send_webhook_request_async(event_delivery.pk)
+
+    # then
+    assert mocked_send_response.called
+    assert not EventDelivery.objects.all().exists()
+    assert not EventDeliveryAttempt.objects.all().exists()
 
 
 @mock.patch(
@@ -1994,6 +2041,31 @@ def test_send_webhook_request_async_when_webhook_is_disabled(
     assert event_delivery.status == EventDeliveryStatus.FAILED
 
 
+@mock.patch("saleor.webhook.observability.utils.report_event_delivery_attempt")
+@mock.patch("saleor.webhook.transport.asynchronous.transport.clear_successful_delivery")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.retry"
+)
+def test_send_webhook_request_async_when_event_delivery_is_missing(
+    mocked_retry, mocked_clear_delivery, mocked_observability
+):
+    # given
+    event_delivery_id = 123
+    mocked_retry.side_effect = CeleryTaskRetryError()
+
+    # when
+    try:
+        send_webhook_request_async(event_delivery_id)
+    except CeleryTaskRetryError:
+        pass
+
+    # then
+    assert not mocked_clear_delivery.called
+    assert not mocked_observability.called
+    mocked_retry.assert_called_once()
+
+
+@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_transaction_request")
 def test_transaction_charge_requested(

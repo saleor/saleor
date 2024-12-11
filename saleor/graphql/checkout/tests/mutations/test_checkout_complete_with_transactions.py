@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
-import before_after
 import graphene
 import pytest
 from django.db.models.aggregates import Sum
@@ -28,7 +27,12 @@ from .....payment import TransactionEventType
 from .....payment.model_helpers import get_subtotal
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....plugins.manager import PluginsManager, get_plugins_manager
-from .....product.models import VariantChannelListingPromotionRule
+from .....product.models import (
+    ProductChannelListing,
+    ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
+)
+from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....core.utils import to_global_id_or_none
@@ -1129,6 +1133,58 @@ def test_checkout_with_variant_without_price(
     checkout_line_variant.channel_listings.filter(channel=checkout.channel).update(
         price_amount=None
     )
+
+    variant_id = to_global_id_or_none(checkout_line_variant)
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutComplete"]["errors"]
+    assert errors[0]["code"] == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+def test_checkout_with_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    site_settings,
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_item,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: checkout_line.variant_id},
+    ).delete()
 
     variant_id = to_global_id_or_none(checkout_line_variant)
     redirect_url = "https://www.example.com"
@@ -3271,6 +3327,9 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     other_checkout_line = other_checkout.lines.create(
         variant=checkout_line.variant,
         quantity=quantity_available,
+        undiscounted_unit_price_amount=checkout_line.variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     Reservation.objects.create(
         checkout_line=other_checkout_line,
@@ -4413,7 +4472,7 @@ def test_checkout_complete_line_deleted_in_the_meantime(
         CheckoutLine.objects.get(id=checkout.lines.first().id).delete()
 
     # when
-    with before_after.before(
+    with race_condition.RunBefore(
         "saleor.graphql.checkout.mutations.checkout_complete.complete_checkout",
         delete_order_line,
     ):
