@@ -925,11 +925,11 @@ def test_for_checkout_with_shipping_app(
     checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     checkout = checkout_info.checkout
 
-    expected_app_identifier = "saleor.payment.app.payment.gateway.initialize.session"
-
     variables = {
         "id": to_global_id_or_none(checkout),
-        "paymentGateways": [{"id": expected_app_identifier, "data": {}}],
+        "paymentGateways": [
+            {"id": payment_gateway_initialize_session_app.identifier, "data": {}}
+        ],
     }
 
     # when
