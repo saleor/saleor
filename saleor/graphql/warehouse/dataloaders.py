@@ -1,12 +1,7 @@
 import sys
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import (
-    TYPE_CHECKING,
-    Optional,
-    TypedDict,
-    Union,
-)
+from typing import TYPE_CHECKING, Optional, TypedDict, Union
 from uuid import UUID
 
 from django.contrib.sites.models import Site
@@ -357,9 +352,12 @@ class AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
                 # shipping zones supporting given country.
                 quantity = 0
                 for warehouse_id in used_warehouse_ids:
-                    quantity += available_quantity_by_warehouse_id_and_variant_id[
-                        warehouse_id
-                    ][variant_id]
+                    quantity += max(
+                        available_quantity_by_warehouse_id_and_variant_id[warehouse_id][
+                            variant_id
+                        ],
+                        0,
+                    )
                 quantity_map[variant_id] = quantity
             else:
                 # When country code is unknown, return the highest known quantity.

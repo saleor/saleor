@@ -1506,14 +1506,14 @@ def test_checkout_create_when_one_stock_exceeded(
 
     # make first stock exceeded
     stock = variant.stocks.first()
-    stock.quantity = -1
+    stock.quantity = -100
     stock.save()
 
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["errors"][0]["message"] == (
-        "Could not add items SKU_A. Only 2 remaining in stock."
+        "Could not add items SKU_A. Only 3 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 

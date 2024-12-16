@@ -509,7 +509,7 @@ def test_variant_qty_available_with_country_code_and_local_cc_warehouse_negative
     )
     warehouse_for_cc.shipping_zones.add(shipping_zone)
 
-    quantity = -1
+    quantity = -100
     # stock for standard warehouse
     Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=quantity
@@ -528,8 +528,58 @@ def test_variant_qty_available_with_country_code_and_local_cc_warehouse_negative
     # then
     content = get_graphql_content(response)
     variant_data = content["data"]["productVariant"]
-    assert variant_data["byAddress"] == quantity_cc + quantity
-    assert variant_data["deprecatedByCountry"] == quantity + quantity_cc
+    assert variant_data["byAddress"] == quantity_cc + max(quantity, 0)
+    assert variant_data["deprecatedByCountry"] == quantity_cc + max(quantity, 0)
+
+
+@pytest.mark.parametrize(
+    ("first_wh_qt", "secont_wh_qt"),
+    [
+        (20, 20),
+        (-100, 30),
+        (30, -100),
+    ],
+)
+def test_variant_qty_available_separate_stocks_different_sz_with_the_same_country(
+    first_wh_qt,
+    secont_wh_qt,
+    variant_with_many_stocks_different_shipping_zones,
+    channel_USD,
+    shipping_zones,
+    api_client,
+):
+    # given
+    for zone in shipping_zones:
+        zone.countries = [channel_USD.default_country]
+    ShippingZone.objects.bulk_update(shipping_zones, ["countries"])
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    assert len(variant.stocks.all()) == 2
+    stock_from_first_sz, stock_from_second_sz = variant.stocks.all()
+
+    stock_from_first_sz.quantity = first_wh_qt
+    stock_from_first_sz.save()
+
+    stock_from_second_sz.quantity = secont_wh_qt
+    stock_from_second_sz.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "address": {"country": channel_USD.default_country.code},
+        "country": channel_USD.default_country.code,
+    }
+
+    # when
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["byAddress"] == max(first_wh_qt, 0) + max(secont_wh_qt, 0)
+    assert variant_data["deprecatedByCountry"] == max(first_wh_qt, 0) + max(
+        secont_wh_qt, 0
+    )
 
 
 def test_variant_quantity_available_with_country_code_and_global_cc_warehouse(
