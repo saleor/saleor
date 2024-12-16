@@ -3128,7 +3128,7 @@ class WebhookPlugin(BasePlugin):
             app_id = webhook.app_id
             app = apps_map[app_id]
 
-            gateway = gateways.get(webhook.app.identifier)
+            gateway = gateways.get(app.identifier)
             gateway_data = None
             if gateway:
                 gateway_data = gateway.data
