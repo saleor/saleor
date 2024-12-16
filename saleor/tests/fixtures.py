@@ -7837,6 +7837,27 @@ def stored_payment_method_request_delete_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def payment_gateway_initialize_session_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment gateway initialize session",
+        is_active=True,
+        identifier="saleor.payment.app.payment.gateway.initialize.session",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_gateway_initialize_session",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
+    )
+    return app
+
+
+@pytest.fixture
 def payment_gateway_initialize_tokenization_app(db, permission_manage_payments):
     app = App.objects.create(
         name="Payment method request delete",
