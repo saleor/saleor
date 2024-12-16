@@ -860,3 +860,98 @@ def test_with_payment_gateways_and_amount_with_lot_of_decimal_places(
         ],
         order,
     )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_for_checkout_with_shipping_app(
+    mocked_send_webhook_request_sync,
+    user_api_client,
+    checkout_with_prices,
+    plugins_manager,
+    shipping_app_with_subscription,
+    payment_gateway_initialize_session_app,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+
+    shipping_webhook = shipping_app_with_subscription.webhooks.first()
+    shipping_webhook.subscription_query = """
+        subscription {
+            event {
+                ... on ShippingListMethodsForCheckout {
+                    checkout {
+                        email
+                        token
+                    }
+                }
+            }
+        }
+    """
+    shipping_webhook.save(update_fields=["subscription_query"])
+
+    webhook_initialize_session = payment_gateway_initialize_session_app.webhooks.first()
+    webhook_initialize_session.subscription_query = """
+        subscription PaymentGatewayInitializeSession {
+            event {
+                ... on PaymentGatewayInitializeSession {
+                    data
+                    amount
+                    sourceObject {
+                        ... on Checkout {
+                            id
+                            token
+                            shippingMethods {
+                                id
+                                name
+                            }
+                            totalPrice {
+                                gross {
+                                currency
+                                amount
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    webhook_initialize_session.save(update_fields=["subscription_query"])
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout = checkout_info.checkout
+
+    expected_app_identifier = "saleor.payment.app.payment.gateway.initialize.session"
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "paymentGateways": [{"id": expected_app_identifier, "data": {}}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["paymentGatewayInitialize"]["errors"]
+
+    # Expect two sync calls: first to fetch external shipping methods, second to
+    # initialize payment gateway session.
+    assert mocked_send_webhook_request_sync.call_count == 2
+
+    shipping_list_call = mocked_send_webhook_request_sync.mock_calls[0]
+    shipping_list_delivery = shipping_list_call.args[0]
+    assert shipping_list_delivery.event_type == "shipping_list_methods_for_checkout"
+    assert shipping_list_delivery.payload.get_payload()
+
+    gateway_session_initialize_call = mocked_send_webhook_request_sync.mock_calls[1]
+    gateway_session_initialize_delivery = gateway_session_initialize_call.args[0]
+    assert (
+        gateway_session_initialize_delivery.event_type
+        == "payment_gateway_initialize_session"
+    )
+    assert gateway_session_initialize_delivery.payload.get_payload()

@@ -154,3 +154,24 @@ def payment_method_process_tokenization_app(db, permission_manage_payments):
         event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION,
     )
     return app
+
+
+@pytest.fixture
+def payment_gateway_initialize_session_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment gateway initialize session",
+        is_active=True,
+        identifier="saleor.payment.app.payment.gateway.initialize.session",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_gateway_initialize_session",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
+    )
+    return app
