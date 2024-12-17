@@ -8010,29 +8010,6 @@ def tax_data_response(tax_line_data_response):
 
 
 @pytest.fixture
-def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
-    app = App.objects.create(name="Tax App with subscription", is_active=True)
-    app.permissions.add(permission_handle_taxes)
-
-    webhook = Webhook.objects.create(
-        name="tax-subscription-webhook-1",
-        app=app,
-        target_url="https://tax-app.com/api/",
-        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
-    )
-    webhook.events.bulk_create(
-        [
-            WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in [
-                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            ]
-        ]
-    )
-    return app
-
-
-@pytest.fixture
 def observability_webhook(db, permission_manage_observability):
     app = App.objects.create(name="Observability App", is_active=True)
     app.tokens.create(name="Default")
