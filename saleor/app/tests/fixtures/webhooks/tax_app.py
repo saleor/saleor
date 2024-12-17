@@ -9,11 +9,12 @@ from .....webhook.tests.subscription_webhooks import subscription_queries
 
 
 @pytest.fixture
-def tax_app(db, permission_handle_taxes):
+def tax_app(db, permission_handle_taxes, permission_manage_users):
     app = App.objects.create(name="Tax App", is_active=True)
     app.identifier = to_global_id_or_none(app)
     app.save()
     app.permissions.add(permission_handle_taxes)
+    app.permissions.add(permission_manage_users)
 
     webhook = Webhook.objects.create(
         name="tax-webhook-1",
