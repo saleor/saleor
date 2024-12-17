@@ -46,6 +46,9 @@
   <a href="https://github.com/python/black">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black">
   </a>
+  <a href="https://gurubase.io/g/saleor">
+    <img src="https://img.shields.io/badge/Gurubase-Ask%20Saleor%20Guru-006BFF" alt="Gurubase">
+  </a>
 </div>
 
 ## Table of Contents
