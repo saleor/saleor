@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from unittest import mock
 
@@ -8,6 +9,8 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....payment.interface import PaymentGatewayData
 from .....payment.models import TransactionItem
+from .....plugins.manager import get_plugins_manager
+from .....webhook.event_types import WebhookEventSyncType
 from ....core.enums import PaymentGatewayConfigErrorCode, TransactionInitializeErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -871,6 +874,7 @@ def test_for_checkout_with_shipping_app(
     plugins_manager,
     shipping_app_with_subscription,
     payment_gateway_initialize_session_app,
+    caplog,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -907,8 +911,8 @@ def test_for_checkout_with_shipping_app(
                             }
                             totalPrice {
                                 gross {
-                                currency
-                                amount
+                                    currency
+                                    amount
                                 }
                             }
                         }
@@ -939,6 +943,10 @@ def test_for_checkout_with_shipping_app(
     content = get_graphql_content(response)
     assert not content["data"]["paymentGatewayInitialize"]["errors"]
 
+    assert "No payload was generated with subscription for event" not in "".join(
+        caplog.messages
+    )
+
     # Expect two sync calls: first to fetch external shipping methods, second to
     # initialize payment gateway session.
     assert mocked_send_webhook_request_sync.call_count == 2
@@ -952,6 +960,88 @@ def test_for_checkout_with_shipping_app(
     gateway_session_initialize_delivery = gateway_session_initialize_call.args[0]
     assert (
         gateway_session_initialize_delivery.event_type
-        == "payment_gateway_initialize_session"
+        == WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     )
     assert gateway_session_initialize_delivery.payload.get_payload()
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(
+    PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"],
+    CHECKOUT_PRICES_TTL=datetime.timedelta(0),
+)
+def test_for_checkout_with_tax_app(
+    mocked_send_webhook_request_sync,
+    channel_USD,
+    user_api_client,
+    checkout_with_items,
+    tax_app,
+    payment_gateway_initialize_session_app,
+    caplog,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+
+    webhook_initialize_session = payment_gateway_initialize_session_app.webhooks.first()
+    webhook_initialize_session.subscription_query = """
+        subscription PaymentGatewayInitializeSession {
+            event {
+                ... on PaymentGatewayInitializeSession {
+                    data
+                    amount
+                    sourceObject {
+                        ... on Checkout {
+                            id
+                            token
+                            totalPrice {
+                                gross {
+                                    currency
+                                    amount
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    """
+    webhook_initialize_session.save(update_fields=["subscription_query"])
+
+    checkout = checkout_with_items
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, manager, lines, force_update=True
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "paymentGateways": [
+            {"id": payment_gateway_initialize_session_app.identifier, "data": {}}
+        ],
+    }
+
+    # when
+    response = user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["paymentGatewayInitialize"]["errors"]
+
+    assert "No payload was generated with subscription for event" not in "".join(
+        caplog.messages
+    )
+
+    # gather called event types
+    event_types = {
+        call.args[0].event_type for call in mocked_send_webhook_request_sync.mock_calls
+    }
+    assert len(event_types) == 2
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in event_types
+    assert WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION in event_types
+
+    for call in mocked_send_webhook_request_sync.mock_calls:
+        delivery = call.args[0]
+        assert delivery.payload.get_payload()
