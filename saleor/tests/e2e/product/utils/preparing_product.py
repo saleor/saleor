@@ -41,7 +41,7 @@ def prepare_product(
     stocks = [
         {
             "warehouse": warehouse_id,
-            "quantity": 5,
+            "quantity": 15,
         }
     ]
     product_variant_data = create_product_variant(
