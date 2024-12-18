@@ -7837,6 +7837,27 @@ def stored_payment_method_request_delete_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def payment_gateway_initialize_session_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Payment gateway initialize session",
+        is_active=True,
+        identifier="saleor.payment.app.payment.gateway.initialize.session",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="payment_gateway_initialize_session",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
+    )
+    return app
+
+
+@pytest.fixture
 def payment_gateway_initialize_tokenization_app(db, permission_manage_payments):
     app = App.objects.create(
         name="Payment method request delete",
@@ -7900,11 +7921,12 @@ def payment_method_process_tokenization_app(db, permission_manage_payments):
 
 
 @pytest.fixture
-def tax_app(db, permission_handle_taxes):
+def tax_app(db, permission_handle_taxes, permission_manage_users):
     app = App.objects.create(name="Tax App", is_active=True)
     app.identifier = to_global_id_or_none(app)
     app.save()
     app.permissions.add(permission_handle_taxes)
+    app.permissions.add(permission_manage_users)
 
     webhook = Webhook.objects.create(
         name="tax-webhook-1",
@@ -7986,29 +8008,6 @@ def tax_data_response(tax_line_data_response):
         "shipping_tax_rate": 23,
         "lines": [tax_line_data_response] * 5,
     }
-
-
-@pytest.fixture
-def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
-    app = App.objects.create(name="Tax App with subscription", is_active=True)
-    app.permissions.add(permission_handle_taxes)
-
-    webhook = Webhook.objects.create(
-        name="tax-subscription-webhook-1",
-        app=app,
-        target_url="https://tax-app.com/api/",
-        subscription_query=CALCULATE_TAXES_SUBSCRIPTION_QUERY,
-    )
-    webhook.events.bulk_create(
-        [
-            WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in [
-                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            ]
-        ]
-    )
-    return app
 
 
 @pytest.fixture
