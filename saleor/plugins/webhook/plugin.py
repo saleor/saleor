@@ -3116,17 +3116,13 @@ class WebhookPlugin(BasePlugin):
             defaultdict(lambda: defaultdict(dict))
         )
 
-        app_ids = {webhook.app_id for webhook in webhooks}
-        apps_map = App.objects.filter(id__in=app_ids).in_bulk()
-
         promises = []
         for webhook in webhooks:
             if not webhook.subscription_query:
                 continue
 
             query_hash = get_subscription_query_hash(webhook.subscription_query)
-            app_id = webhook.app_id
-            app = apps_map[app_id]
+            app = webhook.app
 
             gateway = gateways.get(app.identifier)
             gateway_data = None
@@ -3146,7 +3142,7 @@ class WebhookPlugin(BasePlugin):
 
             def store_payload(
                 payload,
-                app_id=app_id,
+                app_id=app.pk,
                 query_hash=query_hash,
             ):
                 if payload:
