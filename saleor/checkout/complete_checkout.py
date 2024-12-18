@@ -704,19 +704,21 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
-    checkout_metadata = get_checkout_metadata(checkout)
 
     # store current tax configuration
     update_order_display_gross_prices(order)
 
+    checkout_metadata = get_checkout_metadata(checkout)
     # copy metadata from the checkout into the new order
-    order.metadata = checkout_metadata.metadata
+    if checkout_metadata:
+        order.metadata = checkout_metadata.metadata
+        order.private_metadata = checkout_metadata.private_metadata
+
     if metadata_list:
         order.store_value_in_metadata({data.key: data.value for data in metadata_list})
 
     order.redirect_url = checkout.redirect_url
 
-    order.private_metadata = checkout_metadata.private_metadata
     if private_metadata_list:
         order.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
