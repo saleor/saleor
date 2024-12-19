@@ -7921,6 +7921,131 @@ def payment_method_process_tokenization_app(db, permission_manage_payments):
 
 
 @pytest.fixture
+def transaction_process_session_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Transaction process session",
+        is_active=True,
+        identifier="saleor.payment.app.transaction.process.session",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="transaction_process_session",
+        app=app,
+        target_url="http://localhost:8000/endpoint/",
+        subscription_query="""
+            subscription TransactionProcessSession {
+                event {
+                    ... on TransactionProcessSession {
+                        recipient {
+                            id
+                        }
+                        data
+                        merchantReference
+                        action {
+                            amount
+                            currency
+                            actionType
+                        }
+                        transaction {
+                            id
+                            token
+                            pspReference
+                            events {
+                                pspReference
+                            }
+                        }
+                        sourceObject {
+                            ... on Checkout {
+                                id
+                                token
+                                totalPrice {
+                                    gross {
+                                        currency
+                                        amount
+                                    }
+                                }
+                                shippingMethods {
+                                    id
+                                    name
+                                }
+                            }
+                            ... on Order {
+                                id
+                                total {
+                                    gross {
+                                        currency
+                                        amount
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_PROCESS_SESSION)
+    return app
+
+
+@pytest.fixture
+def transaction_initialize_session_app(db, permission_manage_payments):
+    app = App.objects.create(
+        name="Transaction initialize session",
+        is_active=True,
+        identifier="saleor.payment.app.transaction.initialize.session",
+    )
+    app.tokens.create(name="Default")
+    app.permissions.add(permission_manage_payments)
+
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=app,
+        target_url="http://www.example.com",
+        subscription_query="""
+            subscription TransactionInitializeSession {
+                event {
+                    ... on TransactionInitializeSession {
+                        transaction {
+                            id
+                        }
+                        sourceObject {
+                            ... on Checkout {
+                                id
+                                shippingMethods {
+                                    id
+                                    name
+                                }
+                                totalPrice {
+                                    gross {
+                                        amount
+                                        currency
+                                    }
+                                }
+                            }
+                            ... on Order {
+                                total {
+                                    gross {
+                                        amount
+                                        currency
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """,
+    )
+    webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    )
+    return app
+
+
+@pytest.fixture
 def tax_app(db, permission_handle_taxes, permission_manage_users):
     app = App.objects.create(name="Tax App", is_active=True)
     app.identifier = to_global_id_or_none(app)
