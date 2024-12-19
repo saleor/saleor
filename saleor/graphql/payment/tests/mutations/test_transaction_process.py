@@ -5,6 +5,7 @@ from unittest import mock
 import graphene
 import pytest
 import pytz
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -24,6 +25,8 @@ from .....payment.interface import (
     TransactionSessionResult,
 )
 from .....payment.models import Payment, TransactionEvent
+from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.models import Webhook
 from ....core.enums import TransactionProcessErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -2367,3 +2370,131 @@ def test_for_order_empty_message(
         returned_data=None,
         expected_message=expected_response["message"],
     )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_for_checkout_with_shipping_app(
+    mocked_send_webhook_request_sync,
+    app_api_client,
+    checkout_with_prices,
+    permission_manage_payments,
+    shipping_app_with_subscription,
+    webhook_app,
+    transaction_item_generator,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = transaction_session_response
+
+    webhook_app.identifier = "app.identifier"
+    webhook_app.save(update_fields=["identifier"])
+    webhook_app.permissions.add(permission_manage_payments)
+    webhook_transaction_initialize = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+        target_url="http://www.example.com",
+        subscription_query="""
+            subscription TransactionProcessSession {
+                event {
+                    ... on TransactionProcessSession {
+                        recipient {
+                            id
+                        }
+                        data
+                        merchantReference
+                        action {
+                            amount
+                            currency
+                            actionType
+                        }
+                        transaction {
+                            id
+                            token
+                            pspReference
+                            events {
+                                pspReference
+                            }
+                        }
+                        sourceObject {
+                            ... on Checkout {
+                                id
+                                token
+                                totalPrice {
+                                    gross {
+                                        currency
+                                        amount
+                                    }
+                                }
+                                shippingMethods {
+                                    id
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """,
+    )
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
+    webhook_transaction_initialize.events.create(event_type=event_type)
+
+    shipping_webhook = shipping_app_with_subscription.webhooks.first()
+    shipping_webhook.subscription_query = """
+        subscription {
+            event {
+                ... on ShippingListMethodsForCheckout {
+                    checkout {
+                        email
+                        token
+                    }
+                }
+            }
+        }
+    """
+    shipping_webhook.save(update_fields=["subscription_query"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=webhook_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=Decimal("10.00"),
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_PROCESS,
+        variables,
+        permissions=[permission_manage_payments],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionProcess"]["errors"]
+
+    assert "No payload was generated with subscription for event" not in "".join(
+        caplog.messages
+    )
+
+    # gather called event types
+    event_types = {
+        call.args[0].event_type for call in mocked_send_webhook_request_sync.mock_calls
+    }
+    assert len(event_types) == 2
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in event_types
+    assert WebhookEventSyncType.TRANSACTION_PROCESS_SESSION in event_types
+
+    for call in mocked_send_webhook_request_sync.mock_calls:
+        delivery = call.args[0]
+        assert delivery.payload.get_payload()
