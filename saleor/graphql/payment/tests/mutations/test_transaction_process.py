@@ -5,6 +5,7 @@ from unittest import mock
 import graphene
 import pytest
 import pytz
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -24,6 +25,7 @@ from .....payment.interface import (
     TransactionSessionResult,
 )
 from .....payment.models import Payment, TransactionEvent
+from .....webhook.event_types import WebhookEventSyncType
 from ....core.enums import TransactionProcessErrorCode
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -2367,3 +2369,205 @@ def test_for_order_empty_message(
         returned_data=None,
         expected_message=expected_response["message"],
     )
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_for_checkout_with_shipping_app(
+    mocked_send_webhook_request_sync,
+    app_api_client,
+    checkout_with_prices,
+    permission_manage_payments,
+    shipping_app_with_subscription,
+    transaction_process_session_app,
+    transaction_item_generator,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = transaction_session_response
+
+    shipping_webhook = shipping_app_with_subscription.webhooks.first()
+    shipping_webhook.subscription_query = """
+        subscription {
+            event {
+                ... on ShippingListMethodsForCheckout {
+                    checkout {
+                        email
+                        token
+                    }
+                }
+            }
+        }
+    """
+    shipping_webhook.save(update_fields=["subscription_query"])
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=transaction_process_session_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=Decimal("10.00"),
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_PROCESS,
+        variables,
+        permissions=[permission_manage_payments],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionProcess"]["errors"]
+
+    assert "No payload was generated with subscription for event" not in "".join(
+        caplog.messages
+    )
+
+    # gather called event types
+    event_types = {
+        call.args[0].event_type for call in mocked_send_webhook_request_sync.mock_calls
+    }
+    assert len(event_types) == 2
+    assert WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT in event_types
+    assert WebhookEventSyncType.TRANSACTION_PROCESS_SESSION in event_types
+
+    for call in mocked_send_webhook_request_sync.mock_calls:
+        delivery = call.args[0]
+        assert delivery.payload.get_payload()
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(
+    PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"],
+    CHECKOUT_PRICES_TTL=datetime.timedelta(0),
+)
+def test_for_checkout_with_tax_app(
+    mocked_send_webhook_request_sync,
+    app_api_client,
+    checkout_with_prices,
+    permission_manage_payments,
+    tax_app,
+    transaction_process_session_app,
+    transaction_item_generator,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = transaction_session_response
+
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk, app=transaction_process_session_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=Decimal("10.00"),
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_PROCESS,
+        variables,
+        permissions=[permission_manage_payments],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionProcess"]["errors"]
+
+    assert "No payload was generated with subscription for event" not in "".join(
+        caplog.messages
+    )
+
+    # gather called event types
+    event_types = {
+        call.args[0].event_type for call in mocked_send_webhook_request_sync.mock_calls
+    }
+    assert len(event_types) == 2
+    assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in event_types
+    assert WebhookEventSyncType.TRANSACTION_PROCESS_SESSION in event_types
+
+    for call in mocked_send_webhook_request_sync.mock_calls:
+        delivery = call.args[0]
+        assert delivery.payload.get_payload()
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_for_order_with_tax_app(
+    mocked_send_webhook_request_sync,
+    app_api_client,
+    permission_manage_payments,
+    draft_order,
+    tax_app,
+    transaction_process_session_app,
+    transaction_item_generator,
+    transaction_session_response,
+    caplog,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = transaction_session_response
+
+    order = draft_order
+    order.should_refresh_prices = True
+    order.save(update_fields=["should_refresh_prices"])
+
+    transaction_item = transaction_item_generator(
+        order_id=order.pk, app=transaction_process_session_app
+    )
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=Decimal("10.00"),
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_PROCESS,
+        variables,
+        permissions=[permission_manage_payments],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionProcess"]["errors"]
+
+    assert "No payload was generated with subscription for event" not in "".join(
+        caplog.messages
+    )
+
+    # gather called event types
+    event_types = {
+        call.args[0].event_type for call in mocked_send_webhook_request_sync.mock_calls
+    }
+    assert len(event_types) == 2
+    assert WebhookEventSyncType.ORDER_CALCULATE_TAXES in event_types
+    assert WebhookEventSyncType.TRANSACTION_PROCESS_SESSION in event_types
+
+    for call in mocked_send_webhook_request_sync.mock_calls:
+        delivery = call.args[0]
+        assert delivery.payload.get_payload()
