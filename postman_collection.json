@@ -1,0 +1,356 @@
+{
+  "info": {
+    "name": "Saleor API",
+    "description": "Postman collection for the Saleor backend implemented using Express.js, Node.js, Sequelize.js, and PostgreSQL.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "email": "test@example.com",
+            "firstName": "John",
+            "lastName": "Doe",
+            "password": "password123"
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/users/register",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "users", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "User Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "email": "test@example.com",
+            "password": "password123"
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/users/login",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "users", "login"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/users/profile",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "users", "profile"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "userId": "{{userId}}",
+            "total": 100.0,
+            "status": "pending",
+            "orderItems": [
+              {
+                "productId": "{{productId}}",
+                "quantity": 2,
+                "price": 50.0
+              }
+            ]
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/orders",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "orders"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Order",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/orders/{{orderId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "orders", "{{orderId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Order",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "total": 150.0,
+            "status": "completed",
+            "orderItems": [
+              {
+                "productId": "{{productId}}",
+                "quantity": 3,
+                "price": 50.0
+              }
+            ]
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/orders/{{orderId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "orders", "{{orderId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Order",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/orders/{{orderId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "orders", "{{orderId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Product",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "name": "Sample Product",
+            "description": "This is a sample product.",
+            "price": 25.0,
+            "stock": 100
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/products",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "products"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Product",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/products/{{productId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "products", "{{productId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Product",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "name": "Updated Product",
+            "description": "This is an updated product.",
+            "price": 30.0,
+            "stock": 150
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/products/{{productId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "products", "{{productId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Product",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/products/{{productId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "products", "{{productId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Category",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "name": "Sample Category",
+            "description": "This is a sample category."
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/categories",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "categories"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Category",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/categories/{{categoryId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "categories", "{{categoryId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Category",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": JSON.stringify({
+            "name": "Updated Category",
+            "description": "This is an updated category."
+          })
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/categories/{{categoryId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "categories", "{{categoryId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Category",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/categories/{{categoryId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "categories", "{{categoryId}}"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

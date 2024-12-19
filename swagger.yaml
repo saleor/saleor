@@ -1,0 +1,445 @@
+openapi: 3.0.0
+info:
+  title: Saleor API
+  description: API documentation for the Saleor backend implemented using Express.js, Node.js, Sequelize.js, and PostgreSQL.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+paths:
+  /users/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /users/login:
+    post:
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid email or password
+        '500':
+          description: Internal server error
+  /users/profile:
+    get:
+      summary: Get user profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '404':
+          description: User not found
+        '500':
+          description: Internal server error
+  /orders:
+    post:
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreation'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /orders/{id}:
+    get:
+      summary: Get order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update order details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreation'
+      responses:
+        '200':
+          description: Order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Order deleted successfully
+        '404':
+          description: Order not found
+        '500':
+          description: Internal server error
+  /products:
+    post:
+      summary: Create a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /products/{id}:
+    get:
+      summary: Get product details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update product details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid input
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Product deleted successfully
+        '404':
+          description: Product not found
+        '500':
+          description: Internal server error
+  /categories:
+    post:
+      summary: Create a new category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid input
+        '500':
+          description: Internal server error
+  /categories/{id}:
+    get:
+      summary: Get category details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Category details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          description: Category not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update category details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Invalid input
+        '404':
+          description: Category not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Category deleted successfully
+        '404':
+          description: Category not found
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        password:
+          type: string
+          format: password
+    UserLogin:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        isStaff:
+          type: boolean
+        isActive:
+          type: boolean
+    OrderCreation:
+      type: object
+      properties:
+        userId:
+          type: string
+        total:
+          type: number
+          format: double
+        status:
+          type: string
+        orderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        total:
+          type: number
+          format: double
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        orderItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        productId:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: double
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: double
+        stock:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

@@ -179,3 +179,81 @@ Disclaimer: Everything you see here is open and free to use as long as you compl
 #### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 
 hello@saleor.io
+
+## New Backend Implementation
+
+This section provides details about the new backend implementation using Express.js, Node.js, Sequelize.js, and PostgreSQL.
+
+### Setting Up the New Backend
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/saleor/saleor.git
+   cd saleor
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up the environment variables:
+   Create a `.env` file in the root directory and add the following variables:
+   ```env
+   NODE_ENV=development
+   PORT=3000
+   DATABASE_URL=postgres://username:password@localhost:5432/saleor
+   JWT_SECRET=your_jwt_secret
+   ```
+
+4. Run the database migrations:
+   ```bash
+   npx sequelize-cli db:migrate
+   ```
+
+5. Start the server:
+   ```bash
+   npm start
+   ```
+
+### Running Tests
+
+To run the tests, use the following command:
+```bash
+npm test
+```
+
+### API Documentation
+
+The API documentation is available in the `swagger.yaml` file. You can use tools like Swagger UI to visualize and interact with the API.
+
+### Postman Collection
+
+A Postman collection with requests for all endpoints is available in the `postman_collection.json` file. You can import this collection into Postman to test the API endpoints.
+
+### Endpoints
+
+The following endpoints are available in the new backend implementation:
+
+- **User**
+  - `POST /api/users/register`: Register a new user
+  - `POST /api/users/login`: Login a user
+  - `GET /api/users/profile`: Get user profile (protected)
+
+- **Order**
+  - `POST /api/orders`: Create a new order
+  - `GET /api/orders/:id`: Get order details
+  - `PUT /api/orders/:id`: Update order details
+  - `DELETE /api/orders/:id`: Delete an order
+
+- **Product**
+  - `POST /api/products`: Create a new product
+  - `GET /api/products/:id`: Get product details
+  - `PUT /api/products/:id`: Update product details
+  - `DELETE /api/products/:id`: Delete a product
+
+- **Category**
+  - `POST /api/categories`: Create a new category
+  - `GET /api/categories/:id`: Get category details
+  - `PUT /api/categories/:id`: Update category details
+  - `DELETE /api/categories/:id`: Delete a category
