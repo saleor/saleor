@@ -1,3 +1,4 @@
+import logging
 from typing import cast
 
 import graphene
@@ -16,6 +17,7 @@ from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
+from ....order.logs import log_suspicious_order
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country, update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
@@ -33,6 +35,8 @@ from ..utils import (
     prepare_insufficient_stock_order_validation_errors,
     validate_draft_order,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DraftOrderComplete(BaseMutation):
@@ -185,4 +189,10 @@ class DraftOrderComplete(BaseMutation):
                     from_draft=True,
                 )
             )
+
+        try:
+            log_suspicious_order(order, order_lines_info)
+        except Exception as e:
+            logger.warning("Error logging suspicious order: %s", e)
+
         return DraftOrderComplete(order=order)
