@@ -3023,17 +3023,12 @@ class WebhookPlugin(BasePlugin):
             transaction_session_data.payment_gateway_data,
         )
 
-        pregenerated_subscription_payloads: dict[int, dict[str, dict[str, Any]]] = (
-            defaultdict(lambda: defaultdict(dict))
-        )
+        pregenerated_subscription_payload: dict[str, Any] = {}
         if webhook.subscription_query:
-            query_hash = get_subscription_query_hash(webhook.subscription_query)
             app = webhook.app
-
             request = initialize_request(
                 self.requestor, sync_event=True, event_type=webhook_event
             )
-
             promise_payload = generate_payload_promise_from_subscription(
                 event_type=webhook_event,
                 subscribable_object=transaction_session_data,
@@ -3041,16 +3036,8 @@ class WebhookPlugin(BasePlugin):
                 request=request,
                 app=app,
             )
-
-            def store_payload(
-                payload,
-                app_id=app.pk,
-                query_hash=query_hash,
-            ):
-                if payload:
-                    pregenerated_subscription_payloads[app_id][query_hash] = payload
-
-            promise_payload.then(store_payload)
+            if promise_payload:
+                pregenerated_subscription_payload = promise_payload.get() or {}
 
         response_data = trigger_webhook_sync(
             event_type=webhook_event,
@@ -3059,7 +3046,7 @@ class WebhookPlugin(BasePlugin):
             allow_replica=False,
             subscribable_object=transaction_session_data,
             requestor=self.requestor,
-            pregenerated_subscription_payload=pregenerated_subscription_payloads,
+            pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
         error_msg = None
         if response_data is None:

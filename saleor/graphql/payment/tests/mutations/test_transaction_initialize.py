@@ -2792,7 +2792,6 @@ def test_for_checkout_with_shipping_app(
     mocked_send_webhook_request_sync,
     app_api_client,
     checkout_with_prices,
-    plugins_manager,
     permission_manage_payments,
     shipping_app_with_subscription,
     webhook_app,
