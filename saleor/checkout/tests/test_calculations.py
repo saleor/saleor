@@ -649,7 +649,7 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     mock_send_webhook_request_sync,
     checkout_with_single_item,
     settings,
-    tax_app_with_subscription_webhooks,
+    tax_app,
     shipping_app_with_subscription,
     address,
 ):
