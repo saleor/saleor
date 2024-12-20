@@ -1,3 +1,4 @@
+import os
 from decimal import Decimal
 
 import graphene
@@ -8,10 +9,15 @@ from ..discount.utils.shared import discount_info_for_logs
 from ..product.models import ProductVariantChannelListing
 from ..tests.utils import round_down
 
+DISABLE_EXTRA_LOGS = os.environ.get("DISABLE_EXTRA_LOGS", False)
+
 
 def log_suspicious_order_in_checkout_flow(
     order, order_lines_info, checkout_info, logger
 ):
+    if DISABLE_EXTRA_LOGS:
+        return
+
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # Check if order has 0 total
