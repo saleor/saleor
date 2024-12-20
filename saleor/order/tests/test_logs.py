@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from unittest import mock
 
@@ -13,7 +14,12 @@ from ...graphql.order.tests.mutations.test_draft_order_complete import (
 from ...graphql.tests.utils import get_graphql_content
 from .. import OrderStatus
 from ..fetch import OrderLineInfo
-from ..logs import log_draft_order_complete_with_zero_total, log_suspicious_order
+from ..logs import (
+    log_draft_order_complete_with_zero_total,
+    log_suspicious_order_in_draft_order_flow,
+)
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -67,7 +73,7 @@ def test_log_draft_order_complete_with_zero_total_valid_scenario(
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -99,7 +105,7 @@ def test_log_draft_order_complete_with_zero_total_shipping_above_0_no_gift_cards
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -142,7 +148,7 @@ def test_log_draft_order_complete_with_zero_total_shipping_above_0_gift_cards(
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -179,7 +185,7 @@ def test_log_draft_order_complete_with_zero_total_shipping_zero_no_reason(
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -216,7 +222,7 @@ def test_log_draft_order_complete_with_zero_total_valid_shipping_zero(
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -256,7 +262,7 @@ def test_log_draft_order_complete_with_zero_total_valid_shipping_zero_voucher(
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -286,7 +292,7 @@ def test_log_draft_order_complete_with_zero_total_line_above_0_no_gift_cards(
     line.save(update_fields=["total_price_gross_amount", "total_price_net_amount"])
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -328,7 +334,7 @@ def test_log_draft_order_complete_with_zero_total_line_above_0_gift_cards(
     order.gift_cards.add(gift_card)
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -357,7 +363,7 @@ def test_log_draft_order_complete_with_zero_total_not_valid_line_total_zero(
     line.save(update_fields=["undiscounted_total_price_net_amount"])
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -396,7 +402,7 @@ def test_log_draft_order_complete_with_zero_total_valid_line_total_zero_voucher(
     order.save(update_fields=["voucher_code"])
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -426,7 +432,7 @@ def test_log_draft_order_complete_with_zero_total_valid_line_total_zero_price_ov
     line.save(update_fields=["undiscounted_total_price_net_amount"])
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -462,7 +468,7 @@ def test_log_draft_order_complete_with_zero_total_gift_cards_not_cover_whole_tot
     order.gift_cards.add(gift_card)
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -513,7 +519,7 @@ def test_log_draft_order_complete_with_zero_total_discounts_not_cover_full_total
     )
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -565,7 +571,7 @@ def test_log_draft_order_complete_with_zero_total_discounts_cover_full_total(
     lines_info.line_discounts = [line_discount]
 
     # when
-    log_draft_order_complete_with_zero_total(order, [lines_info])
+    log_draft_order_complete_with_zero_total(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -577,7 +583,9 @@ def test_log_draft_order_complete_with_zero_total_discounts_cover_full_total(
     )
 
 
-@mock.patch("saleor.graphql.order.mutations.draft_order_complete.log_suspicious_order")
+@mock.patch(
+    "saleor.graphql.order.mutations.draft_order_complete.log_suspicious_order_in_draft_order_flow"
+)
 def test_failing_logs_in_draft_order_complete(
     mocked_logging,
     staff_api_client,
@@ -638,7 +646,7 @@ def test_log_order_with_0_line_price(
     )
 
     # when
-    log_suspicious_order(order, [lines_info])
+    log_suspicious_order_in_draft_order_flow(order, [lines_info], logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -648,4 +656,167 @@ def test_log_order_with_0_line_price(
     assert caplog.records[0].order
     assert caplog.records[0].discounts
     assert caplog.records[0].lines
-    assert f"Order with 0 line total price: {order_id}." == caplog.records[0].message
+    error_message = caplog.records[0].message
+    assert "Order with 0 line total price" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_discount_higher_than_50_percent(
+    order_with_item_total_0, caplog
+):
+    # given
+    order = order_with_item_total_0
+
+    order.total_gross_amount = Decimal("10")
+    order.total_net_amount = Decimal("10")
+    order.save(update_fields=["total_gross_amount", "total_net_amount"])
+
+    line = order.lines.first()
+    line.total_price_net_amount = Decimal("2")
+    line.total_price_gross_amount = Decimal("2")
+    line.undiscounted_total_price_net_amount = Decimal("10")
+    line.undiscounted_total_price_gross_amount = Decimal("10")
+    line.save(
+        update_fields=[
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_unit_price_gross_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ]
+    )
+    lines_info = OrderLineInfo(
+        line=line,
+        quantity=line.quantity,
+        variant=line.variant,
+        warehouse_pk=line.allocations.first().stock.warehouse.pk,
+    )
+
+    # when
+    log_suspicious_order_in_draft_order_flow(order, [lines_info], logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Line discounted by more than half" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_line_tax_issue(order_with_lines, caplog):
+    # given
+    order = order_with_lines
+
+    line = order.lines.first()
+    line.undiscounted_total_price_gross_amount += Decimal("1")
+    line.save(update_fields=["undiscounted_total_price_gross_amount"])
+
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order_in_draft_order_flow(order, lines_info, logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Line tax issue" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_tax_issue(order_with_lines, caplog):
+    # given
+    order = order_with_lines
+    order.shipping_price_gross_amount += Decimal("1")
+    order.save(update_fields=["shipping_price_gross_amount"])
+
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order_in_draft_order_flow(order, lines_info, logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Order tax issue" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_incorrect_total(order_with_lines, caplog):
+    # given
+    order = order_with_lines
+    line = order.lines.first()
+    line.total_price_net_amount += Decimal("1")
+    line.save(update_fields=["total_price_net_amount"])
+
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order_in_draft_order_flow(order, lines_info, logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Order total does not match lines total and shipping" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_no_logs_for_correct_order(order_with_lines, checkout_info, caplog):
+    # given
+    order = order_with_lines
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order_in_draft_order_flow(order, lines_info, logger)
+
+    # then
+    assert not caplog.records

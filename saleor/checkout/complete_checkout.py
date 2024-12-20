@@ -78,7 +78,7 @@ from .fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
 )
-from .logs import log_suspicious_order
+from .logs import log_suspicious_order_in_checkout_flow
 from .models import Checkout
 from .utils import (
     calculate_checkout_weight,
@@ -754,7 +754,9 @@ def _create_order(
     )
 
     try:
-        log_suspicious_order(order, order_lines_info, checkout_info, logger)
+        log_suspicious_order_in_checkout_flow(
+            order, order_lines_info, checkout_info, logger
+        )
     except Exception as e:
         logger.warning("Error logging suspicious order: %s", e)
 
@@ -1397,7 +1399,9 @@ def _create_order_from_checkout(
     )
 
     try:
-        log_suspicious_order(order, order_lines_info, checkout_info, logger)
+        log_suspicious_order_in_checkout_flow(
+            order, order_lines_info, checkout_info, logger
+        )
     except Exception as e:
         logger.warning("Error logging suspicious order: %s", e)
 

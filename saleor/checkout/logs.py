@@ -9,9 +9,10 @@ from ..product.models import ProductVariantChannelListing
 from ..tests.utils import round_down
 
 
-def log_suspicious_order(order, order_lines_info, checkout_info, logger):
+def log_suspicious_order_in_checkout_flow(
+    order, order_lines_info, checkout_info, logger
+):
     order_id = graphene.Node.to_global_id("Order", order.pk)
-    issues = []
 
     # Check if order has 0 total
     try:
@@ -20,6 +21,13 @@ def log_suspicious_order(order, order_lines_info, checkout_info, logger):
     except Exception as e:
         logger.warning("Error logging order (%s) with zero total: %s", order_id, e)
 
+    # Run rest of the checks (shared between checkout and draft order flow)
+    run_order_price_checks(order, order_lines_info, logger)
+
+
+def run_order_price_checks(order, order_lines_info, logger):
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    issues = []
     # Check if any order line has 0 total
     try:
         if any(

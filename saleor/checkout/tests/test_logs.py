@@ -16,7 +16,7 @@ from ..complete_checkout import (
     logger,
 )
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
-from ..logs import log_order_with_zero_total, log_suspicious_order
+from ..logs import log_order_with_zero_total, log_suspicious_order_in_checkout_flow
 
 
 @pytest.fixture
@@ -731,7 +731,7 @@ def test_log_order_with_0_line_price(
     )
 
     # when
-    log_suspicious_order(order, [lines_info], checkout_info, logger)
+    log_suspicious_order_in_checkout_flow(order, [lines_info], checkout_info, logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -787,7 +787,7 @@ def test_log_order_with_discount_higher_than_50_percent(
     )
 
     # when
-    log_suspicious_order(order, [lines_info], checkout_info, logger)
+    log_suspicious_order_in_checkout_flow(order, [lines_info], checkout_info, logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -820,7 +820,7 @@ def test_log_order_with_line_tax_issue(order_with_lines, checkout_info, caplog):
     ]
 
     # when
-    log_suspicious_order(order, lines_info, checkout_info, logger)
+    log_suspicious_order_in_checkout_flow(order, lines_info, checkout_info, logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -851,7 +851,7 @@ def test_log_order_with_tax_issue(order_with_lines, checkout_info, caplog):
     ]
 
     # when
-    log_suspicious_order(order, lines_info, checkout_info, logger)
+    log_suspicious_order_in_checkout_flow(order, lines_info, checkout_info, logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -883,7 +883,7 @@ def test_log_order_with_incorrect_total(order_with_lines, checkout_info, caplog)
     ]
 
     # when
-    log_suspicious_order(order, lines_info, checkout_info, logger)
+    log_suspicious_order_in_checkout_flow(order, lines_info, checkout_info, logger)
 
     # then
     order_id = graphene.Node.to_global_id("Order", order.pk)
@@ -911,7 +911,7 @@ def test_no_logs_for_correct_order(order_with_lines, checkout_info, caplog):
     ]
 
     # when
-    log_suspicious_order(order, lines_info, checkout_info, logger)
+    log_suspicious_order_in_checkout_flow(order, lines_info, checkout_info, logger)
 
     # then
     assert not caplog.records

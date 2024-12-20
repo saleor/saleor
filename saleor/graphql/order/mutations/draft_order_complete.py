@@ -17,7 +17,7 @@ from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
-from ....order.logs import log_suspicious_order
+from ....order.logs import log_suspicious_order_in_draft_order_flow
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country, update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
@@ -191,7 +191,7 @@ class DraftOrderComplete(BaseMutation):
             )
 
         try:
-            log_suspicious_order(order, order_lines_info)
+            log_suspicious_order_in_draft_order_flow(order, order_lines_info, logger)
         except Exception as e:
             logger.warning("Error logging suspicious order: %s", e)
 

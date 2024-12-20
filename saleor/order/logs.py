@@ -1,43 +1,28 @@
-import logging
 from decimal import Decimal
 
 import graphene
 from django.db.models import Sum
 
+from ..checkout.logs import run_order_price_checks
 from ..discount import DiscountType
 from ..discount.utils.shared import discount_info_for_logs
-from ..product.models import ProductVariantChannelListing
-
-logger = logging.getLogger(__name__)
 
 
-def log_suspicious_order(order, order_lines_info):
+def log_suspicious_order_in_draft_order_flow(order, order_lines_info, logger):
     order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # Check if order has 0 total
     try:
         if order.total_net_amount <= 0 or order.total_gross_amount <= 0:
-            log_draft_order_complete_with_zero_total(order, order_lines_info)
+            log_draft_order_complete_with_zero_total(order, order_lines_info, logger)
     except Exception as e:
         logger.warning("Error logging order (%s) with zero total: %s", order_id, e)
 
-    try:
-        if any(
-            [
-                (order_line_info.line.total_price_net_amount <= 0)
-                or (order_line_info.line.total_price_gross_amount <= 0)
-                for order_line_info in order_lines_info
-            ]
-        ):
-            log_order_with_suspicious_line(order, order_lines_info)
-    except Exception as e:
-        logger.warning(
-            "Error logging order (%s) with 0 line total price: %s", order_id, e
-        )
+    # Run rest of the checks (shared between checkout and draft order flow)
+    run_order_price_checks(order, order_lines_info, logger)
 
 
-def log_draft_order_complete_with_zero_total(
-    order,
-    order_lines_info,
-):
+def log_draft_order_complete_with_zero_total(order, order_lines_info, logger):
     extra = {
         "orderId": graphene.Node.to_global_id("Order", order.id),
     }
@@ -158,91 +143,3 @@ def log_draft_order_complete_with_zero_total(
             order_id,
             extra=extra,
         )
-
-
-def log_order_with_suspicious_line(order, lines_info):
-    order_id = graphene.Node.to_global_id("Order", order.id)
-
-    variant_listings_data = ProductVariantChannelListing.objects.filter(
-        variant_id__in=[line_info.line.variant_id for line_info in lines_info],
-        channel_id=order.channel_id,
-    ).values(
-        "variant_id",
-        "price_amount",
-        "discounted_price_amount",
-    )
-    variant_listings = {
-        variant["variant_id"]: (
-            variant["price_amount"],
-            variant["discounted_price_amount"],
-        )
-        for variant in variant_listings_data
-    }
-    extra = {
-        "order_id": order_id,
-        "orderId": order_id,
-        "order": {
-            "currency": order.currency,
-            "status": order.status,
-            "origin": order.origin,
-            "checkout_id": order.checkout_token,
-            "undiscounted_base_shipping_price_amount": order.undiscounted_base_shipping_price_amount,
-            "base_shipping_price_amount": order.base_shipping_price_amount,
-            "shipping_price_net_amount": order.shipping_price_net_amount,
-            "shipping_price_gross_amount": order.shipping_price_gross_amount,
-            "undiscounted_total_net_amount": order.undiscounted_total_net_amount,
-            "total_net_amount": order.total_net_amount,
-            "undiscounted_total_gross_amount": order.undiscounted_total_gross_amount,
-            "total_gross_amount": order.total_gross_amount,
-            "subtotal_net_amount": order.subtotal_net_amount,
-            "subtotal_gross_amount": order.subtotal_gross_amount,
-            "has_voucher_code": bool(order.voucher_code),
-            "tax_exemption": order.tax_exemption,
-            "tax_error": order.tax_error,
-        },
-        "discounts": discount_info_for_logs(order.discounts.all()),
-        "lines": [
-            {
-                "id": graphene.Node.to_global_id("OrderLine", line_info.line.pk),
-                "variant_id": graphene.Node.to_global_id(
-                    "ProductVariant", line_info.line.variant_id
-                ),
-                "quantity": line_info.line.quantity,
-                "is_gift_card": line_info.line.is_gift_card,
-                "is_price_overridden": line_info.line.is_price_overridden,
-                "undiscounted_base_unit_price_amount": line_info.line.undiscounted_base_unit_price_amount,
-                "base_unit_price_amount": line_info.line.base_unit_price_amount,
-                "undiscounted_unit_price_net_amount": line_info.line.undiscounted_unit_price_net_amount,
-                "undiscounted_unit_price_gross_amount": line_info.line.undiscounted_unit_price_gross_amount,
-                "unit_price_net_amount": line_info.line.unit_price_net_amount,
-                "unit_price_gross_amount": line_info.line.unit_price_gross_amount,
-                "undiscounted_total_price_net_amount": line_info.line.undiscounted_total_price_net_amount,
-                "undiscounted_total_price_gross_amount": line_info.line.undiscounted_total_price_gross_amount,
-                "total_price_net_amount": line_info.line.total_price_net_amount,
-                "total_price_gross_amount": line_info.line.total_price_gross_amount,
-                "has_voucher_code": bool(line_info.line.voucher_code),
-                "variant_listing_price": (
-                    variant_listings[line_info.line.variant_id][0]
-                    if line_info.line.variant_id in variant_listings
-                    else None
-                ),
-                "variant_listing_discounted_price": (
-                    variant_listings[line_info.line.variant_id][1]
-                    if line_info.line.variant_id in variant_listings
-                    else None
-                ),
-                "unit_discount_amount": line_info.line.unit_discount_amount,
-                "unit_discount_type": line_info.line.unit_discount_type,
-                "unit_discount_reason": line_info.line.unit_discount_reason,
-                "discounts": discount_info_for_logs(line_info.line_discounts)
-                if line_info.line_discounts
-                else None,
-            }
-            for line_info in lines_info
-        ],
-    }
-    logger.warning(
-        "Order with 0 line total price: %s.",
-        order_id,
-        extra=extra,
-    )
