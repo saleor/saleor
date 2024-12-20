@@ -119,22 +119,33 @@ def filter_where_by_numeric_field(
     field: str,
     value: dict[str, Union[Number, list[Number], dict[str, Number]]],
 ):
+    raw_filter = filter_where_by_numeric_field_raw(field, value)
+    if raw_filter is None:
+        return qs.none()
+    return qs.filter(**raw_filter)
+
+
+def filter_where_by_numeric_field_raw(
+    field: str,
+    value: dict[str, Union[Number, list[Number], dict[str, Number]]],
+):
     one_of = value.get("one_of")
     range = value.get("range")
 
     if "eq" in value:
         # allow filtering by `None` value
-        return qs.filter(**{field: value["eq"]})
+        return {field: value["eq"]}
     if one_of:
-        return qs.filter(**{f"{field}__in": one_of})
+        return {f"{field}__in": one_of}
     if range and isinstance(range, dict):
         lte = range.get("lte")
         gte = range.get("gte")
         if lte is None and gte is None:
-            return qs.none()
+            return None
+        lte_gte_filter = {}
         if lte is not None:
-            qs = qs.filter(**{f"{field}__lte": lte})
+            lte_gte_filter[f"{field}__lte"] = lte
         if gte is not None:
-            qs = qs.filter(**{f"{field}__gte": gte})
-        return qs
-    return qs.none()
+            lte_gte_filter[f"{field}__gte"] = gte
+        return lte_gte_filter
+    return None
