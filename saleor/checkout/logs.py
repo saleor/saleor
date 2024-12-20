@@ -6,16 +6,19 @@ from django.db.models import Sum
 from ..discount import VoucherType
 from ..discount.utils.shared import discount_info_for_logs
 from ..product.models import ProductVariantChannelListing
+from ..tests.utils import round_down
 
 
 def log_suspicious_order(order, order_lines_info, checkout_info, logger):
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    # Check if order has 0 total
     try:
         if order.total_net_amount <= 0 or order.total_gross_amount <= 0:
             log_order_with_zero_total(logger, order, order_lines_info, checkout_info)
     except Exception as e:
         logger.warning("Error logging order (%s) with zero total: %s", order_id, e)
 
+    # Check if any order line has 0 total
     try:
         if any(
             [
@@ -31,21 +34,56 @@ def log_suspicious_order(order, order_lines_info, checkout_info, logger):
             "Error logging order (%s) with 0 line total price: %s", order_id, e
         )
 
+    # Check if any order line is discounted more than 50%
     try:
         if any(
             [
                 (
                     order_line_info.line.total_price_net_amount
-                    < order_line_info.line.undiscounted_unit_price_net_amount / 2
+                    < round_down(
+                        order_line_info.line.undiscounted_total_price_net_amount / 2
+                    )
                 )
                 or (
                     order_line_info.line.total_price_gross_amount
-                    < order_line_info.line.undiscounted_unit_price_gross_amount / 2
+                    < round_down(
+                        order_line_info.line.undiscounted_total_price_gross_amount / 2
+                    )
                 )
                 for order_line_info in order_lines_info
             ]
         ):
             log_msg = "Suspicious line discounts in order: %s."
+            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+    except Exception as e:
+        logger.warning(
+            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
+        )
+
+    # Check if all order lines have tax rate reflected in its net/gross prices
+    try:
+        if any([tax_line_check(line_info.line) for line_info in order_lines_info]):
+            log_msg = "Line tax issue in order: %s."
+            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+    except Exception as e:
+        logger.warning(
+            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
+        )
+
+    # Check if all order prices have the same tax rate
+    try:
+        if tax_order_check(order):
+            log_msg = "Order tax issue in order: %s."
+            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+    except Exception as e:
+        logger.warning(
+            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
+        )
+
+    # Check if order total is a sum of lines total + shipping
+    try:
+        if order_total_check(order, order_lines_info):
+            log_msg = "Order total does not match lines total and shipping."
             log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
     except Exception as e:
         logger.warning(
@@ -264,3 +302,97 @@ def log_order_with_suspicious_line(order, lines_info, logger, log_msg):
         order_id,
         extra=extra,
     )
+
+
+def tax_line_check(line):
+    """Check if tax rate is reflected in net/gross prices."""
+    tax_rate = line.tax_rate + 1
+    total_tax_rate = (
+        round(line.total_price_gross_amount / line.total_price_net_amount, 2)
+        if line.total_price_net_amount
+        else tax_rate
+    )
+    undiscounted_total_tax_rate = (
+        round(
+            line.undiscounted_total_price_gross_amount
+            / line.undiscounted_total_price_net_amount,
+            2,
+        )
+        if line.undiscounted_total_price_net_amount
+        else tax_rate
+    )
+    unit_tax_rate = (
+        round(line.unit_price_gross_amount / line.unit_price_net_amount, 2)
+        if line.unit_price_net_amount
+        else tax_rate
+    )
+    undiscounted_unit_tax_rate = (
+        round(
+            line.undiscounted_unit_price_gross_amount
+            / line.undiscounted_unit_price_net_amount,
+            2,
+        )
+        if line.undiscounted_unit_price_net_amount
+        else tax_rate
+    )
+    for rate in [
+        total_tax_rate,
+        undiscounted_total_tax_rate,
+        unit_tax_rate,
+        undiscounted_unit_tax_rate,
+    ]:
+        if confidence_check(rate - tax_rate):
+            return True
+
+
+def tax_order_check(order):
+    """Check if all prices have the same tax rate."""
+    total_tax_rate = (
+        round(order.total_gross_amount / order.total_net_amount, 2)
+        if order.total_net_amount
+        else 1
+    )
+    subtotal_tax_rate = (
+        round(order.subtotal_gross_amount / order.subtotal_net_amount, 2)
+        if order.subtotal_net_amount
+        else total_tax_rate
+    )
+    undiscounted_total_tax_rate = (
+        round(
+            order.undiscounted_total_gross_amount / order.undiscounted_total_net_amount,
+            2,
+        )
+        if order.undiscounted_total_net_amount
+        else total_tax_rate
+    )
+    shipping_tax_rate = (
+        round(order.shipping_price_gross_amount / order.shipping_price_net_amount, 2)
+        if order.shipping_price_net_amount
+        else total_tax_rate
+    )
+    for rate in [subtotal_tax_rate, undiscounted_total_tax_rate, shipping_tax_rate]:
+        if confidence_check(rate - total_tax_rate):
+            return True
+
+
+def order_total_check(order, order_lines_info):
+    """Check if order total is a sum of lines total + shipping."""
+    order_total_net = order.total_net_amount
+    subtotal_net = sum(
+        [line_info.line.total_price_net_amount for line_info in order_lines_info]
+    )
+    shipping_net = order.shipping_price_net_amount
+    if confidence_check(order_total_net - subtotal_net - shipping_net):
+        return True
+
+    order_total_gross = order.total_gross_amount
+    subtotal_gross = sum(
+        [line_info.line.total_price_gross_amount for line_info in order_lines_info]
+    )
+    shipping_gross = order.shipping_price_gross_amount
+    if confidence_check(order_total_gross - subtotal_gross - shipping_gross):
+        return True
+
+
+def confidence_check(value):
+    return abs(value) > 0.01
