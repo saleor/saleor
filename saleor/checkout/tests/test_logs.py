@@ -743,7 +743,7 @@ def test_log_order_with_0_line_price(
     assert caplog.records[0].lines
     error_message = caplog.records[0].message
     assert "Order with 0 line total price" in error_message
-    assert order_id in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
 
 
 def test_log_order_with_discount_higher_than_50_percent(
@@ -798,4 +798,120 @@ def test_log_order_with_discount_higher_than_50_percent(
     assert caplog.records[0].lines
     error_message = caplog.records[0].message
     assert "Line discounted by more than half" in error_message
-    assert order_id in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_line_tax_issue(order_with_lines, checkout_info, caplog):
+    # given
+    order = order_with_lines
+
+    line = order.lines.first()
+    line.undiscounted_total_price_gross_amount += Decimal("1")
+    line.save(update_fields=["undiscounted_total_price_gross_amount"])
+
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order(order, lines_info, checkout_info, logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Line tax issue" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_tax_issue(order_with_lines, checkout_info, caplog):
+    # given
+    order = order_with_lines
+    order.shipping_price_gross_amount += Decimal("1")
+    order.save(update_fields=["shipping_price_gross_amount"])
+
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order(order, lines_info, checkout_info, logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Order tax issue" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_log_order_with_incorrect_total(order_with_lines, checkout_info, caplog):
+    # given
+    order = order_with_lines
+    line = order.lines.first()
+    line.total_price_net_amount += Decimal("1")
+    line.save(update_fields=["total_price_net_amount"])
+
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order(order, lines_info, checkout_info, logger)
+
+    # then
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    assert len(caplog.records) == 1
+    assert caplog.records[0].orderId == order_id
+    assert caplog.records[0].order_id == order_id
+    assert caplog.records[0].order
+    assert caplog.records[0].lines
+    error_message = caplog.records[0].message
+    assert "Order total does not match lines total and shipping" in error_message
+    assert f"Suspicious order: {order_id}. Issues detected:" in error_message
+
+
+def test_no_logs_for_correct_order(order_with_lines, checkout_info, caplog):
+    # given
+    order = order_with_lines
+    lines_info = [
+        OrderLineInfo(
+            line=line,
+            quantity=line.quantity,
+            variant=line.variant,
+            warehouse_pk=line.allocations.first().stock.warehouse.pk,
+        )
+        for line in order.lines.all()
+    ]
+
+    # when
+    log_suspicious_order(order, lines_info, checkout_info, logger)
+
+    # then
+    assert not caplog.records
