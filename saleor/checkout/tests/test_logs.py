@@ -741,10 +741,12 @@ def test_log_order_with_0_line_price(
     assert caplog.records[0].order
     assert caplog.records[0].discounts
     assert caplog.records[0].lines
-    assert f"Order with 0 line total price: {order_id}." == caplog.records[0].message
+    error_message = caplog.records[0].message
+    assert "Order with 0 line total price" in error_message
+    assert order_id in error_message
 
 
-def test_log_order_with_suspicious_line_discount(
+def test_log_order_with_discount_higher_than_50_percent(
     order_with_item_total_0, checkout, caplog
 ):
     # given
@@ -757,8 +759,8 @@ def test_log_order_with_suspicious_line_discount(
     line = order.lines.first()
     line.total_price_net_amount = Decimal("2")
     line.total_price_gross_amount = Decimal("2")
-    line.undiscounted_unit_price_net_amount = Decimal("10")
-    line.undiscounted_unit_price_gross_amount = Decimal("10")
+    line.undiscounted_total_price_net_amount = Decimal("10")
+    line.undiscounted_total_price_gross_amount = Decimal("10")
     line.save(
         update_fields=[
             "undiscounted_unit_price_net_amount",
@@ -794,6 +796,6 @@ def test_log_order_with_suspicious_line_discount(
     assert caplog.records[0].order_id == order_id
     assert caplog.records[0].order
     assert caplog.records[0].lines
-    assert (
-        f"Suspicious line discounts in order: {order_id}." == caplog.records[0].message
-    )
+    error_message = caplog.records[0].message
+    assert "Line discounted by more than half" in error_message
+    assert order_id in error_message

@@ -11,6 +11,8 @@ from ..tests.utils import round_down
 
 def log_suspicious_order(order, order_lines_info, checkout_info, logger):
     order_id = graphene.Node.to_global_id("Order", order.pk)
+    issues = []
+
     # Check if order has 0 total
     try:
         if order.total_net_amount <= 0 or order.total_gross_amount <= 0:
@@ -27,68 +29,55 @@ def log_suspicious_order(order, order_lines_info, checkout_info, logger):
                 for order_line_info in order_lines_info
             ]
         ):
-            log_msg = "Order with 0 line total price: %s."
-            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+            issues.append("Order with 0 line total price")
     except Exception as e:
         logger.warning(
-            "Error logging order (%s) with 0 line total price: %s", order_id, e
+            "Error checking order (%s) with 0 line total price: %s", order_id, e
         )
 
     # Check if any order line is discounted more than 50%
     try:
         if any(
             [
-                (
-                    order_line_info.line.total_price_net_amount
-                    < round_down(
-                        order_line_info.line.undiscounted_total_price_net_amount / 2
-                    )
-                )
-                or (
-                    order_line_info.line.total_price_gross_amount
-                    < round_down(
-                        order_line_info.line.undiscounted_total_price_gross_amount / 2
-                    )
-                )
+                discount_over_50_check(order_line_info)
                 for order_line_info in order_lines_info
             ]
         ):
-            log_msg = "Suspicious line discounts in order: %s."
-            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+            issues.append("Line discounted by more than half")
     except Exception as e:
         logger.warning(
-            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
+            "Error checking order (%s) with line discounted by more than half: %s",
+            order_id,
+            e,
         )
 
     # Check if all order lines have tax rate reflected in its net/gross prices
     try:
         if any([tax_line_check(line_info.line) for line_info in order_lines_info]):
-            log_msg = "Line tax issue in order: %s."
-            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+            issues.append("Line tax issue")
     except Exception as e:
-        logger.warning(
-            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
-        )
+        logger.warning("Error checking order (%s) with line tax issue: %s", order_id, e)
 
     # Check if all order prices have the same tax rate
     try:
         if tax_order_check(order):
-            log_msg = "Order tax issue in order: %s."
-            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+            issues.append("Order tax issue")
     except Exception as e:
         logger.warning(
-            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
+            "Error checking order (%s) with order tax issue: %s", order_id, e
         )
 
     # Check if order total is a sum of lines total + shipping
     try:
         if order_total_check(order, order_lines_info):
-            log_msg = "Order total does not match lines total and shipping."
-            log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
+            issues.append("Order total does not match lines total and shipping")
     except Exception as e:
-        logger.warning(
-            "Error logging order (%s) with suspicious line discounts: %s", order_id, e
-        )
+        logger.warning("Error checking order (%s) total: %s", order_id, e)
+
+    if issues:
+        issues_str = " | ".join(issues)
+        log_msg = "Suspicious order: %s. Issues detected: " + issues_str
+        log_order_with_suspicious_line(order, order_lines_info, logger, log_msg)
 
 
 def log_order_with_zero_total(
@@ -302,6 +291,18 @@ def log_order_with_suspicious_line(order, lines_info, logger, log_msg):
         order_id,
         extra=extra,
     )
+
+
+def discount_over_50_check(order_line_info):
+    """Check if any line is discounted by more then 50%."""
+    if order_line_info.line.total_price_net_amount < round_down(
+        order_line_info.line.undiscounted_total_price_net_amount / 2
+    ):
+        return True
+    if order_line_info.line.total_price_gross_amount < round_down(
+        order_line_info.line.undiscounted_total_price_gross_amount / 2
+    ):
+        return True
 
 
 def tax_line_check(line):
