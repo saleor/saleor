@@ -627,7 +627,7 @@ def test_log_order_with_zero_total_discounts_cover_full_total(
     assert caplog.records[0].message == f"Order with zero total created: {order_id}."
 
 
-@mock.patch("saleor.checkout.complete_checkout.log_suspicious_order")
+@mock.patch("saleor.checkout.complete_checkout.log_suspicious_order_in_checkout_flow")
 def test_failing_logging_in_create_order_from_checkout(
     mocked_logging, checkout, caplog
 ):
@@ -654,7 +654,7 @@ def test_failing_logging_in_create_order_from_checkout(
     ]
 
 
-@mock.patch("saleor.checkout.complete_checkout.log_suspicious_order")
+@mock.patch("saleor.checkout.complete_checkout.log_suspicious_order_in_checkout_flow")
 def test_failing_logging_in_create_order(
     mocked_logging, checkout, customer_user, caplog
 ):
