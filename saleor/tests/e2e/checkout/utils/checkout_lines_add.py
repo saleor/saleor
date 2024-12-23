@@ -42,6 +42,10 @@ mutation checkoutLinesAdd($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
         id
         name
       }
+      shippingMethods {
+        id
+        name
+      }
     }
     errors {
       field
