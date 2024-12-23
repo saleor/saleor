@@ -88,6 +88,9 @@ mutation CheckoutComplete($checkoutId: ID!) {
         name
         type
         value
+        amount {
+          amount
+        }
       }
       voucher {
         code
