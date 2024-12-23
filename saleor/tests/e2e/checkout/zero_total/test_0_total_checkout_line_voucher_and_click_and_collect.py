@@ -15,7 +15,7 @@ from ..utils import (
 
 
 @pytest.mark.e2e
-def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
+def test_complete_0_total_checkout_with_lines_voucher_and_click_and_collect_CORE_0125(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
