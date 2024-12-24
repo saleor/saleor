@@ -30,12 +30,6 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
 
     assign_permissions(e2e_staff_api_client, permissions)
 
-    # 2 shipping methods first paid, second free above some price
-
-    # shop_data = prepare_default_shop(e2e_staff_api_client)
-    # channel_id = shop_data["channel"]["id"]
-    # channel_slug = shop_data["channel"]["slug"]
-    # warehouse_id = shop_data["warehouse"]["id"]
     fedex_price = 0
     shop_data, _tax_config = prepare_shop(
         e2e_staff_api_client,
