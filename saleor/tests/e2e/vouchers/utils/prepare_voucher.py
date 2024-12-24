@@ -8,7 +8,7 @@ def prepare_voucher(
     voucher_discount_type,
     voucher_discount_value,
     voucher_type,
-    products_list,
+    products_list=None,
     usage_limit=2,
     single_use=True,
     apply_once_per_order=False,

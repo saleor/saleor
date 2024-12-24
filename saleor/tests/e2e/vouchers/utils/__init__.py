@@ -1,4 +1,3 @@
-from .prepare_voucher import prepare_voucher
 from .query_voucher import get_voucher
 from .query_vouchers import get_vouchers
 from .voucher_bulk_delete import voucher_bulk_delete
@@ -23,5 +22,4 @@ __all__ = [
     "update_voucher",
     "export_voucher_codes",
     "raw_export_voucher_codes",
-    "prepare_voucher",
 ]
