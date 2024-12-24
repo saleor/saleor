@@ -15,10 +15,12 @@ def prepare_product(
     channel_id,
     variant_price,
     product_type_slug="default",
+    is_shipping_required=True,
 ):
     product_type_data = create_product_type(
         e2e_staff_api_client,
         slug=product_type_slug,
+        is_shipping_required=is_shipping_required,
     )
     product_type_id = product_type_data["id"]
 
@@ -107,7 +109,7 @@ def prepare_digital_product(
     product_variant_id = product_variant_data["id"]
 
     variant_listing = create_product_variant_channel_listing(
-        e2e_staff_api_client, product_variant_id, channel_id, price=10
+        e2e_staff_api_client, product_variant_id, channel_id, price=variant_price
     )
 
     create_digital_content(e2e_staff_api_client, product_variant_id)

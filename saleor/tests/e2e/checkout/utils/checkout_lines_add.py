@@ -37,6 +37,15 @@ mutation checkoutLinesAdd($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
           amount
         }
       }
+      isShippingRequired
+      availableCollectionPoints {
+        id
+        name
+      }
+      shippingMethods {
+        id
+        name
+      }
     }
     errors {
       field
