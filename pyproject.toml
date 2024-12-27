@@ -73,7 +73,7 @@ package-mode = false
   razorpay = "^1.2"
   redis = "^5.0.1"
   requests = "^2.32"
-  requests-hardened = "1.0.0b5"
+  requests-hardened = ">=1.0.0,<2.0.0"
   Rx = "^1.6.3"
   semantic-version = "^2.10.0"
   sendgrid = "^6.7.1"
