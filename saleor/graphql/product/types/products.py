@@ -168,6 +168,13 @@ class BasePricingInfo(BaseObjectType):
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
     )
+    discount_prior = graphene.Field(
+        TaxedMoney,
+        description=(
+            "The discount amount compared to prior price. Null if product "
+            "is not on sale or prior price was not provided in VariantChannelListing"
+        ),
+    )
 
     # deprecated
     discount_local_currency = graphene.Field(
@@ -188,6 +195,7 @@ class VariantPricingInfo(BasePricingInfo):
     price_undiscounted = graphene.Field(
         TaxedMoney, description="The price without any discount."
     )
+    price_prior = graphene.Field(TaxedMoney, description="The price prior to discount.")
 
     # deprecated
     discount_local_currency = graphene.Field(
@@ -218,6 +226,10 @@ class ProductPricingInfo(BasePricingInfo):
     price_range_undiscounted = graphene.Field(
         TaxedMoneyRange,
         description="The undiscounted price range of the product variants.",
+    )
+    price_prior_range = graphene.Field(
+        TaxedMoneyRange,
+        description="The prior price range of the product variants.",
     )
 
     # deprecated

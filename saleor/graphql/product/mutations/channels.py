@@ -386,6 +386,11 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
         required=True, description="Price of the particular variant in channel."
     )
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
+    prior_price = PositiveDecimal(
+        description="Previous price of the variant in channel. Useful for providing "
+        "promotion information required by customer protection laws such as EU Omnibus "
+        "directive."
+    )
     preorder_threshold = graphene.Int(
         description="The threshold for preorder variant in channel."
     )
@@ -496,11 +501,15 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         for channel_listing_data in cleaned_input:
             price = channel_listing_data.get("price")
             cost_price = channel_listing_data.get("cost_price")
+            prior_price = channel_listing_data.get("prior_price")
             channel_id = channel_listing_data["channel_id"]
             currency_code = channel_listing_data["channel"].currency_code
 
             cls.clean_price(price, "price", currency_code, channel_id, errors)
             cls.clean_price(cost_price, "cost_price", currency_code, channel_id, errors)
+            cls.clean_price(
+                prior_price, "prior_price", currency_code, channel_id, errors
+            )
 
         return cleaned_input
 
@@ -520,6 +529,10 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 if "cost_price" in channel_listing_data.keys():
                     defaults["cost_price_amount"] = channel_listing_data.get(
                         "cost_price", None
+                    )
+                if "prior_price" in channel_listing_data.keys():
+                    defaults["prior_price_amount"] = channel_listing_data.get(
+                        "prior_price", None
                     )
                 if "preorder_threshold" in channel_listing_data.keys():
                     defaults["preorder_quantity_threshold"] = channel_listing_data.get(
