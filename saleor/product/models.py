@@ -418,6 +418,15 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
             price=price, rules=rules, currency=channel_listing.currency
         )
 
+    def get_prior_price_amount(
+        self,
+        channel_listing: Optional["ProductVariantChannelListing"],
+    ):
+        if channel_listing is None or channel_listing.prior_price is None:
+            return None
+
+        return channel_listing.prior_price.amount
+
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
 

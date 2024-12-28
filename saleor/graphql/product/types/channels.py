@@ -351,6 +351,9 @@ class ProductVariantChannelListing(
     )
     price = graphene.Field(Money, description="The price of the variant.")
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
+    prior_price = graphene.Field(
+        Money, description="Prior price of the variant used for discount calculations."
+    )
     margin = PermissionsField(
         graphene.Int,
         description="Gross margin percentage value.",

@@ -227,7 +227,7 @@ class ProductPricingInfo(BasePricingInfo):
         TaxedMoneyRange,
         description="The undiscounted price range of the product variants.",
     )
-    price_prior_range = graphene.Field(
+    price_range_prior = graphene.Field(
         TaxedMoneyRange,
         description="The prior price range of the product variants.",
     )

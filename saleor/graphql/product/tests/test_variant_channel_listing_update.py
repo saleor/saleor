@@ -35,6 +35,10 @@ mutation UpdateProductVariantChannelListing(
                     amount
                     currency
                 }
+                priorPrice {
+                    amount
+                    currency
+                }
                 costPrice {
                     amount
                     currency
@@ -617,3 +621,32 @@ def test_variant_channel_listing_update_preorder(
         channel_pln_data["preorderThreshold"]["quantity"]
         == preorder_threshold_channel_pln
     )
+
+
+def test_variant_channel_listing_update_with_prior_price(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": variant_id,
+        "input": [{"channelId": channel_usd_id, "priorPrice": 1.5, "price": 1}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantChannelListingUpdate"]
+    variant_data = data["variant"]
+    assert not data["errors"]
+    assert variant_data["id"] == variant_id
+    assert variant_data["channelListings"][0]["priorPrice"]["currency"] == "USD"
+    assert variant_data["channelListings"][0]["priorPrice"]["amount"] == 1.5

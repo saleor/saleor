@@ -14,7 +14,7 @@ class ProductAvailability:
     on_sale: bool
     price_range: Optional[TaxedMoneyRange]
     price_range_undiscounted: Optional[TaxedMoneyRange]
-    price_prior_range: Optional[TaxedMoneyRange]
+    price_range_prior: Optional[TaxedMoneyRange]
     discount: Optional[TaxedMoney]
     discount_prior: Optional[TaxedMoney]
 
@@ -171,7 +171,7 @@ def get_product_availability(
         on_sale=is_on_sale,
         price_range=discounted,
         price_range_undiscounted=undiscounted,
-        price_prior_range=prior,
+        price_range_prior=prior,
         discount=discount,
         discount_prior=discount_prior,
     )
@@ -216,7 +216,7 @@ def get_variant_availability(
     discount = _get_total_discount(undiscounted_price_taxed, discounted_price_taxed)
 
     discount_prior = None
-    if prior_price_taxed:
+    if prior_price_taxed is not None:
         discount_prior = _get_total_discount(prior_price_taxed, discounted_price_taxed)
 
     is_visible = (

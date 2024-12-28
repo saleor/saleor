@@ -234,6 +234,7 @@ def add_variant_to_checkout(
     variant_price_amount = variant.get_base_price(
         variant_channel_listing, price_override
     ).amount
+    variant_prior_price_amount = variant.get_prior_price_amount(variant_channel_listing)
 
     new_quantity, line = check_variant_in_stock(
         checkout,
@@ -250,6 +251,7 @@ def add_variant_to_checkout(
             quantity=quantity,
             price_override=price_override,
             undiscounted_unit_price_amount=variant_price_amount,
+            prior_unit_price_amount=variant_prior_price_amount,
         )
         return checkout
 
@@ -266,6 +268,7 @@ def add_variant_to_checkout(
             currency=checkout.currency,
             price_override=price_override,
             undiscounted_unit_price_amount=variant_price_amount,
+            prior_unit_price_amount=variant_prior_price_amount,
         )
     elif new_quantity > 0:
         line.quantity = new_quantity
@@ -418,9 +421,11 @@ def _append_line_to_create(
     new_variant_listing_map: dict[int, "product_models.ProductVariantChannelListing"],
 ):
     if line_data.quantity > 0:
+        variant_listing = new_variant_listing_map.get(variant.id)
         variant_price_amount = variant.get_base_price(
-            new_variant_listing_map.get(variant.id), line_data.custom_price
+            variant_listing, line_data.custom_price
         ).amount
+        variant_prior_price_amount = variant.get_prior_price_amount(variant_listing)
         checkout_line = CheckoutLine(
             checkout=checkout,
             variant=variant,
@@ -428,6 +433,7 @@ def _append_line_to_create(
             currency=checkout.currency,
             price_override=line_data.custom_price,
             undiscounted_unit_price_amount=variant_price_amount,
+            prior_unit_price_amount=variant_prior_price_amount,
         )
         if line_data.metadata_list:
             checkout_line.store_value_in_metadata(
