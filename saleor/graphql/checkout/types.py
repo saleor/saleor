@@ -221,7 +221,9 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         required=True,
     )
     prior_unit_price = graphene.Field(
-        Money, description="The unit price of the checkout line prior to promotion."
+        Money,
+        description="The unit price of the checkout line prior to promotion."
+        + ADDED_IN_321,
     )
     total_price = BaseField(
         TaxedMoney,
@@ -241,7 +243,8 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     )
     prior_total_price = graphene.Field(
         Money,
-        description="The sum of the checkout line price prior to promotion.",
+        description="The sum of the checkout line price prior to promotion."
+        + ADDED_IN_321,
     )
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered.",

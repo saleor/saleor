@@ -22,7 +22,7 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -352,7 +352,9 @@ class ProductVariantChannelListing(
     price = graphene.Field(Money, description="The price of the variant.")
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     prior_price = graphene.Field(
-        Money, description="Prior price of the variant used for discount calculations."
+        Money,
+        description="Prior price of the variant used for discount calculations."
+        + ADDED_IN_321,
     )
     margin = PermissionsField(
         graphene.Int,
