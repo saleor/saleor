@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 
+import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -433,14 +434,17 @@ def test_filter_not_published_product_without_assigned_channel(
     assert not_available_products_pln.count() == 1
 
 
-def test_availability_with_prior_price(product, channel_USD):
+@pytest.mark.parametrize("prior_price", [Decimal(15), Decimal(10), Decimal(5)])
+def test_availability_with_prior_price(product, channel_USD, prior_price):
     # given
     product_channel_listing = product.channel_listings.get()
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.get()
-    variant_channel_listing.prior_price_amount = Decimal(15)
-    variant_channel_listing.price_amount = Decimal(20)
-    variant_channel_listing.discounted_price_amount = Decimal(10)
+    variant_channel_listing.prior_price_amount = Decimal(prior_price)
+    price = 20
+    variant_channel_listing.price_amount = Decimal(price)
+    discounted_price = 10
+    variant_channel_listing.discounted_price_amount = Decimal(discounted_price)
     variant_channel_listing.save()
 
     # when
@@ -458,7 +462,13 @@ def test_availability_with_prior_price(product, channel_USD):
         availability.price_range_prior.start.gross.amount
         == variant_channel_listing.prior_price_amount
     )
-    assert availability.discount_prior is not None
-    assert availability.discount_prior.gross.amount == 5
+
+    if prior_price > discounted_price:
+        assert availability.discount_prior is not None
+        assert (
+            availability.discount_prior.gross.amount == prior_price - discounted_price
+        )
+    else:
+        assert availability.discount_prior is None
     assert availability.discount is not None
-    assert availability.discount.gross.amount == 10
+    assert availability.discount.gross.amount == price - discounted_price
