@@ -26,7 +26,7 @@ def get_tax_configurations(
     staff_api_client,
     first=10,
 ):
-    variables = {"first": 10}
+    variables = {"first": first}
 
     response = staff_api_client.post_graphql(TAX_CONFIGURATIONS_QUERY, variables)
     content = get_graphql_content(response)
