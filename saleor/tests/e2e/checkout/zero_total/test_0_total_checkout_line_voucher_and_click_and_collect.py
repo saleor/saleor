@@ -1,5 +1,6 @@
 import pytest
 
+from ...channel.utils import update_channel
 from ...product.utils.preparing_product import prepare_products
 from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
@@ -15,12 +16,20 @@ from ..utils import (
 
 
 @pytest.mark.e2e
+@pytest.mark.parametrize(
+    ("mark_as_paid_strategy"),
+    [
+        ("TRANSACTION_FLOW"),
+        ("PAYMENT_FLOW"),
+    ],
+)
 def test_complete_0_total_checkout_with_lines_voucher_and_click_and_collect_CORE_0125(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
     shop_permissions,
     permission_manage_discounts,
+    mark_as_paid_strategy,
 ):
     # Before
     permissions = [
@@ -40,6 +49,11 @@ def test_complete_0_total_checkout_with_lines_voucher_and_click_and_collect_CORE
         warehouse_id,
         is_private=False,
         click_and_collect_option="LOCAL",
+    )
+    update_channel(
+        e2e_staff_api_client,
+        channel_id,
+        input={"orderSettings": {"markAsPaidStrategy": mark_as_paid_strategy}},
     )
     products_data = prepare_products(
         e2e_staff_api_client, warehouse_id, channel_id, [9.99, 150, 77.77]
