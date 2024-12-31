@@ -1,5 +1,6 @@
 import pytest
 
+from ...channel.utils import update_channel
 from ...gift_cards.utils import create_gift_card
 from ...product.utils.preparing_product import prepare_products
 from ...shop.utils.preparing_shop import prepare_default_shop
@@ -14,12 +15,20 @@ from ..utils import (
 
 
 @pytest.mark.e2e
+@pytest.mark.parametrize(
+    ("mark_as_paid_strategy"),
+    [
+        ("TRANSACTION_FLOW"),
+        ("PAYMENT_FLOW"),
+    ],
+)
 def test_gift_card_total_payment_for_checkout_core_1101(
     e2e_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_gift_card,
+    mark_as_paid_strategy,
 ):
     # Before
     permissions = [
@@ -34,6 +43,11 @@ def test_gift_card_total_payment_for_checkout_core_1101(
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
     shipping_method_id = shop_data["shipping_method"]["id"]
+    update_channel(
+        e2e_staff_api_client,
+        channel_id,
+        input={"orderSettings": {"markAsPaidStrategy": mark_as_paid_strategy}},
+    )
 
     products_data = prepare_products(
         e2e_staff_api_client, warehouse_id, channel_id, [24.99, 5, 16]

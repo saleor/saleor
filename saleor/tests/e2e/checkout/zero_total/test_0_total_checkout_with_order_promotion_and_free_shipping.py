@@ -14,12 +14,20 @@ from ..utils import (
 
 
 @pytest.mark.e2e
+@pytest.mark.parametrize(
+    ("mark_as_paid_strategy"),
+    [
+        ("TRANSACTION_FLOW"),
+        ("PAYMENT_FLOW"),
+    ],
+)
 def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method_CORE_0124(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
     shop_permissions,
     permission_manage_discounts,
+    mark_as_paid_strategy,
 ):
     # Before
     permissions = [
@@ -48,7 +56,9 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
                         ],
                     }
                 ],
-                "order_settings": {},
+                "order_settings": {
+                    "markAsPaidStrategy": mark_as_paid_strategy,
+                },
             }
         ],
     )
