@@ -6,10 +6,6 @@ from promise import Promise
 
 from ...account.models import User
 from ...checkout import calculations, models, problems
-from ...checkout.base_calculations import (
-    calculate_undiscounted_base_line_total_price,
-    calculate_undiscounted_base_line_unit_price,
-)
 from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
@@ -340,8 +336,9 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 ) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
-                        return calculate_undiscounted_base_line_unit_price(
-                            line_info, checkout_info.channel
+                        return calculations.checkout_line_undiscounted_unit_price(
+                            checkout_info=checkout_info,
+                            checkout_line_info=line_info,
                         )
 
                 return None
@@ -420,8 +417,9 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 ) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
-                        return calculate_undiscounted_base_line_total_price(
-                            line_info, checkout_info.channel
+                        return calculations.checkout_line_undiscounted_total_price(
+                            checkout_info=checkout_info,
+                            checkout_line_info=line_info,
                         )
                 return None
 
