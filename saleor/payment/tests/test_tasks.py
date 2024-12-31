@@ -47,6 +47,8 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_new_last_chan
     # then
     assert not mocked_refund_action.called
     assert not mocked_cancel_action.called
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -83,6 +85,8 @@ def test_transaction_release_funds_for_checkout_task_checkout_not_refundable(
     # then
     assert not mocked_refund_action.called
     assert not mocked_cancel_action.called
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -122,6 +126,8 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_new_tr_modifi
     # then
     assert not mocked_refund_action.called
     assert not mocked_cancel_action.called
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -160,6 +166,8 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_none_status(
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert not mocked_refund_action.called
     assert not mocked_cancel_action.called
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is True
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -296,6 +304,8 @@ def test_transaction_release_funds_for_checkout_task_refund_already_requested(
     # then
     assert not mocked_refund_action.called
     assert not mocked_cancel_action.called
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -334,6 +344,8 @@ def test_transaction_release_funds_for_checkout_task_cancel_already_requested(
     # then
     assert not mocked_refund_action.called
     assert not mocked_cancel_action.called
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -383,6 +395,8 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_authorizat
         cancel_value=transaction_item.authorized_value,
         action=TransactionAction.CANCEL,
     )
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -431,3 +445,5 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_charge(
         request_event=request_event,
         refund_value=transaction_item.charged_value,
     )
+    transaction_item.refresh_from_db()
+    assert transaction_item.last_refund_success is False

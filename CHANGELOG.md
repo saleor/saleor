@@ -49,3 +49,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix decreasing voucher code usage after changing `includeDraftOrderInVoucherUsage` to false - #17028 by @zedzior
 - Fix undiscounted price taxation when prices are entered with taxes - #16992 by @zedzior
 - Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins
+- Fix checkout funds releasing task - #17198 by @IKarbowiak
