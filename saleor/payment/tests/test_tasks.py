@@ -281,6 +281,7 @@ def test_transaction_release_funds_for_checkout_task_refund_already_requested(
         transaction_item = transaction_item_generator(
             checkout_id=checkout.pk,
             charged_value=Decimal(100),
+            last_refund_success=False,
         )
         transaction_amounts_for_checkout_updated(
             transaction_item, plugins_manager, user=None, app=None
@@ -318,6 +319,7 @@ def test_transaction_release_funds_for_checkout_task_cancel_already_requested(
         transaction_item = transaction_item_generator(
             checkout_id=checkout.pk,
             authorized_value=Decimal(100),
+            last_refund_success=False,
         )
         transaction_amounts_for_checkout_updated(
             transaction_item, plugins_manager, user=None, app=None
