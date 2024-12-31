@@ -8,7 +8,7 @@ from uuid import UUID
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money
@@ -1112,10 +1112,7 @@ def delete_external_shipping_id(checkout: Checkout, save: bool = False) -> bool:
 
 @allow_writer()
 def create_checkout_metadata(checkout: "Checkout"):
-    try:
-        return CheckoutMetadata.objects.create(checkout=checkout)
-    except IntegrityError:
-        return checkout.metadata_storage
+    return CheckoutMetadata.objects.create(checkout=checkout)
 
 
 @allow_writer()
