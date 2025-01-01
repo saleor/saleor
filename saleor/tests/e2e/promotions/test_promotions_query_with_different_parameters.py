@@ -375,7 +375,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
         e2e_staff_api_client,
         "Promotion does not match",
         promotion_type,
-        end_date="2024-12-31T21:00:00.000000+00:00",
+        end_date="2025-12-31T21:00:00.000000+00:00",
     )
 
     promotions_list = promotions_query(
