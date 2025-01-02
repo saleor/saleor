@@ -1003,7 +1003,6 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
 
-    delete_external_shipping_id(checkout=checkout)
     checkout.save(
         update_fields=[
             "shipping_method",
@@ -1011,7 +1010,8 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    get_checkout_metadata(checkout).save()
+    if delete_external_shipping_id(checkout=checkout):
+        checkout.metadata_storage.save()
 
 
 def is_fully_paid(
@@ -1090,19 +1090,29 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    metadata_object: ModelWithMetadata
+    metadata_object: ModelWithMetadata | None
     if isinstance(container, Checkout):
         metadata_object = get_checkout_metadata(container)
     else:
         metadata_object = container
+    if not metadata_object:
+        return None
     return metadata_object.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def delete_external_shipping_id(checkout: Checkout, save: bool = False):
+def delete_external_shipping_id(checkout: Checkout, save: bool = False) -> bool:
     metadata = get_or_create_checkout_metadata(checkout)
-    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
-    if save:
+    field_deleted = metadata.delete_value_from_private_metadata(
+        PRIVATE_META_APP_SHIPPING_ID
+    )
+    if save and field_deleted:
         metadata.save(update_fields=["private_metadata"])
+    return field_deleted
+
+
+@allow_writer()
+def create_checkout_metadata(checkout: "Checkout"):
+    return CheckoutMetadata.objects.create(checkout=checkout)
 
 
 @allow_writer()
@@ -1114,11 +1124,11 @@ def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
 
 
 @allow_writer()
-def get_checkout_metadata(checkout: "Checkout"):
+def get_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata | None:
     if hasattr(checkout, "metadata_storage"):
         # TODO: load metadata_storage with dataloader and pass as an argument
         return checkout.metadata_storage
-    return CheckoutMetadata(checkout=checkout)
+    return None
 
 
 def calculate_checkout_weight(lines: list["CheckoutLineInfo"]) -> "Weight":
