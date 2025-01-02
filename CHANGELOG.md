@@ -24,6 +24,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `customerNote` field to `Checkout` type to make it consistent with `Order` model - #16561 by @Air-t
 - Add `type` field to `TaxableObjectDiscount` type - #16630 by @zedzior
 - Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
+- Fix checkout `line.undiscountedTotalPrice` and `line.undiscountedUnitPrice` calculation. - #17193 by @IKarbowiak
+  - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
 
 ### Webhooks
 
@@ -46,3 +48,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop tax data line number validation for Avatax plugin - #16917 by @zedzior
 - Fix decreasing voucher code usage after changing `includeDraftOrderInVoucherUsage` to false - #17028 by @zedzior
 - Fix undiscounted price taxation when prices are entered with taxes - #16992 by @zedzior
+- Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins

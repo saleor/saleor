@@ -9,11 +9,12 @@ from .....webhook.tests.subscription_webhooks import subscription_queries
 
 
 @pytest.fixture
-def tax_app(db, permission_handle_taxes):
+def tax_app(db, permission_handle_taxes, permission_manage_users):
     app = App.objects.create(name="Tax App", is_active=True)
     app.identifier = to_global_id_or_none(app)
     app.save()
     app.permissions.add(permission_handle_taxes)
+    app.permissions.add(permission_manage_users)
 
     webhook = Webhook.objects.create(
         name="tax-webhook-1",
@@ -55,29 +56,6 @@ def external_tax_app(db, permission_handle_taxes):
         name="external-tax-webhook-1",
         app=app,
         target_url="https://tax-app.example.com/api/",
-        subscription_query=subscription_queries.CALCULATE_TAXES_SUBSCRIPTION_QUERY,
-    )
-    webhook.events.bulk_create(
-        [
-            WebhookEvent(event_type=event_type, webhook=webhook)
-            for event_type in [
-                WebhookEventSyncType.ORDER_CALCULATE_TAXES,
-                WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-            ]
-        ]
-    )
-    return app
-
-
-@pytest.fixture
-def tax_app_with_subscription_webhooks(db, permission_handle_taxes):
-    app = App.objects.create(name="Tax App with subscription", is_active=True)
-    app.permissions.add(permission_handle_taxes)
-
-    webhook = Webhook.objects.create(
-        name="tax-subscription-webhook-1",
-        app=app,
-        target_url="https://tax-app.com/api/",
         subscription_query=subscription_queries.CALCULATE_TAXES_SUBSCRIPTION_QUERY,
     )
     webhook.events.bulk_create(

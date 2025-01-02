@@ -1463,7 +1463,7 @@ def create_vouchers():
             defaults={"discount_value": 100, "currency": channel.currency_code},
         )
     if created:
-        yield "Voucher #%d" % voucher.id
+        yield f"Voucher #{voucher.pk}"
     else:
         yield "Shipping voucher already exists"
 
@@ -1492,7 +1492,7 @@ def create_vouchers():
             },
         )
     if created:
-        yield "Voucher #%d" % voucher.id
+        yield f"Voucher #{voucher.pk}"
     else:
         yield "Value voucher already exists"
 
@@ -1512,7 +1512,7 @@ def create_vouchers():
             defaults={"discount_value": 5, "currency": channel.currency_code},
         )
     if created:
-        yield "Voucher #%d" % voucher.id
+        yield f"Voucher #{voucher.pk}"
     else:
         yield "Value voucher already exists"
 
@@ -1536,7 +1536,7 @@ def create_gift_cards(how_many=5):
         gift_card.tags.add(tag)
         gift_card_events.gift_card_issued_event(gift_card, staff_user, None)
         if created:
-            yield "Gift card #%d" % gift_card.id
+            yield f"Gift card #{gift_card.pk}"
         else:
             yield "Gift card already exists"
 
@@ -1555,7 +1555,7 @@ def create_gift_cards(how_many=5):
             raise Exception("No orders found")
         gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
         if created:
-            yield "Gift card #%d" % gift_card.id
+            yield f"Gift card #{gift_card.pk}"
         else:
             yield "Gift card already exists"
 
