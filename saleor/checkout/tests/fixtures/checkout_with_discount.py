@@ -70,7 +70,12 @@ def checkout_with_item_on_promotion(checkout_with_item):
     variant_channel_listing.discounted_price_amount = (
         variant_channel_listing.price_amount - reward_value
     )
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+    variant_channel_listing.prior_price_amount = (
+        variant_channel_listing.price_amount - 2
+    )
+    variant_channel_listing.save(
+        update_fields=["discounted_price_amount", "prior_price_amount"]
+    )
 
     variant_channel_listing.variantlistingpromotionrule.create(
         promotion_rule=rule,

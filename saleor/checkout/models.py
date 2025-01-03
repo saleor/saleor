@@ -313,6 +313,17 @@ class CheckoutLine(ModelWithMetadata):
         currency_field="currency",
     )
 
+    prior_unit_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+
+    prior_unit_price = MoneyField(
+        amount_field="prior_unit_price_amount", currency_field="currency"
+    )
+
     total_price_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

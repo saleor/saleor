@@ -62,6 +62,7 @@ def variant(product, channel_USD) -> ProductVariant:
         price_amount=Decimal(10),
         discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
+        prior_price_amount=Decimal(8),
         currency=channel_USD.currency_code,
     )
     return product_variant

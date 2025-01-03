@@ -351,6 +351,9 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
     )
     base_date = datetime.datetime(2023, 1, 1, 14, 1, 34, 61119, tzinfo=datetime.UTC)
     now = base_date.isoformat()
+    future_date = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=14)
+    future = future_date.isoformat()
+
     promotion_type = "CATALOGUE"
 
     with freeze_time(now):
@@ -375,7 +378,7 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
         e2e_staff_api_client,
         "Promotion does not match",
         promotion_type,
-        end_date="2024-12-31T21:00:00.000000+00:00",
+        end_date=future,
     )
 
     promotions_list = promotions_query(
