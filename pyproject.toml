@@ -26,7 +26,7 @@ package-mode = false
   babel = ">=2.8,<2.15"
   boto3 = "^1.28"
   botocore = "^1.35"
-  braintree = ">=4.2,<4.30"
+  braintree = ">=4.2,<4.32"
   cryptography = "^43.0.1"
   dj-database-url = "^2"
   dj-email-url = "^1"
