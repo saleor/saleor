@@ -68,7 +68,7 @@ package-mode = false
   pyjwt = "^2.10.1"
   python-dateutil = "^2.8.2"
   python-http-client = "^3.3.7"
-  python-json-logger = ">=0.1.11,<2.1.0"
+  python-json-logger = ">=0.1.11,<3.3.0"
   pytimeparse = "^1.1.8"
   razorpay = "^1.2"
   redis = "^5.0.1"
