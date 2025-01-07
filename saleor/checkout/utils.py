@@ -864,6 +864,10 @@ def remove_promo_code_from_checkout_or_error(
         remove_voucher_code_from_checkout_or_error(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
         remove_gift_card_code_from_checkout_or_error(checkout_info.checkout, promo_code)
+    # clear the voucher code in case the code does not exists anymore but it's still
+    # assigned to the checkout
+    elif promo_code == checkout_info.checkout.voucher_code:
+        remove_voucher_from_checkout(checkout_info.checkout)
     else:
         raise ValidationError(
             "Promo code does not exists.",
@@ -879,6 +883,11 @@ def remove_voucher_code_from_checkout_or_error(
     if checkout_info.voucher and voucher_code in checkout_info.voucher.promo_codes:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
+    elif (
+        not checkout_info.voucher
+        and checkout_info.checkout.voucher_code == voucher_code
+    ):
+        remove_voucher_from_checkout(checkout_info.checkout)
     else:
         raise ValidationError(
             "Cannot remove a voucher not attached to this checkout.",
