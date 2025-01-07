@@ -1019,8 +1019,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    if delete_external_shipping_id(checkout=checkout):
-        checkout.metadata_storage.save()
+    delete_external_shipping_id_if_present(checkout=checkout)
 
 
 def is_fully_paid(
@@ -1096,6 +1095,7 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
     metadata.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
+    metadata.save()
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
@@ -1109,18 +1109,17 @@ def get_external_shipping_id(container: Union["Checkout", "Order"]):
     return metadata_object.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def delete_external_shipping_id(checkout: Checkout, save: bool = False) -> bool:
+def delete_external_shipping_id_if_present(checkout: Checkout):
+    """Delete external shipping key if present in metadata."""
     metadata = get_checkout_metadata(checkout)
     if not metadata:
-        field_deleted = False
-        return field_deleted
+        return
 
     field_deleted = metadata.delete_value_from_private_metadata(
         PRIVATE_META_APP_SHIPPING_ID
     )
-    if save and field_deleted:
+    if field_deleted:
         metadata.save(update_fields=["private_metadata"])
-    return field_deleted
 
 
 @allow_writer()
