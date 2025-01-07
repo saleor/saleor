@@ -7,7 +7,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import CollectionProduct, Product, ProductChannelListing
-from ...core.connection import to_global_cursor
+from ...core.connection import from_global_cursor, to_global_cursor
 from ...tests.utils import get_graphql_content
 
 COLLECTION_RESORT_QUERY = """
@@ -320,10 +320,10 @@ def test_pagination_for_sorting_products_by_published_at_date(
 
 
 QUERY_SORT_BY_COLLECTION = """
-query CollectionProducts($id: ID, $channel: String, $after: String) {
+query CollectionProducts($id: ID, $first: Int!, $channel: String, $after: String, $direction: OrderDirection!) {
   collection(id: $id channel: $channel) {
     id
-    products(first: 2, sortBy: {field: COLLECTION, direction: ASC},after: $after) {
+    products(first: $first, sortBy: {field: COLLECTION, direction: $direction},after: $after) {
       totalCount
       edges {
         node {
@@ -346,7 +346,7 @@ query CollectionProducts($id: ID, $channel: String, $after: String) {
 """
 
 
-def test_query_products_sorted_by_collection(
+def test_query_products_sorted_by_collection_with_asc_direction(
     staff_api_client,
     staff_user,
     published_collection,
@@ -354,6 +354,7 @@ def test_query_products_sorted_by_collection(
     permission_manage_products,
     channel_USD,
 ):
+    # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
@@ -377,12 +378,16 @@ def test_query_products_sorted_by_collection(
         "after": to_global_cursor(
             (collection_prod_2.sort_order, collection_prod_2.product.pk)
         ),
+        "first": 2,
+        "direction": "ASC",
     }
 
+    # when
     content = get_graphql_content(
         staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
     )
 
+    # then
     products = content["data"]["collection"]["products"]
     assert products["totalCount"] == 3
     assert len(products["edges"]) == 1
@@ -391,3 +396,401 @@ def test_query_products_sorted_by_collection(
     assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "Product", collection_prod_3.product_id
     )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(collection_prod_3.sort_order),
+        str(collection_prod_3.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(collection_prod_3.sort_order),
+        str(collection_prod_3.product.pk),
+    ]
+
+
+def test_query_products_sorted_by_collection_with_desc_direction(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = 0
+    collection_prod_2.sort_order = 1
+    collection_prod_3.sort_order = 2
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "after": to_global_cursor(
+            (collection_prod_2.sort_order, collection_prod_2.product.pk)
+        ),
+        "first": 2,
+        "direction": "DESC",
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    # then
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 1
+    assert not products["pageInfo"]["hasNextPage"]
+    assert products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_1.product_id
+    )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(collection_prod_1.sort_order),
+        str(collection_prod_1.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(collection_prod_1.sort_order),
+        str(collection_prod_1.product.pk),
+    ]
+
+
+def test_query_products_sorted_by_collection_when_items_with_sort_null_and_asc_sorting(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = 0
+    collection_prod_2.sort_order = None
+    collection_prod_3.sort_order = 2
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "first": 2,
+        "direction": "ASC",
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    # then
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 2
+    assert products["pageInfo"]["hasNextPage"]
+    assert not products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_2.product_id
+    )
+    assert products["edges"][1]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_1.product_id
+    )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(-1),
+        str(collection_prod_2.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(collection_prod_1.sort_order),
+        str(collection_prod_1.product.pk),
+    ]
+
+
+def test_query_products_sorted_by_collection_when_items_with_sort_null_and_desc_sorting(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = 0
+    collection_prod_2.sort_order = None
+    collection_prod_3.sort_order = 2
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "first": 2,
+        "direction": "DESC",
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    # then
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 2
+    assert products["pageInfo"]["hasNextPage"]
+    assert not products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_3.product_id
+    )
+    assert products["edges"][1]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_1.product_id
+    )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(collection_prod_3.sort_order),
+        str(collection_prod_3.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(collection_prod_1.sort_order),
+        str(collection_prod_1.product.pk),
+    ]
+
+
+def test_query_products_sorted_by_collection_returns_useable_cursor(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = 0
+    collection_prod_2.sort_order = 1
+    collection_prod_3.sort_order = 2
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "first": 1,
+        "direction": "ASC",
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+    products = content["data"]["collection"]["products"]
+    assert len(products["edges"]) == 1
+    new_cursor = products["pageInfo"]["endCursor"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_1.product_id
+    )
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "first": 1,
+        "after": new_cursor,
+        "direction": "ASC",
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    # then
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 1
+    assert products["pageInfo"]["hasNextPage"]
+    assert products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_2.product_id
+    )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(collection_prod_2.sort_order),
+        str(collection_prod_2.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(collection_prod_2.sort_order),
+        str(collection_prod_2.product.pk),
+    ]
+
+
+def test_query_products_sorted_by_collection_when_items_with_null_and_negative_sorting(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = -10
+    collection_prod_2.sort_order = None
+    collection_prod_3.sort_order = -5
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "first": 2,
+        "direction": "ASC",
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    # then
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 2
+    assert products["pageInfo"]["hasNextPage"]
+    assert not products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_2.product_id
+    )
+    assert products["edges"][1]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", collection_prod_1.product_id
+    )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(-11),
+        str(collection_prod_2.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(collection_prod_1.sort_order),
+        str(collection_prod_1.product.pk),
+    ]
+
+
+def test_query_products_sorted_by_collection_when_items_when_null_as_sorting(
+    staff_api_client,
+    staff_user,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+    collection = products[0].collections.first()
+    collection_products = list(collection.collectionproduct.all())
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    collection_prod_1.sort_order = None
+    collection_prod_2.sort_order = None
+    collection_prod_3.sort_order = None
+
+    first_collection_prod = min(
+        [collection_prod_1, collection_prod_2, collection_prod_3],
+        key=lambda p: p.product_id,
+    )
+    last_collection_prod = max(
+        [collection_prod_1, collection_prod_2, collection_prod_3],
+        key=lambda p: p.product_id,
+    )
+    mid_collection_prod = list(
+        filter(
+            lambda p: p not in [first_collection_prod, last_collection_prod],
+            [collection_prod_1, collection_prod_2, collection_prod_3],
+        )
+    )[0]
+
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    variables = {
+        "id": collection_id,
+        "channel": channel_USD.slug,
+        "first": 2,
+        "direction": "ASC",
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(QUERY_SORT_BY_COLLECTION, variables)
+    )
+
+    # then
+    products = content["data"]["collection"]["products"]
+    assert products["totalCount"] == 3
+    assert len(products["edges"]) == 2
+    assert products["pageInfo"]["hasNextPage"]
+    assert not products["pageInfo"]["hasPreviousPage"]
+    assert products["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", first_collection_prod.product_id
+    )
+    assert products["edges"][1]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", mid_collection_prod.product_id
+    )
+    assert from_global_cursor(products["pageInfo"]["startCursor"]) == [
+        str(-1),
+        str(first_collection_prod.product.pk),
+    ]
+    assert from_global_cursor(products["pageInfo"]["endCursor"]) == [
+        str(-1),
+        str(mid_collection_prod.product.pk),
+    ]

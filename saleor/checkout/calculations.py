@@ -255,6 +255,33 @@ def checkout_line_tax_rate(
     return checkout_line_info.line.tax_rate
 
 
+def checkout_line_undiscounted_unit_price(
+    *,
+    checkout_info: "CheckoutInfo",
+    checkout_line_info: "CheckoutLineInfo",
+):
+    # Fetch the undiscounted unit price from channel listings in case the prices
+    # are invalidated.
+    if checkout_info.checkout.price_expiration < timezone.now():
+        return base_calculations.calculate_undiscounted_base_line_unit_price(
+            checkout_line_info, checkout_info.channel
+        )
+    currency = checkout_info.checkout.currency
+    return quantize_price(checkout_line_info.line.undiscounted_unit_price, currency)
+
+
+def checkout_line_undiscounted_total_price(
+    *,
+    checkout_info: "CheckoutInfo",
+    checkout_line_info: "CheckoutLineInfo",
+):
+    undiscounted_unit_price = checkout_line_undiscounted_unit_price(
+        checkout_info=checkout_info, checkout_line_info=checkout_line_info
+    )
+    total_price = undiscounted_unit_price * checkout_line_info.line.quantity
+    return quantize_price(total_price, total_price.currency)
+
+
 def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
     """Update line undiscounted unit price amount.
 

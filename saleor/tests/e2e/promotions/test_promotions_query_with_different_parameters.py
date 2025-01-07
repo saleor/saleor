@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ..metadata.utils import update_metadata
@@ -351,9 +352,6 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
     )
     base_date = datetime.datetime(2023, 1, 1, 14, 1, 34, 61119, tzinfo=datetime.UTC)
     now = base_date.isoformat()
-    future_date = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=14)
-    future = future_date.isoformat()
-
     promotion_type = "CATALOGUE"
 
     with freeze_time(now):
@@ -373,12 +371,13 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
             )
             assert promotion["endDate"] == end_date
 
+    feature_end_date = timezone.now() + datetime.timedelta(days=10)
     e2e_staff_api_client.regenerate_access_token()
     promotion_dnm = create_promotion(
         e2e_staff_api_client,
         "Promotion does not match",
         promotion_type,
-        end_date=future,
+        end_date=feature_end_date,
     )
 
     promotions_list = promotions_query(

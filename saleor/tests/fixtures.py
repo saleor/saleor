@@ -83,9 +83,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
     msg = "Expected to perform {} queries {}{}".format(
         num,
         "" if exact else "or less ",
-        "but {} done".format(
-            num_performed == 1 and "1 was" or "%d were" % (num_performed,)
-        ),
+        "but {} done".format(num_performed == 1 and "1 was" or f"{num_performed} were"),
     )
     if info:
         msg += f"\n{info}"
