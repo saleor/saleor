@@ -59,7 +59,7 @@ mutation orderCreateFromCheckout($id: ID!) {
 """
 
 
-def order_create_from_checkout(api_client, id):
+def raw_order_create_from_checkout(api_client, id):
     variables = {"id": id}
 
     response = api_client.post_graphql(
@@ -68,7 +68,13 @@ def order_create_from_checkout(api_client, id):
     )
     content = get_graphql_content(response)
 
-    data = content["data"]["orderCreateFromCheckout"]
+    raw_data = content["data"]["orderCreateFromCheckout"]
+
+    return raw_data
+
+
+def order_create_from_checkout(api_client, id):
+    data = raw_order_create_from_checkout(api_client, id)
 
     order_id = data["order"]["id"]
     errors = data["errors"]
