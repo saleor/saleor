@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from ..metadata.utils import update_metadata
@@ -363,11 +364,12 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
             )
             assert promotion["endDate"] == end_date
 
+    future_end_date = timezone.now() + timedelta(days=10)
     promotion_dnm = create_promotion(
         e2e_staff_api_client,
         "Promotion does not match",
         promotion_type,
-        end_date="2024-12-31T21:00:00.000000+00:00",
+        end_date=future_end_date,
     )
 
     promotions_list = promotions_query(
