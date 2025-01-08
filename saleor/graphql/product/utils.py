@@ -158,7 +158,8 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
 
 
 def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
-    return kwargs.get("sort_by", {}).get("field") or None
+    sort_by = kwargs.get("sort_by", {}) or {}
+    return sort_by.get("field") or sort_by.get("attribute_id")
 
 
 def check_for_sorting_by_rank(info, kwargs: dict):

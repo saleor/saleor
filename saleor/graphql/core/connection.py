@@ -1,13 +1,7 @@
 import json
 from collections.abc import Iterable
 from decimal import Decimal, InvalidOperation
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 
 import graphene
 from django.conf import settings
@@ -80,10 +74,10 @@ def _prepare_filter_by_rank_expression(
     # making equal comparisons impossible. Instead we compare rank against small
     # range of values, constructed using epsilon.
     if sorting_direction == "gt":
-        return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=id) | Q(
+        return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=id) | Q(
             search_rank__gt=rank + EPSILON
         )
-    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=id) | Q(
+    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=id) | Q(
         search_rank__lt=rank - EPSILON
     )
 
