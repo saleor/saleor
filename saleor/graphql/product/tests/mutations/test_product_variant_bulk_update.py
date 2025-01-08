@@ -903,7 +903,11 @@ def test_product_variant_bulk_update_channel_listings_input_with_prior_price(
     # then
     existing_variant_listing.refresh_from_db()
     assert (
-        existing_variant_listing.prior_price_amount == new_prior_price_for_existing_variant_listing
+        existing_variant_listing.prior_price_amount
+        == new_prior_price_for_existing_variant_listing
     )
     new_variant_listing = variant.channel_listings.get(channel=channel_PLN)
-    assert new_variant_listing.prior_price_amount == not_existing_variant_listing_prior_price
+    assert (
+        new_variant_listing.prior_price_amount
+        == not_existing_variant_listing_prior_price
+    )

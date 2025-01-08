@@ -136,17 +136,15 @@ def get_product_availability(
     prior: Optional[TaxedMoneyRange] = None
 
     if undiscounted is not None:
-        discounted: Optional[TaxedMoneyRange] = (
-            _calculate_product_price_with_taxes_range(
-                "discounted_price",
-                variants_channel_listing,
-                tax_rate,
-                tax_calculation_strategy,
-                prices_entered_with_tax,
-            )
+        discounted = _calculate_product_price_with_taxes_range(
+            "discounted_price",
+            variants_channel_listing,
+            tax_rate,
+            tax_calculation_strategy,
+            prices_entered_with_tax,
         )
 
-        prior: Optional[TaxedMoneyRange] = _calculate_product_price_with_taxes_range(
+        prior = _calculate_product_price_with_taxes_range(
             "prior_price",
             variants_channel_listing,
             tax_rate,
