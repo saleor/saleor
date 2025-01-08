@@ -2,6 +2,7 @@ import datetime
 import logging
 import uuid
 
+import graphene
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
@@ -135,6 +136,15 @@ def transaction_release_funds_for_checkout_task():
             manager = get_plugins_manager(allow_replica=True)
             for transaction_item, event in transactions_with_cancel_request_events:
                 channel = checkout_id_to_channel[transaction_item.checkout_id]
+                logger.info(
+                    "Releasing funds for transaction %s - canceling",
+                    transaction_item.token,
+                    extra={
+                        "transactionId": graphene.Node.to_global_id(
+                            "TransactionItem", transaction_item.pk
+                        )
+                    },
+                )
                 try:
                     request_cancelation_action(
                         request_event=event,
@@ -154,6 +164,15 @@ def transaction_release_funds_for_checkout_task():
                     )
             for transaction_item, event in transactions_with_charge_request_events:
                 channel = checkout_id_to_channel[transaction_item.checkout_id]
+                logger.info(
+                    "Releasing funds for transaction %s - refunding",
+                    transaction_item.token,
+                    extra={
+                        "transactionId": graphene.Node.to_global_id(
+                            "TransactionItem", transaction_item.pk
+                        )
+                    },
+                )
                 try:
                     request_refund_action(
                         request_event=event,
