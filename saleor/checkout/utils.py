@@ -867,7 +867,7 @@ def remove_promo_code_from_checkout_or_error(
     # clear the voucher code in case the code does not exists anymore but it's still
     # assigned to the checkout
     elif promo_code == checkout_info.checkout.voucher_code:
-        remove_voucher_from_checkout(checkout_info.checkout)
+        remove_voucher_code_from_checkout_or_error(checkout_info, promo_code)
     else:
         raise ValidationError(
             "Promo code does not exists.",
