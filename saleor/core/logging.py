@@ -36,7 +36,8 @@ class JsonCeleryFormatter(JsonFormatter):
 class JsonCeleryTaskFormatter(JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         task = get_current_celery_task()
-        # Similarly to the Celery task formatter, we need to handle the case when `task` is None.
+        # Similarly to the Celery task formatter, we need to handle the case when
+        # `task` is None.
         # https://github.com/celery/celery/blob/main/celery/app/log.py#L31
         task_id = task.request.id if task and task.request else "???"
         task_name = task.name if task else "???"
