@@ -20,11 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 def transactions_to_release_funds():
-    """Fetch checkouts that are ready release the funds.
+    """Fetch transactions for checkouts eligible for automatic refunds.
 
-    Fetch checkouts with the funds where the last modification was more than defined
-    TTL ago. Exclude the checkouts with payment statuses which define that the
-    checkout doesn't have any processed funds.
+    The function retrieves checkouts that are automatically refundable and have exceeded the
+    predefined TTL. It then fetches related transactions that are authorized or charged,
+    ready for fund release.
     """
     expired_checkouts_time = (
         datetime.datetime.now(tz=datetime.UTC)
@@ -73,7 +73,7 @@ def transaction_release_funds_for_checkout_task():
     checkouts_data = Checkout.objects.filter(pk__in=checkout_ids).values_list(
         "pk", "channel_id"
     )
-    checkout_channel_ids = [channel_id for _, channel_id in checkouts_data]
+    checkout_channel_ids = {channel_id for _, channel_id in checkouts_data}
     channels_in_bulk = (
         Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(id__in=checkout_channel_ids)
@@ -128,7 +128,8 @@ def transaction_release_funds_for_checkout_task():
                     [event for _tr, event in transactions_with_cancel_request_events]
                     + [event for _tr, event in transactions_with_charge_request_events]
                 )
-                # Mark transactions as not refundable to avoid multiple refund requests
+                # Mark transactions as not refundable to avoid multiple automatic
+                # refund requests
                 transactions.update(last_refund_success=False)
 
             manager = get_plugins_manager(allow_replica=True)
