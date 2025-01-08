@@ -14,6 +14,7 @@ from .....product.models import (
     ProductVariantChannelListing,
 )
 from .....product.search import prepare_product_search_vector_value
+from ....core.connection import from_global_cursor
 from ....tests.utils import get_graphql_content
 
 QUERY_FETCH_ALL_PRODUCTS = """
@@ -1213,9 +1214,19 @@ def test_products_with_variants_query_as_app(
 
 
 PRODUCT_SEARCH_QUERY = """
-    query($search: String, $channel: String) {
-      products(first: 10, search: $search, channel: $channel) {
+    query($search: String, $channel: String, $first: Int, $after: String, $sortBy: ProductOrder) {
+      products(
+        first: $first,
+        search: $search,
+        channel: $channel,
+        after: $after,
+        sortBy: $sortBy
+      ) {
+        pageInfo{
+          endCursor
+        }
         edges {
+          cursor
           node {
             name
             slug
@@ -1241,7 +1252,7 @@ def test_search_products_on_root_level(
     search, indexes, api_client, product_list, channel_USD
 ):
     # given
-    variables = {"search": search, "channel": channel_USD.slug}
+    variables = {"search": search, "channel": channel_USD.slug, "first": 10}
 
     # when
     response = api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
@@ -1278,6 +1289,7 @@ def test_search_product_using_search_argument_with_sort_by(
     variables = {
         "search": "new",
         "sortBy": {"field": "RANK", "direction": "DESC"},
+        "first": 10,
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
@@ -1290,3 +1302,112 @@ def test_search_product_using_search_argument_with_sort_by(
         product_1.name,
         product_2.name,
     }
+
+
+@pytest.mark.parametrize(
+    (
+        "sort_order",
+        "reversed",
+    ),
+    [
+        (
+            "ASC",
+            False,
+        ),
+        ("DESC", True),
+    ],
+)
+def test_search_product_with_similar_search_rank_and_cursor_usage(
+    sort_order, reversed, user_api_client, product_list, channel_USD
+):
+    # given
+    sorted_products = sorted(
+        product_list, key=lambda product: product.id, reverse=reversed
+    )
+    product_1 = sorted_products[0]
+    product_1.description_plaintext = "Orange"
+    product_2 = sorted_products[1]
+    product_2.description_plaintext = "Orange"
+    product_3 = sorted_products[2]
+    product_3.description_plaintext = "Orange"
+
+    for product in product_list:
+        product.search_vector = FlatConcatSearchVector(
+            *prepare_product_search_vector_value(product)
+        )
+
+    Product.objects.bulk_update(
+        product_list,
+        ["search_vector", "description_plaintext"],
+    )
+
+    variables = {
+        "search": "Orange",
+        "sortBy": {"field": "RANK", "direction": sort_order},
+        "first": 1,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+
+    assert len(data) == 1
+    assert data[0]["node"]["name"] == product_1.name
+
+    cursor = content["data"]["products"]["pageInfo"]["endCursor"]
+
+    variables = {
+        "search": "Orange",
+        "sortBy": {"field": "RANK", "direction": sort_order},
+        "first": 2,
+        "channel": channel_USD.slug,
+        "after": cursor,
+    }
+    response = user_api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["products"]["edges"]
+    assert len(data) == 2
+    assert data[0]["node"]["name"] == product_2.name
+    assert data[1]["node"]["name"] == product_3.name
+
+
+def test_search_product_sort_by_attribute_returns_correct_cursor(
+    user_api_client, product, channel_USD
+):
+    # given
+    attribute = product.product_type.product_attributes.first()
+    attr_value = attribute.values.first()
+
+    product.description_plaintext = "Orange"
+
+    product.search_vector = FlatConcatSearchVector(
+        *prepare_product_search_vector_value(product)
+    )
+    product.save()
+
+    variables = {
+        "search": "Orange",
+        "sortBy": {
+            "attributeId": graphene.Node.to_global_id("Attribute", attribute.id),
+            "direction": "ASC",
+        },
+        "first": 1,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    cursor = content["data"]["products"]["pageInfo"]["endCursor"]
+    cursor_data = from_global_cursor(cursor)
+
+    # Ref saleor.product.managers.ProductsQueryset.sort_by_attribute
+    # First field stores the flag to determine if product has assigned attribute values
+    # Second is the list of attribute values as string
+    assert ["0", attr_value.name, product.name] == cursor_data
