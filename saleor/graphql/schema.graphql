@@ -20935,7 +20935,7 @@ input MediaInput {
   mediaUrl: String
 
   """Determine if media_url will downloaded synchronously or not."""
-  asyncDownload: String
+  asyncDownload: Boolean
 }
 
 input ProductChannelListingCreateInput @doc(category: "Products") {
