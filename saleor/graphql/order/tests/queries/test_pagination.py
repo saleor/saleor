@@ -758,3 +758,93 @@ def test_query_orders_pagination_with_sort(
         assert orders[order]["node"]["number"] == str(
             created_orders[order_number].number
         )
+
+
+@pytest.mark.parametrize(
+    ("sort_order", "reversed"),
+    [
+        (
+            "ASC",
+            False,
+        ),
+        ("DESC", True),
+    ],
+)
+def test_orders_with_filter_search_returns_correct_cursor(
+    sort_order,
+    reversed,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    channel_USD,
+):
+    # given
+    search_query = "test@mirumee.com"
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                user_email=search_query,
+                status=OrderStatus.DRAFT,
+                channel=channel_USD,
+                should_refresh_prices=False,
+            ),
+            Order(
+                user_email=search_query,
+                status=OrderStatus.DRAFT,
+                channel=channel_USD,
+                should_refresh_prices=False,
+            ),
+            Order(
+                user_email=search_query,
+                status=OrderStatus.DRAFT,
+                channel=channel_USD,
+                should_refresh_prices=False,
+            ),
+        ]
+    )
+
+    for order in orders:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(orders, ["search_vector"])
+
+    orders_sorted_by_id = sorted(orders, key=lambda order: order.id, reverse=reversed)
+
+    page_size = 1
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": {"search": search_query},
+        "sortBy": {"field": "RANK", "direction": sort_order},
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_DRAFT_ORDERS_WITH_PAGINATION, variables
+    )
+    content = get_graphql_content(response)
+    orders = content["data"]["draftOrders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["number"] == str(orders_sorted_by_id[0].number)
+
+    cursor = content["data"]["draftOrders"]["pageInfo"]["endCursor"]
+    variables = {
+        "first": 2,
+        "after": cursor,
+        "filter": {"search": search_query},
+        "sortBy": {"field": "RANK", "direction": sort_order},
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_DRAFT_ORDERS_WITH_PAGINATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["draftOrders"]["edges"]
+
+    assert len(orders) == 2
+    assert orders[0]["node"]["number"] == str(orders_sorted_by_id[1].number)
+    assert orders[1]["node"]["number"] == str(orders_sorted_by_id[2].number)
