@@ -33,9 +33,6 @@ def test_complete_draft_order_with_0_total_100_percent_manual_total_discount_COR
     warehouse_id = shop_data["warehouse"]["id"]
     shipping_method_id = shop_data["shipping_method"]["id"]
 
-    # shipping_price = float(
-    #     shop_data["shipping_method"]["channelListings"][0]["price"]["amount"]
-    # )
     shipping_price = 10
 
     products_data = prepare_products(
