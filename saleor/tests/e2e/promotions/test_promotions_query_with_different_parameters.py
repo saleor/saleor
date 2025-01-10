@@ -371,13 +371,13 @@ def test_step_10_promotions_with_end_date_after_CORE_2118(
             )
             assert promotion["endDate"] == end_date
 
-    feature_end_date = timezone.now() + datetime.timedelta(days=10)
+    future_end_date = timezone.now() + datetime.timedelta(days=10)
     e2e_staff_api_client.regenerate_access_token()
     promotion_dnm = create_promotion(
         e2e_staff_api_client,
         "Promotion does not match",
         promotion_type,
-        end_date=feature_end_date,
+        end_date=future_end_date,
     )
 
     promotions_list = promotions_query(
