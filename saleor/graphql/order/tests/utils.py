@@ -14,8 +14,8 @@ def assert_order_and_payment_ids(content, payment):
 
 def assert_proper_webhook_called_once(order, status, draft_mock, order_mock):
     if status == OrderStatus.DRAFT:
-        draft_mock.assert_called_once_with(order)
+        draft_mock.assert_called_once_with(order, webhooks=set())
         order_mock.assert_not_called()
     else:
         draft_mock.assert_not_called()
-        order_mock.assert_called_once_with(order)
+        order_mock.assert_called_once_with(order, webhooks=set())

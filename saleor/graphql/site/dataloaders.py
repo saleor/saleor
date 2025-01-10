@@ -19,12 +19,12 @@ class SiteByIdLoader(DataLoader[int, Site]):
         return [sites_mapped.get(site_id) for site_id in keys]
 
 
-class SiteByHostLoader(DataLoader):
+class SiteByHostLoader(DataLoader[str, Site]):
     context_key = "site_by_host"
 
     def batch_load(self, keys):
         # simulate non existing `domain__iexact__in`
-        q_list = map(lambda k: Q(domain__iexact=k), keys)
+        q_list = (Q(domain__iexact=k) for k in keys)
         q_list = reduce(lambda a, b: a | b, q_list)
         sites = Site.objects.using(self.database_connection_name).filter(q_list)
         sites_mapped = {s.domain.lower(): s for s in sites}

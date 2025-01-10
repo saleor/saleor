@@ -1,4 +1,3 @@
-from ..core.descriptions import ADDED_IN_38
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.types import BaseEnum, SortInputObjectType
 
@@ -16,10 +15,7 @@ class GiftCardSortField(BaseEnum):
     def description(self):
         if self.name in GiftCardSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
-            description = f"Sort gift cards by {sort_name}."
-            if self.name == "CREATED_AT":
-                description += ADDED_IN_38
-            return description
+            return f"Sort gift cards by {sort_name}."
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 

@@ -4,6 +4,7 @@ from django.contrib.postgres.search import SearchQuery
 from django.db.models import Q, QuerySet, Value, prefetch_related_objects
 
 from ..account.models import User
+from ..core.db.connection import allow_writer
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from .models import GiftCard
 
@@ -50,6 +51,7 @@ def mark_gift_cards_search_index_as_dirty_by_users(users: list[User]):
     mark_gift_cards_search_index_as_dirty(gift_cards)
 
 
+@allow_writer()
 def update_gift_cards_search_vector(gift_cards: list[GiftCard]):
     prefetch_related_objects(gift_cards, *GIFTCARD_FIELDS_TO_PREFETCH)
     for gift_card in gift_cards:

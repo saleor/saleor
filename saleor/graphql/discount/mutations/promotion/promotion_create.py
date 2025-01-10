@@ -1,8 +1,7 @@
+import datetime
 from collections import defaultdict
-from datetime import datetime
 
 import graphene
-import pytz
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -17,7 +16,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_317, ADDED_IN_319, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import JSON, DateTime
@@ -82,11 +81,9 @@ class PromotionCreateInput(PromotionInput):
         description=(
             "Defines the promotion type. Implicate the required promotion rules "
             "predicate type and whether the promotion rules will give the catalogue "
-            "or order discount. "
-            "\n\nThe default value is `Catalogue`."
-            "\n\nThis field will be required from Saleor 3.20." + ADDED_IN_319
+            "or order discount. " + ADDED_IN_319
         ),
-        required=False,
+        required=True,
     )
     rules = NonNullList(PromotionRuleInput, description="List of promotion rules.")
 
@@ -101,7 +98,7 @@ class PromotionCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new promotion." + ADDED_IN_317 + PREVIEW_FEATURE
+        description = "Creates a new promotion."
         model = models.Promotion
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
@@ -133,7 +130,7 @@ class PromotionCreate(ModelMutation):
             error.code = PromotionCreateErrorCode.INVALID.value
             errors["end_date"].append(error)
 
-        promotion_type = cleaned_input.get("type", PromotionType.CATALOGUE)
+        promotion_type = cleaned_input.get("type")
         if rules := cleaned_input.get("rules"):
             cleaned_rules, errors = cls.clean_rules(info, rules, promotion_type, errors)
             cleaned_input["rules"] = cleaned_rules
@@ -273,7 +270,7 @@ class PromotionCreate(ModelMutation):
         Return true, when the start date is before the current date and the
         promotion is not already finished.
         """
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
         start_date = instance.start_date
         end_date = instance.end_date
 
@@ -304,7 +301,7 @@ class PromotionCreate(ModelMutation):
     ):
         """Send a webhook about starting promotion if it hasn't been sent yet."""
 
-        now = datetime.now(pytz.utc)
+        now = datetime.datetime.now(tz=datetime.UTC)
         cls.call_event(manager.promotion_started, instance)
         instance.last_notification_scheduled_at = now
         instance.save(update_fields=["last_notification_scheduled_at"])

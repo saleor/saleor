@@ -600,10 +600,12 @@ class WebhookEventAsyncType:
         CHECKOUT_CREATED: {
             "name": "Checkout created",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_UPDATED: {
             "name": "Checkout updated",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_FULLY_PAID: {
             "name": "Checkout fully paid",
@@ -931,6 +933,12 @@ class WebhookEventSyncType:
         PAYMENT_REFUND,
         PAYMENT_VOID,
     ]
+    CHECKOUT_EVENTS = [
+        SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+        CHECKOUT_FILTER_SHIPPING_METHODS,
+        CHECKOUT_CALCULATE_TAXES,
+    ]
+    ORDER_EVENTS = [ORDER_CALCULATE_TAXES, ORDER_FILTER_SHIPPING_METHODS]
 
     # Events that are used only in the mutation logic can be excluded from the
     # circular query check.

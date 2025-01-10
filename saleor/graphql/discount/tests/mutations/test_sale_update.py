@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 import graphene
@@ -183,7 +183,7 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    start_date = timezone.now() + timedelta(days=1)
+    start_date = timezone.now() + datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -241,13 +241,13 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     query = SALE_UPDATE_MUTATION
 
     promotion = promotion_converted_from_sale
-    last_notification_scheduled_at = timezone.now() - timedelta(minutes=5)
+    last_notification_scheduled_at = timezone.now() - datetime.timedelta(minutes=5)
     promotion.last_notification_scheduled_at = last_notification_scheduled_at
     promotion.save(update_fields=["last_notification_scheduled_at"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    start_date = timezone.now() - timedelta(days=1)
+    start_date = timezone.now() - datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -313,7 +313,7 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    start_date = timezone.now() - timedelta(days=1)
+    start_date = timezone.now() - datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -372,12 +372,12 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     query = SALE_UPDATE_MUTATION
 
     promotion = promotion_converted_from_sale
-    promotion.start_date = timezone.now() - timedelta(days=1)
+    promotion.start_date = timezone.now() - datetime.timedelta(days=1)
     promotion.save(update_fields=["start_date"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    end_date = timezone.now() + timedelta(days=1)
+    end_date = timezone.now() + datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -437,14 +437,14 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     now = timezone.now()
 
     promotion = promotion_converted_from_sale
-    last_notification_scheduled_at = now - timedelta(minutes=5)
+    last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
     promotion.last_notification_scheduled_at = last_notification_scheduled_at
-    promotion.start_date = now - timedelta(days=2)
+    promotion.start_date = now - datetime.timedelta(days=2)
     promotion.save(update_fields=["last_notification_scheduled_at", "start_date"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    end_date = now - timedelta(days=1)
+    end_date = now - datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -503,12 +503,12 @@ def test_update_sale_end_date_before_current_date_notification_sent(
 
     promotion = promotion_converted_from_sale
     promotion.last_notification_scheduled_at = None
-    promotion.start_date = timezone.now() - timedelta(days=2)
+    promotion.start_date = timezone.now() - datetime.timedelta(days=2)
     promotion.save(update_fields=["last_notification_scheduled_at", "start_date"])
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    end_date = timezone.now() - timedelta(days=1)
+    end_date = timezone.now() - datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -775,9 +775,9 @@ def test_update_sale_end_date_before_start_date(
     query = SALE_UPDATE_MUTATION
 
     promotion = promotion_converted_from_sale
-    promotion.start_date = timezone.now() + timedelta(days=1)
+    promotion.start_date = timezone.now() + datetime.timedelta(days=1)
     promotion.save(update_fields=["start_date"])
-    end_date = timezone.now() - timedelta(days=1)
+    end_date = timezone.now() - datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),
@@ -827,9 +827,9 @@ def test_update_sale_with_none_values(
     promotion = promotion_converted_from_sale
 
     promotion.name = "Sale name"
-    start_date = timezone.now() + timedelta(days=1)
+    start_date = timezone.now() + datetime.timedelta(days=1)
     promotion.start_date = start_date
-    promotion.end_date = timezone.now() + timedelta(days=5)
+    promotion.end_date = timezone.now() + datetime.timedelta(days=5)
     promotion.save(update_fields=["name", "start_date", "end_date"])
 
     variables = {
@@ -882,7 +882,7 @@ def test_update_sale_with_promotion_id(
     # given
     query = SALE_UPDATE_MUTATION
     promotion = promotion_converted_from_sale
-    end_date = timezone.now() - timedelta(days=1)
+    end_date = timezone.now() - datetime.timedelta(days=1)
 
     variables = {
         "id": graphene.Node.to_global_id("Promotion", promotion.id),

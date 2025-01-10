@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 
 import graphene
 
@@ -25,7 +25,7 @@ def test_query_gift_card(
 ):
     query = QUERY_GIFT_CARD_BY_ID
 
-    end_date = date(day=1, month=1, year=2018)
+    end_date = datetime.date(day=1, month=1, year=2018)
     gift_card.expiry_date = end_date
     gift_card.save(update_fields=["expiry_date"])
 

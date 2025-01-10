@@ -1,12 +1,21 @@
-from ...product.models import Product, ProductVariant
+from ...checkout.actions import call_checkout_events
+from ...order.actions import call_order_event
+from ...webhook.event_types import WebhookEventAsyncType
 from ..core import ResolveInfo
 from ..plugins.dataloaders import get_plugin_manager_promise
 
 
 def extra_checkout_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-    manager.checkout_updated(instance)
-    manager.checkout_metadata_updated(instance)
+
+    call_checkout_events(
+        manager=manager,
+        event_names=[
+            WebhookEventAsyncType.CHECKOUT_UPDATED,
+            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED,
+        ],
+        checkout=instance,
+    )
 
 
 def extra_channel_actions(instance, info: ResolveInfo, **data):
@@ -31,7 +40,11 @@ def extra_gift_card_actions(instance, info: ResolveInfo, **data):
 
 def extra_order_actions(instance, info: ResolveInfo, **data):
     manager = get_plugin_manager_promise(info.context).get()
-    manager.order_metadata_updated(instance)
+    call_order_event(
+        manager,
+        WebhookEventAsyncType.ORDER_METADATA_UPDATED,
+        instance,
+    )
 
 
 def extra_product_actions(instance, info: ResolveInfo, **data):
@@ -92,10 +105,4 @@ TYPE_EXTRA_METHODS = {
     "User": extra_user_actions,
     "Warehouse": extra_warehouse_actions,
     "Voucher": extra_voucher_actions,
-}
-
-
-TYPE_EXTRA_PREFETCH = {
-    "Product": Product.objects.prefetched_for_webhook,
-    "ProductVariant": ProductVariant.objects.prefetched_for_webhook,
 }

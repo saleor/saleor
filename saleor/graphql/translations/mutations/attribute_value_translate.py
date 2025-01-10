@@ -41,7 +41,7 @@ class AttributeValueTranslate(BaseTranslateMutation):
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
-    def pre_update_or_create(cls, instance, input_data):
+    def pre_update_or_create(cls, instance, input_data, language_code):
         if "name" not in input_data.keys() or input_data["name"] is None:
             if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = truncatechars(

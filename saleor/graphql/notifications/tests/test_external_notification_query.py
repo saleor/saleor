@@ -5,7 +5,7 @@ import pytest
 from graphql_relay.node.node import to_global_id
 
 from ....account.models import User
-from ....core.notify_events import UserNotifyEvent
+from ....core.notify import UserNotifyEvent
 from ....graphql.tests.utils import assert_no_permission
 from ....plugins.tests.sample_plugins import PluginSample
 

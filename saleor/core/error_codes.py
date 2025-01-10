@@ -24,6 +24,7 @@ class TranslationErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     REQUIRED = "required"
+    UNIQUE = "unique"
 
 
 class UploadErrorCode(Enum):

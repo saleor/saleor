@@ -248,8 +248,8 @@ def test_send_user_change_email_notification_task_default_template(
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
     # confirm that email changed task was triggered
-    assert mocked_email_changed_task.called_once_with(
-        customer_user.id, expected_task_payload
+    mocked_email_changed_task.assert_called_once_with(
+        user_id=str(customer_user.id), parameters=expected_task_payload
     )
 
 

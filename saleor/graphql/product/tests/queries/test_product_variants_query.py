@@ -4,7 +4,10 @@ from .....product.models import Product, ProductVariant
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 
-def _fetch_all_variants(client, variables={}, permissions=None):
+def _fetch_all_variants(client, variables=None, permissions=None):
+    if variables is None:
+        variables = {}
+
     query = """
         query fetchAllVariants($channel: String) {
             productVariants(first: 10, channel: $channel) {

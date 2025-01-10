@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+import datetime
 
 import graphene
 import pytest
@@ -112,7 +112,9 @@ def test_update_gift_card(
 ):
     # given
     initial_balance = 100.0
-    date_value = date.today() + timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() + datetime.timedelta(
+        days=365
+    )
     old_tag = gift_card.tags.first()
     tag = "new-gift-card-tag"
     variables = {

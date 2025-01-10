@@ -6,7 +6,6 @@ from uuid import uuid4
 
 import graphene
 import pytest
-import pytz
 
 from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -1098,7 +1097,7 @@ def test_product_bulk_create_with_channel_listings(
     product_tax_rate = "STANDARD"
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    publication_at = datetime.datetime.now(pytz.utc)
+    publication_at = datetime.datetime.now(tz=datetime.UTC)
 
     channel_listings = [
         {
@@ -1733,7 +1732,7 @@ def test_product_bulk_create_with_variants_and_channel_listings(
     variant_2_name = "new-variant-2-name"
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    publication_at = datetime.datetime.now(pytz.utc)
+    publication_at = datetime.datetime.now(tz=datetime.UTC)
 
     product_channel_listings = [
         {
@@ -1857,7 +1856,7 @@ def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price
     variant_1_name = "new-variant-1-name"
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    publication_at = datetime.datetime.now(pytz.utc)
+    publication_at = datetime.datetime.now(tz=datetime.UTC)
 
     product_channel_listings = [
         {

@@ -21,7 +21,7 @@ from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
-from ...core.enums import ThumbnailFormatEnum
+from ...core.enums import LanguageCodeEnum, ThumbnailFormatEnum
 from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
@@ -29,10 +29,11 @@ from ...tests.utils import (
 )
 
 QUERY_CATEGORY = """
-    query ($id: ID, $slug: String, $channel: String){
+    query ($id: ID, $slug: String, $channel: String, $slugLanguageCode: LanguageCodeEnum){
         category(
             id: $id,
             slug: $slug,
+            slugLanguageCode: $slugLanguageCode
         ) {
             id
             name
@@ -76,6 +77,28 @@ def test_category_query_by_id(user_api_client, product, channel_USD):
     assert category_data["name"] == category.name
     assert len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
     assert len(category_data["children"]["edges"]) == category.get_children().count()
+
+
+def test_category_query_with_ancestors(user_api_client, product, channel_USD):
+    # given
+    category = Category.objects.first()
+    child = Category.objects.create(
+        name="Child Category", slug="child-category", parent=category
+    )
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Category", child.pk),
+        "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+    content = get_graphql_content(response)
+    category_data = content["data"]["category"]
+
+    # then
+    assert category_data is not None
+    assert len(category_data["ancestors"]["edges"]) == child.get_ancestors().count()
+    assert len(category_data["children"]["edges"]) == child.get_children().count()
 
 
 def test_category_query_invalid_id(user_api_client, product, channel_USD):
@@ -208,6 +231,21 @@ def test_category_query_by_slug(user_api_client, product, channel_USD):
     assert category_data["name"] == category.name
     assert len(category_data["ancestors"]["edges"]) == category.get_ancestors().count()
     assert len(category_data["children"]["edges"]) == category.get_children().count()
+
+
+def test_category_query_by_translated_slug(
+    user_api_client, category, category_translation_with_slug_pl, channel_USD
+):
+    variables = {
+        "slug": category_translation_with_slug_pl.slug,
+        "channel": channel_USD.slug,
+        "slugLanguageCode": LanguageCodeEnum.PL.name,
+    }
+    response = user_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+    content = get_graphql_content(response)
+    data = content["data"]["category"]
+    assert data is not None
+    assert data["name"] == category.name
 
 
 def test_category_query_error_when_id_and_slug_provided(

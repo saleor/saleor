@@ -21,6 +21,7 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
+from .models import App
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator, brand_validator
 
@@ -47,7 +48,7 @@ def _clean_extension_url_with_only_path(
 ):
     if target == AppExtensionTarget.APP_PAGE:
         return
-    elif manifest_data["appUrl"]:
+    if manifest_data["appUrl"]:
         _clean_app_url(manifest_data["appUrl"])
     else:
         msg = (
@@ -82,10 +83,10 @@ def clean_extension_url(extension: dict, manifest_data: dict):
 def clean_manifest_url(manifest_url):
     try:
         _clean_app_url(manifest_url)
-    except (ValidationError, AttributeError):
+    except (ValidationError, AttributeError) as e:
         msg = "Enter a valid URL."
         code = AppErrorCode.INVALID_URL_FORMAT.value
-        raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
+        raise ValidationError({"manifest_url": ValidationError(msg, code=code)}) from e
 
 
 def clean_permissions(
@@ -111,6 +112,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     errors: T_ERRORS = defaultdict(list)
 
     validate_required_fields(manifest_data, errors)
+
     try:
         if "tokenTargetUrl" in manifest_data:
             _clean_app_url(manifest_data["tokenTargetUrl"])
@@ -151,7 +153,16 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         app_permissions = []
 
     manifest_data["permissions"] = app_permissions
-
+    if (
+        app := App.objects.not_removed()
+        .filter(identifier=manifest_data.get("id"))
+        .first()
+    ):
+        errors["identifier"].append(
+            ValidationError(
+                f"App with the same identifier is already installed: {app.name}"
+            )
+        )
     if not errors:
         clean_extensions(manifest_data, app_permissions, errors)
         clean_webhooks(manifest_data, errors)
@@ -344,9 +355,9 @@ def clean_required_saleor_version(
         return None
     try:
         spec = RequiredSaleorVersionSpec(required_version)
-    except Exception:
+    except Exception as e:
         msg = "Incorrect value for required Saleor version."
-        raise ValidationError(msg, code=AppErrorCode.INVALID.value)
+        raise ValidationError(msg, code=AppErrorCode.INVALID.value) from e
     version = parse_version(saleor_version)
     satisfied = spec.match(version)
     if raise_for_saleor_version and not satisfied:

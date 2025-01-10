@@ -9,7 +9,7 @@ from ......account.search import (
     generate_address_search_document_value,
     generate_user_fields_search_document_value,
 )
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
@@ -179,14 +179,19 @@ def test_customer_create(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     mocked_customer_metadata_updated.assert_called_once_with(new_user)
 
-    assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
+    assert {shipping_address, billing_address} == set(new_user.addresses.all())
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer
@@ -297,14 +302,19 @@ def test_customer_create_as_app(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     mocked_customer_metadata_updated.assert_called_once_with(new_user)
 
-    assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
+    assert {shipping_address, billing_address} == set(new_user.addresses.all())
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer
@@ -352,11 +362,15 @@ def test_customer_create_send_password_with_url(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_SET_CUSTOMER_PASSWORD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 def test_customer_create_empty_metadata_key(

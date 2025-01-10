@@ -5,18 +5,35 @@ from django.utils import timezone
 
 from .. import GiftCardEvents
 from ..models import GiftCard
-from ..tasks import deactivate_expired_cards_task
+from ..tasks import deactivate_expired_cards_task, update_gift_cards_search_vector_task
+
+
+def test_update_gift_cards_search_vector_task(gift_card):
+    # given
+    gift_card.search_index_dirty = True
+    gift_card.save(update_fields=["search_index_dirty"])
+
+    # when
+    update_gift_cards_search_vector_task.delay()
+
+    # then
+    gift_card.refresh_from_db()
+    assert not gift_card.search_index_dirty
 
 
 def test_deactivate_expired_cards_task(
     gift_card, gift_card_used, gift_card_expiry_date, gift_card_created_by_staff
 ):
     # given
-    gift_card.expiry_date = datetime.date.today() - datetime.timedelta(days=1)
-    gift_card_used.expiry_date = datetime.date.today() - datetime.timedelta(days=10)
-    gift_card_created_by_staff.expiry_date = datetime.date.today() - datetime.timedelta(
-        days=10
-    )
+    gift_card.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=1)
+    gift_card_used.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
+    gift_card_created_by_staff.expiry_date = datetime.datetime.now(
+        tz=datetime.UTC
+    ).date() - datetime.timedelta(days=10)
     gift_card_created_by_staff.is_active = False
     gift_cards = [gift_card, gift_card_used]
     GiftCard.objects.bulk_update(

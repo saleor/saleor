@@ -58,7 +58,7 @@ class BaseProductAttributesByProductTypeIdLoader(DataLoader):
 
         return (
             AttributesByAttributeId(self.context)
-            .load_many(set(attr_id for _, attr_id, *_ in product_type_attribute_pairs))
+            .load_many({attr_id for _, attr_id, *_ in product_type_attribute_pairs})
             .then(map_attributes)
         )
 

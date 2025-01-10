@@ -219,7 +219,7 @@ def get_not_manageable_permissions_after_removing_users_from_group(
     # if True, all group permissions can be managed
     group_remaining_users = set(group_users) - set(users)
     manage_staff_permission = AccountPermissions.MANAGE_STAFF.value
-    if any([user.has_perm(manage_staff_permission) for user in group_remaining_users]):
+    if any(user.has_perm(manage_staff_permission) for user in group_remaining_users):
         return set()
 
     # if group and any of remaining group user doesn't have manage staff permission

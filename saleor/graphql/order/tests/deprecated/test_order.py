@@ -24,11 +24,11 @@ from ....tests.utils import get_graphql_content
 
 def assert_proper_webhook_called_once(order, status, draft_mock, order_mock):
     if status == OrderStatus.DRAFT:
-        draft_mock.assert_called_once_with(order)
+        draft_mock.assert_called_once_with(order, webhooks=set())
         order_mock.assert_not_called()
     else:
         draft_mock.assert_not_called()
-        order_mock.assert_called_once_with(order)
+        order_mock.assert_called_once_with(order, webhooks=set())
 
 
 QUERY_ORDER_TOTAL = """
@@ -63,9 +63,7 @@ def test_orders_total(
     # then
     amount = str(content["data"]["ordersTotal"]["gross"]["amount"])
     assert Money(amount, "USD") == order.total.gross
-    assert any(
-        [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
-    )
+    assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
 
 
 ORDER_LINE_DELETE_MUTATION = """
@@ -623,7 +621,7 @@ def test_update_order_line_discount_old_id(
     order.refresh_from_db()
     order_discount = order.discounts.get()
     order_discount_amount = order_discount.amount
-    base_shipping = order.base_shipping_price
+    base_shipping = order.undiscounted_base_shipping_price
     discount_applied_to_lines = order_discount_amount - (
         base_shipping - order.shipping_price.gross
     )

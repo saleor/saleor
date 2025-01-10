@@ -80,9 +80,9 @@ def test_stocks_bulk_update_using_ids(
     "saleor.graphql.warehouse.bulk_mutations."
     "stock_bulk_update.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_stock_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_stocks_updated")
 def test_stocks_bulk_update_send_stock_updated_event(
-    product_variant_stock_update_webhook,
+    product_variant_stocks_update_webhook,
     mocked_get_webhooks_for_event,
     staff_api_client,
     variant_with_many_stocks,
@@ -118,7 +118,69 @@ def test_stocks_bulk_update_send_stock_updated_event(
     # then
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
-    assert product_variant_stock_update_webhook.call_count == 1
+    product_variant_stocks_update_webhook.assert_called_once_with(
+        [stock], webhooks=[any_webhook]
+    )
+
+
+@patch(
+    "saleor.graphql.warehouse.bulk_mutations."
+    "stock_bulk_update.get_webhooks_for_event"
+)
+@patch("saleor.plugins.manager.PluginsManager.product_variant_stocks_updated")
+def test_stocks_bulk_update_send_stock_updated_event_only_for_changed_stocks(
+    product_variant_stocks_update_webhook,
+    mocked_get_webhooks_for_event,
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+    any_webhook,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = variant.stocks.all()
+
+    modified_stock = stocks[0]
+    non_modified_stock = stocks[1]
+
+    first_warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", modified_stock.warehouse_id
+    )
+    seconf_warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", non_modified_stock.warehouse_id
+    )
+
+    stocks_input = [
+        {
+            "variantId": variant_id,
+            "warehouseId": first_warehouse_id,
+            "quantity": modified_stock.quantity + 1,
+        },
+        {
+            "variantId": variant_id,
+            "warehouseId": seconf_warehouse_id,
+            "quantity": non_modified_stock.quantity,
+        },
+    ]
+
+    variables = {"stocks": stocks_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["stockBulkUpdate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 2
+    product_variant_stocks_update_webhook.assert_called_once_with(
+        [modified_stock], webhooks=[any_webhook]
+    )
 
 
 def test_stocks_bulk_update_using_external_refs(

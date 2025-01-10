@@ -1,0 +1,48 @@
+name: Publish for load test
+
+on:
+  pull_request:
+    types: [reopened, synchronize, labeled]
+    branches: ["**"]
+
+jobs:
+  init:
+    if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'load test')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'load test')) }}
+    runs-on: ubuntu-20.04
+    outputs:
+      version: ${{ steps.variables.outputs.version }}
+    steps:
+      - name: Prepare variables
+        id: variables
+        run:
+          set -x
+
+          branch=${{ github.event.pull_request.head.ref }}
+          branch_slug=$(echo "$branch" | sed 's@/@-@g')
+          branch_sha=${{ github.event.pull_request.head.sha }}
+          image_version="${branch_slug}-${branch_sha:0:8}"
+
+          echo "VERSION=${image_version}" >> $GITHUB_OUTPUT
+
+  publish:
+    needs:
+      - init
+    uses: ./.github/workflows/publish-containers.yml
+    with:
+      version: ${{ needs.init.outputs.version }}
+    secrets:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
+      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+
+  deploy:
+    runs-on: ubuntu-20.04
+    needs:
+      - publish
+    steps:
+      - name: Trigger load test deployment
+        run: |
+          curl -f -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
+            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
+            -d "{\"event_type\":\"deploy-load-test\",\"client_payload\":{\"version\":\"${{ needs.publish.outputs.version }}\",\"branch\":\"${{ github.event.pull_request.base.ref }}\"}}"

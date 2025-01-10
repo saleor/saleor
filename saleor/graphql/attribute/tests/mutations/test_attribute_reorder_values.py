@@ -141,7 +141,7 @@ def test_sort_values_within_attribute(
 
     actual_order = []
 
-    for attr, expected_pk in zip(gql_values, expected_order):
+    for attr, _expected_pk in zip(gql_values, expected_order):
         gql_type, gql_attr_id = graphene.Node.from_global_id(attr["node"]["id"])
         assert gql_type == "AttributeValue"
         actual_order.append(int(gql_attr_id))

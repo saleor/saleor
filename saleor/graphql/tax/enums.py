@@ -1,4 +1,9 @@
-from ...tax import TaxCalculationStrategy as InternalTaxCalculationStrategy
+from ...tax import (
+    TaxableObjectDiscountType,
+)
+from ...tax import (
+    TaxCalculationStrategy as InternalTaxCalculationStrategy,
+)
 from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.enums import to_enum
 
@@ -17,3 +22,10 @@ TaxCalculationStrategy = to_enum(
     type_name="TaxCalculationStrategy",
 )
 TaxCalculationStrategy.doc_category = DOC_CATEGORY_TAXES
+
+
+TaxableObjectDiscountTypeEnum = to_enum(
+    TaxableObjectDiscountType,
+    description="Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.",
+)
+TaxableObjectDiscountTypeEnum.doc_category = DOC_CATEGORY_TAXES

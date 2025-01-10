@@ -1,9 +1,8 @@
-from datetime import datetime, timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
-import pytz
 
 from ... import RewardValueType
 from ...models import Promotion, PromotionRule
@@ -46,7 +45,7 @@ def test_mark_active_catalogue_promotion_rules_as_dirty_with_multiple_channels(
     # given
     second_promotion = Promotion.objects.create(
         name="Promotion",
-        end_date=datetime.now(tz=pytz.UTC) + timedelta(days=30),
+        end_date=datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=30),
     )
     rule_for_second_promotion = PromotionRule.objects.create(
         name="Percentage promotion rule",
@@ -94,7 +93,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_promotions_and_chann
     # given
     second_promotion = Promotion.objects.create(
         name="Promotion",
-        end_date=datetime.now(tz=pytz.UTC) + timedelta(days=30),
+        end_date=datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=30),
     )
     rule_for_second_promotion = PromotionRule.objects.create(
         name="Percentage promotion rule",

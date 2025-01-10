@@ -17,8 +17,8 @@ query OrderDetails($id: ID!) {
       token
     }
     events {
-        type
-      }
+      type
+    }
     channel {
       id
       name
@@ -56,9 +56,16 @@ query OrderDetails($id: ID!) {
     transactions {
       id
     }
+    metadata {
+      key
+      value
+    }
+    privateMetadata {
+      key
+      value
+    }
   }
 }
-
 """
 
 

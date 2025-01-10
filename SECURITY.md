@@ -6,8 +6,8 @@ The following releases of Saleor are currently supported.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| ≥ 3.14  | :white_check_mark: |
-| < 3.14  | :x:                |
+| ≥ 3.16  | :white_check_mark: |
+| < 3.16  | :x:                |
 
 ## Reporting a Vulnerability
 

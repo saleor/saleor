@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import date, timedelta
 from unittest import mock
 
 import graphene
@@ -520,7 +520,9 @@ def test_create_gift_card_with_expiry_date(
     # given
     initial_balance = 100
     currency = "USD"
-    date_value = date.today() + timedelta(days=365)
+    date_value = datetime.datetime.now(tz=datetime.UTC).date() + datetime.timedelta(
+        days=365
+    )
     tag = "gift-card-tag"
     variables = {
         "input": {
@@ -583,7 +585,10 @@ def test_create_gift_card_with_expiry_date(
     )
 
 
-@pytest.mark.parametrize("date_value", [date(1999, 1, 1), date.today()])
+@pytest.mark.parametrize(
+    "date_value",
+    [datetime.date(1999, 1, 1), datetime.datetime.now(tz=datetime.UTC).date()],
+)
 def test_create_gift_card_with_expiry_date_type_invalid(
     date_value,
     staff_api_client,

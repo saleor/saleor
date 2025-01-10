@@ -9,7 +9,6 @@ from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_317, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import Error
@@ -56,7 +55,7 @@ class PromotionRuleCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new promotion rule." + ADDED_IN_317 + PREVIEW_FEATURE
+        description = "Creates a new promotion rule."
         model = models.PromotionRule
         object_type = PromotionRule
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

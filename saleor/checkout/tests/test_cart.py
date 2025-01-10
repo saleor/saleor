@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -152,7 +152,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.products.add(product)
     # assume that cache is correct
-    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(days=1)
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
@@ -186,7 +186,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     product.collections.add(collection)
     voucher.collections.add(collection)
     # assume that cache is correct
-    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(days=1)
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
@@ -223,7 +223,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.categories.add(category)
     # assume that cache is correct
-    checkout.price_expiration = timezone.now() + timedelta(days=1)
+    checkout.price_expiration = timezone.now() + datetime.timedelta(days=1)
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)

@@ -4,7 +4,7 @@ from ...attribute.models import Attribute, AttributeValue
 from ..core.dataloaders import DataLoader
 
 
-class AttributeValuesByAttributeIdLoader(DataLoader):
+class AttributeValuesByAttributeIdLoader(DataLoader[int, list[AttributeValue]]):
     context_key = "attributevalues_by_attribute"
 
     def batch_load(self, keys):
@@ -19,7 +19,7 @@ class AttributeValuesByAttributeIdLoader(DataLoader):
         return [attribute_to_attributevalues[attribute_id] for attribute_id in keys]
 
 
-class AttributesByAttributeId(DataLoader):
+class AttributesByAttributeId(DataLoader[int, Attribute]):
     context_key = "attributes_by_id"
 
     def batch_load(self, keys):
@@ -29,7 +29,7 @@ class AttributesByAttributeId(DataLoader):
         return [attributes.get(key) for key in keys]
 
 
-class AttributeValueByIdLoader(DataLoader):
+class AttributeValueByIdLoader(DataLoader[int, AttributeValue]):
     context_key = "attributevalue_by_id"
 
     def batch_load(self, keys):

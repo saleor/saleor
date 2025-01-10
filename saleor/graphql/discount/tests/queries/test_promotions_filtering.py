@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import graphene
 import pytest
@@ -107,8 +107,8 @@ def test_query_promotions_filter_by_name(
         (
             {
                 "range": {
-                    "gte": (timezone.now() + timedelta(days=5)).isoformat(),
-                    "lte": (timezone.now() + timedelta(days=25)).isoformat(),
+                    "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
                 }
             },
             [0, 1],
@@ -116,7 +116,7 @@ def test_query_promotions_filter_by_name(
         (
             {
                 "range": {
-                    "gte": (timezone.now() + timedelta(days=5)).isoformat(),
+                    "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
                 }
             },
             [0, 1, 2],
@@ -124,7 +124,7 @@ def test_query_promotions_filter_by_name(
         (
             {
                 "range": {
-                    "lte": (timezone.now() + timedelta(days=25)).isoformat(),
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
                 }
             },
             [0, 1],
@@ -132,7 +132,7 @@ def test_query_promotions_filter_by_name(
         (
             {
                 "range": {
-                    "lte": (timezone.now() - timedelta(days=5)).isoformat(),
+                    "lte": (timezone.now() - datetime.timedelta(days=5)).isoformat(),
                 }
             },
             [],
@@ -175,8 +175,8 @@ def test_query_promotions_filter_by_end_date(
         (
             {
                 "range": {
-                    "gte": (timezone.now() + timedelta(days=3)).isoformat(),
-                    "lte": (timezone.now() + timedelta(days=25)).isoformat(),
+                    "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
                 }
             },
             [1, 2],
@@ -184,7 +184,7 @@ def test_query_promotions_filter_by_end_date(
         (
             {
                 "range": {
-                    "gte": (timezone.now() + timedelta(days=3)).isoformat(),
+                    "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
                 }
             },
             [1, 2],
@@ -192,7 +192,7 @@ def test_query_promotions_filter_by_end_date(
         (
             {
                 "range": {
-                    "lte": (timezone.now() + timedelta(days=25)).isoformat(),
+                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
                 }
             },
             [0, 1, 2],
@@ -200,7 +200,7 @@ def test_query_promotions_filter_by_end_date(
         (
             {
                 "range": {
-                    "lte": (timezone.now() - timedelta(days=5)).isoformat(),
+                    "lte": (timezone.now() - datetime.timedelta(days=5)).isoformat(),
                 }
             },
             [],

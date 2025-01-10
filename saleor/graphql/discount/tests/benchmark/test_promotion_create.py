@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 
 import graphene
@@ -43,8 +43,8 @@ def test_promotion_create(
 ):
     # given
     staff_api_client.user.groups.add(permission_group_manage_discounts)
-    start_date = timezone.now() - timedelta(days=30)
-    end_date = timezone.now() + timedelta(days=30)
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
 
     rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -196,6 +196,7 @@ def test_promotion_create_order_promotion(
     }
 
     # when
+    staff_api_client.ensure_access_token()
     with django_assert_num_queries(36):
         response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
 

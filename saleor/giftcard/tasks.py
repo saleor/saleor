@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from .events import gift_cards_deactivated_event
 from .models import GiftCard
 from .search import update_gift_cards_search_vector
@@ -12,6 +13,7 @@ GIFT_CARD_BATCH_SIZE = 300
 
 
 @app.task
+@allow_writer()
 def deactivate_expired_cards_task():
     today = timezone.now().date()
     gift_cards = GiftCard.objects.filter(expiry_date__lt=today, is_active=True)

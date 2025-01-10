@@ -15,14 +15,17 @@ from .utils import (
 def create_active_customer(
     e2e_staff_api_client,
 ):
-    email = "user@saleor.io"
+    customer_input = {
+        "email": "user@saleor.io",
+        "isActive": True,
+    }
 
     user_data = create_customer(
         e2e_staff_api_client,
-        email,
-        is_active=True,
+        customer_input,
     )
     user_id = user_data["id"]
+    email = user_data["email"]
 
     return user_id, email
 

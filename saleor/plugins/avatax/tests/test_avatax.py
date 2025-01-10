@@ -19,7 +19,13 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import TaxError, TaxType, zero_money, zero_taxed_money
+from ....core.taxes import (
+    TaxDataErrorMessage,
+    TaxError,
+    TaxType,
+    zero_money,
+    zero_taxed_money,
+)
 from ....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from ....discount.models import CheckoutLineDiscount, Promotion, PromotionRule
 from ....discount.utils.checkout import (
@@ -1155,6 +1161,7 @@ def test_calculate_order_shipping_order_not_valid(
     )
     order.shipping_address = None
     order.base_shipping_price = Money("10.00", "USD")
+    order.undiscounted_base_shipping_price = Money("10.00", "USD")
     order_set_shipping_method(order, shipping_method)
     order.save()
 
@@ -4552,7 +4559,7 @@ def test_order_confirmed(
                 }
             ],
             "code": str(order.id),
-            "date": datetime.date.today().strftime("%Y-%m-%d"),
+            "date": datetime.datetime.now(tz=datetime.UTC).date().strftime("%Y-%m-%d"),
             "customerCode": 0,
             "discount": None,
             "addresses": {
@@ -4926,7 +4933,7 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # then
-    assert all([line for line in lines_data if line["taxIncluded"] is True])
+    assert all(line for line in lines_data if line["taxIncluded"] is True)
 
 
 def test_get_order_request_data_uses_correct_address_for_cc(
@@ -6363,3 +6370,72 @@ def test_get_checkout_tax_data_set_tax_error(
 
     # then
     assert checkout_with_item.tax_error == "Empty tax data."
+
+
+def test_validate_plugin_tax_data_no_data(lines_info):
+    # given
+    tax_data = {}
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info)
+
+    # then
+    assert error_message == TaxDataErrorMessage.EMPTY
+
+
+def test_validate_plugin_tax_data_with_negative_values(lines_info, caplog):
+    # given
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": -30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 40.0000,
+                "quantity": 2.0,
+                "itemCode": "SKU_B",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info)
+
+    # then
+    assert error_message == TaxDataErrorMessage.NEGATIVE_VALUE
+
+
+def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
+    # given
+    tax_data = {
+        "lines": [
+            {
+                "lineAmount": 30.0000,
+                "quantity": 3.0,
+                "itemCode": "SKU_A",
+            },
+            {
+                "lineAmount": 99999999999.0000,
+                "quantity": 2.0,
+                "itemCode": "SKU_B",
+            },
+            {
+                "lineAmount": 8.1300,
+                "quantity": 1.0,
+                "itemCode": "Shipping",
+            },
+        ]
+    }
+
+    # when
+    error_message = AvataxPlugin.validate_tax_data(tax_data, lines_info)
+
+    # then
+    assert error_message == TaxDataErrorMessage.OVERFLOW

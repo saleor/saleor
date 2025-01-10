@@ -4,7 +4,6 @@ import graphene
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
-from ....tests.utils import flush_post_commit_hooks
 from ...tests.utils import (
     assert_negative_positive_decimal_value,
     assert_no_permission,
@@ -352,7 +351,6 @@ def test_variant_channel_listing_update_trigger_webhook_product_variant_updated(
         permissions=(permission_manage_products,),
     )
     get_graphql_content(response)
-    flush_post_commit_hooks()
 
     # then
     mock_product_variant_updated.assert_called_once_with(product.variants.last())

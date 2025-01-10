@@ -15,7 +15,7 @@ def test_get_default_channel_with_one_channels(channel_USD):
     with warnings.catch_warnings(record=True) as warns:
         get_default_channel()
         assert any(
-            [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+            str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns
         )
 
 

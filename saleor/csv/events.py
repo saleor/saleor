@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
+from ..core.db.connection import allow_writer
 from . import ExportEvents
 from .models import ExportEvent
 
@@ -9,6 +10,7 @@ if TYPE_CHECKING:
     from .models import ExportFile
 
 
+@allow_writer()
 def export_started_event(
     *,
     export_file: "ExportFile",
@@ -20,6 +22,7 @@ def export_started_event(
     )
 
 
+@allow_writer()
 def export_success_event(
     *,
     export_file: "ExportFile",
@@ -31,6 +34,7 @@ def export_success_event(
     )
 
 
+@allow_writer()
 def export_failed_event(
     *,
     export_file: "ExportFile",
@@ -48,6 +52,7 @@ def export_failed_event(
     )
 
 
+@allow_writer()
 def export_deleted_event(
     *,
     export_file: "ExportFile",
@@ -59,6 +64,7 @@ def export_deleted_event(
     )
 
 
+@allow_writer()
 def export_file_sent_event(*, export_file_id: int, user_id: int) -> None:
     ExportEvent.objects.create(
         export_file_id=export_file_id,
@@ -67,6 +73,7 @@ def export_file_sent_event(*, export_file_id: int, user_id: int) -> None:
     )
 
 
+@allow_writer()
 def export_failed_info_sent_event(*, export_file_id: int, user_id: int) -> None:
     ExportEvent.objects.create(
         export_file_id=export_file_id,

@@ -1,5 +1,5 @@
+import datetime
 import uuid
-from datetime import date, datetime
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Any, Optional, Union
 
@@ -7,6 +7,7 @@ import petl as etl
 from django.conf import settings
 from django.utils import timezone
 
+from ...core.db.connection import allow_writer
 from ...discount.models import VoucherCode
 from ...giftcard.models import GiftCard
 from ...product.models import Product
@@ -56,7 +57,6 @@ def export_products(
 
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
-
     send_export_download_link_notification(export_file, "products")
 
 
@@ -87,7 +87,6 @@ def export_gift_cards(
 
     save_csv_file_in_export_file(export_file, temporary_file, file_name)
     temporary_file.close()
-
     send_export_download_link_notification(export_file, "gift cards")
 
 
@@ -158,15 +157,15 @@ def parse_input(data: Any) -> dict[str, Union[str, dict]]:
         for attr in data.get("attributes") or []:
             if "date_time" in attr:
                 if gte := attr["date_time"].get("gte"):
-                    attr["date_time"]["gte"] = datetime.fromisoformat(gte)
+                    attr["date_time"]["gte"] = datetime.datetime.fromisoformat(gte)
                 if lte := attr["date_time"].get("lte"):
-                    attr["date_time"]["lte"] = datetime.fromisoformat(lte)
+                    attr["date_time"]["lte"] = datetime.datetime.fromisoformat(lte)
 
             if "date" in attr:
                 if gte := attr["date"].get("gte"):
-                    attr["date"]["gte"] = date.fromisoformat(gte)
+                    attr["date"]["gte"] = datetime.date.fromisoformat(gte)
                 if lte := attr["date"].get("lte"):
-                    attr["date"]["lte"] = date.fromisoformat(lte)
+                    attr["date"]["lte"] = datetime.date.fromisoformat(lte)
 
             serialized_attributes.append(attr)
 
@@ -291,6 +290,7 @@ def append_to_file(
         etl.io.xlsx.appendxlsx(table, temporary_file.name)
 
 
+@allow_writer()
 def save_csv_file_in_export_file(
     export_file: "ExportFile", temporary_file: IO[bytes], file_name: str
 ):

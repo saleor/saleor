@@ -2,15 +2,16 @@ from unittest.mock import patch
 
 import pytest
 
+from ...webhook.utils import get_webhooks_for_multiple_events
 from .. import OrderStatus
-from ..actions import order_created
+from ..actions import WEBHOOK_EVENTS_FOR_ORDER_CREATED, order_confirmed, order_created
 from ..fetch import OrderInfo
 
 parametrize_order_statuses = [(status,) for status, _ in OrderStatus.CHOICES]
 
 
 @pytest.mark.parametrize("order_status", parametrize_order_statuses)
-@patch("saleor.order.actions.order_confirmed")
+@patch("saleor.order.actions.order_confirmed", wraps=order_confirmed)
 def test_order_created_order_confirmed_with_turned_flag_on(
     mock_order_confirmed, order_status, order, customer_user, plugins_manager
 ):
@@ -27,12 +28,16 @@ def test_order_created_order_confirmed_with_turned_flag_on(
         lines_data=[],
     )
 
+    webhook_event_map = get_webhooks_for_multiple_events(
+        WEBHOOK_EVENTS_FOR_ORDER_CREATED
+    )
+
     # when
     order_created(order_info, user=customer_user, app=None, manager=plugins_manager)
 
     # then
     mock_order_confirmed.assert_called_once_with(
-        order, customer_user, None, plugins_manager
+        order, customer_user, None, plugins_manager, webhook_event_map=webhook_event_map
     )
 
 

@@ -69,15 +69,14 @@ class Command(BaseCommand):
                         f"Required field '{field_name}' specifies a many-to-many "
                         "relation through model, which is not supported."
                     )
-                else:
-                    parser.add_argument(
-                        f"--{field_name}",
-                        action="append",
-                        help=(
-                            f"Specifies the {field_name} for the superuser. Can be "
-                            "used multiple times."
-                        ),
-                    )
+                parser.add_argument(
+                    f"--{field_name}",
+                    action="append",
+                    help=(
+                        f"Specifies the {field_name} for the superuser. Can be "
+                        "used multiple times."
+                    ),
+                )
             else:
                 parser.add_argument(
                     f"--{field_name}",
@@ -206,12 +205,11 @@ class Command(BaseCommand):
                     raise CommandError(
                         f"You must use --{self.UserModel.USERNAME_FIELD} with --noinput."
                     )
-                else:
-                    error_msg = self._validate_username(
-                        username, verbose_field_name, database
-                    )
-                    if error_msg:
-                        raise CommandError(error_msg)
+                error_msg = self._validate_username(
+                    username, verbose_field_name, database
+                )
+                if error_msg:
+                    raise CommandError(error_msg)
 
                 user_data[self.UserModel.USERNAME_FIELD] = username
                 for field_name in self.UserModel.REQUIRED_FIELDS:
@@ -233,7 +231,7 @@ class Command(BaseCommand):
             self.stderr.write("\nOperation cancelled.")
             sys.exit(1)
         except exceptions.ValidationError as e:
-            raise CommandError("; ".join(e.messages))
+            raise CommandError("; ".join(e.messages)) from e
         except NotRunningInTTYException:
             self.stdout.write(
                 "Superuser creation skipped due to not running in a TTY. "

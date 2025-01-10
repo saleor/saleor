@@ -1,9 +1,13 @@
 import pytest
 
 from .....product.tasks import recalculate_discounted_price_for_products_task
-from ...product.utils.preparing_product import prepare_product
-from ...sales.utils import create_sale, create_sale_channel_listing, sale_catalogues_add
-from ...shop.utils.preparing_shop import prepare_default_shop
+from ...product.utils.preparing_product import prepare_products
+from ...sales.utils import (
+    create_sale,
+    create_sale_channel_listing,
+    sale_catalogues_add,
+)
+from ...shop.utils import prepare_default_shop
 from ...utils import assign_permissions
 from ...vouchers.utils import create_voucher, create_voucher_channel_listing
 from ..utils import (
@@ -13,17 +17,20 @@ from ..utils import (
     checkout_delivery_method_update,
     checkout_dummy_payment_create,
     checkout_lines_add,
+    checkout_lines_delete,
+    checkout_lines_update,
 )
 
 
-def prepare_sale_for_variant(
+def prepare_sale_for_products(
     e2e_staff_api_client,
     channel_id,
-    product_variant_id,
+    product_ids,
     sale_discount_type,
     sale_discount_value,
+    sale_name,
 ):
-    sale_name = "Sale"
+    sale_name = sale_name
     sale = create_sale(
         e2e_staff_api_client,
         sale_name,
@@ -41,7 +48,7 @@ def prepare_sale_for_variant(
         sale_id,
         add_channels=sale_listing_input,
     )
-    catalogue_input = {"variants": [product_variant_id]}
+    catalogue_input = {"products": product_ids}
     sale_catalogues_add(
         e2e_staff_api_client,
         sale_id,
@@ -81,38 +88,12 @@ def prepare_voucher(
 
 
 @pytest.mark.e2e
-@pytest.mark.parametrize(
-    (
-        "variant_price",
-        "sale_discount_value",
-        "sale_discount_type",
-        "expected_sale_discount",
-        "voucher_discount_value",
-        "voucher_discount_type",
-        "expected_voucher_discount",
-        "expected_unit_price",
-    ),
-    [
-        ("19.99", 13, "PERCENTAGE", 2.60, 13, "PERCENTAGE", 2.26, 15.13),
-        ("30", 10, "FIXED", 10, 5, "FIXED", 5, 17.5),
-        ("56.50", 19.99, "FIXED", 19.99, 33, "PERCENTAGE", 12.05, 24.46),
-        ("77.77", 17.5, "PERCENTAGE", 13.61, 25, "FIXED", 25, 51.66),
-    ],
-)
-def test_checkout_calculate_discount_for_sale_and_voucher_1014(
+def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_CORE_0114(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
     permission_manage_discounts,
-    variant_price,
-    sale_discount_value,
-    sale_discount_type,
-    expected_sale_discount,
-    voucher_discount_value,
-    voucher_discount_type,
-    expected_voucher_discount,
-    expected_unit_price,
 ):
     # Before
     permissions = [
@@ -128,40 +109,66 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     warehouse_id = shop_data["warehouse"]["id"]
     shipping_method_id = shop_data["shipping_method"]["id"]
 
-    (
-        _product_id,
-        product_variant_id,
-        product_variant_price,
-    ) = prepare_product(
+    products_data = prepare_products(
         e2e_staff_api_client,
         warehouse_id,
         channel_id,
-        variant_price,
+        ["13.33", "16", "9.99", "20.5"],
     )
+    product1_id = products_data[0]["product_id"]
+    product1_variant_id = products_data[0]["variant_id"]
+    product1_variant_price = float(products_data[0]["price"])
 
-    sale_id, sale_discount_value = prepare_sale_for_variant(
+    product2_id = products_data[1]["product_id"]
+    product2_variant_id = products_data[1]["variant_id"]
+    product2_variant_price = float(products_data[1]["price"])
+
+    product3_id = products_data[2]["product_id"]
+    product3_variant_id = products_data[2]["variant_id"]
+    product3_variant_price = float(products_data[2]["price"])
+
+    product4_variant_id = products_data[3]["variant_id"]
+    product4_variant_price = float(products_data[3]["price"])
+
+    product_ids = [product1_id, product2_id, product3_id]
+
+    sale_id, sale_discount_value = prepare_sale_for_products(
         e2e_staff_api_client,
         channel_id,
-        product_variant_id,
-        sale_discount_type,
-        sale_discount_value,
-    )
-
-    voucher_discount_value, voucher_code = prepare_voucher(
-        e2e_staff_api_client,
-        channel_id,
-        "VOUCHER001",
-        voucher_discount_type,
-        voucher_discount_value,
+        product_ids,
+        sale_discount_type="PERCENTAGE",
+        sale_discount_value=13,
+        sale_name="Sale_Percentage",
     )
 
     # prices are updated in the background, we need to force it to retrieve the correct
     # ones
     recalculate_discounted_price_for_products_task()
 
-    # Step 1 - Create checkout for product on sale
+    voucher_discount_value, voucher_code = prepare_voucher(
+        e2e_staff_api_client,
+        channel_id,
+        "VOUCHER001",
+        voucher_discount_type="PERCENTAGE",
+        voucher_discount_value=13,
+    )
+    product1_quantity = 2
+    product2_quantity = 3
+    product3_quantity = 4
+    product4_quantity = 1
+    product2_new_quantity = 2
+    product3_new_quantity = 3
+
+    # Step 1 - checkoutCreate for product on sale
     lines = [
-        {"variantId": product_variant_id, "quantity": 1},
+        {
+            "variantId": product1_variant_id,
+            "quantity": product1_quantity,
+        },
+        {
+            "variantId": product2_variant_id,
+            "quantity": product2_quantity,
+        },
     ]
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
@@ -172,38 +179,241 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
         set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
-    checkout_lines = checkout_data["lines"][0]
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
 
-    assert checkout_data["isShippingRequired"] is True
-    unit_price_on_sale = round(float(product_variant_price - expected_sale_discount), 2)
-    assert checkout_lines["unitPrice"]["gross"]["amount"] == unit_price_on_sale
-    assert checkout_lines["undiscountedUnitPrice"]["amount"] == product_variant_price
+    assert checkout_line1["variant"]["id"] == product1_variant_id
+    assert checkout_line1["quantity"] == product1_quantity
+    line1_discount = round(product1_variant_price * sale_discount_value / 100, 2)
+    line1_unit_price = product1_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
 
-    # Step 2 Add voucher code to checkout
+    assert checkout_line2["variant"]["id"] == product2_variant_id
+    assert checkout_line2["quantity"] == product2_quantity
+    line2_discount = round(product2_variant_price * sale_discount_value / 100, 2)
+    line2_unit_price = product2_variant_price - line2_discount
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 2 - Add Lines
+    lines = [
+        {
+            "variantId": product3_variant_id,
+            "quantity": product3_quantity,
+        },
+        {
+            "variantId": product4_variant_id,
+            "quantity": product4_quantity,
+        },
+    ]
+    checkout_data = checkout_lines_add(
+        e2e_not_logged_api_client,
+        checkout_id,
+        lines,
+    )
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["variant"]["id"] == product3_variant_id
+    assert checkout_line3["quantity"] == product3_quantity
+    line3_discount = round(product3_variant_price * sale_discount_value / 100, 2)
+    line3_unit_price = product3_variant_price - line3_discount
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
+
+    checkout_line4 = checkout_data["lines"][3]
+    assert checkout_line4["variant"]["id"] == product4_variant_id
+    assert checkout_line4["quantity"] == 1
+    line4_unit_price = product4_variant_price
+    assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
+    assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price
+        + product2_quantity * line2_unit_price
+        + product3_quantity * line3_unit_price
+        + product4_quantity * line4_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 3 - Remove lines
+    checkout_data = checkout_lines_delete(
+        e2e_not_logged_api_client, checkout_id, linesIds=[checkout_line1["id"]]
+    )
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    new_checkout_line1 = checkout_data["lines"][0]
+    new_checkout_line2 = checkout_data["lines"][1]
+    new_checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert new_checkout_line1["variant"]["id"] == product2_variant_id
+    assert new_checkout_line1["quantity"] == product2_quantity
+    line1_discount = round(product2_variant_price * sale_discount_value / 100, 2)
+    line1_unit_price = product2_variant_price - line1_discount
+    assert new_checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert (
+        new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
+
+    assert new_checkout_line2["variant"]["id"] == product3_variant_id
+    assert new_checkout_line2["quantity"] == product3_quantity
+    line2_discount = round(product3_variant_price * sale_discount_value / 100, 2)
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert new_checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert (
+        new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
+
+    assert new_checkout_line3["variant"]["id"] == product4_variant_id
+    assert new_checkout_line3["quantity"] == 1
+    line3_unit_price = product4_variant_price
+    assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        +product2_quantity * line1_unit_price
+        + product3_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 4 - Update lines
+    lines = [
+        {
+            "quantity": product2_new_quantity,
+            "lineId": new_checkout_line1["id"],
+        },
+        {
+            "quantity": product3_new_quantity,
+            "lineId": new_checkout_line2["id"],
+        },
+    ]
+    checkout_data = checkout_lines_update(e2e_not_logged_api_client, checkout_id, lines)
+    checkout_data = checkout_data["checkout"]
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+    checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert checkout_line1["variant"]["id"] == product2_variant_id
+    assert checkout_line1["quantity"] == product2_new_quantity
+    line1_discount = round(product2_variant_price * sale_discount_value / 100, 2)
+    line1_unit_price = product2_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    calculated_line1_total = round(product2_new_quantity * line1_unit_price, 2)
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    assert checkout_line2["variant"]["id"] == product3_variant_id
+    assert checkout_line2["quantity"] == product3_new_quantity
+    line2_discount = round(product3_variant_price * sale_discount_value / 100, 2)
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    calculated_line2_total = round(product3_new_quantity * line2_unit_price, 2)
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    assert checkout_line3["variant"]["id"] == product4_variant_id
+    assert checkout_line3["quantity"] == product4_quantity
+    line3_unit_price = product4_variant_price
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    calculated_line3_total = round(product4_quantity * line3_unit_price, 2)
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    calculated_subtotal = round(
+        +product2_new_quantity * line1_unit_price
+        + product3_new_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 5 - Add voucher code to checkout
     checkout_data = checkout_add_promo_code(
         e2e_not_logged_api_client, checkout_id, voucher_code
     )
-    assert checkout_data["discount"]["amount"] == expected_voucher_discount
-    assert checkout_data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
-        float(unit_price_on_sale - expected_voucher_discount), 2
-    )
+    calculated_discount = round(calculated_subtotal * voucher_discount_value / 100, 2)
+    assert checkout_data["discount"]["amount"] == calculated_discount
+    assert checkout_data["voucherCode"] == voucher_code
 
-    # Step 3 Add variant to the checkout
-    lines_add = [
-        {"variantId": product_variant_id, "quantity": 1},
-    ]
-    checkout_data = checkout_lines_add(
-        e2e_staff_api_client,
-        checkout_id,
-        lines_add,
-    )
-    checkout_lines = checkout_data["lines"][0]
-    assert checkout_lines["quantity"] == 2
-    assert checkout_lines["unitPrice"]["gross"]["amount"] == expected_unit_price
-    subtotal_amount = expected_unit_price * 2
-    assert checkout_lines["totalPrice"]["gross"]["amount"] == subtotal_amount
+    # Assert lines after voucher code
+    assert len(checkout_data["lines"]) == 3
+    checkout_line1 = checkout_data["lines"][0]
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line1["quantity"] == product2_new_quantity
 
-    # Step 4 - Set DeliveryMethod for checkout.
+    calculated_line1_discount = round(
+        calculated_line1_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line1_total = round(
+        calculated_line1_total - calculated_line1_discount, 2
+    )
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    checkout_line2 = checkout_data["lines"][1]
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line2["quantity"] == product3_new_quantity
+
+    calculated_line2_discount = round(
+        calculated_line2_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line2_total = round(
+        calculated_line2_total - calculated_line2_discount, 2
+    )
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product4_variant_price
+    assert checkout_line3["quantity"] == product4_quantity
+
+    calculated_line3_discount = round(
+        calculated_discount - calculated_line1_discount - calculated_line2_discount, 2
+    )
+    calculated_line3_total = round(
+        calculated_line3_total - calculated_line3_discount, 2
+    )
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+
+    # Assert total and subtotal after voucher code
+    calculated_subtotal = round(calculated_subtotal - calculated_discount, 2)
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+    calculated_total = calculated_subtotal
+    assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_total
+
+    # Step 6 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
         e2e_not_logged_api_client,
         checkout_id,
@@ -211,31 +421,1347 @@ def test_checkout_calculate_discount_for_sale_and_voucher_1014(
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
-    total_gross_amount = round(subtotal_amount + shipping_price, 2)
-    assert checkout_data["totalPrice"]["gross"]["amount"] == total_gross_amount
+    calculated_total = calculated_subtotal + shipping_price
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
+    assert total_gross_amount == calculated_total
+    assert subtotal_gross_amount == calculated_subtotal
 
-    # Step 5 - Create payment for checkout.
+    # Step 7 - Create payment for checkout.
     checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
     )
 
-    # Step 6 - Complete checkout.
+    # Step 8 - Complete checkout.
     order_data = checkout_complete(
         e2e_not_logged_api_client,
         checkout_id,
     )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
     assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == calculated_total
+    assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
+    assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
+
     assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
+    assert order_data["discounts"][0]["value"] == calculated_discount
 
-    order_line = order_data["lines"][0]
-    assert order_line["unitDiscountType"] == "FIXED"
-    assert order_line["unitPrice"]["gross"]["amount"] == expected_unit_price
-    assert order_line["unitDiscountReason"] == (
+    assert order_line1["quantity"] == product2_new_quantity
+    assert order_line1["unitDiscountReason"] == (
         f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
     )
-    assert order_data["total"]["gross"]["amount"] == total_gross_amount
-    assert order_data["subtotal"]["gross"]["amount"] == subtotal_amount
-    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
-        product_variant_price
+    assert (
+        order_line1["undiscountedUnitPrice"]["gross"]["amount"]
+        == product2_variant_price
     )
+    assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
+    assert order_line1["unitDiscount"]["amount"] == round(
+        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+    )
+    assert order_line2["quantity"] == product3_new_quantity
+    assert order_line2["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line2["undiscountedUnitPrice"]["gross"]["amount"]
+        == product3_variant_price
+    )
+    assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
+    assert order_line2["unitDiscount"]["amount"] == round(
+        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    )
+
+    assert order_line3["quantity"] == product4_quantity
+    assert order_line3["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code}"
+    )
+    assert (
+        order_line3["undiscountedUnitPrice"]["gross"]["amount"]
+        == product4_variant_price
+    )
+    assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
+    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+
+
+@pytest.mark.e2e
+def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
+    e2e_not_logged_api_client,
+    e2e_staff_api_client,
+    shop_permissions,
+    permission_manage_product_types_and_attributes,
+    permission_manage_discounts,
+):
+    # Before
+    permissions = [
+        *shop_permissions,
+        permission_manage_product_types_and_attributes,
+        permission_manage_discounts,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
+
+    products_data = prepare_products(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        ["13.33", "16", "19.99", "20.5"],
+    )
+    product1_id = products_data[0]["product_id"]
+    product1_variant_id = products_data[0]["variant_id"]
+    product1_variant_price = float(products_data[0]["price"])
+
+    product2_id = products_data[1]["product_id"]
+    product2_variant_id = products_data[1]["variant_id"]
+    product2_variant_price = float(products_data[1]["price"])
+
+    product3_id = products_data[2]["product_id"]
+    product3_variant_id = products_data[2]["variant_id"]
+    product3_variant_price = float(products_data[2]["price"])
+
+    product4_variant_id = products_data[3]["variant_id"]
+    product4_variant_price = float(products_data[3]["price"])
+
+    product_ids = [product1_id, product2_id, product3_id]
+
+    sale_id, sale_discount_value = prepare_sale_for_products(
+        e2e_staff_api_client,
+        channel_id,
+        product_ids,
+        sale_discount_type="FIXED",
+        sale_discount_value=10,
+        sale_name="Sale_FIXED",
+    )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
+    voucher_discount_value, voucher_code = prepare_voucher(
+        e2e_staff_api_client,
+        channel_id,
+        "VOUCHER002",
+        voucher_discount_type="FIXED",
+        voucher_discount_value=5,
+    )
+    product1_quantity = 2
+    product2_quantity = 3
+    product3_quantity = 4
+    product4_quantity = 1
+    product2_new_quantity = 2
+    product3_new_quantity = 3
+
+    # Step 1 - checkoutCreate for product on sale
+    lines = [
+        {
+            "variantId": product1_variant_id,
+            "quantity": product1_quantity,
+        },
+        {
+            "variantId": product2_variant_id,
+            "quantity": product2_quantity,
+        },
+    ]
+    checkout_data = checkout_create(
+        e2e_not_logged_api_client,
+        lines,
+        channel_slug,
+        email="testEmail@example.com",
+        set_default_billing_address=True,
+        set_default_shipping_address=True,
+    )
+    checkout_id = checkout_data["id"]
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+
+    assert checkout_line1["variant"]["id"] == product1_variant_id
+    assert checkout_line1["quantity"] == product1_quantity
+    line1_discount = sale_discount_value
+    line1_unit_price = product1_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
+
+    assert checkout_line2["variant"]["id"] == product2_variant_id
+    assert checkout_line2["quantity"] == product2_quantity
+    line2_discount = sale_discount_value
+    line2_unit_price = round(product2_variant_price - line2_discount, 2)
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 2 - Add Lines
+    lines = [
+        {
+            "variantId": product3_variant_id,
+            "quantity": product3_quantity,
+        },
+        {
+            "variantId": product4_variant_id,
+            "quantity": product4_quantity,
+        },
+    ]
+    checkout_data = checkout_lines_add(
+        e2e_not_logged_api_client,
+        checkout_id,
+        lines,
+    )
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["variant"]["id"] == product3_variant_id
+    assert checkout_line3["quantity"] == product3_quantity
+    line3_discount = sale_discount_value
+    line3_unit_price = round(product3_variant_price - line3_discount, 2)
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
+
+    checkout_line4 = checkout_data["lines"][3]
+    assert checkout_line4["variant"]["id"] == product4_variant_id
+    assert checkout_line4["quantity"] == 1
+    line4_unit_price = product4_variant_price
+    assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
+    assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price
+        + product2_quantity * line2_unit_price
+        + product3_quantity * line3_unit_price
+        + product4_quantity * line4_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 3 - Remove lines
+    checkout_data = checkout_lines_delete(
+        e2e_not_logged_api_client, checkout_id, linesIds=[checkout_line1["id"]]
+    )
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    new_checkout_line1 = checkout_data["lines"][0]
+    new_checkout_line2 = checkout_data["lines"][1]
+    new_checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert new_checkout_line1["variant"]["id"] == product2_variant_id
+    assert new_checkout_line1["quantity"] == product2_quantity
+    line1_discount = sale_discount_value
+    line1_unit_price = product2_variant_price - line1_discount
+    assert new_checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert (
+        new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
+
+    assert new_checkout_line2["variant"]["id"] == product3_variant_id
+    assert new_checkout_line2["quantity"] == product3_quantity
+    line2_discount = sale_discount_value
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert new_checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert (
+        new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
+
+    assert new_checkout_line3["variant"]["id"] == product4_variant_id
+    assert new_checkout_line3["quantity"] == 1
+    line3_unit_price = product4_variant_price
+    assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        +product2_quantity * line1_unit_price
+        + product3_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 4 - Update lines
+    lines = [
+        {
+            "quantity": product2_new_quantity,
+            "lineId": new_checkout_line1["id"],
+        },
+        {
+            "quantity": product3_new_quantity,
+            "lineId": new_checkout_line2["id"],
+        },
+    ]
+    checkout_data = checkout_lines_update(e2e_not_logged_api_client, checkout_id, lines)
+    checkout_data = checkout_data["checkout"]
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+    checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert checkout_line1["variant"]["id"] == product2_variant_id
+    assert checkout_line1["quantity"] == product2_new_quantity
+    line1_discount = sale_discount_value
+    line1_unit_price = product2_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    calculated_line1_total = round(product2_new_quantity * line1_unit_price, 2)
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    assert checkout_line2["variant"]["id"] == product3_variant_id
+    assert checkout_line2["quantity"] == product3_new_quantity
+    line2_discount = sale_discount_value
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    calculated_line2_total = round(product3_new_quantity * line2_unit_price, 2)
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    assert checkout_line3["variant"]["id"] == product4_variant_id
+    assert checkout_line3["quantity"] == product4_quantity
+    line3_unit_price = product4_variant_price
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    calculated_line3_total = round(product4_quantity * line3_unit_price, 2)
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    calculated_subtotal = round(
+        +product2_new_quantity * line1_unit_price
+        + product3_new_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 5 - Add voucher code to checkout
+    checkout_data = checkout_add_promo_code(
+        e2e_not_logged_api_client, checkout_id, voucher_code
+    )
+    calculated_discount = voucher_discount_value
+    assert checkout_data["discount"]["amount"] == calculated_discount
+    assert checkout_data["voucherCode"] == voucher_code
+
+    # Assert lines after voucher code
+    assert len(checkout_data["lines"]) == 3
+    checkout_line1 = checkout_data["lines"][0]
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line1["quantity"] == product2_new_quantity
+
+    # jak dzielic discount na linie przy fixed voucher
+    calculated_line1_discount = round(
+        calculated_line1_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line1_total = round(
+        calculated_line1_total - calculated_line1_discount, 2
+    )
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    checkout_line2 = checkout_data["lines"][1]
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line2["quantity"] == product3_new_quantity
+
+    calculated_line2_discount = round(
+        calculated_line2_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line2_total = round(
+        calculated_line2_total - calculated_line2_discount, 2
+    )
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product4_variant_price
+    assert checkout_line3["quantity"] == product4_quantity
+
+    calculated_line3_discount = round(
+        calculated_discount - calculated_line1_discount - calculated_line2_discount, 2
+    )
+    calculated_line3_total = round(
+        calculated_line3_total - calculated_line3_discount, 2
+    )
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+
+    # Assert total and subtotal after voucher code
+    calculated_subtotal = round(calculated_subtotal - calculated_discount, 2)
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+    calculated_total = calculated_subtotal
+    assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_total
+
+    # Step 6 - Set DeliveryMethod for checkout.
+    checkout_data = checkout_delivery_method_update(
+        e2e_not_logged_api_client,
+        checkout_id,
+        shipping_method_id,
+    )
+    assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
+    shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
+    calculated_total = calculated_subtotal + shipping_price
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
+    assert total_gross_amount == calculated_total
+    assert subtotal_gross_amount == calculated_subtotal
+
+    # Step 7 - Create payment for checkout.
+    checkout_dummy_payment_create(
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
+    )
+
+    # Step 8 - Complete checkout.
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == calculated_total
+    assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
+    assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
+
+    assert order_data["discounts"][0]["type"] == "VOUCHER"
+    assert order_data["voucher"]["code"] == voucher_code
+    assert order_data["discounts"][0]["value"] == calculated_discount
+
+    assert order_line1["quantity"] == product2_new_quantity
+    assert order_line1["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line1["undiscountedUnitPrice"]["gross"]["amount"]
+        == product2_variant_price
+    )
+    assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
+    assert order_line1["unitDiscount"]["amount"] == round(
+        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+    )
+    assert order_line2["quantity"] == product3_new_quantity
+    assert order_line2["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line2["undiscountedUnitPrice"]["gross"]["amount"]
+        == product3_variant_price
+    )
+    assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
+    assert order_line2["unitDiscount"]["amount"] == round(
+        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    )
+
+    assert order_line3["quantity"] == product4_quantity
+    assert order_line3["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code}"
+    )
+    assert (
+        order_line3["undiscountedUnitPrice"]["gross"]["amount"]
+        == product4_variant_price
+    )
+    assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
+    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+
+
+@pytest.mark.e2e
+def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_0114(
+    e2e_not_logged_api_client,
+    e2e_staff_api_client,
+    shop_permissions,
+    permission_manage_product_types_and_attributes,
+    permission_manage_discounts,
+):
+    # Before
+    permissions = [
+        *shop_permissions,
+        permission_manage_product_types_and_attributes,
+        permission_manage_discounts,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
+
+    products_data = prepare_products(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        ["13.33", "16", "9.99", "20.5"],
+    )
+    product1_id = products_data[0]["product_id"]
+    product1_variant_id = products_data[0]["variant_id"]
+    product1_variant_price = float(products_data[0]["price"])
+
+    product2_id = products_data[1]["product_id"]
+    product2_variant_id = products_data[1]["variant_id"]
+    product2_variant_price = float(products_data[1]["price"])
+
+    product3_id = products_data[2]["product_id"]
+    product3_variant_id = products_data[2]["variant_id"]
+    product3_variant_price = float(products_data[2]["price"])
+
+    product4_variant_id = products_data[3]["variant_id"]
+    product4_variant_price = float(products_data[3]["price"])
+
+    product_ids = [product1_id, product2_id, product3_id]
+
+    sale_id, sale_discount_value = prepare_sale_for_products(
+        e2e_staff_api_client,
+        channel_id,
+        product_ids,
+        sale_discount_type="FIXED",
+        sale_discount_value=5,
+        sale_name="Sale_fixed",
+    )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
+    voucher_discount_value, voucher_code = prepare_voucher(
+        e2e_staff_api_client,
+        channel_id,
+        "VOUCHER003",
+        voucher_discount_type="PERCENTAGE",
+        voucher_discount_value=15,
+    )
+    product1_quantity = 2
+    product2_quantity = 3
+    product3_quantity = 4
+    product4_quantity = 1
+    product2_new_quantity = 2
+    product3_new_quantity = 3
+
+    # Step 1 - checkoutCreate for product on sale
+    lines = [
+        {
+            "variantId": product1_variant_id,
+            "quantity": product1_quantity,
+        },
+        {
+            "variantId": product2_variant_id,
+            "quantity": product2_quantity,
+        },
+    ]
+    checkout_data = checkout_create(
+        e2e_not_logged_api_client,
+        lines,
+        channel_slug,
+        email="testEmail@example.com",
+        set_default_billing_address=True,
+        set_default_shipping_address=True,
+    )
+    checkout_id = checkout_data["id"]
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+
+    assert checkout_line1["variant"]["id"] == product1_variant_id
+    assert checkout_line1["quantity"] == product1_quantity
+    line1_discount = sale_discount_value
+    line1_unit_price = product1_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
+
+    assert checkout_line2["variant"]["id"] == product2_variant_id
+    assert checkout_line2["quantity"] == product2_quantity
+    line2_discount = sale_discount_value
+    line2_unit_price = product2_variant_price - line2_discount
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 2 - Add Lines
+    lines = [
+        {
+            "variantId": product3_variant_id,
+            "quantity": product3_quantity,
+        },
+        {
+            "variantId": product4_variant_id,
+            "quantity": product4_quantity,
+        },
+    ]
+    checkout_data = checkout_lines_add(
+        e2e_not_logged_api_client,
+        checkout_id,
+        lines,
+    )
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["variant"]["id"] == product3_variant_id
+    assert checkout_line3["quantity"] == product3_quantity
+    line3_discount = sale_discount_value
+    line3_unit_price = product3_variant_price - line3_discount
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
+
+    checkout_line4 = checkout_data["lines"][3]
+    assert checkout_line4["variant"]["id"] == product4_variant_id
+    assert checkout_line4["quantity"] == 1
+    line4_unit_price = product4_variant_price
+    assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
+    assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price
+        + product2_quantity * line2_unit_price
+        + product3_quantity * line3_unit_price
+        + product4_quantity * line4_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 3 - Remove lines
+    checkout_data = checkout_lines_delete(
+        e2e_not_logged_api_client, checkout_id, linesIds=[checkout_line1["id"]]
+    )
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    new_checkout_line1 = checkout_data["lines"][0]
+    new_checkout_line2 = checkout_data["lines"][1]
+    new_checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert new_checkout_line1["variant"]["id"] == product2_variant_id
+    assert new_checkout_line1["quantity"] == product2_quantity
+    line1_discount = sale_discount_value
+    line1_unit_price = product2_variant_price - line1_discount
+    assert new_checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert (
+        new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
+
+    assert new_checkout_line2["variant"]["id"] == product3_variant_id
+    assert new_checkout_line2["quantity"] == product3_quantity
+    line2_discount = sale_discount_value
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert new_checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert (
+        new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
+
+    assert new_checkout_line3["variant"]["id"] == product4_variant_id
+    assert new_checkout_line3["quantity"] == 1
+    line3_unit_price = product4_variant_price
+    assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        +product2_quantity * line1_unit_price
+        + product3_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 4 - Update lines
+    lines = [
+        {
+            "quantity": product2_new_quantity,
+            "lineId": new_checkout_line1["id"],
+        },
+        {
+            "quantity": product3_new_quantity,
+            "lineId": new_checkout_line2["id"],
+        },
+    ]
+    checkout_data = checkout_lines_update(e2e_not_logged_api_client, checkout_id, lines)
+    checkout_data = checkout_data["checkout"]
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+    checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert checkout_line1["variant"]["id"] == product2_variant_id
+    assert checkout_line1["quantity"] == product2_new_quantity
+    line1_discount = sale_discount_value
+    line1_unit_price = product2_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    calculated_line1_total = round(product2_new_quantity * line1_unit_price, 2)
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    assert checkout_line2["variant"]["id"] == product3_variant_id
+    assert checkout_line2["quantity"] == product3_new_quantity
+    line2_discount = sale_discount_value
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    calculated_line2_total = round(product3_new_quantity * line2_unit_price, 2)
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    assert checkout_line3["variant"]["id"] == product4_variant_id
+    assert checkout_line3["quantity"] == product4_quantity
+    line3_unit_price = product4_variant_price
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    calculated_line3_total = round(product4_quantity * line3_unit_price, 2)
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    calculated_subtotal = round(
+        +product2_new_quantity * line1_unit_price
+        + product3_new_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 5 - Add voucher code to checkout
+    checkout_data = checkout_add_promo_code(
+        e2e_not_logged_api_client, checkout_id, voucher_code
+    )
+    calculated_discount = round(calculated_subtotal * voucher_discount_value / 100, 2)
+    assert checkout_data["discount"]["amount"] == calculated_discount
+    assert checkout_data["voucherCode"] == voucher_code
+
+    # Assert lines after voucher code
+    assert len(checkout_data["lines"]) == 3
+    checkout_line1 = checkout_data["lines"][0]
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line1["quantity"] == product2_new_quantity
+
+    calculated_line1_discount = round(
+        calculated_line1_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line1_total = round(
+        calculated_line1_total - calculated_line1_discount, 2
+    )
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    checkout_line2 = checkout_data["lines"][1]
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line2["quantity"] == product3_new_quantity
+
+    calculated_line2_discount = round(
+        calculated_line2_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line2_total = round(
+        calculated_line2_total - calculated_line2_discount, 2
+    )
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product4_variant_price
+    assert checkout_line3["quantity"] == product4_quantity
+
+    calculated_line3_discount = round(
+        calculated_discount - calculated_line1_discount - calculated_line2_discount, 2
+    )
+    calculated_line3_total = round(
+        calculated_line3_total - calculated_line3_discount, 2
+    )
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+
+    # Assert total and subtotal after voucher code
+    calculated_subtotal = round(calculated_subtotal - calculated_discount, 2)
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+    calculated_total = calculated_subtotal
+    assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_total
+
+    # Step 6 - Set DeliveryMethod for checkout.
+    checkout_data = checkout_delivery_method_update(
+        e2e_not_logged_api_client,
+        checkout_id,
+        shipping_method_id,
+    )
+    assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
+    shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
+    calculated_total = calculated_subtotal + shipping_price
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
+    assert total_gross_amount == calculated_total
+    assert subtotal_gross_amount == calculated_subtotal
+
+    # Step 7 - Create payment for checkout.
+    checkout_dummy_payment_create(
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
+    )
+
+    # Step 8 - Complete checkout.
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == calculated_total
+    assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
+    assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
+
+    assert order_data["discounts"][0]["type"] == "VOUCHER"
+    assert order_data["voucher"]["code"] == voucher_code
+    assert order_data["discounts"][0]["value"] == calculated_discount
+
+    assert order_line1["quantity"] == product2_new_quantity
+    assert order_line1["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line1["undiscountedUnitPrice"]["gross"]["amount"]
+        == product2_variant_price
+    )
+    assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
+    assert order_line1["unitDiscount"]["amount"] == round(
+        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+    )
+    assert order_line2["quantity"] == product3_new_quantity
+    assert order_line2["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line2["undiscountedUnitPrice"]["gross"]["amount"]
+        == product3_variant_price
+    )
+    assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
+    assert order_line2["unitDiscount"]["amount"] == round(
+        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    )
+
+    assert order_line3["quantity"] == product4_quantity
+    assert order_line3["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code}"
+    )
+    assert (
+        order_line3["undiscountedUnitPrice"]["gross"]["amount"]
+        == product4_variant_price
+    )
+    assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
+    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+
+
+@pytest.mark.e2e
+def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_0114(
+    e2e_not_logged_api_client,
+    e2e_staff_api_client,
+    shop_permissions,
+    permission_manage_product_types_and_attributes,
+    permission_manage_discounts,
+):
+    # Before
+    permissions = [
+        *shop_permissions,
+        permission_manage_product_types_and_attributes,
+        permission_manage_discounts,
+    ]
+    assign_permissions(e2e_staff_api_client, permissions)
+
+    shop_data = prepare_default_shop(e2e_staff_api_client)
+    channel_id = shop_data["channel"]["id"]
+    channel_slug = shop_data["channel"]["slug"]
+    warehouse_id = shop_data["warehouse"]["id"]
+    shipping_method_id = shop_data["shipping_method"]["id"]
+
+    products_data = prepare_products(
+        e2e_staff_api_client,
+        warehouse_id,
+        channel_id,
+        ["13.33", "16", "9.99", "20.5"],
+    )
+    product1_id = products_data[0]["product_id"]
+    product1_variant_id = products_data[0]["variant_id"]
+    product1_variant_price = float(products_data[0]["price"])
+
+    product2_id = products_data[1]["product_id"]
+    product2_variant_id = products_data[1]["variant_id"]
+    product2_variant_price = float(products_data[1]["price"])
+
+    product3_id = products_data[2]["product_id"]
+    product3_variant_id = products_data[2]["variant_id"]
+    product3_variant_price = float(products_data[2]["price"])
+
+    product4_variant_id = products_data[3]["variant_id"]
+    product4_variant_price = float(products_data[3]["price"])
+
+    product_ids = [product1_id, product2_id, product3_id]
+
+    sale_id, sale_discount_value = prepare_sale_for_products(
+        e2e_staff_api_client,
+        channel_id,
+        product_ids,
+        sale_discount_type="PERCENTAGE",
+        sale_discount_value=20,
+        sale_name="Sale_Percentage",
+    )
+
+    # prices are updated in the background, we need to force it to retrieve the correct
+    # ones
+    recalculate_discounted_price_for_products_task()
+
+    voucher_discount_value, voucher_code = prepare_voucher(
+        e2e_staff_api_client,
+        channel_id,
+        "VOUCHER004",
+        voucher_discount_type="FIXED",
+        voucher_discount_value=3,
+    )
+    product1_quantity = 2
+    product2_quantity = 3
+    product3_quantity = 4
+    product4_quantity = 1
+    product2_new_quantity = 2
+    product3_new_quantity = 3
+
+    # Step 1 - checkoutCreate for product on sale
+    lines = [
+        {
+            "variantId": product1_variant_id,
+            "quantity": product1_quantity,
+        },
+        {
+            "variantId": product2_variant_id,
+            "quantity": product2_quantity,
+        },
+    ]
+    checkout_data = checkout_create(
+        e2e_not_logged_api_client,
+        lines,
+        channel_slug,
+        email="testEmail@example.com",
+        set_default_billing_address=True,
+        set_default_shipping_address=True,
+    )
+    checkout_id = checkout_data["id"]
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+
+    assert checkout_line1["variant"]["id"] == product1_variant_id
+    assert checkout_line1["quantity"] == product1_quantity
+    line1_discount = round(product1_variant_price * sale_discount_value / 100, 2)
+    line1_unit_price = product1_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product1_quantity, 2
+    )
+
+    assert checkout_line2["variant"]["id"] == product2_variant_id
+    assert checkout_line2["quantity"] == product2_quantity
+    line2_discount = round(product2_variant_price * sale_discount_value / 100, 2)
+    line2_unit_price = product2_variant_price - line2_discount
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product2_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price + product2_quantity * line2_unit_price, 2
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 2 - Add Lines
+    lines = [
+        {
+            "variantId": product3_variant_id,
+            "quantity": product3_quantity,
+        },
+        {
+            "variantId": product4_variant_id,
+            "quantity": product4_quantity,
+        },
+    ]
+    checkout_data = checkout_lines_add(
+        e2e_not_logged_api_client,
+        checkout_id,
+        lines,
+    )
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["variant"]["id"] == product3_variant_id
+    assert checkout_line3["quantity"] == product3_quantity
+    line3_discount = round(product3_variant_price * sale_discount_value / 100, 2)
+    line3_unit_price = product3_variant_price - line3_discount
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product3_quantity, 2
+    )
+
+    checkout_line4 = checkout_data["lines"][3]
+    assert checkout_line4["variant"]["id"] == product4_variant_id
+    assert checkout_line4["quantity"] == 1
+    line4_unit_price = product4_variant_price
+    assert checkout_line4["unitPrice"]["gross"]["amount"] == line4_unit_price
+    assert checkout_line4["undiscountedUnitPrice"]["amount"] == line4_unit_price
+    assert checkout_line4["totalPrice"]["gross"]["amount"] == round(
+        line4_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        product1_quantity * line1_unit_price
+        + product2_quantity * line2_unit_price
+        + product3_quantity * line3_unit_price
+        + product4_quantity * line4_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 3 - Remove lines
+    checkout_data = checkout_lines_delete(
+        e2e_not_logged_api_client, checkout_id, linesIds=[checkout_line1["id"]]
+    )
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    new_checkout_line1 = checkout_data["lines"][0]
+    new_checkout_line2 = checkout_data["lines"][1]
+    new_checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert new_checkout_line1["variant"]["id"] == product2_variant_id
+    assert new_checkout_line1["quantity"] == product2_quantity
+    line1_discount = round(product2_variant_price * sale_discount_value / 100, 2)
+    line1_unit_price = product2_variant_price - line1_discount
+    assert new_checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert (
+        new_checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    )
+    assert new_checkout_line1["totalPrice"]["gross"]["amount"] == round(
+        line1_unit_price * product2_quantity, 2
+    )
+
+    assert new_checkout_line2["variant"]["id"] == product3_variant_id
+    assert new_checkout_line2["quantity"] == product3_quantity
+    line2_discount = round(product3_variant_price * sale_discount_value / 100, 2)
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert new_checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert (
+        new_checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    )
+    assert new_checkout_line2["totalPrice"]["gross"]["amount"] == round(
+        line2_unit_price * product3_quantity, 2
+    )
+
+    assert new_checkout_line3["variant"]["id"] == product4_variant_id
+    assert new_checkout_line3["quantity"] == 1
+    line3_unit_price = product4_variant_price
+    assert new_checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert new_checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    assert new_checkout_line3["totalPrice"]["gross"]["amount"] == round(
+        line3_unit_price * product4_quantity, 2
+    )
+
+    calculated_subtotal = round(
+        +product2_quantity * line1_unit_price
+        + product3_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 4 - Update lines
+    lines = [
+        {
+            "quantity": product2_new_quantity,
+            "lineId": new_checkout_line1["id"],
+        },
+        {
+            "quantity": product3_new_quantity,
+            "lineId": new_checkout_line2["id"],
+        },
+    ]
+    checkout_data = checkout_lines_update(e2e_not_logged_api_client, checkout_id, lines)
+    checkout_data = checkout_data["checkout"]
+    assert len(checkout_data["lines"]) == 3
+    assert checkout_data["lines"][0]["id"] == checkout_line2["id"]
+    assert checkout_data["lines"][1]["id"] == checkout_line3["id"]
+    assert checkout_data["lines"][2]["id"] == checkout_line4["id"]
+
+    checkout_line1 = checkout_data["lines"][0]
+    checkout_line2 = checkout_data["lines"][1]
+    checkout_line3 = checkout_data["lines"][2]  # not on sale
+
+    assert checkout_line1["variant"]["id"] == product2_variant_id
+    assert checkout_line1["quantity"] == product2_new_quantity
+    line1_discount = round(product2_variant_price * sale_discount_value / 100, 2)
+    line1_unit_price = product2_variant_price - line1_discount
+    assert checkout_line1["unitPrice"]["gross"]["amount"] == line1_unit_price
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    calculated_line1_total = round(product2_new_quantity * line1_unit_price, 2)
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    assert checkout_line2["variant"]["id"] == product3_variant_id
+    assert checkout_line2["quantity"] == product3_new_quantity
+    line2_discount = round(product3_variant_price * sale_discount_value / 100, 2)
+    line2_unit_price = round(product3_variant_price - line2_discount, 2)
+    assert checkout_line2["unitPrice"]["gross"]["amount"] == line2_unit_price
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    calculated_line2_total = round(product3_new_quantity * line2_unit_price, 2)
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    assert checkout_line3["variant"]["id"] == product4_variant_id
+    assert checkout_line3["quantity"] == product4_quantity
+    line3_unit_price = product4_variant_price
+    assert checkout_line3["unitPrice"]["gross"]["amount"] == line3_unit_price
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == line3_unit_price
+    calculated_line3_total = round(product4_quantity * line3_unit_price, 2)
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    calculated_subtotal = round(
+        +product2_new_quantity * line1_unit_price
+        + product3_new_quantity * line2_unit_price
+        + product4_quantity * line3_unit_price,
+        2,
+    )
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    # Step 5 - Add voucher code to checkout
+    checkout_data = checkout_add_promo_code(
+        e2e_not_logged_api_client, checkout_id, voucher_code
+    )
+    calculated_discount = voucher_discount_value
+    assert checkout_data["discount"]["amount"] == calculated_discount
+    assert checkout_data["voucherCode"] == voucher_code
+
+    # Assert lines after voucher code
+    assert len(checkout_data["lines"]) == 3
+    checkout_line1 = checkout_data["lines"][0]
+    assert checkout_line1["undiscountedUnitPrice"]["amount"] == product2_variant_price
+    assert checkout_line1["quantity"] == product2_new_quantity
+
+    calculated_line1_discount = round(
+        calculated_line1_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line1_total = round(
+        calculated_line1_total - calculated_line1_discount, 2
+    )
+    assert checkout_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+
+    checkout_line2 = checkout_data["lines"][1]
+    assert checkout_line2["undiscountedUnitPrice"]["amount"] == product3_variant_price
+    assert checkout_line2["quantity"] == product3_new_quantity
+
+    calculated_line2_discount = round(
+        calculated_line2_total / calculated_subtotal * calculated_discount, 2
+    )
+    calculated_line2_total = round(
+        calculated_line2_total - calculated_line2_discount, 2
+    )
+    assert checkout_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
+    checkout_line3 = checkout_data["lines"][2]
+    assert checkout_line3["undiscountedUnitPrice"]["amount"] == product4_variant_price
+    assert checkout_line3["quantity"] == product4_quantity
+
+    calculated_line3_discount = round(
+        calculated_discount - calculated_line1_discount - calculated_line2_discount, 2
+    )
+    calculated_line3_total = round(
+        calculated_line3_total - calculated_line3_discount, 2
+    )
+    assert checkout_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+
+    # Assert total and subtotal after voucher code
+    calculated_subtotal = round(calculated_subtotal - calculated_discount, 2)
+    assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
+    calculated_total = calculated_subtotal
+    assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_total
+
+    # Step 6 - Set DeliveryMethod for checkout.
+    checkout_data = checkout_delivery_method_update(
+        e2e_not_logged_api_client,
+        checkout_id,
+        shipping_method_id,
+    )
+    assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
+    shipping_price = checkout_data["deliveryMethod"]["price"]["amount"]
+    calculated_total = calculated_subtotal + shipping_price
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    subtotal_gross_amount = checkout_data["subtotalPrice"]["gross"]["amount"]
+    assert total_gross_amount == calculated_total
+    assert subtotal_gross_amount == calculated_subtotal
+
+    # Step 7 - Create payment for checkout.
+    checkout_dummy_payment_create(
+        e2e_not_logged_api_client,
+        checkout_id,
+        total_gross_amount,
+    )
+
+    # Step 8 - Complete checkout.
+    order_data = checkout_complete(
+        e2e_not_logged_api_client,
+        checkout_id,
+    )
+    assert len(order_data["lines"]) == 3
+    order_line1 = order_data["lines"][0]
+    order_line2 = order_data["lines"][1]
+    order_line3 = order_data["lines"][2]
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == calculated_total
+    assert order_data["subtotal"]["gross"]["amount"] == calculated_subtotal
+    received_subtotal_from_lines = round(
+        order_line1["totalPrice"]["gross"]["amount"]
+        + order_line2["totalPrice"]["gross"]["amount"]
+        + order_line3["totalPrice"]["gross"]["amount"],
+        2,
+    )
+
+    assert order_data["subtotal"]["gross"]["amount"] == received_subtotal_from_lines
+    assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
+
+    assert order_data["discounts"][0]["type"] == "VOUCHER"
+    assert order_data["voucher"]["code"] == voucher_code
+    assert order_data["discounts"][0]["value"] == calculated_discount
+
+    assert order_line1["quantity"] == product2_new_quantity
+    assert order_line1["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line1["undiscountedUnitPrice"]["gross"]["amount"]
+        == product2_variant_price
+    )
+    assert order_line1["totalPrice"]["gross"]["amount"] == calculated_line1_total
+    assert order_line1["unitPrice"]["gross"]["amount"] == round(
+        calculated_line1_total / product2_new_quantity, 2
+    )
+    assert order_line1["unitDiscount"]["amount"] == round(
+        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+    )
+    assert order_line2["quantity"] == product3_new_quantity
+    assert order_line2["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
+    )
+    assert (
+        order_line2["undiscountedUnitPrice"]["gross"]["amount"]
+        == product3_variant_price
+    )
+    assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
+    )
+    assert order_line2["unitDiscount"]["amount"] == round(
+        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    )
+
+    assert order_line3["quantity"] == product4_quantity
+    assert order_line3["unitDiscountReason"] == (
+        f"Entire order voucher code: {voucher_code}"
+    )
+    assert (
+        order_line3["undiscountedUnitPrice"]["gross"]["amount"]
+        == product4_variant_price
+    )
+    assert order_line3["totalPrice"]["gross"]["amount"] == calculated_line3_total
+    assert order_line3["unitPrice"]["gross"]["amount"] == round(
+        calculated_line3_total / product4_quantity, 2
+    )
+    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount

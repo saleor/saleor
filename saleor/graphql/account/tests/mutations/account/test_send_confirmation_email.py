@@ -9,7 +9,7 @@ from freezegun import freeze_time
 
 from ......account.error_codes import SendConfirmationEmailErrorCode
 from ......account.notifications import get_default_user_payload
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
@@ -49,9 +49,9 @@ def test_send_confirmation_email(
 
     # when
     response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
-    content = get_graphql_content(response)
 
     # then
+    content = get_graphql_content(response)
     data = content["data"]["sendConfirmationEmail"]
     assert not data["errors"]
 
@@ -66,11 +66,16 @@ def test_send_confirmation_email(
         "channel_slug": channel_PLN.slug,
         **get_site_context_payload(site_settings.site),
     }
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_CONFIRMATION,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_CONFIRMATION
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
+
     user.refresh_from_db()
     assert user.last_confirm_email_request == timezone.now()
 
@@ -210,11 +215,15 @@ def test_send_confirmation_email_generates_valid_token(
 
     # when
     response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
-    content = get_graphql_content(response)
 
     # then
+    content = get_graphql_content(response)
     assert not content["data"]["sendConfirmationEmail"]["errors"]
 
-    token = mocked_notify.call_args.kwargs["payload"]["token"]
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_kwargs = call_args.kwargs
+    token = called_kwargs["payload_func"]()["token"]
+
     user.refresh_from_db()
     assert default_token_generator.check_token(user, token)

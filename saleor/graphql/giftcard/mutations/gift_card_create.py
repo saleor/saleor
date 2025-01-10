@@ -15,7 +15,7 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import ModelMutation
 from ...core.scalars import Date
@@ -29,9 +29,9 @@ from ..types import GiftCard
 class GiftCardInput(BaseInputObjectType):
     add_tags = NonNullList(
         graphene.String,
-        description="The gift card tags to add." + ADDED_IN_31,
+        description="The gift card tags to add.",
     )
-    expiry_date = Date(description="The gift card expiry date." + ADDED_IN_31)
+    expiry_date = Date(description="The gift card expiry date.")
 
     # DEPRECATED
     start_date = Date(
@@ -59,13 +59,11 @@ class GiftCardCreateInput(GiftCardInput):
         description="Email of the customer to whom gift card will be sent.",
     )
     channel = graphene.String(
-        description=(
-            "Slug of a channel from which the email should be sent." + ADDED_IN_31
-        )
+        description="Slug of a channel from which the email should be sent."
     )
     is_active = graphene.Boolean(
         required=True,
-        description=("Determine if gift card is active." + ADDED_IN_31),
+        description="Determine if gift card is active.",
     )
     code = graphene.String(
         required=False,
@@ -74,9 +72,7 @@ class GiftCardCreateInput(GiftCardInput):
             f"{DEPRECATED_IN_3X_INPUT} The code is now auto generated."
         ),
     )
-    note = graphene.String(
-        description=("The gift card note from the staff member." + ADDED_IN_31)
-    )
+    note = graphene.String(description="The gift card note from the staff member.")
 
     class Meta:
         doc_category = DOC_CATEGORY_GIFT_CARDS
@@ -132,7 +128,7 @@ class GiftCardCreate(ModelMutation):
         if email := data.get("user_email"):
             try:
                 validate_email(email)
-            except ValidationError:
+            except ValidationError as e:
                 raise ValidationError(
                     {
                         "email": ValidationError(
@@ -140,7 +136,7 @@ class GiftCardCreate(ModelMutation):
                             code=GiftCardErrorCode.INVALID.value,
                         )
                     }
-                )
+                ) from e
             if not data.get("channel"):
                 raise ValidationError(
                     {
@@ -184,9 +180,9 @@ class GiftCardCreate(ModelMutation):
             currency = balance["currency"]
             try:
                 validate_price_precision(amount, currency)
-            except ValidationError as error:
-                error.code = GiftCardErrorCode.INVALID.value
-                raise ValidationError({"balance": error})
+            except ValidationError as e:
+                e.code = GiftCardErrorCode.INVALID.value
+                raise ValidationError({"balance": e}) from e
             if instance.pk:
                 if currency != instance.currency:
                     raise ValidationError(

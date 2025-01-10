@@ -6,7 +6,7 @@ from ....attribute.error_codes import AttributeErrorCode
 from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
@@ -64,7 +64,7 @@ class AttributeUpdateInput(BaseInputObjectType):
         description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
     )
     external_reference = graphene.String(
-        description="External ID of this product." + ADDED_IN_310, required=False
+        description="External ID of this product.", required=False
     )
 
     class Meta:
@@ -88,7 +88,7 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         id = graphene.ID(required=False, description="ID of an attribute to update.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of an attribute to update. {ADDED_IN_310}",
+            description="External ID of an attribute to update.",
         )
         input = AttributeUpdateInput(
             required=True, description="Fields required to update an attribute."

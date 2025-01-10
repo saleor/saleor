@@ -12,7 +12,6 @@ from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
-from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import ProductTypeKindEnum
 from ...types import ProductType
 from ..utils import clean_tax_code
@@ -113,12 +112,11 @@ class ProductTypeCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = ProductErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
 
-        manager = get_plugin_manager_promise(info.context).get()
-        clean_tax_code(cleaned_input, manager)
+        clean_tax_code(cleaned_input)
 
         cls.validate_attributes(cleaned_input)
         return cleaned_input

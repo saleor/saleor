@@ -1,10 +1,9 @@
-from datetime import datetime
+import datetime
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
-import pytz
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import connection, models
@@ -56,8 +55,10 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
     def active(self, date):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .order_by()
+            .values("voucher_id")
             .annotate(total_used=Sum("used"))
-            .values("total_used")[:1]
+            .values("total_used")
         )
         return self.filter(
             Q(usage_limit__isnull=True) | Q(usage_limit__gt=Subquery(subquery)),
@@ -80,8 +81,10 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
     def expired(self, date):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
+            .order_by()
+            .values("voucher_id")
             .annotate(total_used=Sum("used"))
-            .values("total_used")[:1]
+            .values("total_used")
         )
         return self.filter(
             Q(usage_limit__lte=Subquery(subquery)) | Q(end_date__lt=date),
@@ -345,7 +348,7 @@ class Promotion(ModelWithMetadata):
 
     def is_active(self, date=None):
         if date is None:
-            date = datetime.now(pytz.utc)
+            date = datetime.datetime.now(tz=datetime.UTC)
         return (not self.end_date or self.end_date >= date) and self.start_date <= date
 
     def assign_old_sale_id(self):

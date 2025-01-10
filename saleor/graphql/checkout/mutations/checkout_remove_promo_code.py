@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
 from ....checkout import models
+from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
@@ -14,7 +15,7 @@ from ....checkout.utils import (
 )
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -35,7 +36,7 @@ class CheckoutRemovePromoCode(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -92,8 +93,8 @@ class CheckoutRemovePromoCode(BaseMutation):
         if promo_code:
             try:
                 remove_promo_code_from_checkout_or_error(checkout_info, promo_code)
-            except ValidationError as error:
-                raise ValidationError({"promo_code": error})
+            except ValidationError as e:
+                raise ValidationError({"promo_code": e}) from e
         else:
             object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
             cls.remove_promo_code_by_id_or_error(
@@ -108,7 +109,12 @@ class CheckoutRemovePromoCode(BaseMutation):
             recalculate_discount=True,
             save=True,
         )
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_info_event(
+            manager,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout_info=checkout_info,
+            lines=lines,
+        )
 
         return CheckoutRemovePromoCode(checkout=checkout)
 
@@ -127,7 +133,7 @@ class CheckoutRemovePromoCode(BaseMutation):
                         str(e), code=CheckoutErrorCode.GRAPHQL_ERROR.value
                     )
                 }
-            )
+            ) from e
 
         if object_type not in (str(Voucher), str(GiftCard)):
             raise ValidationError(

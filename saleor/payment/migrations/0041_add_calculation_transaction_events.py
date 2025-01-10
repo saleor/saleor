@@ -29,6 +29,7 @@ def _get_events(transaction_event, type):
         )
         .annotate(amount_sum=Func(F("amount_value"), function="Sum"))
         .values("amount_sum")
+        .order_by()
     )
 
 
@@ -72,17 +73,15 @@ def create_event_for_charged_task(transaction_item, transaction_event):
     type = "charge_success"
     events = _get_events(transaction_event, type)
     qs = (
-        (
-            transaction_item.objects.filter(~Q(charged_value=Decimal(0)))
-            .annotate(
-                amount_sum_temp=Subquery(events),
-                amount_sum=Case(
-                    When(amount_sum_temp__isnull=True, then=Decimal(0)),
-                    default=F("amount_sum_temp"),
-                ),
-            )
-            .filter(charged_value__gt=F("amount_sum"))
+        transaction_item.objects.filter(~Q(charged_value=Decimal(0)))
+        .annotate(
+            amount_sum_temp=Subquery(events),
+            amount_sum=Case(
+                When(amount_sum_temp__isnull=True, then=Decimal(0)),
+                default=F("amount_sum_temp"),
+            ),
         )
+        .filter(charged_value__gt=F("amount_sum"))
         .order_by("-pk")
         .values_list("id", "charged_value", "amount_sum", "currency")
     )
@@ -94,17 +93,15 @@ def create_event_for_refunded_task(transaction_item, transaction_event):
     type = "refund_success"
     events = _get_events(transaction_event, type)
     qs = (
-        (
-            transaction_item.objects.filter(~Q(refunded_value=Decimal(0)))
-            .annotate(
-                amount_sum_temp=Subquery(events),
-                amount_sum=Case(
-                    When(amount_sum_temp__isnull=True, then=Decimal(0)),
-                    default=F("amount_sum_temp"),
-                ),
-            )
-            .filter(refunded_value__gt=F("amount_sum"))
+        transaction_item.objects.filter(~Q(refunded_value=Decimal(0)))
+        .annotate(
+            amount_sum_temp=Subquery(events),
+            amount_sum=Case(
+                When(amount_sum_temp__isnull=True, then=Decimal(0)),
+                default=F("amount_sum_temp"),
+            ),
         )
+        .filter(refunded_value__gt=F("amount_sum"))
         .order_by("-pk")
         .values_list("id", "refunded_value", "amount_sum", "currency")
     )
@@ -117,17 +114,15 @@ def create_event_for_canceled_task(transaction_item, transaction_event):
     events = _get_events(transaction_event, type)
     # voided_value instead of canceled_value cause some data may not be migrated yet
     qs = (
-        (
-            transaction_item.objects.filter(~Q(voided_value=Decimal(0)))
-            .annotate(
-                amount_sum_temp=Subquery(events),
-                amount_sum=Case(
-                    When(amount_sum_temp__isnull=True, then=Decimal(0)),
-                    default=F("amount_sum_temp"),
-                ),
-            )
-            .filter(voided_value__gt=F("amount_sum"))
+        transaction_item.objects.filter(~Q(voided_value=Decimal(0)))
+        .annotate(
+            amount_sum_temp=Subquery(events),
+            amount_sum=Case(
+                When(amount_sum_temp__isnull=True, then=Decimal(0)),
+                default=F("amount_sum_temp"),
+            ),
         )
+        .filter(voided_value__gt=F("amount_sum"))
         .order_by("-pk")
         .values_list("id", "voided_value", "amount_sum", "currency")
     )

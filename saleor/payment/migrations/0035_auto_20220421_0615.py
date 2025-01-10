@@ -156,18 +156,21 @@ class Migration(migrations.Migration):
                 "ordering": ("pk",),
             },
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="transactionitem",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="transactionitem_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="transactionitem",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["metadata"], name="transactionitem_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="transactionitem",
             index=django.contrib.postgres.indexes.GinIndex(

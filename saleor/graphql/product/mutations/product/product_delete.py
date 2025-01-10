@@ -12,7 +12,6 @@ from .....product import models
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -25,7 +24,7 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         id = graphene.ID(required=False, description="ID of a product to delete.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a product to delete. {ADDED_IN_310}",
+            description="External ID of a product to delete.",
         )
 
     class Meta:
@@ -46,14 +45,22 @@ class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-        variants_id = list(instance.variants.all().values_list("id", flat=True))
         with traced_atomic_transaction():
+            variants_id = list(
+                instance.variants.order_by("pk")
+                .select_for_update(of=("self",))
+                .all()
+                .values_list("id", flat=True)
+            )
             cls.delete_assigned_attribute_values(instance)
 
             draft_order_lines_data = get_draft_order_lines_data_for_variants(
                 variants_id
             )
 
+            models.ProductVariant.objects.order_by("pk").filter(
+                pk__in=variants_id
+            ).delete()
             response = super().perform_mutation(
                 _root, info, external_reference=external_reference, id=id
             )

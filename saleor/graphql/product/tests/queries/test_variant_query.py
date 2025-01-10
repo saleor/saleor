@@ -563,7 +563,7 @@ def test_get_variant_by_id_with_variant_selection_filter(
         assert len(data["attributes"]) == 1
         assert data["attributes"][0]["attribute"]["slug"] == size_attribute.slug
     else:
-        len(data["attributes"]) == 2
+        assert len(data["attributes"]) == 2
 
 
 def test_get_variant_with_sorted_attribute_values(

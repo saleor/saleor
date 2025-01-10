@@ -9,22 +9,15 @@ from .....app.models import App
 from .....channel import TransactionFlowStrategy
 from .....channel.models import Channel
 from .....checkout import models as checkout_models
-from .....checkout.utils import cancel_active_payments
-from .....core.tracing import traced_atomic_transaction
+from .....checkout.utils import activate_payments, cancel_active_payments
 from .....order import models as order_models
-from .....payment import TransactionEventType
+from .....payment import FAILED_TRANSACTION_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionProcessErrorCode
 from .....payment.interface import PaymentGatewayData
 from .....payment.utils import (
     get_final_session_statuses,
     handle_transaction_process_session,
-)
-from ....core.descriptions import (
-    ADDED_IN_313,
-    ADDED_IN_314,
-    ADDED_IN_316,
-    PREVIEW_FEATURE,
 )
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
@@ -63,8 +56,7 @@ class TransactionProcess(BaseMutation):
             description=(
                 "The token of the transaction to process. "
                 "One of field id or token is required."
-            )
-            + ADDED_IN_314,
+            ),
             required=False,
         )
         data = graphene.Argument(
@@ -77,7 +69,7 @@ class TransactionProcess(BaseMutation):
                 "The customer's IP address will be passed to the payment app. "
                 "The IP should be in ipv4 or ipv6 format. "
                 "The field can be used only by an app that has `HANDLE_PAYMENTS` "
-                "permission." + ADDED_IN_316
+                "permission."
             )
         )
 
@@ -86,8 +78,6 @@ class TransactionProcess(BaseMutation):
         description = (
             "Processes a transaction session. It triggers the webhook "
             "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "
-            + ADDED_IN_313
-            + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionProcessError
 
@@ -95,9 +85,8 @@ class TransactionProcess(BaseMutation):
     def get_action(cls, event: payment_models.TransactionEvent, channel: "Channel"):
         if event.type == TransactionEventType.AUTHORIZATION_REQUEST:
             return TransactionFlowStrategy.AUTHORIZATION
-        elif event.type == TransactionEventType.CHARGE_REQUEST:
+        if event.type == TransactionEventType.CHARGE_REQUEST:
             return TransactionFlowStrategy.CHARGE
-
         return channel.default_transaction_flow_strategy
 
     @classmethod
@@ -214,24 +203,26 @@ class TransactionProcess(BaseMutation):
 
         manager = get_plugin_manager_promise(info.context).get()
 
-        with traced_atomic_transaction():
-            if isinstance(source_object, checkout_models.Checkout):
-                # Deactivate active payment objects to avoid processing checkout
-                # with use of two different flows.
-                cancel_active_payments(source_object)
+        payment_ids = []
+        if isinstance(source_object, checkout_models.Checkout):
+            # Deactivate active payment objects to avoid processing checkout
+            # with use of two different flows.
+            payment_ids = cancel_active_payments(source_object)
 
-            event, data = handle_transaction_process_session(
-                transaction_item=transaction_item,
-                source_object=source_object,
-                payment_gateway_data=PaymentGatewayData(
-                    app_identifier=app_identifier, data=data
-                ),
-                app=app,
-                action=action,
-                customer_ip_address=customer_ip_address,
-                manager=manager,
-                request_event=request_event,
-            )
+        event, data = handle_transaction_process_session(
+            transaction_item=transaction_item,
+            source_object=source_object,
+            payment_gateway_data=PaymentGatewayData(
+                app_identifier=app_identifier, data=data
+            ),
+            app=app,
+            action=action,
+            customer_ip_address=customer_ip_address,
+            manager=manager,
+            request_event=request_event,
+        )
+        if event.type in FAILED_TRANSACTION_EVENTS and payment_ids:
+            activate_payments(payment_ids)
 
         transaction_item.refresh_from_db()
         return cls(transaction=transaction_item, transaction_event=event, data=data)

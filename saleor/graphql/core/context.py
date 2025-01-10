@@ -60,7 +60,7 @@ def get_database_connection_name(context: SaleorContext) -> str:
 
 def setup_context_user(context: SaleorContext) -> None:
     if hasattr(context.user, "_wrapped") and (
-        context.user._wrapped is empty or context.user._wrapped is None  # type: ignore
+        context.user._wrapped is empty or context.user._wrapped is None  # type: ignore[union-attr]
     ):
-        context.user._setup()  # type: ignore
-        context.user = context.user._wrapped  # type: ignore
+        context.user._setup()  # type: ignore[union-attr]
+        context.user = context.user._wrapped  # type: ignore[union-attr]

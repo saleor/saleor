@@ -1,6 +1,3 @@
-default_app_config = "saleor.account.app.AccountAppConfig"
-
-
 class CustomerEvents:
     """The different customer event types."""
 

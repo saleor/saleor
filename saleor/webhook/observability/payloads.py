@@ -1,3 +1,4 @@
+import datetime
 import json
 import uuid
 from collections.abc import Mapping
@@ -11,6 +12,7 @@ from graphene.utils.str_converters import to_camel_case as str_to_camel_case
 from graphql import get_operation_ast
 
 from ...core.utils import build_absolute_uri
+from ...core.utils.url import sanitize_url_for_logging
 from .. import traced_payload_generator
 from ..event_types import WebhookEventSyncType
 from .exceptions import ApiCallTruncationError, EventDeliveryAttemptTruncationError
@@ -18,7 +20,6 @@ from .obfuscation import (
     anonymize_event_payload,
     anonymize_gql_operation_response,
     filter_and_hide_headers,
-    obfuscate_url,
 )
 from .payload_schema import (
     ApiCallPayload,
@@ -39,8 +40,6 @@ from .payload_schema import (
 from .sensitive_data import SENSITIVE_GQL_FIELDS
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from ...core.models import EventDeliveryAttempt
     from .utils import GraphQLOperationResponse
 
@@ -194,7 +193,7 @@ def generate_api_call_payload(
 @traced_payload_generator
 def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
-    next_retry: Optional["datetime"],
+    next_retry: Optional[datetime.datetime],
     bytes_limit: int,
 ) -> bytes:
     if not attempt.delivery:
@@ -207,6 +206,7 @@ def generate_event_delivery_attempt_payload(
             f"EventDelivery {attempt.delivery.id} do not have "
             "payload set. Can't generate payload."
         )
+    payload_data = attempt.delivery.payload.get_payload()
     response_body = attempt.response or ""
     payload = EventDeliveryAttemptPayload(
         id=graphene.Node.to_global_id("EventDeliveryAttempt", attempt.pk),
@@ -230,14 +230,14 @@ def generate_event_delivery_attempt_payload(
             event_type=attempt.delivery.event_type,
             event_sync=attempt.delivery.event_type in WebhookEventSyncType.ALL,
             payload=EventDeliveryPayload(
-                content_length=len(attempt.delivery.payload.payload.encode("utf-8")),
+                content_length=len(payload_data.encode("utf-8")),
                 body=TRUNC_PLACEHOLDER,
             ),
         ),
         webhook=Webhook(
             id=graphene.Node.to_global_id("Webhook", attempt.delivery.webhook.pk),
             name=attempt.delivery.webhook.name or "",
-            target_url=obfuscate_url(attempt.delivery.webhook.target_url),
+            target_url=sanitize_url_for_logging(attempt.delivery.webhook.target_url),
             subscription_query=TRUNC_PLACEHOLDER,
         ),
         app=App(
@@ -262,7 +262,7 @@ def generate_event_delivery_attempt_payload(
     payload["response"]["body"] = JsonTruncText.truncate(response_body, remaining // 2)
     remaining -= payload["response"]["body"].byte_size
 
-    event_delivery_payload = json.loads(attempt.delivery.payload.payload)
+    event_delivery_payload = json.loads(payload_data)
     event_delivery_payload = anonymize_event_payload(
         subscription_query,
         attempt.delivery.event_type,

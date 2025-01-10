@@ -3,6 +3,7 @@ import importlib
 import json
 from inspect import isclass
 from typing import Any, Optional, Union
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.cache import cache
@@ -43,9 +44,10 @@ def tracing_wrapper(execute, sql, params, many, context):
         span.set_attribute(SpanAttributes.DB_STATEMENT, sql)
         span.set_attribute(SpanAttributes.DB_SYSTEM, conn.display_name)
         span.set_attribute(
-            SpanAttributes.SERVER_ADDRESS, conn.settings_dict.get("HOST")
+            SpanAttributes.SERVER_ADDRESS,
+            conn.settings_dict.get("HOST"),  # type: ignore[arg-type]
         )
-        span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))
+        span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))  # type: ignore[arg-type]
         span.set_attribute("service.name", "postgres")
         span.set_attribute("span.type", "sql")
         return execute(sql, params, many, context)
@@ -64,6 +66,7 @@ class GraphQLView(View):
     middleware = None
     root_value = None
     backend: GraphQLBackend = None  # type: ignore[assignment]
+    _query: Optional[str] = None
 
     HANDLED_EXCEPTIONS = (
         GraphQLError,
@@ -102,8 +105,10 @@ class GraphQLView(View):
             module_path, class_name = ".".join(parts[:-1]), parts[-1]
             module = importlib.import_module(module_path)
             return getattr(module, class_name)
-        except (ImportError, AttributeError):
-            raise ImportError(f"Cannot import '{middleware_name}' graphene middleware!")
+        except (ImportError, AttributeError) as e:
+            raise ImportError(
+                f"Cannot import '{middleware_name}' graphene middleware!"
+            ) from e
 
     @observability.report_view
     def dispatch(self, request, *args, **kwargs):
@@ -112,21 +117,26 @@ class GraphQLView(View):
             if settings.PLAYGROUND_ENABLED:
                 return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-        elif request.method == "POST":
+        if request.method == "POST":
             return self.handle_query(request)
-        else:
-            if settings.PLAYGROUND_ENABLED:
-                return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
-            else:
-                return HttpResponseNotAllowed(["OPTIONS", "POST"])
+        if settings.PLAYGROUND_ENABLED:
+            return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
+        return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
+        if settings.PUBLIC_URL:
+            api_url = urljoin(settings.PUBLIC_URL, str(API_PATH))
+            plugins_url = urljoin(settings.PUBLIC_URL, "/plugins/")
+        else:
+            api_url = request.build_absolute_uri(str(API_PATH))
+            plugins_url = request.build_absolute_uri("/plugins/")
+
         return render(
             request,
             "graphql/playground.html",
             {
-                "api_url": request.build_absolute_uri(str(API_PATH)),
-                "plugins_url": request.build_absolute_uri("/plugins/"),
+                "api_url": api_url,
+                "plugins_url": plugins_url,
             },
         )
 
@@ -152,7 +162,8 @@ class GraphQLView(View):
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span("http", kind=trace.SpanKind.SERVER) as span:
             span.set_attribute("component", "http")
-            span.set_attribute(SpanAttributes.HTTP_METHOD, request.method)
+            span.set_attribute("resource.name", request.path)
+            span.set_attribute(SpanAttributes.HTTP_METHOD, request.method)  # type: ignore[arg-type]
             span.set_attribute(
                 SpanAttributes.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
@@ -262,7 +273,6 @@ class GraphQLView(View):
             )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
-
             document, error = self.parse_query(query)
             with observability.report_gql_operation() as operation:
                 operation.query = document
@@ -271,7 +281,10 @@ class GraphQLView(View):
             if error or document is None:
                 return error
 
+            _query_identifier = query_identifier(document)
+            self._query = _query_identifier
             raw_query_string = document.document_string
+            span.set_attribute("resource.name", raw_query_string)
             span.set_attribute("graphql.query", raw_query_string)
             span.set_attribute("graphql.query_identifier", query_identifier(document))
             span.set_attribute("graphql.query_fingerprint", query_fingerprint(document))
@@ -371,9 +384,8 @@ class GraphQLView(View):
             variables = operations.get("variables")
         return query, variables, operation_name
 
-    @classmethod
-    def format_error(cls, error):
-        return format_error(error, cls.HANDLED_EXCEPTIONS)
+    def format_error(self, error):
+        return format_error(error, self.HANDLED_EXCEPTIONS, self._query)
 
 
 def get_key(key):

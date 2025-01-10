@@ -5,13 +5,12 @@ from ....order import OrderEvents, error_codes, events, models
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import Error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderEvent
 from .order_note_common import OrderNoteCommon
-from .utils import get_webhook_handler_by_order_status
+from .utils import call_event_by_order_status
 
 OrderNoteUpdateErrorCode = graphene.Enum.from_enum(error_codes.OrderNoteUpdateErrorCode)
 OrderNoteUpdateErrorCode.doc_category = DOC_CATEGORY_ORDERS
@@ -36,7 +35,7 @@ class OrderNoteUpdate(OrderNoteCommon):
         )
 
     class Meta:
-        description = "Updates note of an order." + ADDED_IN_315 + PREVIEW_FEATURE
+        description = "Updates note of an order."
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderNoteUpdateError
@@ -63,6 +62,5 @@ class OrderNoteUpdate(OrderNoteCommon):
                 message=cleaned_input["message"],
                 related_event=order_event_to_update,
             )
-            func = get_webhook_handler_by_order_status(order.status, manager)
-            cls.call_event(func, order)
+            call_event_by_order_status(order, manager)
         return OrderNoteUpdate(order=order, event=event)

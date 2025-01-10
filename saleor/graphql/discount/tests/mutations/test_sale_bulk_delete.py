@@ -1,65 +1,11 @@
-from decimal import Decimal
 from unittest import mock
 
 import graphene
-import pytest
 
-from .....discount import RewardValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
 from .....product.models import ProductChannelListing, ProductVariant
 from ....tests.utils import get_graphql_content
-
-
-@pytest.fixture
-def promotion_converted_from_sale_list(channel_USD, product_list, category, collection):
-    promotions = Promotion.objects.bulk_create(
-        [Promotion(name="Sale 1"), Promotion(name="Sale 2"), Promotion(name="Sale 3")]
-    )
-    for promotion in promotions:
-        promotion.assign_old_sale_id()
-    predicates = [
-        {
-            "OR": [
-                {
-                    "productPredicate": {
-                        "ids": [graphene.Node.to_global_id("Product", product.id)]
-                    }
-                },
-                {
-                    "variantPredicate": {
-                        "ids": [
-                            graphene.Node.to_global_id(
-                                "Product", product.variants.first().id
-                            )
-                        ]
-                    }
-                },
-            ]
-        }
-        for product in product_list
-    ]
-    collection_id = graphene.Node.to_global_id("Collection", collection.id)
-    category_id = graphene.Node.to_global_id("Category", category.id)
-
-    predicates[0]["OR"].append({"categoryPredicate": {"ids": [category_id]}})
-    predicates[1]["OR"].append({"collectionPredicate": {"ids": [collection_id]}})
-
-    rules = [
-        PromotionRule(
-            promotion=promotion,
-            catalogue_predicate=predicate,
-            reward_value_type=RewardValueType.FIXED,
-            reward_value=Decimal("5"),
-        )
-        for promotion, predicate in zip(promotions, predicates)
-    ]
-    PromotionRule.objects.bulk_create(rules)
-    for rule in rules:
-        rule.channels.add(channel_USD)
-
-    return promotions
-
 
 SALE_BULK_DELETE_MUTATION = """
     mutation saleBulkDelete($ids: [ID!]!) {

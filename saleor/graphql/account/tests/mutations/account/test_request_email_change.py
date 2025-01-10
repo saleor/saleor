@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from ......account.error_codes import AccountErrorCode
 from ......account.notifications import get_default_user_payload
 from ......core.jwt import create_token
-from ......core.notify_events import NotifyEventType
+from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
@@ -81,11 +81,14 @@ def test_account_request_email_change_with_upper_case_email(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.ACCOUNT_CHANGE_EMAIL_REQUEST,
-        payload=expected_payload,
-        channel_slug=channel_PLN.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_CHANGE_EMAIL_REQUEST
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_PLN.slug
 
 
 def test_request_email_change(user_api_client, customer_user, channel_PLN):

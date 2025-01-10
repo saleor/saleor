@@ -6,6 +6,7 @@ from sendgrid.helpers.mail import Mail
 
 from ...account import events as account_events
 from ...celeryconf import app
+from ...core.db.connection import allow_writer
 from ...giftcard import events as gift_card_events
 from ...graphql.core.utils import from_global_id_or_none
 from ...invoice import events as invoice_events
@@ -62,7 +63,8 @@ def send_password_reset_email_task(payload: dict, configuration: dict):
         template_id=configuration.account_password_reset_template_id,
         payload=payload,
     )
-    account_events.customer_password_reset_link_sent_event(user_id=user_id)
+    with allow_writer():
+        account_events.customer_password_reset_link_sent_event(user_id=user_id)
 
 
 @app.task(
@@ -79,13 +81,14 @@ def send_request_email_change_email_task(payload: dict, configuration: dict):
         template_id=configuration.account_change_email_request_template_id,
         payload=payload,
     )
-    account_events.customer_email_change_request_event(
-        user_id=from_global_id_or_none(user_id),
-        parameters={
-            "old_email": payload.get("old_email"),
-            "new_email": payload["recipient_email"],
-        },
-    )
+    with allow_writer():
+        account_events.customer_email_change_request_event(
+            user_id=from_global_id_or_none(user_id),
+            parameters={
+                "old_email": payload.get("old_email"),
+                "new_email": payload["recipient_email"],
+            },
+        )
 
 
 @app.task(
@@ -106,10 +109,10 @@ def send_user_change_email_notification_task(payload: dict, configuration: dict)
         "old_email": payload["old_email"],
         "new_email": payload["new_email"],
     }
-
-    account_events.customer_email_changed_event(
-        user_id=from_global_id_or_none(user_id), parameters=event_parameters
-    )
+    with allow_writer():
+        account_events.customer_email_changed_event(
+            user_id=from_global_id_or_none(user_id), parameters=event_parameters
+        )
 
 
 @app.task(
@@ -156,18 +159,19 @@ def send_invoice_email_task(payload: dict, configuration: dict):
         template_id=configuration.invoice_ready_template_id,
         payload=payload,
     )
-    invoice_events.notification_invoice_sent_event(
-        user_id=from_global_id_or_none(payload["requester_user_id"]),
-        app_id=from_global_id_or_none(payload["requester_app_id"]),
-        invoice_id=from_global_id_or_none(payload["invoice"]["id"]),
-        customer_email=payload["recipient_email"],
-    )
-    order_events.event_invoice_sent_notification(
-        order_id=from_global_id_or_none(payload["invoice"]["order_id"]),
-        user_id=from_global_id_or_none(payload["requester_user_id"]),
-        app_id=from_global_id_or_none(payload["requester_app_id"]),
-        email=payload["recipient_email"],
-    )
+    with allow_writer():
+        invoice_events.notification_invoice_sent_event(
+            user_id=from_global_id_or_none(payload["requester_user_id"]),
+            app_id=from_global_id_or_none(payload["requester_app_id"]),
+            invoice_id=from_global_id_or_none(payload["invoice"]["id"]),
+            customer_email=payload["recipient_email"],
+        )
+        order_events.event_invoice_sent_notification(
+            order_id=from_global_id_or_none(payload["invoice"]["order_id"]),
+            user_id=from_global_id_or_none(payload["requester_user_id"]),
+            app_id=from_global_id_or_none(payload["requester_app_id"]),
+            email=payload["recipient_email"],
+        )
 
 
 @app.task(
@@ -184,11 +188,12 @@ def send_order_confirmation_email_task(payload: dict, configuration: dict):
         template_id=configuration.order_confirmation_template_id,
         payload=payload,
     )
-    order_events.event_order_confirmation_notification(
-        order_id=from_global_id_or_none(payload["order"]["id"]),
-        user_id=from_global_id_or_none(payload["order"].get("user_id")),
-        customer_email=payload["recipient_email"],
-    )
+    with allow_writer():
+        order_events.event_order_confirmation_notification(
+            order_id=from_global_id_or_none(payload["order"]["id"]),
+            user_id=from_global_id_or_none(payload["order"].get("user_id")),
+            customer_email=payload["recipient_email"],
+        )
 
 
 @app.task(
@@ -204,20 +209,21 @@ def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict)
         template_id=configuration.order_fulfillment_confirmation_template_id,
         payload=payload,
     )
-    order_events.event_fulfillment_confirmed_notification(
-        order_id=from_global_id_or_none(payload["order"]["id"]),
-        user_id=from_global_id_or_none(payload["requester_user_id"]),
-        app_id=from_global_id_or_none(payload["requester_app_id"]),
-        customer_email=payload["recipient_email"],
-    )
-
-    if payload.get("digital_lines"):
-        order_events.event_fulfillment_digital_links_notification(
+    with allow_writer():
+        order_events.event_fulfillment_confirmed_notification(
             order_id=from_global_id_or_none(payload["order"]["id"]),
             user_id=from_global_id_or_none(payload["requester_user_id"]),
             app_id=from_global_id_or_none(payload["requester_app_id"]),
             customer_email=payload["recipient_email"],
         )
+
+        if payload.get("digital_lines"):
+            order_events.event_fulfillment_digital_links_notification(
+                order_id=from_global_id_or_none(payload["order"]["id"]),
+                user_id=from_global_id_or_none(payload["requester_user_id"]),
+                app_id=from_global_id_or_none(payload["requester_app_id"]),
+                customer_email=payload["recipient_email"],
+            )
 
 
 @app.task(
@@ -248,11 +254,12 @@ def send_payment_confirmation_email_task(payload: dict, configuration: dict):
         template_id=configuration.order_payment_confirmation_template_id,
         payload=payload,
     )
-    order_events.event_payment_confirmed_notification(
-        order_id=from_global_id_or_none(payload["order"]["id"]),
-        user_id=from_global_id_or_none(payload["order"].get("user_id")),
-        customer_email=payload["recipient_email"],
-    )
+    with allow_writer():
+        order_events.event_payment_confirmed_notification(
+            order_id=from_global_id_or_none(payload["order"]["id"]),
+            user_id=from_global_id_or_none(payload["order"].get("user_id")),
+            customer_email=payload["recipient_email"],
+        )
 
 
 @app.task(
@@ -268,12 +275,13 @@ def send_order_canceled_email_task(payload: dict, configuration: dict):
         template_id=configuration.order_canceled_template_id,
         payload=payload,
     )
-    order_events.event_order_cancelled_notification(
-        order_id=from_global_id_or_none(payload["order"]["id"]),
-        user_id=from_global_id_or_none(payload["requester_user_id"]),
-        app_id=from_global_id_or_none(payload["requester_app_id"]),
-        customer_email=payload["recipient_email"],
-    )
+    with allow_writer():
+        order_events.event_order_cancelled_notification(
+            order_id=from_global_id_or_none(payload["order"]["id"]),
+            user_id=from_global_id_or_none(payload["requester_user_id"]),
+            app_id=from_global_id_or_none(payload["requester_app_id"]),
+            customer_email=payload["recipient_email"],
+        )
 
 
 @app.task(
@@ -289,12 +297,13 @@ def send_order_refund_email_task(payload: dict, configuration: dict):
         template_id=configuration.order_refund_confirmation_template_id,
         payload=payload,
     )
-    order_events.event_order_refunded_notification(
-        order_id=from_global_id_or_none(payload["order"]["id"]),
-        user_id=from_global_id_or_none(payload["requester_user_id"]),
-        app_id=from_global_id_or_none(payload["requester_app_id"]),
-        customer_email=payload["recipient_email"],
-    )
+    with allow_writer():
+        order_events.event_order_refunded_notification(
+            order_id=from_global_id_or_none(payload["order"]["id"]),
+            user_id=from_global_id_or_none(payload["requester_user_id"]),
+            app_id=from_global_id_or_none(payload["requester_app_id"]),
+            customer_email=payload["recipient_email"],
+        )
 
 
 @app.task(
@@ -316,10 +325,11 @@ def send_gift_card_email_task(payload: dict, configuration: dict):
         "app_id": from_global_id_or_none(payload["requester_app_id"]),
         "email": payload["recipient_email"],
     }
-    if payload["resending"] is True:
-        gift_card_events.gift_card_resent_event(**email_data)
-    else:
-        gift_card_events.gift_card_sent_event(**email_data)
+    with allow_writer():
+        if payload["resending"] is True:
+            gift_card_events.gift_card_resent_event(**email_data)
+        else:
+            gift_card_events.gift_card_sent_event(**email_data)
 
 
 @app.task(
@@ -335,12 +345,13 @@ def send_order_confirmed_email_task(payload: dict, configuration: dict):
         template_id=configuration.order_confirmed_template_id,
         payload=payload,
     )
-    order_events.event_order_confirmed_notification(
-        order_id=from_global_id_or_none(payload.get("order", {}).get("id")),
-        user_id=from_global_id_or_none(payload.get("requester_user_id")),
-        app_id=from_global_id_or_none(payload["requester_app_id"]),
-        customer_email=payload["recipient_email"],
-    )
+    with allow_writer():
+        order_events.event_order_confirmed_notification(
+            order_id=from_global_id_or_none(payload.get("order", {}).get("id")),
+            user_id=from_global_id_or_none(payload.get("requester_user_id")),
+            app_id=from_global_id_or_none(payload["requester_app_id"]),
+            customer_email=payload["recipient_email"],
+        )
 
 
 @app.task(

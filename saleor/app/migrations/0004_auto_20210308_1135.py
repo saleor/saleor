@@ -10,12 +10,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="app",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["private_metadata"], name="app_p_meta_idx"
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="app",
             index=django.contrib.postgres.indexes.GinIndex(

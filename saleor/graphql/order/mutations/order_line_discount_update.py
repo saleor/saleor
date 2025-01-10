@@ -62,8 +62,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         order_line_before_update = copy.deepcopy(order_line)
         app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
-            # TODO: Apply fixed order line discount to its total instead of unit price.
-            #  https://github.com/saleor/saleor/issues/14879
             update_discount_for_order_line(
                 order_line,
                 order=order,

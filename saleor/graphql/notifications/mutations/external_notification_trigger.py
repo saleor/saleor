@@ -12,7 +12,6 @@ from ....core.notification.validation import (
     validate_ids_and_get_model_type_and_pks,
 )
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import ExternalNotificationError, NonNullList
@@ -62,7 +61,7 @@ class ExternalNotificationTrigger(BaseMutation):
         description = (
             "Trigger sending a notification with the notify plugin method. "
             "Serializes nodes provided as ids parameter and includes this data in "
-            "the notification payload." + ADDED_IN_31
+            "the notification payload."
         )
         error_type_class = ExternalNotificationError
 

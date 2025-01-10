@@ -27,12 +27,8 @@ from ...core.doc_category import (
 )
 from ...core.scalars import DateTime, Decimal
 from ..descriptions import (
-    ADDED_IN_36,
-    ADDED_IN_312,
-    ADDED_IN_314,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ..enums import (
     AccountErrorCode,
@@ -119,6 +115,19 @@ class NonNullList(graphene.List):
     def __init__(self, of_type, *args, **kwargs):
         of_type = graphene.NonNull(of_type)
         super().__init__(of_type, *args, **kwargs)
+
+
+class SecureGlobalID(graphene.GlobalID):
+    @staticmethod
+    def id_resolver(parent_resolver, node, root, info, parent_type_name=None, **args):
+        if (
+            hasattr(root, "RETURN_ID_IN_API_RESPONSE")
+            and not root.RETURN_ID_IN_API_RESPONSE
+        ):
+            return ""
+        return graphene.GlobalID.id_resolver(
+            parent_resolver, node, root, info, parent_type_name, **args
+        )
 
 
 class CountryDisplay(graphene.ObjectType):
@@ -532,7 +541,7 @@ class ProductVariantBulkError(Error):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
-            "the error isn't associated with a particular field." + ADDED_IN_314
+            "the error isn't associated with a particular field."
         ),
         required=False,
     )
@@ -553,12 +562,12 @@ class ProductVariantBulkError(Error):
     )
     stocks = NonNullList(
         graphene.ID,
-        description="List of stocks IDs which causes the error." + ADDED_IN_312,
+        description="List of stocks IDs which causes the error.",
         required=False,
     )
     channels = NonNullList(
         graphene.ID,
-        description="List of channel IDs which causes the error." + ADDED_IN_312,
+        description="List of channel IDs which causes the error.",
         required=False,
     )
     channel_listings = NonNullList(
@@ -947,7 +956,7 @@ class Job(graphene.Interface):
     @traced_resolver
     def resolve_type(cls, instance, _info: "ResolveInfo"):
         """Map a data object to a Graphene type."""
-        return None  # FIXME: why do we have this method?
+        return  # FIXME: why do we have this method?
 
 
 class TimePeriod(graphene.ObjectType):
@@ -967,7 +976,7 @@ class ThumbnailField(graphene.Field):
         default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used." + ADDED_IN_36
+            "image will be used."
         ),
     )
 
@@ -982,7 +991,7 @@ class IconThumbnailField(ThumbnailField):
         default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used." + ADDED_IN_314 + PREVIEW_FEATURE
+            "image will be used."
         ),
     )
 

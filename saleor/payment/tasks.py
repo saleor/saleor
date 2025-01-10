@@ -1,8 +1,7 @@
+import datetime
 import logging
 import uuid
-from datetime import datetime
 
-import pytz
 from django.conf import settings
 from django.db.models import OuterRef, Q, Subquery
 
@@ -10,6 +9,7 @@ from ..celeryconf import app
 from ..channel.models import Channel
 from ..checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ..checkout.models import Checkout
+from ..core.db.connection import allow_writer
 from ..payment.models import TransactionEvent, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from . import PaymentError, TransactionAction, TransactionEventType
@@ -26,7 +26,8 @@ def checkouts_with_funds_to_release():
     checkout doesn't have any processed funds.
     """
     expired_checkouts_time = (
-        datetime.now(pytz.UTC) - settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS
+        datetime.datetime.now(tz=datetime.UTC)
+        - settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS
     )
 
     return Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
@@ -43,6 +44,7 @@ def checkouts_with_funds_to_release():
 
 
 @app.task
+@allow_writer()
 def transaction_release_funds_for_checkout_task():
     CHECKOUT_BATCH_SIZE = int(settings.CHECKOUT_BATCH_FOR_RELEASING_FUNDS)
     TRANSACTION_BATCH_SIZE = int(settings.TRANSACTION_BATCH_FOR_RELEASING_FUNDS)

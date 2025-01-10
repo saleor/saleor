@@ -330,6 +330,6 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AlterUniqueTogether(
-            name="stock", unique_together=set([("variant", "location")])
+            name="stock", unique_together={("variant", "location")}
         ),
     ]

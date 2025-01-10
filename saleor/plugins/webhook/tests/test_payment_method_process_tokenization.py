@@ -85,14 +85,17 @@ def test_payment_method_process_tokenization_with_static_payload(
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == {
         "id": expected_payment_method_id,
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
@@ -148,14 +151,17 @@ def test_payment_method_process_tokenization_with_subscription_payload(
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
         "id": expected_payment_method_id,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
@@ -208,9 +214,9 @@ def test_payment_method_process_tokenization_missing_correct_response_from_webho
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.get()
-
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
@@ -262,14 +268,17 @@ def test_payment_method_process_tokenization_failure_from_app(
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == {
         "id": expected_payment_method_id,
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE,
@@ -321,14 +330,17 @@ def test_payment_method_process_tokenization_additional_action_required(
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == {
         "id": expected_payment_method_id,
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED,
@@ -388,14 +400,17 @@ def test_payment_method_process_tokenization_missing_required_id(
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.get()
-    assert json.loads(delivery.payload.payload) == {
+    mock_request.assert_called_once()
+    assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
+
+    delivery = mock_request.mock_calls[0].args[0]
+    assert json.loads(delivery.payload.get_payload()) == {
         "user_id": graphene.Node.to_global_id("User", customer_user.pk),
         "channel_slug": channel_USD.slug,
         "data": expected_data,
         "id": expected_payment_method_id,
     }
-    mock_request.assert_called_once_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
         result=PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE,
@@ -504,10 +519,12 @@ def test_expected_result_invalidates_cache_for_app(
     response = plugin.payment_method_process_tokenization(request_data, previous_value)
 
     # then
-    delivery = EventDelivery.objects.filter(
-        event_type=WebhookEventSyncType.PAYMENT_METHOD_PROCESS_TOKENIZATION_SESSION
-    ).first()
-    assert json.loads(delivery.payload.payload) == {
+    mocked_request.assert_called()
+    assert mocked_request.mock_calls[-1].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
+    assert not EventDelivery.objects.exists()
+
+    delivery = mocked_request.mock_calls[-1].args[0]
+    assert json.loads(delivery.payload.get_payload()) == {
         "user": {"id": graphene.Node.to_global_id("User", customer_user.pk)},
         "data": expected_data,
         "channel": {"id": graphene.Node.to_global_id("Channel", channel_USD.pk)},
@@ -516,8 +533,6 @@ def test_expected_result_invalidates_cache_for_app(
 
     # delete the same cache key as created when fetching stored payment methods
     mocked_cache_delete.assert_called_once_with(expected_cache_key)
-
-    mocked_request.assert_called_with(delivery, timeout=WEBHOOK_SYNC_TIMEOUT)
 
     assert response == PaymentMethodTokenizationResponseData(
         result=result,

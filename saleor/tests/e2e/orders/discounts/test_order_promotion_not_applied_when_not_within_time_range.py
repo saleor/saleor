@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 
 import pytest
 from django.utils import timezone
@@ -23,6 +23,7 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     permission_manage_discounts,
     permission_manage_orders,
 ):
+    e2e_staff_api_client.regenerate_access_token()
     # Before
     permissions = [
         *shop_permissions,
@@ -37,8 +38,8 @@ def test_order_promotion_not_applied_when_not_within_time_range_CORE_2110(
     discount_type = "FIXED"
     promotion_rule_name = "rule for product"
     today = timezone.now()
-    tomorrow = today + timedelta(days=1)
-    month_after = today + timedelta(days=30)
+    tomorrow = today + datetime.timedelta(days=1)
+    month_after = today + datetime.timedelta(days=30)
 
     shop_data = prepare_default_shop(e2e_staff_api_client)
     channel_id = shop_data["channel"]["id"]

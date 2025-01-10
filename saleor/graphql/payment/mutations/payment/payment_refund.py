@@ -49,7 +49,9 @@ class PaymentRefund(PaymentCapture):
             )
             payment.refresh_from_db()
         except PaymentError as e:
-            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
+            raise ValidationError(
+                str(e), code=PaymentErrorCode.PAYMENT_ERROR.value
+            ) from e
         if (
             payment.order_id
             and payment_transaction

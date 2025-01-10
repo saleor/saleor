@@ -1,19 +1,22 @@
-from datetime import datetime
+import datetime
 from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 import pytest
-import pytz
 from django.db.models import Sum
+from django.test import override_settings
 
+from .....core.models import EventDelivery
 from .....discount import DiscountType, RewardValueType
 from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent, OrderLine
 from .....product.models import ProductVariant
 from .....warehouse.models import Allocation, Stock
+from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ..utils import assert_proper_webhook_called_once
 
@@ -306,7 +309,7 @@ def test_order_lines_create_for_just_published_product(
     order.save(update_fields=["status"])
     variant = variant_with_many_stocks
     product_listing = variant.product.channel_listings.get(channel=order.channel)
-    product_listing.published_at = datetime.now(pytz.utc)
+    product_listing.published_at = datetime.datetime.now(tz=datetime.UTC)
     product_listing.save(update_fields=["published_at"])
 
     quantity = 1
@@ -1238,3 +1241,90 @@ def test_order_lines_create_no_shipping_address(
     assert not data["errors"]
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["quantity"] == quantity
+
+
+@pytest.mark.parametrize(
+    ("status", "webhook_event"),
+    [
+        (OrderStatus.DRAFT, WebhookEventAsyncType.DRAFT_ORDER_UPDATED),
+        (OrderStatus.UNCONFIRMED, WebhookEventAsyncType.ORDER_UPDATED),
+    ],
+)
+@patch(
+    "saleor.graphql.order.mutations.utils.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_order_lines_create_triggers_webhooks(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    settings,
+    status,
+    webhook_event,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        order_webhook,
+    ) = setup_order_webhooks(webhook_event)
+
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    variant = line.variant
+    quantity = 2
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLinesCreate"]["errors"]
+
+    # confirm that event delivery was generated for each async webhook.
+    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": order_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
+    # confirm each sync webhook was called without saving event delivery
+    assert mocked_send_webhook_request_sync.call_count == 2
+    assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
+
+    tax_delivery_call, filter_shipping_call = (
+        mocked_send_webhook_request_sync.mock_calls
+    )
+
+    tax_delivery = tax_delivery_call.args[0]
+    assert tax_delivery.webhook_id == tax_webhook.id
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+
+    assert wrapped_call_order_event.called

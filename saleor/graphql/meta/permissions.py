@@ -121,13 +121,13 @@ def public_address_permissions(
 
     if address.user_addresses.filter(Exists(staff_users.filter(id=OuterRef("id")))):
         return [AccountPermissions.MANAGE_STAFF]
-    elif (
+    if (
         warehouse_models.Warehouse.objects.using(database_connection_name)
         .filter(address_id=address.id)
         .exists()
     ):
         return [ProductPermissions.MANAGE_PRODUCTS]
-    elif (
+    if (
         site_models.SiteSettings.objects.using(database_connection_name)
         .filter(company_address_id=address.id)
         .exists()
@@ -249,8 +249,7 @@ def attribute_permissions(info: ResolveInfo, attribute_pk: int):
     )
     if attribute.type == AttributeType.PAGE_TYPE:
         return page_type_permissions(info, attribute_pk)
-    else:
-        return product_type_permissions(info, attribute_pk)
+    return product_type_permissions(info, attribute_pk)
 
 
 def shipping_permissions(

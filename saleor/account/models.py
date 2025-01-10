@@ -192,6 +192,7 @@ class User(
     uuid = models.UUIDField(default=uuid4, unique=True)
 
     USERNAME_FIELD = "email"
+    RETURN_ID_IN_API_RESPONSE = True
 
     objects = UserManager()
 
@@ -222,6 +223,16 @@ class User(
                 name="user_p_meta_jsonb_path_idx",
                 fields=["private_metadata"],
                 opclasses=["jsonb_path_ops"],
+            ),
+            GinIndex(
+                fields=["first_name"],
+                name="first_name_gin",
+                opclasses=["gin_trgm_ops"],
+            ),
+            GinIndex(
+                fields=["last_name"],
+                name="last_name_gin",
+                opclasses=["gin_trgm_ops"],
             ),
         ]
 

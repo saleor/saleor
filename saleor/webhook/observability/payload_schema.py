@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from enum import Enum
 from json.encoder import ESCAPE_ASCII, ESCAPE_DCT
 from typing import Optional, TypedDict
@@ -140,10 +140,10 @@ class EventDeliveryAttemptResponse(TypedDict):
 
 class EventDeliveryAttemptPayload(ObservabilityEventBase):
     id: str
-    time: datetime
+    time: datetime.datetime
     duration: Optional[float]
     status: str
-    next_retry: Optional[datetime]
+    next_retry: Optional[datetime.datetime]
     request: EventDeliveryAttemptRequest
     response: EventDeliveryAttemptResponse
     event_delivery: EventDelivery

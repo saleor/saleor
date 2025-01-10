@@ -7,6 +7,8 @@ from ...attribute import models as attribute_models
 from ...core.tracing import traced_atomic_transaction
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import NonNullList, PageError
@@ -112,8 +114,9 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         page_types = list(queryset)
         queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PAGE_TYPE_DELETED)
         for pt in page_types:
-            cls.call_event(manager.page_type_deleted, pt)
+            cls.call_event(manager.page_type_deleted, pt, webhooks=webhooks)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):

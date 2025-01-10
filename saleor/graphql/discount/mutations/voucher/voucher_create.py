@@ -10,7 +10,6 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
-    ADDED_IN_31,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
@@ -55,7 +54,7 @@ class VoucherInput(BaseInputObjectType):
     )
     variants = NonNullList(
         graphene.ID,
-        description="Variants discounted by the voucher." + ADDED_IN_31,
+        description="Variants discounted by the voucher.",
         name="variants",
     )
     collections = NonNullList(
@@ -238,9 +237,9 @@ class VoucherCreate(ModelMutation):
 
         try:
             validate_end_is_after_start(start_date, end_date)
-        except ValidationError as error:
-            error.code = DiscountErrorCode.INVALID.value
-            raise ValidationError({"end_date": error})
+        except ValidationError as e:
+            e.code = DiscountErrorCode.INVALID.value
+            raise ValidationError({"end_date": e}) from e
 
     @classmethod
     def clean_codes_instance(cls, code_instances):

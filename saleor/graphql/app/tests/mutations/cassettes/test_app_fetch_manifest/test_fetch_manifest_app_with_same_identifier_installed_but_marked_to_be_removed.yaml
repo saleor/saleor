@@ -1,0 +1,95 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - identity
+      Connection:
+      - keep-alive
+      Saleor-Schema-Version:
+      - '3.19'
+      User-Agent:
+      - Saleor/3.19
+    method: GET
+    uri: http://localhost:3000/api/manifest
+  response:
+    body:
+      string: '{"about":"App connects with Avatax to dynamically calculate taxes","appUrl":"http://localhost:3000","author":"Saleor
+        Commerce","brand":{"logo":{"default":"http://localhost:3000/logo.png"}},"dataPrivacyUrl":"https://saleor.io/legal/privacy/","extensions":[],"homepageUrl":"https://github.com/saleor/apps","id":"saleor.app.avatax","name":"Avatax","permissions":["HANDLE_TAXES","MANAGE_ORDERS"],"requiredSaleorVersion":">=3.18
+        <4","supportUrl":"https://github.com/saleor/apps/discussions","tokenTargetUrl":"http://localhost:3000/api/register","version":"1.5.2","webhooks":[{"query":"subscription
+        CalculateTaxes { event { ...CalculateTaxesEvent }}fragment CalculateTaxesEvent
+        on Event { __typename ...WebhookMetadata ... on CalculateTaxes { taxBase {
+        ...TaxBase } recipient { privateMetadata { key value } } }}fragment WebhookMetadata
+        on Event { issuedAt version}fragment TaxBase on TaxableObject { pricesEnteredWithTax
+        currency channel { slug } address { ...Address } shippingPrice { amount }
+        lines { ...TaxBaseLine } sourceObject { __typename ... on Checkout { id avataxEntityCode:
+        metafield(key: \"avataxEntityCode\") avataxCustomerCode: metafield(key: \"avataxCustomerCode\")
+        user { ...User } } ... on Order { id avataxEntityCode: metafield(key: \"avataxEntityCode\")
+        avataxCustomerCode: metafield(key: \"avataxCustomerCode\") user { ...User
+        } } }}fragment Address on Address { streetAddress1 streetAddress2 city countryArea
+        postalCode country { code }}fragment TaxBaseLine on TaxableObjectLine { sourceLine
+        { __typename ... on CheckoutLine { id checkoutProductVariant: variant { id
+        product { taxClass { id name } } } } ... on OrderLine { id orderProductVariant:
+        variant { id product { taxClass { id name } } } } } quantity unitPrice { amount
+        } totalPrice { amount }}fragment User on User { id email avataxCustomerCode:
+        metafield(key: \"avataxCustomerCode\")}","name":"CheckoutCalculateTaxes","targetUrl":"http://localhost:3000/api/webhooks/checkout-calculate-taxes","isActive":true,"syncEvents":["CHECKOUT_CALCULATE_TAXES"]},{"query":"subscription
+        CalculateTaxes { event { ...CalculateTaxesEvent }}fragment CalculateTaxesEvent
+        on Event { __typename ...WebhookMetadata ... on CalculateTaxes { taxBase {
+        ...TaxBase } recipient { privateMetadata { key value } } }}fragment WebhookMetadata
+        on Event { issuedAt version}fragment TaxBase on TaxableObject { pricesEnteredWithTax
+        currency channel { slug } address { ...Address } shippingPrice { amount }
+        lines { ...TaxBaseLine } sourceObject { __typename ... on Checkout { id avataxEntityCode:
+        metafield(key: \"avataxEntityCode\") avataxCustomerCode: metafield(key: \"avataxCustomerCode\")
+        user { ...User } } ... on Order { id avataxEntityCode: metafield(key: \"avataxEntityCode\")
+        avataxCustomerCode: metafield(key: \"avataxCustomerCode\") user { ...User
+        } } }}fragment Address on Address { streetAddress1 streetAddress2 city countryArea
+        postalCode country { code }}fragment TaxBaseLine on TaxableObjectLine { sourceLine
+        { __typename ... on CheckoutLine { id checkoutProductVariant: variant { id
+        product { taxClass { id name } } } } ... on OrderLine { id orderProductVariant:
+        variant { id product { taxClass { id name } } } } } quantity unitPrice { amount
+        } totalPrice { amount }}fragment User on User { id email avataxCustomerCode:
+        metafield(key: \"avataxCustomerCode\")}","name":"OrderCalculateTaxes","targetUrl":"http://localhost:3000/api/webhooks/order-calculate-taxes","isActive":true,"syncEvents":["ORDER_CALCULATE_TAXES"]},{"query":"subscription
+        OrderCancelledSubscription { event { ...OrderCancelledEventSubscription }}fragment
+        OrderCancelledEventSubscription on Event { __typename ...WebhookMetadata ...
+        on OrderCancelled { order { ...OrderCancelledSubscription } recipient { privateMetadata
+        { key value } } }}fragment WebhookMetadata on Event { issuedAt version}fragment
+        OrderCancelledSubscription on Order { id avataxId: metafield(key: \"avataxId\")
+        channel { id slug }}","name":"OrderCancelled","targetUrl":"http://localhost:3000/api/webhooks/order-cancelled","isActive":true,"asyncEvents":["ORDER_CANCELLED"]},{"query":"subscription
+        OrderConfirmedSubscription { event { ...OrderConfirmedEventSubscription }}fragment
+        OrderConfirmedEventSubscription on Event { __typename ...WebhookMetadata ...
+        on OrderConfirmed { order { ...OrderConfirmedSubscription } } recipient {
+        privateMetadata { key value } }}fragment WebhookMetadata on Event { issuedAt
+        version}fragment OrderConfirmedSubscription on Order { id number userEmail
+        user { ...User } avataxCustomerCode: metafield(key: \"avataxCustomerCode\")
+        created status channel { id slug taxConfiguration { pricesEnteredWithTax taxCalculationStrategy
+        } } shippingAddress { ...Address } billingAddress { ...Address } total { currency
+        net { amount } tax { amount } } shippingPrice { gross { amount } net { amount
+        } } lines { ...OrderLine } avataxEntityCode: metafield(key: \"avataxEntityCode\")
+        avataxTaxCalculationDate: metafield(key: \"avataxTaxCalculationDate\") avataxDocumentCode:
+        metafield(key: \"avataxDocumentCode\")}fragment User on User { id email avataxCustomerCode:
+        metafield(key: \"avataxCustomerCode\")}fragment Address on Address { streetAddress1
+        streetAddress2 city countryArea postalCode country { code }}fragment OrderLine
+        on OrderLine { productSku productVariantId productName quantity taxClass {
+        id } unitPrice { net { amount } } totalPrice { net { amount } tax { amount
+        } gross { amount } }}","name":"OrderConfirmed","targetUrl":"http://localhost:3000/api/webhooks/order-confirmed","isActive":true,"asyncEvents":["ORDER_CONFIRMED"]}]}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5549'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Mon, 15 Jul 2024 08:06:12 GMT
+      ETag:
+      - '"16l6t5qo2d34a5"'
+      Keep-Alive:
+      - timeout=5
+      Vary:
+      - Accept-Encoding
+    status:
+      code: 200
+      message: OK
+version: 1

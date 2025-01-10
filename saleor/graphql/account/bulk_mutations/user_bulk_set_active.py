@@ -42,7 +42,7 @@ class UserBulkSetActive(BaseBulkMutation):
                     )
                 }
             )
-        elif instance.is_superuser:
+        if instance.is_superuser:
             raise ValidationError(
                 {
                     "is_active": ValidationError(

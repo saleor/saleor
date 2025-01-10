@@ -5,7 +5,6 @@ from unittest.mock import ANY
 import graphene
 import pytest
 from django.utils.functional import SimpleLazyObject
-from freezegun import freeze_time
 
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
@@ -41,7 +40,6 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
         page.refresh_from_db()
 
 
-@freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_page_delete_trigger_webhook(

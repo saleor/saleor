@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from unittest.mock import patch
 
 import graphene
@@ -50,8 +50,8 @@ def test_promotion_update_by_staff_user(
     # given
     promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=1)
-    end_date = timezone.now() + timedelta(days=10)
+    start_date = timezone.now() - datetime.timedelta(days=1)
+    end_date = timezone.now() + datetime.timedelta(days=10)
 
     new_promotion_name = "new test promotion"
     variables = {
@@ -107,7 +107,7 @@ def test_promotion_update_by_app(
     promotion.end_date = None
     promotion.save(update_fields=["start_date", "end_date"])
 
-    end_date = timezone.now() + timedelta(days=2)
+    end_date = timezone.now() + datetime.timedelta(days=2)
 
     new_promotion_name = "new test promotion"
     variables = {
@@ -159,7 +159,9 @@ def test_promotion_update_dates_dont_change(
     # given
     promotion = catalogue_promotion
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    promotion.last_notification_scheduled_at = timezone.now() - timedelta(hours=1)
+    promotion.last_notification_scheduled_at = timezone.now() - datetime.timedelta(
+        hours=1
+    )
     promotion.save(update_fields=["last_notification_scheduled_at"])
 
     previous_notification_date = promotion.last_notification_scheduled_at
@@ -216,8 +218,8 @@ def test_promotion_update_by_customer(
 ):
     # given
     promotion = catalogue_promotion
-    start_date = timezone.now() + timedelta(days=1)
-    end_date = timezone.now() + timedelta(days=10)
+    start_date = timezone.now() + datetime.timedelta(days=1)
+    end_date = timezone.now() + datetime.timedelta(days=10)
 
     new_promotion_name = "new test promotion"
     variables = {
@@ -251,8 +253,8 @@ def test_promotion_update_end_date_before_start_date(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() + timedelta(days=1)
-    end_date = timezone.now() - timedelta(days=10)
+    start_date = timezone.now() + datetime.timedelta(days=1)
+    end_date = timezone.now() - datetime.timedelta(days=10)
 
     new_promotion_name = "new test promotion"
     variables = {
@@ -290,8 +292,8 @@ def test_promotion_update_clears_old_sale_id(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=1)
-    end_date = timezone.now() + timedelta(days=10)
+    start_date = timezone.now() - datetime.timedelta(days=1)
+    end_date = timezone.now() + datetime.timedelta(days=10)
 
     promotion = promotion_converted_from_sale
     assert promotion.old_sale_id
@@ -336,8 +338,8 @@ def test_promotion_update_events(
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    start_date = timezone.now() - timedelta(days=1)
-    end_date = timezone.now() + timedelta(days=10)
+    start_date = timezone.now() - datetime.timedelta(days=1)
+    end_date = timezone.now() + datetime.timedelta(days=10)
 
     variables = {
         "id": graphene.Node.to_global_id("Promotion", catalogue_promotion.id),

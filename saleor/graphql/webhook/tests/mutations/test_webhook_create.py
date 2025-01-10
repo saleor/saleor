@@ -1,6 +1,8 @@
 import json
+from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....app.error_codes import AppErrorCode
 from .....webhook.error_codes import WebhookErrorCode
@@ -57,6 +59,7 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
 
     # then
     new_webhook = Webhook.objects.get()
+    assert new_webhook.filterable_channel_slugs == []
     assert new_webhook.name == "New integration"
     assert new_webhook.target_url == "https://www.example.com"
     assert new_webhook.custom_headers == {
@@ -149,6 +152,7 @@ def test_webhook_create_by_staff(
 
     # then
     new_webhook = Webhook.objects.get()
+    assert new_webhook.filterable_channel_slugs == []
     assert new_webhook.target_url == "https://www.example.com"
     assert new_webhook.app == app
     events = new_webhook.events.all()
@@ -306,6 +310,7 @@ def test_webhook_create_inherit_events_from_query(
     new_webhook = Webhook.objects.get()
     assert new_webhook.target_url == "https://www.example.com"
     assert new_webhook.app == app
+    assert new_webhook.filterable_channel_slugs == []
     events = new_webhook.events.all()
     assert len(events) == 2
 
@@ -378,3 +383,92 @@ def test_webhook_create_notify_user_with_another_event(app_api_client):
     error = data["errors"][0]
     assert error["field"] == "asyncEvents"
     assert error["code"] == WebhookErrorCode.INVALID_NOTIFY_WITH_SUBSCRIPTION.name
+
+
+FILTERABLE_SUBSCRIPTION = """
+subscription {
+  orderCreated(channels: [%s]) {
+    order {
+      id
+      number
+      lines {
+        id
+        variant {
+          id
+        }
+      }
+    }
+  }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "channel_slugs",
+    [
+        ["channel-1", "channel-2"],
+        ["channel-1"],
+        [],
+    ],
+)
+def test_webhook_create_assigns_filterable_channel_slugs(channel_slugs, app_api_client):
+    # given
+    query = WEBHOOK_CREATE
+    variables = {
+        "input": {
+            "name": "Webhook for default-channel",
+            "targetUrl": "https://www.example.com",
+            "query": FILTERABLE_SUBSCRIPTION
+            % ",".join([f'"{slug}"' for slug in channel_slugs]),
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables=variables)
+    get_graphql_content(response)
+
+    # then
+    new_webhook = Webhook.objects.get()
+    assert new_webhook.filterable_channel_slugs == channel_slugs
+    assert new_webhook.target_url == "https://www.example.com"
+    assert new_webhook.app == app_api_client.app
+    events = new_webhook.events.all()
+    assert len(events) == 1
+    assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
+
+
+@pytest.mark.parametrize(
+    "channel_slugs",
+    [
+        ["channel-1", "channel-2"],
+        ["channel-1", "channel-2", "channel-3"],
+    ],
+)
+@patch(
+    "saleor.graphql.webhook.mutations.webhook_create.MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT"
+)
+def test_webhook_create_assigns_filterable_channel_slugs_above_max_limit(
+    mocked_limit, channel_slugs, app_api_client
+):
+    # given
+    mocked_limit.__lt__ = lambda self, compare: True
+
+    query = WEBHOOK_CREATE
+    variables = {
+        "input": {
+            "name": "Webhook for default-channel",
+            "targetUrl": "https://www.example.com",
+            "query": FILTERABLE_SUBSCRIPTION
+            % ",".join([f'"{slug}"' for slug in channel_slugs]),
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["webhookCreate"]["errors"]) == 1
+    error = content["data"]["webhookCreate"]["errors"][0]
+    assert error["field"] == "query"
+    assert error["code"] == WebhookErrorCode.INVALID.name

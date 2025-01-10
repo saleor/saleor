@@ -45,7 +45,7 @@ class VoucherCodeBulkDelete(BaseMutation):
         invalid_codes_ids = []
         cleaned_ids = set()
 
-        for index, code in enumerate(codes):
+        for code in codes:
             obj_type, code_pk = graphene.Node.from_global_id(code)
             if obj_type != "VoucherCode":
                 invalid_codes_ids.append(code)

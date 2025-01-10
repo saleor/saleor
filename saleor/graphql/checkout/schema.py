@@ -8,8 +8,6 @@ from ...permission.enums import (
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_34,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -26,6 +24,7 @@ from .mutations import (
     CheckoutCreateFromOrder,
     CheckoutCustomerAttach,
     CheckoutCustomerDetach,
+    CheckoutCustomerNoteUpdate,
     CheckoutDeliveryMethodUpdate,
     CheckoutEmailUpdate,
     CheckoutLanguageCodeUpdate,
@@ -57,9 +56,7 @@ class CheckoutQueries(graphene.ObjectType):
             f"{AccountPermissions.IMPERSONATE_USER.name}, "
             f"{PaymentPermissions.HANDLE_PAYMENTS.name}. "
         ),
-        id=graphene.Argument(
-            graphene.ID, description="The checkout's ID." + ADDED_IN_34
-        ),
+        id=graphene.Argument(graphene.ID, description="The checkout's ID."),
         token=graphene.Argument(
             UUID,
             description=(
@@ -71,10 +68,8 @@ class CheckoutQueries(graphene.ObjectType):
     # FIXME we could optimize the below field
     checkouts = FilterConnectionField(
         CheckoutCountableConnection,
-        sort_by=CheckoutSortingInput(description="Sort checkouts." + ADDED_IN_31),
-        filter=CheckoutFilterInput(
-            description="Filtering options for checkouts." + ADDED_IN_31
-        ),
+        sort_by=CheckoutSortingInput(description="Sort checkouts."),
+        filter=CheckoutFilterInput(description="Filtering options for checkouts."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -122,6 +117,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_create_from_order = CheckoutCreateFromOrder.Field()
     checkout_customer_attach = CheckoutCustomerAttach.Field()
     checkout_customer_detach = CheckoutCustomerDetach.Field()
+    checkout_customer_note_update = CheckoutCustomerNoteUpdate.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
     checkout_line_delete = CheckoutLineDelete.Field(
         deprecation_reason=(

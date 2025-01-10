@@ -1,0 +1,55 @@
+name: Check Licenses
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths:
+      # Self
+      - ".github/workflows/check-licenses.yaml"
+      # Python Ecosystem
+      - "**/pyproject.toml"
+      - "**/setup.py"
+      - "**/requirements*.txt"
+      - "**/Pipfile.lock"
+      - "**/poetry.lock"
+      # JS/TS Ecosystem
+      - "**/package.json"
+      - "**/pnpm-lock.yaml"
+      - "**/package-lock.json"
+
+jobs:
+  default:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@v1
+    with:
+      # List of ecosystems to scan.
+      ecosystems: >-
+        python
+        javascript
+      # Grant rules (https://github.com/anchore/grant/blob/4362dc22cf5ea9baeccfa59b2863879afe0c30d7/README.md#usage)
+      rules: |
+        # Explicitly allow LGPL as "*GPL*" rule will cause to reject them otherwise.
+        - pattern: "*lgpl*"
+          name: "allow-lgpl"
+          mode: "allow"
+          reason: "LGPL is allowed."
+        - pattern: "*gpl*"
+          name: "deny-gpl"
+          mode: "deny"
+          reason: "GPL licenses are not compatible with BSD-3-Clause"
+        - pattern: "*proprietary*"
+          name: "deny-proprietary"
+          mode: "deny"
+          reason: >-
+            Proprietary licenses are not compatible with BSD-3-Clause.
+            They need to be reviewed on a case-by-case basis.
+          exceptions:
+            # Authorize.Net Python SDK was reviewed as compatible with our project.
+            # License: https://github.com/AuthorizeNet/sdk-python/blob/bfcfb73ac74e33544845e435bb2ad54a22641583/LICENSE.txt
+            - authorizenet
+            # pytest-celery is licensed under BSD-3-Clause (false positive).
+            # Bug fix: https://github.com/celery/pytest-celery/pull/438
+            - pytest-celery

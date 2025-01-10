@@ -3,14 +3,7 @@ import secrets
 from collections.abc import Collection, Iterable
 from enum import Enum
 from itertools import chain
-from typing import (
-    Any,
-    Optional,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Optional, TypeVar, Union, cast, overload
 from uuid import UUID
 
 import graphene
@@ -44,7 +37,6 @@ from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
-from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
@@ -123,7 +115,7 @@ def validation_error_to_error_type(
 
 def attach_error_params(error, params: Optional[dict], error_class_fields: set):
     if not params:
-        return {}
+        return
     # If some of the params key overlap with error class fields
     # attach param value to the error
     error_fields_in_params = set(params.keys()) & error_class_fields
@@ -236,7 +228,7 @@ class BaseMutation(graphene.Mutation):
         info: ResolveInfo,
         graphene_type: type[ModelObjectType[MT]],
         pk: Union[int, str],
-        qs=None,
+        qs: Optional[QuerySet[MT]] = None,
     ) -> Optional[MT]:
         """Attempt to resolve a node from the given internal ID.
 
@@ -273,7 +265,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return pk
 
     @overload
@@ -372,7 +364,7 @@ class BaseMutation(graphene.Mutation):
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         else:
             if node is None:
                 raise ValidationError(
@@ -398,7 +390,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return pks
 
     @overload
@@ -420,7 +412,7 @@ class BaseMutation(graphene.Mutation):
         except GraphQLError as e:
             raise ValidationError(
                 {field: ValidationError(str(e), code="graphql_error")}
-            )
+            ) from e
         return instances
 
     @staticmethod
@@ -524,12 +516,6 @@ class BaseMutation(graphene.Mutation):
 
         if not cls.check_permissions(info.context, data=data):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
 
         try:
             response = cls.perform_mutation(root, info, **data)
@@ -754,6 +740,14 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
+    def diff_instance_data_fields(cls, fields, old_instance_data, new_instance_data):
+        diff_fields = []
+        for field in fields:
+            if old_instance_data.get(field) != new_instance_data.get(field):
+                diff_fields.append(field)
+        return diff_fields
+
+    @classmethod
     def get_type_for_model(cls):
         if not cls._meta.object_type:
             raise ImproperlyConfigured(
@@ -845,6 +839,7 @@ class ModelWithExtRefMutation(ModelMutation):
         if object_id:
             model_type = cls.get_type_for_model()
             return cls.get_node_or_error(info, object_id, only_type=model_type, qs=qs)
+        return None
 
 
 class ModelWithRestrictedChannelAccessMutation(ModelMutation):
@@ -987,6 +982,31 @@ class BaseBulkMutation(BaseMutation):
         """
 
     @classmethod
+    def clean_input(cls, info: ResolveInfo, instances, ids):
+        clean_instance_ids = []
+        errors_dict: dict[str, list[ValidationError]] = {}
+        for instance, node_id in zip(instances, ids):
+            instance_errors = []
+
+            # catch individual validation errors to raise them later as
+            # a single error
+            try:
+                cls.clean_instance(info, instance)
+            except ValidationError as e:
+                msg = ". ".join(e.messages)
+                instance_errors.append(msg)
+
+            if not instance_errors:
+                clean_instance_ids.append(instance.pk)
+            else:
+                instance_errors_msg = ". ".join(instance_errors)
+                # FIXME we are not propagating code error from the raised ValidationError
+                ValidationError({node_id: instance_errors_msg}).update_error_dict(
+                    errors_dict
+                )
+        return clean_instance_ids, errors_dict
+
+    @classmethod
     def bulk_action(cls, _info: ResolveInfo, _queryset: QuerySet, /):
         """Implement action performed on queryset."""
         raise NotImplementedError
@@ -996,8 +1016,6 @@ class BaseBulkMutation(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
-        clean_instance_ids = []
-        errors_dict: dict[str, list[ValidationError]] = {}
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
@@ -1015,25 +1033,8 @@ class BaseBulkMutation(BaseMutation):
             )
         except ValidationError as error:
             return 0, error
-        for instance, node_id in zip(instances, ids):
-            instance_errors = []
 
-            # catch individual validation errors to raise them later as
-            # a single error
-            try:
-                cls.clean_instance(info, instance)
-            except ValidationError as e:
-                msg = ". ".join(e.messages)
-                instance_errors.append(msg)
-
-            if not instance_errors:
-                clean_instance_ids.append(instance.pk)
-            else:
-                instance_errors_msg = ". ".join(instance_errors)
-                ValidationError({node_id: instance_errors_msg}).update_error_dict(
-                    errors_dict
-                )
-
+        clean_instance_ids, errors_dict = cls.clean_input(info, instances, ids)
         if errors_dict:
             errors = ValidationError(errors_dict)
         else:
@@ -1052,12 +1053,6 @@ class BaseBulkMutation(BaseMutation):
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls, root=root, info=info, data=data
-        )
-        if result is not None:
-            return result
 
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:
@@ -1084,8 +1079,6 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ) -> tuple[int, Optional[ValidationError]]:
         """Perform a mutation that deletes a list of model instances."""
-        clean_instance_ids = []
-        errors_dict: dict[str, list[ValidationError]] = {}
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
@@ -1107,25 +1100,7 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         channel_ids = cls.get_channel_ids(instances)
         cls.check_channel_permissions(info, channel_ids)
 
-        for instance, node_id in zip(instances, ids):
-            instance_errors = []
-
-            # catch individual validation errors to raise them later as
-            # a single error
-            try:
-                cls.clean_instance(info, instance)
-            except ValidationError as e:
-                msg = ". ".join(e.messages)
-                instance_errors.append(msg)
-
-            if not instance_errors:
-                clean_instance_ids.append(instance.pk)
-            else:
-                instance_errors_msg = ". ".join(instance_errors)
-                ValidationError({node_id: instance_errors_msg}).update_error_dict(
-                    errors_dict
-                )
-
+        clean_instance_ids, errors_dict = cls.clean_input(info, instances, ids)
         if errors_dict:
             errors = ValidationError(errors_dict)
         else:

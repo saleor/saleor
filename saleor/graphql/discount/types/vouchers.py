@@ -15,7 +15,6 @@ from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
-    ADDED_IN_31,
     ADDED_IN_318,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
@@ -36,8 +35,8 @@ from ...translations.types import VoucherTranslation
 from ..dataloaders import (
     CodeByVoucherIDLoader,
     UsedByVoucherIDLoader,
-    VoucherChannelListingByVoucherIdAndChanneSlugLoader,
-    VoucherChannelListingByVoucherIdLoader,
+    VoucherChannelListingByVoucherIdAndChannelSlugLoader,
+    VoucherChannelListingsByVoucherIdLoader,
 )
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -152,7 +151,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     )
     variants = ConnectionField(
         ProductVariantCountableConnection,
-        description="List of product variants this voucher applies to." + ADDED_IN_31,
+        description="List of product variants this voucher applies to.",
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -262,7 +261,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             return None
 
         return (
-            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
                 lambda channel_listing: channel_listing.discount_value
@@ -277,7 +276,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             return None
 
         return (
-            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
                 lambda channel_listing: channel_listing.currency
@@ -292,7 +291,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             return None
 
         return (
-            VoucherChannelListingByVoucherIdAndChanneSlugLoader(info.context)
+            VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
                 lambda channel_listing: channel_listing.min_spent
@@ -305,7 +304,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     def resolve_channel_listings(
         root: ChannelContext[models.Voucher], info: ResolveInfo
     ):
-        return VoucherChannelListingByVoucherIdLoader(info.context).load(root.node.id)
+        return VoucherChannelListingsByVoucherIdLoader(info.context).load(root.node.id)
 
 
 class VoucherCountableConnection(CountableConnection):

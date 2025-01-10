@@ -13,7 +13,6 @@ from ....core.context import disallow_replica_in_context
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import validation_error_to_error_type
 from ....core.types import AccountError
-from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import INVALID_TOKEN
 from . import CreateToken
 
@@ -41,15 +40,6 @@ class SetPassword(CreateToken):
         cls, root, info: ResolveInfo, /, *, email, password, token
     ):
         disallow_replica_in_context(info.context)
-        manager = get_plugin_manager_promise(info.context).get()
-        result = manager.perform_mutation(
-            mutation_cls=cls,
-            root=root,
-            info=info,
-            data={"email": email, "password": password, "token": token},
-        )
-        if result is not None:
-            return result
 
         try:
             cls._set_password_for_user(email, password, token)
@@ -60,17 +50,17 @@ class SetPassword(CreateToken):
 
     @classmethod
     def _set_password_for_user(cls, email, password, token):
+        error = False
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError(
-                {
-                    "email": ValidationError(
-                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND.value
-                    )
-                }
-            )
-        if not default_token_generator.check_token(user, token):
+            # If user doesn't exists in the database we create fake user for calculation
+            # purpose, as we don't want to indicate non existence of user in the system.
+            error = True
+            user = models.User()
+
+        valid_token = default_token_generator.check_token(user, token)
+        if not valid_token or error:
             raise ValidationError(
                 {
                     "token": ValidationError(
@@ -80,8 +70,8 @@ class SetPassword(CreateToken):
             )
         try:
             password_validation.validate_password(password, user)
-        except ValidationError as error:
-            raise ValidationError({"password": error})
+        except ValidationError as e:
+            raise ValidationError({"password": e}) from e
         fields_to_save = ["password", "updated_at"]
         user.set_password(password)
         # To reset the password user need to process the token sent separately by email,

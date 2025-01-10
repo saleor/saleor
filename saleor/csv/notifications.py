@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from ..core.notification.utils import get_site_context
-from ..core.notify_events import NotifyEventType
+from ..core.notify import NotifyEventType, NotifyHandler
 from ..core.utils import build_absolute_uri
 from ..graphql.core.utils import to_global_id_or_none
 from ..plugins.manager import get_plugins_manager
@@ -28,16 +28,20 @@ def get_default_export_payload(export_file: "ExportFile") -> dict:
 
 def send_export_download_link_notification(export_file: "ExportFile", data_type: str):
     """Call PluginManager.notify to trigger the notification for success export."""
-    payload = {
-        "export": get_default_export_payload(export_file),
-        "csv_link": build_absolute_uri(export_file.content_file.url),
-        "recipient_email": export_file.user.email if export_file.user else None,
-        "data_type": data_type,
-        **get_site_context(),
-    }
+
+    def _generate_payload():
+        payload = {
+            "export": get_default_export_payload(export_file),
+            "csv_link": build_absolute_uri(export_file.content_file.url),
+            "recipient_email": export_file.user.email if export_file.user else None,
+            "data_type": data_type,
+            **get_site_context(),
+        }
+        return payload
 
     manager = get_plugins_manager(allow_replica=True)
-    manager.notify(NotifyEventType.CSV_EXPORT_SUCCESS, payload)
+    handler = NotifyHandler(_generate_payload)
+    manager.notify(NotifyEventType.CSV_EXPORT_SUCCESS, payload_func=handler.payload)
     if data_type == "gift cards":
         manager.gift_card_export_completed(export_file)
     if data_type == "products":
@@ -48,14 +52,19 @@ def send_export_download_link_notification(export_file: "ExportFile", data_type:
 
 def send_export_failed_info(export_file: "ExportFile", data_type: str):
     """Call PluginManager.notify to trigger the notification for failed export."""
-    payload = {
-        "export": get_default_export_payload(export_file),
-        "recipient_email": export_file.user.email if export_file.user else None,
-        "data_type": data_type,
-        **get_site_context(),
-    }
+
+    def _generate_payload():
+        payload = {
+            "export": get_default_export_payload(export_file),
+            "recipient_email": export_file.user.email if export_file.user else None,
+            "data_type": data_type,
+            **get_site_context(),
+        }
+        return payload
+
     manager = get_plugins_manager(allow_replica=True)
-    manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload)
+    handler = NotifyHandler(_generate_payload)
+    manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload_func=handler.payload)
     if data_type == "gift cards":
         manager.gift_card_export_completed(export_file)
     if data_type == "products":

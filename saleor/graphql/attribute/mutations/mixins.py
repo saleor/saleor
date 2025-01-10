@@ -45,7 +45,9 @@ class AttributeMixin:
 
         is_swatch_attr = attribute_input_type == AttributeInputType.SWATCH
 
-        slug_list = list(attribute.values.values_list("slug", flat=True))
+        slug_list = list(
+            attribute.values.values_list("slug", flat=True) if attribute.pk else []
+        )
 
         for value_data in values_input:
             cls._validate_value(attribute, value_data, is_swatch_attr, slug_list)
@@ -84,19 +86,19 @@ class AttributeMixin:
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
         try:
             attribute_value.full_clean()
-        except ValidationError as validation_errors:
-            for field, err in validation_errors.error_dict.items():
+        except ValidationError as e:
+            for field, err in e.error_dict.items():
                 if field == "attribute":
                     continue
                 errors = []
                 for error in err:
                     error.code = AttributeErrorCode.INVALID.value
                     errors.append(error)
-                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: errors})
+                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: errors}) from e
 
     @classmethod
     def validate_non_swatch_attr_value(cls, value_data: dict):
-        if any([value_data.get(field) for field in cls.ONLY_SWATCH_FIELDS]):
+        if any(value_data.get(field) for field in cls.ONLY_SWATCH_FIELDS):
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
@@ -122,7 +124,9 @@ class AttributeMixin:
     @classmethod
     def check_values_are_unique(cls, values_input: dict, attribute: models.Attribute):
         # Check values uniqueness in case of creating new attribute.
-        existing_names = attribute.values.values_list("name", flat=True)
+        existing_names = (
+            attribute.values.values_list("name", flat=True) if attribute.pk else []
+        )
         existing_names = [name.lower().strip() for name in existing_names]
         for value_data in values_input:
             name = unidecode(value_data["name"]).lower().strip()
@@ -155,9 +159,9 @@ class AttributeMixin:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError as error:
-            error.code = AttributeErrorCode.REQUIRED.value
-            raise ValidationError({"slug": error})
+        except ValidationError as e:
+            e.code = AttributeErrorCode.REQUIRED.value
+            raise ValidationError({"slug": e}) from e
         cls._clean_attribute_settings(instance, cleaned_input)
 
         return cleaned_input

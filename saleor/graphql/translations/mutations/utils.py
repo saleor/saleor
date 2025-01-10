@@ -14,6 +14,8 @@ from ....menu import models as menu_models
 from ....page import models as page_models
 from ....product import models as product_models
 from ....shipping import models as shipping_models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_MAP
@@ -74,6 +76,27 @@ def validate_input_against_model(model: type[Model], input_data: dict):
     instance.full_clean(exclude=exclude_fields, validate_unique=False)
 
 
+def validate_slug_already_exists(
+    instance, translation_instance, input_data, language_code
+):
+    slug = input_data.get("slug")
+
+    if slug and slug != translation_instance.slug:
+        existing_instance = instance.translations.model.objects.filter(
+            language_code=language_code, slug=input_data["slug"]
+        ).first()
+
+        if existing_instance and existing_instance != translation_instance:
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "Translation with this slug and language code already exists",
+                        code=TranslationErrorCode.UNIQUE.value,
+                    )
+                }
+            )
+
+
 class BaseTranslateMutation(ModelMutation):
     class Meta:
         abstract = True
@@ -87,7 +110,7 @@ class BaseTranslateMutation(ModelMutation):
 
         try:
             node_type, node_pk = from_global_id_or_error(id)
-        except GraphQLError:
+        except GraphQLError as e:
             raise ValidationError(
                 {
                     "id": ValidationError(
@@ -95,7 +118,7 @@ class BaseTranslateMutation(ModelMutation):
                         code=TranslationErrorCode.INVALID,
                     )
                 }
-            )
+            ) from e
 
         # This mutation accepts either model IDs or translatable content IDs. Below we
         # check if provided ID refers to a translatable content which matches with the
@@ -113,7 +136,7 @@ class BaseTranslateMutation(ModelMutation):
         validate_input_against_model(cls._meta.model, input_data)
 
     @classmethod
-    def pre_update_or_create(cls, instance, input_data):
+    def pre_update_or_create(cls, instance, input_data, language_code):
         return input_data
 
     @classmethod
@@ -124,7 +147,7 @@ class BaseTranslateMutation(ModelMutation):
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         cls.validate_input(input)
 
-        input = cls.pre_update_or_create(instance, input)
+        input = cls.pre_update_or_create(instance, input, language_code)
 
         translation, created = instance.translations.update_or_create(
             language_code=language_code, defaults=input
@@ -132,11 +155,32 @@ class BaseTranslateMutation(ModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         if created:
-            cls.call_event(manager.translation_created, translation)
+            cls.call_event(manager.translations_created, [translation])
         else:
-            cls.call_event(manager.translation_updated, translation)
+            cls.call_event(manager.translations_updated, [translation])
 
         return cls(**{cls._meta.return_field_name: instance})
+
+
+class BaseTranslateMutationWithSlug(BaseTranslateMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def pre_update_or_create(cls, instance, input_data, language_code):
+        if input_data.get("slug") is not None:
+            translation_instance = instance.translations.filter(
+                language_code=language_code
+            ).first()
+
+            if translation_instance is None:
+                translation_instance = instance.translations.model()
+
+            validate_slug_already_exists(
+                instance, translation_instance, input_data, language_code
+            )
+
+        return input_data
 
 
 class NameTranslationInput(graphene.InputObjectType):
@@ -144,6 +188,7 @@ class NameTranslationInput(graphene.InputObjectType):
 
 
 class SeoTranslationInput(graphene.InputObjectType):
+    slug = graphene.String()
     seo_title = graphene.String()
     seo_description = graphene.String()
 
@@ -225,28 +270,37 @@ class BaseBulkTranslateMutation(BaseMutation):
     @classmethod
     def get_base_objects(cls, cleaned_inputs_map: dict):
         lookup = Q()
+        pks_to_get = set()
+        external_reference_to_get = set()
         for data in cleaned_inputs_map.values():
             if not data:
                 continue
 
             if pk := data.get("id"):
-                lookup |= Q(pk=pk)
+                pks_to_get.add(pk)
             else:
-                lookup |= Q(external_reference=data.get("external_reference"))
+                external_reference_to_get.add(data.get("external_reference"))
 
-        attributes = cls._meta.base_model.objects.filter(lookup)
-        return list(attributes)
+        if pks_to_get:
+            lookup |= Q(pk__in=pks_to_get)
+        if external_reference_to_get:
+            lookup |= Q(external_reference__in=external_reference_to_get)
+
+        base_objects = cls._meta.base_model.objects.filter(lookup)
+        return list(base_objects)
 
     @classmethod
     def get_translations(cls, cleaned_inputs_map: dict, base_objects: list):
         lookup = Q(**{f"{cls._meta.base_model_relation_field}__in": base_objects})
 
+        language_code_to_get = set()
         for data in cleaned_inputs_map.values():
             if not data:
                 continue
+            if language_code := data.get("language_code"):
+                language_code_to_get.add(language_code)
 
-            single_lookup = Q(language_code=data.get("language_code"))
-            lookup |= single_lookup
+        lookup &= Q(language_code__in=language_code_to_get)
 
         if hasattr(cls._meta.base_model, "external_reference"):
             translations = cls._meta.translation_model.objects.filter(lookup).annotate(
@@ -420,11 +474,13 @@ class BaseBulkTranslateMutation(BaseMutation):
                 for data in instances_data_with_errors_list
             ]
         return [
-            cls._meta.result_type(
-                translation=data.get("instance"), errors=data.get("errors")
+            (
+                cls._meta.result_type(
+                    translation=data.get("instance"), errors=data.get("errors")
+                )
+                if data.get("instance")
+                else cls._meta.result_type(translation=None, errors=data.get("errors"))
             )
-            if data.get("instance")
-            else cls._meta.result_type(translation=None, errors=data.get("errors"))
             for data in instances_data_with_errors_list
         ]
 
@@ -432,10 +488,21 @@ class BaseBulkTranslateMutation(BaseMutation):
     def post_save_actions(cls, info, created_translations, updated_translations):
         manager = get_plugin_manager_promise(info.context).get()
 
-        for translation in created_translations:
-            cls.call_event(manager.translation_created, translation)
-        for translation in updated_translations:
-            cls.call_event(manager.translation_updated, translation)
+        if created_translations:
+            webhooks = get_webhooks_for_event(WebhookEventAsyncType.TRANSLATION_CREATED)
+            cls.call_event(
+                manager.translations_created,
+                created_translations,
+                webhooks=webhooks,
+            )
+
+        if updated_translations:
+            webhooks = get_webhooks_for_event(WebhookEventAsyncType.TRANSLATION_UPDATED)
+            cls.call_event(
+                manager.translations_updated,
+                updated_translations,
+                webhooks=webhooks,
+            )
 
     @classmethod
     @traced_atomic_transaction()
@@ -451,7 +518,7 @@ class BaseBulkTranslateMutation(BaseMutation):
             cleaned_inputs_map, index_error_map
         )
 
-        if any([bool(error) for error in index_error_map.values()]):
+        if any(bool(error) for error in index_error_map.values()):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = cls.get_results(instances_data_with_errors_list, True)
                 return cls(count=0, results=results)

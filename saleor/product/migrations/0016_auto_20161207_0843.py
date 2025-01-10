@@ -8,6 +8,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterUniqueTogether(
-            name="stock", unique_together=set([("variant", "location_link")])
+            name="stock", unique_together={("variant", "location_link")}
         )
     ]

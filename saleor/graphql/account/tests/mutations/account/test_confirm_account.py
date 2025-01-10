@@ -78,10 +78,10 @@ def test_account_confirmation_invalid_user(
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["errors"][0]["field"] == "email"
+    assert content["data"]["confirmAccount"]["errors"][0]["field"] == "token"
     assert (
         content["data"]["confirmAccount"]["errors"][0]["code"]
-        == AccountErrorCode.NOT_FOUND.name
+        == AccountErrorCode.INVALID.name
     )
     match_orders_with_new_user_mock.assert_not_called()
     assign_gift_cards_mock.assert_not_called()

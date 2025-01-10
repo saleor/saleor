@@ -1,10 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -20,7 +21,7 @@ class CheckoutEmailUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The checkout's ID." + ADDED_IN_34,
+            description="The checkout's ID.",
             required=False,
         )
         token = UUID(
@@ -79,5 +80,9 @@ class CheckoutEmailUpdate(BaseMutation):
         cls.clean_instance(info, checkout)
         checkout.save(update_fields=["email", "last_change"])
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.checkout_updated, checkout)
+        call_checkout_event(
+            manager,
+            event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
+            checkout=checkout,
+        )
         return CheckoutEmailUpdate(checkout=checkout)

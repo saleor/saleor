@@ -1,7 +1,5 @@
 import datetime
 
-import pytz
-
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
@@ -230,7 +228,7 @@ def test_lines_with_same_variant(api_client, checkout_with_items_and_shipping):
     assert len(content["data"]["checkout"]["problems"]) == 2
     problems = content["data"]["checkout"]["problems"]
     assert all(
-        [problem["availableQuantity"] == available_quantity for problem in problems]
+        problem["availableQuantity"] == available_quantity for problem in problems
     )
     problem_line_ids = [problem["line"]["id"] for problem in problems]
     problem_variant_ids = [problem["variant"]["id"] for problem in problems]
@@ -317,7 +315,7 @@ def test_product_doesnt_have_channel_listing(
     checkout = checkout_with_items_and_shipping
     checkout_line = checkout.lines.first()
 
-    available_at = datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=5)
+    available_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=5)
     product = checkout_line.variant.product
     product.channel_listings.update(available_for_purchase_at=available_at)
 

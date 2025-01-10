@@ -83,6 +83,7 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       }
       lines {
         id
+        quantity
         totalPrice {
           gross {
             amount

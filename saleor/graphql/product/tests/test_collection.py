@@ -1,10 +1,9 @@
+import datetime
 import os
-from datetime import datetime, timedelta
 from unittest.mock import MagicMock, Mock, patch
 
 import graphene
 import pytest
-import pytz
 from django.core.files import File
 from graphql_relay import to_global_id
 
@@ -14,7 +13,7 @@ from ....product.models import Collection, CollectionChannelListing, Product
 from ....product.tests.utils import create_image, create_zip_file_with_image_ext
 from ....tests.utils import dummy_editorjs
 from ....thumbnail.models import Thumbnail
-from ...core.enums import ThumbnailFormatEnum
+from ...core.enums import LanguageCodeEnum, ThumbnailFormatEnum
 from ...tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
@@ -22,11 +21,12 @@ from ...tests.utils import (
 )
 
 QUERY_COLLECTION = """
-    query ($id: ID, $slug: String, $channel: String){
+    query ($id: ID, $slug: String, $channel: String, $slugLanguageCode: LanguageCodeEnum){
         collection(
             id: $id,
             slug: $slug,
             channel: $channel,
+            slugLanguageCode: $slugLanguageCode,
         ) {
             id
             name
@@ -76,6 +76,21 @@ def test_collection_query_by_slug(user_api_client, published_collection, channel
     variables = {
         "slug": published_collection.slug,
         "channel": channel_USD.slug,
+    }
+    response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+    content = get_graphql_content(response)
+    collection_data = content["data"]["collection"]
+    assert collection_data is not None
+    assert collection_data["name"] == published_collection.name
+
+
+def test_collection_query_by_translated_slug(
+    user_api_client, published_collection, collection_translation_fr, channel_USD
+):
+    variables = {
+        "slug": collection_translation_fr.slug,
+        "channel": channel_USD.slug,
+        "slugLanguageCode": LanguageCodeEnum.FR.name,
     }
     response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
     content = get_graphql_content(response)
@@ -2036,14 +2051,14 @@ def test_pagination_for_sorting_collections_by_published_at_date(
             Collection(name="Coll3", slug="collection-3"),
         ]
     )
-    now = datetime.now(pytz.UTC)
+    now = datetime.datetime.now(tz=datetime.UTC)
     CollectionChannelListing.objects.bulk_create(
         [
             CollectionChannelListing(
                 channel=channel_USD,
                 collection=collection,
                 is_published=True,
-                published_at=now - timedelta(days=num),
+                published_at=now - datetime.timedelta(days=num),
             )
             for num, collection in enumerate(collections)
         ]

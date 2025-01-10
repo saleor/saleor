@@ -165,7 +165,7 @@ class JWTManager(JWTManagerBase):
     def encode(cls, payload):
         return api_jwt.encode(
             payload,
-            cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+            cls.get_private_key(),
             algorithm="RS256",
             headers={"kid": cls.get_key_id()},
         )
@@ -174,7 +174,7 @@ class JWTManager(JWTManagerBase):
     def jws_encode(cls, payload: bytes, is_payload_detached: bool = True) -> str:
         return api_jws.encode(
             payload,
-            key=cls.get_private_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+            key=cls.get_private_key(),
             algorithm="RS256",
             headers={"kid": cls.get_key_id(), "crit": ["b64"]},
             is_payload_detached=is_payload_detached,
@@ -188,7 +188,7 @@ class JWTManager(JWTManagerBase):
         if headers.get("alg") == "RS256":
             return jwt.decode(
                 token,
-                cls.get_public_key(),  # type: ignore[arg-type] # key is typed as str for all algos # noqa: E501
+                cls.get_public_key(),
                 algorithms=["RS256"],
                 options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
             )
@@ -207,19 +207,20 @@ class JWTManager(JWTManagerBase):
                     "Variable RSA_PRIVATE_KEY is not provided. "
                     "It is required for running in not DEBUG mode."
                 )
-            else:
-                msg = (
-                    "RSA_PRIVATE_KEY is missing. Using temporary key for local "
-                    "development with DEBUG mode."
-                )
-                logger.warning(color_style().WARNING(msg))
+            msg = (
+                "RSA_PRIVATE_KEY is missing. Using temporary key for local "
+                "development with DEBUG mode."
+            )
+            logger.warning(color_style().WARNING(msg))
 
         cls.get_private_key.cache_clear()
         cls.get_public_key.cache_clear()
         try:
             cls.get_private_key()
         except Exception as e:
-            raise ImproperlyConfigured(f"Unable to load provided PEM private key. {e}")
+            raise ImproperlyConfigured(
+                f"Unable to load provided PEM private key. {e}"
+            ) from e
 
     @classmethod
     def get_issuer(cls) -> str:

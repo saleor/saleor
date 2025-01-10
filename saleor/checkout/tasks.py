@@ -1,14 +1,24 @@
 import logging
 from decimal import Decimal
 
+import graphene
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
+from django.db.utils import DatabaseError, IntegrityError
 from django.utils import timezone
 
+from ..account.models import User
+from ..app.models import App
 from ..celeryconf import app
+from ..core.db.connection import allow_writer
 from ..payment.models import TransactionItem
+from ..plugins.manager import get_plugins_manager
+from .complete_checkout import complete_checkout
+from .fetch import fetch_checkout_info, fetch_checkout_lines
 from .models import Checkout, CheckoutLine
+from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
 
@@ -77,7 +87,9 @@ def delete_expired_checkouts(
         )
     )
 
-    qs: QuerySet[Checkout] = Checkout.objects.filter(
+    qs: QuerySet[Checkout] = Checkout.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
         (empty_checkouts | expired_anonymous_checkouts | expired_user_checkout)
         & ~Q(Exists(with_transactions))
     )
@@ -85,8 +97,10 @@ def delete_expired_checkouts(
 
     total_deleted: int = 0
     has_more: bool = True
-    for batch_number in range(batch_count):
-        deleted_count, _ = Checkout.objects.filter(pk__in=qs.values_list("pk")).delete()
+    for _batch_number in range(batch_count):
+        checkout_ids = list(qs.values_list("pk", flat=True))
+        with allow_writer():
+            deleted_count = delete_checkouts(checkout_ids)
         total_deleted += deleted_count
 
         # Stop deleting inactive checkouts if there was no match.
@@ -109,3 +123,105 @@ def delete_expired_checkouts(
         else:
             task_logger.warning("Invocation limit reached, aborting task")
     return total_deleted, has_more
+
+
+@app.task(
+    queue=settings.AUTOMATIC_CHECKOUT_COMPLETION_QUEUE_NAME,
+    bind=True,
+    default_retry_delay=60,
+    retry_kwargs={"max_retries": 5},
+)
+@allow_writer()
+def automatic_checkout_completion_task(
+    self,
+    checkout_pk,
+    user_id,
+    app_id,
+):
+    """Try to automatically complete the checkout.
+
+    If any error is raised during the process, it will be caught and logged.
+    """
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
+    try:
+        checkout = Checkout.objects.get(pk=checkout_pk)
+    except Checkout.DoesNotExist:
+        return
+
+    user = User.objects.filter(pk=user_id).first()
+    app = App.objects.filter(pk=app_id).first()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    if unavailable_variant_pks:
+        checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+        not_available_variants_ids = {
+            graphene.Node.to_global_id("ProductVariant", pk)
+            for pk in unavailable_variant_pks
+        }
+        task_logger.info(
+            "The automatic checkout completion not triggered, as the checkout %s "
+            "contains unavailable variants: %s.",
+            checkout_id,
+            ", ".join(not_available_variants_ids),
+            extra={
+                "checkout_id": checkout_id,
+                "variant_ids": not_available_variants_ids,
+            },
+        )
+        return
+
+    task_logger.info(
+        "Automatic checkout completion triggered for checkout: %s.",
+        checkout_id,
+        extra={"checkout_id": checkout_id},
+    )
+
+    failed_error_msg = "Automatic checkout completion failed for checkout: %s."
+    try:
+        complete_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            user=user,
+            app=app,
+            is_automatic_completion=True,
+        )
+    except ValidationError as error:
+        task_logger.warning(
+            failed_error_msg,
+            checkout_id,
+            extra={
+                "checkout_id": checkout_id,
+                "error": str(error),
+            },
+        )
+    except (IntegrityError, DatabaseError) as error:
+        if checkout_not_exists := not Checkout.objects.filter(pk=checkout_pk).exists():
+            failed_error_msg = failed_error_msg + " The checkout no longer exists."
+
+        task_logger.warning(
+            failed_error_msg,
+            checkout_id,
+            extra={
+                "checkout_id": checkout_id,
+                "error": str(error),
+            },
+        )
+        if not checkout_not_exists:
+            task_logger.info(
+                "Retrying automatic checkout completion for checkout: %s.",
+                checkout_id,
+                extra={"checkout_id": checkout_id},
+            )
+            raise self.retry() from error
+    else:
+        task_logger.info(
+            "Automatic checkout completion succeeded for checkout: %s.",
+            checkout_id,
+            extra={"checkout_id": checkout_id},
+        )

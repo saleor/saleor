@@ -1,12 +1,17 @@
 import json
 from unittest import mock
 
+import graphene
 from django.test import override_settings
 
 from .....graphql.webhook.subscription_payload import generate_payload_from_subscription
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.models import Webhook
-from ..transport import create_deliveries_for_subscriptions, get_pre_save_payload_key
+from ..transport import (
+    create_deliveries_for_multiple_subscription_objects,
+    create_deliveries_for_subscriptions,
+    get_pre_save_payload_key,
+)
 
 SUBSCRIPTION_QUERY = """
     subscription {
@@ -48,7 +53,7 @@ def test_create_deliveries_different_pre_save_payloads(webhook_app, variant):
     event_delivery = event_deliveries[0]
     assert event_delivery
     payload = event_delivery.payload
-    assert payload.payload
+    assert payload.get_payload()
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
@@ -105,7 +110,7 @@ def test_create_deliveries_no_payload_changes_limiting_disabled(webhook_app, var
     event_delivery = event_deliveries[0]
     assert event_delivery
     payload = event_delivery.payload
-    assert json.loads(payload.payload) == pre_payload
+    assert json.loads(payload.get_payload()) == pre_payload
 
 
 @override_settings(ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS=True)
@@ -154,3 +159,54 @@ def test_create_deliveries_reuse_request_for_webhooks(
     request_2 = mock_generate_payload_from_subscription.call_args_list[1][1]["request"]
     assert request_1 is request_2
     assert request_1.dataloaders is request_2.dataloaders
+
+
+def test_create_deliveries_for_multiple_subscription_objects(
+    subscription_product_updated_webhook, product_list
+):
+    # given
+    webhooks = [subscription_product_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_UPDATED
+
+    # when
+    deliveries = create_deliveries_for_multiple_subscription_objects(
+        event_type, product_list, webhooks
+    )
+
+    # then
+    assert len(deliveries) == len(product_list)
+    for index, delivery in enumerate(deliveries):
+        assert delivery.webhook == subscription_product_updated_webhook
+        assert delivery.event_type == event_type
+        assert json.loads(delivery.payload.get_payload()) == {
+            "product": {
+                "id": graphene.Node.to_global_id("Product", product_list[index].pk)
+            }
+        }
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.MAX_WEBHOOK_EVENTS_IN_DB_BULK", 2
+)
+def test_create_deliveries_for_multiple_subscription_objects_when_more_objs_than_bulk(
+    subscription_product_updated_webhook, product_list
+):
+    # given
+    webhooks = [subscription_product_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_UPDATED
+
+    # when
+    deliveries = create_deliveries_for_multiple_subscription_objects(
+        event_type, product_list, webhooks
+    )
+
+    # then
+    assert len(deliveries) == len(product_list)
+    for index, delivery in enumerate(deliveries):
+        assert delivery.webhook == subscription_product_updated_webhook
+        assert delivery.event_type == event_type
+        assert json.loads(delivery.payload.get_payload()) == {
+            "product": {
+                "id": graphene.Node.to_global_id("Product", product_list[index].pk)
+            }
+        }

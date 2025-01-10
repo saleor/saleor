@@ -6,6 +6,7 @@ from unittest.mock import Mock
 import graphene
 import pytest
 from django.core.serializers.json import DjangoJSONEncoder
+from django.test import TestCase
 from django.test.client import MULTIPART_CONTENT, Client
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
@@ -13,7 +14,6 @@ from django.utils.functional import SimpleLazyObject
 from ...account.models import User
 from ...core.jwt import create_access_token
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
@@ -32,9 +32,7 @@ class BaseApiClient(Client):
         self.user = user
         self.app_token = None
         self.app = app
-        if user:
-            self.token = create_access_token(user)
-        elif app:
+        if app:
             _, auth_token = app.tokens.create(name="Default")
             self.app_token = auth_token
         self.api_path = API_PATH
@@ -44,11 +42,22 @@ class BaseApiClient(Client):
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
-        if self.user:
+        self.ensure_access_token()
+        if self.token:
             environ["HTTP_AUTHORIZATION"] = f"JWT {self.token}"
         elif self.app_token:
             environ["HTTP_AUTHORIZATION"] = f"Bearer {self.app_token}"
         return environ
+
+    def regenerate_access_token(self):
+        if self.user and self.token:
+            self.token = create_access_token(self.user)
+        else:
+            self.token = None
+
+    def ensure_access_token(self):
+        if self.user and not self.token:
+            self.token = create_access_token(self.user)
 
     @property
     def user(self):
@@ -57,8 +66,7 @@ class BaseApiClient(Client):
     @user.setter
     def user(self, user):
         self._user = user
-        if user:
-            self.token = create_access_token(user)
+        self.token = None
 
     def post(self, data=None, **kwargs):
         """Send a POST request.
@@ -103,8 +111,8 @@ class ApiClient(BaseApiClient):
                 self.app.permissions.add(*permissions)
             else:
                 self.user.user_permissions.add(*permissions)
-        result = super(Client, self).post(self.api_path, data, **kwargs)
-        flush_post_commit_hooks()
+        with TestCase.captureOnCommitCallbacks(execute=True):
+            result = super(Client, self).post(self.api_path, data, **kwargs)
         return result
 
     def post_multipart(self, *args, permissions=None, **kwargs):
@@ -119,8 +127,8 @@ class ApiClient(BaseApiClient):
             response = super(Client, self).post(self.api_path, *args, **kwargs)
             assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
-        result = super(Client, self).post(self.api_path, *args, **kwargs)
-        flush_post_commit_hooks()
+        with TestCase.captureOnCommitCallbacks(execute=True):
+            result = super(Client, self).post(self.api_path, *args, **kwargs)
         return result
 
 

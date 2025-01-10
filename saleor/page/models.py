@@ -7,7 +7,7 @@ from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
 from ..core.utils.editorjs import clean_editor_js
 from ..permission.enums import PagePermissions, PageTypePermissions
-from ..seo.models import SeoModel, SeoModelTranslation
+from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -44,7 +44,7 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
         return self.title
 
 
-class PageTranslation(SeoModelTranslation):
+class PageTranslation(SeoModelTranslationWithSlug):
     page = models.ForeignKey(
         Page, related_name="translations", on_delete=models.CASCADE
     )
@@ -52,6 +52,12 @@ class PageTranslation(SeoModelTranslation):
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["language_code", "slug"],
+                name="uniq_lang_slug_pagetransl",
+            ),
+        ]
         ordering = ("language_code", "page", "pk")
         unique_together = (("language_code", "page"),)
 

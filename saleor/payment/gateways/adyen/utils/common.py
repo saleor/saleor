@@ -1,6 +1,5 @@
 import json
 import logging
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Callable, Optional
 
@@ -87,8 +86,8 @@ def api_call(
     try:
         return method(request_data, **kwargs)
     except (Adyen.AdyenError, ValueError, TypeError, ConnectTimeout) as e:
-        logger.warning(f"Unable to process the payment: {e}")
-        raise PaymentError(f"Unable to process the payment request: {e}.")
+        logger.warning("Unable to process the payment: %s", e)
+        raise PaymentError(f"Unable to process the payment request: {e}.") from e
 
 
 def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[dict]:
@@ -338,7 +337,7 @@ def get_shopper_locale_value(country_code: str):
 
 def request_data_for_gateway_config(
     checkout_info: "CheckoutInfo",
-    lines: Optional[Iterable[CheckoutLineInfo]],
+    lines: Optional[list[CheckoutLineInfo]],
     merchant_account,
 ) -> dict[str, Any]:
     manager = get_plugins_manager(allow_replica=False)

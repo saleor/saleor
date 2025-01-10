@@ -19,6 +19,7 @@ class Migration(migrations.Migration):
             model_name="user",
             name="user_search_gin",
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="user",
             index=django.contrib.postgres.indexes.GinIndex(
@@ -27,6 +28,7 @@ class Migration(migrations.Migration):
                 opclasses=["gin_trgm_ops", "gin_trgm_ops", "gin_trgm_ops"],
             ),
         ),
+        # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="user",
             index=django.contrib.postgres.indexes.GinIndex(

@@ -46,7 +46,7 @@ def test_menu_items_collection_without_providing_channel(
         response = user_api_client.post_graphql(query, variables)
         content = get_graphql_content(response)
         assert any(
-            [str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns]
+            str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns
         )
 
     data = content["data"]["menuItem"]

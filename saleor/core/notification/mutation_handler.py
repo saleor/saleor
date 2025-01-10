@@ -8,12 +8,12 @@ def get_external_notification_payload(objects, extra_payload, payload_function):
 def send_notification(
     manager, external_event_type, payloads, channel_slug=None, plugin_id=None
 ):
-    method_kwargs = dict(
-        manager=manager,
-        external_event_type=external_event_type,
-        channel_slug=channel_slug,
-        plugin_id=plugin_id,
-    )
+    method_kwargs = {
+        "manager": manager,
+        "external_event_type": external_event_type,
+        "channel_slug": channel_slug,
+        "plugin_id": plugin_id,
+    }
     if isinstance(payloads, list):
         for payload in payloads:
             trigger_notifications(**method_kwargs, payload=payload)
@@ -24,7 +24,7 @@ def send_notification(
 def trigger_notifications(
     manager, external_event_type, payload, channel_slug=None, plugin_id=None
 ):
-    method_kwargs = dict(event=external_event_type, payload=payload)
+    method_kwargs = {"event": external_event_type, "payload_func": lambda: payload}
     manager.notify(**method_kwargs, plugin_id=plugin_id, channel_slug=channel_slug)
 
 

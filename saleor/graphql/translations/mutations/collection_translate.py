@@ -7,10 +7,10 @@ from ...core import ResolveInfo
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...product.types import Collection
-from .utils import BaseTranslateMutation, TranslationInput
+from .utils import BaseTranslateMutationWithSlug, TranslationInput
 
 
-class CollectionTranslate(BaseTranslateMutation):
+class CollectionTranslate(BaseTranslateMutationWithSlug):
     class Arguments:
         id = graphene.ID(
             required=True,

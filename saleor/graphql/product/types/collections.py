@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 from graphene import relay
+from promise import Promise
 
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -23,9 +24,7 @@ from ...core.connection import (
 )
 from ...core.context import get_database_connection_name
 from ...core.descriptions import (
-    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -73,11 +72,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
-        where=ProductWhereInput(
-            description="Filtering options for products."
-            + ADDED_IN_314
-            + PREVIEW_FEATURE
-        ),
+        where=ProductWhereInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
@@ -111,10 +106,10 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
         info: ResolveInfo,
         size: Optional[int] = None,
         format: Optional[str] = None,
-    ):
+    ) -> None | Image | Promise[Image]:
         node = root.node
         if not node.background_image:
-            return
+            return None
 
         alt = node.background_image_alt
         if size == 0:
@@ -169,8 +164,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
                 .load(str(root.channel_slug))
                 .then(_resolve_products)
             )
-        else:
-            return _resolve_products(None)
+        return _resolve_products(None)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Collection], info):

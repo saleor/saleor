@@ -304,11 +304,13 @@ def test_skip_address_validation_logging(
     graphql_address_data_skipped_validation,
     caplog,
 ):
+    """Ensure invalid address creates logs when skip_validation flag = True."""
     # given
     query = ADDRESS_CREATE_MUTATION
     caplog.set_level(logging.WARNING)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     address_data = graphql_address_data_skipped_validation
+    assert address_data["skipValidation"] is True
     invalid_name = "wrong name"
     address_data["country"] = "IE"
     address_data["postalCode"] = invalid_name
@@ -325,6 +327,37 @@ def test_skip_address_validation_logging(
     data = content["data"]["addressCreate"]
     assert not data["errors"]
     assert "'country_area': 'wrong name'" in caplog.text
-    assert "'postal_code': 'wrong name'" in caplog.text
-    assert "'skip_validation': True" in caplog.text
+    assert "'postal_code': 'invalid'" in caplog.text
     assert "'country': 'IE'" in caplog.text
+
+
+def test_address_validation_no_logging(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data,
+    caplog,
+):
+    """Ensure invalid address does not create logs when skip_validation flag = False."""
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    caplog.set_level(logging.WARNING)
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data = graphql_address_data
+    assert not address_data.get("skipValidation")
+    invalid_name = "wrong name"
+    address_data["country"] = "IE"
+    address_data["countryArea"] = invalid_name
+    variables = {"user": user_id, "address": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert data["errors"][0]["code"] == "INVALID"
+    assert data["errors"][0]["field"] == "countryArea"
+    assert "Invalid address input" not in caplog.text

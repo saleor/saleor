@@ -6,7 +6,6 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_310
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types.common import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -21,7 +20,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
         id = graphene.ID(required=False, description="ID of a product to update.")
         external_reference = graphene.String(
             required=False,
-            description=f"External ID of a product to update. {ADDED_IN_310}",
+            description="External ID of a product to update.",
         )
         input = ProductInput(
             required=True, description="Fields required to update a product."
@@ -49,9 +48,7 @@ class ProductUpdate(ProductCreate, ModelWithExtRefMutation):
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
-        product = models.Product.objects.prefetched_for_webhook(single_object=True).get(
-            pk=instance.pk
-        )
+        product = models.Product.objects.get(pk=instance.pk)
         channel_ids = set(
             product.channel_listings.all().values_list("channel_id", flat=True)
         )

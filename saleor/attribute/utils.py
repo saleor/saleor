@@ -106,7 +106,7 @@ def _associate_attribute_to_instance(
             "attribute_id__in": list(attr_val_map.keys()),
             "product_type_id": prod_type_id,
         }
-        instance_attrs_ids = instance_attribute_model.objects.filter(  # type: ignore
+        instance_attrs_ids = instance_attribute_model.objects.filter(  # type: ignore[attr-defined]
             **attribute_filter
         ).values_list("pk", flat=True)
 

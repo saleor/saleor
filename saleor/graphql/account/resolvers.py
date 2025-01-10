@@ -2,6 +2,7 @@ from itertools import chain
 from typing import Optional
 
 from django.db.models import Q
+from graphql import GraphQLError
 from i18naddress import get_validation_rules
 
 from ...account import models
@@ -130,7 +131,7 @@ def resolve_users(info, ids=None, emails=None):
 
     if ids and emails:
         return qs.filter(Q(id__in=ids) | Q(email__in=emails))
-    elif ids:
+    if ids:
         return qs.filter(id__in=ids)
     return qs.filter(email__in=emails)
 
@@ -149,6 +150,10 @@ def resolve_address_validation_rules(
         "city": city,
         "city_area": city_area,
     }
+    # EU is available as a country code in CountryCode enum but it's not valid for
+    # the address validation
+    if country_code.upper() == "EU":
+        raise GraphQLError("Cannot validate address for EU country code.")
     rules = get_validation_rules(params)
     return AddressValidationData(
         country_code=rules.country_code,

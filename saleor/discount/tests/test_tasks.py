@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
@@ -14,6 +14,7 @@ from .. import DiscountType, RewardValueType
 from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
 from ..tasks import (
     clear_promotion_rule_variants_task,
+    decrease_voucher_code_usage_of_draft_orders,
     decrease_voucher_codes_usage_task,
     disconnect_voucher_codes_from_draft_orders_task,
     fetch_promotion_variants_and_product_ids,
@@ -100,52 +101,52 @@ def test_handle_promotion_toggle(
 
     # promotions with start date before current date
     # without notification sent day - should be sent for started
-    promotions[0].start_date = now - timedelta(days=1)
+    promotions[0].start_date = now - datetime.timedelta(days=1)
     promotions[0].last_notification_scheduled_at = None
 
     # with notification sent day after the start date - shouldn't be sent
-    promotions[1].start_date = now - timedelta(days=1)
-    promotions[1].last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotions[1].start_date = now - datetime.timedelta(days=1)
+    promotions[1].last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
     # with notification sent day before the start date - should be sent for started
-    promotions[2].start_date = now - timedelta(minutes=2)
-    promotions[2].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[2].start_date = now - datetime.timedelta(minutes=2)
+    promotions[2].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     # without notification sent day
     # promotions with start date after current date - shouldn't be sent
-    promotions[3].start_date = now + timedelta(days=1)
+    promotions[3].start_date = now + datetime.timedelta(days=1)
     promotions[3].last_notification_scheduled_at = None
 
     # with notification sent day before the start date
-    promotions[4].start_date = now + timedelta(days=1)
-    promotions[4].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[4].start_date = now + datetime.timedelta(days=1)
+    promotions[4].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     # promotions with end date before current date
     # without notification sent day - should be sent for ended
-    promotions[5].start_date = now - timedelta(days=2)
-    promotions[5].end_date = now - timedelta(days=1)
+    promotions[5].start_date = now - datetime.timedelta(days=2)
+    promotions[5].end_date = now - datetime.timedelta(days=1)
     promotions[5].last_notification_scheduled_at = None
 
     # with notification sent day after the start date - shouldn't be sent
-    promotions[6].start_date = now - timedelta(days=2)
-    promotions[6].end_date = now - timedelta(days=1)
-    promotions[6].last_notification_scheduled_at = now - timedelta(minutes=2)
+    promotions[6].start_date = now - datetime.timedelta(days=2)
+    promotions[6].end_date = now - datetime.timedelta(days=1)
+    promotions[6].last_notification_scheduled_at = now - datetime.timedelta(minutes=2)
 
     # with notification sent day before the start date - should be sent for ended
-    promotions[7].start_date = now - timedelta(days=2)
-    promotions[7].end_date = now - timedelta(minutes=2)
-    promotions[7].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[7].start_date = now - datetime.timedelta(days=2)
+    promotions[7].end_date = now - datetime.timedelta(minutes=2)
+    promotions[7].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     # promotions with end date after current date
     # without notification sent day
-    promotions[8].start_date = now + timedelta(days=2)
-    promotions[8].end_date = now + timedelta(days=1)
+    promotions[8].start_date = now + datetime.timedelta(days=2)
+    promotions[8].end_date = now + datetime.timedelta(days=1)
     promotions[8].last_notification_scheduled_at = None
 
     # with notification sent day before the start date
-    promotions[9].start_date = now + timedelta(days=2)
-    promotions[9].end_date = now + timedelta(days=1)
-    promotions[9].last_notification_scheduled_at = now - timedelta(minutes=5)
+    promotions[9].start_date = now + datetime.timedelta(days=2)
+    promotions[9].end_date = now + datetime.timedelta(days=1)
+    promotions[9].last_notification_scheduled_at = now - datetime.timedelta(minutes=5)
 
     Promotion.objects.bulk_update(
         promotions,
@@ -188,7 +189,7 @@ def test_handle_promotion_toggle(
     assert PromotionRule.objects.filter(variants_dirty=True).count() == 2
 
     mock_mark_catalogue_promotion_rules_as_dirty.assert_called_once_with(
-        set([promotions[index].id for index in indexes_of_toggle_sales])
+        {promotions[index].id for index in indexes_of_toggle_sales}
     )
 
     mock_clear_promotion_rule_variants_task.assert_called_once()
@@ -197,8 +198,8 @@ def test_handle_promotion_toggle(
 def test_clear_promotion_rule_variants_task(promotion_list):
     # given
     expired_promotion = promotion_list[-1]
-    expired_promotion.start_date = timezone.now() - timedelta(days=5)
-    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.start_date = timezone.now() - datetime.timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - datetime.timedelta(days=1)
     expired_promotion.save(update_fields=["start_date", "end_date"])
 
     PromotionRuleVariant = PromotionRule.variants.through
@@ -222,8 +223,8 @@ def test_clear_promotion_rule_variants_task(promotion_list):
 def test_clear_promotion_rule_variants_task_marks_products_as_dirty(promotion_list):
     # given
     expired_promotion = promotion_list[-1]
-    expired_promotion.start_date = timezone.now() - timedelta(days=5)
-    expired_promotion.end_date = timezone.now() - timedelta(days=1)
+    expired_promotion.start_date = timezone.now() - datetime.timedelta(days=5)
+    expired_promotion.end_date = timezone.now() - datetime.timedelta(days=1)
     expired_promotion.save(update_fields=["start_date", "end_date"])
 
     PromotionRuleVariant = PromotionRule.variants.through
@@ -248,7 +249,7 @@ def test_clear_promotion_rule_variants_task_marks_products_as_dirty(promotion_li
 
 def test_set_promotion_rule_variants_task(promotion_list):
     # given
-    Promotion.objects.update(start_date=timezone.now() - timedelta(days=5))
+    Promotion.objects.update(start_date=timezone.now() - datetime.timedelta(days=5))
     PromotionRuleVariant = PromotionRule.variants.through
     PromotionRuleVariant.objects.all().delete()
 
@@ -261,22 +262,57 @@ def test_set_promotion_rule_variants_task(promotion_list):
     ) == set(PromotionRule.objects.values_list("id", flat=True))
 
 
-def test_decrease_voucher_code_usage_task_multiple_use(
-    draft_order_list_with_multiple_use_voucher, voucher_multiple_use
+def test_decrease_voucher_code_usage_of_draft_orders_multiple_use(
+    draft_order_list_with_multiple_use_voucher, voucher_multiple_use, draft_order
 ):
     # given
     order_list = draft_order_list_with_multiple_use_voucher
     voucher = voucher_multiple_use
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.used == 1 for voucher_code in voucher_codes])
-    voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
+
+    code_1, _, _ = voucher_codes
+    draft_order.voucher_code = code_1.code
+    draft_order.save(update_fields=["voucher_code"])
+    code_1.used += 1
+    code_1.save(update_fields=["used"])
+
+    assert all(voucher_code.used == 1 for voucher_code in voucher_codes[1:])
+    assert code_1.used == 2
 
     # when
-    decrease_voucher_codes_usage_task(voucher_code_ids)
+    decrease_voucher_code_usage_of_draft_orders(order_list[0].channel_id)
 
     # then
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.used == 0 for voucher_code in voucher_codes])
+    assert all(voucher_code.used == 0 for voucher_code in voucher_codes)
+
+
+def test_decrease_voucher_code_usage_task_multiple_use(
+    draft_order_list_with_multiple_use_voucher, voucher_multiple_use, draft_order
+):
+    # given
+    order_list = draft_order_list_with_multiple_use_voucher
+    voucher = voucher_multiple_use
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+
+    code_1, _, _ = voucher_codes
+    draft_order.voucher_code = code_1.code
+    draft_order.save(update_fields=["voucher_code"])
+    code_1.used += 1
+    code_1.save(update_fields=["used"])
+
+    assert all(voucher_code.used == 1 for voucher_code in voucher_codes[1:])
+    assert code_1.used == 2
+
+    voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
+    codes = [voucher_code.code for voucher_code in voucher_codes] + [code_1.code]
+
+    # when
+    decrease_voucher_codes_usage_task(voucher_code_ids, codes)
+
+    # then
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+    assert all(voucher_code.used == 0 for voucher_code in voucher_codes)
 
 
 def test_decrease_voucher_code_usage_task_single_use(
@@ -286,15 +322,15 @@ def test_decrease_voucher_code_usage_task_single_use(
     order_list = draft_order_list_with_single_use_voucher
     voucher = voucher_single_use
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.is_active is False for voucher_code in voucher_codes])
+    assert all(voucher_code.is_active is False for voucher_code in voucher_codes)
     voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
 
     # when
-    decrease_voucher_codes_usage_task(voucher_code_ids)
+    decrease_voucher_codes_usage_task(voucher_code_ids, [])
 
     # then
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.is_active is True for voucher_code in voucher_codes])
+    assert all(voucher_code.is_active is True for voucher_code in voucher_codes)
 
 
 def test_disconnect_voucher_codes_from_draft_orders(
@@ -306,11 +342,11 @@ def test_disconnect_voucher_codes_from_draft_orders(
     order.lines.add(order_line)
 
     order_list_ids = [order.id for order in order_list]
-    assert all([order.voucher_code for order in order_list])
+    assert all(order.voucher_code for order in order_list)
     for order in order_list:
         order.should_refresh_prices = False
     Order.objects.bulk_update(order_list, ["should_refresh_prices"])
-    assert all([order.should_refresh_prices is False for order in order_list])
+    assert all(order.should_refresh_prices is False for order in order_list)
 
     voucher_code = order.voucher_code
     order_discount = OrderDiscount.objects.create(
@@ -325,8 +361,8 @@ def test_disconnect_voucher_codes_from_draft_orders(
 
     # then
     order_list = Order.objects.filter(id__in=order_list_ids).all()
-    assert all([order.voucher_code is None for order in order_list])
-    assert all([order.should_refresh_prices is True for order in order_list])
+    assert all(order.voucher_code is None for order in order_list)
+    assert all(order.should_refresh_prices is True for order in order_list)
 
     with pytest.raises(line_discount._meta.model.DoesNotExist):
         line_discount.refresh_from_db()

@@ -106,7 +106,7 @@ def test_cancel_partially_paid_order_CORE_0207(
         message="Charged",
         psp_reference="PSP-ref123",
         available_actions=["REFUND", "CANCEL"],
-        amount=partial_amount,
+        amount_charged=partial_amount,
     )
 
     order = order_query(e2e_staff_api_client, order_id)

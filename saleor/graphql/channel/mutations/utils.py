@@ -1,4 +1,4 @@
-from datetime import timedelta
+import datetime
 from typing import Optional
 
 from django.core.exceptions import ValidationError
@@ -24,7 +24,9 @@ def clean_expire_orders_after(expire_orders_after: int) -> Optional[int]:
     return expire_orders_after
 
 
-def clean_delete_expired_orders_after(delete_expired_orders_after: int) -> timedelta:
+def clean_delete_expired_orders_after(
+    delete_expired_orders_after: int,
+) -> datetime.timedelta:
     if (
         delete_expired_orders_after < 1
         or delete_expired_orders_after > DELETE_EXPIRED_ORDERS_MAX_DAYS
@@ -38,7 +40,7 @@ def clean_delete_expired_orders_after(delete_expired_orders_after: int) -> timed
                 )
             }
         )
-    return timedelta(days=delete_expired_orders_after)
+    return datetime.timedelta(days=delete_expired_orders_after)
 
 
 def clean_input_order_settings(
@@ -78,10 +80,13 @@ def clean_input_order_settings(
 
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
-    if "use_legacy_error_flow" in checkout_settings:
-        cleaned_input["use_legacy_error_flow_for_checkout"] = checkout_settings[
-            "use_legacy_error_flow"
-        ]
+    input_to_model_fields = {
+        "use_legacy_error_flow": "use_legacy_error_flow_for_checkout",
+        "automatically_complete_fully_paid_checkouts": "automatically_complete_fully_paid_checkouts",
+    }
+    for input_field, model_field in input_to_model_fields.items():
+        if input_field in checkout_settings:
+            cleaned_input[model_field] = checkout_settings[input_field]
 
 
 def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):

@@ -15,7 +15,7 @@ from .widgets import DatalistTextWidget
 
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
-ADDRESS_FIELDS_TO_LOG = ["country_area", "city_area", "city", "postal_code"]
+ADDRESS_FIELDS_TO_LOG = ["country_area", "city_area", "city"]
 
 AREA_TYPE = {
     "area": "Area",
@@ -131,7 +131,7 @@ class AddressForm(forms.ModelForm):
     def clean(self):
         data = super().clean()
         if not data:
-            return
+            return None
         phone = data.get("phone")
         country = data.get("country")
         if phone:
@@ -211,13 +211,15 @@ class CountryAwareAddressForm(AddressForm):
                     data[field_name] = mapping[actual_value]
 
     def log_errors(self):
+        if not self.data.get("skip_validation"):
+            return
+
         errors = self.errors
         fields = {}
         for field, _ in errors.items():
             fields[field] = (
                 self.data.get(field) if field in ADDRESS_FIELDS_TO_LOG else "invalid"
             )
-        fields["skip_validation"] = self.data.get("skip_validation")
         fields["country"] = self.data.get("country")
         logger.warning("Invalid address input: %s", fields)
 
@@ -226,7 +228,7 @@ def get_address_form_class(country_code):
     return COUNTRY_FORMS.get(country_code, AddressForm)
 
 
-def get_form_i18n_lines(form_instance):
+def get_form_i18n_lines(form_instance) -> list[list[BoundField]]:
     country_code = form_instance.i18n_country_code
     try:
         fields_order = i18naddress.get_field_order({"country_code": country_code})
@@ -246,6 +248,7 @@ def get_form_i18n_lines(form_instance):
 
     if fields_order:
         return [_convert_to_bound_fields(form_instance, line) for line in fields_order]
+    return []
 
 
 def update_base_fields(form_class, i18n_rules):
@@ -311,6 +314,6 @@ COUNTRY_CHOICES = [
 # Sort choices list by country name
 COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: str(choice[1]))
 
-for country, label in COUNTRY_CHOICES:
+for country, _label in COUNTRY_CHOICES:
     country_rules = i18naddress.get_validation_rules({"country_code": country})
     COUNTRY_FORMS[country] = construct_address_form(country, country_rules)

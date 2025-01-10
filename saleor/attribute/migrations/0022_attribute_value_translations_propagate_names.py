@@ -60,14 +60,14 @@ def clean_editor_js(definitions: Optional[dict], *, to_string: bool = False):
     return " ".join(plain_text_list) if to_string else definitions
 
 
-def clean_text_data(text: str):
+def clean_text_data(text: str) -> str:
     """Look for url in text, check if URL is allowed and return the cleaned URL.
 
     By default, only the protocol ``javascript`` is denied.
     """
 
     if not text:
-        return
+        return text
 
     end_of_match = 0
     new_text = ""
@@ -80,7 +80,8 @@ def clean_text_data(text: str):
         if url.scheme in BLACKLISTED_URL_SCHEMES:
             warnings.warn(
                 f"An invalid url was sent: {original_url} "
-                f"-- Scheme: {url.scheme} is blacklisted"
+                f"-- Scheme: {url.scheme} is blacklisted",
+                stacklevel=1,
             )
             new_url = "#invalid"
 

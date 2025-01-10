@@ -1640,7 +1640,7 @@ def test_promotion_rule_create_gift_promotion(
     assert sorted(rule_data["giftIds"]) == sorted(gift_ids)
     assert promotion.rules.count() == rules_count + 1
     rule = promotion.rules.last()
-    assert all([gift in product_variant_list for gift in rule.gifts.all()])
+    assert all(gift in product_variant_list for gift in rule.gifts.all())
     assert rule.reward_type == RewardTypeEnum.GIFT.value
     promotion_rule_created_mock.assert_called_once_with(rule)
 

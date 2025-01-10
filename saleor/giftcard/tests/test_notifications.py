@@ -1,7 +1,7 @@
 from unittest import mock
 
 from ...account.notifications import get_default_user_payload
-from ...core.notify_events import NotifyEventType
+from ...core.notify import NotifyEventType
 from ...core.tests.utils import get_site_context_payload
 from ...graphql.core.utils import to_global_id_or_none
 from ...plugins.manager import get_plugins_manager
@@ -22,8 +22,11 @@ def test_get_default_gift_card_payload(gift_card):
 def test_send_gift_card_notification(
     mocked_notify, staff_user, customer_user, gift_card, channel_USD, site_settings
 ):
+    # given
     manager = get_plugins_manager(allow_replica=False)
     resending = False
+
+    # when
     send_gift_card_notification(
         staff_user,
         None,
@@ -35,6 +38,7 @@ def test_send_gift_card_notification(
         resending=resending,
     )
 
+    # then
     expected_payload = {
         "gift_card": {
             "id": to_global_id_or_none(gift_card),
@@ -50,8 +54,11 @@ def test_send_gift_card_notification(
         **get_site_context_payload(site_settings.site),
     }
 
-    mocked_notify.assert_called_once_with(
-        NotifyEventType.SEND_GIFT_CARD,
-        payload=expected_payload,
-        channel_slug=channel_USD.slug,
-    )
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.SEND_GIFT_CARD
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_USD.slug

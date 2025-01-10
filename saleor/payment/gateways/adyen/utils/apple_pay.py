@@ -81,12 +81,12 @@ def initialize_apple_pay_session(
         response = make_request_to_initialize_apple_pay(
             validation_url, request_data, certificate
         )
-    except requests.exceptions.RequestException:
+    except requests.exceptions.RequestException as e:
         logger.warning("Failed to fetch the Apple Pay session", exc_info=True)
         raise PaymentError(
             "Unable to create Apple Pay payment session. Make sure that input data "
             " and certificate are correct."
-        )
+        ) from e
     if not response.ok:
         # FIXME: shouldn't we forward some details here?
         raise PaymentError(
