@@ -9,9 +9,15 @@ from faker import Faker
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ..models import Product, ProductChannelListing, ProductVariantChannelListing
+from ...product import ProductMediaTypes
+from ..models import (
+    Product,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+)
 from ..tasks import (
     _get_preorder_variants_to_clean,
+    async_media_downloader,
     recalculate_discounted_price_for_products_task,
     update_products_search_vector_task,
     update_variant_relations_for_active_promotion_rules_task,
@@ -318,3 +324,27 @@ def test_mem_usage_recalculate_discounted_price_for_products_task(
     lots_of_products_with_variants,
 ):
     recalculate_discounted_price_for_products_task()
+
+
+@patch("saleor.product.tasks.get_oembed_data")
+def test_async_media_downloader(
+    mock_get_oembed_data, product_with_variant_with_external_media
+):
+
+    # 1. ProductMedia is not downloaded
+    media = product_with_variant_with_external_media.media.first()
+    media.downloaded = False
+    media.save()
+
+    # 2. nock get_oembed_data so we don't call external request
+    mock_get_oembed_data.return_value = {"url": media.external_url}, ProductMediaTypes.VIDEO
+
+    # 3. Call async_media_downloader
+    async_media_downloader(media.pk)
+
+    # 4. check mock has been called
+    assert mock_get_oembed_data.call_count == 1
+
+    # 5. media is now downloaded
+    media.refresh_from_db()
+    assert media.downloaded

@@ -7,6 +7,7 @@ from .....core.utils.validators import get_oembed_data
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
+from .....product.tasks import async_media_downloader
 from .....thumbnail.utils import get_filename_from_url
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -29,6 +30,14 @@ class ProductMediaCreateInput(BaseInputObjectType):
     )
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
+    )
+    async_download = graphene.Boolean(
+        required=False,
+        default_value=False,
+        description=(
+            "Determine if media_url will downloaded synchronously or not. "
+            "Default: False"
+        ),
     )
 
     class Meta:
@@ -114,7 +123,7 @@ class ProductMediaCreate(BaseMutation):
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
-        if media_url:
+        if media_url and not input["async_download"]:
             # Remote URLs can point to the images or oembed data.
             # In case of images, file is downloaded. Otherwise we keep only
             # URL to remote media.
@@ -140,6 +149,16 @@ class ProductMediaCreate(BaseMutation):
                     type=media_type,
                     oembed_data=oembed_data,
                 )
+        elif media_url and input["async_download"]:
+            media = product.media.create(
+                external_url=media_url,
+                alt=alt,
+                type=ProductMediaTypes.IMAGE,
+                downloaded=False,
+            )
+            # register celery task to download media asynchronously
+            async_media_downloader.delay(media.pk)
+
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         cls.call_event(manager.product_media_created, media)

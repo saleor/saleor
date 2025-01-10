@@ -1004,3 +1004,11 @@ class MediaInput(graphene.InputObjectType):
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
     )
+    async_download = graphene.Boolean(
+        required=False,
+        default_value=False,
+        description=(
+            "Determine if media_url will downloaded synchronously or not. "
+            "Default: False"
+        ),
+    )

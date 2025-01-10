@@ -6,7 +6,8 @@ from uuid import UUID
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.files import File
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
 from django.utils import timezone
@@ -15,13 +16,25 @@ from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
+from ..core.http_client import HTTPClient
+from ..core.utils.validators import get_oembed_data
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
+from ..graphql.core.validators.file import is_image_url, validate_image_url
 from ..plugins.manager import get_plugins_manager
+from ..product import ProductMediaTypes
+from ..product.error_codes import ProductErrorCode
+from ..thumbnail.utils import get_filename_from_url
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
-from .models import Product, ProductChannelListing, ProductType, ProductVariant
+from .models import (
+    Product,
+    ProductChannelListing,
+    ProductMedia,
+    ProductType,
+    ProductVariant,
+)
 from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
 from .utils.variant_prices import update_discounted_prices_for_promotion
@@ -333,3 +346,43 @@ def collection_product_updated_task(product_ids):
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
         manager.product_updated(product, webhooks=webhooks)
+
+
+@app.task(queue=settings.ASYNC_MEDIA_DOWNLOADER_QUEUE_NAME)
+@allow_writer()
+def async_media_downloader(media_id):
+    media = (
+        ProductMedia.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .get(pk=media_id)
+    )
+    try:
+        if is_image_url(media.external_url):
+            validate_image_url(
+                media.external_url, "media_url", ProductErrorCode.INVALID.value
+            )
+            filename = get_filename_from_url(media.external_url)
+            image_data = HTTPClient.send_request(
+                "GET", media.media_url, stream=True, allow_redirects=False
+            )
+            image_file = File(image_data.raw, filename)
+
+            # saving media object
+            media.image = image_file
+            media.type = ProductMediaTypes.IMAGE
+            media.downloaded = True
+            media.save()
+
+        else:
+            oembed_data, media_type = get_oembed_data(media.external_url, "media_url")
+
+            # saving media object
+            media.external_url = oembed_data["url"]
+            media.alt = oembed_data.get("title", media.alt)
+            media.type = media_type
+            media.oembed_data = oembed_data
+            media.downloaded = True
+            media.save()
+
+    except ValidationError:
+        media.downloaded = True
+        media.save()
