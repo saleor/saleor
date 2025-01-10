@@ -125,13 +125,24 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
         set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
-    calculated_subtotal = round(
-        product1_variant_price * product1_quantity
-        + product2_variant_price * product2_quantity,
-        2,
-    )
+    line1_total = round(product1_variant_price * product1_quantity, 2)
+    line2_total = round(product2_variant_price * product2_quantity, 2)
+    calculated_subtotal = round(line1_total + line2_total, 2)
+
     assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
     assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_subtotal
+
+    line1 = checkout_data["lines"][0]
+    assert line1["unitPrice"]["gross"]["amount"] == product1_variant_price
+    assert line1["totalPrice"]["gross"]["amount"] == line1_total
+    assert line1["undiscountedTotalPrice"]["amount"] == line1_total
+    assert line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+
+    line2 = checkout_data["lines"][1]
+    assert line2["unitPrice"]["gross"]["amount"] == product2_variant_price
+    assert line2["totalPrice"]["gross"]["amount"] == line2_total
+    assert line2["undiscountedTotalPrice"]["amount"] == line2_total
+    assert line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
 
     # Step 2 - Add more lines
     lines = [
@@ -141,15 +152,18 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
         }
     ]
     checkout_data = checkout_lines_add(e2e_not_logged_api_client, checkout_id, lines)
-    calculated_subtotal = round(
-        product1_variant_price * product1_quantity
-        + product2_variant_price * product2_quantity
-        + product3_variant_price * product3_quantity,
-        2,
-    )
+    line3_total = round(product3_variant_price * product3_quantity, 2)
+    calculated_subtotal = round(line1_total + line2_total + line3_total, 2)
+
     assert checkout_data["subtotalPrice"]["gross"]["amount"] == calculated_subtotal
     assert checkout_data["totalPrice"]["gross"]["amount"] == calculated_subtotal
     assert checkout_data["isShippingRequired"] is True
+
+    line3 = checkout_data["lines"][2]
+    assert line3["unitPrice"]["gross"]["amount"] == product3_variant_price
+    assert line3["totalPrice"]["gross"]["amount"] == line3_total
+    assert line3["undiscountedTotalPrice"]["amount"] == line3_total
+    assert line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
 
     # Step 3 - Update lines to apply promotion
     lines = [
@@ -167,18 +181,36 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
         },
     ]
     checkout_data = checkout_lines_update(e2e_not_logged_api_client, checkout_id, lines)
-    calculated_subtotal_before_promo = round(
-        product1_variant_price * new_product1_quantity
-        + product2_variant_price * new_product2_quantity
-        + product3_variant_price * new_product3_quantity,
-        2,
-    )
+    line1_total = round(product1_variant_price * new_product1_quantity, 2)
+    line2_total = round(product2_variant_price * new_product2_quantity, 2)
+    line3_total = round(product3_variant_price * new_product3_quantity, 2)
+    calculated_subtotal_before_promo = round(line1_total + line2_total + line3_total, 2)
+
     checkout_data = checkout_data["checkout"]
     assert checkout_data["subtotalPrice"]["gross"]["amount"] == 0
     assert checkout_data["totalPrice"]["gross"]["amount"] == 0
     assert checkout_data["discount"]["amount"] == calculated_subtotal_before_promo
+
     assert len(checkout_data["shippingMethods"]) == 1
     assert checkout_data["shippingMethods"][0]["id"] == shipping_method_id
+
+    line1 = checkout_data["lines"][0]
+    assert line1["unitPrice"]["gross"]["amount"] == 0
+    assert line1["totalPrice"]["gross"]["amount"] == 0
+    assert line1["undiscountedTotalPrice"]["amount"] == line1_total
+    assert line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
+
+    line2 = checkout_data["lines"][1]
+    assert line2["unitPrice"]["gross"]["amount"] == 0
+    assert line2["totalPrice"]["gross"]["amount"] == 0
+    assert line2["undiscountedTotalPrice"]["amount"] == line2_total
+    assert line2["undiscountedUnitPrice"]["amount"] == product2_variant_price
+
+    line3 = checkout_data["lines"][2]
+    assert line3["unitPrice"]["gross"]["amount"] == 0
+    assert line3["totalPrice"]["gross"]["amount"] == 0
+    assert line3["undiscountedTotalPrice"]["amount"] == line3_total
+    assert line3["undiscountedUnitPrice"]["amount"] == product3_variant_price
 
     # Step 3 - Assign delivery method
     checkout_data = checkout_delivery_method_update(
@@ -191,7 +223,7 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
     assert checkout_data["subtotalPrice"]["gross"]["amount"] == 0
     assert checkout_data["shippingPrice"]["gross"]["amount"] == 0
 
-    # Step 5 - Complete checkout and verify created order
+    # Step 4 - Complete checkout and verify created order
     order_data = checkout_complete(
         e2e_not_logged_api_client,
         checkout_id,
@@ -206,11 +238,22 @@ def test_complete_0_total_checkout_with_order_promotion_and_free_shipping_method
         == calculated_subtotal_before_promo
     )
 
-    order_lines = order_data["lines"]
-    assert len(order_lines) == 3
-    assert order_lines[0]["unitPrice"]["gross"]["amount"] == 0
-    assert order_lines[1]["unitPrice"]["gross"]["amount"] == 0
-    assert order_lines[2]["unitPrice"]["gross"]["amount"] == 0
-    assert order_lines[0]["totalPrice"]["gross"]["amount"] == 0
-    assert order_lines[1]["totalPrice"]["gross"]["amount"] == 0
-    assert order_lines[2]["totalPrice"]["gross"]["amount"] == 0
+    assert len(order_data["lines"]) == 3
+    assert len(order_data["lines"]) == 3
+    line1 = order_data["lines"][0]
+    assert line1["unitPrice"]["gross"]["amount"] == 0
+    assert line1["totalPrice"]["gross"]["amount"] == 0
+    assert line1["undiscountedTotalPrice"]["gross"]["amount"] == line1_total
+    assert line1["undiscountedUnitPrice"]["gross"]["amount"] == product1_variant_price
+
+    line2 = order_data["lines"][1]
+    assert line2["unitPrice"]["gross"]["amount"] == 0
+    assert line2["totalPrice"]["gross"]["amount"] == 0
+    assert line2["undiscountedTotalPrice"]["gross"]["amount"] == line2_total
+    assert line2["undiscountedUnitPrice"]["gross"]["amount"] == product2_variant_price
+
+    line3 = order_data["lines"][2]
+    assert line3["unitPrice"]["gross"]["amount"] == 0
+    assert line3["totalPrice"]["gross"]["amount"] == 0
+    assert line3["undiscountedTotalPrice"]["gross"]["amount"] == line3_total
+    assert line3["undiscountedUnitPrice"]["gross"]["amount"] == product3_variant_price

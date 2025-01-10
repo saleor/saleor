@@ -23,6 +23,9 @@ mutation checkoutLinesAdd($checkoutId: ID!, $lines: [CheckoutLineInput!]!) {
         undiscountedUnitPrice {
           amount
         }
+        undiscountedTotalPrice {
+          amount
+        }
       }
       availablePaymentGateways {
         id

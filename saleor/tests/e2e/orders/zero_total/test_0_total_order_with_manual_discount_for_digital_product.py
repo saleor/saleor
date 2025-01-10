@@ -63,8 +63,13 @@ def test_complete_draft_order_with_0_total_manual_discount_for_digital_products_
     order_product_variant_id = order_data["order"]["lines"][0]["variant"]["id"]
     assert order_product_variant_id == product_variant_id
     assert order_data["order"]["total"]["gross"]["amount"] == product_variant_price
+
     order_line = order_data["order"]["lines"][0]
+    line_total = round(product_variant_price * variant_quantity, 2)
     assert order_line["totalPrice"]["gross"]["amount"] == product_variant_price
+    assert order_line["undiscountedTotalPrice"]["gross"]["amount"] == line_total
+    assert order_line["unitPrice"]["gross"]["amount"] == product_variant_price
+    assert order_line["undiscountedTotalPrice"]["gross"]["amount"] == line_total
 
     # Step 3 - Update order's addresses and email
     input = {
@@ -95,10 +100,12 @@ def test_complete_draft_order_with_0_total_manual_discount_for_digital_products_
     )
     assert order_data["order"]["total"]["gross"]["amount"] == 0
     assert order_data["order"]["subtotal"]["gross"]["amount"] == 0
-    assert order_data["order"]["lines"][0]["totalPrice"]["gross"]["amount"] == 0
+    order_line = order_data["order"]["lines"][0]
+    assert order_line["totalPrice"]["gross"]["amount"] == 0
+    assert order_line["undiscountedTotalPrice"]["gross"]["amount"] == line_total
+    assert order_line["unitPrice"]["gross"]["amount"] == 0
     assert (
-        order_data["order"]["lines"][0]["undiscountedTotalPrice"]["gross"]["amount"]
-        == product_variant_price
+        order_line["undiscountedUnitPrice"]["gross"]["amount"] == product_variant_price
     )
 
     # Step 5 - Complete the order and check it's status
@@ -108,8 +115,10 @@ def test_complete_draft_order_with_0_total_manual_discount_for_digital_products_
     )
     assert order["order"]["status"] == "UNFULFILLED"
     assert order["order"]["total"]["gross"]["amount"] == 0
-    assert order["order"]["lines"][0]["totalPrice"]["gross"]["amount"] == 0
+    order_line = order["order"]["lines"][0]
+    assert order_line["totalPrice"]["gross"]["amount"] == 0
+    assert order_line["undiscountedTotalPrice"]["gross"]["amount"] == line_total
+    assert order_line["unitPrice"]["gross"]["amount"] == 0
     assert (
-        order["order"]["lines"][0]["undiscountedTotalPrice"]["gross"]["amount"]
-        == product_variant_price
+        order_line["undiscountedUnitPrice"]["gross"]["amount"] == product_variant_price
     )

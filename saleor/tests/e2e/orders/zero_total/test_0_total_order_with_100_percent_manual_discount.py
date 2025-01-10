@@ -77,12 +77,21 @@ def test_complete_draft_order_with_0_total_100_percent_manual_total_discount_COR
         order_id,
         lines,
     )
-    order_lines = order_data["order"]["lines"]
-    assert len(order_lines) == 2
+    assert len(order_data["order"]["lines"]) == 2
     line1_total = round(product1_variant_price * variant1_quantity, 2)
-    assert order_lines[0]["totalPrice"]["gross"]["amount"] == line1_total
     line2_total = round(product2_variant_price * variant2_quantity, 2)
-    assert order_lines[1]["totalPrice"]["gross"]["amount"] == line2_total
+
+    line1 = order_data["order"]["lines"][0]
+    assert line1["totalPrice"]["gross"]["amount"] == line1_total
+    assert line1["unitPrice"]["gross"]["amount"] == product1_variant_price
+    assert line1["undiscountedTotalPrice"]["gross"]["amount"] == line1_total
+    assert line1["undiscountedUnitPrice"]["gross"]["amount"] == product1_variant_price
+
+    line2 = order_data["order"]["lines"][1]
+    assert line2["totalPrice"]["gross"]["amount"] == line2_total
+    assert line2["unitPrice"]["gross"]["amount"] == product2_variant_price
+    assert line2["undiscountedTotalPrice"]["gross"]["amount"] == line2_total
+    assert line2["undiscountedUnitPrice"]["gross"]["amount"] == product2_variant_price
 
     calculated_subtotal = line1_total + line2_total
     assert order_data["order"]["subtotal"]["gross"]["amount"] == calculated_subtotal
@@ -119,7 +128,7 @@ def test_complete_draft_order_with_0_total_100_percent_manual_total_discount_COR
     assert draft_order["order"]["total"]["gross"]["amount"] == calculated_total
     assert draft_order["order"]["subtotal"]["gross"]["amount"] == calculated_subtotal
 
-    # Step 5 - Add manual discount to the order line
+    # Step 5 - Add manual discount to the order
     manual_discount_input = {
         "valueType": "PERCENTAGE",
         "value": 100,
@@ -131,12 +140,25 @@ def test_complete_draft_order_with_0_total_100_percent_manual_total_discount_COR
     )
     assert order_data["order"]["total"]["gross"]["amount"] == 0
     assert order_data["order"]["subtotal"]["gross"]["amount"] == 0
+    assert order_data["order"]["shippingPrice"]["gross"]["amount"] == 0
+    assert order_data["order"]["undiscountedShippingPrice"]["amount"] == shipping_price
+    # Bug SHOPX-1390 - uncoment below line when fixed
+    # assert (
+    #     order_data["order"]["undiscountedTotal"]["gross"]["amount"] == calculated_total
+    # )
     assert order_data["order"]["discounts"][0]["amount"]["amount"] == calculated_total
-    order_lines = order_data["order"]["lines"]
-    assert order_lines[0]["totalPrice"]["gross"]["amount"] == 0
-    assert order_lines[0]["undiscountedTotalPrice"]["gross"]["amount"] == line1_total
-    assert order_lines[1]["totalPrice"]["gross"]["amount"] == 0
-    assert order_lines[1]["undiscountedTotalPrice"]["gross"]["amount"] == line2_total
+
+    line1 = order_data["order"]["lines"][0]
+    assert line1["totalPrice"]["gross"]["amount"] == 0
+    assert line1["unitPrice"]["gross"]["amount"] == 0
+    assert line1["undiscountedTotalPrice"]["gross"]["amount"] == line1_total
+    assert line1["undiscountedUnitPrice"]["gross"]["amount"] == product1_variant_price
+
+    line2 = order_data["order"]["lines"][1]
+    assert line2["totalPrice"]["gross"]["amount"] == 0
+    assert line2["unitPrice"]["gross"]["amount"] == 0
+    assert line2["undiscountedTotalPrice"]["gross"]["amount"] == line2_total
+    assert line2["undiscountedUnitPrice"]["gross"]["amount"] == product2_variant_price
 
     # Step 6 - Complete the order and check it's status
     order = draft_order_complete(
@@ -146,10 +168,21 @@ def test_complete_draft_order_with_0_total_100_percent_manual_total_discount_COR
     assert order["order"]["status"] == "UNFULFILLED"
     assert order["order"]["total"]["gross"]["amount"] == 0
     assert order["order"]["subtotal"]["gross"]["amount"] == 0
-    order_lines = order["order"]["lines"]
-    assert order_lines[0]["totalPrice"]["gross"]["amount"] == 0
-    assert order_lines[0]["undiscountedTotalPrice"]["gross"]["amount"] == line1_total
-    assert order_lines[1]["totalPrice"]["gross"]["amount"] == 0
-    assert order_lines[1]["undiscountedTotalPrice"]["gross"]["amount"] == line2_total
     assert order["order"]["discounts"][0]["amount"]["amount"] == calculated_total
     assert order["order"]["shippingPrice"]["gross"]["amount"] == 0
+    assert order["order"]["undiscountedShippingPrice"]["amount"] == shipping_price
+    # Bug SHOPX-1390 - uncoment below line when fixed
+    # assert order["order"]["undiscountedTotal"]["gross"]["amount"] == calculated_total
+
+    assert len(order["order"]["lines"]) == 2
+    line1 = order["order"]["lines"][0]
+    assert line1["unitPrice"]["gross"]["amount"] == 0
+    assert line1["totalPrice"]["gross"]["amount"] == 0
+    assert line1["undiscountedTotalPrice"]["gross"]["amount"] == line1_total
+    assert line1["undiscountedUnitPrice"]["gross"]["amount"] == product1_variant_price
+
+    line2 = order["order"]["lines"][1]
+    assert line2["unitPrice"]["gross"]["amount"] == 0
+    assert line2["totalPrice"]["gross"]["amount"] == 0
+    assert line2["undiscountedTotalPrice"]["gross"]["amount"] == line2_total
+    assert line2["undiscountedUnitPrice"]["gross"]["amount"] == product2_variant_price
