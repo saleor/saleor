@@ -764,6 +764,8 @@ def remove_promo_code_from_checkout(
         return remove_voucher_code_from_checkout(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
         return remove_gift_card_code_from_checkout(checkout_info.checkout, promo_code)
+    elif promo_code == checkout_info.checkout.voucher_code:
+        return remove_voucher_code_from_checkout(checkout_info, promo_code)
     return False
 
 
@@ -775,7 +777,10 @@ def remove_voucher_code_from_checkout(
     Return information whether promo code was removed.
     """
     existing_voucher = checkout_info.voucher
-    if existing_voucher and existing_voucher.code == voucher_code:
+    if (existing_voucher and existing_voucher.code == voucher_code) or (
+        not checkout_info.voucher
+        and checkout_info.checkout.voucher_code == voucher_code
+    ):
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
         return True
