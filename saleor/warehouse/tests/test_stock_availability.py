@@ -2,6 +2,7 @@ import pytest
 
 from ...checkout.fetch import fetch_checkout_lines
 from ...core.exceptions import InsufficientStock
+from ...shipping.models import ShippingZone
 from ..availability import (
     _get_available_quantity,
     check_stock_quantity,
@@ -318,6 +319,109 @@ def test_check_stock_quantity_bulk_with_reservations(
             global_quantity_limit,
             existing_lines=checkout_lines,
             check_reservations=True,
+        )
+        is None
+    )
+
+
+@pytest.mark.parametrize(
+    ("first_wh_qt", "secont_wh_qt"),
+    [
+        (30, 30),
+        (-100, 30),
+        (30, -100),
+    ],
+)
+def test_check_stock_quantity_bulk_separate_stocks_different_sz_with_the_same_country(
+    first_wh_qt,
+    secont_wh_qt,
+    variant_with_many_stocks_different_shipping_zones,
+    channel_USD,
+    shipping_zones,
+):
+    # given
+    for zone in shipping_zones:
+        zone.countries = [channel_USD.default_country]
+    ShippingZone.objects.bulk_update(shipping_zones, ["countries"])
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    quantity_to_check = 15
+    global_quantity_limit = 50
+    assert len(variant.stocks.all()) == 2
+    stock_from_first_sz, stock_from_second_sz = variant.stocks.all()
+
+    stock_from_first_sz.quantity = first_wh_qt
+    stock_from_first_sz.save()
+
+    stock_from_second_sz.quantity = secont_wh_qt
+    stock_from_second_sz.save()
+
+    # when
+    # test that it doesn't raise error for available quantity
+    assert (
+        check_stock_quantity_bulk(
+            [variant],
+            channel_USD.default_country,
+            [quantity_to_check],
+            channel_USD.slug,
+            global_quantity_limit,
+        )
+        is None
+    )
+
+
+def test_check_stock_quantity_bulk_separate_stock_only_in_cc_warehouse(
+    variant, warehouse_for_cc, channel_USD
+):
+    # given
+    variant.stocks.create(warehouse=warehouse_for_cc, quantity=10)
+
+    quantity_to_check = 5
+    global_quantity_limit = 50
+    assert len(variant.stocks.all()) == 1
+
+    # when
+    # test that it doesn't raise error for available quantity
+    assert (
+        check_stock_quantity_bulk(
+            [variant],
+            channel_USD.default_country,
+            [quantity_to_check],
+            channel_USD.slug,
+            global_quantity_limit,
+        )
+        is None
+    )
+
+
+@pytest.mark.parametrize(
+    ("cc_qt", "wh_qt"),
+    [
+        (10, 10),
+        (-100, 10),
+        (10, -100),
+    ],
+)
+def test_check_stock_quantity_bulk_separate_stocks_with_cc_warehouse_and_warehouse(
+    cc_qt, wh_qt, variant, warehouse_for_cc, channel_USD, warehouse
+):
+    # given
+    variant.stocks.create(warehouse=warehouse_for_cc, quantity=cc_qt)
+    variant.stocks.create(warehouse=warehouse, quantity=wh_qt)
+
+    quantity_to_check = 5
+    global_quantity_limit = 50
+    assert len(variant.stocks.all()) == 2
+
+    # when
+    # test that it doesn't raise error for available quantity
+    assert (
+        check_stock_quantity_bulk(
+            [variant],
+            channel_USD.default_country,
+            [quantity_to_check],
+            channel_USD.slug,
+            global_quantity_limit,
         )
         is None
     )

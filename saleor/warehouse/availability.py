@@ -1,12 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    NamedTuple,
-    NoReturn,
-    Optional,
-)
+from typing import TYPE_CHECKING, Any, NamedTuple, NoReturn, Optional
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -295,7 +289,7 @@ def check_stock_quantity_bulk(
             quantity += variants_quantities.get(variant.pk, 0)
 
         stocks = variant_stocks.get(variant.pk, [])
-        available_quantity = sum([stock.available_quantity for stock in stocks])
+        available_quantity = sum([max(stock.available_quantity, 0) for stock in stocks])
         available_quantity = max(
             available_quantity - variant_reservations[variant.pk], 0
         )
@@ -545,7 +539,7 @@ def is_product_in_stock(
 
 
 def get_reserved_stock_quantity(
-    stocks: StockQuerySet, lines: Optional[list["CheckoutLine"]] = None
+    stocks: Iterable[Stock], lines: Optional[list["CheckoutLine"]] = None
 ) -> int:
     result = (
         Reservation.objects.filter(
