@@ -17,6 +17,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - `RequestPasswordReset`,
     `RequestPasswordReset` will now require `channel` as input for staff users,
   - `SetPassword` - #16243 by @kadewu
+- Require `MANAGE_ORDERS` for updating order and order line metadata - #17223 by @IKarbowiak
+  - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
 
 ### GraphQL API
 

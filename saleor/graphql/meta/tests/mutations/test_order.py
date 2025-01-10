@@ -27,7 +27,9 @@ from .test_update_private_metadata import (
 )
 
 
-def test_delete_public_metadata_for_order_by_id(api_client, order):
+def test_delete_public_metadata_for_order_by_id(
+    staff_api_client, order, permission_manage_orders
+):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
@@ -35,7 +37,7 @@ def test_delete_public_metadata_for_order_by_id(api_client, order):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, order_id, "Order"
+        staff_api_client, permission_manage_orders, order_id, "Order"
     )
 
     # then
@@ -44,7 +46,9 @@ def test_delete_public_metadata_for_order_by_id(api_client, order):
     )
 
 
-def test_delete_public_metadata_for_order_by_token(api_client, order):
+def test_delete_public_metadata_for_order_by_token(
+    staff_api_client, order, permission_manage_orders
+):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order.save(update_fields=["metadata"])
@@ -52,7 +56,7 @@ def test_delete_public_metadata_for_order_by_token(api_client, order):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, order.id, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -61,7 +65,9 @@ def test_delete_public_metadata_for_order_by_token(api_client, order):
     )
 
 
-def test_delete_public_metadata_for_draft_order_by_id(api_client, draft_order):
+def test_delete_public_metadata_for_draft_order_by_id(
+    staff_api_client, draft_order, permission_manage_orders
+):
     # given
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     draft_order.save(update_fields=["metadata"])
@@ -69,7 +75,7 @@ def test_delete_public_metadata_for_draft_order_by_id(api_client, draft_order):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, draft_order_id, "Order"
+        staff_api_client, permission_manage_orders, draft_order_id, "Order"
     )
 
     # then
@@ -78,7 +84,9 @@ def test_delete_public_metadata_for_draft_order_by_id(api_client, draft_order):
     )
 
 
-def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order):
+def test_delete_public_metadata_for_draft_order_by_token(
+    staff_api_client, draft_order, permission_manage_orders
+):
     # given
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     draft_order.save(update_fields=["metadata"])
@@ -86,7 +94,7 @@ def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, draft_order.id, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then
@@ -95,7 +103,9 @@ def test_delete_public_metadata_for_draft_order_by_token(api_client, draft_order
     )
 
 
-def test_delete_public_metadata_for_order_line(api_client, order_line):
+def test_delete_public_metadata_for_order_line(
+    staff_api_client, order_line, permission_manage_orders
+):
     # given
     order_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order_line.save(update_fields=["metadata"])
@@ -103,7 +113,7 @@ def test_delete_public_metadata_for_order_line(api_client, order_line):
 
     # when
     response = execute_clear_public_metadata_for_item(
-        api_client, None, order_line_id, "OrderLine"
+        staff_api_client, permission_manage_orders, order_line_id, "OrderLine"
     )
 
     # then
@@ -207,13 +217,15 @@ def test_delete_private_metadata_for_order_line(
     )
 
 
-def test_add_public_metadata_for_order_by_id(api_client, order):
+def test_add_public_metadata_for_order_by_id(
+    staff_api_client, order, permission_manage_orders
+):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order_id, "Order"
+        staff_api_client, permission_manage_orders, order_id, "Order"
     )
 
     # then
@@ -222,13 +234,15 @@ def test_add_public_metadata_for_order_by_id(api_client, order):
     )
 
 
-def test_add_public_metadata_for_order_by_token(api_client, order):
+def test_add_public_metadata_for_order_by_token(
+    staff_api_client, order, permission_manage_orders
+):
     # given
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order.id, "Order"
+        staff_api_client, permission_manage_orders, order.id, "Order"
     )
 
     # then
@@ -237,13 +251,15 @@ def test_add_public_metadata_for_order_by_token(api_client, order):
     )
 
 
-def test_add_public_metadata_for_draft_order_by_id(api_client, draft_order):
+def test_add_public_metadata_for_draft_order_by_id(
+    staff_api_client, draft_order, permission_manage_orders
+):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, draft_order_id, "Order"
+        staff_api_client, permission_manage_orders, draft_order_id, "Order"
     )
 
     # then
@@ -252,13 +268,15 @@ def test_add_public_metadata_for_draft_order_by_id(api_client, draft_order):
     )
 
 
-def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
+def test_add_public_metadata_for_draft_order_by_token(
+    staff_api_client, draft_order, permission_manage_orders
+):
     # given
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, draft_order.id, "Order"
+        staff_api_client, permission_manage_orders, draft_order.id, "Order"
     )
 
     # then
@@ -267,13 +285,15 @@ def test_add_public_metadata_for_draft_order_by_token(api_client, draft_order):
     )
 
 
-def test_add_public_metadata_for_order_line(api_client, order_line):
+def test_add_public_metadata_for_order_line(
+    staff_api_client, order_line, permission_manage_orders
+):
     # given
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order_line_id, "OrderLine"
+        staff_api_client, permission_manage_orders, order_line_id, "OrderLine"
     )
 
     # then
@@ -282,7 +302,9 @@ def test_add_public_metadata_for_order_line(api_client, order_line):
     )
 
 
-def test_update_public_metadata_for_order_line(api_client, order_line):
+def test_update_public_metadata_for_order_line(
+    staff_api_client, order_line, permission_manage_orders
+):
     # given
     order_line.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     order_line.save(update_fields=["metadata"])
@@ -290,7 +312,11 @@ def test_update_public_metadata_for_order_line(api_client, order_line):
 
     # when
     response = execute_update_public_metadata_for_item(
-        api_client, None, order_line_id, "OrderLine", value="NewMetaValue"
+        staff_api_client,
+        permission_manage_orders,
+        order_line_id,
+        "OrderLine",
+        value="NewMetaValue",
     )
 
     # then
@@ -601,9 +627,10 @@ def test_change_in_public_metadata_triggers_webhooks(
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
-    api_client,
+    staff_api_client,
     order_with_lines,
     settings,
+    permission_manage_orders,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -622,7 +649,7 @@ def test_change_in_public_metadata_triggers_webhooks(
 
     # when
     execute_update_public_metadata_for_item(
-        api_client, None, order_id, "Order", key="new-key"
+        staff_api_client, permission_manage_orders, order_id, "Order", key="new-key"
     )
 
     # then
