@@ -14,13 +14,14 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.utils import (
     add_variant_to_checkout,
+    add_variants_to_checkout,
     calculate_checkout_quantity,
     invalidate_checkout,
 )
 from .....core.models import EventDelivery
 from .....discount import RewardValueType
 from .....plugins.manager import get_plugins_manager
-from .....product.models import ProductChannelListing
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....warehouse.models import Reservation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -115,6 +116,80 @@ def test_checkout_lines_update(
     assert line.variant == variant
     assert line.quantity == 1
     assert calculate_checkout_quantity(lines) == 1
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    assert checkout.last_change != previous_last_change
+    assert mocked_invalidate_checkout.call_count == 1
+
+
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add."
+    "update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_lines_update_when_checkout_has_line_without_listing(
+    mocked_invalidate_checkout,
+    mocked_update_shipping_method,
+    channel_listing_model,
+    listing_filter_field,
+    user_api_client,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 4
+    assert calculate_checkout_quantity(lines) == 4
+
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 1
+
+    line_without_listing = checkout.lines.last()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id,
+        **{listing_filter_field: line_without_listing.variant_id},
+    ).delete()
+
+    previous_last_change = checkout.last_change
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 3}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 4
+    line = checkout.lines.first()
+    assert line.variant == variant
+    assert line.quantity == 3
+    assert calculate_checkout_quantity(lines) == 6
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -469,6 +544,9 @@ def test_checkout_lines_update_against_reserved_stock(
     other_checkout_line = other_checkout.lines.create(
         variant=variant,
         quantity=7,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel=channel_USD
+        ).price_amount,
     )
     reservation = Reservation.objects.create(
         checkout_line=other_checkout_line,
@@ -1019,6 +1097,57 @@ def test_checkout_lines_update_with_unavailable_variant(
     assert checkout.last_change == previous_last_change
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field", "expected_error_code"),
+    [
+        (
+            ProductVariantChannelListing,
+            "variant_id",
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name,
+        ),
+        (
+            ProductChannelListing,
+            "product__variants__id",
+            CheckoutErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name,
+        ),
+    ],
+)
+def test_checkout_lines_update_with_line_without_channel_listing(
+    channel_listing_model,
+    listing_filter_field,
+    expected_error_code,
+    user_api_client,
+    checkout_with_item,
+):
+    checkout = checkout_with_item
+    previous_last_change = checkout.last_change
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    variant = line.variant
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout.channel_id, **{listing_filter_field: variant.id}
+    ).delete()
+
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    errors = content["data"]["checkoutLinesUpdate"]["errors"]
+    assert errors[0]["code"] == expected_error_code
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["variants"] == [variant_id]
+    checkout.refresh_from_db()
+    assert checkout.last_change == previous_last_change
+
+
 def test_checkout_lines_update_channel_without_shipping_zones(
     user_api_client, checkout_with_item
 ):
@@ -1441,3 +1570,41 @@ def test_checkout_lines_update_triggers_webhooks(
         ]
     )
     assert wrapped_call_checkout_info_event.called
+
+
+def test_checkout_lines_update_when_line_deleted(user_api_client, checkout_with_item):
+    # given
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+    assert checkout.lines.count() == 1
+    assert calculate_checkout_quantity(lines) == 3
+    line = checkout.lines.first()
+
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [{"lineId": line_id, "quantity": 1}],
+    }
+
+    def add_variants_to_checkout_wrapper(*args, **kwargs):
+        CheckoutLine.objects.filter(id=line.pk).delete()
+        return add_variants_to_checkout(*args, **kwargs)
+
+    # when
+    with mock.patch(
+        "saleor.graphql.checkout.mutations.checkout_lines_add.add_variants_to_checkout",
+        wraps=add_variants_to_checkout_wrapper,
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_UPDATE, variables
+        )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert data["errors"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "lineId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.GRAPHQL_ERROR.name

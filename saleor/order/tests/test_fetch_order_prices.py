@@ -2999,3 +2999,126 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
     # assert order.undiscounted_total_gross_amount == round(
     #     (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate, 2
     # )
+
+
+def test_fetch_order_prices_catalogue_discount_prices_entered_with_tax_tax_exemption(
+    order_with_lines_and_catalogue_promotion,
+    plugins_manager,
+    tax_configuration_flat_rates,
+):
+    # given
+    order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.UNCONFIRMED
+    channel = order.channel
+    rule = PromotionRule.objects.get()
+    promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
+    reward_value = rule.reward_value
+
+    tax_configuration = tax_configuration_flat_rates
+    tax_configuration.prices_entered_with_tax = True
+    tax_configuration.charge_taxes = False
+    tax_configuration.save(update_fields=["prices_entered_with_tax", "charge_taxes"])
+
+    # when
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    assert OrderLineDiscount.objects.count() == 1
+    assert not OrderDiscount.objects.exists()
+    line_1 = [line for line in lines if line.quantity == 3][0]
+    line_2 = [line for line in lines if line.quantity == 2][0]
+
+    discount = line_1.discounts.get()
+    reward_amount = reward_value * line_1.quantity
+    assert discount.amount_value == reward_amount
+    assert discount.value == reward_value
+    assert discount.value_type == DiscountValueType.FIXED
+    assert discount.type == DiscountType.PROMOTION
+    assert discount.reason == f"Promotion: {promotion_id}"
+
+    variant_1 = line_1.variant
+    variant_1_listing = variant_1.channel_listings.get(channel=channel)
+    variant_1_unit_price = variant_1_listing.discounted_price_amount
+    variant_1_undiscounted_unit_price = variant_1_listing.price_amount
+    assert variant_1_undiscounted_unit_price - variant_1_unit_price == reward_value
+
+    assert (
+        line_1.undiscounted_total_price_gross_amount
+        == variant_1_undiscounted_unit_price * line_1.quantity
+    )
+    assert (
+        line_1.undiscounted_total_price_gross_amount
+        == line_1.undiscounted_total_price_net_amount
+    )
+    assert (
+        line_1.undiscounted_unit_price_gross_amount == variant_1_undiscounted_unit_price
+    )
+    assert (
+        line_1.undiscounted_unit_price_gross_amount
+        == line_1.undiscounted_unit_price_net_amount
+    )
+    assert (
+        line_1.base_unit_price_amount
+        == variant_1_undiscounted_unit_price - reward_value
+    )
+    assert (
+        line_1.unit_price_gross_amount
+        == variant_1_undiscounted_unit_price - reward_value
+    )
+    assert line_1.unit_price_gross_amount == line_1.unit_price_net_amount
+    assert (
+        line_1.total_price_gross_amount
+        == line_1.unit_price_gross_amount * line_1.quantity
+    )
+    assert line_1.total_price_gross_amount == line_1.total_price_net_amount
+
+    variant_2 = line_2.variant
+    variant_2_listing = variant_2.channel_listings.get(channel=channel)
+    variant_2_undiscounted_unit_price = variant_2_listing.price_amount
+    assert (
+        line_2.undiscounted_total_price_gross_amount
+        == variant_2_undiscounted_unit_price * line_2.quantity
+    )
+    assert (
+        line_2.undiscounted_total_price_gross_amount
+        == line_2.undiscounted_total_price_net_amount
+    )
+    assert (
+        line_2.undiscounted_unit_price_gross_amount == variant_2_undiscounted_unit_price
+    )
+    assert (
+        line_2.undiscounted_unit_price_gross_amount
+        == line_2.undiscounted_unit_price_net_amount
+    )
+    assert line_2.base_unit_price_amount == variant_2_undiscounted_unit_price
+    assert line_2.unit_price_gross_amount == variant_2_undiscounted_unit_price
+    assert line_2.unit_price_gross_amount == line_2.unit_price_net_amount
+    assert line_2.total_price_net_amount == line_2.undiscounted_total_price_net_amount
+    assert (
+        line_2.total_price_gross_amount == line_2.undiscounted_total_price_gross_amount
+    )
+
+    shipping_gross_price = order.shipping_price_gross_amount
+    assert (
+        order.undiscounted_total_gross_amount
+        == line_1.undiscounted_total_price_gross_amount
+        + line_2.undiscounted_total_price_gross_amount
+        + shipping_gross_price
+    )
+    assert order.undiscounted_total_gross_amount == order.undiscounted_total_net_amount
+    assert (
+        order.total_gross_amount
+        == order.undiscounted_total_gross_amount - reward_amount
+    )
+    assert order.total_gross_amount == order.total_net_amount
+    assert (
+        order.subtotal_gross_amount == order.total_gross_amount - shipping_gross_price
+    )
+    assert order.subtotal_gross_amount == order.subtotal_net_amount
+
+    assert line_1.unit_discount_amount == reward_value
+    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
+    assert line_1.unit_discount_type == DiscountValueType.FIXED
+    assert line_1.unit_discount_value == reward_value

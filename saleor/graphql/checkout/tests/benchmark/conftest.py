@@ -7,6 +7,7 @@ from .....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from .....payment import ChargeStatus, TransactionKind
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductVariantChannelListing
 
 
 @pytest.fixture
@@ -45,6 +46,14 @@ def checkout_with_variants(
 
 @pytest.fixture
 def checkout_with_variants_for_cc(checkout_for_cc, stocks_for_cc, product_variant_list):
+    channel_listings_map = {
+        listing.variant_id: listing
+        for listing in ProductVariantChannelListing.objects.filter(
+            channel_id=checkout_for_cc.channel_id,
+            variant__in=product_variant_list,
+        )
+    }
+
     CheckoutLine.objects.bulk_create(
         [
             CheckoutLine(
@@ -52,12 +61,18 @@ def checkout_with_variants_for_cc(checkout_for_cc, stocks_for_cc, product_varian
                 variant=product_variant_list[0],
                 quantity=1,
                 currency="USD",
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[0].id
+                ).price_amount,
             ),
             CheckoutLine(
                 checkout=checkout_for_cc,
                 variant=product_variant_list[1],
                 quantity=1,
                 currency="USD",
+                undiscounted_unit_price_amount=channel_listings_map.get(
+                    product_variant_list[1].id
+                ).price_amount,
             ),
         ]
     )

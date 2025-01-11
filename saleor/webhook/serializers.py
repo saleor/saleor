@@ -28,12 +28,8 @@ def serialize_checkout_lines(checkout: "Checkout") -> list[dict]:
     lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
     for line_info in lines:
         variant = line_info.variant
-        channel_listing = line_info.channel_listing
         product = variant.product
-        base_price = variant.get_base_price(
-            channel_listing, line_info.line.price_override
-        )
-        total_discount_amount_for_line = Decimal("0")
+        base_price = line_info.undiscounted_unit_price
         total_discount_amount_for_line = sum(
             [discount.amount_value for discount in line_info.get_promotion_discounts()],
             Decimal("0"),

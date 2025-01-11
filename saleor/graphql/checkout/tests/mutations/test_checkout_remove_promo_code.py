@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import call, patch
 
 import graphene
+import pytest
 from django.test import override_settings
 from django.utils import timezone
 from prices import Money
@@ -15,6 +16,7 @@ from .....core.models import EventDelivery
 from .....discount import RewardValueType
 from .....discount.models import Voucher, VoucherChannelListing, VoucherCode
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductChannelListing, ProductVariantChannelListing
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -91,6 +93,52 @@ def test_checkout_remove_voucher_code(
     )
 
 
+@pytest.mark.parametrize(
+    ("channel_listing_model", "listing_filter_field"),
+    [
+        (ProductVariantChannelListing, "variant_id"),
+        (ProductChannelListing, "product__variants__id"),
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_when_line_without_listing(
+    checkout_updated_webhook_mock,
+    channel_listing_model,
+    listing_filter_field,
+    api_client,
+    checkout_with_voucher,
+):
+    # given
+    line = checkout_with_voucher.lines.first()
+
+    channel_listing_model.objects.filter(
+        channel_id=checkout_with_voucher.channel_id,
+        **{listing_filter_field: line.variant_id},
+    ).delete()
+
+    assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCode": checkout_with_voucher.voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
+
+
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_checkout_remove_voucher_code_from_voucher_with_multiple_codes(
     checkout_updated_webhook_mock,
@@ -142,13 +190,15 @@ def test_checkout_remove_voucher_code_voucher_not_exists_anymore(
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
     # then
-    assert data["errors"][0]["field"] == "promoCode"
-    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
-    assert data["errors"][0]["message"] == "Promo code does not exists."
-
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
     checkout_with_voucher.refresh_from_db()
-    assert checkout_with_voucher.last_change == previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_not_called()
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -199,15 +249,15 @@ def test_checkout_remove_voucher_code_with_inactive_channel(
     data = _mutate_checkout_remove_promo_code(api_client, variables)
 
     # then
-    assert data["errors"][0]["field"] == "promoCode"
-    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
-    assert data["errors"][0]["message"] == (
-        "Cannot remove a voucher not attached to this checkout."
-    )
-
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
     checkout_with_voucher.refresh_from_db()
-    assert checkout_with_voucher.last_change == previous_checkout_last_change
-    checkout_updated_webhook_mock.assert_not_called()
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
@@ -796,3 +846,66 @@ def test_checkout_remove_triggers_webhooks(
         ]
     )
     assert wrapped_call_checkout_info_event.called
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_voucher_inactive(
+    checkout_updated_webhook_mock, api_client, checkout_with_voucher
+):
+    # given
+    assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
+    voucher_code = checkout_with_voucher.voucher_code
+    voucher = VoucherCode.objects.get(code=voucher_code).voucher
+    voucher.start_date = timezone.now() - timedelta(days=3)
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["start_date", "end_date"])
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCode": voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_code_voucher_code_deleted(
+    checkout_updated_webhook_mock, api_client, checkout_with_voucher
+):
+    # given
+    assert checkout_with_voucher.voucher_code is not None
+    previous_checkout_last_change = checkout_with_voucher.last_change
+    voucher_code = checkout_with_voucher.voucher_code
+    VoucherCode.objects.get(code=voucher_code).delete()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_voucher),
+        "promoCode": voucher_code,
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    checkout_with_voucher.refresh_from_db()
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_voucher.token)
+    assert data["checkout"]["voucherCode"] is None
+    assert checkout_with_voucher.voucher_code is None
+    assert checkout_with_voucher.last_change != previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_called_once_with(
+        checkout_with_voucher, webhooks=set()
+    )

@@ -1379,6 +1379,24 @@ def test_generate_checkout_lines_payload(checkout_with_single_item):
     assert line["variant_id"] == variant.get_global_id()
 
 
+def test_generate_checkout_lines_payload_when_variant_without_listing(
+    checkout_with_single_item,
+):
+    line_without_listing = checkout_with_single_item.lines.first()
+    line_without_listing.variant.channel_listings.all().delete()
+    payload = json.loads(generate_checkout_payload(checkout_with_single_item))[0]
+    assert payload.get("lines")
+
+    variant = checkout_with_single_item.lines.first().variant
+    line = payload["lines"][0]
+    assert line["sku"] == variant.sku
+    assert line["variant_id"] == variant.get_global_id()
+    assert (
+        Decimal(line["base_price"])
+        == line_without_listing.undiscounted_unit_price.amount
+    )
+
+
 def test_generate_checkout_lines_payload_custom_price(checkout_with_single_item):
     line = checkout_with_single_item.lines.first()
     price_override = Decimal("11.11")
@@ -2190,6 +2208,9 @@ def test_generate_checkout_payload_for_tax_calculation_gift_promotion(
     top_price, variant_id = max(
         variant_listings.values_list("discounted_price_amount", "variant")
     )
+    variant_listing = [
+        listing for listing in variant_listings if listing.variant_id == variant_id
+    ][0]
 
     line = CheckoutLine.objects.create(
         checkout=checkout,
@@ -2197,6 +2218,7 @@ def test_generate_checkout_payload_for_tax_calculation_gift_promotion(
         variant_id=variant_id,
         is_gift=True,
         currency="USD",
+        undiscounted_unit_price_amount=variant_listing.price_amount,
     )
 
     CheckoutLineDiscount.objects.create(

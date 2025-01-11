@@ -9,6 +9,7 @@ from django.utils import timezone
 from ..celeryconf import app
 from ..payment.models import TransactionItem
 from .models import Checkout, CheckoutLine
+from .utils import delete_checkouts
 
 task_logger: logging.Logger = get_task_logger(__name__)
 
@@ -86,7 +87,8 @@ def delete_expired_checkouts(
     total_deleted: int = 0
     has_more: bool = True
     for batch_number in range(batch_count):
-        deleted_count, _ = Checkout.objects.filter(pk__in=qs.values_list("pk")).delete()
+        checkout_ids = list(qs.values_list("pk", flat=True))
+        deleted_count = delete_checkouts(checkout_ids)
         total_deleted += deleted_count
 
         # Stop deleting inactive checkouts if there was no match.

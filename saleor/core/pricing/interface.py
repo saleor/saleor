@@ -24,12 +24,16 @@ class LineInfo:
     variant: Optional["ProductVariant"]
     product: Optional["Product"]
     collections: list["Collection"]
-    channel_listing: "ProductVariantChannelListing"
+    channel_listing: Optional["ProductVariantChannelListing"]
     channel: "Channel"
     discounts: Iterable[Union["OrderLineDiscount", "CheckoutLineDiscount"]]
     rules_info: list["VariantPromotionRuleInfo"]
     voucher: Optional["Voucher"]
     voucher_code: Optional[str]
+
+    @property
+    def variant_discounted_price(self):
+        raise NotImplementedError
 
     def get_promotion_discounts(
         self,

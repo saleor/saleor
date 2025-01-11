@@ -14,6 +14,7 @@ from .. import DiscountType, RewardValueType
 from ..models import OrderDiscount, OrderLineDiscount, Promotion, PromotionRule
 from ..tasks import (
     clear_promotion_rule_variants_task,
+    decrease_voucher_code_usage_of_draft_orders,
     decrease_voucher_codes_usage_task,
     disconnect_voucher_codes_from_draft_orders_task,
     fetch_promotion_variants_and_product_ids,
@@ -261,18 +262,53 @@ def test_set_promotion_rule_variants_task(promotion_list):
     ) == set(PromotionRule.objects.values_list("id", flat=True))
 
 
-def test_decrease_voucher_code_usage_task_multiple_use(
-    draft_order_list_with_multiple_use_voucher, voucher_multiple_use
+def test_decrease_voucher_code_usage_of_draft_orders_multiple_use(
+    draft_order_list_with_multiple_use_voucher, voucher_multiple_use, draft_order
 ):
     # given
     order_list = draft_order_list_with_multiple_use_voucher
     voucher = voucher_multiple_use
     voucher_codes = voucher.codes.all()[: len(order_list)]
-    assert all([voucher_code.used == 1 for voucher_code in voucher_codes])
-    voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
+
+    code_1, _, _ = voucher_codes
+    draft_order.voucher_code = code_1.code
+    draft_order.save(update_fields=["voucher_code"])
+    code_1.used += 1
+    code_1.save(update_fields=["used"])
+
+    assert all(voucher_code.used == 1 for voucher_code in voucher_codes[1:])
+    assert code_1.used == 2
 
     # when
-    decrease_voucher_codes_usage_task(voucher_code_ids)
+    decrease_voucher_code_usage_of_draft_orders(order_list[0].channel_id)
+
+    # then
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+    assert all(voucher_code.used == 0 for voucher_code in voucher_codes)
+
+
+def test_decrease_voucher_code_usage_task_multiple_use(
+    draft_order_list_with_multiple_use_voucher, voucher_multiple_use, draft_order
+):
+    # given
+    order_list = draft_order_list_with_multiple_use_voucher
+    voucher = voucher_multiple_use
+    voucher_codes = voucher.codes.all()[: len(order_list)]
+
+    code_1, _, _ = voucher_codes
+    draft_order.voucher_code = code_1.code
+    draft_order.save(update_fields=["voucher_code"])
+    code_1.used += 1
+    code_1.save(update_fields=["used"])
+
+    assert all(voucher_code.used == 1 for voucher_code in voucher_codes[1:])
+    assert code_1.used == 2
+
+    voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
+    codes = [voucher_code.code for voucher_code in voucher_codes] + [code_1.code]
+
+    # when
+    decrease_voucher_codes_usage_task(voucher_code_ids, codes)
 
     # then
     voucher_codes = voucher.codes.all()[: len(order_list)]
@@ -290,7 +326,7 @@ def test_decrease_voucher_code_usage_task_single_use(
     voucher_code_ids = [voucher_code.pk for voucher_code in voucher_codes]
 
     # when
-    decrease_voucher_codes_usage_task(voucher_code_ids)
+    decrease_voucher_codes_usage_task(voucher_code_ids, [])
 
     # then
     voucher_codes = voucher.codes.all()[: len(order_list)]

@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -239,6 +240,48 @@ def checkout_line_tax_rate(
     return checkout_line_info.line.tax_rate
 
 
+def checkout_line_undiscounted_unit_price(
+    *,
+    checkout_info: "CheckoutInfo",
+    checkout_line_info: "CheckoutLineInfo",
+):
+    # Fetch the undiscounted unit price from channel listings in case the prices
+    # are invalidated.
+    if (
+        checkout_info.checkout.price_expiration < timezone.now()
+        or checkout_line_info.line.undiscounted_unit_price is None
+    ):
+        return base_calculations.calculate_undiscounted_base_line_unit_price(
+            checkout_line_info, checkout_info.channel
+        )
+    currency = checkout_info.checkout.currency
+    return quantize_price(checkout_line_info.line.undiscounted_unit_price, currency)
+
+
+def checkout_line_undiscounted_total_price(
+    *,
+    checkout_info: "CheckoutInfo",
+    checkout_line_info: "CheckoutLineInfo",
+):
+    undiscounted_unit_price = checkout_line_undiscounted_unit_price(
+        checkout_info=checkout_info, checkout_line_info=checkout_line_info
+    )
+    total_price = undiscounted_unit_price * checkout_line_info.line.quantity
+    return quantize_price(total_price, total_price.currency)
+
+
+def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
+    """Update line undiscounted unit price amount.
+
+    Undiscounted unit price stores the denormalized price of the variant.
+    """
+    for line_info in lines:
+        if not line_info.channel_listing or line_info.channel_listing.price is None:
+            continue
+
+        line_info.line.undiscounted_unit_price = line_info.undiscounted_unit_price
+
+
 def _fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -275,6 +318,7 @@ def _fetch_checkout_prices_if_expired(
     tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines)
 
     lines = cast(list, lines)
+    update_undiscounted_unit_price_for_lines(lines)
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_info, lines)
 
     checkout.tax_error = None
@@ -354,18 +398,22 @@ def _fetch_checkout_prices_if_expired(
 
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
 
-    checkout.save(
-        update_fields=checkout_update_fields,
-        using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    )
-    checkout.lines.bulk_update(
-        [line_info.line for line_info in lines],
-        [
-            "total_price_net_amount",
-            "total_price_gross_amount",
-            "tax_rate",
-        ],
-    )
+    from .utils import checkout_lines_bulk_update
+
+    with transaction.atomic():
+        checkout.save(
+            update_fields=checkout_update_fields,
+            using=settings.DATABASE_CONNECTION_DEFAULT_NAME,
+        )
+        checkout_lines_bulk_update(
+            [line_info.line for line_info in lines],
+            [
+                "total_price_net_amount",
+                "total_price_gross_amount",
+                "tax_rate",
+                "undiscounted_unit_price_amount",
+            ],
+        )
     return checkout_info, lines
 
 

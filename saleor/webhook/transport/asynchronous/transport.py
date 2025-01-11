@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from celery import group
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -129,8 +130,11 @@ def create_deliveries_for_subscriptions(
             )
         )
 
-    EventPayload.objects.bulk_create(event_payloads)
-    return EventDelivery.objects.bulk_create(event_deliveries)
+    # Use transaction to ensure EventPayload and EventDelivery are created together,
+    # preventing inconsistent DB state.
+    with transaction.atomic():
+        EventPayload.objects.bulk_create(event_payloads)
+        return EventDelivery.objects.bulk_create(event_deliveries)
 
 
 def group_webhooks_by_subscription(webhooks):
@@ -202,14 +206,17 @@ def trigger_webhooks_async(
         elif data is None:
             raise NotImplementedError("No payload was provided for regular webhooks.")
 
-        payload = EventPayload.objects.create(payload=data)
-        deliveries.extend(
-            create_event_delivery_list_for_webhooks(
-                webhooks=regular_webhooks,
-                event_payload=payload,
-                event_type=event_type,
+        # Use transaction to ensure EventPayload and EventDelivery are created together,
+        # preventing inconsistent DB state.
+        with transaction.atomic():
+            payload = EventPayload.objects.create(payload=data)
+            deliveries.extend(
+                create_event_delivery_list_for_webhooks(
+                    webhooks=regular_webhooks,
+                    event_payload=payload,
+                    event_type=event_type,
+                )
             )
-        )
     if subscription_webhooks:
         deliveries.extend(
             create_deliveries_for_subscriptions(
@@ -242,14 +249,16 @@ def trigger_webhooks_async(
     retry_kwargs={"max_retries": 5},
 )
 def send_webhook_request_async(self, event_delivery_id):
-    delivery = get_delivery_for_webhook(event_delivery_id)
+    delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
+        if not_found:
+            raise self.retry(countdown=1)
         return None
 
     webhook = delivery.webhook
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
-    delivery_status = EventDeliveryStatus.SUCCESS
+
     try:
         if not delivery.payload:
             raise ValueError(
@@ -266,10 +275,10 @@ def send_webhook_request_async(self, event_delivery_id):
                 webhook.custom_headers,
             )
 
-        attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
+            attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
-            delivery_status = EventDeliveryStatus.FAILED
+            delivery_update(delivery, EventDeliveryStatus.FAILED)
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
                 "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
@@ -278,7 +287,9 @@ def send_webhook_request_async(self, event_delivery_id):
                 delivery.event_type,
                 delivery.id,
             )
-        delivery_update(delivery, delivery_status)
+            delivery.status = EventDeliveryStatus.SUCCESS
+            # update attempt without save to provide proper data in observability
+            attempt_update(attempt, response, with_save=False)
     except ValueError as e:
         response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
         attempt_update(attempt, response)

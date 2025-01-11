@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from ...product.models import ProductVariantChannelListing
-from ..fetch import fetch_draft_order_lines_info
+from ..fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
 
 
 @pytest.mark.django_db
@@ -71,3 +71,104 @@ def test_fetch_draft_order_lines_info(
     assert rule_info_2.promotion == rule_catalogue.promotion
     assert rule_info_2.promotion_translation.name == promotion_translation
     assert rule_info_2.rule_translation.name == rule_translation
+
+
+def test_editable_order_line_info_variant_discounted_price(
+    order_with_lines_and_catalogue_promotion,
+):
+    # given
+    order_line = order_with_lines_and_catalogue_promotion.lines.get(quantity=3)
+    order = order_with_lines_and_catalogue_promotion
+    channel = order.channel
+    variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel.id)
+    product = variant.product
+    discounts = order_line.discounts.all()
+
+    expected_discounted_variant_price = variant_channel_listing.discounted_price
+    assert variant_channel_listing.discounted_price != variant_channel_listing.price
+
+    # when
+    order_line_info = EditableOrderLineInfo(
+        line=order_line,
+        variant=variant,
+        channel_listing=variant_channel_listing,
+        product=product,
+        collections=[],
+        discounts=discounts,
+        rules_info=[],
+        channel=channel,
+        voucher=None,
+        voucher_code=None,
+    )
+    # then
+    assert order_line_info.variant_discounted_price == expected_discounted_variant_price
+
+
+def test_editable_order_line_info_variant_discounted_price_without_listing(
+    order_with_lines_and_catalogue_promotion,
+):
+    # given
+    order_line = order_with_lines_and_catalogue_promotion.lines.get(quantity=3)
+    order = order_with_lines_and_catalogue_promotion
+    channel = order.channel
+    variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel.id)
+    product = variant.product
+    discounts = order_line.discounts.all()
+
+    expected_discounted_variant_price = variant_channel_listing.discounted_price
+    assert variant_channel_listing.discounted_price != variant_channel_listing.price
+
+    variant.channel_listings.all().delete()
+
+    # when
+    order_line_info = EditableOrderLineInfo(
+        line=order_line,
+        variant=variant,
+        channel_listing=None,
+        product=product,
+        collections=[],
+        discounts=discounts,
+        rules_info=[],
+        channel=channel,
+        voucher=None,
+        voucher_code=None,
+    )
+    # then
+    assert order_line_info.variant_discounted_price == expected_discounted_variant_price
+
+
+def test_editable_order_line_info_variant_discounted_price_when_listing_without_price(
+    order_with_lines_and_catalogue_promotion,
+):
+    # given
+    order_line = order_with_lines_and_catalogue_promotion.lines.get(quantity=3)
+    order = order_with_lines_and_catalogue_promotion
+    channel = order.channel
+    variant = order_line.variant
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel.id)
+    product = variant.product
+    discounts = order_line.discounts.all()
+
+    expected_discounted_variant_price = variant_channel_listing.discounted_price
+    assert variant_channel_listing.discounted_price != variant_channel_listing.price
+
+    variant_channel_listing.discounted_price_amount = None
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    # when
+    order_line_info = EditableOrderLineInfo(
+        line=order_line,
+        variant=variant,
+        channel_listing=variant_channel_listing,
+        product=product,
+        collections=[],
+        discounts=discounts,
+        rules_info=[],
+        channel=channel,
+        voucher=None,
+        voucher_code=None,
+    )
+    # then
+    assert order_line_info.variant_discounted_price == expected_discounted_variant_price

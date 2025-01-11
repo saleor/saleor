@@ -459,7 +459,7 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     expected_data = serialize("json", [order_with_lines])
 
     # when
-    with django_assert_num_queries(2):
+    with django_assert_num_queries(4):
         trigger_webhooks_async(
             expected_data,
             WebhookEventAsyncType.ORDER_CREATED,

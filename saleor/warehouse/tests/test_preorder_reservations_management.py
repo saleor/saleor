@@ -154,6 +154,9 @@ def test_preorder_reservation_fails_if_channel_threshold_was_reserved(
     other_checkout_line = other_checkout.lines.create(
         variant=variant,
         quantity=3,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=other_checkout.channel_id
+        ).price_amount,
     )
     product_variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     PreorderReservation.objects.create(
@@ -241,6 +244,9 @@ def test_preorder_reservation_fails_if_global_threshold_was_reserved(
     other_checkout_line = other_checkout.lines.create(
         variant=variant,
         quantity=3,
+        undiscounted_unit_price_amount=variant.channel_listings.get(
+            channel_id=other_checkout.channel_id
+        ).price_amount,
     )
     PreorderReservation.objects.create(
         checkout_line=other_checkout_line,

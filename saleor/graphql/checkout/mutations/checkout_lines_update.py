@@ -3,6 +3,7 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import CheckoutLineInfo
+from ....core.exceptions import NonExistingCheckoutLines
 from ....warehouse.reservations import is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
@@ -21,6 +22,7 @@ from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
+from ...utils import ERROR_COULD_NO_RESOLVE_GLOBAL_ID
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
@@ -139,8 +141,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         checkout_lines_data,
         checkout_info,
         lines_info,
-        manager,
-        replace,
     ):
         app = get_app_promise(info.context).get()
         # if the requestor is not app, the quantity is required for all lines
@@ -168,9 +168,46 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             checkout_lines_data,
             checkout_info,
             lines_info,
-            manager,
-            replace,
         )
+
+    @classmethod
+    def process_lines_input(
+        cls,
+        info,
+        checkout,
+        variants,
+        checkout_lines_data,
+        checkout_info,
+        replace=False,
+        raise_error_for_missing_lines=False,
+    ):
+        try:
+            return super().process_lines_input(
+                info,
+                checkout,
+                variants,
+                checkout_lines_data,
+                checkout_info,
+                replace=True,
+                # set to true, as during the update we want to be sure that any deleted line
+                # in the meantime will raise an exception instead of creating the new line.
+                raise_error_for_missing_lines=True,
+            )
+        except NonExistingCheckoutLines as e:
+            graphql_ids = [
+                graphene.Node.to_global_id("CheckoutLine", line_id)
+                for line_id in e.line_pks
+            ]
+            raise ValidationError(
+                {
+                    "line_id": ValidationError(
+                        ERROR_COULD_NO_RESOLVE_GLOBAL_ID % graphql_ids,
+                        # keep the same code as we return when fetching the lines from the
+                        # input.
+                        code=CheckoutErrorCode.GRAPHQL_ERROR.value,
+                    )
+                }
+            ) from e
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -191,7 +228,6 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             checkout_id=checkout_id,
             token=token,
             id=id,
-            replace=True,
         )
 
     @classmethod

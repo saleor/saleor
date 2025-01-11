@@ -15,6 +15,7 @@ from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests import RequestException
@@ -356,20 +357,24 @@ def handle_webhook_retry(
     return is_success
 
 
-def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
+def get_delivery_for_webhook(
+    event_delivery_id,
+) -> tuple[Optional["EventDelivery"], bool]:
+    not_found = False
     try:
         delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
             id=event_delivery_id
         )
     except EventDelivery.DoesNotExist:
+        not_found = True
         logger.error("Event delivery id: %r not found", event_delivery_id)
-        return None
+        return None, not_found
 
     if not delivery.webhook.is_active:
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
         logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
-        return None
-    return delivery
+        return None, not_found
+    return delivery, not_found
 
 
 @contextmanager
@@ -397,23 +402,32 @@ def create_attempt(
 def attempt_update(
     attempt: "EventDeliveryAttempt",
     webhook_response: "WebhookResponse",
+    with_save: bool = True,
 ):
     attempt.duration = webhook_response.duration
-    attempt.response = webhook_response.content
+    if isinstance(webhook_response.content, str):
+        attempt.response = webhook_response.content[
+            : settings.EVENT_DELIVERY_ATTEMPT_RESPONSE_SIZE_LIMIT
+        ]
+        if attempt.response != webhook_response.content:
+            attempt.response += "..."
+    else:
+        attempt.response = webhook_response.content
     attempt.response_headers = json.dumps(webhook_response.response_headers)
     attempt.response_status_code = webhook_response.response_status_code
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
-    attempt.save(
-        update_fields=[
-            "duration",
-            "response",
-            "response_headers",
-            "response_status_code",
-            "request_headers",
-            "status",
-        ]
-    )
+    if with_save:
+        attempt.save(
+            update_fields=[
+                "duration",
+                "response",
+                "response_headers",
+                "response_status_code",
+                "request_headers",
+                "status",
+            ]
+        )
 
 
 def clear_successful_delivery(delivery: "EventDelivery"):
@@ -486,13 +500,16 @@ def trigger_transaction_request(
         payload = generate_transaction_action_request_payload(
             transaction_data, requestor
         )
-        event_payload = EventPayload.objects.create(payload=payload)
-        delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        # Use transaction to ensure EventPayload and EventDelivery are created together,
+        # preventing inconsistent DB state.
+        with transaction.atomic():
+            event_payload = EventPayload.objects.create(payload=payload)
+            delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
     call_event(
         handle_transaction_request_task.delay,
         delivery.id,
