@@ -612,7 +612,7 @@ def test_recalculate_with_plugin_prices_entered_with_taxes(
             line_unit.undiscounted_price.net / (1 + tax_rate), currency
         )
         undiscounted_total_net = quantize_price(
-            line_total.undiscounted_price.net.amount * (1 + tax_rate), currency
+            line_total.undiscounted_price.net / (1 + tax_rate), currency
         )
 
         assert line.unit_price == line_unit.price_with_discounts
@@ -622,8 +622,7 @@ def test_recalculate_with_plugin_prices_entered_with_taxes(
         assert line.total_price == line_total.price_with_discounts
         assert line.undiscounted_total_price.net == undiscounted_total_net
         assert (
-            line.undiscounted_total_price.gross.amount
-            == line_total.undiscounted_price.gross
+            line.undiscounted_total_price.gross == line_total.undiscounted_price.gross
         )
         assert tax_rate == line.tax_rate
 
