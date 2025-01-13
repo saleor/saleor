@@ -42,10 +42,12 @@ def update_tax_configuration(
     prices_entered_with_tax=True,
     update_countries_configuration=[],
     remove_countries_configuration=[],
+    tax_app_id=None,
 ):
     variables = {
         "id": tax_config_id,
         "input": {
+            "taxAppId": tax_app_id,
             "chargeTaxes": charge_taxes,
             "taxCalculationStrategy": tax_calculation_strategy,
             "displayGrossPrices": display_gross_prices,
