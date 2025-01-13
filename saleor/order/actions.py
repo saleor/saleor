@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, TypedDict
 from uuid import UUID
 
+import graphene
 from django.contrib.sites.models import Site
 from django.db import transaction
 
@@ -277,6 +278,15 @@ def order_created(
     site_settings: Optional["SiteSettings"] = None,
 ):
     order = order_info.order
+
+    if order.tax_error is not None and not order.is_draft():
+        order_id = graphene.Node.to_global_id("Order", order.pk)
+        logger.error(
+            "Created non-draft order with tax_error for order: %s",
+            order_id,
+            extra={"tax_error": order.tax_error, "orderId": order_id},
+        )
+
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
 
     webhook_event_map = get_webhooks_for_multiple_events(

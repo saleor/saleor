@@ -119,6 +119,7 @@ def calculate_checkout_total_with_gift_cards(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     pregenerated_subscription_payloads: Optional[dict] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
@@ -142,6 +143,7 @@ def checkout_total(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     pregenerated_subscription_payloads: Optional[dict] = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -159,6 +161,7 @@ def checkout_total(
         lines=lines,
         address=address,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        force_update=force_update,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
