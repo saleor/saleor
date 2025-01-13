@@ -1,6 +1,7 @@
 import graphene
 from django.db.models import (
     BooleanField,
+    Case,
     Count,
     DateTimeField,
     ExpressionWrapper,
@@ -11,9 +12,10 @@ from django.db.models import (
     Q,
     QuerySet,
     Subquery,
+    Value,
+    When,
 )
-from django.db.models.expressions import Window
-from django.db.models.functions import Coalesce, DenseRank
+from django.db.models.functions import Coalesce
 
 from ...product.models import (
     Category,
@@ -152,7 +154,7 @@ class ProductOrderField(BaseEnum):
     PUBLICATION_DATE = ["published_at", "name", "slug"]
     PUBLISHED_AT = ["published_at", "name", "slug"]
     LAST_MODIFIED_AT = ["updated_at", "name", "slug"]
-    COLLECTION = ["collectionproduct__sort_order", "pk"]
+    COLLECTION = ["sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
     CREATED_AT = ["created_at", "name", "slug"]
 
@@ -245,13 +247,23 @@ class ProductOrderField(BaseEnum):
 
     @staticmethod
     def qs_with_collection(queryset: QuerySet, **_kwargs) -> QuerySet:
+        last_sort_order = (
+            queryset.aggregate(sort_order=Min("collectionproduct__sort_order")).get(
+                "sort_order"
+            )
+            or 0
+        )
+        # get current last sort number, and
+        # reduce by one to assign in case of None values
+        last_sort_order -= 1
         return queryset.annotate(
-            sort_order=Window(
-                expression=DenseRank(),
-                order_by=(
-                    F("collectionproduct__sort_order").asc(nulls_last=True),
-                    F("collectionproduct__id"),
+            sort_order=Case(
+                When(
+                    collectionproduct__sort_order__isnull=True,
+                    then=Value(last_sort_order),
                 ),
+                default=F("collectionproduct__sort_order"),
+                output_field=IntegerField(),
             )
         )
 
