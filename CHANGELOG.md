@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
 - Fix checkout `line.undiscountedTotalPrice` and `line.undiscountedUnitPrice` calculation. - #17193 by @IKarbowiak
   - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
+- Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
 
 ### Webhooks
 
