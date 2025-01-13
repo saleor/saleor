@@ -112,7 +112,7 @@ def products_structures(category, channel_USD):
                     product_type=pt_apples,
                     category=category,
                 )
-                for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
+                for i, attrs in enumerate(zip(COLORS, TRADEMARKS, strict=False))
             ]
         )
     )
@@ -142,7 +142,7 @@ def products_structures(category, channel_USD):
                     product_type=pt_oranges,
                     category=category,
                 )
-                for i, attrs in enumerate(zip(COLORS, TRADEMARKS))
+                for i, attrs in enumerate(zip(COLORS, TRADEMARKS, strict=False))
             ]
         )
     )
@@ -214,14 +214,14 @@ def products_structures(category, channel_USD):
     )
 
     for products in (apples, oranges):
-        for product, attr_values in zip(products, COLORS):
+        for product, attr_values in zip(products, COLORS, strict=False):
             attr_values = attr_value(colors_attr, *attr_values)
             associate_attribute_values_to_instance(
                 product,
                 {colors_attr.pk: attr_values},
             )
 
-        for product, attr_values in zip(products, TRADEMARKS):
+        for product, attr_values in zip(products, TRADEMARKS, strict=False):
             attr_values = attr_value(trademark_attr, attr_values)
             associate_attribute_values_to_instance(
                 product,

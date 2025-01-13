@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Callable
 from dataclasses import asdict
-from typing import Callable, Union
 
 from django.core.exceptions import ValidationError
 
@@ -224,7 +224,7 @@ class SendgridEmailPlugin(BasePlugin):
 
     def notify(
         self,
-        event: Union[NotifyEventType, str],
+        event: NotifyEventType | str,
         payload_func: Callable[[], dict],
         previous_value: None,
     ) -> None:

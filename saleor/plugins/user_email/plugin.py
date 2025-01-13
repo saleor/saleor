@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Callable, Union
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from promise.promise import Promise
@@ -357,7 +358,7 @@ class UserEmailPlugin(BasePlugin):
 
     def resolve_plugin_configuration(
         self, request
-    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+    ) -> PluginConfigurationType | Promise[PluginConfigurationType]:
         # Get email templates from the database and merge them with self.configuration.
         if not self.db_config:
             return self.configuration
@@ -390,7 +391,7 @@ class UserEmailPlugin(BasePlugin):
 
     def notify(
         self,
-        event: Union[NotifyEventType, str],
+        event: NotifyEventType | str,
         payload_func: Callable[[], dict],
         previous_value: None,
     ) -> None:

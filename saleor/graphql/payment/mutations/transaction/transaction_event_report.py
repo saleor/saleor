@@ -181,10 +181,10 @@ class TransactionEventReport(ModelMutation):
         manager: "PluginsManager",
         transaction: payment_models.TransactionItem,
         transaction_event: payment_models.TransactionEvent,
-        available_actions: Optional[list[str]] = None,
+        available_actions: list[str] | None = None,
         app: Optional["App"] = None,
-        metadata: Optional[list[dict]] = None,
-        private_metadata: Optional[list[dict]] = None,
+        metadata: list[dict] | None = None,
+        private_metadata: list[dict] | None = None,
     ):
         fields_to_update = [
             "authorized_value",
@@ -231,7 +231,7 @@ class TransactionEventReport(ModelMutation):
     @classmethod
     def get_related_granted_refund(
         cls, event_psp_reference: str, transaction: payment_models.TransactionItem
-    ) -> Optional[order_models.OrderGrantedRefund]:
+    ) -> order_models.OrderGrantedRefund | None:
         request_refund = (
             payment_models.TransactionEvent.objects.filter(
                 psp_reference=event_psp_reference,
@@ -245,7 +245,7 @@ class TransactionEventReport(ModelMutation):
 
     @classmethod
     def clean_amount_value(
-        cls, amount: Optional[float], event_type: str, psp_reference: str, currency: str
+        cls, amount: float | None, event_type: str, psp_reference: str, currency: str
     ):
         if amount is None:
             if event_type not in OPTIONAL_AMOUNT_EVENTS:
@@ -286,8 +286,8 @@ class TransactionEventReport(ModelMutation):
         external_url=None,
         message=None,
         available_actions=None,
-        transaction_metadata: Optional[list[dict]] = None,
-        transaction_private_metadata: Optional[list[dict]] = None,
+        transaction_metadata: list[dict] | None = None,
+        transaction_private_metadata: list[dict] | None = None,
     ):
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)

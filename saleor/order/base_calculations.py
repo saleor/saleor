@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from prices import Money, TaxedMoney
@@ -270,7 +270,7 @@ def get_total_price_with_subtotal_discount_for_order_line(
     lines: Iterable["OrderLine"],
     base_subtotal: Money,
     subtotal_discount: Money,
-) -> Optional[Money]:
+) -> Money | None:
     for order_line, total_price in propagate_order_discount_on_order_lines_prices(
         lines, base_subtotal, subtotal_discount
     ):

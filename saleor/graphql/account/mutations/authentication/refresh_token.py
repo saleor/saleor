@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -59,8 +57,8 @@ class RefreshToken(BaseMutation):
 
     @classmethod
     def get_refresh_token(
-        cls, info: ResolveInfo, refresh_token: Optional[str] = None
-    ) -> Optional[str]:
+        cls, info: ResolveInfo, refresh_token: str | None = None
+    ) -> str | None:
         request = info.context
         if refresh_token is None:
             refresh_token = request.COOKIES.get(JWT_REFRESH_TOKEN_COOKIE_NAME, None)

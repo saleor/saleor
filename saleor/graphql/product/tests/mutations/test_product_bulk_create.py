@@ -1370,8 +1370,7 @@ def test_product_bulk_create_with_variants_with_duplicated_sku(
 
 
 @patch(
-    "saleor.graphql.product.bulk_mutations."
-    "product_bulk_create.get_webhooks_for_event"
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_created")
@@ -1688,8 +1687,7 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
 
 
 @patch(
-    "saleor.graphql.product.bulk_mutations."
-    "product_bulk_create.get_webhooks_for_event"
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")

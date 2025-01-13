@@ -326,7 +326,7 @@ def promotion_converted_from_sale_list(channel_USD, product_list, category, coll
             reward_value_type=RewardValueType.FIXED,
             reward_value=Decimal("5"),
         )
-        for promotion, predicate in zip(promotions, predicates)
+        for promotion, predicate in zip(promotions, predicates, strict=False)
     ]
     PromotionRule.objects.bulk_create(rules)
     for rule in rules:

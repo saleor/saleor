@@ -31,8 +31,7 @@ class BaseChannelListingMutation(BaseMutation):
         duplicated_ids = get_duplicates_items(add_channels_ids, remove_channels_ids)
         if duplicated_ids:
             error_msg = (
-                "The same object cannot be in both lists "
-                "for adding and removing items."
+                "The same object cannot be in both lists for adding and removing items."
             )
             errors["input"].append(
                 ValidationError(
@@ -93,7 +92,9 @@ class BaseChannelListingMutation(BaseMutation):
 
         cleaned_input = {input_source: [], "remove_channels": remove_channels_pks}
 
-        for channel_listing, channel in zip(add_channels, channels_to_add):
+        for channel_listing, channel in zip(
+            add_channels, channels_to_add, strict=False
+        ):
             channel_listing["channel"] = channel
             cleaned_input[input_source].append(channel_listing)
         return cleaned_input

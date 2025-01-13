@@ -89,18 +89,20 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
                         COUNTRY_CODE,
                     ],
                     Iterable[Stock],
-                ] = dict(zip(variant_data_list, variant_stocks))
+                ] = dict(zip(variant_data_list, variant_stocks, strict=False))
                 product_channel_listings_map: dict[
                     tuple[
                         PRODUCT_ID,
                         CHANNEL_SLUG,
                     ],
                     ProductChannelListing,
-                ] = dict(zip(product_data_set, product_channel_listings))
+                ] = dict(zip(product_data_set, product_channel_listings, strict=False))
 
                 problems = {}
 
-                for checkout_info, lines in zip(checkout_infos, checkout_lines):
+                for checkout_info, lines in zip(
+                    checkout_infos, checkout_lines, strict=False
+                ):
                     checkout_id = checkout_info.checkout.pk
                     problems[checkout_id] = get_checkout_lines_problems(
                         checkout_info,
@@ -144,7 +146,7 @@ class CheckoutProblemsByCheckoutIdDataloader(
         ):
             checkout_problems = defaultdict(list)
             for checkout_pk, checkout_lines_problems in zip(
-                keys, checkouts_lines_problems
+                keys, checkouts_lines_problems, strict=False
             ):
                 checkout_problems[checkout_pk] = get_checkout_problems(
                     checkout_lines_problems

@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Union
 
 from django.conf import settings
 from django.contrib.postgres.search import (
@@ -68,7 +67,7 @@ class FlatConcat(Expression):
     # If the maximum expression count is not limited and there are multiple thousand
     # values to join, PostgreSQL may reject the SQL statement with:
     # "django.db.utils.OperationalError: stack depth limit exceeded"
-    max_expression_count: Optional[int] = None
+    max_expression_count: int | None = None
     silent_drop_expression: bool = False
 
     def __init__(self, *expressions, output_field=None):
@@ -127,7 +126,7 @@ class FlatConcat(Expression):
     def as_sql(self, compiler, connection, **_extra_context):
         connection.ops.check_expression_support(self)
         sql_parts: list[str] = []
-        params: list[Optional[Union[str, int]]] = []
+        params: list[str | int | None] = []
         for arg in self.source_expressions:
             arg_sql, arg_params = compiler.compile(arg)
             sql_parts.append(arg_sql)

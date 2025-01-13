@@ -96,7 +96,7 @@ def attribute_values_generator(attribute_generator):
                     value=value,
                 )
                 for slug, name, ext_ref, value in zip(
-                    slugs, names, external_references, values
+                    slugs, names, external_references, values, strict=False
                 )
             ],
             ignore_conflicts=True,

@@ -389,14 +389,12 @@ class ShippingPriceMixin:
         ):
             if cleaned_input.get("minimum_delivery_days") is not None:
                 error_msg = (
-                    "Minimum delivery days should be lower "
-                    "than maximum delivery days."
+                    "Minimum delivery days should be lower than maximum delivery days."
                 )
                 field = "minimum_delivery_days"
             else:
                 error_msg = (
-                    "Maximum delivery days should be higher than "
-                    "minimum delivery days."
+                    "Maximum delivery days should be higher than minimum delivery days."
                 )
                 field = "maximum_delivery_days"
             errors[field] = ValidationError(

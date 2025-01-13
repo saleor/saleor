@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any
 
 import graphene
 from prices import Money
@@ -136,9 +136,7 @@ def serialize_product_attributes(product: "Product") -> list[dict]:
             attr_slug = attr_value.slug
             value: dict[
                 str,
-                Optional[
-                    Union[str, datetime.datetime, datetime.date, bool, dict[str, Any]]
-                ],
+                str | datetime.datetime | datetime.date | bool | dict[str, Any] | None,
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,
@@ -196,9 +194,7 @@ def serialize_variant_attributes(variant: "ProductVariant") -> list[dict]:
             attr_slug = attr_value.slug
             value: dict[
                 str,
-                Optional[
-                    Union[str, datetime.datetime, datetime.date, bool, dict[str, Any]]
-                ],
+                str | datetime.datetime | datetime.date | bool | dict[str, Any] | None,
             ] = {
                 "name": attr_value.name,
                 "slug": attr_slug,

@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from typing import Union
 from uuid import UUID
 
 import graphene
@@ -82,7 +81,7 @@ class DraftOrderBulkDelete(
 
         instances_ids = [instance.id for instance in instances]
         related_objects = cls.get_ids_with_related_objects(instances_ids)
-        for instance, node_id in zip(instances, ids):
+        for instance, node_id in zip(instances, ids, strict=False):
             instance_errors = []
 
             # catch individual validation errors to raise them later as
@@ -104,7 +103,7 @@ class DraftOrderBulkDelete(
         return clean_instance_ids, errors_dict
 
     @classmethod
-    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+    def get_channel_ids(cls, instances) -> Iterable[UUID | int]:
         """Get the instances channel ids for channel permission accessible check."""
         return [order.channel_id for order in instances]
 
@@ -138,7 +137,7 @@ class DraftOrderLinesBulkDelete(
             )
 
     @classmethod
-    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+    def get_channel_ids(cls, instances) -> Iterable[UUID | int]:
         """Get the instances channel ids for channel permission accessible check."""
         orders = models.Order.objects.filter(
             id__in=[line.order_id for line in instances]

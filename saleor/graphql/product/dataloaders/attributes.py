@@ -185,7 +185,7 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
         value_ids = [a.value_id for a in attribute_values]
 
         def map_assignment_to_values(values):
-            value_map = dict(zip(value_ids, values))
+            value_map = dict(zip(value_ids, values, strict=False))
             assigned_variant_map = defaultdict(list)
             for attribute_value in attribute_values:
                 assigned_variant_map[attribute_value.assignment_id].append(
@@ -222,9 +222,9 @@ class BaseAttributeValuesByProductIdLoader(DataLoader):
             def with_attributes_and_values(result):
                 attribute_products, values = result
                 product_type_attrubutes = dict(
-                    zip(product_type_ids, attribute_products)
+                    zip(product_type_ids, attribute_products, strict=False)
                 )
-                values_by_id_map = dict(zip(value_ids, values))
+                values_by_id_map = dict(zip(value_ids, values, strict=False))
                 assigned_product_map = defaultdict(list)
 
                 for product in products:
@@ -301,14 +301,14 @@ class SelectedAttributesByProductVariantIdLoader(DataLoader):
             assigned_variant_attribute_ids = [
                 a.id for attrs in variant_attributes for a in attrs
             ]
-            variant_attributes = dict(zip(keys, variant_attributes))
+            variant_attributes = dict(zip(keys, variant_attributes, strict=False))
 
             def with_products_and_attribute_values(results):
                 products, attribute_values = results
                 product_type_ids = list({p.product_type_id for p in products})
-                products = dict(zip(product_ids, products))
+                products = dict(zip(product_ids, products, strict=False))
                 attribute_values = dict(
-                    zip(assigned_variant_attribute_ids, attribute_values)
+                    zip(assigned_variant_attribute_ids, attribute_values, strict=False)
                 )
 
                 def with_attribute_products(attribute_products):
@@ -316,12 +316,18 @@ class SelectedAttributesByProductVariantIdLoader(DataLoader):
                         {ap.attribute_id for aps in attribute_products for ap in aps}
                     )
 
-                    attribute_products = dict(zip(product_type_ids, attribute_products))
+                    attribute_products = dict(
+                        zip(product_type_ids, attribute_products, strict=False)
+                    )
 
                     def with_attributes(attributes):
-                        id_to_attribute = dict(zip(attribute_ids, attributes))
+                        id_to_attribute = dict(
+                            zip(attribute_ids, attributes, strict=False)
+                        )
                         selected_attributes_map = defaultdict(list)
-                        for key, product_variant in zip(keys, product_variants):
+                        for key, product_variant in zip(
+                            keys, product_variants, strict=False
+                        ):
                             product = products[product_variant.product_id]
                             assigned_producttype_attributes = attribute_products[
                                 product.product_type_id

@@ -23,8 +23,7 @@ class MoneyInput(graphene.InputObjectType):
 class CardInput(graphene.InputObjectType):
     code = graphene.String(
         description=(
-            "Payment method nonce, a token returned "
-            "by the appropriate provider's SDK."
+            "Payment method nonce, a token returned by the appropriate provider's SDK."
         ),
         required=True,
     )

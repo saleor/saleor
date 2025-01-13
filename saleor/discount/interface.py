@@ -21,7 +21,7 @@ class VoucherInfo:
     """It contains the voucher's details and PKs of all applicable objects."""
 
     voucher: Voucher
-    voucher_code: Optional[str]
+    voucher_code: str | None
     product_pks: list[int]
     variant_pks: list[int]
     collection_pks: list[int]
@@ -29,7 +29,7 @@ class VoucherInfo:
 
 
 def fetch_voucher_info(
-    voucher: Voucher, voucher_code: Optional[str] = None
+    voucher: Voucher, voucher_code: str | None = None
 ) -> VoucherInfo:
     variant_pks = [variant.id for variant in voucher.variants.all()]
     product_pks = [product.id for product in voucher.products.all()]

@@ -173,7 +173,9 @@ class ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader(DataLoa
 
         def _find_listing_by_shipping_method_id(listings_by_channel):
             listings_by_method = []
-            for method_id, listings in zip(shipping_method_ids, listings_by_channel):
+            for method_id, listings in zip(
+                shipping_method_ids, listings_by_channel, strict=False
+            ):
                 for listing in listings:
                     if method_id == listing.shipping_method_id:
                         listings_by_method.append(listing)

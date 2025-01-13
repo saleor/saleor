@@ -28,8 +28,7 @@ class SendConfirmationEmail(BaseMutation):
         redirect_url = graphene.String(
             required=True,
             description=(
-                "Base of frontend URL that will be needed to create confirmation "
-                "URL."
+                "Base of frontend URL that will be needed to create confirmation URL."
             ),
         )
         channel = graphene.String(

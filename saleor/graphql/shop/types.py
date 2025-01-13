@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.conf import settings
 from django_countries import countries
@@ -247,8 +245,7 @@ class Shop(graphene.ObjectType):
     )
     track_inventory_by_default = graphene.Boolean(
         description=(
-            "This field is used as a default value for "
-            "`ProductVariant.trackInventory`."
+            "This field is used as a default value for `ProductVariant.trackInventory`."
         )
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
@@ -407,7 +404,7 @@ class Shop(graphene.ObjectType):
     @traced_resolver
     @plugin_manager_promise_callback
     def resolve_available_payment_gateways(
-        _, _info, manager, currency: Optional[str] = None, channel: Optional[str] = None
+        _, _info, manager, currency: str | None = None, channel: str | None = None
     ):
         return manager.list_payment_gateways(currency=currency, channel_slug=channel)
 
