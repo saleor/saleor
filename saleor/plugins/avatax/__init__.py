@@ -111,7 +111,7 @@ def api_post_request(
             allow_redirects=False,
         )
         logger.debug("Hit to Avatax to calculate taxes %s", url)
-        json_response = response.json()
+        json_response = response.json(parse_float=Decimal)
         if "error" in response:
             logger.exception("Avatax response contains errors %s", json_response)
             return json_response

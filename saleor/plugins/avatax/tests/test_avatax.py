@@ -12,11 +12,7 @@ from requests import RequestException
 from requests_hardened import HTTPSession
 
 from ....account.models import Address
-from ....checkout.fetch import (
-    CheckoutInfo,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ....checkout.fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import (
@@ -60,7 +56,7 @@ from .. import (
     get_order_tax_data,
     taxes_need_new_fetch,
 )
-from ..plugin import AvataxPlugin
+from ..plugin import AvataxPlugin, logger
 
 
 def order_set_shipping_method(order, shipping_method):
@@ -4187,29 +4183,121 @@ def test_get_checkout_shipping_tax_rate(
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test__get_shipping_tax_rate_handles_multiple_tax_districts(
-    avalara_response_for_checkout_with_items_and_shipping, channel_USD
+def test__get_item_tax_rate_for_shipping_handles_multiple_tax_districts(
+    avalara_response_for_checkout_with_items_and_shipping, channel_USD, checkout
 ):
     manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
 
     # 0.46 == sum of two tax districts
-    assert Decimal("0.46") == plugin._get_shipping_tax_rate(
-        avalara_response_for_checkout_with_items_and_shipping, Decimal(0.0)
+    assert Decimal("0.46") == plugin._get_item_tax_rate(
+        avalara_response_for_checkout_with_items_and_shipping,
+        "Shipping",
+        Decimal(0.0),
+        str(checkout.pk),
+        "Checkout",
     ).quantize(Decimal(".01"))
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test__get_unit_tax_rate_handles_multiple_tax_districts(
-    avalara_response_for_checkout_with_items_and_shipping, channel_USD
+def test__get_item_tax_rate_handles_multiple_tax_districts(
+    avalara_response_for_checkout_with_items_and_shipping, channel_USD, checkout
 ):
     manager = get_plugins_manager(allow_replica=False)
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
 
     # 0.36 == sum of two tax districts
-    assert Decimal("0.36") == plugin._get_unit_tax_rate(
-        avalara_response_for_checkout_with_items_and_shipping, "123", Decimal(0.0)
+    assert Decimal("0.36") == plugin._get_item_tax_rate(
+        avalara_response_for_checkout_with_items_and_shipping,
+        "123",
+        Decimal(0.0),
+        str(checkout.pk),
+        "Checkout",
     ).quantize(Decimal(".01"))
+
+
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test__get_item_tax_rate_handles_tax_zero_and_rate_value(
+    avalara_response_with_line_details_and_zero_tax_with_returned_rate,
+    channel_USD,
+    checkout,
+):
+    manager = get_plugins_manager(allow_replica=False)
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+
+    # 0.36 == sum of two tax districts
+    assert Decimal("0") == plugin._get_item_tax_rate(
+        avalara_response_with_line_details_and_zero_tax_with_returned_rate,
+        "123",
+        Decimal(0.0),
+        str(checkout.pk),
+        "Checkout",
+    ).quantize(Decimal(".01"))
+
+
+@patch("saleor.plugins.avatax.plugin.logger", wraps=logger)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test__get_item_tax_rate_use_default_value_when_taxable_amount_is_different(
+    mocked_logger,
+    avalara_response_for_checkout_with_items_and_shipping,
+    channel_USD,
+    checkout,
+):
+    # given
+    response = avalara_response_for_checkout_with_items_and_shipping
+    line_data = response["lines"][0]
+    line_taxable_amount = line_data["taxableAmount"]
+
+    response["lines"][0]["details"][0]["taxableAmount"] = line_taxable_amount + 1
+    response["lines"][0]["details"][1]["taxableAmount"] = line_taxable_amount + 2
+
+    manager = get_plugins_manager(allow_replica=False)
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+
+    default_rate_value = Decimal("0.66")
+    object_type = "Checkout"
+    item_code = "123"
+
+    # when
+    returned_tax_rate = plugin._get_item_tax_rate(
+        response, item_code, default_rate_value, str(checkout.pk), object_type
+    ).quantize(Decimal(".01"))
+
+    # then
+    assert default_rate_value == returned_tax_rate
+
+    line_details = line_data["details"]
+    mocked_logger.warning.assert_called_once_with(
+        "taxableAmounts from line.details[] are different than "
+        "line.taxableAmount. Returning the rate calculated by "
+        "Saleor. For %s:%s",
+        object_type,
+        str(checkout.pk),
+        extra={
+            "line_taxable_amount": line_taxable_amount,
+            "line_details": [
+                {
+                    "tax": line_details[0]["tax"],
+                    "taxable_amount": line_taxable_amount + 1,
+                    "rate": line_details[0]["rate"],
+                },
+                {
+                    "tax": line_details[1]["tax"],
+                    "taxable_amount": line_taxable_amount + 2,
+                    "rate": line_details[1]["rate"],
+                },
+                {
+                    "tax": line_details[2]["tax"],
+                    "taxable_amount": line_details[2]["taxableAmount"],
+                    "rate": line_details[2]["rate"],
+                },
+            ],
+            "id": str(checkout.pk),
+            "type": object_type,
+            "item_code": item_code,
+            "base_rate": default_rate_value,
+        },
+    )
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])

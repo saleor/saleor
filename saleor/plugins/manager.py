@@ -623,10 +623,10 @@ class PluginsManager(PaymentInterface):
         product: "Product",
         variant: "ProductVariant",
         address: Optional["Address"],
-        unit_price: TaxedMoney,
+        price: TaxedMoney,
         plugin_ids: Optional[list[str]] = None,
     ) -> Decimal:
-        default_value = calculate_tax_rate(unit_price)
+        default_value = calculate_tax_rate(price)
         return self.__run_method_on_plugins(
             "get_order_line_tax_rate",
             default_value,
