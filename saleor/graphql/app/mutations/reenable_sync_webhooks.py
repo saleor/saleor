@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from ....app.error_codes import AppErrorCode
 from ....graphql.app.types import App
 from ....permission.enums import AppPermission
-from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
+from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
 from ...core import ResolveInfo

@@ -1,10 +1,8 @@
 import pytest
 
+from saleor.webhook.circuit_breaker.breaker_board import BreakerBoard
+from saleor.webhook.circuit_breaker.storage import InMemoryStorage
 from saleor.webhook.event_types import WebhookEventSyncType
-from saleor.webhook.transport.synchronous.circuit_breaker.breaker_board import (
-    BreakerBoard,
-)
-from saleor.webhook.transport.synchronous.circuit_breaker.storage import InMemoryStorage
 
 
 def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):

@@ -3,7 +3,7 @@ import datetime
 import pytest
 from freezegun import freeze_time
 
-from saleor.webhook.transport.synchronous.circuit_breaker.storage import InMemoryStorage
+from saleor.webhook.circuit_breaker.storage import InMemoryStorage
 
 APP_ID = 1
 NAME = "total"

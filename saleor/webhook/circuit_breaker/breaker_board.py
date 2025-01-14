@@ -8,7 +8,7 @@ from django.utils.module_loading import import_string
 from saleor.webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
-    from .....webhook.models import Webhook
+    from ...webhook.models import Webhook
 
 
 logger = logging.getLogger(__name__)

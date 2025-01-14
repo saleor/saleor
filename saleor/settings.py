@@ -1000,7 +1000,7 @@ warnings.filterwarnings("ignore", category=CacheKeyWarning)
 # Breaker board configuration
 ENABLE_BREAKER_BOARD = get_bool_from_env("ENABLE_BREAKER_BOARD", False)
 # Storage class string for the breaker board, for example:
-# "saleor.webhook.transport.synchronous.circuit_breaker.storage.InMemoryStorage"
+# "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
 BREAKER_BOARD_STORAGE_CLASS_STRING = os.environ.get(
     "BREAKER_BOARD_STORAGE_CLASS_STRING"
 )

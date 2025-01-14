@@ -15,7 +15,7 @@ from saleor.webhook.event_types import WebhookEventSyncType
     [
         (
             True,
-            "saleor.webhook.transport.synchronous.circuit_breaker.storage.InMemoryStorage",
+            "saleor.webhook.circuit_breaker.storage.InMemoryStorage",
         ),
         (False, None),
     ],
@@ -56,7 +56,7 @@ def test_breaker_board(
 def test_breaker_board_open(settings, app_with_webhook, caplog):
     settings.ENABLE_BREAKER_BOARD = True
     settings.BREAKER_BOARD_STORAGE_CLASS_STRING = (
-        "saleor.webhook.transport.synchronous.circuit_breaker.storage.InMemoryStorage"
+        "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
     )
     settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = 50
     settings.BREAKER_BOARD_FAILURE_MIN_COUNT = 1
@@ -95,7 +95,7 @@ def test_breaker_board_open(settings, app_with_webhook, caplog):
 def test_breaker_board_closes(settings, app_with_webhook, caplog):
     settings.ENABLE_BREAKER_BOARD = True
     settings.BREAKER_BOARD_STORAGE_CLASS_STRING = (
-        "saleor.webhook.transport.synchronous.circuit_breaker.storage.InMemoryStorage"
+        "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
     )
     settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = 50
     settings.BREAKER_BOARD_FAILURE_MIN_COUNT = 1

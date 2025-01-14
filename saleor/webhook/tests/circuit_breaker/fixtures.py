@@ -2,9 +2,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from saleor.app.models import App
-from saleor.webhook.event_types import WebhookEventSyncType
-from saleor.webhook.models import Webhook, WebhookEvent
+from ....app.models import App
+from ....webhook.event_types import WebhookEventSyncType
+from ....webhook.models import Webhook, WebhookEvent
 
 
 @pytest.fixture
