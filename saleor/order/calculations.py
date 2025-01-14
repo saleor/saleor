@@ -283,7 +283,7 @@ def _recalculate_with_plugins(
                 product,
                 variant,
                 None,
-                line_unit.undiscounted_price,
+                line.total_price,
                 plugin_ids=plugin_ids,
             )
             line.undiscounted_unit_price = _get_undiscounted_price(
