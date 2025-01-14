@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from ...graphql.core.utils import to_global_id_or_none
 from ...webhook.utils import get_webhooks_for_multiple_events
 from .. import OrderStatus
 from ..actions import WEBHOOK_EVENTS_FOR_ORDER_CREATED, order_confirmed, order_created
@@ -64,3 +65,24 @@ def test_order_created_order_confirmed_with_turned_flag_off(
 
     # then
     mock_order_confirmed.assert_not_called()
+
+
+def test_order_created_with_tax_error(order, customer_user, plugins_manager, caplog):
+    # given
+    order.tax_error = "Empty tax data."
+    order.save(update_fields=["tax_error"])
+
+    order_info = OrderInfo(
+        order=order,
+        customer_email=order.get_customer_email(),
+        channel=order.channel,
+        payment=order.get_last_payment(),
+        lines_data=[],
+    )
+
+    # when
+    order_created(order_info, user=customer_user, app=None, manager=plugins_manager)
+
+    # then
+    assert "Created non-draft order with tax_error for order" in caplog.text
+    assert caplog.records[0].order_id == to_global_id_or_none(order)

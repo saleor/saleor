@@ -284,7 +284,7 @@ def order_created(
         logger.error(
             "Created non-draft order with tax_error for order: %s",
             order_id,
-            extra={"tax_error": order.tax_error, "orderId": order_id},
+            extra={"tax_error": order.tax_error, "order_id": order_id},
         )
 
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)

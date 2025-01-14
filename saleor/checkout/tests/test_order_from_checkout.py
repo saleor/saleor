@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest import mock
+from unittest.mock import patch
 
 import before_after
 import pytest
@@ -9,9 +10,16 @@ from prices import Money, TaxedMoney
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.exceptions import InsufficientStock
 from ...core.prices import quantize_price
-from ...core.taxes import zero_money, zero_taxed_money
+from ...core.taxes import (
+    TaxDataError,
+    TaxDataErrorMessage,
+    zero_money,
+    zero_taxed_money,
+)
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
+from ...graphql.core.utils import to_global_id_or_none
+from ...order.models import Order
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
 from ...tests.utils import flush_post_commit_hooks
@@ -961,3 +969,34 @@ def test_create_order_product_on_promotion(
     assert (
         discount.amount_value == (order.undiscounted_total - order.total).gross.amount
     )
+
+
+@patch("saleor.checkout.calculations.validate_tax_data")
+def test_create_order_from_checkout_update_tax_error(
+    mock_validate_tax_data,
+    checkout_with_items_and_shipping,
+    customer_user,
+    app,
+    tax_configuration_tax_app,
+    caplog,
+):
+    # given
+    mock_validate_tax_data.side_effect = TaxDataError(TaxDataErrorMessage.EMPTY)
+
+    checkout = checkout_with_items_and_shipping
+    lines, _ = fetch_checkout_lines(checkout)
+
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, lines, manager, [])
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=None,
+            app=app,
+        )
+    assert not Order.objects.exists()
+    assert "Tax app error for checkout" in caplog.text
+    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
