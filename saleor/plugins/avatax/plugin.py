@@ -1,9 +1,9 @@
 import logging
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import asdict
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
@@ -185,7 +185,7 @@ class AvataxPlugin(BasePlugin):
         )
 
     def _skip_plugin(
-        self, previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal]
+        self, previous_value: TaxedMoney | TaxedMoneyRange | Decimal
     ) -> bool:
         if not (self.config.username_or_account and self.config.password_or_license):
             return True
@@ -306,7 +306,7 @@ class AvataxPlugin(BasePlugin):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Optional[list["CheckoutLineInfo"]],
+        lines: list["CheckoutLineInfo"] | None,
         previous_value: Any,
     ):
         """Ensure all the data is correct and we can proceed with creation of order.
@@ -747,7 +747,7 @@ class AvataxPlugin(BasePlugin):
         self,
         checkout_info: "CheckoutInfo",
         lines_info: list["CheckoutLineInfo"],
-        base_value: Union[TaxedMoney, Decimal],
+        base_value: TaxedMoney | Decimal,
     ):
         if self._skip_plugin(base_value):
             self._set_checkout_tax_error(
@@ -787,7 +787,7 @@ class AvataxPlugin(BasePlugin):
             checkout_info.checkout.tax_error = tax_error_message
 
     def _get_order_tax_data(
-        self, order: "Order", base_value: Union[Decimal, OrderTaxedPricesData]
+        self, order: "Order", base_value: Decimal | OrderTaxedPricesData
     ):
         if self._skip_plugin(base_value):
             self._set_order_tax_error(order, TaxDataErrorMessage.EMPTY)

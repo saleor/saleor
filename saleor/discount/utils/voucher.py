@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from ..models import Voucher
 
 
-def is_order_level_voucher(voucher: Optional[Voucher]):
+def is_order_level_voucher(voucher: Voucher | None):
     return bool(
         voucher
         and voucher.type == VoucherType.ENTIRE_ORDER
@@ -41,14 +41,14 @@ def is_order_level_voucher(voucher: Optional[Voucher]):
     )
 
 
-def is_shipping_voucher(voucher: Optional[Voucher]):
+def is_shipping_voucher(voucher: Voucher | None):
     return bool(voucher and voucher.type == VoucherType.SHIPPING)
 
 
 def increase_voucher_usage(
     voucher: "Voucher",
     code: "VoucherCode",
-    customer_email: Optional[str],
+    customer_email: str | None,
     increase_voucher_customer_usage: bool = True,
 ) -> None:
     if voucher.usage_limit:
@@ -84,7 +84,7 @@ def activate_voucher_code(code: "VoucherCode") -> None:
 
 
 def add_voucher_usage_by_customer(
-    code: "VoucherCode", customer_email: Optional[str]
+    code: "VoucherCode", customer_email: str | None
 ) -> None:
     if not customer_email:
         raise NotApplicable("Unable to apply voucher as customer details are missing.")
@@ -107,7 +107,7 @@ def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -
 def release_voucher_code_usage(
     code: Optional["VoucherCode"],
     voucher: Optional["Voucher"],
-    user_email: Optional[str],
+    user_email: str | None,
 ):
     if not code:
         return
@@ -223,7 +223,7 @@ def get_discounted_lines(
 
 
 def _get_the_cheapest_line(
-    lines_info: Optional[Iterable["LineInfo"]],
+    lines_info: Iterable["LineInfo"] | None,
 ) -> Optional["LineInfo"]:
     if not lines_info:
         return None

@@ -1,10 +1,8 @@
-from typing import Optional
-
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
 
 
-def get_active_tax_apps(identifiers: Optional[list[str]] = None):
+def get_active_tax_apps(identifiers: list[str] | None = None):
     checkout_webhooks = get_webhooks_for_event(
         event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
         apps_identifier=identifiers,

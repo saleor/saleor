@@ -124,8 +124,10 @@ class BaseAttributeValuesByPageIdLoader(DataLoader[int, list[dict]]):
 
             def with_attributes_and_values(result):
                 attribute_pages, values = result
-                page_type_attrubutes = dict(zip(page_type_ids, attribute_pages))
-                values_by_id_map = dict(zip(value_ids, values))
+                page_type_attrubutes = dict(
+                    zip(page_type_ids, attribute_pages, strict=False)
+                )
+                values_by_id_map = dict(zip(value_ids, values, strict=False))
                 assigned_page_map = defaultdict(list)
 
                 for page in pages:

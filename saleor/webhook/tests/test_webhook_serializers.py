@@ -212,7 +212,7 @@ def test_serialize_checkout_lines(
 
     # then
     checkout_with_items_for_cc.refresh_from_db()
-    for data, line_info in zip(checkout_lines_data, checkout_lines):
+    for data, line_info in zip(checkout_lines_data, checkout_lines, strict=False):
         variant = line_info.line.variant
         product = variant.product
         variant_channel_listing = line_info.channel_listing
@@ -252,7 +252,7 @@ def test_serialize_checkout_lines_with_promotion(checkout_with_item_on_promotion
     # then
     checkout.refresh_from_db()
     assert len(checkout_lines) == 1
-    for data, line_info in zip(checkout_lines_data, checkout_lines):
+    for data, line_info in zip(checkout_lines_data, checkout_lines, strict=False):
         variant = line_info.line.variant
         product = variant.product
         variant_channel_listing = line_info.channel_listing
@@ -306,7 +306,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
     )
 
     # then
-    for data, line_info in zip(checkout_lines_data, lines):
+    for data, line_info in zip(checkout_lines_data, lines, strict=False):
         line = line_info.line
         variant = line.variant
         product = variant.product
@@ -366,7 +366,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_promotion(
     )
 
     # then
-    for data, line_info in zip(checkout_lines_data, lines):
+    for data, line_info in zip(checkout_lines_data, lines, strict=False):
         line = line_info.line
         variant = line.variant
         product = variant.product

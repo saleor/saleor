@@ -21,7 +21,7 @@ class Decimal(graphene.Float):
 
     @staticmethod
     def parse_literal(node) -> decimal.Decimal | None:
-        if isinstance(node, (ast.FloatValue, ast.IntValue)):
+        if isinstance(node, ast.FloatValue | ast.IntValue):
             try:
                 return decimal.Decimal(node.value)
             except decimal.DecimalException:

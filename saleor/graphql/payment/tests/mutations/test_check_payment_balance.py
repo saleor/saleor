@@ -68,8 +68,7 @@ def test_payment_check_balance_validate_not_supported_currency(
     assert errors[0]["code"] == PaymentErrorCode.NOT_SUPPORTED_GATEWAY.value.upper()
     assert errors[0]["field"] == "currency"
     assert errors[0]["message"] == (
-        "The currency ABSTRACT_CURRENCY is not "
-        "available for mirumee.payments.gateway."
+        "The currency ABSTRACT_CURRENCY is not available for mirumee.payments.gateway."
     )
 
     assert check_payment_balance_mock.call_count == 0

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -18,7 +16,7 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 
 
-def clean_order_cancel(order: Optional[models.Order]) -> models.Order:
+def clean_order_cancel(order: models.Order | None) -> models.Order:
     if not order or not order.can_cancel():
         raise ValidationError(
             {

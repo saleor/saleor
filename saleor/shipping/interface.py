@@ -19,15 +19,15 @@ class ShippingMethodData:
 
     id: str
     price: Money
-    name: Optional[str] = None
-    description: Optional[str] = None
-    type: Optional[str] = None
-    maximum_order_price: Optional[Money] = None
-    minimum_order_price: Optional[Money] = None
-    minimum_order_weight: Optional[Weight] = None
-    maximum_order_weight: Optional[Weight] = None
-    maximum_delivery_days: Optional[int] = None
-    minimum_delivery_days: Optional[int] = None
+    name: str | None = None
+    description: str | None = None
+    type: str | None = None
+    maximum_order_price: Money | None = None
+    minimum_order_price: Money | None = None
+    minimum_order_weight: Weight | None = None
+    maximum_order_weight: Weight | None = None
+    maximum_delivery_days: int | None = None
+    minimum_delivery_days: int | None = None
     metadata: dict[str, str] = field(default_factory=dict)
     private_metadata: dict[str, str] = field(default_factory=dict)
     tax_class: Optional["TaxClass"] = None

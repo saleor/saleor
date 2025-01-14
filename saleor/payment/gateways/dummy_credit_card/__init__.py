@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData, PaymentMethodInfo
@@ -26,7 +25,7 @@ def dummy_success():
     return True
 
 
-def validate_token(token: Optional[str]):
+def validate_token(token: str | None):
     return TOKEN_VALIDATION_MAPPING.get(token, None) if token else None
 
 

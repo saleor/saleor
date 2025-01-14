@@ -2,7 +2,6 @@ import datetime
 from contextlib import contextmanager
 from functools import partial
 from io import BytesIO
-from typing import Optional
 from unittest.mock import MagicMock
 
 import graphene
@@ -100,9 +99,7 @@ def capture_queries(pytestconfig):
     cfg = pytestconfig
 
     @contextmanager
-    def _capture_queries(
-        num: Optional[int] = None, msg: Optional[str] = None, exact=False
-    ):
+    def _capture_queries(num: int | None = None, msg: str | None = None, exact=False):
         with CaptureQueriesContext(connection) as ctx:
             yield ctx
             if num is not None:

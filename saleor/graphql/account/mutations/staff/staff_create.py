@@ -56,8 +56,7 @@ class StaffCreate(ModelMutation):
 
     class Meta:
         description = (
-            "Creates a new staff user. "
-            "Apps are not allowed to perform this mutation."
+            "Creates a new staff user. Apps are not allowed to perform this mutation."
         )
         doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]

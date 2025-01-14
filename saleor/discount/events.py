@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 
 from ..account.models import User
@@ -10,8 +8,8 @@ from .models import Promotion, PromotionEvent, PromotionRule
 
 def _promotion_base_event(
     promotion: Promotion,
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
     type: str,
 ):
     return PromotionEvent.objects.create(
@@ -19,41 +17,33 @@ def _promotion_base_event(
     )
 
 
-def promotion_created_event(
-    promotion: Promotion, user: Optional[User], app: Optional[App]
-):
+def promotion_created_event(promotion: Promotion, user: User | None, app: App | None):
     return _promotion_base_event(
         promotion=promotion, user=user, app=app, type=PromotionEvents.PROMOTION_CREATED
     )
 
 
-def promotion_updated_event(
-    promotion: Promotion, user: Optional[User], app: Optional[App]
-):
+def promotion_updated_event(promotion: Promotion, user: User | None, app: App | None):
     return _promotion_base_event(
         promotion=promotion, user=user, app=app, type=PromotionEvents.PROMOTION_UPDATED
     )
 
 
-def promotion_started_event(
-    promotion: Promotion, user: Optional[User], app: Optional[App]
-):
+def promotion_started_event(promotion: Promotion, user: User | None, app: App | None):
     return _promotion_base_event(
         promotion=promotion, user=user, app=app, type=PromotionEvents.PROMOTION_STARTED
     )
 
 
-def promotion_ended_event(
-    promotion: Promotion, user: Optional[User], app: Optional[App]
-):
+def promotion_ended_event(promotion: Promotion, user: User | None, app: App | None):
     return _promotion_base_event(
         promotion=promotion, user=user, app=app, type=PromotionEvents.PROMOTION_ENDED
     )
 
 
 def _rule_base_event(
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
     rules: list[PromotionRule],
     type: str,
 ):
@@ -74,8 +64,8 @@ def _rule_base_event(
 
 
 def rule_created_event(
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
     rules: list[PromotionRule],
 ):
     return _rule_base_event(
@@ -87,8 +77,8 @@ def rule_created_event(
 
 
 def rule_updated_event(
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
     rules: list[PromotionRule],
 ):
     return _rule_base_event(
@@ -100,8 +90,8 @@ def rule_updated_event(
 
 
 def rule_deleted_event(
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
     rules: list[PromotionRule],
 ):
     return _rule_base_event(

@@ -191,7 +191,7 @@ def call_order_events(
     event_names: list[str],
     order: "Order",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     missing_events = set(event_names).difference(ORDER_WEBHOOK_EVENT_MAP.keys())
     if missing_events:
@@ -238,7 +238,7 @@ def call_order_event(
     event_name: str,
     order: "Order",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     if event_name not in ORDER_WEBHOOK_EVENT_MAP:
         raise ValueError(f"Event {event_name} not found in ORDER_WEBHOOK_EVENT_MAP.")
@@ -279,7 +279,7 @@ def call_order_event(
 
 def order_created(
     order_info: "OrderInfo",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     manager: "PluginsManager",
     from_draft: bool = False,
@@ -332,11 +332,11 @@ def order_created(
 
 def order_confirmed(
     order: "Order",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     manager: "PluginsManager",
     send_confirmation_email: bool = False,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     """Order confirmed.
 
@@ -357,10 +357,10 @@ def handle_fully_paid_order(
     manager: "PluginsManager",
     order_info: "OrderInfo",
     webhook_event_map: dict[str, set["Webhook"]],
-    user: Optional[User] = None,
+    user: User | None = None,
     app: Optional["App"] = None,
     site_settings: Optional["SiteSettings"] = None,
-    gateway: Optional[str] = None,
+    gateway: str | None = None,
 ):
     from ..giftcard.utils import fulfill_non_shippable_gift_cards
 
@@ -396,10 +396,10 @@ def handle_fully_paid_order(
 
 def cancel_order(
     order: "Order",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     manager: "PluginsManager",
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     """Cancel order.
 
@@ -430,13 +430,13 @@ def cancel_order(
 
 def order_refunded(
     order: "Order",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     amount: "Decimal",
     payment: Optional["Payment"],
     manager: "PluginsManager",
     trigger_order_updated: bool = True,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     if payment:
         call_event(
@@ -499,7 +499,7 @@ def order_refunded(
 
 def order_voided(
     order: "Order",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     payment: "Payment",
     manager: "PluginsManager",
@@ -510,7 +510,7 @@ def order_voided(
 
 def order_returned(
     order: "Order",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     returned_lines: list[tuple[QuantityType, OrderLine]],
 ):
@@ -520,14 +520,14 @@ def order_returned(
 
 def order_fulfilled(
     fulfillments: list[Fulfillment],
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     fulfillment_lines: list[FulfillmentLine],
     manager: "PluginsManager",
     gift_card_lines_info: list[GiftCardLineData],
     site_settings: "SiteSettings",
     notify_customer=True,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     from ..giftcard.utils import gift_cards_create
 
@@ -575,7 +575,7 @@ def order_fulfilled(
 
 def order_awaits_fulfillment_approval(
     fulfillments: list[Fulfillment],
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     fulfillment_lines: list[FulfillmentLine],
     manager: "PluginsManager",
@@ -589,12 +589,12 @@ def order_awaits_fulfillment_approval(
 
 def order_authorized(
     order: "Order",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     amount: "Decimal",
     payment: "Payment",
     manager: "PluginsManager",
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     events.payment_authorized_event(
         order=order, user=user, app=app, amount=amount, payment=payment
@@ -609,14 +609,14 @@ def order_authorized(
 
 def order_charged(
     order_info: "OrderInfo",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     amount: Optional["Decimal"],
     payment: Optional["Payment"],
     manager: "PluginsManager",
     site_settings: Optional["SiteSettings"] = None,
-    gateway: Optional[str] = None,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    gateway: str | None = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
     order = order_info.order
     if payment and amount is not None:
@@ -657,7 +657,7 @@ def order_transaction_updated(
     order_info: "OrderInfo",
     transaction_item: "TransactionItem",
     manager: "PluginsManager",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     previous_authorized_value: Decimal,
     previous_charged_value: Decimal,
@@ -923,7 +923,7 @@ def mark_order_as_paid_with_transaction(
     request_user: User,
     app: Optional["App"],
     manager: "PluginsManager",
-    external_reference: Optional[str] = None,
+    external_reference: str | None = None,
 ):
     """Mark order as paid.
 
@@ -961,7 +961,7 @@ def mark_order_as_paid_with_payment(
     request_user: User,
     app: Optional["App"],
     manager: "PluginsManager",
-    external_reference: Optional[str] = None,
+    external_reference: str | None = None,
 ):
     """Mark order as paid.
 
@@ -1242,7 +1242,7 @@ def _create_fulfillment_lines(
 
 
 def create_fulfillments(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     order: "Order",
     fulfillment_lines_for_warehouses: dict[UUID, list[OrderFulfillmentLineInfo]],
@@ -1378,7 +1378,7 @@ def _get_fulfillment_line(
     target_fulfillment: Fulfillment,
     lines_in_target_fulfillment: list[FulfillmentLine],
     order_line_id: OrderLineIDType,
-    stock_id: Optional[int] = None,
+    stock_id: int | None = None,
 ) -> tuple[FulfillmentLine, bool]:
     """Get fulfillment line if extists or create new fulfillment line object."""
     # Check if line for order_line_id and stock_id does not exist in DB.
@@ -1514,9 +1514,9 @@ def _move_fulfillment_lines_to_target_fulfillment(
 
 def __get_shipping_refund_amount(
     refund_shipping_costs: bool,
-    refund_amount: Optional[Decimal],
+    refund_amount: Decimal | None,
     shipping_price: Decimal,
-) -> Optional[Decimal]:
+) -> Decimal | None:
     # We set shipping refund amount only when refund amount is calculated by Saleor
     shipping_refund_amount = None
     if refund_shipping_costs and refund_amount is None:
@@ -1525,7 +1525,7 @@ def __get_shipping_refund_amount(
 
 
 def create_refund_fulfillment(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     order,
     payment,
@@ -1620,7 +1620,7 @@ def _populate_replace_order_fields(original_order: "Order"):
 
 
 def create_replace_order(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     original_order: "Order",
     order_lines_to_replace: list[OrderLineInfo],
@@ -1690,8 +1690,8 @@ def _move_lines_to_return_fulfillment(
     fulfillment_lines: list[FulfillmentLineData],
     fulfillment_status: str,
     order: "Order",
-    total_refund_amount: Optional[Decimal],
-    shipping_refund_amount: Optional[Decimal],
+    total_refund_amount: Decimal | None,
+    shipping_refund_amount: Decimal | None,
     manager: "PluginsManager",
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
@@ -1767,13 +1767,13 @@ def _move_lines_to_replace_fulfillment(
 
 
 def create_return_fulfillment(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     order: "Order",
     order_lines: list[OrderLineInfo],
     fulfillment_lines: list[FulfillmentLineData],
-    total_refund_amount: Optional[Decimal],
-    shipping_refund_amount: Optional[Decimal],
+    total_refund_amount: Decimal | None,
+    shipping_refund_amount: Decimal | None,
     manager: "PluginsManager",
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
@@ -1821,7 +1821,7 @@ def create_return_fulfillment(
 
 
 def process_replace(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     order: "Order",
     order_lines: list[OrderLineInfo],
@@ -1865,17 +1865,17 @@ def process_replace(
 
 
 def create_fulfillments_for_returned_products(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     order: "Order",
-    payment: Optional[Payment],
+    payment: Payment | None,
     order_lines: list[OrderLineInfo],
     fulfillment_lines: list[FulfillmentLineData],
     manager: "PluginsManager",
     refund: bool = False,
-    amount: Optional[Decimal] = None,
+    amount: Decimal | None = None,
     refund_shipping_costs=False,
-) -> tuple[Fulfillment, Optional[Fulfillment], Optional[Order]]:
+) -> tuple[Fulfillment, Fulfillment | None, Order | None]:
     """Process the request for replacing or returning the products.
 
     Process the refund when the refund is set to True. The amount of refund will be
@@ -1989,13 +1989,13 @@ def _calculate_refund_amount(
 
 @transaction_with_commit_on_errors()
 def _process_refund(
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     order: "Order",
-    payment: Optional[Payment],
+    payment: Payment | None,
     order_lines_to_refund: list[OrderLineInfo],
     fulfillment_lines_to_refund: list[FulfillmentLineData],
-    amount: Optional[Decimal],
+    amount: Decimal | None,
     refund_shipping_costs: bool,
     manager: "PluginsManager",
 ):

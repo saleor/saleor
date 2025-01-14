@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import Optional, overload
+from typing import overload
 
 from django.core.exceptions import ValidationError
 
@@ -16,8 +16,8 @@ def get_shipping_model_by_object_id(
 
 @overload
 def get_shipping_model_by_object_id(
-    object_id: Optional[str], raise_error=False, error_field="id"
-) -> Optional[models.ShippingMethod]: ...
+    object_id: str | None, raise_error=False, error_field="id"
+) -> models.ShippingMethod | None: ...
 
 
 def get_shipping_model_by_object_id(object_id, raise_error=True, error_field="id"):

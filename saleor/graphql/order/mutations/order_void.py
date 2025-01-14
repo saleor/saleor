@@ -1,5 +1,3 @@
-from typing import Optional
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -19,7 +17,7 @@ from .utils import clean_payment, try_payment_action
 
 
 def clean_void_payment(
-    payment: Optional[payment_models.Payment],
+    payment: payment_models.Payment | None,
 ) -> payment_models.Payment:
     """Check for payment errors."""
     payment = clean_payment(payment)

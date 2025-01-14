@@ -1,5 +1,3 @@
-from typing import Union
-
 import pytest
 
 from ....app.models import App
@@ -339,7 +337,7 @@ def setup_order_webhooks(
     }
     """
 
-    def _setup(additional_order_event: Union[str, list[str]]):
+    def _setup(additional_order_event: str | list[str]):
         tax_app, shipping_app, additional_app = App.objects.bulk_create(
             [
                 App(

@@ -158,7 +158,7 @@ class EventPayloadManager(models.Manager["EventPayload"]):
         self, objs: Iterable["EventPayload"], payloads=Iterable[str]
     ) -> list["EventPayload"]:
         created_objs = self.bulk_create(objs)
-        for obj, payload_data in zip(created_objs, payloads):
+        for obj, payload_data in zip(created_objs, payloads, strict=False):
             obj.save_payload_file(payload_data, save_instance=False)
         self.bulk_update(created_objs, ["payload_file"])
         return created_objs

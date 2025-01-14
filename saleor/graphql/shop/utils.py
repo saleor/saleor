@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.conf import settings
 from django_countries import countries
 
@@ -8,7 +6,7 @@ from ..site.dataloaders import get_site_promise
 
 
 def get_countries_codes_list(
-    attached_to_shipping_zones: Optional[bool] = None,
+    attached_to_shipping_zones: bool | None = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Return set of countries codes.

@@ -85,8 +85,7 @@ class ProductMediaCreate(BaseMutation):
             raise ValidationError(
                 {
                     "input": ValidationError(
-                        f"Alt field exceeds the character "
-                        f"limit of {ALT_CHAR_LIMIT}.",
+                        f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
                         code=ProductErrorCode.INVALID.value,
                     )
                 }

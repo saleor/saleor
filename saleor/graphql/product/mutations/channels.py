@@ -444,7 +444,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 channels = cls.get_nodes_or_error(
                     add_channels_ids, "channel_id", Channel
                 )
-            for channel_listing_data, channel in zip(input, channels):
+            for channel_listing_data, channel in zip(input, channels, strict=False):
                 channel_listing_data["channel"] = channel
                 cleaned_input.append(channel_listing_data)
         return cleaned_input

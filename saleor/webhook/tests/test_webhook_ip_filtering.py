@@ -13,9 +13,9 @@ def test_rejects_private_ips(webhook, monkeypatch):
     webhook.target_url = "https://10.0.0.0/test"
     webhook.save(update_fields=["target_url"])
 
-    assert (
-        not EventDeliveryAttempt.objects.exists()
-    ), "should not have any pre-existing attempts"
+    assert not EventDeliveryAttempt.objects.exists(), (
+        "should not have any pre-existing attempts"
+    )
 
     # Trigger the webhook
     trigger_webhooks_async(

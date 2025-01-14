@@ -31,7 +31,7 @@ def populate_refund_amounts_in_fulfillments(apps, schema_editor):
         fulfillment_count = fulfillments.count()
         refunded_events_count = len(refunded_events)
         if fulfillment_count == refunded_events_count:
-            for fulfillment, event in zip(fulfillments, refunded_events):
+            for fulfillment, event in zip(fulfillments, refunded_events, strict=False):
                 amount = event.parameters.get("amount") or 0
                 included_shipping_costs = event.parameters.get(
                     "shipping_costs_included", False

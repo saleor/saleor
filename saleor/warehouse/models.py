@@ -2,7 +2,7 @@ import itertools
 import uuid
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional, TypedDict, TypeVar, Union, cast
+from typing import TYPE_CHECKING, TypedDict, TypeVar, cast
 
 from django.contrib.postgres.indexes import BTreeIndex
 from django.db import models
@@ -115,7 +115,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
 
     def applicable_for_click_and_collect_no_quantity_check(
         self,
-        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        lines_qs: QuerySet[CheckoutLine] | QuerySet[OrderLine],
         channel_id: int,
     ):
         """Return Warehouses which support click and collect.
@@ -164,7 +164,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
 
     def applicable_for_click_and_collect(
         self,
-        lines_qs: Union[QuerySet[CheckoutLine], QuerySet[OrderLine]],
+        lines_qs: QuerySet[CheckoutLine] | QuerySet[OrderLine],
         channel_id: int,
     ) -> QuerySet["Warehouse"]:
         """Return Warehouses which support click and collect.
@@ -187,7 +187,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
 
         # prepare the mapping of variant_id to total quantity of this variant
         # in the order
-        line_variant_id_to_total_qty: dict[Optional[int], int] = defaultdict(int)
+        line_variant_id_to_total_qty: dict[int | None, int] = defaultdict(int)
         for line in lines_qs:
             line_variant_id_to_total_qty[line.variant_id] += line.quantity
 
@@ -202,7 +202,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         )
 
         stock_ids = []
-        variant_id_to_total_stock_qty: dict[Optional[int], int] = defaultdict(int)
+        variant_id_to_total_stock_qty: dict[int | None, int] = defaultdict(int)
         # Filter out the stocks that have enough quantity to fulfill the order
         # Prepare the mapping of variant_id to the sum of total available quantity of
         # the given variant from all stocks
@@ -377,7 +377,7 @@ class StockQuerySet(models.QuerySet["Stock"]):
     def for_channel_and_country(
         self,
         channel_slug: str,
-        country_code: Optional[str] = None,
+        country_code: str | None = None,
         include_cc_warehouses: bool = False,
     ):
         """Get stocks for given channel and country_code.
@@ -572,7 +572,7 @@ class ReservationQuerySet(models.QuerySet[T]):
     def not_expired(self):
         return self.filter(reserved_until__gt=timezone.now())
 
-    def exclude_checkout_lines(self, checkout_lines: Optional[Iterable[CheckoutLine]]):
+    def exclude_checkout_lines(self, checkout_lines: Iterable[CheckoutLine] | None):
         if checkout_lines:
             return self.exclude(checkout_line__in=checkout_lines)
 

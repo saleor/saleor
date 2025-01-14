@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 from unittest.mock import patch
 
 import fakeredis
@@ -23,9 +22,9 @@ KEY, MAX_SIZE, BATCH_SIZE = get_buffer_name(), 10, 5
 def gql_operation_factory():
     def factory(
         query_string: str,
-        operation_name: Optional[str] = None,
-        variables: Optional[dict] = None,
-        result: Optional[dict] = None,
+        operation_name: str | None = None,
+        variables: dict | None = None,
+        result: dict | None = None,
         result_invalid=False,
     ) -> GraphQLOperationResponse:
         query = backend.document_from_string(schema, query_string)

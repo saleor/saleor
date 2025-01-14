@@ -1,7 +1,8 @@
 import json
 import logging
+from collections.abc import Callable
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Callable, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -95,7 +96,7 @@ def handle_transaction_request_task(self, delivery_id, request_event_id) -> None
 
 def _send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
-) -> tuple[WebhookResponse, Optional[dict[Any, Any]]]:
+) -> tuple[WebhookResponse, dict[Any, Any] | None]:
     event_payload = delivery.payload
     data = event_payload.get_payload()
     webhook = delivery.webhook
@@ -154,8 +155,7 @@ def _send_webhook_request_sync(
             )
         if response.status == EventDeliveryStatus.SUCCESS:
             logger.debug(
-                "[Webhook] Success response from %r."
-                "Successful DeliveryAttempt id: %r",
+                "[Webhook] Success response from %r.Successful DeliveryAttempt id: %r",
                 sanitize_url_for_logging(webhook.target_url),
                 attempt.id,
             )
@@ -170,7 +170,7 @@ def _send_webhook_request_sync(
 
 def send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
-) -> Optional[dict[Any, Any]]:
+) -> dict[Any, Any] | None:
     response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
@@ -186,8 +186,8 @@ def trigger_webhook_sync_if_not_cached(
     cache_timeout=None,
     request=None,
     requestor=None,
-    pregenerated_subscription_payload: Optional[dict] = None,
-) -> Optional[dict]:
+    pregenerated_subscription_payload: dict | None = None,
+) -> dict | None:
     """Get response for synchronous webhook.
 
     - Send a synchronous webhook request if cache is expired.
@@ -226,9 +226,9 @@ def create_delivery_for_subscription_sync_event(
     requestor=None,
     request=None,
     allow_replica=False,
-    pregenerated_payload: Optional[dict] = None,
+    pregenerated_payload: dict | None = None,
     with_save=True,
-) -> Optional[EventDelivery]:
+) -> EventDelivery | None:
     """Generate webhook payload based on subscription query and create delivery object.
 
     It uses a defined subscription query, defined for webhook to explicitly determine
@@ -299,8 +299,8 @@ def trigger_webhook_sync(
     timeout=None,
     request=None,
     requestor=None,
-    pregenerated_subscription_payload: Optional[dict] = None,
-) -> Optional[dict[Any, Any]]:
+    pregenerated_subscription_payload: dict | None = None,
+) -> dict[Any, Any] | None:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
@@ -333,12 +333,12 @@ def trigger_webhook_sync(
 def trigger_all_webhooks_sync(
     event_type: str,
     generate_payload: Callable,
-    parse_response: Callable[[Any], Optional[R]],
+    parse_response: Callable[[Any], R | None],
     subscribable_object=None,
     requestor=None,
     allow_replica=False,
-    pregenerated_subscription_payloads: Optional[dict] = None,
-) -> Optional[R]:
+    pregenerated_subscription_payloads: dict | None = None,
+) -> R | None:
     """Send all synchronous webhook request for given event type.
 
     Requests are send sequentially.

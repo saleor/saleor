@@ -57,7 +57,7 @@ class BaseReorderAttributesMutation(BaseMutation):
 
         operations = {
             attribute.pk: sort_order
-            for attribute, sort_order in zip(attributes_m2m, sort_orders)
+            for attribute, sort_order in zip(attributes_m2m, sort_orders, strict=False)
         }
 
         return operations
@@ -163,7 +163,8 @@ class BaseReorderAttributeValuesMutation(BaseMutation):
         )  # preserve order in pks
 
         operations = {
-            value.pk: sort_order for value, sort_order in zip(values_m2m, sort_orders)
+            value.pk: sort_order
+            for value, sort_order in zip(values_m2m, sort_orders, strict=False)
         }
 
         return operations

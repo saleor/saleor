@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Union, cast
+from typing import TYPE_CHECKING, cast
 
 import graphene
 from django.conf import settings
@@ -92,7 +92,7 @@ class TransactionProcess(BaseMutation):
     @classmethod
     def get_source_object(
         cls, transaction_item: payment_models.TransactionItem
-    ) -> Union[checkout_models.Checkout, order_models.Order]:
+    ) -> checkout_models.Checkout | order_models.Order:
         if transaction_item.checkout_id:
             checkout = cast(checkout_models.Checkout, transaction_item.checkout)
             return checkout
@@ -136,7 +136,7 @@ class TransactionProcess(BaseMutation):
         )
 
     @classmethod
-    def get_already_processed_event(cls, events) -> Optional[TransactionEvent]:
+    def get_already_processed_event(cls, events) -> TransactionEvent | None:
         for event in events:
             if (
                 event.type in get_final_session_statuses()

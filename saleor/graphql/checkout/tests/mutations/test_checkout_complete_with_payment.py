@@ -278,9 +278,9 @@ def test_checkout_complete(
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
     order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     recalculate_with_plugins_mock.assert_not_called()
 
@@ -370,9 +370,9 @@ def test_checkout_complete_with_metadata(
     }
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
     order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
@@ -509,9 +509,9 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     }
     assert order.private_metadata == checkout.metadata_storage.private_metadata
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
     order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
@@ -995,9 +995,9 @@ def test_checkout_with_voucher_complete(
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -1102,9 +1102,9 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_with_voucher_complete_product_on_promotion(
@@ -1256,9 +1256,9 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_with_voucher_on_specific_product_complete(
@@ -1359,9 +1359,9 @@ def test_checkout_with_voucher_on_specific_product_complete(
     assert order.voucher == voucher_specific_product_type
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -1465,9 +1465,9 @@ def test_checkout_complete_with_voucher_single_use(
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -1581,9 +1581,9 @@ def test_checkout_complete_with_voucher_and_gift_card(
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
@@ -1702,9 +1702,9 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     assert order.voucher == voucher_free_shipping
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
@@ -1851,9 +1851,9 @@ def test_checkout_complete_product_on_promotion(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
@@ -1991,9 +1991,9 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_complete_price_override(
@@ -2080,9 +2080,9 @@ def test_checkout_complete_price_override(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_complete_product_on_old_sale(
@@ -2225,9 +2225,9 @@ def test_checkout_complete_product_on_old_sale(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_with_voucher_on_specific_product_complete_with_product_on_promotion(
@@ -2381,9 +2381,9 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     assert order.voucher == voucher_specific_product_type
     assert order.voucher.code == code.code
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @patch.object(PluginsManager, "preprocess_order_creation")
@@ -2431,9 +2431,9 @@ def test_checkout_with_voucher_not_increase_uses_on_preprocess_order_creation_fa
     code.refresh_from_db()
     assert code.used == 0
 
-    assert Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout shouldn't have been deleted"
+    assert Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout shouldn't have been deleted"
+    )
     checkout.refresh_from_db()
     assert not checkout.completing_started_at
 
@@ -2512,9 +2512,9 @@ def test_checkout_complete_without_inventory_tracking(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_checkout_complete_checkout_without_lines(
@@ -2712,9 +2712,9 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     code.refresh_from_db(fields=["used"])
     assert code.used == expected_voucher_usage_count
 
-    assert Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should not have been deleted"
+    assert Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should not have been deleted"
+    )
     checkout.refresh_from_db()
     assert not checkout.completing_started_at
 
@@ -3167,9 +3167,9 @@ def test_checkout_complete_own_reservation(
     assert order_line.quantity == quantity_available
     assert order_line.variant == checkout_line.variant
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
     # Reservation associated with checkout has been deleted
     with pytest.raises(Reservation.DoesNotExist):
@@ -3241,9 +3241,9 @@ def test_checkout_complete_without_redirect_url(
     assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
@@ -3406,9 +3406,9 @@ def test_checkout_complete_with_digital(
     assert not content["errors"]
 
     # Ensure the order was actually created
-    assert (
-        Order.objects.count() == order_count + 1
-    ), "The order should have been created"
+    assert Order.objects.count() == order_count + 1, (
+        "The order should have been created"
+    )
 
 
 @pytest.mark.integration
@@ -3497,9 +3497,9 @@ def test_checkout_complete_0_total_value(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_complete_checkout_for_local_click_and_collect(
@@ -3916,9 +3916,9 @@ def test_checkout_complete_with_preorder_variant(
     assert stock_line.allocations.exists()
     assert not stock_line.preorder_allocations.exists()
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
     order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
