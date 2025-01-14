@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import add, mul
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
 from graphql import (
     GraphQLError,
@@ -22,13 +22,9 @@ from graphql.validation import validate
 from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
-CostAwareNode = Union[
-    Field,
-    FragmentDefinition,
-    FragmentSpread,
-    InlineFragment,
-    OperationDefinition,
-]
+CostAwareNode = (
+    Field | FragmentDefinition | FragmentSpread | InlineFragment | OperationDefinition
+)
 
 GraphQLFieldMap = dict[str, GraphQLField]
 
@@ -37,8 +33,8 @@ class CostValidator(ValidationRule):
     maximum_cost: int
     default_cost: int = 0
     default_complexity: int = 1
-    variables: Optional[dict] = None
-    cost_map: Optional[dict[str, dict[str, Any]]] = None
+    variables: dict | None = None
+    cost_map: dict[str, dict[str, Any]] | None = None
 
     def __init__(
         self,
@@ -46,8 +42,8 @@ class CostValidator(ValidationRule):
         *,
         default_cost: int = 0,
         default_complexity: int = 1,
-        variables: Optional[dict] = None,
-        cost_map: Optional[dict[str, dict[str, Any]]] = None,
+        variables: dict | None = None,
+        cost_map: dict[str, dict[str, Any]] | None = None,
     ):  # pylint: disable=super-init-not-called
         self.maximum_cost = maximum_cost
         self.variables = variables
@@ -67,7 +63,7 @@ class CostValidator(ValidationRule):
         if isinstance(node, FragmentSpread) or not node.selection_set:
             return 0
         fields: GraphQLFieldMap = {}
-        if isinstance(type_def, (GraphQLObjectType, GraphQLInterfaceType)):
+        if isinstance(type_def, GraphQLObjectType | GraphQLInterfaceType):
             fields = type_def.fields
         total = 0
         for child_node in node.selection_set.selections:
@@ -188,7 +184,7 @@ class CostValidator(ValidationRule):
             except (ValueError, TypeError):
                 pass
         multipliers = [
-            len(multiplier) if isinstance(multiplier, (list, tuple)) else multiplier
+            len(multiplier) if isinstance(multiplier, list | tuple) else multiplier
             for multiplier in multipliers
         ]
         return [m for m in multipliers if m > 0]
@@ -207,9 +203,9 @@ class CostValidator(ValidationRule):
     def enter(
         self,
         node: Any,
-        key: Optional[Union[int, str]],
+        key: int | str | None,
         parent: Any,
-        path: list[Union[int, str]],
+        path: list[int | str],
         ancestors: list[Any],
     ):
         if isinstance(node, OperationDefinition):
@@ -218,9 +214,9 @@ class CostValidator(ValidationRule):
     def leave(
         self,
         node: Any,
-        key: Optional[Union[int, str]],
+        key: int | str | None,
         parent: Any,
-        path: list[Union[int, str]],
+        path: list[int | str],
         ancestors: list[Any],
     ):
         if isinstance(node, OperationDefinition):
@@ -271,8 +267,8 @@ def cost_validator(
     *,
     default_cost: int = 0,
     default_complexity: int = 1,
-    variables: Optional[dict] = None,
-    cost_map: Optional[dict[str, dict[str, Any]]] = None,
+    variables: dict | None = None,
+    cost_map: dict[str, dict[str, Any]] | None = None,
 ) -> CostValidator:
     return CostValidator(
         maximum_cost=maximum_cost,

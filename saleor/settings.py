@@ -3,7 +3,7 @@ import logging
 import os
 import os.path
 import warnings
-from typing import Optional, cast
+from typing import cast
 from urllib.parse import urlparse
 
 import dj_database_url
@@ -49,7 +49,7 @@ def get_bool_from_env(name, default_value):
     return value.lower() in ("true", "1")
 
 
-def get_url_from_env(name, *, schemes=None) -> Optional[str]:
+def get_url_from_env(name, *, schemes=None) -> str | None:
     if name in os.environ:
         value = os.environ[name]
         message = f"{value} is an invalid value for {name}"
@@ -167,7 +167,7 @@ ENABLE_SSL: bool = get_bool_from_env("ENABLE_SSL", False)
 
 # URL on which Saleor is hosted (e.g., https://api.example.com/). This has precedence
 # over ENABLE_SSL and Shop.domain when generating URLs pointing to itself.
-PUBLIC_URL: Optional[str] = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
+PUBLIC_URL: str | None = get_url_from_env("PUBLIC_URL", schemes=["http", "https"])
 if PUBLIC_URL:
     if os.environ.get("ENABLE_SSL") is not None:
         warnings.warn(

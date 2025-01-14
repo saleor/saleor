@@ -1,7 +1,6 @@
 import logging
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import Optional
 from urllib.parse import urljoin
 
 import stripe
@@ -47,7 +46,7 @@ def is_secret_api_key_valid(api_key: str):
         return False
 
 
-def _extra_log_data(error: StripeError, payment_intent_id: Optional[str] = None):
+def _extra_log_data(error: StripeError, payment_intent_id: str | None = None):
     data = {
         "error_message": error.user_message,
         "http_status": error.http_status,
@@ -58,7 +57,7 @@ def _extra_log_data(error: StripeError, payment_intent_id: Optional[str] = None)
     return data
 
 
-def subscribe_webhook(api_key: str, channel_slug: str) -> Optional[StripeObject]:
+def subscribe_webhook(api_key: str, channel_slug: str) -> StripeObject | None:
     domain = get_domain()
     api_path = reverse(
         "plugins-per-channel",
@@ -98,9 +97,9 @@ def delete_webhook(api_key: str, webhook_id: str):
 
 def get_or_create_customer(
     api_key: str,
-    customer_id: Optional[str] = None,
-    customer_email: Optional[str] = None,
-) -> Optional[StripeObject]:
+    customer_id: str | None = None,
+    customer_email: str | None = None,
+) -> StripeObject | None:
     try:
         if customer_id:
             with stripe_opentracing_trace("stripe.Customer.retrieve"):
@@ -126,14 +125,14 @@ def create_payment_intent(
     amount: Decimal,
     currency: str,
     auto_capture: bool = True,
-    customer: Optional[StripeObject] = None,
-    payment_method_id: Optional[str] = None,
-    metadata: Optional[dict] = None,
-    setup_future_usage: Optional[str] = None,
-    off_session: Optional[bool] = None,
-    payment_method_types: Optional[list[str]] = None,
-    customer_email: Optional[str] = None,
-) -> tuple[Optional[StripeObject], Optional[StripeError]]:
+    customer: StripeObject | None = None,
+    payment_method_id: str | None = None,
+    metadata: dict | None = None,
+    setup_future_usage: str | None = None,
+    off_session: bool | None = None,
+    payment_method_types: list[str] | None = None,
+    customer_email: str | None = None,
+) -> tuple[StripeObject | None, StripeError | None]:
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
     additional_params = {}
 
@@ -197,7 +196,7 @@ def update_payment_method(
 
 def list_customer_payment_methods(
     api_key: str, customer_id: str
-) -> tuple[Optional[StripeObject], Optional[StripeError]]:
+) -> tuple[StripeObject | None, StripeError | None]:
     try:
         with stripe_opentracing_trace("stripe.PaymentMethod.list"):
             payment_methods = stripe.PaymentMethod.list(
@@ -212,7 +211,7 @@ def list_customer_payment_methods(
 
 def retrieve_payment_intent(
     api_key: str, payment_intent_id: str
-) -> tuple[Optional[StripeObject], Optional[StripeError]]:
+) -> tuple[StripeObject | None, StripeError | None]:
     try:
         with stripe_opentracing_trace("stripe.PaymentIntent.retrieve"):
             payment_intent = stripe.PaymentIntent.retrieve(
@@ -230,7 +229,7 @@ def retrieve_payment_intent(
 
 def capture_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_capture: int
-) -> tuple[Optional[StripeObject], Optional[StripeError]]:
+) -> tuple[StripeObject | None, StripeError | None]:
     try:
         with stripe_opentracing_trace("stripe.PaymentIntent.capture"):
             payment_intent = stripe.PaymentIntent.capture(
@@ -249,7 +248,7 @@ def capture_payment_intent(
 
 def refund_payment_intent(
     api_key: str, payment_intent_id: str, amount_to_refund: int
-) -> tuple[Optional[StripeObject], Optional[StripeError]]:
+) -> tuple[StripeObject | None, StripeError | None]:
     try:
         with stripe_opentracing_trace("stripe.Refund.create"):
             refund = stripe.Refund.create(
@@ -268,7 +267,7 @@ def refund_payment_intent(
 
 def cancel_payment_intent(
     api_key: str, payment_intent_id: str
-) -> tuple[Optional[StripeObject], Optional[StripeError]]:
+) -> tuple[StripeObject | None, StripeError | None]:
     try:
         with stripe_opentracing_trace("stripe.PaymentIntent.cancel"):
             payment_intent = stripe.PaymentIntent.cancel(
@@ -296,7 +295,7 @@ def construct_stripe_event(
 
 def get_payment_method_details(
     payment_intent: StripeObject,
-) -> Optional[PaymentMethodInfo]:
+) -> PaymentMethodInfo | None:
     charges = payment_intent.get("charges", None)
     payment_method_info = None
     if charges:

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db.models import Exists, OuterRef
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
 @dataclass
 class RequestorAwareContext:
     allow_replica: bool
-    user: Optional[User] = None
-    app: Optional[App] = None
+    user: User | None = None
+    app: App | None = None
 
     @property
     def META(self):

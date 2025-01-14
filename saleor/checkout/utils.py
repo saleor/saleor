@@ -163,7 +163,7 @@ def get_user_checkout(
     user: User,
     checkout_queryset=None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-) -> Optional[Checkout]:
+) -> Checkout | None:
     if not checkout_queryset:
         checkout_queryset = Checkout.objects.using(database_connection_name).all()
     return checkout_queryset.filter(user=user, channel__is_active=True).first()
@@ -176,9 +176,9 @@ def check_variant_in_stock(
     quantity: int = 1,
     replace: bool = False,
     check_quantity: bool = True,
-    checkout_lines: Optional[list["CheckoutLine"]] = None,
+    checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
-) -> tuple[int, Optional[CheckoutLine]]:
+) -> tuple[int, CheckoutLine | None]:
     """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
     line_quantity = 0 if line is None else line.quantity
@@ -287,7 +287,7 @@ def add_variants_to_checkout(
     channel,
     replace=False,
     replace_reservations=False,
-    reservation_length: Optional[int] = None,
+    reservation_length: int | None = None,
     raise_error_for_missing_lines=False,
 ):
     """Add variants to checkout.
@@ -623,7 +623,7 @@ def get_voucher_for_checkout(
     with_lock: bool = False,
     with_prefetch: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-) -> tuple[Optional[Voucher], Optional[VoucherCode]]:
+) -> tuple[Voucher | None, VoucherCode | None]:
     """Return voucher assigned to checkout."""
     if checkout.voucher_code is not None:
         try:
@@ -675,7 +675,7 @@ def get_voucher_for_checkout(
 
 def get_voucher_for_checkout_info(
     checkout_info: "CheckoutInfo", with_lock: bool = False, with_prefetch: bool = False
-) -> tuple[Optional[Voucher], Optional[VoucherCode]]:
+) -> tuple[Voucher | None, VoucherCode | None]:
     """Return voucher with voucher code saved in checkout if active or None."""
     checkout = checkout_info.checkout
     return get_voucher_for_checkout(
@@ -881,6 +881,10 @@ def remove_promo_code_from_checkout_or_error(
         remove_voucher_code_from_checkout_or_error(checkout_info, promo_code)
     elif promo_code_is_gift_card(promo_code):
         remove_gift_card_code_from_checkout_or_error(checkout_info.checkout, promo_code)
+    # clear the voucher code in case the code does not exists anymore but it's still
+    # assigned to the checkout
+    elif promo_code == checkout_info.checkout.voucher_code:
+        remove_voucher_code_from_checkout_or_error(checkout_info, promo_code)
     else:
         raise ValidationError(
             "Promo code does not exists.",
@@ -896,6 +900,11 @@ def remove_voucher_code_from_checkout_or_error(
     if checkout_info.voucher and voucher_code in checkout_info.voucher.promo_codes:
         remove_voucher_from_checkout(checkout_info.checkout)
         checkout_info.voucher = None
+    elif (
+        not checkout_info.voucher
+        and checkout_info.checkout.voucher_code == voucher_code
+    ):
+        remove_voucher_from_checkout(checkout_info.checkout)
     else:
         raise ValidationError(
             "Cannot remove a voucher not attached to this checkout.",
@@ -926,7 +935,7 @@ def get_valid_internal_shipping_methods_for_checkout(
     lines: list["CheckoutLineInfo"],
     subtotal: "Money",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-    country_code: Optional[str] = None,
+    country_code: str | None = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
     if not is_shipping_required(lines):

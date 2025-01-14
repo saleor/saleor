@@ -190,7 +190,7 @@ class PluginSample(BasePlugin):
 
     def external_verify(
         self, data: dict, request: WSGIRequest, previous_value
-    ) -> tuple[Optional[User], dict]:
+    ) -> tuple[User | None, dict]:
         user = User.objects.get()
         return user, {"some_data": "data"}
 
@@ -307,7 +307,7 @@ class PluginSample(BasePlugin):
     def payment_gateway_initialize_session(
         self,
         amount: Decimal,
-        payment_gateways: Optional[list["PaymentGatewayData"]],
+        payment_gateways: list["PaymentGatewayData"] | None,
         source_object: Union["Order", "Checkout"],
         previous_value: Any,
     ):
@@ -465,7 +465,7 @@ class SampleAuthorizationPlugin(BasePlugin):
     DEFAULT_ACTIVE = True
     CONFIGURATION_PER_CHANNEL = False
 
-    def authenticate_user(self, request, previous_value) -> Optional[User]:
+    def authenticate_user(self, request, previous_value) -> User | None:
         # This function will be mocked in test
         raise NotImplementedError()
 

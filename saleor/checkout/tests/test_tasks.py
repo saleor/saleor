@@ -527,9 +527,9 @@ def test_delete_checkouts_until_done(mocked_task: mock.MagicMock, channel_USD):
     )
     assert deleted_count == 6
     assert has_more is True
-    assert (
-        Checkout.objects.count() == 1
-    ), "Should have deleted 6 checkouts thus only 1 should be left"
+    assert Checkout.objects.count() == 1, (
+        "Should have deleted 6 checkouts thus only 1 should be left"
+    )
 
     # Should have triggered a new task to delete more checkouts
     mocked_task.assert_called_once_with(**task_params, invocation_count=2)
@@ -541,9 +541,9 @@ def test_delete_checkouts_until_done(mocked_task: mock.MagicMock, channel_USD):
     )
     assert deleted_count == 1
     assert has_more is False
-    assert (
-        Checkout.objects.count() == 0
-    ), "Should have deleted the last remaining checkout (one)"
+    assert Checkout.objects.count() == 0, (
+        "Should have deleted the last remaining checkout (one)"
+    )
 
     # Shouldn't have triggered a new task as nothing is left to be deleted.
     mocked_task.assert_not_called()

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -307,7 +306,7 @@ class DraftOrderCreate(
 
     @classmethod
     def clean_voucher_code(
-        cls, voucher_code: Optional[str], channel: Channel, cleaned_input: dict
+        cls, voucher_code: str | None, channel: Channel, cleaned_input: dict
     ):
         # We need to clean voucher instance as well
         if voucher_code is None:

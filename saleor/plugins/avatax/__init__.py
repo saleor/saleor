@@ -3,7 +3,7 @@ import json
 import logging
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urljoin
 
 import opentracing
@@ -110,7 +110,7 @@ def api_post_request(
             allow_redirects=False,
         )
         logger.debug("Hit to Avatax to calculate taxes %s", url)
-        json_response = response.json()
+        json_response = response.json(parse_float=Decimal)
         if "error" in response:
             logger.exception("Avatax response contains errors %s", json_response)
             return json_response
@@ -152,9 +152,9 @@ def api_get_request(
 
 
 def _validate_address_details(
-    shipping_address: Optional[Address],
+    shipping_address: Address | None,
     is_shipping_required: bool,
-    address: Optional[Address],
+    address: Address | None,
     delivery_method,
 ):
     if not is_shipping_required and address:
@@ -171,9 +171,9 @@ def _validate_order(order: "Order") -> bool:
     if not order.lines.exists():
         return False
     shipping_required = order.is_shipping_required()
-    delivery_method: Union[None, ShippingMethod, Warehouse]
-    address: Optional[Address]
-    shipping_address: Optional[Address]
+    delivery_method: None | ShippingMethod | Warehouse
+    address: Address | None
+    shipping_address: Address | None
     if order.collection_point:
         collection_point = order.collection_point
         delivery_method = collection_point
@@ -237,11 +237,11 @@ def append_line_to_data(
     tax_code: str,
     item_code: str,
     prices_entered_with_tax: bool,
-    name: Optional[str] = None,
-    discounted: Optional[bool] = False,
-    tax_override_data: Optional[dict] = None,
-    ref1: Optional[str] = None,
-    ref2: Optional[str] = None,
+    name: str | None = None,
+    discounted: bool | None = False,
+    tax_override_data: dict | None = None,
+    ref1: str | None = None,
+    ref2: str | None = None,
 ):
     line_data = {
         "quantity": quantity,
@@ -264,10 +264,10 @@ def append_line_to_data(
 
 def append_shipping_to_data(
     data: list[dict],
-    shipping_price_amount: Optional[Decimal],
+    shipping_price_amount: Decimal | None,
     shipping_tax_code: str,
     prices_entered_with_tax: bool,
-    discounted: Optional[bool] = False,
+    discounted: bool | None = False,
 ):
     if shipping_price_amount is not None:
         append_line_to_data(
@@ -285,8 +285,8 @@ def generate_request_data_from_checkout_lines(
     checkout_info: "CheckoutInfo",
     lines_info: list["CheckoutLineInfo"],
     config: AvataxConfiguration,
-) -> list[dict[str, Union[str, int, bool, None]]]:
-    data: list[dict[str, Union[str, int, bool, None]]] = []
+) -> list[dict[str, str | int | bool | None]]:
+    data: list[dict[str, str | int | bool | None]] = []
 
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
@@ -370,8 +370,8 @@ def generate_request_data_from_checkout_lines(
 
 def get_order_lines_data(
     order: "Order", config: AvataxConfiguration, discounted: bool
-) -> list[dict[str, Union[str, int, bool, None]]]:
-    data: list[dict[str, Union[str, int, bool, None]]] = []
+) -> list[dict[str, str | int | bool | None]]:
+    data: list[dict[str, str | int | bool | None]] = []
     lines = order.lines.prefetch_related(
         "variant__product__category",
         "variant__product__collections",
@@ -459,7 +459,7 @@ def generate_request_data(
     customer_email: str,
     config: AvataxConfiguration,
     currency: str,
-    discount: Optional[Decimal] = None,
+    discount: Decimal | None = None,
 ):
     ship_from = {
         "line1": config.from_street_address,
@@ -703,7 +703,7 @@ def _get_product_tax_code(product: "Product", product_type: "ProductType"):
 
 
 def retrieve_tax_code_from_meta(
-    obj: "TaxClass", default: Optional[str] = DEFAULT_TAX_CODE
+    obj: "TaxClass", default: str | None = DEFAULT_TAX_CODE
 ):
     tax_code = obj.get_value_from_metadata(META_CODE_KEY, default)
     return tax_code

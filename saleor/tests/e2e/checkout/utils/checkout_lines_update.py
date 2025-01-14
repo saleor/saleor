@@ -42,6 +42,10 @@ mutation checkoutLinesUpdate($checkoutId: ID!, $lines: [CheckoutLineUpdateInput!
           }
         }
       }
+      shippingMethods {
+        id
+        name
+      }
     }
     errors {
       field

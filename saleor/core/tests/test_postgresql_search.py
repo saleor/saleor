@@ -66,7 +66,7 @@ USERS = [
     ("John", "Doe", "johndoe@example.com"),
 ]
 ORDER_IDS = [10, 45, 13]
-ORDERS = [[pk] + list(user) for pk, user in zip(ORDER_IDS, USERS)]
+ORDERS = [[pk] + list(user) for pk, user in zip(ORDER_IDS, USERS, strict=False)]
 
 
 def gen_address_for_user(first_name, last_name):

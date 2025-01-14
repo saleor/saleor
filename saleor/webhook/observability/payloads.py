@@ -2,7 +2,7 @@ import datetime
 import json
 import uuid
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import graphene
 from django.core.serializers.json import DjangoJSONEncoder
@@ -88,7 +88,7 @@ GQL_OPERATION_PLACEHOLDER = GraphQLOperation(
 GQL_OPERATION_PLACEHOLDER_SIZE = len(dump_payload(GQL_OPERATION_PLACEHOLDER))
 
 
-def serialize_headers(headers: Optional[dict[str, str]]) -> HttpHeaders:
+def serialize_headers(headers: dict[str, str] | None) -> HttpHeaders:
     if headers:
         return list(filter_and_hide_headers(headers).items())
     return []
@@ -193,7 +193,7 @@ def generate_api_call_payload(
 @traced_payload_generator
 def generate_event_delivery_attempt_payload(
     attempt: "EventDeliveryAttempt",
-    next_retry: Optional[datetime.datetime],
+    next_retry: datetime.datetime | None,
     bytes_limit: int,
 ) -> bytes:
     if not attempt.delivery:

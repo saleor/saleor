@@ -167,7 +167,7 @@ class CheckoutLinesAdd(BaseMutation):
 
         variants_ids_to_validate = {
             variant.id
-            for variant, line_data in zip(variants, checkout_lines_data)
+            for variant, line_data in zip(variants, checkout_lines_data, strict=False)
             if line_data.quantity_to_update and line_data.quantity != 0
         }
         # validate variant only when line quantity is bigger than 0

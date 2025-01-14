@@ -1738,9 +1738,9 @@ def test_order_from_checkout_with_digital(
     assert not content["errors"]
 
     # Ensure the order was actually created
-    assert (
-        Order.objects.count() == order_count + 1
-    ), "The order should have been created"
+    assert Order.objects.count() == order_count + 1, (
+        "The order should have been created"
+    )
 
 
 @pytest.mark.integration
@@ -1810,9 +1810,9 @@ def test_order_from_checkout_0_total_value(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 def test_order_from_checkout_for_click_and_collect(
@@ -2078,9 +2078,9 @@ def test_order_from_draft_create_with_preorder_variant(
     assert stock_line.allocations.exists()
     assert not stock_line.preorder_allocations.exists()
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
     order_confirmed_mock.assert_called_once_with(order, webhooks=set())
 
 
@@ -2438,9 +2438,9 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -2498,6 +2498,6 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )

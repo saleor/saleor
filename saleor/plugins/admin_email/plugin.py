@@ -1,7 +1,7 @@
 import logging
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import asdict
-from typing import Callable, Union
 
 from django.conf import settings
 from promise.promise import Promise
@@ -183,7 +183,7 @@ class AdminEmailPlugin(BasePlugin):
 
     def resolve_plugin_configuration(
         self, request
-    ) -> Union[PluginConfigurationType, Promise[PluginConfigurationType]]:
+    ) -> PluginConfigurationType | Promise[PluginConfigurationType]:
         # Get email templates from the database and merge them with self.configuration.
         if not self.db_config:
             return self.configuration
@@ -216,7 +216,7 @@ class AdminEmailPlugin(BasePlugin):
 
     def notify(
         self,
-        event: Union[NotifyEventType, str],
+        event: NotifyEventType | str,
         payload_func: Callable[[], dict],
         previous_value: None,
     ) -> None:

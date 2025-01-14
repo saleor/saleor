@@ -39,11 +39,11 @@ class OrderLineInfo:
     line: "OrderLine"
     quantity: int
     variant: Optional["ProductVariant"] = None
-    is_digital: Optional[bool] = None
+    is_digital: bool | None = None
     digital_content: Optional["DigitalContent"] = None
     replace: bool = False
-    warehouse_pk: Optional[UUID] = None
-    line_discounts: Optional[Iterable["OrderLineDiscount"]] = None
+    warehouse_pk: UUID | None = None
+    line_discounts: Iterable["OrderLineDiscount"] | None = None
 
 
 def fetch_order_info(order: "Order") -> OrderInfo:
@@ -115,7 +115,7 @@ class EditableOrderLineInfo(LineInfo):
 
 
 def fetch_draft_order_lines_info(
-    order: "Order", lines: Optional[Iterable["OrderLine"]] = None
+    order: "Order", lines: Iterable["OrderLine"] | None = None
 ) -> list[EditableOrderLineInfo]:
     prefetch_related_fields = [
         "discounts__promotion_rule__promotion",
@@ -176,8 +176,8 @@ def fetch_draft_order_lines_info(
 
 
 def get_prefetched_variant_listing(
-    variant: Optional[ProductVariant], channel_id: int
-) -> Optional[ProductVariantChannelListing]:
+    variant: ProductVariant | None, channel_id: int
+) -> ProductVariantChannelListing | None:
     if not variant:
         return None
     for channel_listing in variant.channel_listings.all():

@@ -98,7 +98,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         webhooks_stock_update = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
         )
-        for stock_data, warehouse in zip(stocks_data, warehouses):
+        for stock_data, warehouse in zip(stocks_data, warehouses, strict=False):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )

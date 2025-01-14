@@ -181,7 +181,7 @@ def get_product_variant_payload(variant: ProductVariant):
 
 
 def get_order_line_payload(line: "OrderLine", attribute_data: AttributeData):
-    digital_url: Optional[str] = None
+    digital_url: str | None = None
     if line.is_digital:
         content = DigitalContentUrl.objects.filter(line=line).first()
         digital_url = content.get_absolute_url() if content else None
@@ -320,8 +320,8 @@ def get_custom_order_payload(order: Order):
 def get_default_order_payload(
     order: "Order",
     redirect_url: str = "",
-    lines: Optional[Iterable["OrderLine"]] = None,
-    attribute_data: Optional[AttributeData] = None,
+    lines: Iterable["OrderLine"] | None = None,
+    attribute_data: AttributeData | None = None,
 ):
     order_details_url = ""
     if redirect_url:

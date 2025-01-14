@@ -200,7 +200,7 @@ def vouchers_list(channel_USD, channel_PLN):
     )
     values = [15, 5, 25]
     voucher_channel_listings = []
-    for voucher, value in zip(vouchers, values):
+    for voucher, value in zip(vouchers, values, strict=False):
         voucher_channel_listings.append(
             VoucherChannelListing(
                 voucher=voucher,

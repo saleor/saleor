@@ -44,8 +44,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         required=True,
         default_value=False,
         description=(
-            "Set to true if payment needs to be confirmed"
-            " before checkout is complete."
+            "Set to true if payment needs to be confirmed before checkout is complete."
         ),
     )
     confirmation_data = JSONString(

@@ -1975,9 +1975,9 @@ def test_update_product_with_existing_attribute_value(
     )["data"]["productUpdate"]
     assert not data["errors"]
 
-    assert (
-        color_attribute.values.count() == expected_attribute_values_count
-    ), "A new attribute value shouldn't have been created"
+    assert color_attribute.values.count() == expected_attribute_values_count, (
+        "A new attribute value shouldn't have been created"
+    )
 
 
 def test_update_product_with_non_existing_attribute(

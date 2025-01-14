@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import graphene
 from django.conf import settings
@@ -54,24 +54,19 @@ ERROR_CC_ADDRESS_CHANGE_FORBIDDEN = (
 
 @dataclass
 class CheckoutLineData:
-    variant_id: Optional[str] = None
-    line_id: Optional[str] = None
+    variant_id: str | None = None
+    line_id: str | None = None
     quantity: int = 0
     quantity_to_update: bool = False
-    custom_price: Optional[Decimal] = None
+    custom_price: Decimal | None = None
     custom_price_to_update: bool = False
-    metadata_list: Optional[list] = None
+    metadata_list: list | None = None
 
 
 def clean_delivery_method(
     checkout_info: "CheckoutInfo",
     lines: list[CheckoutLineInfo],
-    method: Optional[
-        Union[
-            shipping_interface.ShippingMethodData,
-            warehouse_models.Warehouse,
-        ]
-    ],
+    method: shipping_interface.ShippingMethodData | warehouse_models.Warehouse | None,
 ) -> bool:
     """Check if current shipping method is valid."""
     if not method:
@@ -136,7 +131,7 @@ def get_variants_and_total_quantities(
     quantity_to_update_check=False,
 ):
     variants_total_quantity_map: defaultdict[ProductVariant, int] = defaultdict(int)
-    mapped_data: defaultdict[Optional[str], int] = defaultdict(int)
+    mapped_data: defaultdict[str | None, int] = defaultdict(int)
 
     if quantity_to_update_check:
         lines_data = filter(lambda d: d.quantity_to_update, lines_data)
@@ -291,7 +286,7 @@ def validate_variants_are_published(
 
 
 def get_checkout_by_token(
-    token: uuid.UUID, qs: Optional[QuerySet[models.Checkout]] = None
+    token: uuid.UUID, qs: QuerySet[models.Checkout] | None = None
 ):
     if qs is None:
         qs = models.Checkout.objects.select_related(
@@ -318,10 +313,10 @@ def get_checkout_by_token(
 def get_checkout(
     mutation_class: type["BaseMutation"],
     info: ResolveInfo,
-    checkout_id: Optional[str] = None,
-    token: Optional[uuid.UUID] = None,
-    id: Optional[str] = None,
-    qs: Optional[QuerySet] = None,
+    checkout_id: str | None = None,
+    token: uuid.UUID | None = None,
+    id: str | None = None,
+    qs: QuerySet | None = None,
 ):
     """Return checkout by using the current id field or the deprecated one.
 
