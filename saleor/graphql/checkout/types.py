@@ -436,7 +436,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     @staticmethod
     def resolve_prior_total_price(
         root: models.CheckoutLine, info: ResolveInfo
-    ) -> Optional["Money"]:
+    ) -> Money | None:
         if root.prior_unit_price is None:
             return None
 
