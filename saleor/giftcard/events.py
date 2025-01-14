@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ..account.models import User
 from ..app.models import App
@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 def gift_card_issued_event(
     gift_card: GiftCard,
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     balance_data = {
         "currency": gift_card.currency,
@@ -31,8 +31,8 @@ def gift_card_issued_event(
 
 def gift_cards_issued_event(
     gift_cards: Iterable[GiftCard],
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
     balance: dict,
 ):
     balance_data = {
@@ -54,7 +54,7 @@ def gift_cards_issued_event(
 
 
 def gift_card_sent_event(
-    gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
+    gift_card_id: int, user_id: int | None, app_id: int | None, email: str
 ):
     return GiftCardEvent.objects.create(
         gift_card_id=gift_card_id,
@@ -66,7 +66,7 @@ def gift_card_sent_event(
 
 
 def gift_card_resent_event(
-    gift_card_id: int, user_id: Optional[int], app_id: Optional[int], email: str
+    gift_card_id: int, user_id: int | None, app_id: int | None, email: str
 ):
     return GiftCardEvent.objects.create(
         gift_card_id=gift_card_id,
@@ -80,8 +80,8 @@ def gift_card_resent_event(
 def gift_card_balance_reset_event(
     gift_card: GiftCard,
     old_gift_card: GiftCard,
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     balance_data = {
         "currency": gift_card.currency,
@@ -103,8 +103,8 @@ def gift_card_balance_reset_event(
 def gift_card_expiry_date_updated_event(
     gift_card: GiftCard,
     old_gift_card: GiftCard,
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
@@ -121,8 +121,8 @@ def gift_card_expiry_date_updated_event(
 def gift_card_tags_updated_event(
     gift_card: GiftCard,
     old_tags: list[str],
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
@@ -140,8 +140,8 @@ def gift_card_tags_updated_event(
 
 def gift_card_activated_event(
     gift_card: GiftCard,
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
@@ -153,8 +153,8 @@ def gift_card_activated_event(
 
 def gift_card_deactivated_event(
     gift_card: GiftCard,
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
@@ -166,8 +166,8 @@ def gift_card_deactivated_event(
 
 def gift_cards_activated_event(
     gift_card_ids: Iterable[int],
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     events = [
         GiftCardEvent(
@@ -183,8 +183,8 @@ def gift_cards_activated_event(
 
 def gift_cards_deactivated_event(
     gift_card_ids: Iterable[int],
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     events = [
         GiftCardEvent(
@@ -199,7 +199,7 @@ def gift_cards_deactivated_event(
 
 
 def gift_card_note_added_event(
-    gift_card: GiftCard, user: Optional[User], app: Optional[App], message: str
+    gift_card: GiftCard, user: User | None, app: App | None, message: str
 ) -> GiftCardEvent:
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
@@ -213,8 +213,8 @@ def gift_card_note_added_event(
 def gift_cards_used_in_order_event(
     balance_data: Iterable[tuple[GiftCard, float]],
     order: "Order",
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     events = [
         GiftCardEvent(
@@ -239,8 +239,8 @@ def gift_cards_used_in_order_event(
 def gift_cards_bought_event(
     gift_cards: Iterable[GiftCard],
     order: "Order",
-    user: Optional[User],
-    app: Optional[App],
+    user: User | None,
+    app: App | None,
 ):
     events = [
         GiftCardEvent(

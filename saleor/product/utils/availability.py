@@ -12,11 +12,11 @@ from ...tax.calculations import calculate_flat_rate_tax
 @dataclass
 class ProductAvailability:
     on_sale: bool
-    price_range: Optional[TaxedMoneyRange]
-    price_range_undiscounted: Optional[TaxedMoneyRange]
-    price_range_prior: Optional[TaxedMoneyRange]
-    discount: Optional[TaxedMoney]
-    discount_prior: Optional[TaxedMoney]
+    price_range: TaxedMoneyRange | None
+    price_range_undiscounted: TaxedMoneyRange | None
+    price_range_prior: TaxedMoneyRange | None
+    discount: TaxedMoney | None
+    discount_prior: TaxedMoney | None
 
 
 @dataclass
@@ -24,14 +24,14 @@ class VariantAvailability:
     on_sale: bool
     price: TaxedMoney
     price_undiscounted: TaxedMoney
-    price_prior: Optional[TaxedMoney]
-    discount: Optional[TaxedMoney]
-    discount_prior: Optional[TaxedMoney]
+    price_prior: TaxedMoney | None
+    discount: TaxedMoney | None
+    discount_prior: TaxedMoney | None
 
 
 def _get_total_discount_from_range(
     undiscounted: TaxedMoneyRange, discounted: TaxedMoneyRange
-) -> Optional[TaxedMoney]:
+) -> TaxedMoney | None:
     """Calculate the discount amount between two TaxedMoneyRange.
 
     Subtract two prices and return their total discount, if any.
@@ -42,7 +42,7 @@ def _get_total_discount_from_range(
 
 def _get_total_discount(
     undiscounted: TaxedMoney, discounted: TaxedMoney
-) -> Optional[TaxedMoney]:
+) -> TaxedMoney | None:
     """Calculate the discount amount between two TaxedMoney.
 
     Subtract two prices and return their total discount, if any.
@@ -57,14 +57,14 @@ def get_product_price_range(
     *,
     variants_channel_listing: list[ProductVariantChannelListing],
     field: Literal["price", "discounted_price", "prior_price"],
-) -> Optional[MoneyRange]:
+) -> MoneyRange | None:
     """Return the range of product prices based on product variants prices.
 
     When discounted parameter is True, the range of discounted prices is provided.
     """
     prices = []
     for channel_listing in variants_channel_listing:
-        price: Optional[Money] = channel_listing.__getattribute__(field)
+        price: Money | None = channel_listing.__getattribute__(field)
         if price is not None:
             prices.append(price)
     if prices:
@@ -92,8 +92,8 @@ def _calculate_product_price_with_taxes_range(
     tax_rate: Decimal,
     tax_calculation_strategy: str,
     prices_entered_with_tax: bool,
-) -> Optional[TaxedMoneyRange]:
-    price: Optional[TaxedMoneyRange] = None
+) -> TaxedMoneyRange | None:
+    price: TaxedMoneyRange | None = None
     price_net_range = get_product_price_range(
         variants_channel_listing=variants_channel_listing, field=field
     )
@@ -118,13 +118,13 @@ def _calculate_product_price_with_taxes_range(
 
 def get_product_availability(
     *,
-    product_channel_listing: Optional[ProductChannelListing],
+    product_channel_listing: ProductChannelListing | None,
     variants_channel_listing: list[ProductVariantChannelListing],
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal,
 ) -> ProductAvailability:
-    undiscounted: Optional[TaxedMoneyRange] = _calculate_product_price_with_taxes_range(
+    undiscounted: TaxedMoneyRange | None = _calculate_product_price_with_taxes_range(
         "price",
         variants_channel_listing,
         tax_rate,
@@ -132,8 +132,8 @@ def get_product_availability(
         prices_entered_with_tax,
     )
 
-    discounted: Optional[TaxedMoneyRange] = None
-    prior: Optional[TaxedMoneyRange] = None
+    discounted: TaxedMoneyRange | None = None
+    prior: TaxedMoneyRange | None = None
 
     if undiscounted is not None:
         discounted = _calculate_product_price_with_taxes_range(
@@ -178,11 +178,11 @@ def get_product_availability(
 def get_variant_availability(
     *,
     variant_channel_listing: ProductVariantChannelListing,
-    product_channel_listing: Optional[ProductChannelListing],
+    product_channel_listing: ProductChannelListing | None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal,
-) -> Optional[VariantAvailability]:
+) -> VariantAvailability | None:
     if variant_channel_listing.price is None:
         return None
     discounted_price_taxed = _calculate_product_price_with_taxes(

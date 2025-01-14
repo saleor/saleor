@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 def calculate_revenue_for_variant(
     variant: "ProductVariant",
-    start_date: Union[datetime.date, datetime.datetime],
+    start_date: datetime.date | datetime.datetime,
     order_lines: Iterable["OrderLine"],
     orders_dict: dict[UUID, "Order"],
     currency_code: str,
@@ -35,7 +35,7 @@ def calculate_revenue_for_variant(
 
 
 @traced_atomic_transaction()
-def delete_categories(categories_ids: list[Union[str, int]], manager):
+def delete_categories(categories_ids: list[str | int], manager):
     """Delete categories and perform all necessary actions.
 
     Set products of deleted categories as unpublished, delete categories

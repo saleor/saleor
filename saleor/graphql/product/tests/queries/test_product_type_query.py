@@ -408,9 +408,9 @@ def test_product_type_get_unassigned_product_type_attributes(
         )
     )["data"]["productType"]["availableAttributes"]["edges"]
 
-    assert len(gql_unassigned_attributes) == len(
-        unassigned_attributes
-    ), gql_unassigned_attributes
+    assert len(gql_unassigned_attributes) == len(unassigned_attributes), (
+        gql_unassigned_attributes
+    )
 
     received_ids = sorted(attr["node"]["id"] for attr in gql_unassigned_attributes)
     expected_ids = sorted(

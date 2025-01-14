@@ -1,13 +1,7 @@
 import json
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from decimal import Decimal, InvalidOperation
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any
 
 import graphene
 from django.conf import settings
@@ -80,10 +74,10 @@ def _prepare_filter_by_rank_expression(
     # making equal comparisons impossible. Instead we compare rank against small
     # range of values, constructed using epsilon.
     if sorting_direction == "gt":
-        return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=id) | Q(
+        return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=id) | Q(
             search_rank__gt=rank + EPSILON
         )
-    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__gt=id) | Q(
+    return Q(search_rank__range=(rank - EPSILON, rank + EPSILON), id__lt=id) | Q(
         search_rank__lt=rank - EPSILON
     )
 
@@ -94,8 +88,8 @@ def _prepare_filter_expression(
     cursor: list[str],
     sorting_fields: list[str],
     sorting_direction: str,
-) -> tuple[Q, dict[str, Union[str, bool]]]:
-    field_expression: dict[str, Union[str, bool]] = {}
+) -> tuple[Q, dict[str, str | bool]]:
+    field_expression: dict[str, str | bool] = {}
     extra_expression = Q()
     for cursor_id, cursor_value in enumerate(cursor[:index]):
         field_expression[sorting_fields[cursor_id]] = cursor_value
@@ -251,7 +245,7 @@ def _get_id_coercion(qs: QuerySet) -> Callable[[str], Any]:
 
 def connection_from_queryset_slice(
     qs: QuerySet,
-    args: Optional[ConnectionArguments] = None,
+    args: ConnectionArguments | None = None,
     connection_type: Any = Connection,
     edge_type: Any = Edge,
     pageinfo_type: Any = PageInfo,
@@ -321,7 +315,7 @@ def create_connection_slice(
     connection_type,
     edge_type=None,
     pageinfo_type=graphene.relay.PageInfo,
-    max_limit: Optional[int] = None,
+    max_limit: int | None = None,
 ):
     _validate_slice_args(info, args, max_limit)
 
@@ -370,7 +364,7 @@ def create_connection_slice(
 def _validate_slice_args(
     info: "ResolveInfo",
     args: dict,
-    max_limit: Optional[int] = None,
+    max_limit: int | None = None,
 ):
     enforce_first_or_last = _is_first_or_last_required(info)
 
@@ -609,7 +603,7 @@ def where_filter_qs(
     return queryset
 
 
-def contains_filter_operator(input: dict[str, Union[dict, str]]):
+def contains_filter_operator(input: dict[str, dict | str]):
     return any(operator in input for operator in ["AND", "OR", "NOT"])
 
 

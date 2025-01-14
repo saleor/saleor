@@ -89,8 +89,8 @@ class TaxClassByProductIdLoader(DataLoader):
 
         def load_tax_classes(results):
             (products, product_types) = results
-            products_map = dict(zip(keys, products))
-            product_types_map = dict(zip(keys, product_types))
+            products_map = dict(zip(keys, products, strict=False))
+            product_types_map = dict(zip(keys, product_types, strict=False))
 
             tax_class_ids_map = {}
             for product_id in keys:
@@ -118,8 +118,8 @@ class TaxClassByVariantIdLoader(DataLoader):
 
         def load_tax_classes(results):
             (products, product_types) = results
-            products_map = dict(zip(keys, products))
-            product_types_map = dict(zip(keys, product_types))
+            products_map = dict(zip(keys, products, strict=False))
+            product_types_map = dict(zip(keys, product_types, strict=False))
 
             tax_class_ids_map = {}
             for variant_pk in keys:

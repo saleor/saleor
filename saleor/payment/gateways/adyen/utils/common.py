@@ -1,7 +1,8 @@
 import json
 import logging
+from collections.abc import Callable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import Adyen
 import opentracing
@@ -81,7 +82,7 @@ def get_tax_percentage_in_adyen_format(total_gross, total_net):
 
 
 def api_call(
-    request_data: Optional[dict[str, Any]], method: Callable, **kwargs
+    request_data: dict[str, Any] | None, method: Callable, **kwargs
 ) -> Adyen.Adyen:
     try:
         return method(request_data, **kwargs)
@@ -90,7 +91,7 @@ def api_call(
         raise PaymentError(f"Unable to process the payment request: {e}.") from e
 
 
-def prepare_address_request_data(address: Optional["AddressData"]) -> Optional[dict]:
+def prepare_address_request_data(address: Optional["AddressData"]) -> dict | None:
     """Create address structure for Adyen request.
 
     The sample recieved from Adyen team:
@@ -337,7 +338,7 @@ def get_shopper_locale_value(country_code: str):
 
 def request_data_for_gateway_config(
     checkout_info: "CheckoutInfo",
-    lines: Optional[list[CheckoutLineInfo]],
+    lines: list[CheckoutLineInfo] | None,
     merchant_account,
 ) -> dict[str, Any]:
     manager = get_plugins_manager(allow_replica=False)

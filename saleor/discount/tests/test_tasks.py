@@ -83,7 +83,7 @@ def test_handle_promotion_toggle(
     )
 
     rules = []
-    for promotion, product in zip(promotions, product_list):
+    for promotion, product in zip(promotions, product_list, strict=False):
         rules.append(
             PromotionRule(
                 promotion=promotion,

@@ -75,7 +75,7 @@ def get_tax_calculation_strategy(
 def get_tax_app_id(
     channel_tax_configuration: "TaxConfiguration",
     country_tax_configuration: Optional["TaxConfigurationPerCountry"],
-) -> Optional[str]:
+) -> str | None:
     """Get tax_app_id value for tax channel configuration.
 
     :param channel_tax_configuration: Channel-specific tax configuration.
@@ -257,7 +257,7 @@ def get_shipping_tax_class_kwargs_for_order(tax_class: Optional["TaxClass"]):
 
 
 def validate_tax_data(
-    tax_data: Optional[TaxData],
+    tax_data: TaxData | None,
     lines: Iterable,
     allow_empty_tax_data: bool = False,
 ):
@@ -274,7 +274,7 @@ def validate_tax_data(
         raise TaxDataError(TaxDataErrorMessage.OVERFLOW)
 
 
-def check_negative_values_in_tax_data(tax_data: Optional[TaxData]) -> bool:
+def check_negative_values_in_tax_data(tax_data: TaxData | None) -> bool:
     """Check if tax data contains negative values."""
     if not tax_data:
         return False
@@ -297,7 +297,7 @@ def check_negative_values_in_tax_data(tax_data: Optional[TaxData]) -> bool:
     return False
 
 
-def check_line_number_in_tax_data(tax_data: Optional[TaxData], lines: Iterable) -> bool:
+def check_line_number_in_tax_data(tax_data: TaxData | None, lines: Iterable) -> bool:
     """Check if tax data contains same line number as input data."""
     if not tax_data:
         return False
@@ -308,7 +308,7 @@ def check_line_number_in_tax_data(tax_data: Optional[TaxData], lines: Iterable) 
     return False
 
 
-def check_overflows_in_tax_data(tax_data: Optional[TaxData]) -> bool:
+def check_overflows_in_tax_data(tax_data: TaxData | None) -> bool:
     """Check if tax rates exceed 100% and line prices are lower than a billion."""
     if not tax_data:
         return False

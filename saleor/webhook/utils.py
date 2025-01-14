@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 def get_filter_for_single_webhook_event(
     event_type: str,
     apps_ids: Optional["list[int]"] = None,
-    apps_identifier: Optional[list[str]] = None,
+    apps_identifier: list[str] | None = None,
 ):
     permissions = {}
     required_permission = WebhookEventAsyncType.PERMISSIONS.get(
@@ -60,7 +60,7 @@ def get_webhooks_for_event(
     event_type: str,
     webhooks: Optional["QuerySet[Webhook]"] = None,
     apps_ids: Optional["list[int]"] = None,
-    apps_identifier: Optional[list[str]] = None,
+    apps_identifier: list[str] | None = None,
 ) -> "QuerySet[Webhook]":
     """Get active webhooks from the database for an event."""
 

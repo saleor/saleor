@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, Union
+from typing import Union
 
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
@@ -75,7 +75,7 @@ class ProductsQueryset(models.QuerySet):
     def visible_to_user(
         self,
         requestor: Union["User", "App", None],
-        channel: Optional[Channel],
+        channel: Channel | None,
         limited_channel_access: bool,
     ):
         """Determine which products should be visible to user.
@@ -139,7 +139,7 @@ class ProductsQueryset(models.QuerySet):
             published_at=ExpressionWrapper(query, output_field=DateTimeField())
         )
 
-    def annotate_visible_in_listings(self, channel: Optional[Channel]):
+    def annotate_visible_in_listings(self, channel: Channel | None):
         from .models import ProductChannelListing
 
         if not channel:
@@ -155,9 +155,7 @@ class ProductsQueryset(models.QuerySet):
             visible_in_listings=ExpressionWrapper(query, output_field=BooleanField())
         )
 
-    def sort_by_attribute(
-        self, attribute_pk: Union[int, str], descending: bool = False
-    ):
+    def sort_by_attribute(self, attribute_pk: int | str, descending: bool = False):
         """Sort a query set by the values of the given product attribute.
 
         :param attribute_pk: The database ID (must be a numeric) of the attribute
@@ -296,7 +294,7 @@ class ProductVariantQueryset(models.QuerySet):
             ),
         )
 
-    def available_in_channel(self, channel: Optional[Channel]):
+    def available_in_channel(self, channel: Channel | None):
         from .models import ProductVariantChannelListing
 
         if not channel:
@@ -318,7 +316,7 @@ class ProductVariantQueryset(models.QuerySet):
     def visible_to_user(
         self,
         requestor: Union["User", "App", None],
-        channel: Optional[Channel],
+        channel: Channel | None,
         limited_channel_access: bool,
     ):
         from .models import ALL_PRODUCTS_PERMISSIONS
@@ -387,7 +385,7 @@ class CollectionsQueryset(models.QuerySet):
         )
 
     def visible_to_user(
-        self, requestor: Union["User", "App", None], channel_slug: Optional[str]
+        self, requestor: Union["User", "App", None], channel_slug: str | None
     ):
         from .models import ALL_PRODUCTS_PERMISSIONS
 

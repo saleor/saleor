@@ -1,6 +1,6 @@
 from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
@@ -14,7 +14,7 @@ T = TypeVar("T", Money, TaxedMoney)
 
 def apply_discount_to_value(
     value: Decimal,
-    value_type: Optional[str],
+    value_type: str | None,
     currency: str,
     price_to_discount: T,
 ) -> T:

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from django.db.models import Exists, F, OuterRef, Sum
@@ -160,7 +160,7 @@ class VoucherChannelListingsByVoucherIdLoader(
         ]
 
 
-class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
+class VoucherInfoByVoucherCodeLoader(DataLoader[str, VoucherInfo | None]):
     context_key = "voucher_info_by_voucher_code"
 
     def batch_load(self, keys):
@@ -209,7 +209,7 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, Optional[VoucherInfo]]):
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
 
-        voucher_infos: list[Optional[VoucherInfo]] = []
+        voucher_infos: list[VoucherInfo | None] = []
         for code in keys:
             voucher_code = voucher_codes_map.get(code)
             if not voucher_code:
@@ -370,9 +370,9 @@ class SaleChannelListingByPromotionIdLoader(
             rule_ids = [rule.id for item in rules for rule in item]
 
             def with_channels(channels):
-                rule_channels = dict(zip(rule_ids, channels))
+                rule_channels = dict(zip(rule_ids, channels, strict=False))
                 promotion_listing_map = defaultdict(list)
-                for promotion_id, promotion_rules in zip(keys, rules):
+                for promotion_id, promotion_rules in zip(keys, rules, strict=False):
                     for rule in promotion_rules:
                         channels = rule_channels[rule.id]
                         for channel in channels:

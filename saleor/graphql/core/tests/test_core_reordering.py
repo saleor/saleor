@@ -111,7 +111,7 @@ def test_inserting_at_the_edges(sorted_entries_seq, operation, expected_operatio
     expected = _sorted_by_order(
         [
             (node.pk, node.sort_order + op)
-            for node, op in zip(nodes, expected_operations)
+            for node, op in zip(nodes, expected_operations, strict=False)
         ]
     )
 

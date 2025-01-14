@@ -59,7 +59,9 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
             checkouts_info, checkout_lines_info, apps, request_context, webhooks = data
             apps_map = {app.id: app for app in apps}
             promises = []
-            for checkout_info, lines_info in zip(checkouts_info, checkout_lines_info):
+            for checkout_info, lines_info in zip(
+                checkouts_info, checkout_lines_info, strict=False
+            ):
                 tax_configuration, country_tax_configuration = (
                     get_tax_configuration_for_checkout(
                         checkout_info, lines_info, self.database_connection_name

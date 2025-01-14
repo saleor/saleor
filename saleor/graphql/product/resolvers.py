@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
@@ -92,7 +90,7 @@ def resolve_product(
     slug,
     slug_language_code,
     external_reference,
-    channel: Optional[Channel],
+    channel: Channel | None,
     limited_channel_access: bool,
     requestor,
 ):
@@ -117,7 +115,7 @@ def resolve_product(
 def resolve_products(
     info: ResolveInfo,
     requestor,
-    channel: Optional[Channel],
+    channel: Channel | None,
     limited_channel_access: bool,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)
@@ -161,7 +159,7 @@ def resolve_variant(
     sku,
     external_reference,
     *,
-    channel: Optional[Channel],
+    channel: Channel | None,
     limited_channel_access: bool,
     requestor,
     requestor_has_access_to_all,
@@ -190,8 +188,8 @@ def resolve_product_variants(
     info: ResolveInfo,
     requestor,
     ids=None,
-    channel: Optional[Channel] = None,
-    product_id: Optional[int] = None,
+    channel: Channel | None = None,
+    product_id: int | None = None,
     limited_channel_access: bool = False,
 ) -> ChannelQsContext:
     connection_name = get_database_connection_name(info.context)

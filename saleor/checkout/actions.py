@@ -152,7 +152,7 @@ def call_checkout_info_event(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     address: Optional["Address"] = None,
-    webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
+    webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ) -> None:
     checkout = checkout_info.checkout
     if webhook_event_map is None:

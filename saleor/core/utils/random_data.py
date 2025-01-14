@@ -8,7 +8,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
-from typing import Any, Union, cast
+from typing import Any, cast
 from unittest.mock import patch
 
 import graphene
@@ -346,7 +346,7 @@ def create_product_variant_channel_listings(product_variant_channel_listings_dat
 
 
 def assign_attributes_to_product_types(
-    association_model: Union[type[AttributeProduct], type[AttributeVariant]],
+    association_model: type[AttributeProduct] | type[AttributeVariant],
     attributes: list,
 ):
     for value in attributes:
@@ -1526,7 +1526,7 @@ def create_gift_cards(how_many=5):
     for i in range(how_many):
         staff_user = User.objects.filter(is_staff=True).order_by("?").first()
         gift_card, created = GiftCard.objects.get_or_create(
-            code=f"Gift_card_{i+1}",
+            code=f"Gift_card_{i + 1}",
             defaults={
                 "created_by": staff_user,
                 "initial_balance": Money(50, DEFAULT_CURRENCY),
@@ -1542,7 +1542,7 @@ def create_gift_cards(how_many=5):
 
         user = User.objects.filter(is_superuser=False).order_by("?").first()
         gift_card, created = GiftCard.objects.get_or_create(
-            code=f"Gift_card_1{i+1}",
+            code=f"Gift_card_1{i + 1}",
             defaults={
                 "created_by": user,
                 "product_id": product_pk,

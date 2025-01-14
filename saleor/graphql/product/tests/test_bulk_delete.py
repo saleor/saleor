@@ -45,7 +45,7 @@ def test_delete_categories(
     permission_manage_products,
 ):
     # given
-    for product, category in zip(product_list, category_list):
+    for product, category in zip(product_list, category_list, strict=False):
         product.category = category
 
     Product.objects.bulk_update(product_list, ["category"])
@@ -81,7 +81,7 @@ def test_delete_categories_invalidate_active_promotion_rules(
     catalogue_promotion,
 ):
     # given
-    for product, category in zip(product_list, category_list):
+    for product, category in zip(product_list, category_list, strict=False):
         product.category = category
 
     Product.objects.bulk_update(product_list, ["category"])
@@ -314,7 +314,7 @@ def test_delete_collections(
     # given
     query = MUTATION_COLLECTION_BULK_DELETE
 
-    for product, collection in zip(product_list, collection_list):
+    for product, collection in zip(product_list, collection_list, strict=False):
         collection.products.add(product)
 
     variables = {
@@ -614,8 +614,7 @@ def test_delete_products_with_images(
 
 
 @patch(
-    "saleor.graphql.product.bulk_mutations."
-    "product_bulk_delete.get_webhooks_for_event"
+    "saleor.graphql.product.bulk_mutations.product_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
@@ -652,8 +651,7 @@ def test_delete_products_trigger_webhook(
 
 
 @patch(
-    "saleor.graphql.product.bulk_mutations."
-    "product_bulk_delete.get_webhooks_for_event"
+    "saleor.graphql.product.bulk_mutations.product_bulk_delete.get_webhooks_for_event"
 )
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_delete_products_without_variants(

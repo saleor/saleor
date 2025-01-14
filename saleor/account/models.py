@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from functools import partial
-from typing import Union
 from uuid import uuid4
 
 from django.conf import settings
@@ -301,7 +300,7 @@ class User(
     def get_short_name(self):
         return self.email
 
-    def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None) -> bool:
+    def has_perm(self, perm: BasePermissionEnum | str, obj=None) -> bool:
         # This method is overridden to accept perm as BasePermissionEnum
         perm = perm.value if isinstance(perm, BasePermissionEnum) else perm
 
@@ -311,7 +310,7 @@ class User(
         return _user_has_perm(self, perm, obj)
 
     def has_perms(
-        self, perm_list: Iterable[Union[BasePermissionEnum, str]], obj=None
+        self, perm_list: Iterable[BasePermissionEnum | str], obj=None
     ) -> bool:
         # This method is overridden to accept perm as BasePermissionEnum
         perm_list = [

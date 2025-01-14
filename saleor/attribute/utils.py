@@ -1,6 +1,5 @@
 from collections import defaultdict
 from functools import reduce
-from typing import Union
 
 from django.db.models import Exists, OuterRef, Q
 
@@ -17,7 +16,7 @@ from .models import (
     AttributeVariant,
 )
 
-T_INSTANCE = Union[Product, ProductVariant, Page]
+T_INSTANCE = Product | ProductVariant | Page
 
 
 instance_to_function_variables_mapping = {
@@ -102,7 +101,7 @@ def _associate_attribute_to_instance(
     assignments = []
     if isinstance(instance, ProductVariant):
         prod_type_id = instance.product.product_type_id
-        attribute_filter: dict[str, Union[int, list[int]]] = {
+        attribute_filter: dict[str, int | list[int]] = {
             "attribute_id__in": list(attr_val_map.keys()),
             "product_type_id": prod_type_id,
         }

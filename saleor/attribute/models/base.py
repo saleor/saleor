@@ -90,7 +90,7 @@ class AttributeQuerySet(BaseAttributeQuerySet[T]):
         id_field = F(f"{m2m_field_name}__id")
         if asc:
             sort_method = sort_order_field.asc(nulls_last=True)
-            id_sort: Union[OrderBy, F] = id_field
+            id_sort: OrderBy | F = id_field
         else:
             sort_method = sort_order_field.desc(nulls_first=True)
             id_sort = id_field.desc()

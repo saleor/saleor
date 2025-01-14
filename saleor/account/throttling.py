@@ -1,7 +1,6 @@
 import datetime
 import logging
 from math import ceil
-from typing import Optional
 
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -19,7 +18,7 @@ ATTEMPT_COUNTER_EXPIRE_TIME = 7200
 logger = logging.getLogger(__name__)
 
 
-def authenticate_with_throttling(request, email, password) -> Optional[models.User]:
+def authenticate_with_throttling(request, email, password) -> models.User | None:
     ip = get_client_ip(request)
     if not ip:
         logger.warning("Unknown request's IP address.")

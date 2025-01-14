@@ -127,7 +127,8 @@ def call_event(func_obj, *func_args, **func_kwargs):
     Ensures that in atomic transaction event is called on_commit.
     """
     is_protected_instance = any(
-        isinstance(arg, (Checkout, CheckoutInfo, Order, OrderInfo)) for arg in func_args
+        isinstance(arg, Checkout | CheckoutInfo | Order | OrderInfo)
+        for arg in func_args
     )
     func_obj_self = getattr(func_obj, "__self__", None)
     is_plugin_manager_method = "PluginsManager" in str(

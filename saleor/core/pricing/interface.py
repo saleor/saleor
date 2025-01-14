@@ -31,7 +31,7 @@ class LineInfo:
     discounts: Iterable[Union["OrderLineDiscount", "CheckoutLineDiscount"]]
     rules_info: list["VariantPromotionRuleInfo"]
     voucher: Optional["Voucher"]
-    voucher_code: Optional[str]
+    voucher_code: str | None
 
     @property
     def variant_discounted_price(self):

@@ -300,9 +300,9 @@ class AdyenGatewayPlugin(BasePlugin):
 
     def get_payment_gateways(
         self,
-        currency: Optional[str],
+        currency: str | None,
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional[list["CheckoutLineInfo"]],
+        checkout_lines: list["CheckoutLineInfo"] | None,
         previous_value,
     ) -> list["PaymentGateway"]:
         """Fetch current configuration for given checkout.

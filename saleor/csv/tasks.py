@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -62,7 +60,7 @@ class ExportTask(RestrictWriterDBTask):
 @app.task(name="export-products", base=ExportTask)
 def export_products_task(
     export_file_id: int,
-    scope: dict[str, Union[str, dict]],
+    scope: dict[str, str | dict],
     export_info: dict[str, list],
     file_type: str,
     delimiter: str = ",",
@@ -79,7 +77,7 @@ def export_products_task(
 @app.task(name="export-gift-cards", base=ExportTask)
 def export_gift_cards_task(
     export_file_id: int,
-    scope: dict[str, Union[str, dict]],
+    scope: dict[str, str | dict],
     file_type: str,
     delimiter: str = ",",
 ):
@@ -96,7 +94,7 @@ def export_gift_cards_task(
 def export_voucher_codes_task(
     export_file_id: int,
     file_type: str,
-    voucher_id: Optional[int],
+    voucher_id: int | None,
     ids: list[int],
 ):
     with allow_writer():

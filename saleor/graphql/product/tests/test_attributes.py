@@ -1282,14 +1282,14 @@ def test_sort_attributes_within_product_type(
     )["data"]["productTypeReorderAttributes"]
     assert not content["errors"]
 
-    assert (
-        content["productType"]["id"] == product_type_id
-    ), "Did not return the correct product type"
+    assert content["productType"]["id"] == product_type_id, (
+        "Did not return the correct product type"
+    )
 
     gql_attributes = content["productType"][snake_to_camel_case(relation_field)]
     assert len(gql_attributes) == len(expected_order)
 
-    for attr, expected_pk in zip(gql_attributes, expected_order):
+    for attr, expected_pk in zip(gql_attributes, expected_order, strict=False):
         gql_type, gql_attr_id = graphene.Node.from_global_id(attr["id"])
         assert gql_type == "Attribute"
         assert int(gql_attr_id) == expected_pk
@@ -1400,7 +1400,7 @@ def test_sort_product_attribute_values(
     gql_attribute_values = content["product"]["attributes"][0]["values"]
     assert len(gql_attribute_values) == 3
 
-    for attr, expected_pk in zip(gql_attribute_values, expected_order):
+    for attr, expected_pk in zip(gql_attribute_values, expected_order, strict=False):
         db_type, value_pk = graphene.Node.from_global_id(attr["id"])
         assert db_type == "AttributeValue"
         assert int(value_pk) == expected_pk
@@ -1630,14 +1630,14 @@ def test_sort_product_variant_attribute_values(
     )["data"]["productVariantReorderAttributeValues"]
     assert not content["errors"]
 
-    assert (
-        content["productVariant"]["id"] == variant_id
-    ), "Did not return the correct product variant"
+    assert content["productVariant"]["id"] == variant_id, (
+        "Did not return the correct product variant"
+    )
 
     gql_attribute_values = content["productVariant"]["attributes"][0]["values"]
     assert len(gql_attribute_values) == 3
 
-    for attr, expected_pk in zip(gql_attribute_values, expected_order):
+    for attr, expected_pk in zip(gql_attribute_values, expected_order, strict=False):
         db_type, value_pk = graphene.Node.from_global_id(attr["id"])
         assert db_type == "AttributeValue"
         assert int(value_pk) == expected_pk

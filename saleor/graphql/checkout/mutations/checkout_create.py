@@ -86,8 +86,7 @@ class CheckoutValidationRules(BaseInputObjectType):
     )
     billing_address = CheckoutAddressValidationRules(
         description=(
-            "The validation rules that can be applied to provided billing address"
-            " data."
+            "The validation rules that can be applied to provided billing address data."
         )
     )
 

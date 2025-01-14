@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Optional
 from uuid import UUID
 
 from celery.utils.log import get_task_logger
@@ -222,9 +221,9 @@ def update_variant_relations_for_active_promotion_rules_task():
 @allow_writer()
 def update_products_discounted_prices_for_promotion_task(
     product_ids: Iterable[int],
-    start_id: Optional[UUID] = None,
+    start_id: UUID | None = None,
     *,
-    rule_ids: Optional[list[UUID]] = None,
+    rule_ids: list[UUID] | None = None,
 ):
     # FIXME: Should be removed in Saleor 3.21
 

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Optional
 
 import graphene
 from graphene import relay
@@ -104,8 +103,8 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     def resolve_background_image(
         root: ChannelContext[models.Collection],
         info: ResolveInfo,
-        size: Optional[int] = None,
-        format: Optional[str] = None,
+        size: int | None = None,
+        format: str | None = None,
     ) -> None | Image | Promise[Image]:
         node = root.node
         if not node.background_image:

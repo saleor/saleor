@@ -2,7 +2,8 @@ import base64
 import json
 import logging
 from collections import defaultdict
-from typing import Any, Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any, Union
 
 from django.db.models import QuerySet
 from graphql import GraphQLError
@@ -117,10 +118,10 @@ def get_excluded_shipping_methods_or_fetch(
     webhooks: QuerySet,
     event_type: str,
     payload: str,
-    subscribable_object: Optional[Union["Order", "Checkout"]],
+    subscribable_object: Union["Order", "Checkout"] | None,
     allow_replica: bool,
-    requestor: Optional[RequestorOrLazyObject],
-    pregenerated_subscription_payloads: Optional[dict] = None,
+    requestor: RequestorOrLazyObject | None,
+    pregenerated_subscription_payloads: dict | None = None,
 ) -> dict[str, list[ExcludedShippingMethod]]:
     """Return data of all excluded shipping methods.
 
@@ -159,10 +160,10 @@ def get_excluded_shipping_data(
     event_type: str,
     previous_value: list[ExcludedShippingMethod],
     payload_fun: Callable[[], str],
-    subscribable_object: Optional[Union["Order", "Checkout"]],
+    subscribable_object: Union["Order", "Checkout"] | None,
     allow_replica: bool,
-    requestor: Optional[RequestorOrLazyObject] = None,
-    pregenerated_subscription_payloads: Optional[dict] = None,
+    requestor: RequestorOrLazyObject | None = None,
+    pregenerated_subscription_payloads: dict | None = None,
 ) -> list[ExcludedShippingMethod]:
     """Exclude not allowed shipping methods by sync webhook.
 

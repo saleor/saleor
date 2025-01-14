@@ -2,12 +2,14 @@ import datetime
 import logging
 import uuid
 
+import graphene
 from django.conf import settings
-from django.db.models import OuterRef, Q, Subquery
+from django.db import transaction
+from django.db.models import Exists, OuterRef, Q
 
 from ..celeryconf import app
 from ..channel.models import Channel
-from ..checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
+from ..checkout import CheckoutAuthorizeStatus
 from ..checkout.models import Checkout
 from ..core.db.connection import allow_writer
 from ..payment.models import TransactionEvent, TransactionItem
@@ -18,143 +20,174 @@ from .gateway import request_cancelation_action, request_refund_action
 logger = logging.getLogger(__name__)
 
 
-def checkouts_with_funds_to_release():
-    """Fetch checkouts that are ready release the funds.
+def transactions_to_release_funds():
+    """Fetch transactions for checkouts eligible for automatic refunds.
 
-    Fetch checkouts with the funds where the last modification was more than defined
-    TTL ago. Exclude the checkouts with payment statuses which define that the
-    checkout doesn't have any processed funds.
+    The function retrieves checkouts that are automatically refundable and have exceeded the
+    predefined TTL. It then fetches related transactions that are authorized or charged,
+    ready for fund release.
     """
     expired_checkouts_time = (
         datetime.datetime.now(tz=datetime.UTC)
         - settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS
     )
 
-    return Checkout.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
-        Q(
-            automatically_refundable=True,
-            last_change__lt=expired_checkouts_time,
-            last_transaction_modified_at__lt=expired_checkouts_time,
-        )
-        & (
-            ~Q(authorize_status=CheckoutAuthorizeStatus.NONE)
-            | ~Q(charge_status=CheckoutChargeStatus.NONE)
-        )
+    checkouts = Checkout.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
+        automatically_refundable=True,
+        last_change__lt=expired_checkouts_time,
+        last_transaction_modified_at__lt=expired_checkouts_time,
+        authorize_status__in=[
+            CheckoutAuthorizeStatus.PARTIAL,
+            CheckoutAuthorizeStatus.FULL,
+        ],
     )
+
+    # Fetch transactions for checkouts that are ready to release funds.
+    transactions = (
+        TransactionItem.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+            Q(
+                Exists(checkouts.filter(pk=OuterRef("checkout_id"))),
+                order_id=None,
+                last_refund_success=True,
+            )
+            & (Q(authorized_value__gt=0) | Q(charged_value__gt=0))
+        )
+    ).order_by("created_at")
+    return transactions
 
 
 @app.task
 @allow_writer()
 def transaction_release_funds_for_checkout_task():
-    CHECKOUT_BATCH_SIZE = int(settings.CHECKOUT_BATCH_FOR_RELEASING_FUNDS)
     TRANSACTION_BATCH_SIZE = int(settings.TRANSACTION_BATCH_FOR_RELEASING_FUNDS)
 
-    # Fetch checkouts that are ready to release funds
-    checkouts = checkouts_with_funds_to_release().order_by("last_change")
-    checkouts_data = list(
-        checkouts.values_list("pk", "channel_id")[:CHECKOUT_BATCH_SIZE]
+    # Fetch transactions that are ready to release funds
+    transactions = transactions_to_release_funds().order_by("modified_at")
+    transactions_data = list(
+        transactions.values_list("pk", "checkout_id")[:TRANSACTION_BATCH_SIZE]
     )
-    checkout_pks = [pk for pk, _ in checkouts_data]
-    checkout_channel_ids = [channel_id for _, channel_id in checkouts_data]
-    channel_map = (
+    transaction_pks = [pk for pk, _checkout_id in transactions_data]
+    checkout_ids = [checkout_id for _, checkout_id in transactions_data]
+
+    checkouts_data = Checkout.objects.filter(pk__in=checkout_ids).values_list(
+        "pk", "channel_id"
+    )
+    checkout_channel_ids = {channel_id for _, channel_id in checkouts_data}
+    channels_in_bulk = (
         Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(id__in=checkout_channel_ids)
         .in_bulk()
     )
-    if checkout_pks:
-        transaction_events = TransactionEvent.objects.filter(
-            transaction_id=OuterRef("pk"),
-        ).order_by("-created_at")
-
-        checkout_subquery = Checkout.objects.filter(pk=OuterRef("checkout_id"))
-        # Fetch transactions for checkouts that are ready to release funds.
-        # Select_related app as, this will be used to trigger the proper webhook
-        # Annotate the last event for each transaction to exclude the transactions that
-        # were already processed
-        transactions = (
-            TransactionItem.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-            .select_related("app")
-            .annotate(last_event_type=Subquery(transaction_events.values("type")[:1]))
-            .annotate(channel_id=Subquery(checkout_subquery.values("channel_id")[:1]))
-            .filter(
-                Q(checkout_id__in=checkout_pks, order_id=None)
-                & ~Q(
-                    last_event_type__in=[
-                        TransactionEventType.REFUND_REQUEST,
-                        TransactionEventType.CANCEL_REQUEST,
-                    ]
-                )
-            )[:TRANSACTION_BATCH_SIZE]
-        )
+    checkout_id_to_channel = {
+        checkout_id: channels_in_bulk[channel_id]
+        for checkout_id, channel_id in checkouts_data
+    }
+    if transaction_pks:
+        # Select_related app as, this will be used to trigger the proper webhook.
+        transactions = TransactionItem.objects.filter(
+            pk__in=transaction_pks,
+            order_id=None,  # type: ignore[misc]
+        ).select_related("app")
         transactions_with_cancel_request_events = []
         transactions_with_charge_request_events = []
 
-        for transaction in transactions:
+        for transaction_item in transactions:
             # If transaction is authorized we need to trigger the cancel event
-            if transaction.authorized_value:
+            if transaction_item.authorized_value:
                 event = TransactionEvent(
-                    amount_value=transaction.authorized_value,
-                    currency=transaction.currency,
+                    amount_value=transaction_item.authorized_value,
+                    currency=transaction_item.currency,
                     type=TransactionEventType.CANCEL_REQUEST,
-                    transaction_id=transaction.id,
+                    transaction_id=transaction_item.id,
                     idempotency_key=str(uuid.uuid4()),
                 )
-                transactions_with_cancel_request_events.append((transaction, event))
+                transactions_with_cancel_request_events.append(
+                    (transaction_item, event)
+                )
 
             # If transaction is charged we need to trigger the refund event
-            if transaction.charged_value:
+            if transaction_item.charged_value:
                 event = TransactionEvent(
-                    amount_value=transaction.charged_value,
-                    currency=transaction.currency,
+                    amount_value=transaction_item.charged_value,
+                    currency=transaction_item.currency,
                     type=TransactionEventType.REFUND_REQUEST,
-                    transaction_id=transaction.id,
+                    transaction_id=transaction_item.id,
                     idempotency_key=str(uuid.uuid4()),
                 )
-                transactions_with_charge_request_events.append((transaction, event))
+                transactions_with_charge_request_events.append(
+                    (transaction_item, event)
+                )
 
         if (
             transactions_with_charge_request_events
             or transactions_with_cancel_request_events
         ):
-            TransactionEvent.objects.bulk_create(
-                [event for _tr, event in transactions_with_cancel_request_events]
-                + [event for _tr, event in transactions_with_charge_request_events]
-            )
+            with transaction.atomic():
+                TransactionEvent.objects.bulk_create(
+                    [event for _tr, event in transactions_with_cancel_request_events]
+                    + [event for _tr, event in transactions_with_charge_request_events]
+                )
+                # Mark transactions as not refundable to avoid multiple automatic
+                # refund requests
+                transactions.update(last_refund_success=False)
+
             manager = get_plugins_manager(allow_replica=True)
-            for transaction, event in transactions_with_cancel_request_events:
-                channel_slug = channel_map[transaction.channel_id].slug
+            for transaction_item, event in transactions_with_cancel_request_events:
+                channel = checkout_id_to_channel[transaction_item.checkout_id]
+                logger.info(
+                    "Releasing funds for transaction %s - canceling",
+                    transaction_item.token,
+                    extra={
+                        "transactionId": graphene.Node.to_global_id(
+                            "TransactionItem", transaction_item.pk
+                        )
+                    },
+                )
                 try:
                     request_cancelation_action(
                         request_event=event,
                         cancel_value=event.amount_value,
                         action=TransactionAction.CANCEL,
-                        channel_slug=channel_slug,
+                        channel_slug=channel.slug,
                         user=None,
                         app=None,
-                        transaction=transaction,
+                        transaction=transaction_item,
                         manager=manager,
                     )
                 except PaymentError as e:
                     logger.warning(
                         "Unable to cancel transaction %s. %s",
-                        transaction.token,
+                        transaction_item.token,
                         str(e),
                     )
-            for transaction, event in transactions_with_charge_request_events:
-                channel_slug = channel_map[transaction.channel_id].slug
+            for transaction_item, event in transactions_with_charge_request_events:
+                channel = checkout_id_to_channel[transaction_item.checkout_id]
+                logger.info(
+                    "Releasing funds for transaction %s - refunding",
+                    transaction_item.token,
+                    extra={
+                        "transactionId": graphene.Node.to_global_id(
+                            "TransactionItem", transaction_item.pk
+                        )
+                    },
+                )
                 try:
                     request_refund_action(
                         request_event=event,
                         refund_value=event.amount_value,
-                        channel_slug=channel_slug,
+                        channel_slug=channel.slug,
                         user=None,
                         app=None,
-                        transaction=transaction,
+                        transaction=transaction_item,
                         manager=manager,
                     )
                 except PaymentError as e:
                     logger.warning(
                         "Unable to refund transaction %s. %s",
-                        transaction.token,
+                        transaction_item.token,
                         str(e),
                     )
+        else:
+            logger.warning("No transactions to release funds.")

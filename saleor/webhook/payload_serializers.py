@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from collections.abc import Iterable
-from typing import Any, Optional
+from typing import Any
 
 import graphene
 from django.core.serializers.json import Serializer as JSONSerializer
@@ -67,7 +67,7 @@ class PayloadSerializer(JSONSerializer):
         obj_id = graphene.Node.to_global_id(
             obj._meta.object_name, getattr(obj, self.pk_field_name)
         )
-        data: dict[str, Optional[Any]] = {}
+        data: dict[str, Any | None] = {}
         if self.dump_type_name:
             data["type"] = str(obj._meta.object_name)
         data[self.obj_id_name] = obj_id
