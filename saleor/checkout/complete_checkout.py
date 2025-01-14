@@ -1474,7 +1474,7 @@ def create_order_from_checkout(
                     checkout_id,
                     extra={
                         "tax_error": checkout_info.checkout.tax_error,
-                        "checkoutId": checkout_id,
+                        "checkout_id": checkout_id,
                     },
                 )
                 raise TaxDataError("Configured Tax App didn't respond.")
