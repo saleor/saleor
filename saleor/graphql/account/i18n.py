@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.core.exceptions import ValidationError
 
 from ...account.forms import get_address_form
@@ -74,7 +72,7 @@ class I18nMixin:
     def _validate_address_form(
         cls,
         address_data: dict,
-        address_type: Optional[str] = None,
+        address_type: str | None = None,
         instance=None,
         format_check=True,
         required_check=True,
@@ -155,8 +153,8 @@ class I18nMixin:
         cls,
         address_data: dict,
         *,
-        address_type: Optional[str] = None,
-        instance: Optional[Address] = None,
+        address_type: str | None = None,
+        instance: Address | None = None,
         info=None,
         format_check=True,
         required_check=True,
@@ -193,7 +191,7 @@ class I18nMixin:
         return instance
 
     @classmethod
-    def can_skip_address_validation(cls, info: Optional[ResolveInfo]):
+    def can_skip_address_validation(cls, info: ResolveInfo | None):
         required_permissions = None
         if info:
             mutation_name = info.field_name

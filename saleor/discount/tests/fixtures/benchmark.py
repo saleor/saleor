@@ -26,7 +26,7 @@ def promotion_list_for_benchmark(channel_USD, channel_PLN, product_list):
         )
         for promotion in promotions
     ]
-    for rule, product in zip(rules, product_list):
+    for rule, product in zip(rules, product_list, strict=False):
         rule.catalogue_predicate = {
             "productPredicate": {
                 "ids": [graphene.Node.to_global_id("Product", product.id)]
@@ -74,7 +74,7 @@ def promotion_converted_from_sale_list_for_benchmark(channel_USD, channel_PLN):
 
     values = [15, 5, 25]
     usd_rules, pln_rules = [], []
-    for promotion, value in zip(promotions, values):
+    for promotion, value in zip(promotions, values, strict=False):
         usd_rules.append(
             PromotionRule(
                 promotion=promotion,

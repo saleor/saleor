@@ -101,12 +101,12 @@ def test_create_attribute_and_attribute_values(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
     assert data["attribute"]["externalReference"] == external_reference
 
     # Check if the attribute values were correctly created
@@ -305,12 +305,12 @@ def test_create_swatch_attribute_and_attribute_values_only_name_provided(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]) == 1
@@ -368,12 +368,12 @@ def test_create_swatch_attribute_and_attribute_values_with_file(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]["edges"]) == 1
@@ -432,12 +432,12 @@ def test_create_swatch_attribute_and_attribute_values_with_value(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]["edges"]) == 1
@@ -579,12 +579,12 @@ def test_create_attribute_with_file_input_type(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]["edges"]) == 0
@@ -632,12 +632,12 @@ def test_create_attribute_with_reference_input_type(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]["edges"]) == 0
@@ -718,12 +718,12 @@ def test_create_attribute_with_plain_text_input_type(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]["edges"]) == 0
@@ -766,12 +766,12 @@ def test_create_page_attribute_and_attribute_values(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
     assert data["attribute"]["filterableInStorefront"] is False
     assert data["attribute"]["filterableInDashboard"] is False
     assert data["attribute"]["availableInGrid"] is False
@@ -862,12 +862,12 @@ def test_create_attribute_with_file_input_type_correct_attribute_settings(
 
     # Check if the attribute was correctly created
     assert data["attribute"]["name"] == attribute_name
-    assert data["attribute"]["slug"] == slugify(
-        attribute_name
-    ), "The default slug should be the slugified name"
-    assert (
-        data["attribute"]["productTypes"]["edges"] == []
-    ), "The attribute should not have been assigned to a product type"
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
 
     # Check if the attribute values were correctly created
     assert len(data["attribute"]["choices"]["edges"]) == 0

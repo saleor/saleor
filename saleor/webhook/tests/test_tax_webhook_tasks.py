@@ -110,7 +110,9 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     assert mock_request.call_count == 3
     assert not EventDelivery.objects.exists()
 
-    for call, webhook in zip(mock_request.mock_calls, tax_checkout_webhooks):
+    for call, webhook in zip(
+        mock_request.mock_calls, tax_checkout_webhooks, strict=False
+    ):
         delivery = call.args[0]
         assert delivery.status == EventDeliveryStatus.PENDING
         assert delivery.event_type == event_type

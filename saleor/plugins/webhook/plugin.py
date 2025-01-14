@@ -1,10 +1,10 @@
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Final, Optional, Union
+from typing import TYPE_CHECKING, Any, Final, Optional, Union
 
 import graphene
 from django.conf import settings
@@ -270,7 +270,7 @@ class WebhookPlugin(BasePlugin):
         user: "User",
         channel_slug: str,
         token: str,
-        redirect_url: Optional[str],
+        redirect_url: str | None,
         previous_value: None,
     ) -> None:
         if not self.active:
@@ -777,7 +777,7 @@ class WebhookPlugin(BasePlugin):
         self,
         event_type: str,
         order: "Order",
-        webhooks: Optional[Iterable["Webhook"]] = None,
+        webhooks: Iterable["Webhook"] | None = None,
     ) -> Iterable["Webhook"]:
         """Get webhooks for order events.
 
@@ -1286,7 +1286,7 @@ class WebhookPlugin(BasePlugin):
         self,
         order: "Order",
         invoice: "Invoice",
-        number: Optional[str],
+        number: str | None,
         previous_value: None,
     ) -> None:
         if not self.active:
@@ -1563,7 +1563,7 @@ class WebhookPlugin(BasePlugin):
     def fulfillment_approved(
         self,
         fulfillment: "Fulfillment",
-        notify_customer: Optional[bool] = True,
+        notify_customer: bool | None = True,
         previous_value: None = None,
     ) -> None:
         if not self.active:
@@ -2108,7 +2108,7 @@ class WebhookPlugin(BasePlugin):
 
     def notify(
         self,
-        event: Union[NotifyEventType, str],
+        event: NotifyEventType | str,
         payload_func: Callable,
         previous_value: None,
     ) -> None:
@@ -2767,8 +2767,8 @@ class WebhookPlugin(BasePlugin):
         webhook: "Webhook",
         event_type: str,
         request_data: PaymentMethodTokenizationBaseRequestData,
-        additional_legacy_payload_data: Optional[dict] = None,
-    ) -> Optional[dict]:
+        additional_legacy_payload_data: dict | None = None,
+    ) -> dict | None:
         payload_data = {
             "user_id": graphene.Node.to_global_id("User", request_data.user.id),
             "channel_slug": request_data.channel.slug,
@@ -2818,7 +2818,7 @@ class WebhookPlugin(BasePlugin):
         event_type: str,
         request_data: PaymentMethodTokenizationBaseRequestData,
         previous_value: "PaymentMethodTokenizationResponseData",
-        additional_legacy_payload_data: Optional[dict] = None,
+        additional_legacy_payload_data: dict | None = None,
     ):
         webhook = get_webhooks_for_event(
             event_type, apps_identifier=[app_identifier]
@@ -3036,7 +3036,7 @@ class WebhookPlugin(BasePlugin):
         amount: Decimal,
         source_object: Union["Order", "Checkout"],
         request: SaleorContext,
-        pregenerated_subscription_payloads: Optional[dict] = None,
+        pregenerated_subscription_payloads: dict | None = None,
     ):
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -3091,7 +3091,7 @@ class WebhookPlugin(BasePlugin):
     def payment_gateway_initialize_session(
         self,
         amount: Decimal,
-        payment_gateways: Optional[list[PaymentGatewayData]],
+        payment_gateways: list[PaymentGatewayData] | None,
         source_object: Union["Order", "Checkout"],
         previous_value,
     ) -> list[PaymentGatewayData]:
@@ -3179,8 +3179,7 @@ class WebhookPlugin(BasePlugin):
         ).first()
         if not webhook:
             error = (
-                "Unable to find an active webhook for "
-                f"`{webhook_event.upper()}` event."
+                f"Unable to find an active webhook for `{webhook_event.upper()}` event."
             )
             return TransactionSessionResult(
                 app_identifier=transaction_session_data.payment_gateway_data.app_identifier,
@@ -3252,9 +3251,9 @@ class WebhookPlugin(BasePlugin):
 
     def get_payment_gateways(
         self,
-        currency: Optional[str],
+        currency: str | None,
         checkout_info: Optional["CheckoutInfo"],
-        checkout_lines: Optional[list["CheckoutLineInfo"]],
+        checkout_lines: list["CheckoutLineInfo"] | None,
         previous_value,
         **kwargs,
     ) -> list["PaymentGateway"]:
@@ -3389,7 +3388,7 @@ class WebhookPlugin(BasePlugin):
         app_identifier: str,
         payload_gen: Callable,
         subscriptable_object=None,
-        pregenerated_subscription_payloads: Optional[dict] = None,
+        pregenerated_subscription_payloads: dict | None = None,
     ):
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -3440,7 +3439,7 @@ class WebhookPlugin(BasePlugin):
         lines,
         app_identifier,
         previous_value,
-        pregenerated_subscription_payloads: Optional[dict] = None,
+        pregenerated_subscription_payloads: dict | None = None,
     ) -> Optional["TaxData"]:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -3570,7 +3569,7 @@ class WebhookPlugin(BasePlugin):
         checkout: "Checkout",
         available_shipping_methods: list["ShippingMethodData"],
         previous_value: list[ExcludedShippingMethod],
-        pregenerated_subscription_payloads: Optional[dict] = None,
+        pregenerated_subscription_payloads: dict | None = None,
     ) -> list[ExcludedShippingMethod]:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -3588,7 +3587,7 @@ class WebhookPlugin(BasePlugin):
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
 
-    def is_event_active(self, event: str, channel=Optional[str]):
+    def is_event_active(self, event: str, channel: str | None = None):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
             "stored_payment_method_request_delete": (

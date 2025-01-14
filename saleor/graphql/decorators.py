@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from enum import Enum
 from functools import wraps
-from typing import Union
 
 from graphene import ResolveInfo
 
@@ -66,7 +65,7 @@ def account_passes_test_for_attribute(test_func):
     return decorator
 
 
-def permission_required(perm: Union[BasePermissionEnum, list[BasePermissionEnum]]):
+def permission_required(perm: BasePermissionEnum | list[BasePermissionEnum]):
     def check_perms(context):
         if isinstance(perm, Enum):
             perms = [perm]

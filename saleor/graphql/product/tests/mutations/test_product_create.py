@@ -1819,7 +1819,7 @@ def test_create_product_with_product_reference_attribute_values_saved_in_order(
             "dateTime": None,
             "reference": reference,
         }
-        for product, reference in zip(reference_instances, reference_ids)
+        for product, reference in zip(reference_instances, reference_ids, strict=False)
     ]
 
     assert len(data["product"]["attributes"]) == 1

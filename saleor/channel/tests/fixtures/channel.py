@@ -87,7 +87,7 @@ def channels_for_benchmark(address):
     ]
     created_channels = Channel.objects.bulk_create(channels)
 
-    for channel, warehouse in zip(created_channels, created_warehouses):
+    for channel, warehouse in zip(created_channels, created_warehouses, strict=False):
         channel.warehouses.add(warehouse)
 
     return created_channels

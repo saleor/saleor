@@ -1,9 +1,9 @@
 import logging
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import asdict
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 from urllib.parse import urljoin
 
 import opentracing
@@ -15,16 +15,9 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
-from ...checkout.utils import (
-    log_address_if_validation_skipped_for_checkout,
-)
+from ...checkout.utils import log_address_if_validation_skipped_for_checkout
 from ...core.prices import MAXIMUM_PRICE
-from ...core.taxes import (
-    TaxDataErrorMessage,
-    TaxError,
-    TaxType,
-    zero_taxed_money,
-)
+from ...core.taxes import TaxDataErrorMessage, TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
@@ -45,6 +38,7 @@ from . import (
     DEFAULT_TAX_DESCRIPTION,
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
+    SHIPPING_ITEM_CODE,
     AvataxConfiguration,
     CustomerErrors,
     TransactionType,
@@ -191,7 +185,7 @@ class AvataxPlugin(BasePlugin):
         )
 
     def _skip_plugin(
-        self, previous_value: Union[TaxedMoney, TaxedMoneyRange, Decimal]
+        self, previous_value: TaxedMoney | TaxedMoneyRange | Decimal
     ) -> bool:
         if not (self.config.username_or_account and self.config.password_or_license):
             return True
@@ -266,7 +260,7 @@ class AvataxPlugin(BasePlugin):
         shipping_tax = Decimal(0.0)
         shipping_net = shipping_price.amount
         for line in lines:
-            if line["itemCode"] == "Shipping":
+            if line["itemCode"] == SHIPPING_ITEM_CODE:
                 # The lineAmount does not include the discountAmount,
                 # but tax is calculated for discounted net price, that
                 # take into account provided discount.
@@ -312,7 +306,7 @@ class AvataxPlugin(BasePlugin):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        lines: Optional[list["CheckoutLineInfo"]],
+        lines: list["CheckoutLineInfo"] | None,
         previous_value: Any,
     ):
         """Ensure all the data is correct and we can proceed with creation of order.
@@ -611,7 +605,7 @@ class AvataxPlugin(BasePlugin):
         prices_entered_with_tax = partial(_get_prices_entered_with_tax_for_order, order)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
-            if line["itemCode"] == "Shipping":
+            if line["itemCode"] == SHIPPING_ITEM_CODE:
                 tax = Decimal(line.get("tax", 0.0))
                 discount_amount = Decimal(line.get("discountAmount", 0.0))
                 net = Decimal(line.get("lineAmount", 0.0)) - discount_amount
@@ -698,10 +692,12 @@ class AvataxPlugin(BasePlugin):
 
         response = self._get_checkout_tax_data(checkout_info, lines, previous_value)
         variant = checkout_line_info.variant
-        return self._get_unit_tax_rate(
+        return self._get_item_tax_rate(
             response,
             variant.sku or variant.get_global_id(),
             previous_value,
+            str(checkout_info.checkout.pk),
+            "Checkout",
         )
 
     def get_order_line_tax_rate(
@@ -717,10 +713,12 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         response = self._get_order_tax_data(order, previous_value)
-        return self._get_unit_tax_rate(
+        return self._get_item_tax_rate(
             response,
             variant.sku or variant.get_global_id(),
             previous_value,
+            str(order.pk),
+            "Order",
         )
 
     def get_checkout_shipping_tax_rate(
@@ -731,17 +729,25 @@ class AvataxPlugin(BasePlugin):
         previous_value: Decimal,
     ):
         response = self._get_checkout_tax_data(checkout_info, lines, previous_value)
-        return self._get_shipping_tax_rate(response, previous_value)
+        return self._get_item_tax_rate(
+            response,
+            SHIPPING_ITEM_CODE,
+            previous_value,
+            str(checkout_info.checkout.pk),
+            "Checkout",
+        )
 
     def get_order_shipping_tax_rate(self, order: "Order", previous_value: Decimal):
         response = self._get_order_tax_data(order, previous_value)
-        return self._get_shipping_tax_rate(response, previous_value)
+        return self._get_item_tax_rate(
+            response, SHIPPING_ITEM_CODE, previous_value, str(order.pk), "Order"
+        )
 
     def _get_checkout_tax_data(
         self,
         checkout_info: "CheckoutInfo",
         lines_info: list["CheckoutLineInfo"],
-        base_value: Union[TaxedMoney, Decimal],
+        base_value: TaxedMoney | Decimal,
     ):
         if self._skip_plugin(base_value):
             self._set_checkout_tax_error(
@@ -781,7 +787,7 @@ class AvataxPlugin(BasePlugin):
             checkout_info.checkout.tax_error = tax_error_message
 
     def _get_order_tax_data(
-        self, order: "Order", base_value: Union[Decimal, OrderTaxedPricesData]
+        self, order: "Order", base_value: Decimal | OrderTaxedPricesData
     ):
         if self._skip_plugin(base_value):
             self._set_order_tax_error(order, TaxDataErrorMessage.EMPTY)
@@ -810,42 +816,67 @@ class AvataxPlugin(BasePlugin):
             order.tax_error = tax_error
 
     @staticmethod
-    def _get_unit_tax_rate(
+    def _get_item_tax_rate(
         response: dict[str, Any],
         item_code: str,
         base_rate: Decimal,
+        related_object_id: str,
+        related_object_type: str,
     ):
         if response is None:
             return base_rate
         lines_data = response.get("lines", [])
         for line in lines_data:
             if line["itemCode"] == item_code:
+                taxable_amount = Decimal(line["taxableAmount"]).quantize(
+                    Decimal(".0001")
+                )
                 details = line.get("details")
                 if not details:
                     return base_rate
+
                 # when tax is equal to 0 tax rate for product is still provided
                 # in the response
-                tax = Decimal(sum([detail.get("tax", 0.0) for detail in details]))
-                rate = Decimal(sum([detail.get("rate", 0.0) for detail in details]))
-                return rate if tax != Decimal(0.0) else base_rate
-        return base_rate
-
-    @staticmethod
-    def _get_shipping_tax_rate(
-        response: dict[str, Any],
-        base_rate: Decimal,
-    ):
-        if response is None:
-            return base_rate
-        lines_data = response.get("lines", [])
-        for line in lines_data:
-            if line["itemCode"] == "Shipping":
-                line_details = line.get("details")
-                if not line_details:
-                    return base_rate
-                return sum(
-                    [Decimal(detail.get("rate", 0.0)) for detail in line_details]
-                )
+                rate = Decimal(0)
+                for detail in details:
+                    if not Decimal(detail.get("tax", 0)):
+                        # When tax is zero, any rate provided in response should not be
+                        # included in returned tax-rate
+                        continue
+                    taxable_amount_from_detail = Decimal(
+                        detail.get("taxableAmount", 0)
+                    ).quantize(Decimal(".0001"))
+                    if (
+                        taxable_amount_from_detail
+                        and taxable_amount_from_detail != taxable_amount
+                    ):
+                        logger.warning(
+                            "taxableAmounts from line.details[] are different than "
+                            "line.taxableAmount. Returning the rate calculated by "
+                            "Saleor. For %s:%s",
+                            related_object_type,
+                            related_object_id,
+                            extra={
+                                "line_taxable_amount": line["taxableAmount"],
+                                "line_details": [
+                                    {
+                                        "tax": log_detail.get("tax"),
+                                        "taxable_amount": log_detail.get(
+                                            "taxableAmount"
+                                        ),
+                                        "rate": log_detail.get("rate"),
+                                    }
+                                    for log_detail in line["details"]
+                                ],
+                                "id": related_object_id,
+                                "type": related_object_type,
+                                "item_code": item_code,
+                                "base_rate": base_rate,
+                            },
+                        )
+                        return base_rate
+                    rate += Decimal(detail.get("rate", 0.0))
+                return rate
         return base_rate
 
     def get_tax_code_from_object_meta(

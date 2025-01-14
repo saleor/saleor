@@ -275,7 +275,9 @@ def order_lines_generator():
                 variant__in=variants, channel=channel
             )
         }
-        for variant, price, quantity in zip(variants, unit_prices, quantities):
+        for variant, price, quantity in zip(
+            variants, unit_prices, quantities, strict=False
+        ):
             product = variant.product
             variant_channel_listing = variant_channel_listings_map[variant.id]
             currency = channel.currency_code
@@ -1092,7 +1094,7 @@ def preorders(orders, product):
             undiscounted_total_price_net_amount=Decimal("10.0"),
             undiscounted_total_price_gross_amount=Decimal("10.0"),
         )
-        for variant, order in zip(variants, orders)
+        for variant, order in zip(variants, orders, strict=False)
     ]
     OrderLine.objects.bulk_create(lines)
     preorders = orders[: len(variants) - 1]

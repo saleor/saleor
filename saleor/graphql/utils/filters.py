@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from django.utils import timezone
 
@@ -8,7 +8,7 @@ from ..core.enums import ReportingPeriod
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-Number = Union[float, int, Decimal]
+Number = float | int | Decimal
 
 
 def reporting_period_to_date(period):
@@ -86,7 +86,7 @@ def filter_where_range_field(qs, field, value):
 
 
 def filter_where_by_string_field(
-    qs: "QuerySet", field: str, value: dict[str, Union[str, list[str]]]
+    qs: "QuerySet", field: str, value: dict[str, str | list[str]]
 ):
     if value is None:
         return qs.none()
@@ -99,7 +99,7 @@ def filter_where_by_string_field(
 
 
 def filter_where_by_id_field(
-    qs: "QuerySet", field: str, value: dict[str, Union[str, list[str]]], type: str
+    qs: "QuerySet", field: str, value: dict[str, str | list[str]], type: str
 ):
     from . import resolve_global_ids_to_primary_keys
 
@@ -117,7 +117,7 @@ def filter_where_by_id_field(
 def filter_where_by_numeric_field(
     qs: "QuerySet",
     field: str,
-    value: dict[str, Union[Number, list[Number], dict[str, Number]]],
+    value: dict[str, Number | list[Number] | dict[str, Number]],
 ):
     one_of = value.get("one_of")
     range = value.get("range")

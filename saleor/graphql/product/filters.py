@@ -1,7 +1,7 @@
 import datetime
 import math
 from collections import defaultdict
-from typing import Optional, TypedDict
+from typing import TypedDict
 
 import django_filters
 import graphene
@@ -199,7 +199,7 @@ def _clean_product_attributes_date_time_range_filter_input(
 
 class KeyValueDict(TypedDict):
     pk: int
-    values: dict[Optional[bool], int]
+    values: dict[bool | None, int]
 
 
 def _clean_product_attributes_boolean_filter_input(

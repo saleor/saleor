@@ -6,7 +6,7 @@ taxes (Money instead of TaxedMoney). If you don't need pre-taxed prices use func
 from calculations.py.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from prices import Money
 
@@ -87,7 +87,7 @@ def calculate_undiscounted_base_line_unit_price(
 
 def base_checkout_delivery_price(
     checkout_info: "CheckoutInfo",
-    lines: Optional[list["CheckoutLineInfo"]] = None,
+    lines: list["CheckoutLineInfo"] | None = None,
     include_voucher: bool = True,
 ) -> Money:
     """Calculate base (untaxed) price for any kind of delivery method."""
@@ -113,7 +113,7 @@ def base_checkout_delivery_price(
 
 def base_checkout_undiscounted_delivery_price(
     checkout_info: "CheckoutInfo",
-    lines: Optional[list["CheckoutLineInfo"]] = None,
+    lines: list["CheckoutLineInfo"] | None = None,
 ) -> Money:
     """Calculate base (untaxed) undiscounted price for any kind of delivery method."""
     from .fetch import ShippingMethodInfo
@@ -132,7 +132,7 @@ def base_checkout_undiscounted_delivery_price(
 def calculate_base_price_for_shipping_method(
     checkout_info: "CheckoutInfo",
     shipping_method_info: "ShippingMethodInfo",
-    lines: Optional[list["CheckoutLineInfo"]] = None,
+    lines: list["CheckoutLineInfo"] | None = None,
 ) -> Money:
     """Return checkout shipping price."""
     from .fetch import CheckoutLineInfo

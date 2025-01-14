@@ -46,7 +46,7 @@ def test_delete_draft_orders_in_bulk_CORE_0248(
 
     orders_list = []
     for i in range(5):
-        user_email = f"test_user_{i +1}@test.com"
+        user_email = f"test_user_{i + 1}@test.com"
         draft_order_input = {
             "channelId": channel_id,
             "userEmail": user_email,

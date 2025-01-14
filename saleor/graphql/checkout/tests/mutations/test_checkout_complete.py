@@ -250,9 +250,9 @@ def test_checkout_complete_0_total_value_no_payment(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -317,9 +317,9 @@ def test_checkout_complete_0_total_value_from_voucher(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -380,9 +380,9 @@ def test_checkout_complete_0_total_value_from_giftcard(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @freeze_time()

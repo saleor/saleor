@@ -639,8 +639,7 @@ class ProductVariantBulkCreate(BaseMutation):
         quantity_limit = cleaned_input.get("quantity_limit_per_customer")
         if quantity_limit is not None and quantity_limit < 1:
             message = (
-                "Product variant can't have "
-                "quantity_limit_per_customer lower than 1."
+                "Product variant can't have quantity_limit_per_customer lower than 1."
             )
             code = ProductVariantBulkErrorCode.INVALID.value
             index_error_map[index].append(

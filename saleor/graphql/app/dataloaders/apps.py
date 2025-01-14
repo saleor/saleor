@@ -27,7 +27,7 @@ class AppsByEventTypeLoader(DataLoader):
         app_ids = set()
 
         def return_apps_for_webhooks(webhooks_by_event_type):
-            for event_type, webhooks in zip(keys, webhooks_by_event_type):
+            for event_type, webhooks in zip(keys, webhooks_by_event_type, strict=False):
                 ids = [webhook.app_id for webhook in webhooks]
                 app_ids_by_event_type[event_type] = ids
                 app_ids.update(ids)

@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -60,8 +59,7 @@ def validate_value(
         value_data.get(field) for field in ONLY_SWATCH_FIELDS
     ):
         message = (
-            "Cannot define value, file and contentType fields for not "
-            "swatch attribute."
+            "Cannot define value, file and contentType fields for not swatch attribute."
         )
         index_error_map[attribute_index].append(
             error_class(
@@ -357,7 +355,7 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         # check permissions based on attribute type
-        permissions: Union[tuple[ProductTypePermissions], tuple[PageTypePermissions]]
+        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
         if cleaned_input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         else:

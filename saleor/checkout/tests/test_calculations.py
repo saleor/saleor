@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Literal, Union
+from typing import Literal
 from unittest.mock import Mock, patch
 
 import pytest
@@ -83,7 +83,7 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
         quantize_price(tax_data.shipping_price_gross_amount, checkout.currency)
     )
 
-    for line, tax_line in zip(lines, tax_data.lines):
+    for line, tax_line in zip(lines, tax_data.lines, strict=False):
         assert str(line.total_price.net.amount) == str(
             quantize_price(tax_line.total_net_amount, checkout.currency)
         )
@@ -111,7 +111,7 @@ DISCOUNT = Decimal("1.5")
 
 
 def get_checkout_taxed_prices_data(
-    obj: Union[TaxData, TaxLineData],
+    obj: TaxData | TaxLineData,
     attr: Literal["total", "shipping_price"],
     currency: str,
 ) -> TaxedMoney:
@@ -123,7 +123,7 @@ def get_checkout_taxed_prices_data(
 
 
 def get_taxed_money(
-    obj: Union[TaxData, TaxLineData],
+    obj: TaxData | TaxLineData,
     attr: Literal["total", "shipping_price"],
     currency: str,
 ) -> TaxedMoney:
@@ -155,7 +155,8 @@ def test_fetch_checkout_data_plugins(
                 line.tax_rate / 100,
             )
             for line in tax_data.lines
-        ]
+        ],
+        strict=False,
     )
     plugins_manager.calculate_checkout_line_total = Mock(side_effect=totals * 3)
     plugins_manager.get_checkout_line_tax_rate = Mock(side_effect=tax_rates)
@@ -183,7 +184,9 @@ def test_fetch_checkout_data_plugins(
 
     # then
     checkout_with_items.refresh_from_db()
-    for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
+    for checkout_line, tax_line in zip(
+        checkout_with_items.lines.all(), tax_data.lines, strict=False
+    ):
         total_price = get_taxed_money(tax_line, "total", currency)
         assert checkout_line.total_price == total_price
         assert checkout_line.tax_rate == tax_line.tax_rate / 100
@@ -404,7 +407,9 @@ def test_fetch_checkout_data_webhooks_success(
         tax_data, "shipping_price", currency
     )
     assert checkout_with_items.shipping_tax_rate == tax_data.shipping_tax_rate / 100
-    for checkout_line, tax_line in zip(checkout_with_items.lines.all(), tax_data.lines):
+    for checkout_line, tax_line in zip(
+        checkout_with_items.lines.all(), tax_data.lines, strict=False
+    ):
         assert checkout_line.total_price == get_taxed_money(tax_line, "total", currency)
         assert checkout_line.tax_rate == tax_line.tax_rate / 100
 

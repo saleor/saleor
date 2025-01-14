@@ -107,7 +107,7 @@ def test_sort_page_attribute_values(
     gql_attribute_values = content["page"]["attributes"][0]["values"]
     assert len(gql_attribute_values) == 3
 
-    for attr, expected_pk in zip(gql_attribute_values, expected_order):
+    for attr, expected_pk in zip(gql_attribute_values, expected_order, strict=False):
         db_type, value_pk = graphene.Node.from_global_id(attr["id"])
         assert db_type == "AttributeValue"
         assert int(value_pk) == expected_pk

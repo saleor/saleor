@@ -68,6 +68,14 @@ query OrdersQuery {
                     amount
                     currency
                 }
+                metadata{
+                    key
+                    value
+                }
+                privateMetadata{
+                    key
+                    value
+                }
                 undiscountedShippingPrice{
                     amount
                 }
@@ -320,6 +328,16 @@ def test_order_query(
     assert order_data["isPaid"] == order.is_fully_paid()
     assert order_data["userEmail"] == order.user_email
     assert order_data["languageCodeEnum"] == order.language_code.upper()
+    assert order_data["metadata"][0]["value"] == list(order.metadata.values())[0]
+    assert (
+        order_data["privateMetadata"][0]["value"]
+        == list(order.private_metadata.values())[0]
+    )
+    assert order_data["metadata"][0]["key"] == list(order.metadata.keys())[0]
+    assert (
+        order_data["privateMetadata"][0]["key"]
+        == list(order.private_metadata.keys())[0]
+    )
     expected_price = Money(
         amount=str(order_data["shippingPrice"]["gross"]["amount"]), currency="USD"
     )
@@ -1181,6 +1199,44 @@ def test_staff_query_order_with_invalid_object_type(staff_api_client, order):
 
     # then
     assert content["data"]["order"] is None
+
+
+def test_query_order_and_lines_metadata_as_app(app_api_client, order_with_lines):
+    # given
+    id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    line = order_with_lines.lines.first()
+
+    line.metadata = {"foo": "bar"}
+    line.save(update_fields=["metadata"])
+
+    variables = {"id": id}
+    query = """
+        query OrderQuery($id: ID) {
+            order(id: $id) {
+                id
+                number
+                status
+                metadata {
+                    key
+                    value
+                }
+                lines {
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    """
+
+    # when
+    response = app_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["order"]
+    assert order_data["id"] == id
 
 
 QUERY_ORDER_BY_EXTERNAL_REFERENCE = """

@@ -2315,9 +2315,9 @@ def test_update_product_variant_requires_values(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert (
-        len(content["data"]["productVariantUpdate"]["errors"]) == 1
-    ), f"expected: {message}"
+    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1, (
+        f"expected: {message}"
+    )
     assert content["data"]["productVariantUpdate"]["errors"][0] == {
         "field": "attributes",
         "message": message,

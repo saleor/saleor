@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from dataclasses import fields as dataclass_fields
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 import graphene
@@ -82,8 +82,8 @@ MAX_NOTE_LENGTH = 255
 @dataclass
 class OrderBulkError:
     message: str
-    code: Optional[OrderBulkCreateErrorCode] = None
-    path: Optional[str] = None
+    code: OrderBulkCreateErrorCode | None = None
+    path: str | None = None
 
 
 @dataclass
@@ -112,7 +112,7 @@ class OrderBulkTransaction:
 
 @dataclass
 class OrderBulkCreateData:
-    order: Optional[Order] = None
+    order: Order | None = None
     errors: list[OrderBulkError] = dataclass_field(default_factory=list)
     lines: list[OrderBulkOrderLine] = dataclass_field(default_factory=list)
     notes: list[OrderEvent] = dataclass_field(default_factory=list)
@@ -121,11 +121,11 @@ class OrderBulkCreateData:
     invoices: list[Invoice] = dataclass_field(default_factory=list)
     discounts: list[OrderDiscount] = dataclass_field(default_factory=list)
     gift_cards: list[GiftCard] = dataclass_field(default_factory=list)
-    user: Optional[User] = None
-    billing_address: Optional[Address] = None
-    channel: Optional[Channel] = None
-    shipping_address: Optional[Address] = None
-    voucher_code: Optional[VoucherCode] = None
+    user: User | None = None
+    billing_address: Address | None = None
+    channel: Channel | None = None
+    shipping_address: Address | None = None
+    voucher_code: VoucherCode | None = None
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -246,14 +246,14 @@ class OrderBulkCreateData:
 @dataclass
 class DeliveryMethod:
     is_shipping_required: bool
-    warehouse: Optional[Warehouse] = None
-    warehouse_name: Optional[str] = None
-    shipping_method: Optional[ShippingMethod] = None
-    shipping_method_name: Optional[str] = None
-    shipping_tax_class: Optional[TaxClass] = None
-    shipping_tax_class_name: Optional[str] = None
-    shipping_tax_class_metadata: Optional[list[dict[str, str]]] = None
-    shipping_tax_class_private_metadata: Optional[list[dict[str, str]]] = None
+    warehouse: Warehouse | None = None
+    warehouse_name: str | None = None
+    shipping_method: ShippingMethod | None = None
+    shipping_method_name: str | None = None
+    shipping_tax_class: TaxClass | None = None
+    shipping_tax_class_name: str | None = None
+    shipping_tax_class_metadata: list[dict[str, str]] | None = None
+    shipping_tax_class_private_metadata: list[dict[str, str]] | None = None
 
 
 @dataclass
@@ -276,8 +276,8 @@ class LineAmounts:
     unit_gross: Decimal
     unit_net: Decimal
     unit_discount_value: Decimal
-    unit_discount_type: Optional[str]
-    unit_discount_reason: Optional[str]
+    unit_discount_type: str | None
+    unit_discount_reason: str | None
     undiscounted_total_gross: Decimal
     undiscounted_total_net: Decimal
     undiscounted_unit_gross: Decimal
@@ -1012,7 +1012,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
         )
 
-        billing_address: Optional[Address] = None
+        billing_address: Address | None = None
         billing_address_input = order_input["billing_address"]
         metadata_list = billing_address_input.pop("metadata", None)
         private_metadata_list = billing_address_input.pop("private_metadata", None)
@@ -1030,7 +1030,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
-        shipping_address: Optional[Address] = None
+        shipping_address: Address | None = None
 
         if shipping_address_input := order_input.get("shipping_address"):
             metadata_list = shipping_address_input.pop("metadata", None)
@@ -1095,7 +1095,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data: OrderBulkCreateData,
         currency: str,
         index: int,
-    ) -> Optional[LineAmounts]:
+    ) -> LineAmounts | None:
         gross_amount = line_input["total_price"]["gross"]
         net_amount = line_input["total_price"]["net"]
         undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
@@ -1382,7 +1382,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data: OrderBulkCreateData,
         object_storage: dict[str, Any],
         index: int,
-    ) -> Optional[OrderEvent]:
+    ) -> OrderEvent | None:
         if len(note_input["message"]) > MAX_NOTE_LENGTH:
             order_data.errors.append(
                 OrderBulkError(
@@ -1604,7 +1604,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage,
         order_input: dict[str, Any],
         index: int,
-    ) -> Optional[OrderBulkOrderLine]:
+    ) -> OrderBulkOrderLine | None:
         variant = cls.get_instance_with_errors(
             input=order_line_input,
             errors=order_data.errors,
@@ -1739,7 +1739,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data: OrderBulkCreateData,
         object_storage: dict[str, Any],
         index: int,
-    ) -> Optional[OrderBulkFulfillment]:
+    ) -> OrderBulkFulfillment | None:
         fulfillment = Fulfillment(
             order=order_data.order,
             status=FulfillmentStatus.FULFILLED,

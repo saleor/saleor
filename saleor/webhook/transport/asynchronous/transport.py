@@ -2,9 +2,9 @@ import datetime
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from celery import group
@@ -61,10 +61,8 @@ MAX_WEBHOOK_EVENTS_IN_DB_BULK = 100
 @dataclass
 class WebhookPayloadData:
     subscribable_object: Any
-    legacy_data_generator: Optional[Callable[[], str]] = None
-    data: Optional[str] = (
-        None  # deprecated, legacy_data_generator should be used instead
-    )
+    legacy_data_generator: Callable[[], str] | None = None
+    data: str | None = None  # deprecated, legacy_data_generator should be used instead
 
 
 def create_deliveries_for_multiple_subscription_objects(
@@ -73,8 +71,8 @@ def create_deliveries_for_multiple_subscription_objects(
     webhooks,
     requestor=None,
     allow_replica=False,
-    pre_save_payloads: Optional[dict] = None,
-    request_time: Optional[datetime.datetime] = None,
+    pre_save_payloads: dict | None = None,
+    request_time: datetime.datetime | None = None,
 ) -> list[EventDelivery]:
     """Create event deliveries with payloads based on multiple subscription objects.
 
@@ -194,8 +192,8 @@ def create_deliveries_for_subscriptions(
     webhooks: Sequence["Webhook"],
     requestor=None,
     allow_replica=False,
-    pre_save_payloads: Optional[dict] = None,
-    request_time: Optional[datetime.datetime] = None,
+    pre_save_payloads: dict | None = None,
+    request_time: datetime.datetime | None = None,
 ) -> list[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
@@ -476,7 +474,7 @@ def generate_deferred_payloads(
     self,
     event_delivery_ids: list,
     deferred_payload_data: dict,
-    send_webhook_queue: Optional[str] = None,
+    send_webhook_queue: str | None = None,
 ):
     deliveries = list(
         get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()

@@ -86,9 +86,7 @@ def test_format_name(np_address_data):
 
     # then
     assert formatted_name == (
-        f"{np_address_data.last_name}"
-        f"{double_byte_space}"
-        f"{np_address_data.first_name}"
+        f"{np_address_data.last_name}{double_byte_space}{np_address_data.first_name}"
     )
 
 
@@ -293,7 +291,7 @@ def test_get_goods_with_refunds_manual_product_refund_product_refund(
     )
     assert billed_amount == expected_billed_amount
     assert goods[0]["quantity"] == line_to_refund.quantity - 1
-    for goods_line, order_line in zip(goods[1:], order_lines[1:]):
+    for goods_line, order_line in zip(goods[1:], order_lines[1:], strict=False):
         assert goods_line["quantity"] == order_line.quantity
 
 
@@ -326,7 +324,7 @@ def test_get_goods_with_refunds_product_refund_shipping_refund(
     )
     assert billed_amount == expected_billed_amount
     assert goods[0]["quantity"] == line_to_refund.quantity - 1
-    for goods_line, order_line in zip(goods[1:], order_lines[1:]):
+    for goods_line, order_line in zip(goods[1:], order_lines[1:], strict=False):
         assert goods_line["quantity"] == order_line.quantity
 
 
@@ -352,7 +350,7 @@ def test_get_goods_with_refunds_manual_shipping_misc_refund(
         Decimal("5.30") + Decimal("4.30")
     )
     assert billed_amount == expected_billed_amount
-    for goods_line, order_line in zip(goods, order_lines):
+    for goods_line, order_line in zip(goods, order_lines, strict=False):
         assert goods_line["quantity"] == order_line.quantity
 
 
@@ -387,5 +385,5 @@ def test_get_goods_with_refunds_shipping_refund_manual_product_refund(
         order_with_lines.shipping_price_gross_amount + Decimal("8.20")
     )
     assert billed_amount == expected_billed_amount
-    for goods_line, order_line in zip(goods, order_lines):
+    for goods_line, order_line in zip(goods, order_lines, strict=False):
         assert goods_line["quantity"] == order_line.quantity

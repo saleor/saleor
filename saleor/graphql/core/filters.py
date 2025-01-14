@@ -26,7 +26,7 @@ class DefaultMultipleChoiceField(MultipleChoiceField):
         """Validate that the input is a list or tuple."""
         if self.required and not value:
             raise ValidationError(self.error_messages["required"], code="required")
-        if not isinstance(value, (list, tuple)):
+        if not isinstance(value, list | tuple):
             raise ValidationError(
                 self.error_messages["invalid_list"], code="invalid_list"
             )
@@ -40,9 +40,9 @@ class EnumFilter(django_filters.CharFilter):
     """
 
     def __init__(self, input_class, *args, **kwargs):
-        assert kwargs.get(
-            "method"
-        ), "Providing exact filter method is required for EnumFilter"
+        assert kwargs.get("method"), (
+            "Providing exact filter method is required for EnumFilter"
+        )
         self.input_class = input_class
         super().__init__(*args, **kwargs)
 
@@ -204,9 +204,9 @@ class WhereFilterSet(django_filters.FilterSet):
             if name not in self.form.data:
                 continue
             queryset = self.filters[name].filter(queryset, value)
-            assert isinstance(
-                queryset, models.QuerySet
-            ), f"Expected '{type(self).__name__}.{name}' to return a QuerySet, but got a {type(queryset).__name__} instead."
+            assert isinstance(queryset, models.QuerySet), (
+                f"Expected '{type(self).__name__}.{name}' to return a QuerySet, but got a {type(queryset).__name__} instead."
+            )
         return queryset
 
 
@@ -287,9 +287,9 @@ class EnumWhereFilter(CharWhereFilter):
     """
 
     def __init__(self, input_class, *args, **kwargs):
-        assert kwargs.get(
-            "method"
-        ), "Providing exact filter method is required for EnumFilter"
+        assert kwargs.get("method"), (
+            "Providing exact filter method is required for EnumFilter"
+        )
         self.input_class = input_class
         super().__init__(*args, **kwargs)
 

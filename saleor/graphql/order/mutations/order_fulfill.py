@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Optional
 from uuid import UUID
 
 import graphene
@@ -232,7 +231,7 @@ class OrderFulfill(BaseMutation):
         lines_for_warehouses: defaultdict[UUID, list[OrderFulfillmentLineInfo]] = (
             defaultdict(list)
         )
-        for line, order_line in zip(lines, order_lines):
+        for line, order_line in zip(lines, order_lines, strict=False):
             for stock in line["stocks"]:
                 if stock["quantity"] > 0:
                     warehouse_pk = UUID(
@@ -250,7 +249,7 @@ class OrderFulfill(BaseMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, input, order: Optional[str] = None
+        cls, _root, info: ResolveInfo, /, *, input, order: str | None = None
     ):
         instance = cls.get_node_or_error(
             info,

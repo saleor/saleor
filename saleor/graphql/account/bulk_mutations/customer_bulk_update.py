@@ -566,7 +566,9 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         webhooks_updated = get_webhooks_for_event(
             WebhookEventAsyncType.CUSTOMER_UPDATED
         )
-        for updated_instance, old_instance in zip(instances, old_instances):
+        for updated_instance, old_instance in zip(
+            instances, old_instances, strict=False
+        ):
             cls.call_event(
                 manager.customer_updated, updated_instance, webhooks=webhooks_updated
             )
