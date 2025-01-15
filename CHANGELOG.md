@@ -53,4 +53,3 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
-- Added missing currency to order-level voucher discounts - #17059 by @zedzior
