@@ -1457,7 +1457,7 @@ def create_order_from_checkout(
                         "checkout_id": checkout_id,
                     },
                 )
-                raise TaxDataError("Configured Tax App didn't respond.")
+                raise TaxDataError("Configured Tax App returned invalid response.")
 
             if delete_checkout:
                 delete_checkouts([checkout_info.checkout.pk])
@@ -1519,7 +1519,7 @@ def complete_checkout(
     )
     if checkout_info.checkout.tax_error is not None:
         raise ValidationError(
-            "Configured Tax App didn't responded.",
+            "Configured Tax App returned invalid response.",
             code=CheckoutErrorCode.TAX_ERROR.value,
         )
 

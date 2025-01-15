@@ -215,7 +215,7 @@ class OrderCreateFromCheckout(BaseMutation):
             raise ValidationError({"gift_cards": e})
         except TaxDataError:
             raise ValidationError(
-                "Configured Tax App didn't respond.",
+                "Configured Tax App returned invalid response.",
                 code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
             )
 
