@@ -1,0 +1,82 @@
+services:
+  api:
+    build: 
+      context: .
+      args:
+        - STATIC_URL=/static/
+    ports:
+      - 8000:8000
+    networks:
+      - saleor-backend-tier
+    depends_on:
+      - db
+      - redis
+      - jaeger
+    volumes:
+      - saleor-media:/app/media
+    env_file:
+      - common.env
+      - backend.env
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - ALLOWED_HOSTS=localhost,api
+
+  db:
+    image: library/postgres:15-alpine
+    ports:
+      - 5432:5432
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - saleor-db:/var/lib/postgresql/data
+      - ./replica_user.sql:/docker-entrypoint-initdb.d/replica_user.sql
+    environment:
+      - POSTGRES_USER=saleor
+      - POSTGRES_PASSWORD=saleor
+
+  redis:
+    image: library/redis:7.0-alpine
+    ports:
+      - 6379:6379
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - saleor-redis:/data
+
+  worker:
+    build: .
+    command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
+    networks:
+      - saleor-backend-tier
+    env_file:
+      - common.env
+      - backend.env
+    depends_on:
+      - redis
+      - mailpit
+    volumes:
+      - saleor-media:/app/media
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "16686:16686"
+    networks:
+      - saleor-backend-tier
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - 1025:1025
+      - 8025:8025
+    networks:
+      - saleor-backend-tier
+
+volumes:
+  saleor-db:
+  saleor-redis:
+  saleor-media:
+
+networks:
+  saleor-backend-tier:
+    driver: bridge
