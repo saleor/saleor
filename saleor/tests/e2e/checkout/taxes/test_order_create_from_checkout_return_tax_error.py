@@ -130,4 +130,7 @@ def test_order_create_from_checkout_return_tax_error_when_app_not_respond_CORE_2
     )
     assert order_data["errors"] is not None
     assert order_data["errors"][0]["code"] == "TAX_ERROR"
-    assert order_data["errors"][0]["message"] == "Configured Tax App didn't respond."
+    assert (
+        order_data["errors"][0]["message"]
+        == "Configured Tax App returned invalid response."
+    )
