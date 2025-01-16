@@ -21,7 +21,7 @@ from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
-from ..tax.calculations import calculate_flat_rate_tax, get_taxed_undiscounted_price
+from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
     get_charge_taxes_for_order,
@@ -344,21 +344,22 @@ def _recalculate_with_plugins(
 
 
 def _get_undiscounted_price(
-    price: OrderTaxedPricesData,
+    line_price: OrderTaxedPricesData,
     undiscounted_base_price: Money,
     tax_rate,
     prices_entered_with_tax,
 ) -> TaxedMoney:
-    if tax_rate > 0 and price.undiscounted_price.net == price.undiscounted_price.gross:
-        return quantize_price(
-            calculate_flat_rate_tax(
-                money=undiscounted_base_price,
-                tax_rate=tax_rate * 100,
-                prices_entered_with_tax=prices_entered_with_tax,
-            ),
-            undiscounted_base_price.currency,
+    if (
+        tax_rate > 0
+        and line_price.undiscounted_price.net == line_price.undiscounted_price.gross
+    ):
+        return get_taxed_undiscounted_price(
+            undiscounted_base_price,
+            line_price.price_with_discounts,
+            tax_rate,
+            prices_entered_with_tax,
         )
-    return price.undiscounted_price
+    return line_price.undiscounted_price
 
 
 def _apply_tax_data(
