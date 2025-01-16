@@ -54,4 +54,3 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
 - Use denormalized discount prices during order update - #17160 by @zedzior
-- Use denormalized prices during order update for catalogue discounts - #17125 by @zedzior

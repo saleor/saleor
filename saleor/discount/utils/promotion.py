@@ -3,8 +3,7 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator
 from decimal import Decimal
 from itertools import chain
-from typing import TYPE_CHECKING, NamedTuple, Union, overload
-from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Union
 from uuid import UUID
 
 import graphene

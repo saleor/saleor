@@ -5,7 +5,6 @@ from typing import Optional
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
-from prices import Money
 
 from ..channel.models import Channel
 from ..core.db.connection import allow_writer

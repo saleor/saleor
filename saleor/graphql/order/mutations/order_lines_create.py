@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -148,8 +147,8 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
     def add_lines_to_order(
         order: order_models.Order,
         lines_data: list[OrderLineData],
-        user: Optional[User],
-        app: Optional[App],
+        user: User | None,
+        app: App | None,
         manager: PluginsManager,
     ):
         added_lines: list[order_models.OrderLine] = []

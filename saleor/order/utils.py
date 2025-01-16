@@ -533,7 +533,7 @@ def change_order_line_quantity(
     channel: "Channel",
     manager: "PluginsManager",
     send_event: bool = True,
-    update_fields: Optional[list[str]] = None,
+    update_fields: list[str] | None = None,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
