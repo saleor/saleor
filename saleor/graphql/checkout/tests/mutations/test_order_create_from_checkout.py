@@ -1472,7 +1472,7 @@ def test_order_from_checkout_on_catalogue_and_gift_promotion(
     assert line.discounts.count() == 1
     line_discount = line.discounts.first()
     assert line_discount.promotion_rule
-    assert line_discount.type == DiscountType.PROMOTION
+    assert line_discount.type == DiscountType.CATALOGUE_PROMOTION
 
     assert (
         order.undiscounted_total - order.total

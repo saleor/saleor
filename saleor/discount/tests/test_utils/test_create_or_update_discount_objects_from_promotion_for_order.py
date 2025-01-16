@@ -61,7 +61,7 @@ def test_create_catalogue_discount_fixed(
     discount = OrderLineDiscount.objects.get()
     assert discount.line == line_1
     assert discount.promotion_rule == rule
-    assert discount.type == DiscountType.PROMOTION
+    assert discount.type == DiscountType.CATALOGUE_PROMOTION
     assert discount.value_type == RewardValueType.FIXED
     assert discount.value == reward_value == Decimal(3)
     assert discount.amount_value == reward_value * line_1.quantity == Decimal(9)
@@ -121,7 +121,7 @@ def test_create_catalogue_discount_percentage(
     discount = OrderLineDiscount.objects.get()
     assert discount.line == line_1
     assert discount.promotion_rule == rule
-    assert discount.type == DiscountType.PROMOTION
+    assert discount.type == DiscountType.CATALOGUE_PROMOTION
     assert discount.value_type == RewardValueType.PERCENTAGE
     assert discount.value == reward_value == Decimal(50)
     assert discount.amount_value == discount_amount * line_1.quantity == Decimal(15)
@@ -295,7 +295,7 @@ def test_multiple_rules_subtotal_and_catalogue_discount_applied(
     assert OrderLineDiscount.objects.count() == 1
     line = order.lines.get(variant_id=discounted_variant_id)
     catalogue_discount = line.discounts.first()
-    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.type == DiscountType.CATALOGUE_PROMOTION
     assert catalogue_discount.value == Decimal(3)
     assert catalogue_discount.value == rule_catalogue.reward_value
     assert catalogue_discount.amount_value == Decimal(6)
@@ -344,7 +344,7 @@ def test_multiple_rules_gift_and_catalogue_discount_applied(draft_order_and_prom
     line_2 = [line for line in lines if line.quantity == 2][0]
     assert not line_1.discounts.exists()
     catalogue_discount = line_2.discounts.first()
-    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.type == DiscountType.CATALOGUE_PROMOTION
 
     assert not OrderDiscount.objects.exists()
 
@@ -436,7 +436,7 @@ def test_update_catalogue_discount(
     assert discount_to_update.id == discount.id
     assert discount.line == line
     assert discount.promotion_rule == rule
-    assert discount.type == DiscountType.PROMOTION
+    assert discount.type == DiscountType.CATALOGUE_PROMOTION
     assert discount.value_type == RewardValueType.FIXED
     assert discount.value == reward_value == Decimal(6)
     assert discount.amount_value == reward_value * line.quantity == Decimal(18)

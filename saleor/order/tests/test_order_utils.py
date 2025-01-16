@@ -642,7 +642,7 @@ def test_create_order_line_discounts(
 
     for discount in [discount_1, discount_2]:
         assert discount.line == order_line
-        assert discount.type == DiscountType.PROMOTION
+        assert discount.type == DiscountType.CATALOGUE_PROMOTION
         assert discount.currency == order.currency
         assert discount.reason is None
 

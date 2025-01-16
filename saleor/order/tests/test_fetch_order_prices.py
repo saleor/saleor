@@ -52,7 +52,7 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     assert discount.amount_value == reward_amount
     assert discount.value == reward_value
     assert discount.value_type == DiscountValueType.FIXED
-    assert discount.type == DiscountType.PROMOTION
+    assert discount.type == DiscountType.CATALOGUE_PROMOTION
     assert discount.reason == f"Promotion: {promotion_id}"
 
     variant_1 = line_1.variant
@@ -483,7 +483,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_flat_rates(
     assert catalogue_discount.amount_value == rule_catalogue_reward * line_2.quantity
     assert catalogue_discount.value == rule_catalogue_reward
     assert catalogue_discount.value_type == DiscountValueType.FIXED
-    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.type == DiscountType.CATALOGUE_PROMOTION
     assert catalogue_discount.reason == f"Promotion: {catalogue_promotion_id}"
 
     variant_2 = line_2.variant
@@ -645,7 +645,7 @@ def test_fetch_order_prices_catalogue_and_gift_discounts_flat_rates(
     assert catalogue_discount.amount_value == rule_catalogue_reward * line_2.quantity
     assert catalogue_discount.value == rule_catalogue_reward
     assert catalogue_discount.value_type == DiscountValueType.FIXED
-    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.type == DiscountType.CATALOGUE_PROMOTION
     assert catalogue_discount.reason == f"Promotion: {catalogue_promotion_id}"
 
     variant_2 = line_2.variant
@@ -787,7 +787,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_exceed_total_flat_rate
     assert catalogue_discount.amount_value == rule_catalogue_reward * line_2.quantity
     assert catalogue_discount.value == rule_catalogue_reward
     assert catalogue_discount.value_type == DiscountValueType.FIXED
-    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.type == DiscountType.CATALOGUE_PROMOTION
     assert catalogue_discount.reason == f"Promotion: {catalogue_promotion_id}"
 
     variant_2 = line_2.variant
@@ -1166,7 +1166,7 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     assert catalogue_discount.amount_value == rule_catalogue_reward * line_1.quantity
     assert catalogue_discount.value == rule_catalogue_reward
     assert catalogue_discount.value_type == DiscountValueType.FIXED
-    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.type == DiscountType.CATALOGUE_PROMOTION
     assert catalogue_discount.reason == f"Promotion: {promotion_id}"
 
     variant_1 = line_1.variant

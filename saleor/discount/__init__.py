@@ -19,6 +19,7 @@ class DiscountType:
     SALE = "sale"
     PROMOTION = "promotion"
     ORDER_PROMOTION = "order_promotion"
+    CATALOGUE_PROMOTION = "catalogue_promotion"
     VOUCHER = "voucher"
     MANUAL = "manual"
 
@@ -28,6 +29,7 @@ class DiscountType:
         (MANUAL, "Manual"),
         (PROMOTION, "Promotion"),
         (ORDER_PROMOTION, "Order promotion"),
+        (CATALOGUE_PROMOTION, "Catalogue promotion"),
     ]
 
 
