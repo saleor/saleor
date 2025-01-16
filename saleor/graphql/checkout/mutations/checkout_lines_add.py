@@ -12,6 +12,7 @@ from ....warehouse.reservations import get_reservation_length, is_reservation_en
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -236,7 +237,7 @@ class CheckoutLinesAdd(BaseMutation):
             lines=lines,
         )
 
-        return CheckoutLinesAdd(checkout=checkout)
+        return CheckoutLinesAdd(checkout=SyncWebhookControlContext(node=checkout))
 
     @classmethod
     def _get_variants_from_lines_input(cls, lines: list[dict]) -> list[ProductVariant]:

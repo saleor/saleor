@@ -1,5 +1,6 @@
 import datetime
-from typing import TYPE_CHECKING, Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.conf import settings
 from django.http import HttpRequest
@@ -64,3 +65,12 @@ def setup_context_user(context: SaleorContext) -> None:
     ):
         context.user._setup()  # type: ignore[union-attr]
         context.user = context.user._wrapped  # type: ignore[union-attr]
+
+
+N = TypeVar("N")
+
+
+@dataclass
+class SyncWebhookControlContext(Generic[N]):
+    node: N
+    allow_sync_webhooks: bool = True
