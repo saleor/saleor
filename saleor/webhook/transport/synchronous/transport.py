@@ -31,7 +31,7 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
-from ....webhook.transport.synchronous.circuit_breaker.breaker_board import (
+from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
 from ... import observability

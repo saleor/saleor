@@ -8,7 +8,7 @@ from freezegun import freeze_time
 from redis.client import Pipeline
 from redis.exceptions import RedisError
 
-from saleor.webhook.transport.synchronous.circuit_breaker.storage import RedisStorage
+from saleor.webhook.circuit_breaker.storage import RedisStorage
 
 APP_ID = 1
 NAME = "total"

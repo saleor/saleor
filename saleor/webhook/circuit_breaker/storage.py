@@ -2,7 +2,6 @@ import logging
 import time
 import uuid
 from collections import defaultdict
-from typing import Optional
 
 from django.conf import settings
 from django.core.cache import cache
@@ -73,7 +72,7 @@ class RedisStorage(Storage):
     KEY_PREFIX = "bbrs"  # as in "breaker board redis storage"
     EVENT_KEYS = ["error", "total"]
 
-    def __init__(self, client: Optional[Redis] = None):
+    def __init__(self, client: Redis | None = None):
         super().__init__()
 
         if client:
