@@ -59,6 +59,20 @@ mutation orderCreateFromCheckout($id: ID!) {
 """
 
 
+def raw_order_create_from_checkout(api_client, id):
+    variables = {"id": id}
+
+    response = api_client.post_graphql(
+        ORDER_CREATE_FROM_CHECKOUT_MUTATION,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+
+    raw_data = content["data"]["orderCreateFromCheckout"]
+
+    return raw_data
+
+
 def order_create_from_checkout(api_client, id):
     variables = {"id": id}
 

@@ -105,7 +105,7 @@ class DraftOrderComplete(BaseMutation):
         )
         if order.tax_error is not None:
             raise ValidationError(
-                "Configured Tax App didn't responded.",
+                "Configured Tax App returned invalid response.",
                 code=OrderErrorCode.TAX_ERROR.value,
             )
         cls.validate_order(order)

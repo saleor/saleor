@@ -4,7 +4,10 @@ from .draft_order_delete import draft_order_delete
 from .draft_order_update import draft_order_update
 from .order_by_checkout_id_query import order_by_checkout_id_query
 from .order_cancel import order_cancel
-from .order_create_from_checkout import order_create_from_checkout
+from .order_create_from_checkout import (
+    order_create_from_checkout,
+    raw_order_create_from_checkout,
+)
 from .order_discount_add import order_discount_add
 from .order_fulfill import order_fulfill
 from .order_fulfill_add_tracking import order_add_tracking
@@ -36,4 +39,5 @@ __all__ = [
     "order_fulfillment_cancel",
     "order_invoice_create",
     "order_update_shipping",
+    "raw_order_create_from_checkout",
 ]
