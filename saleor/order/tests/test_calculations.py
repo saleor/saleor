@@ -507,7 +507,7 @@ def test_recalculate_with_plugin_prices_entered_without_taxes(
     assert order.shipping_tax_rate == shipping_tax_rate
 
     for line_unit, line_total, tax_rate, line in zip(
-        unit_prices, total_line_prices, tax_rates, lines, strict=False
+        unit_prices, total_line_prices, tax_rates, lines
     ):
         undiscounted_unit_gross = line_unit.undiscounted_price.net * (1 + tax_rate)
         undiscounted_total_gross = line_total.undiscounted_price.net.amount * (
@@ -606,7 +606,7 @@ def test_recalculate_with_plugin_prices_entered_with_taxes(
     assert order.shipping_tax_rate == shipping_tax_rate
 
     for line_unit, line_total, tax_rate, line in zip(
-        unit_prices, total_line_prices, tax_rates, lines, strict=False
+        unit_prices, total_line_prices, tax_rates, lines
     ):
         undiscounted_unit_net = quantize_price(
             line_unit.undiscounted_price.net / (1 + tax_rate), currency
