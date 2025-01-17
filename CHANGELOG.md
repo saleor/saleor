@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - `SetPassword` - #16243 by @kadewu
 - Require `MANAGE_ORDERS` for updating order and order line metadata - #17223 by @IKarbowiak
   - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
+- Fix updating `metadata` and `privateMetadata` in `transactionUpdate` - #17261 by @IKarbowiak
+  - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
 
 ### GraphQL API
 
