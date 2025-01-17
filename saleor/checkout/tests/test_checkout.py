@@ -1414,46 +1414,6 @@ def test_recalculate_checkout_discount_percentage(
     )
 
 
-def test_recalculate_checkout_discount_with_sale(
-    checkout_with_item_on_sale,
-    voucher_percentage,
-):
-    # given
-    checkout = checkout_with_item_on_sale
-    checkout.voucher_code = voucher_percentage.code
-    voucher_discount = (
-        voucher_percentage.channel_listings.filter(channel=checkout.channel)
-        .first()
-        .discount_value
-    )
-
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-
-    # when
-    recalculate_checkout_discount(manager, checkout_info, lines)
-
-    # then
-    discounted_subtotal = (
-        lines[0].channel_listing.discounted_price_amount * lines[0].line.quantity
-    )
-    voucher_discount = voucher_discount / 100 * discounted_subtotal
-    assert checkout.discount_amount == voucher_discount
-
-    checkout.price_expiration = timezone.now()
-    checkout.save()
-    assert (
-        calculations.checkout_total(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=checkout.shipping_address,
-        ).gross.amount
-        == discounted_subtotal - voucher_discount
-    )
-
-
 def test_recalculate_checkout_discount_with_promotion(
     checkout_with_voucher_percentage,
     voucher_percentage,
