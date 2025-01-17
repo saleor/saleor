@@ -345,17 +345,17 @@ def _recalculate_with_plugins(
 
 def _get_undiscounted_price(
     line_price: OrderTaxedPricesData,
-    line_base_price: Money,
+    undiscounted_base_price: Money,
     tax_rate,
     prices_entered_with_tax,
-):
+) -> TaxedMoney:
     if (
         tax_rate > 0
         and line_price.undiscounted_price.net == line_price.undiscounted_price.gross
     ):
-        get_taxed_undiscounted_price(
-            line_base_price,
-            line_price.undiscounted_price,
+        return get_taxed_undiscounted_price(
+            undiscounted_base_price,
+            line_price.price_with_discounts,
             tax_rate,
             prices_entered_with_tax,
         )

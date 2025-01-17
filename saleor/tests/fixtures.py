@@ -10165,6 +10165,17 @@ def tax_configuration_tax_app(channel_USD):
 
 
 @pytest.fixture
+def tax_configuration_avatax_plugin(channel_USD):
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tc.tax_app_id = "plugin:avatax"
+    tc.save()
+    return tc
+
+
+@pytest.fixture
 def order_with_lines_untaxed(order_with_lines):
     order = order_with_lines
     lines = order.lines.all()
