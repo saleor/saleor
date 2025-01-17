@@ -1103,7 +1103,9 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
     data = content["data"]["draftOrderComplete"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == OrderErrorCode.TAX_ERROR.name
-    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        data["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )
     assert not EventDelivery.objects.exists()
 
     order.refresh_from_db()
@@ -1251,7 +1253,9 @@ def test_draft_order_complete_calls_failing_plugin(
     data = content["data"]["draftOrderComplete"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == OrderErrorCode.TAX_ERROR.name
-    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        data["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
