@@ -5,6 +5,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, cast
 from uuid import UUID
 
+import graphene
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -21,7 +22,7 @@ from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
-from ..core.taxes import TaxError, zero_taxed_money
+from ..core.taxes import TaxDataError, TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
@@ -579,6 +580,7 @@ def _prepare_order_data(
             "subtotal": subtotal,
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
+            "tax_error": checkout.tax_error,
         }
     )
 
@@ -1224,6 +1226,7 @@ def _create_order_from_checkout(
     metadata_list: list | None = None,
     private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
+    force_update: bool = False,
 ):
     from ..order.utils import add_gift_cards_to_order
 
@@ -1241,6 +1244,7 @@ def _create_order_from_checkout(
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
+        force_update=force_update,
     )
 
     # voucher
@@ -1306,6 +1310,7 @@ def _create_order_from_checkout(
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,
+        tax_error=checkout_info.checkout.tax_error,
         **_process_shipping_data_for_order(
             checkout_info,
             undiscounted_base_shipping_price,
@@ -1440,6 +1445,7 @@ def create_order_from_checkout(
 
         # Fetching checkout info inside the transaction block with select_for_update
         # ensure that we are processing checkout on the current data.
+        force_update = checkout.tax_error is not None
         checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
         checkout_info = fetch_checkout_info(
             checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
@@ -1456,7 +1462,23 @@ def create_order_from_checkout(
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
                 is_automatic_completion=is_automatic_completion,
+                force_update=force_update,
             )
+
+            if checkout_info.checkout.tax_error is not None:
+                checkout_id = graphene.Node.to_global_id(
+                    "Checkout", checkout_info.checkout.pk
+                )
+                logger.warning(
+                    "Tax app error for checkout %s",
+                    checkout_id,
+                    extra={
+                        "tax_error": checkout_info.checkout.tax_error,
+                        "checkout_id": checkout_id,
+                    },
+                )
+                raise TaxDataError("Configured Tax App returned invalid response.")
+
             if delete_checkout:
                 delete_checkouts([checkout_info.checkout.pk])
                 checkout_info.checkout.pk = None
@@ -1518,7 +1540,7 @@ def complete_checkout(
     )
     if checkout_info.checkout.tax_error is not None:
         raise ValidationError(
-            "Configured Tax App didn't responded.",
+            "Configured Tax App returned invalid response.",
             code=CheckoutErrorCode.TAX_ERROR.value,
         )
 

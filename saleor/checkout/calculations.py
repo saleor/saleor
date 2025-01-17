@@ -127,6 +127,7 @@ def calculate_checkout_total_with_gift_cards(
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
@@ -137,6 +138,7 @@ def calculate_checkout_total_with_gift_cards(
         address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        force_update=force_update,
     ) - checkout_info.checkout.get_total_gift_cards_balance(database_connection_name)
 
     return max(total, zero_taxed_money(total.currency))
@@ -150,6 +152,7 @@ def checkout_total(
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    force_update: bool = False,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -168,6 +171,7 @@ def checkout_total(
         address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        force_update=force_update,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 

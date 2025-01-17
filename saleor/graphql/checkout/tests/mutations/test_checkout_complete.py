@@ -428,7 +428,9 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     data = content["data"]["checkoutComplete"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
-    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        data["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )
     assert not EventDelivery.objects.exists()
 
     checkout.refresh_from_db()
@@ -540,7 +542,9 @@ def test_checkout_complete_calls_failing_plugin(
     data = content["data"]["checkoutComplete"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
-    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        data["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
