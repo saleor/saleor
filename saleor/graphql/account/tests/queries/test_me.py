@@ -1,7 +1,10 @@
 from unittest import mock
 
 import graphene
+from django.utils import timezone
 
+from .....checkout.calculations import _fetch_checkout_prices_if_expired
+from .....checkout.fetch import fetch_checkout_lines
 from .....order.models import FulfillmentStatus
 from .....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -101,6 +104,123 @@ def test_me_query_checkout(user_api_client, checkout):
     assert data["checkout"]["token"] == str(checkout.token)
     assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "Checkout", checkout.pk
+    )
+
+
+ME_WITH_CHECKOTUS_QUERY = """
+    query Me {
+        me {
+            id
+            email
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                        totalPrice {
+                            currency
+                            gross {
+                                amount
+                            }
+                        }
+                    }
+                }
+                totalCount
+            }
+        }
+    }
+"""
+
+
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations._calculate_and_add_tax")
+def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
+    mocked_calculate_and_add_tax,
+    mocked_fetch_checkout_prices_if_expired,
+    user_api_client,
+    checkout_with_item,
+    tax_configuration_tax_app,
+):
+    # given
+    user = user_api_client.user
+    checkout_with_item.user = user
+    checkout_with_item.price_expiration = timezone.now()
+    checkout_with_item.save()
+
+    # when
+    response = user_api_client.post_graphql(ME_WITH_CHECKOTUS_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout_with_item.pk
+    )
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_calculate_and_add_tax.assert_not_called()
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations.update_checkout_prices_with_flat_rates")
+def test_me_query_checkouts_calculate_flat_taxes(
+    mocked_update_order_prices_with_flat_rates,
+    mocked_fetch_checkout_prices_if_expired,
+    user_api_client,
+    checkout_with_item,
+    tax_configuration_flat_rates,
+):
+    # given
+    user = user_api_client.user
+    checkout_with_item.user = user
+    checkout_with_item.price_expiration = timezone.now()
+    checkout_with_item.save()
+
+    # when
+    response = user_api_client.post_graphql(ME_WITH_CHECKOTUS_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert data["checkouts"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout_with_item.pk
+    )
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once_with(
+        checkout_with_item,
+        mock.ANY,
+        lines,
+        tax_configuration_flat_rates.prices_entered_with_tax,
+        None,
+        database_connection_name=mock.ANY,
+    )
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
     )
 
 
