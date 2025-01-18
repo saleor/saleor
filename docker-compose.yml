@@ -11,15 +11,11 @@ services:
     depends_on:
       - db
       - redis
-      - jaeger
     volumes:
       - saleor-media:/app/media
     env_file:
-      - common.env
-      - backend.env
-    environment:
-      - JAEGER_AGENT_HOST=jaeger
-      - ALLOWED_HOSTS=localhost,api
+      - .env
+    command: ["gunicorn", "--bind", ":8000", "--workers", "4", "--worker-class", "saleor.asgi.gunicorn_worker.UvicornWorker", "saleor.asgi:application"]
 
   db:
     image: library/postgres:15-alpine
@@ -29,10 +25,8 @@ services:
       - saleor-backend-tier
     volumes:
       - saleor-db:/var/lib/postgresql/data
-      - ./replica_user.sql:/docker-entrypoint-initdb.d/replica_user.sql
-    environment:
-      - POSTGRES_USER=saleor
-      - POSTGRES_PASSWORD=saleor
+    env_file:
+      - .env
 
   redis:
     image: library/redis:7.0-alpine
@@ -42,35 +36,6 @@ services:
       - saleor-backend-tier
     volumes:
       - saleor-redis:/data
-
-  worker:
-    build: .
-    command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
-    networks:
-      - saleor-backend-tier
-    env_file:
-      - common.env
-      - backend.env
-    depends_on:
-      - redis
-      - mailpit
-    volumes:
-      - saleor-media:/app/media
-
-  jaeger:
-    image: jaegertracing/all-in-one
-    ports:
-      - "16686:16686"
-    networks:
-      - saleor-backend-tier
-
-  mailpit:
-    image: axllent/mailpit
-    ports:
-      - 1025:1025
-      - 8025:8025
-    networks:
-      - saleor-backend-tier
 
 volumes:
   saleor-db:

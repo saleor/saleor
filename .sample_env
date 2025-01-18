@@ -1,0 +1,48 @@
+# Database & Cache Configuration
+DATABASE_URL=postgres://saleor:saleor@db/saleor
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/1
+
+# Host & Security Settings
+ALLOWED_HOSTS=localhost,api,*
+ALLOWED_CLIENT_HOSTS=http://localhost:3000,http://localhost:9000,http://localhost:8000
+ALLOWED_GRAPHQL_ORIGINS=*
+SECRET_KEY=falsjdferwerouwreopuaoperjaosjfoajsfljaslfdj
+DEBUG=True
+ENABLE_SSL=False
+PUBLIC_URL=http://localhost:8000/
+
+# Store Configuration
+DEFAULT_COUNTRY=US
+DEFAULT_CURRENCY=USD
+DEFAULT_FROM_EMAIL=noreply@example.com
+MAX_CHECKOUT_LINE_QUANTITY=50
+
+# JWT Settings
+JWT_TTL_ACCESS=5m
+JWT_TTL_REFRESH=30d
+JWT_TTL_REQUEST_EMAIL_CHANGE=1h
+
+# Media & Static Settings
+MEDIA_URL=/media/
+STATIC_URL=/static/
+
+# Development & Debug Settings
+INTERNAL_IPS=127.0.0.1
+ENABLE_DEBUG_TOOLBAR=False
+PLAYGROUND_ENABLED=True
+
+# IP Filtering
+HTTP_IP_FILTER_ENABLED=True
+HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=True
+
+# Checkout Settings
+CHECKOUT_TTL_BEFORE_RELEASING_FUNDS=6h
+
+# GraphQL Settings
+FEDERATED_QUERY_MAX_ENTITIES=100
+GRAPHQL_QUERY_MAX_COMPLEXITY=50000
+
+# Email Configuration 
+EMAIL_URL=smtp://mailpit:1025
+USER_EMAIL_URL=smtp://mailpit:1025
