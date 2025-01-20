@@ -315,8 +315,9 @@ def format_error(error, handled_exceptions, query=None):
 
 
 def get_source_service_name_value(header_source: str | None) -> str | None:
+    default_value = "unknown_service"
     if not header_source:
-        return None
+        return default_value
     if header_source.lower() in AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG:
         return header_source.lower()
-    return "unknown_service"
+    return default_value
