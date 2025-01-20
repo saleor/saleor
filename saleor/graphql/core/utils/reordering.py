@@ -41,10 +41,15 @@ class Reordering:
 
     @cached_property
     def ordered_node_map(self):
+        additional_sorters = [self.second_sort_field]
+        if self.second_sort_field != "id":
+            # add `id` to make sure that last sorting field is unique
+            additional_sorters.append("id")
+
         ordering_map = OrderedDict(
             self.qs.select_for_update()
             .values_list("pk", "sort_order")
-            .order_by(F("sort_order").asc(nulls_last=True), self.second_sort_field)
+            .order_by(F("sort_order").asc(nulls_last=True), *additional_sorters)
         )
         self.old_sort_map = ordering_map.copy()
         self.ordered_pks = list(ordering_map.keys())
