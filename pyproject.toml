@@ -103,7 +103,7 @@ package-mode = false
 
   [tool.poetry.group.dev.dependencies]
   coverage = "^7.6"
-  deptry = "^0.21.1"
+  deptry = "^0.22.0"
   django-extensions = "^3.1.2"
   django-stubs = { version = "^4.2.7", extras = ["compatible-mypy"] }
   fakeredis = "^2.26"
