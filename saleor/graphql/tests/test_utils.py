@@ -344,8 +344,8 @@ def test_check_if_query_contains_only_schema_with_introspection():
     [
         ("saleor.DASHBOARD", "saleor.dashboard"),
         ("SALEOR.dashboard", "saleor.dashboard"),
-        ("saleor.dashboard.PLG", "saleor.dashboard.plg"),
-        ("saleor.plG", "saleor.plg"),
+        ("saleor.dashboard.PLAYGROUND", "saleor.dashboard.playground"),
+        ("saleor.PLAYGROUND", "saleor.playground"),
         ("incorrect-value", "unknown_service"),
         (None, None),
     ],

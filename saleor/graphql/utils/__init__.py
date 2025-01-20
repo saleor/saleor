@@ -50,8 +50,8 @@ ALLOWED_ERRORS = [
 
 AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG = {
     "saleor.dashboard",
-    "saleor.dashboard.plg",
-    "saleor.plg",
+    "saleor.dashboard.playground",
+    "saleor.playground",
 }
 
 INTERNAL_ERROR_MESSAGE = "Internal Server Error"
