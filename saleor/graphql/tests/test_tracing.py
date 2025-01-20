@@ -467,12 +467,12 @@ def test_tracing_have_app_data_app_as_requestor(
     ("header_source", "expected_result"),
     [
         ("saleor.dashboard", "saleor.dashboard"),
-        ("saleor.dashboard.plg", "saleor.dashboard.plg"),
-        ("saleor.plg", "saleor.plg"),
+        ("saleor.dashboard.playground", "saleor.dashboard.playground"),
+        ("saleor.playground", "saleor.playground"),
         ("saleor.DASHBOARD", "saleor.dashboard"),
         ("SALEOR.dashboard", "saleor.dashboard"),
-        ("saleor.dashboard.PLG", "saleor.dashboard.plg"),
-        ("saleor.plG", "saleor.plg"),
+        ("saleor.dashboard.Playground", "saleor.dashboard.playground"),
+        ("saleor.playgrounD", "saleor.playground"),
         ("incorrect-value", "unknown_service"),
     ],
 )
