@@ -180,10 +180,10 @@ class GraphQLView(View):
             span.set_tag("http.useragent", request.headers.get("user-agent", ""))
             span.set_tag("span.type", "web")
 
-            if source_service_name := get_source_service_name_value(
+            source_service_name = get_source_service_name_value(
                 request.headers.get("source-service-name")
-            ):
-                span.set_tag("source.service.name", source_service_name)
+            )
+            span.set_tag("source.service.name", source_service_name)
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]

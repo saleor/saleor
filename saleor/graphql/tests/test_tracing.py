@@ -476,6 +476,7 @@ def test_tracing_have_app_data_app_as_requestor(
         ("saleor.dashboard.Playground", "saleor.dashboard.playground"),
         ("saleor.playgrounD", "saleor.playground"),
         ("incorrect-value", "unknown_service"),
+        (None, "unknown_service"),
     ],
 )
 @patch("saleor.graphql.views.opentracing.global_tracer")

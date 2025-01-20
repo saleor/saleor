@@ -347,7 +347,7 @@ def test_check_if_query_contains_only_schema_with_introspection():
         ("saleor.dashboard.PLAYGROUND", "saleor.dashboard.playground"),
         ("saleor.PLAYGROUND", "saleor.playground"),
         ("incorrect-value", "unknown_service"),
-        (None, None),
+        (None, "unknown_service"),
     ],
 )
 def test_get_source_service_name_value(header_source, expected_result):
