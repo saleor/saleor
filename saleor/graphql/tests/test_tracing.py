@@ -1,14 +1,34 @@
 import hashlib
-from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
+from opentelemetry import trace as trace_api
+from opentelemetry.sdk.trace import TracerProvider, export
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
 
 
-class MockTracer(MagicMock):
-    # TODO: This is added only to make the linters work. It should be removed
-    # after tests are reworked.
-    pass
+@pytest.fixture(scope="session", autouse=True)
+def in_memory_span_exporter():
+    span_exporter = InMemorySpanExporter()
+    exporter_processor = export.SimpleSpanProcessor(span_exporter)
+    provider = TracerProvider()
+    provider.add_span_processor(exporter_processor)
+    trace_api.set_tracer_provider(provider)
+    return span_exporter
+
+
+@pytest.fixture
+def get_test_spans(in_memory_span_exporter):
+    in_memory_span_exporter.clear()
+
+    def get_and_clear_spans():
+        spans = in_memory_span_exporter.get_finished_spans()
+        in_memory_span_exporter.clear()
+        return spans
+
+    return get_and_clear_spans
 
 
 def _get_graphql_span(spans):
@@ -16,19 +36,15 @@ def _get_graphql_span(spans):
 
 
 def _get_graphql_spans(spans):
-    return filter(lambda item: item.tags.get("graphql.query_fingerprint"), spans)
+    return filter(lambda item: item.attributes.get("graphql.query_fingerprint"), spans)
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -45,23 +61,20 @@ def test_tracing_query_hashing(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:test:{hash}"
+    assert span
+    hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
+    assert span.attributes["graphql.query_fingerprint"] == f"query:test:{hash}"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_with_fragment(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         fragment ProductVariant on ProductVariant {
           id
@@ -84,23 +97,20 @@ def test_tracing_query_hashing_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:test:{hash}"
+    assert span
+    hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
+    assert span.attributes["graphql.query_fingerprint"] == f"query:test:{hash}"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_different_vars_same_checksum(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test($first: Int!) {
           products(first: $first) {
@@ -122,23 +132,19 @@ def test_tracing_query_hashing_different_vars_same_checksum(
 
     # then
     fingerprints = [
-        span.tags["graphql.query_fingerprint"]
-        for span in _get_graphql_spans(tracer.finished_spans())
+        span.attributes["graphql.query_fingerprint"]
+        for span in _get_graphql_spans(get_test_spans())
     ]
     assert len(fingerprints) == QUERIES
     assert len(set(fingerprints)) == 1
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_unnamed_query(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query {
           products(first:5) {
@@ -155,23 +161,20 @@ def test_tracing_query_hashing_unnamed_query(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:{hash}"
+    assert span
+    hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
+    assert span.attributes["graphql.query_fingerprint"] == f"query:{hash}"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_unnamed_query_no_query_spec(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         {
           products(first:5) {
@@ -188,24 +191,21 @@ def test_tracing_query_hashing_unnamed_query_no_query_spec(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:{hash}"
+    assert span
+    hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
+    assert span.attributes["graphql.query_fingerprint"] == f"query:{hash}"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_mutation_hashing(
-    tracing_mock,
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -227,23 +227,22 @@ def test_tracing_mutation_hashing(
     staff_api_client.post_graphql(
         mutation, variables, permissions=[permission_manage_orders]
     )
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"mutation:cancelOrder:{hash}"
+    assert span
+    hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
+    assert (
+        span.attributes["graphql.query_fingerprint"] == f"mutation:cancelOrder:{hash}"
+    )
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_query(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first: 5, channel:"default-channel") {
@@ -265,21 +264,22 @@ def test_tracing_query_identifier_for_query(
           }
         }
     """
+
+    # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
-    assert span.tags["graphql.query_identifier"] == "me, products"
+    span = _get_graphql_span(get_test_spans())
+
+    # then
+    assert span
+    assert span.attributes["graphql.query_identifier"] == "me, products"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_with_fragment(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         fragment ProductVariant on ProductVariant {
           id
@@ -302,21 +302,18 @@ def test_tracing_query_identifier_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert span.tags["graphql.query_identifier"] == "products"
+    assert span
+    assert span.attributes["graphql.query_identifier"] == "products"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_unnamed_mutation(
-    tracing_mock,
     staff_api_client,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         mutation{
           tokenCreate(email: "admin@example.com", password:"admin"){
@@ -327,21 +324,18 @@ def test_tracing_query_identifier_for_unnamed_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert span.tags["graphql.query_identifier"] == "tokenCreate"
+    assert span
+    assert span.attributes["graphql.query_identifier"] == "tokenCreate"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_named_mutation(
-    tracing_mock,
     staff_api_client,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         mutation MutationName{
           tokenCreate(email: "admin@example.com", password:"admin"){
@@ -352,21 +346,18 @@ def test_tracing_query_identifier_for_named_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert span.tags["graphql.query_identifier"] == "tokenCreate"
+    assert span
+    assert span.attributes["graphql.query_identifier"] == "tokenCreate"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_many_mutations(
-    tracing_mock,
     staff_api_client,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
       mutation {
         tokenCreate(email: "admin@example.com", password:"admin"){
@@ -384,22 +375,19 @@ def test_tracing_query_identifier_for_many_mutations(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert span.tags["graphql.query_identifier"] == "deleteWarehouse, tokenCreate"
+    assert span
+    assert span.attributes["graphql.query_identifier"] == "deleteWarehouse, tokenCreate"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_undefined(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         fragment ProductVariant on ProductVariant {
           id
@@ -409,22 +397,19 @@ def test_tracing_query_identifier_undefined(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert span.tags["graphql.query_identifier"] == "undefined"
+    assert span
+    assert span.attributes["graphql.query_identifier"] == "undefined"
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_dont_have_app_data_staff_as_requestor(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -441,23 +426,20 @@ def test_tracing_dont_have_app_data_staff_as_requestor(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert "app.name" not in span.tags
-    assert "app.id" not in span.tags
+    assert span
+    assert "app.name" not in span.attributes
+    assert "app.id" not in span.attributes
 
 
-@pytest.mark.skip(reason="Adjust tracing tests when to use OpenTelemetry")
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_have_app_data_app_as_requestor(
-    tracing_mock,
     app_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -475,8 +457,9 @@ def test_tracing_have_app_data_app_as_requestor(
 
     # when
     app_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = _get_graphql_span(get_test_spans())
 
     # then
-    assert span.tags["app.name"] == app.name
-    assert span.tags["app.id"] == app.id
+    assert span
+    assert span.attributes["app.name"] == app.name
+    assert span.attributes["app.id"] == app.id
