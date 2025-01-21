@@ -12,7 +12,7 @@ from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
-from .....discount import DiscountValueType
+from .....discount import DiscountType, DiscountValueType
 from .....discount.models import VoucherCustomer
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
@@ -258,6 +258,17 @@ def test_draft_order_complete_with_voucher(
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_value = voucher_listing.discount_value
+    order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=voucher.discount_value_type,
+        value=discount_value,
+        name=voucher.name,
+        translated_name="Voucher translated name",
+        currency=order.currency,
+        amount_value=discount_value,
+        voucher=voucher,
+    )
+
     order_total = order.total_net_amount
 
     order_id = graphene.Node.to_global_id("Order", order.id)
