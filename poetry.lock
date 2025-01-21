@@ -2825,19 +2825,6 @@ deprecated = ">=1.2.6"
 opentelemetry-api = "1.29.0"
 
 [[package]]
-name = "opentracing"
-version = "2.4.0"
-description = "OpenTracing API for Python. See documentation at http://opentracing.io"
-optional = false
-python-versions = "*"
-files = [
-    {file = "opentracing-2.4.0.tar.gz", hash = "sha256:a173117e6ef580d55874734d1fa7ecb6f3655160b8b8974a2a1e98e5ec9c840d"},
-]
-
-[package.extras]
-tests = ["Sphinx", "doubles", "flake8", "flake8-quotes", "gevent", "mock", "pytest", "pytest-cov", "pytest-mock", "six (>=1.10.0,<2.0)", "sphinx_rtd_theme", "tornado"]
-
-[[package]]
 name = "packaging"
 version = "24.2"
 description = "Core utilities for Python packages"
@@ -5293,4 +5280,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.12"
-content-hash = "ddc7ebdeb2366e694aafa6daba7b8c39532e8f9098bbea8e1c9146d66c68d31f"
+content-hash = "8f100c28ba9d64fc47c29e972766aeab838a8c84d0320a0f888a8cb404633776"

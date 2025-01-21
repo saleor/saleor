@@ -2,8 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Generic, Optional, TypeVar, Union
 
-import opentracing
-import opentracing.tags
+from opentelemetry import trace
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
@@ -15,6 +14,8 @@ from .context import get_database_connection_name
 
 K = TypeVar("K")
 R = TypeVar("R")
+
+tracer = trace.get_tracer(__name__)
 
 
 class DataLoader(BaseLoader, Generic[K, R]):
@@ -43,11 +44,8 @@ class DataLoader(BaseLoader, Generic[K, R]):
     def batch_load_fn(  # pylint: disable=method-hidden
         self, keys: Iterable[K]
     ) -> Promise[list[R]]:
-        with opentracing.global_tracer().start_active_span(
-            "dataloader.batch_load"
-        ) as scope:
-            span = scope.span
-            span.set_tag("resource.name", self.__class__.__name__)
+        with tracer.start_as_current_span("dataloader.batch_load") as span:
+            span.set_attribute("resource.name", self.__class__.__name__)
 
             with allow_writer_in_context(self.context):
                 results = self.batch_load(keys)

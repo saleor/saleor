@@ -6,11 +6,10 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Optional, Union
 from urllib.parse import urljoin
 
-import opentracing
-import opentracing.tags
 from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from django_countries import countries
+from opentelemetry import trace
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
@@ -71,6 +70,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
 
 
 def _get_prices_entered_with_tax_for_checkout(checkout_info: "CheckoutInfo"):
@@ -351,12 +351,9 @@ class AvataxPlugin(BasePlugin):
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
-        with opentracing.global_tracer().start_active_span(
-            "avatax.transactions.crateoradjust"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "tax")
-            span.set_tag("service.name", "avatax")
+        with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
+            span.set_attribute("component", "tax")
+            span.set_attribute("service.name", "avatax")
             response = api_post_request(transaction_url, data, self.config)
         if not response or "error" in response:
             msg = response.get("error", {}).get("message", "")
@@ -878,12 +875,9 @@ class AvataxPlugin(BasePlugin):
             data["name"]: data["value"] for data in plugin_configuration.configuration
         }
         url = urljoin(get_api_url(conf["Use sandbox"]), "utilities/ping")
-        with opentracing.global_tracer().start_active_span(
-            "avatax.utilities.ping"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "tax")
-            span.set_tag("service.name", "avatax")
+        with tracer.start_as_current_span("avatax.utilities.ping") as span:
+            span.set_attribute("component", "tax")
+            span.set_attribute("service.name", "avatax")
             response = api_get_request(
                 url,
                 username_or_account=conf["Username or account"],

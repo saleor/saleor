@@ -17,7 +17,7 @@ from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
-from ....core.tracing import webhooks_opentracing_trace
+from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
 from ....graphql.core.dataloaders import DataLoader
@@ -590,7 +590,7 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
         data = data if isinstance(data, bytes) else data.encode("utf-8")
         # Count payload size in bytes.
         payload_size = len(data)
-        with webhooks_opentracing_trace(
+        with webhooks_otel_trace(
             delivery.event_type, domain, payload_size, app=webhook.app
         ):
             response = send_webhook_using_scheme_method(
@@ -688,26 +688,26 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
 @app.task(queue=OBSERVABILITY_QUEUE_NAME)
 @allow_writer()
 def observability_send_events():
-    with observability.opentracing_trace("send_events_task", "task"):
+    with observability.otel_trace("send_events_task", "task"):
         if webhooks := observability.get_webhooks():
-            with observability.opentracing_trace("pop_events", "buffer"):
+            with observability.otel_trace("pop_events", "buffer"):
                 events, _ = observability.pop_events_with_remaining_size()
             if events:
-                with observability.opentracing_trace("send_events", "webhooks"):
+                with observability.otel_trace("send_events", "webhooks"):
                     send_observability_events(webhooks, events)
 
 
 @app.task(queue=OBSERVABILITY_QUEUE_NAME)
 @allow_writer()
 def observability_reporter_task():
-    with observability.opentracing_trace("reporter_task", "task"):
+    with observability.otel_trace("reporter_task", "task"):
         if webhooks := observability.get_webhooks():
-            with observability.opentracing_trace("pop_events", "buffer"):
+            with observability.otel_trace("pop_events", "buffer"):
                 events, batch_count = observability.pop_events_with_remaining_size()
             if batch_count > 0:
                 tasks = [observability_send_events.s() for _ in range(batch_count)]
                 expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
                 group(tasks).apply_async(expires=expiration)
             if events:
-                with observability.opentracing_trace("send_events", "webhooks"):
+                with observability.otel_trace("send_events", "webhooks"):
                     send_observability_events(webhooks, events)

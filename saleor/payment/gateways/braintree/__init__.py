@@ -1,10 +1,9 @@
 from typing import Optional
 
 import braintree as braintree_sdk
-import opentracing
-import opentracing.tags
 from braintree.exceptions.braintree_error import BraintreeError
 from django.core.exceptions import ImproperlyConfigured
+from opentelemetry import trace
 
 from ... import TransactionKind
 from ...interface import (
@@ -16,6 +15,8 @@ from ...interface import (
     TokenConfig,
 )
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException, handle_braintree_error
+
+tracer = trace.get_tracer(__name__)
 
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,
@@ -112,12 +113,9 @@ def get_client_token(
     config: GatewayConfig, token_config: Optional[TokenConfig] = None
 ) -> str:
     gateway = get_braintree_gateway(**config.connection_params)
-    with opentracing.global_tracer().start_active_span(
-        "braintree.client_token.generate"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "braintree")
+    with tracer.start_as_current_span("braintree.client_token.generate") as span:
+        span.set_attribute("component", "payment")
+        span.set_attribute("service.name", "braintree")
         parameters = create_token_params(config, token_config)
         return gateway.client_token.generate(parameters)
 
@@ -184,12 +182,9 @@ def transaction_for_new_customer(
 ):
     gateway = get_braintree_gateway(**config.connection_params)
 
-    with opentracing.global_tracer().start_active_span(
-        "braintree.transaction.sale"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "braintree")
+    with tracer.start_as_current_span("braintree.transaction.sale") as span:
+        span.set_attribute("component", "payment")
+        span.set_attribute("service.name", "braintree")
         params = get_customer_data(payment_information)
         merchant_account_id = config.connection_params["merchant_account_id"]
         if merchant_account_id:
@@ -216,12 +211,9 @@ def transaction_for_existing_customer(
     payment_information: PaymentData, config: GatewayConfig
 ):
     gateway = get_braintree_gateway(**config.connection_params)
-    with opentracing.global_tracer().start_active_span(
-        "braintree.transaction.sale"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "braintree")
+    with tracer.start_as_current_span("braintree.transaction.sale") as span:
+        span.set_attribute("component", "payment")
+        span.set_attribute("service.name", "braintree")
         params = get_customer_data(payment_information)
         merchant_account_id = config.connection_params["merchant_account_id"]
         if merchant_account_id:
@@ -244,12 +236,11 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
-        with opentracing.global_tracer().start_active_span(
+        with tracer.start_as_current_span(
             "braintree.transaction.submit_for_settlement"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "braintree")
+        ) as span:
+            span.set_attribute("component", "payment")
+            span.set_attribute("service.name", "braintree")
             result = gateway.transaction.submit_for_settlement(
                 transaction_id=payment_information.token,
                 amount=str(payment_information.amount),
@@ -278,12 +269,9 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
-        with opentracing.global_tracer().start_active_span(
-            "braintree.transaction.void"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "braintree")
+        with tracer.start_as_current_span("braintree.transaction.void") as span:
+            span.set_attribute("component", "payment")
+            span.set_attribute("service.name", "braintree")
             result = gateway.transaction.void(transaction_id=payment_information.token)
     except BraintreeError as exc:
         handle_braintree_error(exc)
@@ -309,12 +297,9 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     gateway = get_braintree_gateway(**config.connection_params)
 
     try:
-        with opentracing.global_tracer().start_active_span(
-            "braintree.transaction.refund"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "braintree")
+        with tracer.start_as_current_span("braintree.transaction.refund") as span:
+            span.set_attribute("component", "payment")
+            span.set_attribute("service.name", "braintree")
             result = gateway.transaction.refund(
                 transaction_id=payment_information.token,
                 amount_or_options=str(payment_information.amount),
@@ -350,12 +335,9 @@ def list_client_sources(
     config: GatewayConfig, customer_id: str
 ) -> list[CustomerSource]:
     gateway = get_braintree_gateway(**config.connection_params)
-    with opentracing.global_tracer().start_active_span(
-        "braintree.customer.find"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "braintree")
+    with tracer.start_as_current_span("braintree.customer.find") as span:
+        span.set_attribute("component", "payment")
+        span.set_attribute("service.name", "braintree")
         customer = gateway.customer.find(customer_id)
     if not customer:
         return []

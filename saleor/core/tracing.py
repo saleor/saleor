@@ -1,29 +1,29 @@
 from contextlib import contextmanager
 
-import opentracing
 from django.db import transaction
+from opentelemetry import trace
+
+tracer = trace.get_tracer(__name__)
 
 
 @contextmanager
 def traced_atomic_transaction():
     with transaction.atomic():
-        with opentracing.global_tracer().start_active_span("transaction") as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "orm")
+        with tracer.start_as_current_span("transaction") as span:
+            span.set_attribute("component", "orm")
             yield
 
 
 @contextmanager
-def opentracing_trace(span_name, component_name, service_name):
-    with opentracing.global_tracer().start_active_span(span_name) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, component_name)
-        span.set_tag("service.name", service_name)
+def otel_trace(span_name, component_name, service_name):
+    with tracer.start_as_current_span(span_name) as span:
+        span.set_attribute("component", component_name)
+        span.set_attribute("service.name", service_name)
         yield
 
 
 @contextmanager
-def webhooks_opentracing_trace(
+def webhooks_otel_trace(
     span_name,
     domain,
     payload_size: int,
@@ -34,16 +34,15 @@ def webhooks_opentracing_trace(
 
     :param payload_size: size of the payload in bytes
     """
-    with opentracing.global_tracer().start_active_span(
-        f"webhooks.{span_name}"
-    ) as scope:
-        span = scope.span
+    with tracer.start_as_current_span(
+        f"webhooks.{span_name}", kind=trace.SpanKind.CLIENT
+    ) as span:
         if app:
-            span.set_tag("app.id", app.id)
-            span.set_tag("app.name", app.name)
-        span.set_tag(opentracing.tags.COMPONENT, "webhooks")
-        span.set_tag("service.name", "webhooks")
-        span.set_tag("webhooks.domain", domain)
-        span.set_tag("webhooks.execution_mode", "sync" if sync else "async")
-        span.set_tag("webhooks.payload_size", payload_size)
+            span.set_attribute("app.id", app.id)
+            span.set_attribute("app.name", app.name)
+        span.set_attribute("component", "webhooks")
+        span.set_attribute("service.name", "webhooks")
+        span.set_attribute("webhooks.domain", domain)
+        span.set_attribute("webhooks.execution_mode", "sync" if sync else "async")
+        span.set_attribute("webhooks.payload_size", payload_size)
         yield

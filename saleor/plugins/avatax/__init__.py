@@ -6,10 +6,9 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union, cast
 from urllib.parse import urljoin
 
-import opentracing
-import opentracing.tags
 import requests
 from django.core.cache import cache
+from opentelemetry import trace
 from requests.auth import HTTPBasicAuth
 
 from ...account.models import Address
@@ -37,6 +36,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
 
 META_CODE_KEY = "avatax.code"
 META_DESCRIPTION_KEY = "avatax.description"
@@ -565,12 +565,9 @@ def _fetch_new_taxes_data(
     transaction_url = urljoin(
         get_api_url(config.use_sandbox), "transactions/createoradjust"
     )
-    with opentracing.global_tracer().start_active_span(
-        "avatax.transactions.crateoradjust"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "tax")
-        span.set_tag("service.name", "avatax")
+    with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
+        span.set_attribute("component", "tax")
+        span.set_attribute("service.name", "avatax")
         response = api_post_request(transaction_url, data, config)
     if response and "error" not in response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
@@ -676,12 +673,9 @@ def get_cached_tax_codes_or_fetch(
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
-        with opentracing.global_tracer().start_active_span(
-            "avatax.definitions.taxcodes"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "tax")
-            span.set_tag("service.name", "avatax")
+        with tracer.start_as_current_span("avatax.definitions.taxcodes") as span:
+            span.set_attribute("component", "tax")
+            span.set_attribute("service.name", "avatax")
             response = api_get_request(
                 tax_codes_url, config.username_or_account, config.password_or_license
             )
