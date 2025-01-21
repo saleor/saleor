@@ -463,3 +463,52 @@ def test_tracing_have_app_data_app_as_requestor(
     assert span
     assert span.attributes["app.name"] == app.name
     assert span.attributes["app.id"] == app.id
+
+
+@pytest.mark.parametrize(
+    ("header_source", "expected_result"),
+    [
+        ("saleor.dashboard", "saleor.dashboard"),
+        ("saleor.dashboard.playground", "saleor.dashboard.playground"),
+        ("saleor.playground", "saleor.playground"),
+        ("saleor.DASHBOARD", "saleor.dashboard"),
+        ("SALEOR.dashboard", "saleor.dashboard"),
+        ("saleor.dashboard.Playground", "saleor.dashboard.playground"),
+        ("saleor.playgrounD", "saleor.playground"),
+        ("incorrect-value", "unknown_service"),
+        (None, "unknown_service"),
+    ],
+)
+def test_tracing_have_source_service_name_set(
+    header_source,
+    expected_result,
+    app_api_client,
+    permission_manage_products,
+    get_test_spans,
+):
+    # given
+    query = """
+        query test {
+          products(first:5) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+    """
+    app = app_api_client.app
+    app.permissions.add(permission_manage_products)
+
+    # when
+    app_api_client.post_graphql(query, headers={"source-service-name": header_source})
+
+    # then
+    spans = list(
+        filter(lambda s: s.attributes.get("source.service.name"), get_test_spans())
+    )
+    assert len(spans) == 1
+    span = spans[0]
+    assert span.attributes["source.service.name"] == expected_result
