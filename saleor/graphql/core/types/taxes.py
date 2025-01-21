@@ -41,6 +41,7 @@ from ...tax.dataloaders import (
 )
 from ...tax.enums import TaxableObjectDiscountTypeEnum
 from .. import ResolveInfo
+from ..context import SyncWebhookControlContext
 from .common import NonNullList
 from .money import Money as MoneyType
 from .order_or_checkout import OrderOrCheckoutBase
@@ -331,6 +332,8 @@ class TaxableObject(BaseObjectType):
 
     @staticmethod
     def resolve_source_object(root: Checkout | Order, _info: ResolveInfo):
+        if isinstance(root, Checkout):
+            return SyncWebhookControlContext(node=root)
         return root
 
     @staticmethod

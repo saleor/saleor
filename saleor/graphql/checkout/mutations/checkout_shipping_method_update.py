@@ -17,6 +17,7 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -228,7 +229,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info=checkout_info,
             lines=lines,
         )
-        return CheckoutShippingMethodUpdate(checkout=checkout)
+        return CheckoutShippingMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def perform_on_external_shipping_method(
@@ -269,7 +272,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             lines=lines,
         )
 
-        return CheckoutShippingMethodUpdate(checkout=checkout)
+        return CheckoutShippingMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def remove_shipping_method(cls, checkout, checkout_info, lines, manager):
@@ -292,4 +297,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info=checkout_info,
             lines=lines,
         )
-        return CheckoutShippingMethodUpdate(checkout=checkout)
+        return CheckoutShippingMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )

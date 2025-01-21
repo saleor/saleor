@@ -10,7 +10,10 @@ from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.db.connection import allow_writer_in_context
 from ...core.taxes import zero_money, zero_taxed_money
-from ...graphql.core.context import get_database_connection_name
+from ...graphql.core.context import (
+    SyncWebhookControlContext,
+    get_database_connection_name,
+)
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
@@ -49,6 +52,7 @@ from ..core.fields import BaseField, PermissionsField
 from ..core.scalars import UUID, DateTime, PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
+from ..core.types.sync_webhook_control import SyncWebhookControlContextType
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
 from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import VoucherByCodeLoader
@@ -471,7 +475,7 @@ class DeliveryMethod(graphene.Union):
         return super().resolve_type(instance, info)
 
 
-class Checkout(ModelObjectType[models.Checkout]):
+class Checkout(SyncWebhookControlContextType[models.Checkout]):
     id = graphene.ID(required=True, description="The ID of the checkout.")
     created = DateTime(
         required=True, description="The date and time when the checkout was created."
@@ -777,57 +781,73 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
 
     class Meta:
+        default_resolver = SyncWebhookControlContextType.resolver_with_context
         description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
-    def resolve_customer_note(root: models.Checkout, _info: ResolveInfo):
-        return root.note
+    def resolve_customer_note(
+        root: SyncWebhookControlContext[models.Checkout], _info: ResolveInfo
+    ):
+        return root.node.note
 
     @staticmethod
-    def resolve_created(root: models.Checkout, _info: ResolveInfo):
-        return root.created_at
+    def resolve_created(
+        root: SyncWebhookControlContext[models.Checkout], _info: ResolveInfo
+    ):
+        return root.node.created_at
 
     @staticmethod
-    def resolve_channel(root: models.Checkout, info):
-        return ChannelByIdLoader(info.context).load(root.channel_id)
+    def resolve_channel(root: SyncWebhookControlContext[models.Checkout], info):
+        return ChannelByIdLoader(info.context).load(root.node.channel_id)
 
     @staticmethod
-    def resolve_id(root: models.Checkout, _info: ResolveInfo):
-        return graphene.Node.to_global_id("Checkout", root.pk)
+    def resolve_id(
+        root: SyncWebhookControlContext[models.Checkout], _info: ResolveInfo
+    ):
+        return graphene.Node.to_global_id("Checkout", root.node.pk)
 
     @staticmethod
-    def resolve_shipping_address(root: models.Checkout, info: ResolveInfo):
-        if not root.shipping_address_id:
+    def resolve_shipping_address(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        if not root.node.shipping_address_id:
             return None
-        return AddressByIdLoader(info.context).load(root.shipping_address_id)
+        return AddressByIdLoader(info.context).load(root.node.shipping_address_id)
 
     @staticmethod
-    def resolve_billing_address(root: models.Checkout, info: ResolveInfo):
-        if not root.billing_address_id:
+    def resolve_billing_address(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        if not root.node.billing_address_id:
             return None
-        return AddressByIdLoader(info.context).load(root.billing_address_id)
+        return AddressByIdLoader(info.context).load(root.node.billing_address_id)
 
     @staticmethod
-    def resolve_user(root: models.Checkout, info: ResolveInfo):
-        if not root.user_id:
+    def resolve_user(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        if not root.node.user_id:
             return None
+        user = root.node.user
         requestor = get_user_or_app_from_context(info.context)
         check_is_owner_or_has_one_of_perms(
             requestor,
-            root.user,
+            user,
             AccountPermissions.MANAGE_USERS,
             PaymentPermissions.HANDLE_PAYMENTS,
         )
-        return root.user
+        return user
 
     @staticmethod
-    def resolve_email(root: models.Checkout, _info: ResolveInfo):
-        return root.get_customer_email()
+    def resolve_email(
+        root: SyncWebhookControlContext[models.Checkout], _info: ResolveInfo
+    ):
+        return root.node.get_customer_email()
 
     @staticmethod
-    def resolve_shipping_method(root: models.Checkout, info):
+    def resolve_shipping_method(root: SyncWebhookControlContext[models.Checkout], info):
         def with_checkout_info(checkout_info):
             delivery_method = checkout_info.delivery_method_info.delivery_method
             if not delivery_method or not isinstance(
@@ -838,40 +858,46 @@ class Checkout(ModelObjectType[models.Checkout]):
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
-            .load(root.token)
+            .load(root.node.token)
             .then(with_checkout_info)
         )
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_methods(root: models.Checkout, info: ResolveInfo):
+    def resolve_shipping_methods(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
             return checkout_info.all_shipping_methods
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
-            .load(root.token)
+            .load(root.node.token)
             .then(with_checkout_info)
         )
 
     @staticmethod
-    def resolve_delivery_method(root: models.Checkout, info: ResolveInfo):
+    def resolve_delivery_method(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
             return checkout_info.delivery_method_info.delivery_method
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
-            .load(root.token)
+            .load(root.node.token)
             .then(with_checkout_info)
         )
 
     @staticmethod
-    def resolve_quantity(root: models.Checkout, info: ResolveInfo):
+    def resolve_quantity(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         checkout_info = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
-            root.token
+            root.node.token
         )
 
         def calculate_quantity(lines):
@@ -882,7 +908,9 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total_price(root: models.Checkout, info: ResolveInfo):
+    def resolve_total_price(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def calculate_total_price(data):
             address, lines, checkout_info, manager, payloads = data
@@ -894,16 +922,19 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
-            return max(taxed_total, zero_taxed_money(root.currency))
+            return max(taxed_total, zero_taxed_money(root.node.currency))
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
         return Promise.all(dataloaders).then(calculate_total_price)
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_subtotal_price(root: models.Checkout, info: ResolveInfo):
+    def resolve_subtotal_price(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def calculate_subtotal_price(data):
             address, lines, checkout_info, manager, payloads = data
@@ -915,15 +946,18 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
         return Promise.all(dataloaders).then(calculate_subtotal_price)
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_price(root: models.Checkout, info: ResolveInfo):
+    def resolve_shipping_price(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def calculate_shipping_price(data):
             address, lines, checkout_info, manager, payloads = data
@@ -935,45 +969,52 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
         return Promise.all(dataloaders).then(calculate_shipping_price)
 
     @staticmethod
-    def resolve_lines(root: models.Checkout, info: ResolveInfo):
-        return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.token)
+    def resolve_lines(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.node.token)
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_available_shipping_methods(root: models.Checkout, info: ResolveInfo):
+    def resolve_available_shipping_methods(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
             return checkout_info.valid_shipping_methods
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
-            .load(root.token)
+            .load(root.node.token)
             .then(with_checkout_info)
         )
 
     @staticmethod
     @traced_resolver
-    def resolve_available_collection_points(root: models.Checkout, info: ResolveInfo):
+    def resolve_available_collection_points(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         @allow_writer_in_context(info.context)
         def get_available_collection_points(lines):
             database_connection_name = get_database_connection_name(info.context)
             result = get_valid_collection_points_for_checkout(
                 lines,
-                root.channel_id,
+                root.node.channel_id,
                 database_connection_name=database_connection_name,
             )
             return list(result)
 
         return (
             CheckoutLinesInfoByCheckoutTokenLoader(info.context)
-            .load(root.token)
+            .load(root.node.token)
             .then(get_available_collection_points)
         )
 
@@ -981,18 +1022,19 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     @plugin_manager_promise_callback
     def resolve_available_payment_gateways(
-        root: models.Checkout, info: ResolveInfo, manager
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo, manager
     ):
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+        token = root.node.token
+        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(token)
         checkout_lines_info = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
-            root.token
+            token
         )
 
         @allow_writer_in_context(info.context)
         def get_available_payment_gateways(results):
             (checkout_info, lines_info) = results
             return manager.list_payment_gateways(
-                currency=root.currency,
+                currency=root.node.currency,
                 checkout_info=checkout_info,
                 checkout_lines=lines_info,
                 channel_slug=checkout_info.channel.slug,
@@ -1003,11 +1045,13 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.Checkout, info):
-        return GiftCardsByCheckoutIdLoader(info.context).load(root.pk)
+    def resolve_gift_cards(root: SyncWebhookControlContext[models.Checkout], info):
+        return GiftCardsByCheckoutIdLoader(info.context).load(root.node.pk)
 
     @staticmethod
-    def resolve_is_shipping_required(root: models.Checkout, info: ResolveInfo):
+    def resolve_is_shipping_required(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
         def is_shipping_required(lines):
             product_ids = [line_info.product.id for line_info in lines]
 
@@ -1022,19 +1066,19 @@ class Checkout(ModelObjectType[models.Checkout]):
 
         return (
             CheckoutLinesInfoByCheckoutTokenLoader(info.context)
-            .load(root.token)
+            .load(root.node.token)
             .then(is_shipping_required)
         )
 
     @staticmethod
-    def resolve_language_code(root, _info):
-        return LanguageCodeEnum[str_to_enum(root.language_code)]
+    def resolve_language_code(root: SyncWebhookControlContext[models.Checkout], _info):
+        return LanguageCodeEnum[str_to_enum(root.node.language_code)]
 
     @staticmethod
     @traced_resolver
     @load_site_callback
     def resolve_stock_reservation_expires(
-        root: models.Checkout, info: ResolveInfo, site
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo, site
     ):
         with allow_writer_in_context(info.context):
             if not is_reservation_enabled(site.settings):
@@ -1048,7 +1092,7 @@ class Checkout(ModelObjectType[models.Checkout]):
 
             return (
                 StocksReservationsByCheckoutTokenLoader(info.context)
-                .load(root.token)
+                .load(root.node.token)
                 .then(get_oldest_stock_reservation_expiration_date)
             )
 
@@ -1056,13 +1100,19 @@ class Checkout(ModelObjectType[models.Checkout]):
     @one_of_permissions_required(
         [CheckoutPermissions.MANAGE_CHECKOUTS, PaymentPermissions.HANDLE_PAYMENTS]
     )
-    def resolve_transactions(root: models.Checkout, info: ResolveInfo):
-        return TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+    def resolve_transactions(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        return TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
 
     @staticmethod
-    def resolve_display_gross_prices(root: models.Checkout, info: ResolveInfo):
-        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
-        country_code = root.get_country()
+    def resolve_display_gross_prices(
+        root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
+    ):
+        tax_config = TaxConfigurationByChannelId(info.context).load(
+            root.node.channel_id
+        )
+        country_code = root.node.get_country()
 
         def load_tax_country_exceptions(tax_config):
             tax_configs_per_country = (
@@ -1087,10 +1137,10 @@ class Checkout(ModelObjectType[models.Checkout]):
         return tax_config.then(load_tax_country_exceptions)
 
     @staticmethod
-    def resolve_metadata(root: models.Checkout, info):
+    def resolve_metadata(root: SyncWebhookControlContext[models.Checkout], info):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
-            .load(root.pk)
+            .load(root.node.pk)
             .then(
                 lambda metadata_storage: (
                     MetaResolvers.resolve_metadata(metadata_storage.metadata)
@@ -1101,10 +1151,12 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_metafield(root: models.Checkout, info, *, key: str):
+    def resolve_metafield(
+        root: SyncWebhookControlContext[models.Checkout], info, *, key: str
+    ):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
-            .load(root.pk)
+            .load(root.node.pk)
             .then(
                 lambda metadata_storage: (
                     metadata_storage.metadata.get(key) if metadata_storage else None
@@ -1113,10 +1165,12 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_metafields(root: models.Checkout, info, *, keys=None):
+    def resolve_metafields(
+        root: SyncWebhookControlContext[models.Checkout], info, *, keys=None
+    ):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
-            .load(root.pk)
+            .load(root.node.pk)
             .then(
                 lambda metadata_storage: (
                     _filter_metadata(metadata_storage.metadata, keys)
@@ -1127,10 +1181,12 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_private_metadata(root: models.Checkout, info):
+    def resolve_private_metadata(
+        root: SyncWebhookControlContext[models.Checkout], info
+    ):
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
-            .load(root.pk)
+            .load(root.node.pk)
             .then(
                 lambda metadata_storage: (
                     MetaResolvers.resolve_private_metadata(metadata_storage, info)
@@ -1141,14 +1197,16 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_private_metafield(root: models.Checkout, info, *, key: str):
+    def resolve_private_metafield(
+        root: SyncWebhookControlContext[models.Checkout], info, *, key: str
+    ):
         def resolve_private_metafield_with_privilege_check(metadata_storage):
             MetaResolvers.check_private_metadata_privilege(metadata_storage, info)
             return metadata_storage.private_metadata.get(key)
 
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
-            .load(root.pk)
+            .load(root.node.pk)
             .then(
                 lambda metadata_storage: (
                     resolve_private_metafield_with_privilege_check(metadata_storage)
@@ -1159,14 +1217,16 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_private_metafields(root: models.Checkout, info, *, keys=None):
+    def resolve_private_metafields(
+        root: SyncWebhookControlContext[models.Checkout], info, *, keys=None
+    ):
         def resolve_private_metafields_with_privilege(metadata_storage):
             MetaResolvers.check_private_metadata_privilege(metadata_storage, info)
             return _filter_metadata(metadata_storage.private_metadata, keys)
 
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
-            .load(root.pk)
+            .load(root.node.pk)
             .then(
                 lambda metadata_storage: (
                     resolve_private_metafields_with_privilege(metadata_storage)
@@ -1177,18 +1237,23 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @classmethod
-    def resolve_type(cls, root: models.Checkout, _info):
+    # FIXME: this probably can be dropped and implemented in `saleor.graphql.meta.types.ObjectWithMetadata.resolve_type`
+    def resolve_type(cls, root: SyncWebhookControlContext[models.Checkout], _info):
         item_type, _ = MetaResolvers.resolve_object_with_metadata_type(
-            root.metadata_storage
+            root.node.metadata_storage
         )
         return item_type
 
     @classmethod
-    def resolve_updated_at(cls, root: models.Checkout, _info):
-        return root.last_change
+    def resolve_updated_at(
+        cls, root: SyncWebhookControlContext[models.Checkout], _info
+    ):
+        return root.node.last_change
 
     @staticmethod
-    def resolve_authorize_status(root: models.Checkout, info):
+    def resolve_authorize_status(
+        root: SyncWebhookControlContext[models.Checkout], info
+    ):
         @allow_writer_in_context(info.context)
         def _resolve_authorize_status(data):
             address, lines, checkout_info, manager, payloads, transactions = data
@@ -1202,17 +1267,18 @@ class Checkout(ModelObjectType[models.Checkout]):
                 force_status_update=True,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
             return checkout_info.checkout.authorize_status
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
         dataloaders.append(
-            TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+            TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
         )
         return Promise.all(dataloaders).then(_resolve_authorize_status)
 
     @staticmethod
-    def resolve_charge_status(root: models.Checkout, info):
+    def resolve_charge_status(root: SyncWebhookControlContext[models.Checkout], info):
         @allow_writer_in_context(info.context)
         def _resolve_charge_status(data):
             address, lines, checkout_info, manager, payloads, transactions = data
@@ -1226,17 +1292,18 @@ class Checkout(ModelObjectType[models.Checkout]):
                 force_status_update=True,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
             return checkout_info.checkout.charge_status
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
         dataloaders.append(
-            TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+            TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
         )
         return Promise.all(dataloaders).then(_resolve_charge_status)
 
     @staticmethod
-    def resolve_total_balance(root: models.Checkout, info):
+    def resolve_total_balance(root: SyncWebhookControlContext[models.Checkout], info):
         database_connection_name = get_database_connection_name(info.context)
 
         def _calculate_total_balance_for_transactions(data):
@@ -1248,36 +1315,44 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
-            checkout_total = max(taxed_total, zero_taxed_money(root.currency))
-            total_charged = zero_money(root.currency)
+            currency = root.node.currency
+            checkout_total = max(taxed_total, zero_taxed_money(currency))
+            total_charged = zero_money(currency)
             for transaction in transactions:
                 total_charged += transaction.amount_charged
                 total_charged += transaction.amount_charge_pending
             return total_charged - checkout_total.gross
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
         dataloaders.append(
-            TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+            TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
         )
         return Promise.all(dataloaders).then(_calculate_total_balance_for_transactions)
 
     @staticmethod
     @traced_resolver
-    def resolve_problems(root: models.Checkout, info):
+    def resolve_problems(root: SyncWebhookControlContext[models.Checkout], info):
         checkout_problems_dataloader = CheckoutProblemsByCheckoutIdDataloader(
             info.context
         )
-        return checkout_problems_dataloader.load(root.pk)
+        return checkout_problems_dataloader.load(root.node.pk)
 
     @staticmethod
     def resolve_stored_payment_methods(
-        root: models.Checkout, info: ResolveInfo, amount: Decimal | None = None
+        root: SyncWebhookControlContext[models.Checkout],
+        info: ResolveInfo,
+        amount: Decimal | None = None
     ):
-        if root.user_id is None:
+        user_id = root.node.user_id
+        if user_id is None:
             return []
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor or requestor.id != root.user_id:
+        if not requestor or requestor.id != user_id:
+            return []
+
+        if not root.allow_sync_webhooks:
             return []
 
         def _resolve_stored_payment_methods(
@@ -1291,23 +1366,24 @@ class Checkout(ModelObjectType[models.Checkout]):
             return manager.list_stored_payment_methods(request_data)
 
         manager = get_plugin_manager_promise(info.context)
-        channel_loader = ChannelByIdLoader(info.context).load(root.channel_id)
-        user_loader = UserByUserIdLoader(info.context).load(root.user_id)
+        channel_loader = ChannelByIdLoader(info.context).load(root.node.channel_id)
+        user_loader = UserByUserIdLoader(info.context).load(root.node.user_id)
         return Promise.all([channel_loader, user_loader, manager]).then(
             _resolve_stored_payment_methods
         )
 
     @staticmethod
-    def resolve_voucher(root: models.Checkout, info):
-        if not root.voucher_code:
+    def resolve_voucher(root: SyncWebhookControlContext[models.Checkout], info):
+        voucher_code = root.node.voucher_code
+        if not voucher_code:
             return None
 
         def wrap_voucher_with_channel_context(data):
             voucher, channel = data
             return ChannelContext(node=voucher, channel_slug=channel.slug)
 
-        voucher = VoucherByCodeLoader(info.context).load(root.voucher_code)
-        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+        voucher = VoucherByCodeLoader(info.context).load(voucher_code)
+        channel = ChannelByIdLoader(info.context).load(root.node.channel_id)
 
         return Promise.all([voucher, channel]).then(wrap_voucher_with_channel_context)
 

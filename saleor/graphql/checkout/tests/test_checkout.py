@@ -13,6 +13,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ....checkout import base_calculations, calculations
+from ....checkout.calculations import _fetch_checkout_prices_if_expired
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
@@ -3590,6 +3591,12 @@ CHECKOUTS_QUERY = """
             edges {
                 node {
                     token
+                    totalPrice {
+                        currency
+                        gross {
+                            amount
+                        }
+                    }
                 }
             }
         }
@@ -3652,6 +3659,97 @@ def test_query_checkouts(
     content = get_graphql_content(response)
     received_checkout = content["data"]["checkouts"]["edges"][0]["node"]
     assert str(checkout.token) == received_checkout["token"]
+
+
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations._calculate_and_add_tax")
+def test_query_checkouts_do_not_trigger_sync_tax_webhooks(
+    mocked_calculate_and_add_tax,
+    mocked_fetch_checkout_prices_if_expired,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_tax_app,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUTS_QUERY, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_calculate_and_add_tax.assert_not_called()
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations.update_checkout_prices_with_flat_rates")
+def test_query_checkouts_calculate_flat_taxes(
+    mocked_update_order_prices_with_flat_rates,
+    mocked_fetch_checkout_prices_if_expired,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_flat_rates,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUTS_QUERY, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once_with(
+        checkout_with_item,
+        mock.ANY,
+        lines,
+        tax_configuration_flat_rates.prices_entered_with_tax,
+        None,
+        database_connection_name=mock.ANY,
+    )
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
 
 
 def test_query_with_channel(

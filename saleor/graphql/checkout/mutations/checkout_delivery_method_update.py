@@ -23,6 +23,7 @@ from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -124,7 +125,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=None,
             collection_point=None,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def perform_on_external_shipping_method(
@@ -174,7 +177,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=delivery_method,
             collection_point=None,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def perform_on_collection_point(
@@ -199,7 +204,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=None,
             collection_point=collection_point,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @staticmethod
     def _check_delivery_method(
