@@ -2,11 +2,11 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
-from opentelemetry import trace
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
 from ...core.db.connection import allow_writer_in_context
+from ...core.otel import tracer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -14,8 +14,6 @@ from .context import get_database_connection_name
 
 K = TypeVar("K")
 R = TypeVar("R")
-
-tracer = trace.get_tracer(__name__)
 
 
 class DataLoader(BaseLoader, Generic[K, R]):

@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
-from opentelemetry import trace
 from prices import TaxedMoney
 
 from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery
+from ..core.otel import tracer
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
@@ -85,8 +85,6 @@ if TYPE_CHECKING:
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
-
-tracer = trace.get_tracer(__name__)
 
 
 class PluginsManager(PaymentInterface):

@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from django.db import transaction
 from opentelemetry import trace
 
-tracer = trace.get_tracer(__name__)
+from ..core.otel import tracer
 
 
 @contextmanager

@@ -7,10 +7,10 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.urls import reverse
-from opentelemetry import trace
 from requests.exceptions import SSLError
 
 from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
+from ....core.otel import tracer
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
 from ....order.events import external_notification_event
@@ -48,8 +48,6 @@ from .webhooks import handle_additional_actions, handle_webhook
 GATEWAY_NAME = "Adyen"
 WEBHOOK_PATH = "/webhooks"
 ADDITIONAL_ACTION_PATH = "/additional-actions"
-
-tracer = trace.get_tracer(__name__)
 
 
 class AdyenGatewayPlugin(BasePlugin):

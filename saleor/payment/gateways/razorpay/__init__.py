@@ -4,8 +4,8 @@ from decimal import Decimal
 
 import razorpay
 import razorpay.errors
-from opentelemetry import trace
 
+from ....core.otel import tracer
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import errors
@@ -25,7 +25,6 @@ RAZORPAY_EXCEPTIONS = (
 # Get the logger for this file, it will allow us to log
 # error responses from razorpay.
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
 
 
 def _generate_response(

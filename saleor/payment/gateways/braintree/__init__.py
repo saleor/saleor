@@ -1,8 +1,8 @@
 import braintree as braintree_sdk
 from braintree.exceptions.braintree_error import BraintreeError
 from django.core.exceptions import ImproperlyConfigured
-from opentelemetry import trace
 
+from ....core.otel import tracer
 from ... import TransactionKind
 from ...interface import (
     CustomerSource,
@@ -13,8 +13,6 @@ from ...interface import (
     TokenConfig,
 )
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException, handle_braintree_error
-
-tracer = trace.get_tracer(__name__)
 
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,

@@ -1,16 +1,15 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from opentelemetry import trace
 
 from ...celeryconf import app
 from ...core.db.connection import allow_writer
+from ...core.otel import tracer
 from ...core.taxes import TaxError
 from ...order.events import external_notification_event
 from ...order.models import Order
 from . import AvataxConfiguration, api_post_request
 
 task_logger = get_task_logger(__name__)
-tracer = trace.get_tracer(__name__)
 
 
 @app.task(

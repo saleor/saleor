@@ -1,8 +1,6 @@
 from contextlib import contextmanager
 
-from opentelemetry import trace
-
-tracer = trace.get_tracer(__name__)
+from ...core.otel import tracer
 
 
 @contextmanager

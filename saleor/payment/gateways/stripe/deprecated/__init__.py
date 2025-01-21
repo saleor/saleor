@@ -1,6 +1,6 @@
 import stripe
-from opentelemetry import trace
 
+from .....core.otel import tracer
 from .... import TransactionKind
 from ....interface import (
     CustomerSource,
@@ -16,8 +16,6 @@ from .utils import (
     get_currency_from_stripe,
     shipping_to_stripe_dict,
 )
-
-tracer = trace.get_tracer(__name__)
 
 
 def get_client_token(**_):

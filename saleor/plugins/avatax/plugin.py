@@ -9,12 +9,12 @@ from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from django_countries import countries
-from opentelemetry import trace
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
 from ...checkout.utils import log_address_if_validation_skipped_for_checkout
+from ...core.otel import tracer
 from ...core.prices import MAXIMUM_PRICE
 from ...core.taxes import TaxDataErrorMessage, TaxError, TaxType, zero_taxed_money
 from ...order import base_calculations as order_base_calculation
@@ -64,7 +64,6 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
 
 
 def _get_prices_entered_with_tax_for_checkout(checkout_info: "CheckoutInfo"):

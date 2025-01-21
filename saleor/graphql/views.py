@@ -22,6 +22,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
+from ..core.otel import tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -32,8 +33,6 @@ from .utils import format_error, query_fingerprint, query_identifier
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-tracer = trace.get_tracer(__name__)
 
 
 def tracing_wrapper(execute, sql, params, many, context):

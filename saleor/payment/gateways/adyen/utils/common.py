@@ -8,7 +8,6 @@ import Adyen
 from Adyen.httpclient import HTTPClient
 from django.conf import settings
 from django_countries.fields import Country
-from opentelemetry import trace
 from requests.exceptions import ConnectTimeout
 
 from .....checkout.calculations import (
@@ -24,6 +23,7 @@ from .....checkout.fetch import (
 )
 from .....checkout.models import Checkout
 from .....checkout.utils import get_checkout_metadata, is_shipping_required
+from .....core.otel import tracer
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from ....interface import AddressData, PaymentData
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
 
 
 # https://docs.adyen.com/checkout/payment-result-codes

@@ -8,13 +8,13 @@ from urllib.parse import urljoin
 
 import requests
 from django.core.cache import cache
-from opentelemetry import trace
 from requests.auth import HTTPBasicAuth
 
 from ...account.models import Address
 from ...checkout import base_calculations
 from ...checkout.utils import get_address_for_checkout_taxes, is_shipping_required
 from ...core.http_client import HTTPClient
+from ...core.otel import tracer
 from ...core.taxes import TaxError
 from ...discount import DiscountType, VoucherType
 from ...discount.utils.voucher import is_order_level_voucher
@@ -36,7 +36,6 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
 
 META_CODE_KEY = "avatax.code"
 META_DESCRIPTION_KEY = "avatax.description"
