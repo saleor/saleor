@@ -10,6 +10,8 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
 from ....discount.utils.voucher import (
+    create_or_update_discount_object_from_order_level_voucher,
+    create_or_update_line_discount_objects_from_voucher,
     get_active_voucher_code,
     get_voucher_code_instance,
     increase_voucher_usage,
@@ -18,6 +20,7 @@ from ....discount.utils.voucher import (
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
+from ....order.fetch import fetch_draft_order_lines_info
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     create_order_line,
@@ -607,14 +610,33 @@ class DraftOrderCreate(
 
     @classmethod
     def handle_order_voucher(
-        cls, cleaned_input, instance, is_new_instance, old_voucher, old_voucher_code
+        cls,
+        cleaned_input,
+        instance: models.Order,
+        is_new_instance: bool,
+        old_voucher: Voucher,
+        old_voucher_code: str,
     ):
-        user_email = instance.user_email or instance.user and instance.user.email
+        voucher = cleaned_input["voucher"]
+
+        # create or update voucher discount object
+        if voucher or old_voucher:
+            create_or_update_discount_object_from_order_level_voucher(instance)
+            lines_info = fetch_draft_order_lines_info(instance)
+            create_or_update_line_discount_objects_from_voucher(lines_info)
+            lines = [line_info.line for line_info in lines_info]
+            models.OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
+
+        # handle voucher usage
+        user_email = instance.user_email
+        if not user_email and instance.user:
+            user_email = instance.user.email
+
         channel = instance.channel
         if not channel.include_draft_order_in_voucher_usage:
             return
 
-        if voucher := cleaned_input["voucher"]:
+        if voucher:
             code_instance = cleaned_input.pop("voucher_code_instance", None)
             increase_voucher_usage(
                 voucher,

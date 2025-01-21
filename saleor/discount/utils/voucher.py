@@ -6,6 +6,7 @@ from django.db.models import Exists, F, OuterRef
 from django.utils import timezone
 from prices import Money
 
+from ... import settings
 from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
@@ -305,7 +306,8 @@ def get_products_voucher_discount(
 
 
 def create_or_update_discount_object_from_order_level_voucher(
-    order, database_connection_name
+    order,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Create or update discount object for ENTIRE_ORDER and SHIPPING voucher."""
     voucher = order.voucher

@@ -27,10 +27,6 @@ from .promotion import (
     prepare_promotion_discount_reason,
 )
 from .shared import update_line_info_cached_discounts
-from .voucher import (
-    create_or_update_discount_object_from_order_level_voucher,
-    create_or_update_line_discount_objects_from_voucher,
-)
 
 if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
@@ -41,12 +37,7 @@ def create_or_update_discount_objects_for_order(
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    _update_base_unit_price_amount_for_catalogue_promotion(lines_info)
-    create_or_update_line_discount_objects_from_voucher(lines_info)
     create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    create_or_update_discount_object_from_order_level_voucher(
-        order, database_connection_name
-    )
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
@@ -162,13 +153,6 @@ def _copy_unit_discount_data_to_order_line(
             line.unit_discount_reason = discount_reason
             line.unit_discount_type = discount_type
             line.unit_discount_value = discount_value
-
-
-def _update_base_unit_price_amount_for_catalogue_promotion(
-    lines_info: list["EditableOrderLineInfo"],
-):
-    for line_info in lines_info:
-        line_info.line.base_unit_price = line_info.variant_discounted_price
 
 
 def create_order_discount_objects_for_order_promotions(
