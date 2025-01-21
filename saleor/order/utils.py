@@ -448,7 +448,7 @@ def add_gift_cards_to_order(
     checkout_info: "CheckoutInfo",
     order: Order,
     total_price_left: Money,
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
 ):
     total_before_gift_card_compensation = total_price_left
@@ -510,7 +510,7 @@ def update_gift_card_balance(
 
 def set_gift_card_user(
     gift_card: GiftCard,
-    used_by_user: Optional[User],
+    used_by_user: User | None,
     used_by_email: str,
 ):
     """Set the user, each time a giftcard is used."""
@@ -799,7 +799,7 @@ def create_order_discount_for_order(
     reason: str,
     value_type: str,
     value: Decimal,
-    type: Optional[str] = None,
+    type: str | None = None,
 ):
     """Add new order discount and update the prices."""
 
@@ -836,9 +836,9 @@ def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount
 def update_discount_for_order_line(
     order_line: OrderLine,
     order: "Order",
-    reason: Optional[str],
-    value_type: Optional[str],
-    value: Optional[Decimal],
+    reason: str | None,
+    value_type: str | None,
+    value: Decimal | None,
 ):
     """Update discount fields for order line. Apply discount to the price."""
     # TODO: Move price calculation to fetch_order_prices_if_expired function.
@@ -1018,9 +1018,9 @@ def _update_order_total_charged(
 
 def update_order_charge_data(
     order: Order,
-    order_payments: Optional[QuerySet["Payment"]] = None,
-    order_transactions: Optional[QuerySet["TransactionItem"]] = None,
-    order_granted_refunds: Optional[QuerySet["OrderGrantedRefund"]] = None,
+    order_payments: QuerySet["Payment"] | None = None,
+    order_transactions: QuerySet["TransactionItem"] | None = None,
+    order_granted_refunds: QuerySet["OrderGrantedRefund"] | None = None,
     with_save=True,
 ):
     if order_payments is None:
@@ -1084,9 +1084,9 @@ def update_order_authorize_status(order: Order, granted_refund_amount: Decimal):
 
 def update_order_authorize_data(
     order: Order,
-    order_payments: Optional[QuerySet["Payment"]] = None,
-    order_transactions: Optional[QuerySet["TransactionItem"]] = None,
-    order_granted_refunds: Optional[QuerySet["OrderGrantedRefund"]] = None,
+    order_payments: QuerySet["Payment"] | None = None,
+    order_transactions: QuerySet["TransactionItem"] | None = None,
+    order_granted_refunds: QuerySet["OrderGrantedRefund"] | None = None,
     with_save=True,
 ):
     if order_payments is None:
@@ -1295,7 +1295,9 @@ def order_info_for_logs(order: Order, lines: Iterable[OrderLine]):
 
 
 def clean_order_line_quantities(order_lines, quantities_for_lines):
-    for order_line, line_quantities in zip(order_lines, quantities_for_lines):
+    for order_line, line_quantities in zip(
+        order_lines, quantities_for_lines, strict=False
+    ):
         line_total_quantity = sum(line_quantities)
         line_quantity_unfulfilled = order_line.quantity_unfulfilled
 

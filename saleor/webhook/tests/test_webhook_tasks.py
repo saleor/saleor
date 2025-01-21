@@ -29,7 +29,7 @@ def test_get_webhooks_for_event_webhook_ordering(webhooks_factory):
     webhooks = list(get_webhooks_for_event(event_type))
 
     # then
-    for prev_webhook, next_webhook in zip(webhooks, webhooks[1:]):
+    for prev_webhook, next_webhook in zip(webhooks, webhooks[1:], strict=False):
         assert prev_webhook.app_id <= next_webhook.app_id
         if prev_webhook.app_id == next_webhook.app_id:
             assert prev_webhook.pk < next_webhook.pk

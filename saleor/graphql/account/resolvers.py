@@ -1,5 +1,4 @@
 from itertools import chain
-from typing import Optional
 
 from django.db.models import Q
 from graphql import GraphQLError
@@ -140,9 +139,9 @@ def resolve_users(info, ids=None, emails=None):
 def resolve_address_validation_rules(
     info: ResolveInfo,
     country_code: str,
-    country_area: Optional[str],
-    city: Optional[str],
-    city_area: Optional[str],
+    country_area: str | None,
+    city: str | None,
+    city_area: str | None,
 ):
     params = {
         "country_code": country_code,
@@ -184,7 +183,7 @@ def resolve_address_validation_rules(
 
 @traced_resolver
 def resolve_payment_sources(
-    _info, user: models.User, manager, channel_slug: Optional[str]
+    _info, user: models.User, manager, channel_slug: str | None
 ):
     stored_customer_accounts = [
         (gtw.id, fetch_customer_id(user, gtw.id))

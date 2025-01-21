@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, NamedTuple, Optional
+from typing import TYPE_CHECKING, NamedTuple
 from uuid import UUID
 
 import graphene
@@ -89,7 +89,7 @@ def create_stocks(
                     warehouse=warehouse,
                     quantity=stock_data["quantity"],
                 )
-                for stock_data, warehouse in zip(stocks_data, warehouses)
+                for stock_data, warehouse in zip(stocks_data, warehouses, strict=False)
             ]
         )
     except IntegrityError as e:
@@ -123,7 +123,7 @@ def get_draft_order_lines_data_for_variants(
     return DraftOrderLinesData(order_to_lines_mapping, line_pks, order_pks)
 
 
-def clean_variant_sku(sku: Optional[str]) -> Optional[str]:
+def clean_variant_sku(sku: str | None) -> str | None:
     if sku:
         return sku.strip() or None
     return None
@@ -157,8 +157,9 @@ def search_string_in_kwargs(kwargs: dict) -> bool:
     return bool(filter_search.strip()) or bool(search.strip())
 
 
-def sort_field_from_kwargs(kwargs: dict) -> Optional[list[str]]:
-    return kwargs.get("sort_by", {}).get("field") or None
+def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
+    sort_by = kwargs.get("sort_by", {}) or {}
+    return sort_by.get("field") or sort_by.get("attribute_id")
 
 
 def check_for_sorting_by_rank(info, kwargs: dict):

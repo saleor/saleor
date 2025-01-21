@@ -175,8 +175,8 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         channel_id,
         price: Money,
         shipping_address: Optional["Address"] = None,
-        country_code: Optional[str] = None,
-        lines: Union[list["CheckoutLineInfo"], list["OrderLineInfo"], None] = None,
+        country_code: str | None = None,
+        lines: list["CheckoutLineInfo"] | list["OrderLineInfo"] | None = None,
     ):
         if not shipping_address:
             return None

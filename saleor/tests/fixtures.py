@@ -2,7 +2,6 @@ import datetime
 from contextlib import contextmanager
 from functools import partial
 from io import BytesIO
-from typing import Optional
 from unittest.mock import MagicMock
 
 import graphene
@@ -100,9 +99,7 @@ def capture_queries(pytestconfig):
     cfg = pytestconfig
 
     @contextmanager
-    def _capture_queries(
-        num: Optional[int] = None, msg: Optional[str] = None, exact=False
-    ):
+    def _capture_queries(num: int | None = None, msg: str | None = None, exact=False):
         with CaptureQueriesContext(connection) as ctx:
             yield ctx
             if num is not None:
@@ -1661,5 +1658,16 @@ def tax_configuration_tax_app(channel_USD):
     tc.prices_entered_with_tax = False
     tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
     tc.tax_app_id = "avatax.app"
+    tc.save()
+    return tc
+
+
+@pytest.fixture
+def tax_configuration_avatax_plugin(channel_USD):
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = False
+    tc.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP
+    tc.tax_app_id = "plugin:avatax"
     tc.save()
     return tc

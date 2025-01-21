@@ -47,6 +47,11 @@ mutation orderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
             amount
           }
         }
+        undiscountedTotalPrice {
+          gross {
+            amount
+          }
+        }
       }
       discounts {
         id

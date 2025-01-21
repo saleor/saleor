@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
 import graphene
@@ -21,10 +21,10 @@ if TYPE_CHECKING:
 def get_products_data(
     queryset: "QuerySet",
     export_fields: set[str],
-    attribute_ids: Optional[list[str]],
-    warehouse_ids: Optional[list[str]],
-    channel_ids: Optional[list[str]],
-) -> list[dict[str, Union[str, bool]]]:
+    attribute_ids: list[str] | None,
+    warehouse_ids: list[str] | None,
+    channel_ids: list[str] | None,
+) -> list[dict[str, str | bool]]:
     """Create data list of products and their variants with fields values.
 
     It return list with product and variant data which can be used as import to
@@ -99,8 +99,8 @@ def get_products_data(
 def get_products_relations_data(
     queryset: "QuerySet",
     export_fields: set[str],
-    attribute_ids: Optional[list[str]],
-    channel_ids: Optional[list[str]],
+    attribute_ids: list[str] | None,
+    channel_ids: list[str] | None,
 ) -> dict[int, dict[str, str]]:
     """Get data about product relations fields.
 
@@ -123,8 +123,8 @@ def get_products_relations_data(
 def prepare_products_relations_data(
     queryset: "QuerySet",
     fields: set[str],
-    attribute_ids: Optional[list[str]],
-    channel_ids: Optional[list[str]],
+    attribute_ids: list[str] | None,
+    channel_ids: list[str] | None,
 ) -> dict[int, dict[str, str]]:
     """Prepare data about products relation fields for given queryset.
 
@@ -178,9 +178,9 @@ def prepare_products_relations_data(
 def get_variants_relations_data(
     queryset: "QuerySet",
     export_fields: set[str],
-    attribute_ids: Optional[list[str]],
-    warehouse_ids: Optional[list[str]],
-    channel_ids: Optional[list[str]],
+    attribute_ids: list[str] | None,
+    warehouse_ids: list[str] | None,
+    channel_ids: list[str] | None,
 ) -> dict[int, dict[str, str]]:
     """Get data about variants relations fields.
 
@@ -203,9 +203,9 @@ def get_variants_relations_data(
 def prepare_variants_relations_data(
     queryset: "QuerySet",
     fields: set[str],
-    attribute_ids: Optional[list[str]],
-    warehouse_ids: Optional[list[str]],
-    channel_ids: Optional[list[str]],
+    attribute_ids: list[str] | None,
+    warehouse_ids: list[str] | None,
+    channel_ids: list[str] | None,
 ) -> dict[int, dict[str, str]]:
     """Prepare data about variants relation fields for given queryset.
 
@@ -305,24 +305,24 @@ def add_image_uris_to_data(
 class AttributeData:
     slug: str
     input_type: str
-    entity_type: Optional[str] = None
-    unit: Optional[str] = None
-    value_slug: Optional[str] = None
-    value_name: Optional[str] = None
-    value: Optional[str] = None
-    file_url: Optional[str] = None
-    rich_text: Optional[str] = None
-    boolean: Optional[str] = None
-    date_time: Optional[str] = None
-    reference_page: Optional[str] = None
-    reference_product: Optional[str] = None
-    reference_variant: Optional[str] = None
+    entity_type: str | None = None
+    unit: str | None = None
+    value_slug: str | None = None
+    value_name: str | None = None
+    value: str | None = None
+    file_url: str | None = None
+    rich_text: str | None = None
+    boolean: str | None = None
+    date_time: str | None = None
+    reference_page: str | None = None
+    reference_product: str | None = None
+    reference_variant: str | None = None
 
 
 def handle_attribute_data(
     pk: int,
     data: dict,
-    attribute_ids: Optional[list[str]],
+    attribute_ids: list[str] | None,
     result_data: dict[int, dict],
     attribute_fields: dict,
     attribute_owner: str,
@@ -347,7 +347,7 @@ def handle_attribute_data(
 def handle_channel_data(
     pk: int,
     data: dict,
-    channel_ids: Optional[list[str]],
+    channel_ids: list[str] | None,
     result_data: dict[int, dict],
     pk_lookup: str,
     slug_lookup: str,
@@ -373,7 +373,7 @@ def handle_channel_data(
 def handle_warehouse_data(
     pk: int,
     data: dict,
-    warehouse_ids: Optional[list[str]],
+    warehouse_ids: list[str] | None,
     result_data: dict[int, dict],
     warehouse_fields: dict,
 ):
@@ -481,7 +481,7 @@ def _get_reference_value(attribute_data):
 
 def add_warehouse_info_to_data(
     pk: int,
-    warehouse_data: dict[str, Union[Optional[str]]],
+    warehouse_data: dict[str, str | None],
     result_data: dict[int, dict],
 ) -> dict[int, dict]:
     """Add info about stock quantity to variant data.
@@ -501,7 +501,7 @@ def add_warehouse_info_to_data(
 
 def add_channel_info_to_data(
     pk: int,
-    channel_data: dict[str, Union[Optional[str]]],
+    channel_data: dict[str, str | None],
     result_data: dict[int, dict],
     fields: list[str],
 ) -> dict[int, dict]:

@@ -82,8 +82,7 @@ class CheckoutCustomerAttach(BaseMutation):
         if checkout.user_id:
             raise PermissionDenied(
                 message=(
-                    "You cannot reassign a checkout that is already attached to a "
-                    "user."
+                    "You cannot reassign a checkout that is already attached to a user."
                 )
             )
 

@@ -42,7 +42,7 @@ class VariantsChannelAvailbilityInfo(NamedTuple):
 
 def _get_available_quantity(
     stocks: StockQuerySet,
-    checkout_lines: Optional[list["CheckoutLine"]] = None,
+    checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
 ) -> int:
     results = stocks.aggregate(
@@ -65,7 +65,7 @@ def check_stock_and_preorder_quantity(
     country_code: str,
     channel_slug: str,
     quantity: int,
-    checkout_lines: Optional[list["CheckoutLine"]] = None,
+    checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -102,7 +102,7 @@ def check_stock_quantity(
     country_code: str,
     channel_slug: str,
     quantity: int,
-    checkout_lines: Optional[list["CheckoutLine"]] = None,
+    checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -143,10 +143,10 @@ def check_stock_and_preorder_quantity_bulk(
     country_code: str,
     quantities: Iterable[int],
     channel_slug: str,
-    global_quantity_limit: Optional[int],
+    global_quantity_limit: int | None,
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
-    additional_filter_lookup: Optional[dict[str, Any]] = None,
-    existing_lines: Optional[list["CheckoutLineInfo"]] = None,
+    additional_filter_lookup: dict[str, Any] | None = None,
+    existing_lines: list["CheckoutLineInfo"] | None = None,
     replace: bool = False,
     check_reservations: bool = False,
 ):
@@ -195,7 +195,7 @@ def _split_lines_for_trackable_and_preorder(
     stock_variants, stock_quantities = [], []
     preorder_variants, preorder_quantities = [], []
 
-    for variant, quantity in zip(variants, quantities):
+    for variant, quantity in zip(variants, quantities, strict=False):
         if variant.is_preorder_active():
             preorder_variants.append(variant)
             preorder_quantities.append(quantity)
@@ -211,8 +211,8 @@ def _split_lines_for_trackable_and_preorder(
 
 
 def _check_quantity_limits(
-    variant: "ProductVariant", quantity: int, global_quantity_limit: Optional[int]
-) -> Optional[NoReturn]:
+    variant: "ProductVariant", quantity: int, global_quantity_limit: int | None
+) -> NoReturn | None:
     quantity_limit = variant.quantity_limit_per_customer or global_quantity_limit
 
     if quantity_limit is not None and quantity > quantity_limit:
@@ -235,10 +235,10 @@ def check_stock_quantity_bulk(
     country_code: str,
     quantities: Iterable[int],
     channel_slug: str,
-    global_quantity_limit: Optional[int],
+    global_quantity_limit: int | None,
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
-    additional_filter_lookup: Optional[dict[str, Any]] = None,
-    existing_lines: Optional[list["CheckoutLineInfo"]] = None,
+    additional_filter_lookup: dict[str, Any] | None = None,
+    existing_lines: list["CheckoutLineInfo"] | None = None,
     replace=False,
     check_reservations: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
@@ -290,7 +290,7 @@ def check_stock_quantity_bulk(
     variants_quantities = {
         line.variant.pk: line.line.quantity for line in existing_lines or []
     }
-    for variant, quantity in zip(variants, quantities):
+    for variant, quantity in zip(variants, quantities, strict=False):
         if not replace:
             quantity += variants_quantities.get(variant.pk, 0)
 
@@ -372,7 +372,7 @@ def check_preorder_threshold_in_orders(
     variant: "ProductVariant",
     quantity: int,
     channel_slug: str,
-    checkout_lines: Optional[Iterable["CheckoutLine"]],
+    checkout_lines: Iterable["CheckoutLine"] | None,
     check_reservations: bool,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
@@ -444,8 +444,8 @@ def check_preorder_threshold_bulk(
     variants: Iterable["ProductVariant"],
     quantities: Iterable[int],
     channel_slug: str,
-    global_quantity_limit: Optional[int],
-    existing_lines: Optional[list["CheckoutLineInfo"]] = None,
+    global_quantity_limit: int | None,
+    existing_lines: list["CheckoutLineInfo"] | None = None,
     replace: bool = False,
     check_reservations: bool = False,
 ):
@@ -471,7 +471,7 @@ def check_preorder_threshold_bulk(
     variants_quantities = {
         line.variant.pk: line.line.quantity for line in existing_lines or []
     }
-    for variant, quantity in zip(variants, quantities):
+    for variant, quantity in zip(variants, quantities, strict=False):
         cumulative_quantity = quantity
         if not replace:
             cumulative_quantity = quantity + variants_quantities.get(variant.pk, 0)
@@ -522,7 +522,7 @@ def get_available_quantity(
     variant: "ProductVariant",
     country_code: str,
     channel_slug: str,
-    checkout_lines: Optional[list["CheckoutLine"]] = None,
+    checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
 ) -> int:
     """Return available quantity for given product in given country."""
@@ -545,7 +545,7 @@ def is_product_in_stock(
 
 
 def get_reserved_stock_quantity(
-    stocks: StockQuerySet, lines: Optional[list["CheckoutLine"]] = None
+    stocks: StockQuerySet, lines: list["CheckoutLine"] | None = None
 ) -> int:
     result = (
         Reservation.objects.filter(

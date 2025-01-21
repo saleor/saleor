@@ -64,7 +64,7 @@ def test_rounding_issue_with_percentage_promotion(
     product_list.append(product)
     variants = []
     variant_channel_listings = []
-    for product, price in zip(product_list, variant_prices):
+    for product, price in zip(product_list, variant_prices, strict=False):
         variant = product.variants.get()
         variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
         variant_channel_listing.price_amount = price
@@ -95,7 +95,9 @@ def test_rounding_issue_with_percentage_promotion(
     )
 
     # then
-    for line_info, expected_discount in zip(lines_info, expected_discounts):
+    for line_info, expected_discount in zip(
+        lines_info, expected_discounts, strict=False
+    ):
         assert len(line_info.discounts) == 1
         discount_from_info = line_info.discounts[0]
         discount_from_db = line_info.line.discounts.get()

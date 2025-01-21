@@ -2,9 +2,10 @@ import datetime
 import logging
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 from uuid import UUID
 
+import graphene
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
@@ -21,7 +22,7 @@ from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
-from ..core.taxes import TaxError, zero_taxed_money
+from ..core.taxes import TaxDataError, TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
@@ -147,8 +148,8 @@ def _release_checkout_voucher_usage(
     checkout: "Checkout",
     voucher_code: Optional["VoucherCode"],
     voucher: Optional["Voucher"],
-    user_email: Optional[str],
-    checkout_update_fields: Optional[list[str]] = None,
+    user_email: str | None,
+    checkout_update_fields: list[str] | None = None,
 ):
     if not checkout.is_voucher_usage_increased:
         return
@@ -234,8 +235,8 @@ def _create_line_for_order(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    products_translation: dict[int, Optional[str]],
-    variants_translation: dict[int, Optional[str]],
+    products_translation: dict[int, str | None],
+    variants_translation: dict[int, str | None],
     prices_entered_with_tax: bool,
 ) -> OrderLineInfo:
     """Create a line for the given order.
@@ -393,8 +394,8 @@ def _create_line_for_order(
 
 
 def _get_unit_discount_reason(
-    voucher_code: Optional[str], is_line_voucher_code: bool, is_shipping_voucher: bool
-) -> Optional[str]:
+    voucher_code: str | None, is_line_voucher_code: bool, is_shipping_voucher: bool
+) -> str | None:
     if not voucher_code or is_shipping_voucher:
         return None
     return (
@@ -579,6 +580,7 @@ def _prepare_order_data(
             "subtotal": subtotal,
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
+            "tax_error": checkout.tax_error,
         }
     )
 
@@ -622,8 +624,8 @@ def _create_order(
     app: Optional["App"],
     manager: "PluginsManager",
     site_settings: Optional["SiteSettings"] = None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
 ) -> Order:
     """Create an order from the checkout.
@@ -796,7 +798,7 @@ def _prepare_checkout_with_transactions(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    redirect_url: Optional[str],
+    redirect_url: str | None,
 ):
     """Prepare checkout object with transactions to complete the checkout process."""
     clean_billing_address(checkout_info, CheckoutErrorCode)
@@ -841,8 +843,8 @@ def _prepare_checkout_with_payment(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    redirect_url: Optional[str],
-    payment: Optional[Payment],
+    redirect_url: str | None,
+    payment: Payment | None,
 ):
     """Prepare checkout object with payment to complete the checkout process."""
     clean_checkout_payment(
@@ -897,9 +899,9 @@ def _get_order_data(
 def _process_payment(
     checkout_info: CheckoutInfo,
     payment: Payment,
-    customer_id: Optional[str],
+    customer_id: str | None,
     store_source: bool,
-    payment_data: Optional[dict],
+    payment_data: dict | None,
     manager: "PluginsManager",
     channel_slug: str,
     voucher_code: Optional["VoucherCode"] = None,
@@ -941,7 +943,7 @@ def complete_checkout_pre_payment_part(
     user,
     site_settings=None,
     redirect_url=None,
-) -> tuple[Optional[Payment], Optional[str], dict]:
+) -> tuple[Payment | None, str | None, dict]:
     """Logic required to process checkout before payment.
 
     Should be used with transaction_with_commit_on_errors, as there is a possibility
@@ -984,16 +986,16 @@ def complete_checkout_post_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    payment: Optional[Payment],
-    txn: Optional[Transaction],
+    payment: Payment | None,
+    txn: Transaction | None,
     order_data,
     user,
     app,
     site_settings=None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
-) -> tuple[Optional[Order], bool, dict]:
+) -> tuple[Order | None, bool, dict]:
     action_required = False
     action_data: dict[str, str] = {}
 
@@ -1088,7 +1090,7 @@ def _create_order_lines_from_checkout_lines(
     checkout_info: CheckoutInfo,
     lines: list[CheckoutLineInfo],
     manager: "PluginsManager",
-    order_pk: Union[str, UUID],
+    order_pk: str | UUID,
     prices_entered_with_tax: bool,
 ) -> list[OrderLineInfo]:
     order_lines_info = _create_lines_for_order(
@@ -1183,7 +1185,7 @@ def _post_create_order_actions(
     checkout_info: "CheckoutInfo",
     order_lines_info: list["OrderLineInfo"],
     manager: "PluginsManager",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
     site_settings: "SiteSettings",
     is_automatic_completion: bool,
@@ -1219,11 +1221,12 @@ def _create_order_from_checkout(
     checkout_info: CheckoutInfo,
     checkout_lines_info: list[CheckoutLineInfo],
     manager: "PluginsManager",
-    user: Optional[User],
+    user: User | None,
     app: Optional["App"],
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
+    force_update: bool = False,
 ):
     from ..order.utils import add_gift_cards_to_order
 
@@ -1241,6 +1244,7 @@ def _create_order_from_checkout(
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
+        force_update=force_update,
     )
 
     # voucher
@@ -1306,6 +1310,7 @@ def _create_order_from_checkout(
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,
+        tax_error=checkout_info.checkout.tax_error,
         **_process_shipping_data_for_order(
             checkout_info,
             undiscounted_base_shipping_price,
@@ -1403,8 +1408,8 @@ def create_order_from_checkout(
     user: Optional["User"],
     app: Optional["App"],
     delete_checkout: bool = True,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
 ) -> Order:
     """Crate order from checkout.
@@ -1440,6 +1445,7 @@ def create_order_from_checkout(
 
         # Fetching checkout info inside the transaction block with select_for_update
         # ensure that we are processing checkout on the current data.
+        force_update = checkout.tax_error is not None
         checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
         checkout_info = fetch_checkout_info(
             checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
@@ -1456,7 +1462,23 @@ def create_order_from_checkout(
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
                 is_automatic_completion=is_automatic_completion,
+                force_update=force_update,
             )
+
+            if checkout_info.checkout.tax_error is not None:
+                checkout_id = graphene.Node.to_global_id(
+                    "Checkout", checkout_info.checkout.pk
+                )
+                logger.warning(
+                    "Tax app error for checkout %s",
+                    checkout_id,
+                    extra={
+                        "tax_error": checkout_info.checkout.tax_error,
+                        "checkout_id": checkout_id,
+                    },
+                )
+                raise TaxDataError("Configured Tax App returned invalid response.")
+
             if delete_checkout:
                 delete_checkouts([checkout_info.checkout.pk])
                 checkout_info.checkout.pk = None
@@ -1501,11 +1523,11 @@ def complete_checkout(
     user: Optional["User"],
     app: Optional["App"],
     site_settings: Optional["SiteSettings"] = None,
-    redirect_url: Optional[str] = None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    redirect_url: str | None = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
-) -> tuple[Optional[Order], bool, dict]:
+) -> tuple[Order | None, bool, dict]:
     checkout = checkout_info.checkout
     transactions = checkout_info.checkout.payment_transactions.all()
 
@@ -1518,7 +1540,7 @@ def complete_checkout(
     )
     if checkout_info.checkout.tax_error is not None:
         raise ValidationError(
-            "Configured Tax App didn't responded.",
+            "Configured Tax App returned invalid response.",
             code=CheckoutErrorCode.TAX_ERROR.value,
         )
 
@@ -1577,11 +1599,11 @@ def complete_checkout_with_transaction(
     lines: list["CheckoutLineInfo"],
     user: Optional["User"],
     app: Optional["App"],
-    redirect_url: Optional[str] = None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    redirect_url: str | None = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
-) -> Optional[Order]:
+) -> Order | None:
     try:
         _prepare_checkout_with_transactions(
             manager=manager,
@@ -1625,10 +1647,10 @@ def complete_checkout_with_payment(
     app,
     site_settings=None,
     redirect_url=None,
-    metadata_list: Optional[list] = None,
-    private_metadata_list: Optional[list] = None,
+    metadata_list: list | None = None,
+    private_metadata_list: list | None = None,
     is_automatic_completion: bool = False,
-) -> tuple[Optional[Order], bool, dict]:
+) -> tuple[Order | None, bool, dict]:
     """Logic required to finalize the checkout and convert it to order.
 
     Should be used with transaction_with_commit_on_errors, as there is a possibility
@@ -1787,7 +1809,7 @@ def _complete_checkout_fail_handler(
     *,
     voucher_code: Optional["VoucherCode"] = None,
     voucher: Optional["Voucher"] = None,
-    payment: Optional[Payment] = None,
+    payment: Payment | None = None,
 ) -> None:
     """Handle the case when the checkout completion failed.
 

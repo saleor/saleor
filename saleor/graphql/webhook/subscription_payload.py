@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Iterable
-from typing import Any, Optional, Union
+from typing import Any
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -27,9 +27,9 @@ def initialize_request(
     requestor=None,
     sync_event=False,
     allow_replica=False,
-    event_type: Optional[str] = None,
-    request_time: Optional[datetime.datetime] = None,
-    dataloaders: Optional[dict] = None,
+    event_type: str | None = None,
+    request_time: datetime.datetime | None = None,
+    dataloaders: dict | None = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
@@ -70,8 +70,8 @@ def generate_payload_promise_from_subscription(
     subscribable_object,
     subscription_query: str,
     request: SaleorContext,
-    app: Optional[App] = None,
-) -> Promise[Optional[dict[str, Any]]]:
+    app: App | None = None,
+) -> Promise[dict[str, Any] | None]:
     """Generate webhook payload from subscription query.
 
     It uses a graphql's engine to build payload by using the same logic as response.
@@ -154,8 +154,8 @@ def generate_payload_from_subscription(
     subscribable_object,
     subscription_query: str,
     request: SaleorContext,
-    app: Optional[App] = None,
-) -> Optional[dict[str, Any]]:
+    app: App | None = None,
+) -> dict[str, Any] | None:
     """Generate webhook payload from subscription query.
 
     It uses a graphql's engine to build payload by using the same logic as response.
@@ -233,7 +233,7 @@ def generate_pre_save_payloads(
     webhooks: Iterable[Webhook],
     instances: Iterable[models.Model],
     event_type: str,
-    requestor: Union[User, App, None],
+    requestor: User | App | None,
     request_time: datetime.datetime,
 ):
     if not settings.ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS:

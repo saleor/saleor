@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 import graphene
 from django.conf import settings
@@ -96,7 +95,7 @@ class TransactionInitialize(TransactionSessionBase):
         error_type_class = common_types.TransactionInitializeError
 
     @classmethod
-    def clean_action(cls, info, action: Optional[str], channel: "Channel"):
+    def clean_action(cls, info, action: str | None, channel: "Channel"):
         if not action:
             return channel.default_transaction_flow_strategy
         app = get_app_promise(info.context).get()
@@ -123,7 +122,7 @@ class TransactionInitialize(TransactionSessionBase):
         return app
 
     @classmethod
-    def clean_idempotency_key(cls, idempotency_key: Optional[str]):
+    def clean_idempotency_key(cls, idempotency_key: str | None):
         if not idempotency_key and isinstance(idempotency_key, str):
             raise ValidationError(
                 {

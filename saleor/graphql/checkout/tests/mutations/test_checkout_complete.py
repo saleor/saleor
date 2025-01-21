@@ -250,9 +250,9 @@ def test_checkout_complete_0_total_value_no_payment(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -317,9 +317,9 @@ def test_checkout_complete_0_total_value_from_voucher(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @pytest.mark.integration
@@ -380,9 +380,9 @@ def test_checkout_complete_0_total_value_from_giftcard(
     assert order.shipping_address is None
     assert order.shipping_method is None
 
-    assert not Checkout.objects.filter(
-        pk=checkout.pk
-    ).exists(), "Checkout should have been deleted"
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
 
 
 @freeze_time()
@@ -428,7 +428,9 @@ def test_checkout_complete_fails_with_invalid_tax_app(
     data = content["data"]["checkoutComplete"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
-    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        data["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )
     assert not EventDelivery.objects.exists()
 
     checkout.refresh_from_db()
@@ -540,7 +542,9 @@ def test_checkout_complete_calls_failing_plugin(
     data = content["data"]["checkoutComplete"]
     assert len(data["errors"]) == 1
     assert data["errors"][0]["code"] == CheckoutErrorCode.TAX_ERROR.name
-    assert data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        data["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL

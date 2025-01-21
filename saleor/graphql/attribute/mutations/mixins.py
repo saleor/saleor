@@ -132,7 +132,7 @@ class AttributeMixin:
             name = unidecode(value_data["name"]).lower().strip()
             if name in existing_names:
                 msg = (
-                    f'Value {value_data["name"]} already exists within this attribute.'
+                    f"Value {value_data['name']} already exists within this attribute."
                 )
                 raise ValidationError(
                     {

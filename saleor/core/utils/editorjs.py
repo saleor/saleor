@@ -1,6 +1,6 @@
 import re
 import warnings
-from typing import Literal, Union, overload
+from typing import Literal, overload
 
 from django.utils.html import strip_tags
 from urllib3.util import parse_url
@@ -17,7 +17,7 @@ ITEM_TYPE_TO_CLEAN_FUNC_MAP = {
 
 @overload
 def clean_editor_js(
-    definitions: Union[dict, str, None], *, to_string: Literal[True]
+    definitions: dict | str | None, *, to_string: Literal[True]
 ) -> str: ...
 
 
@@ -29,7 +29,7 @@ def clean_editor_js(definitions: dict) -> dict: ...
 def clean_editor_js(definitions: None) -> None: ...
 
 
-def clean_editor_js(definitions, *, to_string=False) -> Union[dict, str, None]:
+def clean_editor_js(definitions, *, to_string=False) -> dict | str | None:
     """Sanitize a given EditorJS JSON definitions.
 
     Look for not allowed URLs, replaced them with `invalid` value, and clean valid ones.

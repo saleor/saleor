@@ -1,7 +1,7 @@
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -60,7 +60,7 @@ CSRF_FIELD = "csrf_token"
 logger = logging.getLogger(__name__)
 
 
-def fetch_jwks(jwks_url) -> Optional[dict]:
+def fetch_jwks(jwks_url) -> dict | None:
     """Fetch JSON Web Key Sets from a provider.
 
     Fetched keys will be stored in the cache to the reduced amount of possible
@@ -80,8 +80,7 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
     except json.JSONDecodeError as e:
         content = response.content if response else "Unable to find the response"
         logger.exception(
-            "Unable to decode the response from auth service with jwks. "
-            "Response: %s",
+            "Unable to decode the response from auth service with jwks. Response: %s",
             content,
         )
         raise AuthenticationError(
@@ -102,8 +101,8 @@ def get_jwks_keys_from_cache_or_fetch(jwks_url: str) -> dict:
 
 
 def get_user_info_from_cache_or_fetch(
-    user_info_url: str, access_token: str, exp_time: Optional[int]
-) -> Optional[dict]:
+    user_info_url: str, access_token: str, exp_time: int | None
+) -> dict | None:
     user_info_data = cache.get(f"{PLUGIN_ID}.{access_token}", None)
 
     if not user_info_data:
@@ -123,7 +122,7 @@ def get_user_info_from_cache_or_fetch(
     return user_info_data
 
 
-def get_user_info(user_info_url, access_token) -> Optional[dict]:
+def get_user_info(user_info_url, access_token) -> dict | None:
     try:
         response = HTTPClient.send_request(
             "GET",
@@ -331,7 +330,7 @@ def create_jwt_token(
     id_payload: CodeIDToken,
     user: User,
     access_token: str,
-    permissions: Optional[list[str]],
+    permissions: list[str] | None,
     owner: str,
 ) -> str:
     additional_payload = {
@@ -392,7 +391,7 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
 def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
-    last_login: Optional[int] = None,
+    last_login: int | None = None,
 ) -> tuple[User, bool, bool]:
     oidc_metadata_key = f"oidc:{oauth_url}"
     user_email = payload.get("email")
@@ -470,7 +469,7 @@ def _update_user_details(
     user_first_name: str,
     user_last_name: str,
     sub: str,
-    last_login: Optional[int],
+    last_login: int | None,
 ) -> bool:
     user_sub = user.get_value_from_private_metadata(oidc_key)
     fields_to_save = set()
@@ -563,7 +562,7 @@ def create_tokens_from_oauth_payload(
     token_data: dict,
     user: User,
     claims: CodeIDToken,
-    permissions: Optional[list[str]],
+    permissions: list[str] | None,
     owner: str,
 ):
     refresh_token = token_data.get("refresh_token")

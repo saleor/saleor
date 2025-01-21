@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -21,7 +20,7 @@ from ...utils import (
 from ..utils import update_variants_for_promotion
 from ..voucher.voucher_add_catalogues import CatalogueInput
 
-CatalogueInfo = defaultdict[str, set[Union[int, str]]]
+CatalogueInfo = defaultdict[str, set[int | str]]
 
 
 class SaleBaseCatalogueMutation(BaseMutation):

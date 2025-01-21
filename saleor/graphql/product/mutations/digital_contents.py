@@ -23,8 +23,7 @@ class DigitalContentInput(BaseInputObjectType):
     )
     max_downloads = graphene.Int(
         description=(
-            "Determines how many times a download link can be accessed by a "
-            "customer."
+            "Determines how many times a download link can be accessed by a customer."
         ),
         required=False,
     )

@@ -77,8 +77,7 @@ def test_stocks_bulk_update_using_ids(
 
 
 @patch(
-    "saleor.graphql.warehouse.bulk_mutations."
-    "stock_bulk_update.get_webhooks_for_event"
+    "saleor.graphql.warehouse.bulk_mutations.stock_bulk_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stocks_updated")
 def test_stocks_bulk_update_send_stock_updated_event(
@@ -124,8 +123,7 @@ def test_stocks_bulk_update_send_stock_updated_event(
 
 
 @patch(
-    "saleor.graphql.warehouse.bulk_mutations."
-    "stock_bulk_update.get_webhooks_for_event"
+    "saleor.graphql.warehouse.bulk_mutations.stock_bulk_update.get_webhooks_for_event"
 )
 @patch("saleor.plugins.manager.PluginsManager.product_variant_stocks_updated")
 def test_stocks_bulk_update_send_stock_updated_event_only_for_changed_stocks(

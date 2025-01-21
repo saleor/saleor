@@ -2808,6 +2808,7 @@ def test_fetch_all_products_with_availability_data(
         product_list,
         [product_1_qty, product_2_qty, product_3_qty],
         [product_1_qty_allocated, product_2_qty_allocated, product_3_qty_allocated],
+        strict=False,
     ):
         data = {
             "node": {
