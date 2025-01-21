@@ -6,7 +6,12 @@ from graphql import GraphQLError
 from graphql.utils import schema_printer
 
 from ..api import backend, schema
-from ..utils import ALLOWED_ERRORS, INTERNAL_ERROR_MESSAGE, format_error
+from ..utils import (
+    ALLOWED_ERRORS,
+    INTERNAL_ERROR_MESSAGE,
+    format_error,
+    get_source_service_name_value,
+)
 from ..utils.validators import check_if_query_contains_only_schema
 from .utils import get_graphql_content
 
@@ -332,3 +337,22 @@ def test_check_if_query_contains_only_schema_with_introspection():
 
     # then
     assert result is True
+
+
+@pytest.mark.parametrize(
+    ("header_source", "expected_result"),
+    [
+        ("saleor.DASHBOARD", "saleor.dashboard"),
+        ("SALEOR.dashboard", "saleor.dashboard"),
+        ("saleor.dashboard.PLAYGROUND", "saleor.dashboard.playground"),
+        ("saleor.PLAYGROUND", "saleor.playground"),
+        ("incorrect-value", "unknown_service"),
+        (None, "unknown_service"),
+    ],
+)
+def test_get_source_service_name_value(header_source, expected_result):
+    # when
+    result = get_source_service_name_value(header_source)
+
+    # then
+    assert result == expected_result
