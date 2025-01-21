@@ -13,7 +13,7 @@ from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
-from ....core.tracing import webhooks_opentracing_trace
+from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.events import call_event
 from ....core.utils.url import sanitize_url_for_logging
@@ -121,7 +121,7 @@ def _send_webhook_request_sync(
     response_data = None
 
     try:
-        with webhooks_opentracing_trace(
+        with webhooks_otel_trace(
             delivery.event_type, domain, payload_size, sync=True, app=webhook.app
         ):
             response = send_webhook_using_http(
