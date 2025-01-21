@@ -305,6 +305,17 @@ def get_products_voucher_discount(
     return total_amount
 
 
+def create_or_update_voucher_discount_objects_for_order(order: "Order"):
+    from ...order.fetch import fetch_draft_order_lines_info
+    from ...order.models import OrderLine
+
+    create_or_update_discount_object_from_order_level_voucher(order)
+    lines_info = fetch_draft_order_lines_info(order)
+    create_or_update_line_discount_objects_from_voucher(lines_info)
+    lines = [line_info.line for line_info in lines_info]
+    OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
+
+
 def create_or_update_discount_object_from_order_level_voucher(
     order,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,

@@ -971,6 +971,8 @@ def test_delete_manual_discount_from_order_with_entire_order_voucher(
     voucher,
     plugins_manager,
 ):
+    # TODO zedzior: check with product if we still should reevaluate vouchers when it
+    #  was overridden by manual discount
     # given
     order = draft_order_with_fixed_discount_order
     currency = order.currency
@@ -1771,6 +1773,8 @@ def test_delete_order_line_discount_with_line_level_voucher(
     voucher_specific_product_type,
     tax_configuration_flat_rates,
 ):
+    # TODO zedzior: check with product if we still should reevaluate vouchers when it
+    #  was overridden by manual discount
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     voucher = voucher_specific_product_type
