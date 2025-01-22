@@ -166,13 +166,20 @@ class TransactionCreate(BaseMutation):
         return money_data
 
     @classmethod
-    def cleanup_metadata_data(cls, cleaned_data: dict):
-        if metadata := cleaned_data.pop("metadata", None):
-            cleaned_data["metadata"] = {data.key: data.value for data in metadata}
-        if private_metadata := cleaned_data.pop("private_metadata", None):
-            cleaned_data["private_metadata"] = {
-                data.key: data.value for data in private_metadata
-            }
+    def cleanup_and_update_metadata_data(
+        cls,
+        transaction: payment_models.TransactionItem,
+        metadata: list | None,
+        private_metadata: list | None,
+    ):
+        if metadata is not None:
+            transaction.store_value_in_metadata(
+                {data.key: data.value for data in metadata}
+            )
+        if private_metadata is not None:
+            transaction.store_value_in_private_metadata(
+                {data.key: data.value for data in private_metadata}
+            )
 
     @classmethod
     def validate_instance(
@@ -248,13 +255,14 @@ class TransactionCreate(BaseMutation):
     def create_transaction(
         cls, transaction_input: dict, user, app, save: bool = True
     ) -> payment_models.TransactionItem:
-        cls.cleanup_metadata_data(transaction_input)
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
         transaction_input["available_actions"] = list(
             set(transaction_input.get("available_actions", []))
         )
+        metadata = transaction_input.pop("metadata", None)
+        private_metadata = transaction_input.pop("private_metadata", None)
         transaction = payment_models.TransactionItem(
             token=uuid.uuid4(),
             use_old_id=True,
@@ -263,6 +271,7 @@ class TransactionCreate(BaseMutation):
             app_identifier=app_identifier,
             app=app,
         )
+        cls.cleanup_and_update_metadata_data(transaction, metadata, private_metadata)
         if save:
             transaction.save()
         return transaction

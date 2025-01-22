@@ -14,38 +14,6 @@ from ...utils import add_variant_to_checkout, add_voucher_to_checkout
 
 
 @pytest.fixture
-def checkout_with_item_on_sale(checkout_with_item, promotion_converted_from_sale):
-    line = checkout_with_item.lines.first()
-    channel = checkout_with_item.channel
-    discount_amount = Decimal("5.0")
-    variant = line.variant
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    predicate = {"variantPredicate": {"ids": [variant_id]}}
-    rule = promotion_converted_from_sale.rules.first()
-    rule.catalogue_predicate = predicate
-    rule.reward_value = discount_amount
-    rule.save(update_fields=["catalogue_predicate", "reward_value"])
-    rule.channels.add(channel)
-    channel_listing = variant.channel_listings.get(channel=channel)
-    channel_listing.discounted_price_amount = (
-        channel_listing.price_amount - discount_amount
-    )
-    channel_listing.save(update_fields=["discounted_price_amount"])
-
-    CheckoutLineDiscount.objects.create(
-        line=line,
-        promotion_rule=rule,
-        type=DiscountType.SALE,
-        value_type=rule.reward_value_type,
-        value=discount_amount,
-        amount_value=discount_amount * line.quantity,
-        currency=channel.currency_code,
-    )
-
-    return checkout_with_item
-
-
-@pytest.fixture
 def checkout_with_item_on_promotion(checkout_with_item):
     line = checkout_with_item.lines.first()
     channel = checkout_with_item.channel

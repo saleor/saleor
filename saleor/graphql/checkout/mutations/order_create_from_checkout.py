@@ -5,6 +5,7 @@ from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
+from ....core.taxes import TaxDataError
 from ....discount.models import NotApplicable
 from ....permission.enums import CheckoutPermissions
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -206,5 +207,10 @@ class OrderCreateFromCheckout(BaseMutation):
             raise error from e
         except GiftCardNotApplicable as e:
             raise ValidationError({"gift_cards": e}) from e
+        except TaxDataError as e:
+            raise ValidationError(
+                "Configured Tax App returned invalid response.",
+                code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
+            ) from e
 
         return OrderCreateFromCheckout(order=order)

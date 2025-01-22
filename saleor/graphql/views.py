@@ -28,7 +28,12 @@ from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .query_cost_map import COST_MAP
-from .utils import format_error, query_fingerprint, query_identifier
+from .utils import (
+    format_error,
+    get_source_service_name_value,
+    query_fingerprint,
+    query_identifier,
+)
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
@@ -180,6 +185,11 @@ class GraphQLView(View):
             )
             span.set_tag("http.useragent", request.headers.get("user-agent", ""))
             span.set_tag("span.type", "web")
+
+            source_service_name = get_source_service_name_value(
+                request.headers.get("source-service-name")
+            )
+            span.set_tag("source.service.name", source_service_name)
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
