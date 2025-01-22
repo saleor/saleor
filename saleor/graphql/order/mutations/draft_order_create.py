@@ -29,7 +29,6 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -551,11 +550,7 @@ class DraftOrderCreate(
                     shipping_channel_listing = cls.validate_shipping_channel_listing(
                         method, instance
                     )
-                    shipping_method_data = convert_to_shipping_method_data(
-                        method,
-                        shipping_channel_listing,
-                    )
-                    cls.update_shipping_method(instance, method, shipping_method_data)
+                    cls.update_shipping_method(instance, method)
                     cls._update_shipping_price(instance, shipping_channel_listing)
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
