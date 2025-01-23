@@ -183,7 +183,7 @@ class CheckoutLineProblemVariantNotAvailable(
         )
 
 
-def _reolve_line_problem_type(
+def _resolve_line_problem_type(
     instance: SyncWebhookControlContext[problems.CHECKOUT_PROBLEM_TYPE],
 ) -> (
     type[CheckoutLineProblemInsufficientStock]
@@ -214,7 +214,7 @@ class CheckoutLineProblem(graphene.Union):
         instance: SyncWebhookControlContext[problems.CHECKOUT_PROBLEM_TYPE],
         info: ResolveInfo,
     ):
-        problem_type = _reolve_line_problem_type(instance)
+        problem_type = _resolve_line_problem_type(instance)
         if problem_type:
             return problem_type
         return super().resolve_type(instance.node, info)
@@ -232,7 +232,7 @@ class CheckoutProblem(graphene.Union):
         instance: SyncWebhookControlContext[problems.CHECKOUT_PROBLEM_TYPE],
         info: ResolveInfo,
     ):
-        line_problem_type = _reolve_line_problem_type(instance)
+        line_problem_type = _resolve_line_problem_type(instance)
         if line_problem_type:
             return line_problem_type
         return super().resolve_type(instance.node, info)
