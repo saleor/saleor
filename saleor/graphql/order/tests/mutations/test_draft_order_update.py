@@ -11,6 +11,9 @@ from .....core.prices import quantize_price
 from .....core.taxes import zero_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from .....discount.models import OrderDiscount, Voucher
+from .....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
 from .....order import OrderStatus
 from .....order.actions import call_order_event
 from .....order.calculations import fetch_order_prices_if_expired
@@ -1825,6 +1828,75 @@ def test_draft_order_update_shipping_method(
     assert order.base_shipping_price == shipping_total
     assert order.shipping_method == shipping_method
     assert order.undiscounted_base_shipping_price == shipping_total
+    assert order.shipping_price_net == shipping_price.net
+    assert order.shipping_price_gross == shipping_price.gross
+
+
+def test_draft_order_update_shipping_method_order_with_shipping_voucher(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    shipping_method,
+    voucher_free_shipping,
+    channel_USD,
+):
+    # given
+    voucher = voucher_free_shipping
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    # clear shipping data
+    order.shipping_method = None
+    order.undiscounted_base_shipping_price_amount = 0
+    order.base_shipping_price_amount = 0
+    order.shipping_price_gross_amount = 0
+    order.shipping_price_net_amount = 0
+
+    order.voucher = voucher
+    order.save()
+
+    # create shipping voucher discount
+    voucher_reward = 50
+    voucher.channel_listings.filter(channel=channel_USD).update(
+        discount_value=voucher_reward
+    )
+    create_or_update_voucher_discount_objects_for_order(order)
+
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "id": order_id,
+        "shippingMethod": method_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order.refresh_from_db()
+
+    undiscounted_shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).price
+    shipping_total = undiscounted_shipping_total * voucher_reward / 100
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    assert data["order"]["shippingMethodName"] == shipping_method.name
+    assert data["order"]["shippingPrice"]["net"]["amount"] == quantize_price(
+        shipping_price.net.amount, shipping_price.currency
+    )
+    assert data["order"]["shippingPrice"]["gross"]["amount"] == quantize_price(
+        shipping_price.gross.amount, shipping_price.currency
+    )
+
+    assert order.base_shipping_price == shipping_total
+    assert order.shipping_method == shipping_method
+    assert order.undiscounted_base_shipping_price == undiscounted_shipping_total
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
 
