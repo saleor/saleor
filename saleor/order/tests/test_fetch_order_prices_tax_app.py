@@ -8,9 +8,13 @@ from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData
 from ...discount import DiscountType, DiscountValueType, VoucherType
 from ...discount.models import OrderDiscount, OrderLineDiscount, PromotionRule
+from ...discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
 from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from .. import OrderStatus
 from ..calculations import fetch_order_prices_if_expired
+from ..utils import update_discount_for_order_line
 
 
 @pytest.fixture
@@ -396,12 +400,6 @@ def test_fetch_order_prices_order_discount_tax_app(
         line_1_unit_price_gross, currency
     )
 
-    # TODO shopx-1531
-    # assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1_undiscounted_unit_price_net - line_1_unit_price_net, currency
-    # )
-
     assert (
         line_2.undiscounted_total_price_net_amount
         == line_2_undiscounted_total_price_net
@@ -427,12 +425,6 @@ def test_fetch_order_prices_order_discount_tax_app(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2_unit_price_gross, currency
     )
-
-    # TODO shopx-1531
-    # assert line_2.unit_discount_reason == f"Promotion: {promotion_id}"
-    # assert line_2.unit_discount_amount == quantize_price(
-    #     line_2_undiscounted_unit_price_net - line_2_unit_price_net, currency
-    # )
 
 
 def test_fetch_order_prices_order_discount_tax_app_prices_entered_with_taxes(
@@ -585,12 +577,6 @@ def test_fetch_order_prices_order_discount_tax_app_prices_entered_with_taxes(
         line_1_unit_price_gross, currency
     )
 
-    # TODO shopx-1531
-    # assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1_undiscounted_unit_price_gross - line_1_unit_price_gross, currency
-    # )
-
     assert line_2.undiscounted_total_price_net_amount == quantize_price(
         line_2_undiscounted_total_price_net, currency
     )
@@ -619,12 +605,6 @@ def test_fetch_order_prices_order_discount_tax_app_prices_entered_with_taxes(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2_unit_price_gross, currency
     )
-
-    # TODO shopx-1531
-    # assert line_2.unit_discount_reason == f"Promotion: {promotion_id}"
-    # assert line_2.unit_discount_amount == quantize_price(
-    #     line_2_undiscounted_unit_price_gross - line_2_unit_price_gross, currency
-    # )
 
 
 def test_fetch_order_prices_gift_discount_tax_app(
@@ -882,16 +862,6 @@ def test_fetch_order_prices_catalogue_and_order_discounts_tax_app(
         line_1.unit_price_net_amount * tax_rate, currency
     )
 
-    # TODO shopx-1531
-    # assert line_1.unit_discount_reason == order_discount.reason
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1_order_discount_portion / line_1.quantity, currency
-    # )
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1.undiscounted_unit_price_net_amount - line_1.unit_price_net_amount,
-    #     currency,
-    # )
-
     assert catalogue_discount.line == line_2
     assert catalogue_discount.amount_value == rule_catalogue_reward * line_2.quantity
     assert catalogue_discount.value == rule_catalogue_reward
@@ -937,15 +907,6 @@ def test_fetch_order_prices_catalogue_and_order_discounts_tax_app(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2.unit_price_net_amount * tax_rate, currency
     )
-
-    # TODO shopx-1531
-    # assert line_2.unit_discount_reason == "; ".join(
-    #     [catalogue_discount.reason, order_discount.reason]
-    # )
-    # assert line_2.unit_discount_amount == quantize_price(
-    #     line_2.undiscounted_unit_price_net_amount - line_2.unit_price_net_amount,
-    #     currency,
-    # )
 
     shipping_price = order.shipping_price_net_amount
     total_net_amount = quantize_price(
@@ -998,6 +959,7 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
     order.voucher = voucher
     order.voucher_code = voucher.codes.first().code
     order.save(update_fields=["voucher", "voucher_code"])
+    create_or_update_voucher_discount_objects_for_order(order)
 
     # create manual order discount
     manual_reward = Decimal("10")
@@ -1138,7 +1100,9 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
         == line_1_undiscounted_unit_price_gross
     )
 
-    assert line_1.base_unit_price_amount == line_1_base_unit_price
+    assert quantize_price(line_1.base_unit_price_amount, currency) == quantize_price(
+        line_1_base_unit_price, currency
+    )
     assert line_1.total_price_net_amount == line_1_total_price_net
     assert line_1.total_price_gross_amount == line_1_total_price_gross
     assert line_1.unit_price_net_amount == quantize_price(
@@ -1147,15 +1111,6 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
     assert line_1.unit_price_gross_amount == quantize_price(
         line_1_unit_price_gross, currency
     )
-
-    # TODO shopx-1531
-    # assert (
-    #     line_1.unit_discount_reason
-    #     == f"Voucher code: {order.voucher_code}; {manual_discount_reason}"
-    # )
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1_undiscounted_unit_price_net - line_1_unit_price_net, currency
-    # )
 
     assert (
         line_2.undiscounted_total_price_net_amount
@@ -1182,12 +1137,6 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2_unit_price_gross, currency
     )
-
-    # TODO shopx-1531
-    # assert line_2.unit_discount_reason == manual_discount_reason
-    # assert line_2.unit_discount_amount == quantize_price(
-    #     line_2_undiscounted_unit_price_net - line_2_unit_price_net, currency
-    # )
 
     manual_discount.refresh_from_db()
     assert manual_discount.amount.amount == manual_reward
@@ -1216,15 +1165,16 @@ def test_fetch_order_prices_manual_line_discount_and_entire_order_voucher_tax_ap
     order.voucher = voucher
     code = voucher.codes.first().code
     order.voucher_code = code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     manual_line_discount_value = Decimal("50")
     manual_discount_reason = "Manual line discount"
-    manual_line_discount = line_1.discounts.create(
+    update_discount_for_order_line(
+        line_1,
+        order=order,
+        reason=manual_discount_reason,
         value_type=DiscountValueType.PERCENTAGE,
         value=manual_line_discount_value,
-        name="Manual line discount",
-        type=DiscountType.MANUAL,
-        reason=manual_discount_reason,
     )
 
     app_tax_rate = Decimal(10)
@@ -1364,15 +1314,6 @@ def test_fetch_order_prices_manual_line_discount_and_entire_order_voucher_tax_ap
         line_1_unit_price_gross, currency
     )
 
-    # TODO shopx-1531
-    # assert (
-    #     line_1.unit_discount_reason
-    #     == f"{manual_discount_reason}; Voucher code: {order.voucher_code}"
-    # )
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1_undiscounted_unit_price_net - line_1_unit_price_net, currency
-    # )
-
     assert (
         line_2.undiscounted_total_price_net_amount
         == line_2_undiscounted_total_price_net
@@ -1399,13 +1340,7 @@ def test_fetch_order_prices_manual_line_discount_and_entire_order_voucher_tax_ap
         line_2_unit_price_gross, currency
     )
 
-    # TODO shopx-1531
-    # assert line_2.unit_discount_reason == f"Voucher code: {order.voucher_code}"
-    # assert line_2.unit_discount_amount == quantize_price(
-    #     line_2_undiscounted_unit_price_net - line_2_unit_price_net, currency
-    # )
-
-    manual_line_discount.refresh_from_db()
+    manual_line_discount = line_1.discounts.get()
     assert manual_line_discount.amount.amount == manual_line_discount_amount
     voucher_discount = order.discounts.get()
     assert voucher_discount.amount.amount == voucher_reward
@@ -1432,6 +1367,7 @@ def test_fetch_order_prices_shipping_voucher_and_manual_discount_tax_app(
     order.voucher = voucher
     code = voucher.codes.first().code
     order.voucher_code = code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     manual_discount_value = Decimal("10")
     manual_discount_reason = "Manual discount reason"
@@ -1580,12 +1516,6 @@ def test_fetch_order_prices_shipping_voucher_and_manual_discount_tax_app(
         line_1_unit_price_gross, currency
     )
 
-    # TODO shopx-1531
-    # assert line_1.unit_discount_reason == manual_discount_reason
-    # assert line_1.unit_discount_amount == quantize_price(
-    #     line_1_undiscounted_unit_price_net - line_1_unit_price_net, currency
-    # )
-
     assert (
         line_2.undiscounted_total_price_net_amount
         == line_2_undiscounted_total_price_net
@@ -1611,12 +1541,6 @@ def test_fetch_order_prices_shipping_voucher_and_manual_discount_tax_app(
     assert line_2.unit_price_gross_amount == quantize_price(
         line_2_unit_price_gross, currency
     )
-
-    # TODO shopx-1531
-    # assert line_2.unit_discount_reason == manual_discount_reason
-    # assert line_2.unit_discount_amount == quantize_price(
-    #     line_2_undiscounted_unit_price_net - line_2_unit_price_net, currency
-    # )
 
     manual_discount = order.discounts.get(type=DiscountType.MANUAL)
     assert manual_discount.amount.amount == manual_discount_amount
@@ -1648,6 +1572,7 @@ def test_fetch_order_prices_entire_order_voucher_no_tax_data_tax_app(
     order.voucher = voucher
     code = voucher.codes.first().code
     order.voucher_code = code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     line_1_undiscounted_unit_price_net = line_1.undiscounted_unit_price_net_amount
     line_2_undiscounted_unit_price_net = line_2.undiscounted_unit_price_net_amount
