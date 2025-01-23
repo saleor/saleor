@@ -51,8 +51,11 @@ from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField, PermissionsField
 from ..core.scalars import UUID, DateTime, PositiveDecimal
 from ..core.tracing import traced_resolver
-from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
-from ..core.types.sync_webhook_control import SyncWebhookControlContextType
+from ..core.types import Money, NonNullList, TaxedMoney
+from ..core.types.sync_webhook_control import (
+    SyncWebhookControlContextModelObjectType,
+    SyncWebhookControlContextObjectType,
+)
 from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
 from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import VoucherByCodeLoader
@@ -120,7 +123,7 @@ def get_dataloaders_for_fetching_checkout_data(
 
 
 class CheckoutLineProblemInsufficientStock(
-    BaseObjectType,
+    SyncWebhookControlContextObjectType[problems.CheckoutLineProblemInsufficientStock],
 ):
     available_quantity = graphene.Int(description="Available quantity of a variant.")
     line = graphene.Field(
@@ -135,14 +138,26 @@ class CheckoutLineProblemInsufficientStock(
     )
 
     class Meta:
+        default_resolver = SyncWebhookControlContextObjectType.resolver_with_context
         description = (
             "Indicates insufficient stock for a given checkout line."
             "Placing the order will not be possible until solving this problem."
         )
         doc_category = DOC_CATEGORY_CHECKOUT
 
+    @staticmethod
+    def resolve_line(
+        root: SyncWebhookControlContext[problems.CheckoutLineProblemInsufficientStock],
+        _info: ResolveInfo,
+    ):
+        return SyncWebhookControlContext(
+            node=root.node.line, allow_sync_webhooks=root.allow_sync_webhooks
+        )
 
-class CheckoutLineProblemVariantNotAvailable(BaseObjectType):
+
+class CheckoutLineProblemVariantNotAvailable(
+    SyncWebhookControlContextObjectType[problems.CheckoutLineProblemVariantNotAvailable]
+):
     line = graphene.Field(
         "saleor.graphql.checkout.types.CheckoutLine",
         description="The line that has variant that is not available.",
@@ -156,6 +171,33 @@ class CheckoutLineProblemVariantNotAvailable(BaseObjectType):
         )
         doc_category = DOC_CATEGORY_CHECKOUT
 
+    @staticmethod
+    def resolve_line(
+        root: SyncWebhookControlContext[
+            problems.CheckoutLineProblemVariantNotAvailable
+        ],
+        _info: ResolveInfo,
+    ):
+        return SyncWebhookControlContext(
+            node=root.node.line, allow_sync_webhooks=root.allow_sync_webhooks
+        )
+
+
+def _reolve_line_problem_type(
+    instance: SyncWebhookControlContext[problems.CHECKOUT_PROBLEM_TYPE],
+) -> (
+    type[CheckoutLineProblemInsufficientStock]
+    | type[CheckoutLineProblemVariantNotAvailable]
+    | None
+):
+    problem_instance = instance.node
+
+    if isinstance(problem_instance, problems.CheckoutLineProblemInsufficientStock):
+        return CheckoutLineProblemInsufficientStock
+    if isinstance(problem_instance, problems.CheckoutLineProblemVariantNotAvailable):
+        return CheckoutLineProblemVariantNotAvailable
+    return None
+
 
 class CheckoutLineProblem(graphene.Union):
     class Meta:
@@ -167,12 +209,15 @@ class CheckoutLineProblem(graphene.Union):
         doc_category = DOC_CATEGORY_CHECKOUT
 
     @classmethod
-    def resolve_type(cls, instance: problems.CHECKOUT_PROBLEM_TYPE, info: ResolveInfo):
-        if isinstance(instance, problems.CheckoutLineProblemInsufficientStock):
-            return CheckoutLineProblemInsufficientStock
-        if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
-            return CheckoutLineProblemVariantNotAvailable
-        return super().resolve_type(instance, info)
+    def resolve_type(
+        cls,
+        instance: SyncWebhookControlContext[problems.CHECKOUT_PROBLEM_TYPE],
+        info: ResolveInfo,
+    ):
+        problem_type = _reolve_line_problem_type(instance)
+        if problem_type:
+            return problem_type
+        return super().resolve_type(instance.node, info)
 
 
 class CheckoutProblem(graphene.Union):
@@ -183,16 +228,17 @@ class CheckoutProblem(graphene.Union):
 
     @classmethod
     def resolve_type(
-        cls, instance: problems.CHECKOUT_LINE_PROBLEM_TYPE, info: ResolveInfo
+        cls,
+        instance: SyncWebhookControlContext[problems.CHECKOUT_PROBLEM_TYPE],
+        info: ResolveInfo,
     ):
-        if isinstance(instance, problems.CheckoutLineProblemInsufficientStock):
-            return CheckoutLineProblemInsufficientStock
-        if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
-            return CheckoutLineProblemVariantNotAvailable
-        return super().resolve_type(instance, info)
+        line_problem_type = _reolve_line_problem_type(instance)
+        if line_problem_type:
+            return line_problem_type
+        return super().resolve_type(instance.node, info)
 
 
-class CheckoutLine(ModelObjectType[models.CheckoutLine]):
+class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]):
     id = graphene.GlobalID(required=True, description="The ID of the checkout line.")
     variant = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
@@ -247,14 +293,19 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     )
 
     class Meta:
+        default_resolver = (
+            SyncWebhookControlContextModelObjectType.resolver_with_context
+        )
         description = "Represents an item in the checkout."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = models.CheckoutLine
 
     @staticmethod
-    def resolve_variant(root: models.CheckoutLine, info: ResolveInfo):
-        variant = ProductVariantByIdLoader(info.context).load(root.variant_id)
-        channel = ChannelByCheckoutIDLoader(info.context).load(root.checkout_id)
+    def resolve_variant(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
+        variant = ProductVariantByIdLoader(info.context).load(root.node.variant_id)
+        channel = ChannelByCheckoutIDLoader(info.context).load(root.node.checkout_id)
 
         return Promise.all([variant, channel]).then(
             lambda data: ChannelContext(node=data[0], channel_slug=data[1].slug)
@@ -262,7 +313,9 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
     @staticmethod
     @prevent_sync_event_circular_query
-    def resolve_unit_price(root, info: ResolveInfo):
+    def resolve_unit_price(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
         def with_checkout(data):
             checkout, manager = data
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
@@ -280,7 +333,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 checkout_info, lines, payloads = data
                 database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
-                    if line_info.line.pk == root.pk:
+                    if line_info.line.pk == root.node.pk:
                         return calculations.checkout_line_unit_price(
                             manager=manager,
                             checkout_info=checkout_info,
@@ -288,6 +341,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_line_info=line_info,
                             database_connection_name=database_connection_name,
                             pregenerated_subscription_payloads=payloads,
+                            allow_sync_webhooks=root.allow_sync_webhooks,
                         )
                 return None
 
@@ -301,13 +355,15 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
         return Promise.all(
             [
-                CheckoutByTokenLoader(info.context).load(root.checkout_id),
+                CheckoutByTokenLoader(info.context).load(root.node.checkout_id),
                 get_plugin_manager_promise(info.context),
             ]
         ).then(with_checkout)
 
     @staticmethod
-    def resolve_undiscounted_unit_price(root, info: ResolveInfo):
+    def resolve_undiscounted_unit_price(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
         def with_checkout(checkout):
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
@@ -322,7 +378,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                     lines,
                 ) = data
                 for line_info in lines:
-                    if line_info.line.pk == root.pk:
+                    if line_info.line.pk == root.node.pk:
                         return calculations.checkout_line_undiscounted_unit_price(
                             checkout_info=checkout_info,
                             checkout_line_info=line_info,
@@ -339,14 +395,16 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
         return (
             CheckoutByTokenLoader(info.context)
-            .load(root.checkout_id)
+            .load(root.node.checkout_id)
             .then(with_checkout)
         )
 
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total_price(root, info: ResolveInfo):
+    def resolve_total_price(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
         def with_checkout(data):
             checkout, manager = data
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
@@ -364,7 +422,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                 checkout_info, lines, payloads = data
                 database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
-                    if line_info.line.pk == root.pk:
+                    if line_info.line.pk == root.node.pk:
                         return calculations.checkout_line_total(
                             manager=manager,
                             checkout_info=checkout_info,
@@ -372,6 +430,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_line_info=line_info,
                             database_connection_name=database_connection_name,
                             pregenerated_subscription_payloads=payloads,
+                            allow_sync_webhooks=root.allow_sync_webhooks,
                         )
                 return None
 
@@ -385,13 +444,15 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
         return Promise.all(
             [
-                CheckoutByTokenLoader(info.context).load(root.checkout_id),
+                CheckoutByTokenLoader(info.context).load(root.node.checkout_id),
                 get_plugin_manager_promise(info.context),
             ]
         ).then(with_checkout)
 
     @staticmethod
-    def resolve_undiscounted_total_price(root, info: ResolveInfo):
+    def resolve_undiscounted_total_price(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
         def with_checkout(checkout):
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
@@ -406,7 +467,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                     lines,
                 ) = data
                 for line_info in lines:
-                    if line_info.line.pk == root.pk:
+                    if line_info.line.pk == root.node.pk:
                         return calculations.checkout_line_undiscounted_total_price(
                             checkout_info=checkout_info,
                             checkout_line_info=line_info,
@@ -422,30 +483,40 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
         return (
             CheckoutByTokenLoader(info.context)
-            .load(root.checkout_id)
+            .load(root.node.checkout_id)
             .then(with_checkout)
         )
 
     @staticmethod
-    def resolve_requires_shipping(root: models.CheckoutLine, info: ResolveInfo):
+    def resolve_requires_shipping(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
         def is_shipping_required(product_type):
             return product_type.is_shipping_required
 
         return (
             ProductTypeByVariantIdLoader(info.context)
-            .load(root.variant_id)
+            .load(root.node.variant_id)
             .then(is_shipping_required)
         )
 
     @staticmethod
     @traced_resolver
-    def resolve_problems(root: models.CheckoutLine, info: ResolveInfo):
+    def resolve_problems(
+        root: SyncWebhookControlContext[models.CheckoutLine], info: ResolveInfo
+    ):
         problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(
             info.context
-        ).load(root.checkout_id)
+        ).load(root.node.checkout_id)
 
         def get_problem_for_line(problems):
-            return problems.get(str(root.pk), [])
+            line_problems = problems.get(str(root.node.pk), [])
+            return [
+                SyncWebhookControlContext(
+                    node=problem, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+                for problem in line_problems
+            ]
 
         return problems_dataloader.then(get_problem_for_line)
 
@@ -475,7 +546,7 @@ class DeliveryMethod(graphene.Union):
         return super().resolve_type(instance, info)
 
 
-class Checkout(SyncWebhookControlContextType[models.Checkout]):
+class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     id = graphene.ID(required=True, description="The ID of the checkout.")
     created = DateTime(
         required=True, description="The date and time when the checkout was created."
@@ -781,7 +852,9 @@ class Checkout(SyncWebhookControlContextType[models.Checkout]):
     )
 
     class Meta:
-        default_resolver = SyncWebhookControlContextType.resolver_with_context
+        default_resolver = (
+            SyncWebhookControlContextModelObjectType.resolver_with_context
+        )
         description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
@@ -979,7 +1052,19 @@ class Checkout(SyncWebhookControlContextType[models.Checkout]):
     def resolve_lines(
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
     ):
-        return CheckoutLinesByCheckoutTokenLoader(info.context).load(root.node.token)
+        def _wrap_with_sync_webhook_control_context(lines):
+            return [
+                SyncWebhookControlContext(
+                    node=line, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+                for line in lines
+            ]
+
+        return (
+            CheckoutLinesByCheckoutTokenLoader(info.context)
+            .load(root.node.token)
+            .then(_wrap_with_sync_webhook_control_context)
+        )
 
     @staticmethod
     @traced_resolver
@@ -1237,14 +1322,6 @@ class Checkout(SyncWebhookControlContextType[models.Checkout]):
         )
 
     @classmethod
-    # FIXME: this probably can be dropped and implemented in `saleor.graphql.meta.types.ObjectWithMetadata.resolve_type`
-    def resolve_type(cls, root: SyncWebhookControlContext[models.Checkout], _info):
-        item_type, _ = MetaResolvers.resolve_object_with_metadata_type(
-            root.node.metadata_storage
-        )
-        return item_type
-
-    @classmethod
     def resolve_updated_at(
         cls, root: SyncWebhookControlContext[models.Checkout], _info
     ):
@@ -1337,13 +1414,24 @@ class Checkout(SyncWebhookControlContextType[models.Checkout]):
         checkout_problems_dataloader = CheckoutProblemsByCheckoutIdDataloader(
             info.context
         )
-        return checkout_problems_dataloader.load(root.node.pk)
+
+        def _wrapped_with_sync_webhook_control_context(problems):
+            return [
+                SyncWebhookControlContext(
+                    node=problem, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+                for problem in problems
+            ]
+
+        return checkout_problems_dataloader.load(root.node.pk).then(
+            _wrapped_with_sync_webhook_control_context
+        )
 
     @staticmethod
     def resolve_stored_payment_methods(
         root: SyncWebhookControlContext[models.Checkout],
         info: ResolveInfo,
-        amount: Decimal | None = None
+        amount: Decimal | None = None,
     ):
         user_id = root.node.user_id
         if user_id is None:

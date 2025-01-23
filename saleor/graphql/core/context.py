@@ -71,6 +71,10 @@ N = TypeVar("N")
 
 
 @dataclass
-class SyncWebhookControlContext(Generic[N]):
+class BaseContext(Generic[N]):
     node: N
+
+
+@dataclass
+class SyncWebhookControlContext(BaseContext[N]):
     allow_sync_webhooks: bool = True

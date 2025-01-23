@@ -1,12 +1,9 @@
 import graphene
 from graphene.types.generic import GenericScalar
 
-from ...checkout.models import Checkout
 from ...core.models import ModelWithMetadata
-from ...discount.models import Promotion
-from ..channel import ChannelContext
 from ..core import ResolveInfo
-from ..core.context import SyncWebhookControlContext
+from ..core.context import BaseContext
 from ..core.types import NonNullList
 from .resolvers import (
     check_private_metadata_privilege,
@@ -39,6 +36,14 @@ def _filter_metadata(metadata, keys):
     if keys is None:
         return metadata
     return {key: value for key, value in metadata.items() if key in keys}
+
+
+def _get_metadata_instance(
+    root: ModelWithMetadata | BaseContext[ModelWithMetadata],
+) -> ModelWithMetadata:
+    if isinstance(root, BaseContext):
+        return root.node
+    return root
 
 
 class MetadataDescription:
@@ -113,56 +118,62 @@ class ObjectWithMetadata(graphene.Interface):
     )
 
     @staticmethod
-    def resolve_metadata(root: ModelWithMetadata, info: ResolveInfo):
-        if isinstance(root, Checkout):
-            from ..checkout.types import Checkout as CheckoutType
-
-            return CheckoutType.resolve_metadata(root, info)
-        return resolve_metadata(root.metadata)
+    def resolve_metadata(
+        root: ModelWithMetadata | BaseContext[ModelWithMetadata], _info: ResolveInfo
+    ):
+        instance = _get_metadata_instance(root)
+        return resolve_metadata(instance.metadata)
 
     @staticmethod
     def resolve_metafield(
-        root: ModelWithMetadata, _info: ResolveInfo, *, key: str
+        root: ModelWithMetadata | BaseContext[ModelWithMetadata],
+        _info: ResolveInfo,
+        *,
+        key: str,
     ) -> str | None:
-        return root.metadata.get(key)
+        instance = _get_metadata_instance(root)
+        return instance.metadata.get(key)
 
     @staticmethod
     def resolve_metafields(root: ModelWithMetadata, _info: ResolveInfo, *, keys=None):
-        return _filter_metadata(root.metadata, keys)
+        instance = _get_metadata_instance(root)
+        return _filter_metadata(instance.metadata, keys)
 
     @staticmethod
-    def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
-        return resolve_private_metadata(root, info)
+    def resolve_private_metadata(
+        root: ModelWithMetadata | BaseContext[ModelWithMetadata], info: ResolveInfo
+    ):
+        instance = _get_metadata_instance(root)
+        return resolve_private_metadata(instance, info)
 
     @staticmethod
     def resolve_private_metafield(
-        root: ModelWithMetadata, info: ResolveInfo, *, key: str
+        root: ModelWithMetadata | BaseContext[ModelWithMetadata],
+        info: ResolveInfo,
+        *,
+        key: str,
     ) -> str | None:
-        check_private_metadata_privilege(root, info)
-        return root.private_metadata.get(key)
+        instance = _get_metadata_instance(root)
+        check_private_metadata_privilege(instance, info)
+        return instance.private_metadata.get(key)
 
     @staticmethod
     def resolve_private_metafields(
-        root: ModelWithMetadata, info: ResolveInfo, *, keys=None
+        root: ModelWithMetadata | BaseContext[ModelWithMetadata],
+        info: ResolveInfo,
+        *,
+        keys=None,
     ):
-        check_private_metadata_privilege(root, info)
-        return _filter_metadata(root.private_metadata, keys)
+        instance = _get_metadata_instance(root)
+        check_private_metadata_privilege(instance, info)
+        return _filter_metadata(instance.private_metadata, keys)
 
     @classmethod
-    def resolve_type(cls, instance: ModelWithMetadata, info: ResolveInfo):
-        if isinstance(instance, (ChannelContext)):
-            # Return instance for types that use ChannelContext
-            instance = instance.node
-        if isinstance(instance, SyncWebhookControlContext):
-            if isinstance(instance.node, Checkout):
-                from ..checkout.types import Checkout as CheckoutType
-
-                return CheckoutType.resolve_type(instance, info)
-        if isinstance(instance, Promotion) and instance.old_sale_id:
-            # For old sales migrated into promotions
-            from ..discount.types.sales import Sale as SaleType
-
-            return SaleType
-
+    def resolve_type(
+        cls,
+        instance: ModelWithMetadata | BaseContext[ModelWithMetadata],
+        info: ResolveInfo,
+    ):
+        instance = _get_metadata_instance(instance)
         item_type, _ = resolve_object_with_metadata_type(instance)
         return item_type
