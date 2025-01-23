@@ -99,6 +99,8 @@ class CollectionReorderProducts(BaseMutation):
             operations[m2m_info.pk] = move_info.sort_order
 
         with traced_atomic_transaction():
-            perform_reordering(m2m_related_field.all(), operations)
+            perform_reordering(
+                m2m_related_field.all(), operations, second_sort_field="product_id"
+            )
         context = ChannelContext(node=collection, channel_slug=None)
         return CollectionReorderProducts(collection=context)
