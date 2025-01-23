@@ -58,6 +58,8 @@ class TaxSourceLine(graphene.Union):
 
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
+        if isinstance(instance, SyncWebhookControlContext):
+            instance = instance.node
         if isinstance(instance, CheckoutLine):
             return checkout_types.CheckoutLine
         if isinstance(instance, OrderLine):
@@ -154,6 +156,8 @@ class TaxableObjectLine(BaseObjectType):
 
     @staticmethod
     def resolve_source_line(root: CheckoutLine | OrderLine, _info: ResolveInfo):
+        if isinstance(root, CheckoutLine):
+            return SyncWebhookControlContext(node=root)
         return root
 
     @staticmethod

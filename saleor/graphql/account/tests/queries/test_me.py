@@ -1,6 +1,7 @@
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils import timezone
 
 from .....checkout.calculations import _fetch_checkout_prices_if_expired
@@ -107,7 +108,7 @@ def test_me_query_checkout(user_api_client, checkout):
     )
 
 
-ME_WITH_CHECKOTUS_QUERY = """
+ME_WITH_CHECKOUTS_QUERY = """
     query Me {
         me {
             id
@@ -130,7 +131,35 @@ ME_WITH_CHECKOTUS_QUERY = """
     }
 """
 
+ME_WITH_CHECKOUTS_WITH_LINES_TOTAL_PRICE_QUERY = """
+    query Me {
+        me {
+            id
+            email
+            checkouts(first: 10) {
+                edges {
+                    node {
+                        id
+                        lines{
+                            totalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                        }
+                    }
+                }
+                totalCount
+            }
+        }
+    }
+"""
 
+
+@pytest.mark.parametrize(
+    "query", [ME_WITH_CHECKOUTS_QUERY, ME_WITH_CHECKOUTS_WITH_LINES_TOTAL_PRICE_QUERY]
+)
 @mock.patch(
     "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
     wraps=_fetch_checkout_prices_if_expired,
@@ -139,6 +168,7 @@ ME_WITH_CHECKOTUS_QUERY = """
 def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
     mocked_calculate_and_add_tax,
     mocked_fetch_checkout_prices_if_expired,
+    query,
     user_api_client,
     checkout_with_item,
     tax_configuration_tax_app,
@@ -150,7 +180,7 @@ def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
     checkout_with_item.save()
 
     # when
-    response = user_api_client.post_graphql(ME_WITH_CHECKOTUS_QUERY)
+    response = user_api_client.post_graphql(query)
 
     # then
     content = get_graphql_content(response)
@@ -174,6 +204,9 @@ def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
     )
 
 
+@pytest.mark.parametrize(
+    "query", [ME_WITH_CHECKOUTS_QUERY, ME_WITH_CHECKOUTS_WITH_LINES_TOTAL_PRICE_QUERY]
+)
 @mock.patch(
     "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
     wraps=_fetch_checkout_prices_if_expired,
@@ -182,6 +215,7 @@ def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
 def test_me_query_checkouts_calculate_flat_taxes(
     mocked_update_order_prices_with_flat_rates,
     mocked_fetch_checkout_prices_if_expired,
+    query,
     user_api_client,
     checkout_with_item,
     tax_configuration_flat_rates,
@@ -193,7 +227,7 @@ def test_me_query_checkouts_calculate_flat_taxes(
     checkout_with_item.save()
 
     # when
-    response = user_api_client.post_graphql(ME_WITH_CHECKOTUS_QUERY)
+    response = user_api_client.post_graphql(query)
 
     # then
     content = get_graphql_content(response)

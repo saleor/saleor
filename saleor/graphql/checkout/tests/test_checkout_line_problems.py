@@ -1,5 +1,11 @@
 import datetime
+from unittest import mock
 
+import pytest
+from django.utils import timezone
+
+from ....checkout.calculations import _fetch_checkout_prices_if_expired
+from ....checkout.fetch import fetch_checkout_lines
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
@@ -481,3 +487,292 @@ def test_product_variant_channel_listing_doesnt_have_price_amount(
         == "CheckoutLineProblemVariantNotAvailable"
     )
     assert line_without_stock["problems"][0]["line"]["id"] == checkout_line_id
+
+
+CHECKOUTS_WITH_LINE_TOTAL_IN_PROBLEMS_QUERY = """
+{
+  checkouts(first: 10) {
+    edges {
+      node {
+        lines {
+          problems {
+            __typename
+            ... on CheckoutLineProblemVariantNotAvailable {
+              line {
+                totalPrice {
+                  gross {
+                    amount
+                  }
+                }
+              }
+            }
+            ... on CheckoutLineProblemInsufficientStock {
+              line {
+                totalPrice {
+                  gross {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+CHECKOUTS_WITH_TOTAL_INSIDE_PROBLEMS_QUERY = """
+{
+  checkouts(first:10){
+    edges{
+      node{
+        problems{
+          __typename
+          ...on CheckoutLineProblemVariantNotAvailable{
+            line{
+              totalPrice{
+                gross{
+                  amount
+                }
+              }
+            }
+          }
+          ...on CheckoutLineProblemInsufficientStock{
+            line{
+              totalPrice{
+                gross{
+                  amount
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        CHECKOUTS_WITH_LINE_TOTAL_IN_PROBLEMS_QUERY,
+        CHECKOUTS_WITH_TOTAL_INSIDE_PROBLEMS_QUERY,
+    ],
+)
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations._calculate_and_add_tax")
+def test_query_checkouts_do_not_trigger_sync_tax_webhooks_when_variant_not_available(
+    mocked_calculate_and_add_tax,
+    mocked_fetch_checkout_prices_if_expired,
+    query,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_tax_app,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+
+    variant = checkout_line.variant
+    ProductVariantChannelListing.objects.filter(variant=variant).delete()
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_calculate_and_add_tax.assert_not_called()
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        CHECKOUTS_WITH_LINE_TOTAL_IN_PROBLEMS_QUERY,
+        CHECKOUTS_WITH_TOTAL_INSIDE_PROBLEMS_QUERY,
+    ],
+)
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations.update_checkout_prices_with_flat_rates")
+def test_query_checkouts_calculate_flat_taxes_when_variant_not_available(
+    mocked_update_order_prices_with_flat_rates,
+    mocked_fetch_checkout_prices_if_expired,
+    query,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_flat_rates,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    ProductVariantChannelListing.objects.all().delete()
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once_with(
+        checkout_with_item,
+        mock.ANY,
+        lines,
+        tax_configuration_flat_rates.prices_entered_with_tax,
+        None,
+        database_connection_name=mock.ANY,
+    )
+    mocked_fetch_checkout_prices_if_expired.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        CHECKOUTS_WITH_LINE_TOTAL_IN_PROBLEMS_QUERY,
+        CHECKOUTS_WITH_TOTAL_INSIDE_PROBLEMS_QUERY,
+    ],
+)
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations._calculate_and_add_tax")
+def test_query_checkouts_do_not_trigger_sync_tax_webhooks_when_out_of_stock(
+    mocked_calculate_and_add_tax,
+    mocked_fetch_checkout_prices_if_expired,
+    query,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_tax_app,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+
+    stocks = checkout_line.variant.stocks.all()
+    stocks.update(quantity=0)
+    stock = stocks.first()
+    stock.quantity = checkout_line.quantity - 1
+    stock.save(update_fields=["quantity"])
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_calculate_and_add_tax.assert_not_called()
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        CHECKOUTS_WITH_LINE_TOTAL_IN_PROBLEMS_QUERY,
+        CHECKOUTS_WITH_TOTAL_INSIDE_PROBLEMS_QUERY,
+    ],
+)
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations.update_checkout_prices_with_flat_rates")
+def test_query_checkouts_calculate_flat_taxes_when_variant_out_of_stock(
+    mocked_update_order_prices_with_flat_rates,
+    mocked_fetch_checkout_prices_if_expired,
+    query,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_flat_rates,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+
+    stocks = checkout_line.variant.stocks.all()
+    stocks.update(quantity=0)
+    stock = stocks.first()
+    stock.quantity = checkout_line.quantity - 1
+    stock.save(update_fields=["quantity"])
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once_with(
+        checkout_with_item,
+        mock.ANY,
+        lines,
+        tax_configuration_flat_rates.prices_entered_with_tax,
+        None,
+        database_connection_name=mock.ANY,
+    )
+    mocked_fetch_checkout_prices_if_expired.assert_called_once()

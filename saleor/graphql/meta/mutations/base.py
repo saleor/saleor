@@ -15,7 +15,7 @@ from ....product import models as product_models
 from ....shipping import models as shipping_models
 from ...channel import ChannelContext
 from ...core import ResolveInfo
-from ...core.context import SyncWebhookControlContext
+from ...core.context import BaseContext, SyncWebhookControlContext
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 from ...payment.utils import metadata_contains_empty_key
@@ -209,7 +209,7 @@ class BaseMetadataMutation(BaseMutation):
             has_changed = False
 
             instance = result.item
-            if isinstance(instance, (ChannelContext, SyncWebhookControlContext)):
+            if isinstance(instance, BaseContext):
                 instance = instance.node
 
             if instance:
@@ -261,30 +261,30 @@ class BaseMetadataMutation(BaseMutation):
     def success_response(cls, instance):
         """Return a success response."""
         # Wrap the instance with ChannelContext for models that use it.
-        use_channel_context = any(
-            isinstance(instance, Model)
-            for Model in [
-                discount_models.Voucher,
-                menu_models.Menu,
-                menu_models.MenuItem,
-                product_models.Collection,
-                product_models.Product,
-                product_models.ProductVariant,
-                shipping_models.ShippingMethod,
-                shipping_models.ShippingZone,
-            ]
+        use_channel_context = isinstance(
+            instance,
+            discount_models.Voucher
+            | menu_models.Menu
+            | menu_models.MenuItem
+            | product_models.Collection
+            | product_models.Product
+            | product_models.ProductVariant
+            | shipping_models.ShippingMethod
+            | shipping_models.ShippingZone,
         )
+        use_channel_context = use_channel_context or (
+            # For old sales migrated into promotions
+            isinstance(instance, Promotion) and instance.old_sale_id
+        )
+
         if use_channel_context:
             instance = ChannelContext(node=instance, channel_slug=None)
-        use_webhook_sync_control_context = any(
-            isinstance(instance, ModelClass)
-            for ModelClass in [checkout_models.Checkout]
+
+        use_webhook_sync_control_context = isinstance(
+            instance, checkout_models.Checkout | checkout_models.CheckoutLine
         )
+
         if use_webhook_sync_control_context:
             instance = SyncWebhookControlContext(node=instance)
-
-        # For old sales migrated into promotions
-        if isinstance(instance, Promotion) and instance.old_sale_id:
-            instance = ChannelContext(node=instance, channel_slug=None)
 
         return cls(item=instance, errors=[])

@@ -47,45 +47,46 @@ def resolve_object_with_metadata_type(instance):
     from ..tax import types as tax_types
     from ..warehouse import types as warehouse_types
 
-    if isinstance(instance, ModelWithMetadata):
-        MODEL_TO_TYPE_MAP = {
-            account_models.Address: account_types.Address,
-            account_models.User: account_types.User,
-            app_models.App: app_types.App,
-            attribute_models.Attribute: attribute_types.Attribute,
-            channel_models.Channel: channel_types.Channel,
-            checkout_models.Checkout: checkout_types.Checkout,
-            checkout_models.CheckoutMetadata: checkout_types.Checkout,
-            checkout_models.CheckoutLine: checkout_types.CheckoutLine,
-            discount_models.Promotion: discount_types.Promotion,
-            discount_models.Voucher: discount_types.Voucher,
-            giftcard_models.GiftCard: giftcard_types.GiftCard,
-            invoice_models.Invoice: invoice_types.Invoice,
-            menu_models.Menu: menu_types.Menu,
-            menu_models.MenuItem: menu_types.MenuItem,
-            order_models.Fulfillment: order_types.Fulfillment,
-            order_models.Order: order_types.Order,
-            order_models.OrderLine: order_types.OrderLine,
-            page_models.Page: page_types.Page,
-            page_models.PageType: page_types.PageType,
-            payment_models.Payment: payment_types.Payment,
-            payment_models.TransactionItem: payment_types.TransactionItem,
-            product_models.Category: product_types.Category,
-            product_models.Collection: product_types.Collection,
-            product_models.DigitalContent: product_types.DigitalContent,
-            product_models.Product: product_types.Product,
-            product_models.ProductMedia: product_types.ProductMedia,
-            product_models.ProductType: product_types.ProductType,
-            product_models.ProductVariant: product_types.ProductVariant,
-            shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
-            shipping_models.ShippingZone: shipping_types.ShippingZone,
-            site_models.SiteSettings: shop_types.Shop,
-            tax_models.TaxClass: tax_types.TaxClass,
-            tax_models.TaxConfiguration: tax_types.TaxConfiguration,
-            warehouse_models.Warehouse: warehouse_types.Warehouse,
-        }
+    MODEL_TO_TYPE_MAP = {
+        account_models.Address: account_types.Address,
+        account_models.User: account_types.User,
+        app_models.App: app_types.App,
+        attribute_models.Attribute: attribute_types.Attribute,
+        channel_models.Channel: channel_types.Channel,
+        checkout_models.Checkout: checkout_types.Checkout,
+        checkout_models.CheckoutMetadata: checkout_types.Checkout,
+        checkout_models.CheckoutLine: checkout_types.CheckoutLine,
+        discount_models.Promotion: discount_types.Promotion,
+        discount_models.Voucher: discount_types.Voucher,
+        giftcard_models.GiftCard: giftcard_types.GiftCard,
+        invoice_models.Invoice: invoice_types.Invoice,
+        menu_models.Menu: menu_types.Menu,
+        menu_models.MenuItem: menu_types.MenuItem,
+        order_models.Fulfillment: order_types.Fulfillment,
+        order_models.Order: order_types.Order,
+        order_models.OrderLine: order_types.OrderLine,
+        page_models.Page: page_types.Page,
+        page_models.PageType: page_types.PageType,
+        payment_models.Payment: payment_types.Payment,
+        payment_models.TransactionItem: payment_types.TransactionItem,
+        product_models.Category: product_types.Category,
+        product_models.Collection: product_types.Collection,
+        product_models.DigitalContent: product_types.DigitalContent,
+        product_models.Product: product_types.Product,
+        product_models.ProductMedia: product_types.ProductMedia,
+        product_models.ProductType: product_types.ProductType,
+        product_models.ProductVariant: product_types.ProductVariant,
+        shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
+        shipping_models.ShippingZone: shipping_types.ShippingZone,
+        site_models.SiteSettings: shop_types.Shop,
+        tax_models.TaxClass: tax_types.TaxClass,
+        tax_models.TaxConfiguration: tax_types.TaxConfiguration,
+        warehouse_models.Warehouse: warehouse_types.Warehouse,
+    }
+
+    if instance.__class__ in MODEL_TO_TYPE_MAP:
         if instance.__class__ == discount_models.Promotion and getattr(
-            instance, "old_sale_id"
+            instance, "old_sale_id", False
         ):
             return discount_types.Sale, instance.pk
         return MODEL_TO_TYPE_MAP.get(instance.__class__, None), instance.pk

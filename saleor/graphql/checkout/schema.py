@@ -7,7 +7,6 @@ from ...permission.enums import (
 )
 from ..core import ResolveInfo
 from ..core.connection import (
-    create_connection_slice,
     create_connection_slice_for_sync_webhook_control_context,
     filter_connection_queryset,
 )
@@ -107,8 +106,8 @@ class CheckoutQueries(graphene.ObjectType):
     @staticmethod
     def resolve_checkout_lines(_root, info: ResolveInfo, **kwargs):
         qs = resolve_checkout_lines(info)
-        return create_connection_slice(
-            qs, info, kwargs, CheckoutLineCountableConnection
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, CheckoutLineCountableConnection, allow_sync_webhooks=False
         )
 
 
