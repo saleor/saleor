@@ -12,8 +12,11 @@ from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
-from .....discount import DiscountType, DiscountValueType
+from .....discount import DiscountValueType
 from .....discount.models import VoucherCustomer
+from .....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.actions import (
@@ -255,20 +258,10 @@ def test_draft_order_complete_with_voucher(
     order.voucher_code = code_instance.code
     order.should_refresh_prices = True
     order.save(update_fields=["voucher", "voucher_code", "should_refresh_prices"])
+    create_or_update_voucher_discount_objects_for_order(order)
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_value = voucher_listing.discount_value
-    order.discounts.create(
-        type=DiscountType.VOUCHER,
-        value_type=voucher.discount_value_type,
-        value=discount_value,
-        name=voucher.name,
-        translated_name="Voucher translated name",
-        currency=order.currency,
-        amount_value=discount_value,
-        voucher=voucher,
-    )
-
     order_total = order.total_net_amount
 
     order_id = graphene.Node.to_global_id("Order", order.id)
