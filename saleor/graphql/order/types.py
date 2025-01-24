@@ -53,6 +53,7 @@ from ...thumbnail.utils import (
     get_thumbnail_size,
 )
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
+from ..account.enums import AddressSavingStrategyEnum
 from ..account.types import User
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,
@@ -69,6 +70,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -1239,6 +1241,22 @@ class Order(ModelObjectType[models.Order]):
             "in Saleor 3.2 and later, for other orders requires one of the following "
             f"permissions: {OrderPermissions.MANAGE_ORDERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    billing_address_saving_strategy = graphene.Field(
+        AddressSavingStrategyEnum,
+        description=(
+            "The billing address saving strategy for the checkout. Define if the "
+            "provided billing address should be saved in the user address book during "
+            "checkout completion." + ADDED_IN_321
+        ),
+    )
+    shipping_address_saving_strategy = graphene.Field(
+        AddressSavingStrategyEnum,
+        description=(
+            "The shipping address saving strategy for the checkout. Define if the "
+            "provided billing address should be saved in the user address book during "
+            "checkout completion." + ADDED_IN_321
         ),
     )
     shipping_method_name = graphene.String(description="Method used for shipping.")

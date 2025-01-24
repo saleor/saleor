@@ -10639,6 +10639,20 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   shippingAddress: Address
 
+  """
+  The billing address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  
+  Added in Saleor 3.21.
+  """
+  billingAddressSavingStrategy: AddressSavingStrategyEnum
+
+  """
+  The shipping address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  
+  Added in Saleor 3.21.
+  """
+  shippingAddressSavingStrategy: AddressSavingStrategyEnum
+
   """Method used for shipping."""
   shippingMethodName: String
 
