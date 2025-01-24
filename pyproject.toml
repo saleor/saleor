@@ -78,7 +78,7 @@ package-mode = false
   semantic-version = "^2.10.0"
   sendgrid = "^6.7.1"
   sentry-sdk = "^2.12"
-  stripe = "^3.0.0"
+  stripe = "^11.4.1"
   text-unidecode = "^1.2"
   urllib3 = "^1.26.19"
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
