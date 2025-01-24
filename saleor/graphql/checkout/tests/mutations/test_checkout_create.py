@@ -8,6 +8,7 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 
+from .....account import AddressSavingStrategy
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....checkout import AddressType
 from .....checkout.actions import call_checkout_event
@@ -29,6 +30,8 @@ MUTATION_CHECKOUT_CREATE = """
           token
           email
           quantity
+          billingAddressSavingStrategy
+          shippingAddressSavingStrategy
           lines {
             unitPrice {
                 gross {
@@ -588,6 +591,14 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout is not None
     checkout_data = content["checkout"]
     assert checkout_data["token"] == str(new_checkout.token)
+    assert (
+        checkout_data["billingAddressSavingStrategy"]
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.upper()
+    )
+    assert (
+        checkout_data["shippingAddressSavingStrategy"]
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.upper()
+    )
     assert new_checkout.lines.count() == 1
     checkout_line = new_checkout.lines.first()
     assert checkout_line.variant == variant
@@ -611,6 +622,14 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout.shipping_address.country == shipping_address_data["country"]
     assert new_checkout.shipping_address.city == shipping_address_data["city"].upper()
     assert not Reservation.objects.exists()
+    assert (
+        new_checkout.shipping_address_saving_strategy
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.lower()
+    )
+    assert (
+        new_checkout.billing_address_saving_strategy
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.lower()
+    )
 
     assert new_checkout.shipping_address.metadata == {"shipping": "shipping_value"}
     assert new_checkout.billing_address.metadata == {"billing": "billing_value"}

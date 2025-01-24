@@ -9943,6 +9943,20 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   shippingAddress: Address
 
   """
+  The billing address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  
+  Added in Saleor 3.21.
+  """
+  billingAddressSavingStrategy: AddressSavingStrategyEnum
+
+  """
+  The shipping address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  
+  Added in Saleor 3.21.
+  """
+  shippingAddressSavingStrategy: AddressSavingStrategyEnum
+
+  """
   The customer note for the checkout. 
   
   Added in Saleor 3.21.
@@ -10121,6 +10135,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """List of problems with the checkout."""
   problems: [CheckoutProblem!]
+}
+
+enum AddressSavingStrategyEnum @doc(category: "Users") {
+  SAVE_IN_USER_ADDRESS_BOOK
+  DO_NOT_SAVE_IN_USER_ADDRESS_BOOK
 }
 
 """

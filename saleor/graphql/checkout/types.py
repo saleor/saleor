@@ -25,6 +25,7 @@ from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ...webhook.event_types import WebhookEventSyncType
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
+from ..account.enums import AddressSavingStrategyEnum
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
@@ -506,6 +507,22 @@ class Checkout(ModelObjectType[models.Checkout]):
     shipping_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description="The shipping address of the checkout.",
+    )
+    billing_address_saving_strategy = graphene.Field(
+        AddressSavingStrategyEnum,
+        description=(
+            "The billing address saving strategy for the checkout. Define if the "
+            "provided billing address should be saved in the user address book during "
+            "checkout completion." + ADDED_IN_321
+        ),
+    )
+    shipping_address_saving_strategy = graphene.Field(
+        AddressSavingStrategyEnum,
+        description=(
+            "The shipping address saving strategy for the checkout. Define if the "
+            "provided billing address should be saved in the user address book during "
+            "checkout completion." + ADDED_IN_321
+        ),
     )
     customer_note = graphene.String(
         required=True, description=f"The customer note for the checkout. {ADDED_IN_321}"
