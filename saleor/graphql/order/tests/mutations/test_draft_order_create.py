@@ -23,6 +23,7 @@ from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
 from .....tests.utils import round_up
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ....account.enums import AddressSavingStrategy
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
@@ -72,6 +73,8 @@ DRAFT_ORDER_CREATE_MUTATION = """
                             value
                         }
                     }
+                    billingAddressSavingStrategy
+                    shippingAddressSavingStrategy
                     status
                     voucher {
                         code
@@ -2238,6 +2241,14 @@ def test_draft_order_create_with_channel(
     assert data["status"] == OrderStatus.DRAFT.upper()
     assert data["voucher"]["code"] == voucher.code
     assert data["customerNote"] == customer_note
+    assert (
+        data["billingAddressSavingStrategy"]
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.upper()
+    )
+    assert (
+        data["shippingAddressSavingStrategy"]
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.upper()
+    )
 
     order = Order.objects.first()
     assert order.user == customer_user
@@ -2245,6 +2256,14 @@ def test_draft_order_create_with_channel(
     # billing address should be copied
     assert not order.billing_address
     assert order.shipping_method == shipping_method
+    assert (
+        order.shipping_address_saving_strategy
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.lower()
+    )
+    assert (
+        order.billing_address_saving_strategy
+        == AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK.lower()
+    )
     assert order.shipping_address.first_name == graphql_address_data["firstName"]
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id

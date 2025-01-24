@@ -9943,6 +9943,20 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   shippingAddress: Address
 
   """
+  The billing address saving strategy for the checkout. Specify whether the provided billing address should be saved to the user's address book during checkout completion.
+  
+  Added in Saleor 3.21.
+  """
+  billingAddressSavingStrategy: AddressSavingStrategyEnum
+
+  """
+  The shipping address saving strategy for the checkout. Specify whether the provided shipping address should be saved in the user's address book during checkout completion.
+  
+  Added in Saleor 3.21.
+  """
+  shippingAddressSavingStrategy: AddressSavingStrategyEnum
+
+  """
   The customer note for the checkout. 
   
   Added in Saleor 3.21.
@@ -10121,6 +10135,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """List of problems with the checkout."""
   problems: [CheckoutProblem!]
+}
+
+enum AddressSavingStrategyEnum @doc(category: "Users") {
+  SAVE_IN_USER_ADDRESS_BOOK
+  DO_NOT_SAVE_IN_USER_ADDRESS_BOOK
 }
 
 """
@@ -10619,6 +10638,20 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Shipping address. The full data can be access for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_ORDERS, OWNER.
   """
   shippingAddress: Address
+
+  """
+  The billing address saving strategy for the order. For draft orders, specify whether the provided billing address should be saved to the user's address book during order completion.
+  
+  Added in Saleor 3.21.
+  """
+  billingAddressSavingStrategy: AddressSavingStrategyEnum
+
+  """
+  The shipping address saving strategy for the order. For draft orders, specify whether the provided shipping address should be saved to the user's address book during order completion.
+  
+  Added in Saleor 3.21.
+  """
+  shippingAddressSavingStrategy: AddressSavingStrategyEnum
 
   """Method used for shipping."""
   shippingMethodName: String
