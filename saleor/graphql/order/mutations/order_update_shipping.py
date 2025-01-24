@@ -132,7 +132,7 @@ class OrderUpdateShipping(
         if order.status != OrderStatus.DRAFT:
             clean_order_update_shipping(order, shipping_method_data, manager)
         cls.update_shipping_method(order, method)
-        cls._update_shipping_price(order, shipping_channel_listing)
+        cls._update_shipping_price(order, shipping_channel_listing, False)
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results

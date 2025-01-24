@@ -815,7 +815,7 @@ def create_order_discount_for_order(
 
     with transaction.atomic():
         # Manual order discount does not stack with other order-level discounts
-        order.discounts.exclude(voucher__type="shipping").delete()
+        order.discounts.exclude(voucher__type=VoucherType.SHIPPING).delete()
         order_discount = order.discounts.create(
             value_type=value_type,
             value=value,
