@@ -63,6 +63,10 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
                                 currency
                                 amount
                             }
+                            priorPrice {
+                                currency
+                                amount
+                            }
                             preorderThreshold {
                                 quantity
                             }
@@ -838,3 +842,72 @@ def test_generate_pre_save_payloads(
     pre_save_payload = mocked_call_event.call_args[1]["pre_save_payloads"]
     assert payload_key in pre_save_payload
     assert request_time.isoformat() == pre_save_payload[payload_key]["issuedAt"]
+
+
+def test_product_variant_bulk_update_channel_listings_input_with_prior_price(
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    channel_PLN,
+):
+    # given
+
+    product = variant.product
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    ProductChannelListing.objects.create(product=product, channel=channel_PLN)
+    existing_variant_listing = variant.channel_listings.get()
+
+    assert variant.channel_listings.count() == 1
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    new_price_for_existing_variant_listing = 50.0
+    new_prior_price_for_existing_variant_listing = 42.0
+    not_existing_variant_listing_price = 20.0
+    not_existing_variant_listing_prior_price = 24.0
+
+    variants = [
+        {
+            "id": variant_id,
+            "channelListings": {
+                "update": [
+                    {
+                        "price": new_price_for_existing_variant_listing,
+                        "priorPrice": new_prior_price_for_existing_variant_listing,
+                        "channelListing": graphene.Node.to_global_id(
+                            "ProductVariantChannelListing", existing_variant_listing.id
+                        ),
+                    }
+                ],
+                "create": [
+                    {
+                        "price": not_existing_variant_listing_price,
+                        "priorPrice": not_existing_variant_listing_prior_price,
+                        "channelId": graphene.Node.to_global_id(
+                            "Channel", channel_PLN.pk
+                        ),
+                    }
+                ],
+            },
+        },
+    ]
+
+    # when
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    get_graphql_content(response, ignore_errors=True)
+
+    # then
+    existing_variant_listing.refresh_from_db()
+    assert (
+        existing_variant_listing.prior_price_amount
+        == new_prior_price_for_existing_variant_listing
+    )
+    new_variant_listing = variant.channel_listings.get(channel=channel_PLN)
+    assert (
+        new_variant_listing.prior_price_amount
+        == not_existing_variant_listing_prior_price
+    )

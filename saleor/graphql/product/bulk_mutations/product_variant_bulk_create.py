@@ -360,6 +360,7 @@ class ProductVariantBulkCreate(BaseMutation):
         cls,
         price,
         cost_price,
+        prior_price,
         currency_code,
         channel_id,
         variant_index,
@@ -382,6 +383,17 @@ class ProductVariantBulkCreate(BaseMutation):
         clean_price(
             cost_price,
             "cost_price",
+            currency_code,
+            channel_id,
+            variant_index,
+            listing_index,
+            errors,
+            index_error_map,
+            path_prefix,
+        )
+        clean_price(
+            prior_price,
+            "prior_price",
             currency_code,
             channel_id,
             variant_index,
@@ -469,11 +481,13 @@ class ProductVariantBulkCreate(BaseMutation):
             ]
             price = channel_listing.get("price")
             cost_price = channel_listing.get("cost_price")
+            prior_price = channel_listing.get("prior_price")
             currency_code = channel_listing["channel"].currency_code
 
             cls.clean_prices(
                 price,
                 cost_price,
+                prior_price,
                 currency_code,
                 channel_id,
                 variant_index,
@@ -810,6 +824,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 # value will be calculated asynchronously in the celery task
                 discounted_price_amount=listing_data["price"],
                 cost_price_amount=listing_data.get("cost_price"),
+                prior_price_amount=listing_data.get("prior_price"),
                 currency=listing_data["channel"].currency_code,
                 preorder_quantity_threshold=listing_data.get("preorder_threshold"),
             )
