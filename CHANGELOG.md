@@ -2699,4 +2699,3 @@ Just so you know, changes mentioned in this section are in a preview state and c
 - Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
-- Added `X-Source` header to the list of allowed headers in CORS middleware - #17285 by @andrzejewsky
