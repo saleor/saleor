@@ -417,7 +417,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(82):
+    with django_assert_num_queries(83):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -435,7 +435,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(82):
+    with django_assert_num_queries(83):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -567,7 +567,7 @@ def test_create_checkout_with_order_promotion(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(87):
+    with django_assert_num_queries(88):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
     # then

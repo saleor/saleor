@@ -269,7 +269,10 @@ def create_payment_information(
         checkout_token = str(checkout.token)
         from ..checkout.utils import get_checkout_metadata
 
-        checkout_metadata = get_checkout_metadata(checkout).metadata
+        checkout_metadata = None
+        checkout_metadata_storage = get_checkout_metadata(checkout)
+        if checkout_metadata_storage:
+            checkout_metadata = checkout_metadata_storage.metadata
     elif order := payment.order:
         billing = order.billing_address
         shipping = order.shipping_address
@@ -988,9 +991,11 @@ def parse_transaction_action_data(
         TransactionRequestResponse(
             psp_reference=psp_reference,
             available_actions=available_actions,
-            event=TransactionRequestEventResponse(**parsed_event_data)
-            if parsed_event_data
-            else None,
+            event=(
+                TransactionRequestEventResponse(**parsed_event_data)
+                if parsed_event_data
+                else None
+            ),
         ),
         None,
     )
@@ -1555,9 +1560,9 @@ def get_transaction_item_params(
 ):
     return {
         "name": name,
-        "checkout_id": source_object.pk
-        if isinstance(source_object, Checkout)
-        else None,
+        "checkout_id": (
+            source_object.pk if isinstance(source_object, Checkout) else None
+        ),
         "order_id": source_object.pk if isinstance(source_object, Order) else None,
         "currency": source_object.currency,
         "app": app,
@@ -1633,9 +1638,11 @@ def handle_transaction_initialize_session(
             amount_value=amount,
             defaults={
                 "include_in_calculations": False,
-                "type": TransactionEventType.CHARGE_REQUEST
-                if action == TransactionFlowStrategy.CHARGE
-                else TransactionEventType.AUTHORIZATION_REQUEST,
+                "type": (
+                    TransactionEventType.CHARGE_REQUEST
+                    if action == TransactionFlowStrategy.CHARGE
+                    else TransactionEventType.AUTHORIZATION_REQUEST
+                ),
                 "currency": transaction_item.currency,
                 "amount_value": amount,
                 "idempotency_key": idempotency_key,
