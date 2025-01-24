@@ -8,7 +8,6 @@ from prices import TaxedMoney
 from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
-from ...core.taxes import zero_money
 from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order, OrderLine
 from .. import DiscountType
@@ -27,10 +26,6 @@ from .promotion import (
     prepare_promotion_discount_reason,
 )
 from .shared import update_line_info_cached_discounts
-from .voucher import (
-    create_or_update_discount_object_from_order_level_voucher,
-    create_or_update_line_discount_objects_from_voucher,
-)
 
 if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
@@ -41,12 +36,6 @@ def create_or_update_discount_objects_for_order(
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    _update_base_unit_price_amount_for_catalogue_promotion(lines_info)
-    create_or_update_line_discount_objects_from_voucher(lines_info)
-    create_or_update_line_discount_objects_for_manual_discounts(lines_info)
-    create_or_update_discount_object_from_order_level_voucher(
-        order, database_connection_name
-    )
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
@@ -164,13 +153,6 @@ def _copy_unit_discount_data_to_order_line(
             line.unit_discount_value = discount_value
 
 
-def _update_base_unit_price_amount_for_catalogue_promotion(
-    lines_info: list["EditableOrderLineInfo"],
-):
-    for line_info in lines_info:
-        line_info.line.base_unit_price = line_info.variant_discounted_price
-
-
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: list["EditableOrderLineInfo"],
@@ -235,34 +217,6 @@ def _clear_order_discount(
     with transaction.atomic():
         delete_gift_line(order_or_checkout, lines_info)
         order_or_checkout.discounts.filter(type=DiscountType.ORDER_PROMOTION).delete()
-
-
-def create_or_update_line_discount_objects_for_manual_discounts(lines_info):
-    discount_to_update: list[OrderLineDiscount] = []
-    for line_info in lines_info:
-        manual_discount = line_info.get_manual_line_discount()
-        if not manual_discount:
-            continue
-        line = line_info.line
-        # manual line discounts do not combine with other line-level discounts
-        base_unit_price = line.undiscounted_base_unit_price
-        reduced_unit_price = apply_discount_to_value(
-            manual_discount.value,
-            manual_discount.value_type,
-            line.currency,
-            base_unit_price,
-        )
-        reduced_unit_price = max(reduced_unit_price, zero_money(line.currency))
-        line.base_unit_price_amount = reduced_unit_price.amount
-
-        discount_unit_amount = (base_unit_price - reduced_unit_price).amount
-        discount_amount = discount_unit_amount * line.quantity
-        if manual_discount.amount_value != discount_amount:
-            manual_discount.amount_value = discount_amount
-            discount_to_update.append(manual_discount)
-
-    if discount_to_update:
-        OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
 
 
 def create_order_line_discount_objects_for_catalogue_promotions(
