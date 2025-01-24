@@ -13,7 +13,11 @@ from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
 from ..core.taxes import zero_money
 from ..discount import VoucherType
-from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
+from ..discount.interface import (
+    VariantPromotionRuleInfo,
+    fetch_variant_rules_info,
+    fetch_voucher_info,
+)
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -52,6 +56,9 @@ class CheckoutLineInfo(LineInfo):
     product: "Product"
     product_type: "ProductType"
     discounts: list["CheckoutLineDiscount"]
+    rules_info: list["VariantPromotionRuleInfo"]
+    channel_listing: Optional["ProductVariantChannelListing"]
+
     tax_class: Optional["TaxClass"] = None
 
     @cached_property
