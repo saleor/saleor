@@ -15,6 +15,7 @@ from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField, TaxedMoneyField
 from prices import Money
 
+from ..account import AddressSavingStrategy
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money
@@ -71,6 +72,16 @@ class Checkout(models.Model):
         editable=False,
         null=True,
         on_delete=models.SET_NULL,
+    )
+    shipping_address_saving_strategy = models.CharField(
+        max_length=64,
+        default=AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK,
+        choices=AddressSavingStrategy.CHOICES,
+    )
+    billing_address_saving_strategy = models.CharField(
+        max_length=64,
+        default=AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK,
+        choices=AddressSavingStrategy.CHOICES,
     )
     shipping_method = models.ForeignKey(
         ShippingMethod,

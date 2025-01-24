@@ -18,7 +18,6 @@ from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from ..app.models import App
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..order.models import Order
 from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
 from ..permission.models import Permission, PermissionsMixin, _user_has_perm
 from ..site.models import SiteSettings
@@ -148,6 +147,8 @@ class UserManager(BaseUserManager["User"]):
         return user
 
     def customers(self):
+        from ..order.models import Order
+
         orders = Order.objects.values("user_id")
         return self.get_queryset().filter(
             Q(is_staff=False)

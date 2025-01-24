@@ -16,6 +16,7 @@ from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
 
+from ..account import AddressSavingStrategy
 from ..app.models import App
 from ..channel.models import Channel
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
@@ -152,6 +153,16 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         editable=False,
         null=True,
         on_delete=models.SET_NULL,
+    )
+    shipping_address_saving_strategy = models.CharField(
+        max_length=64,
+        default=AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK,
+        choices=AddressSavingStrategy.CHOICES,
+    )
+    billing_address_saving_strategy = models.CharField(
+        max_length=64,
+        default=AddressSavingStrategy.SAVE_IN_USER_ADDRESS_BOOK,
+        choices=AddressSavingStrategy.CHOICES,
     )
     user_email = models.EmailField(blank=True, default="")
     original = models.ForeignKey(
