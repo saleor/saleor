@@ -73,6 +73,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def order_qs_select_for_update():
+    return Order.objects.order_by("id").select_for_update(of=(["self"]))
+
+
 def order_lines_qs_select_for_update():
     return OrderLine.objects.order_by("pk").select_for_update(of=["self"])
 
@@ -284,7 +288,7 @@ def create_order_line(
             promotion = rules_info[0].promotion
             line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
-                prepare_promotion_discount_reason(rules_info[0].rule)
+                prepare_promotion_discount_reason(rules_info[0].promotion)
                 if line_discounts
                 else None
             )
@@ -342,8 +346,8 @@ def add_variant_to_order(
     """
     channel = order.channel
 
-    if line_data.line_id:
-        # It means there is an update of the order line with new quantity
+    is_new_line = not line_data.line_id
+    if not is_new_line:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
@@ -1297,7 +1301,3 @@ def clean_order_line_quantities(order_lines, quantities_for_lines):
                     )
                 }
             )
-
-
-def order_qs_select_for_update():
-    return Order.objects.order_by("id").select_for_update(of=(["self"]))

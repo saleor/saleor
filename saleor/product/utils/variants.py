@@ -53,10 +53,7 @@ def get_variant_selection_attributes(
     ]
 
 
-def fetch_variants_for_promotion_rules(
-    rules: QuerySet[PromotionRule],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
+def fetch_variants_for_promotion_rules(rules: QuerySet[PromotionRule]):
     from ...graphql.discount.utils import get_variants_for_catalogue_predicate
 
     PromotionRuleVariant = PromotionRule.variants.through
@@ -64,7 +61,7 @@ def fetch_variants_for_promotion_rules(
     for rule in rules.iterator():
         variants = get_variants_for_catalogue_predicate(
             rule.catalogue_predicate,
-            database_connection_name=database_connection_name,
+            database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
         )
         new_rules_variants.extend(
             [

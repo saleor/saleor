@@ -17,7 +17,6 @@ from ...checkout.fetch import CheckoutLineInfo
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.db.connection import allow_writer
 from ...core.exceptions import InsufficientStock
-from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...order.fetch import EditableOrderLineInfo
 from ...order.models import Order
@@ -45,7 +44,6 @@ from ..models import (
     Promotion,
     PromotionRule,
 )
-from .manual_discount import apply_discount_to_value
 from .shared import update_discount
 
 if TYPE_CHECKING:
@@ -59,8 +57,7 @@ CatalogueInfo = defaultdict[str, set[int | str]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def prepare_promotion_discount_reason(rule: PromotionRule):
-    promotion = rule.promotion
+def prepare_promotion_discount_reason(promotion: Promotion):
     if promotion.old_sale_id:
         return f"Sale: {graphene.Node.to_global_id('Sale', promotion.old_sale_id)}"
     return f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}"
@@ -241,7 +238,7 @@ def update_promotion_discount(
 ):
     discount_name = get_discount_name(rule, rule_info.promotion)
     translated_name = get_discount_translated_name(rule_info)
-    reason = prepare_promotion_discount_reason(rule_info.rule)
+    reason = prepare_promotion_discount_reason(rule_info.promotion)
     # gift rule has empty reward_value_type
     value_type = rule.reward_value_type or RewardValueType.FIXED
     # gift rule has empty reward_value
@@ -260,40 +257,6 @@ def update_promotion_discount(
         updated_fields=updated_fields,
         voucher_code=None,
     )
-
-
-def _update_catalogue_promotion_discount(
-    discount_to_update: Union["CheckoutLineDiscount", "OrderLineDiscount"],
-    line: Union["CheckoutLine", "OrderLine"],
-    updated_fields: list[str],
-) -> bool:
-    """Update catalogue promotion discount amount in case of line quantity update.
-
-    Return True if the discount requires update.
-    """
-    # TODO zedzior: jesli to tylko w przy quantity to moze lepiej przeniesc do mutacji
-    # we can't simply get difference between undiscounted price and base price,
-    # because base price can have other line-level disocunt included, ie. voucher
-
-    if isinstance(line, CheckoutLine):
-        undiscounted_unit_price = line.undiscounted_unit_price
-    else:
-        undiscounted_unit_price = line.undiscounted_base_unit_price
-
-    unit_discount = apply_discount_to_value(
-        discount_to_update.value,
-        discount_to_update.value_type,
-        line.currency,
-        undiscounted_unit_price,
-    )
-    discount_amount = quantize_price(unit_discount * line.quantity, line.currency)
-    if discount_amount != discount_to_update.amount:
-        discount_to_update.amount_value = discount_amount.amount
-        if "amount_value" not in updated_fields:
-            updated_fields.append("amount_value")
-        return True
-
-    return False
 
 
 def get_best_rule(
@@ -754,7 +717,7 @@ def create_discount_objects_for_order_promotions(
         "currency": currency,
         "name": get_discount_name(best_rule, promotion),
         "translated_name": get_discount_translated_name(rule_info),
-        "reason": prepare_promotion_discount_reason(rule_info.rule),
+        "reason": prepare_promotion_discount_reason(rule_info.promotion),
     }
     if gift_listing:
         _handle_gift_reward(

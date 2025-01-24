@@ -278,7 +278,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
         rule_discount_amount = _get_rule_discount_amount(line, rule_info, channel)
         discount_name = get_discount_name(rule, rule_info.promotion)
         translated_name = get_discount_translated_name(rule_info)
-        reason = prepare_promotion_discount_reason(rule)
+        reason = prepare_promotion_discount_reason(rule_info.promotion)
 
         line_discount_input = {
             "line": line,

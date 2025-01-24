@@ -151,7 +151,7 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)
-            reason = prepare_promotion_discount_reason(rule)
+            reason = prepare_promotion_discount_reason(rule_info.promotion)
             if not discount_to_update:
                 line_discount_input = {
                     "line": line,
