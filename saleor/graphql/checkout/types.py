@@ -511,17 +511,17 @@ class Checkout(ModelObjectType[models.Checkout]):
     billing_address_saving_strategy = graphene.Field(
         AddressSavingStrategyEnum,
         description=(
-            "The billing address saving strategy for the checkout. Define if the "
-            "provided billing address should be saved in the user address book during "
-            "checkout completion." + ADDED_IN_321
+            "The billing address saving strategy for the checkout. Specify whether the "
+            "provided billing address should be saved to the user's address book "
+            "during checkout completion." + ADDED_IN_321
         ),
     )
     shipping_address_saving_strategy = graphene.Field(
         AddressSavingStrategyEnum,
         description=(
-            "The shipping address saving strategy for the checkout. Define if the "
-            "provided billing address should be saved in the user address book during "
-            "checkout completion." + ADDED_IN_321
+            "The shipping address saving strategy for the checkout. Specify whether "
+            "the provided shipping address should be saved in the user's address book "
+            "during checkout completion." + ADDED_IN_321
         ),
     )
     customer_note = graphene.String(

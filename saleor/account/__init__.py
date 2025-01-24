@@ -45,7 +45,7 @@ class CustomerEvents:
 
 
 class AddressSavingStrategy:
-    """The different address saving strategies for checkout and order."""
+    """The different address saving strategies for Checkout and Order."""
 
     SAVE_IN_USER_ADDRESS_BOOK = "save_in_user_address_book"
     DO_NOT_SAVE_IN_USER_ADDRESS_BOOK = "do_not_save_in_user_address_book"

@@ -9943,14 +9943,14 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   shippingAddress: Address
 
   """
-  The billing address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  The billing address saving strategy for the checkout. Specify whether the provided billing address should be saved to the user's address book during checkout completion.
   
   Added in Saleor 3.21.
   """
   billingAddressSavingStrategy: AddressSavingStrategyEnum
 
   """
-  The shipping address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  The shipping address saving strategy for the checkout. Specify whether the provided shipping address should be saved in the user's address book during checkout completion.
   
   Added in Saleor 3.21.
   """
@@ -10640,14 +10640,14 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   shippingAddress: Address
 
   """
-  The billing address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  The billing address saving strategy for the order. For draft orders, specify whether the provided billing address should be saved to the user's address book during order completion.
   
   Added in Saleor 3.21.
   """
   billingAddressSavingStrategy: AddressSavingStrategyEnum
 
   """
-  The shipping address saving strategy for the checkout. Define if the provided billing address should be saved in the user address book during checkout completion.
+  The shipping address saving strategy for the order. For draft orders, specify whether the provided shipping address should be saved to the user's address book during order completion.
   
   Added in Saleor 3.21.
   """

@@ -1246,17 +1246,17 @@ class Order(ModelObjectType[models.Order]):
     billing_address_saving_strategy = graphene.Field(
         AddressSavingStrategyEnum,
         description=(
-            "The billing address saving strategy for the checkout. Define if the "
-            "provided billing address should be saved in the user address book during "
-            "checkout completion." + ADDED_IN_321
+            "The billing address saving strategy for the order. For draft orders, "
+            "specify whether the provided billing address should be saved to the user's "
+            "address book during order completion." + ADDED_IN_321
         ),
     )
     shipping_address_saving_strategy = graphene.Field(
         AddressSavingStrategyEnum,
         description=(
-            "The shipping address saving strategy for the checkout. Define if the "
-            "provided billing address should be saved in the user address book during "
-            "checkout completion." + ADDED_IN_321
+            "The shipping address saving strategy for the order. For draft orders, "
+            "specify whether the provided shipping address should be saved to the user's "
+            "address book during order completion." + ADDED_IN_321
         ),
     )
     shipping_method_name = graphene.String(description="Method used for shipping.")
