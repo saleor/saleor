@@ -23,10 +23,11 @@ class FinalSortOrder:
 
 
 class Reordering:
-    def __init__(self, qs: QuerySet, operations: dict[int, int], field: str):
+    def __init__(
+        self, qs: QuerySet, operations: dict[int, int], second_sort_field: str
+    ):
         self.qs = qs
         self.operations = operations
-        self.field = field
 
         # Will contain the original data, before sorting
         # This will be useful to look for the sort orders that
@@ -36,13 +37,19 @@ class Reordering:
         # Will contain the list of keys kept
         # in correct order in accordance to their sort order
         self.ordered_pks: list[int] = []
+        self.second_sort_field = second_sort_field
 
     @cached_property
     def ordered_node_map(self):
+        additional_sorters = [self.second_sort_field]
+        if self.second_sort_field != "id":
+            # add `id` to make sure that last sorting field is unique
+            additional_sorters.append("id")
+
         ordering_map = OrderedDict(
             self.qs.select_for_update()
             .values_list("pk", "sort_order")
-            .order_by(F("sort_order").asc(nulls_last=True), "id")
+            .order_by(F("sort_order").asc(nulls_last=True), *additional_sorters)
         )
         self.old_sort_map = ordering_map.copy()
         self.ordered_pks = list(ordering_map.keys())
@@ -153,7 +160,9 @@ class Reordering:
         self.commit()
 
 
-def perform_reordering(qs: QuerySet, operations: dict[int, int], field: str = "moves"):
+def perform_reordering(
+    qs: QuerySet, operations: dict[int, int], second_sort_field="id"
+):
     """Perform reordering over given operations on a queryset.
 
     This utility takes a set of operations containing a node
@@ -172,4 +181,4 @@ def perform_reordering(qs: QuerySet, operations: dict[int, int], field: str = "m
     if not transaction.get_connection().in_atomic_block:
         raise RuntimeError("Needs to be run inside an atomic transaction")
 
-    Reordering(qs, operations, field).run()
+    Reordering(qs, operations, second_sort_field).run()
