@@ -548,7 +548,9 @@ class DraftOrderCreate(
                         method, instance
                     )
                     cls.update_shipping_method(instance, method)
-                    cls._update_shipping_price(instance, shipping_channel_listing)
+                    cls._update_shipping_price(
+                        instance, shipping_channel_listing, is_new_instance
+                    )
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:
@@ -606,8 +608,8 @@ class DraftOrderCreate(
         cleaned_input,
         instance: models.Order,
         is_new_instance: bool,
-        old_voucher: Voucher,
-        old_voucher_code: str,
+        old_voucher: Voucher | None,
+        old_voucher_code: str | None,
     ):
         voucher = cleaned_input["voucher"]
 

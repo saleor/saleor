@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
+from ....discount import VoucherType
 from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ....discount.utils.manual_discount import apply_discount_to_value
 from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
@@ -105,7 +106,7 @@ class ShippingMethodUpdateMixin:
         return shipping_channel_listing
 
     @classmethod
-    def _update_shipping_price(cls, order, shipping_channel_listing):
+    def _update_shipping_price(cls, order, shipping_channel_listing, is_new_instance):
         if not shipping_channel_listing:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
@@ -118,8 +119,14 @@ class ShippingMethodUpdateMixin:
         ):
             undiscounted_shipping_price = shipping_channel_listing.price
             order.undiscounted_base_shipping_price = undiscounted_shipping_price
-            shipping_discount = order.discounts.filter(voucher__type="shipping").first()
-            if shipping_discount:
+            order.base_shipping_price = undiscounted_shipping_price
+
+            if is_new_instance:
+                return
+
+            if shipping_discount := order.discounts.filter(
+                voucher__type=VoucherType.SHIPPING
+            ).first():
                 shipping_price = apply_discount_to_value(
                     value=shipping_discount.value,
                     value_type=shipping_discount.value_type,
@@ -131,8 +138,7 @@ class ShippingMethodUpdateMixin:
                 if shipping_discount.amount != shipping_discount_amount:
                     shipping_discount.amount = shipping_discount_amount
                     shipping_discount.save(update_fields=["amount_value"])
-            else:
-                order.base_shipping_price = undiscounted_shipping_price
+
         else:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
