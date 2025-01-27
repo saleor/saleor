@@ -819,6 +819,7 @@ def create_order_discount_for_order(
     current_total: TaxedMoney = order.undiscounted_total
     currency = order.currency
 
+    # TODO zedzior: why gross price is taken?
     gross_total = apply_discount_to_value(
         value, value_type, currency, current_total.gross
     )
