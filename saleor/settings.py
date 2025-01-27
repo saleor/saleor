@@ -32,6 +32,7 @@ from .account.i18n_rules_override import i18n_rules_override
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
+from .graphql.promise import patch_promise
 
 django_stubs_ext.monkeypatch()
 
@@ -1058,3 +1059,8 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()
+
+
+# Patch Promise to remove all references that could result in reference cycles, allowing memory to be freed
+# immediately, without the need of a deep garbage collection cycle.
+patch_promise()
