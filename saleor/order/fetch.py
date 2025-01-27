@@ -91,7 +91,9 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 class EditableOrderLineInfo(LineInfo):
     line: "OrderLine"
     discounts: list["OrderLineDiscount"]
-    voucher_denormalized_info: VoucherDenormalizedInfo | None
+    rules_info: list["VariantPromotionRuleInfo"] | None = None
+    channel_listing: ProductVariantChannelListing | None = None
+    voucher_denormalized_info: VoucherDenormalizedInfo | None = None
 
     @cached_property
     def variant_discounted_price(self) -> Money:
@@ -152,17 +154,15 @@ def fetch_draft_order_lines_info(
         variant_channel_listing = None
         rules_info = []
         if extend:
-            variant_channel_listing = get_prefetched_variant_listing(
-                variant, channel.id
-            )
-            if not variant_channel_listing:
-                continue
-
-            rules_info = (
-                fetch_variant_rules_info(variant_channel_listing, order.language_code)
-                if not line.is_gift
-                else []
-            )
+            variant_channel_listing = _get_variant_listing(variant, channel.id)
+            if variant_channel_listing:
+                rules_info = (
+                    fetch_variant_rules_info(
+                        variant_channel_listing, order.language_code
+                    )
+                    if not line.is_gift
+                    else []
+                )
 
         lines_info.append(
             EditableOrderLineInfo(
@@ -194,7 +194,7 @@ def fetch_draft_order_lines_info(
     return lines_info
 
 
-def get_prefetched_variant_listing(
+def _get_variant_listing(
     variant: ProductVariant | None, channel_id: int
 ) -> ProductVariantChannelListing | None:
     if not variant:
