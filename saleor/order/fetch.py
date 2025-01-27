@@ -12,7 +12,11 @@ from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
 from ..core.taxes import zero_money
 from ..discount import DiscountType, VoucherType
-from ..discount.interface import fetch_voucher_info
+from ..discount.interface import (
+    VariantPromotionRuleInfo,
+    fetch_variant_rules_info,
+    fetch_voucher_info,
+)
 from ..discount.models import OrderLineDiscount
 from ..discount.utils.voucher import (
     VoucherDenormalizedInfo,
@@ -21,7 +25,11 @@ from ..discount.utils.voucher import (
 )
 from ..graphql.core.types import Money
 from ..payment.models import Payment
-from ..product.models import DigitalContent, ProductVariant
+from ..product.models import (
+    DigitalContent,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from .models import Order, OrderLine
 
 
@@ -107,13 +115,21 @@ class EditableOrderLineInfo(LineInfo):
 
 
 def fetch_draft_order_lines_info(
-    order: "Order", lines: Iterable["OrderLine"] | None = None
+    order: "Order", lines: Iterable["OrderLine"] | None = None, extend: bool = False
 ) -> list[EditableOrderLineInfo]:
     prefetch_related_fields = [
         "discounts__promotion_rule__promotion",
         "variant__product__collections",
         "variant__product__product_type",
     ]
+    if extend:
+        prefetch_related_fields.extend(
+            [
+                "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
+                "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+            ]
+        )
+
     if lines is None:
         with allow_writer():
             # TODO: load lines with dataloader and pass as an argument
@@ -133,6 +149,21 @@ def fetch_draft_order_lines_info(
             continue
         product = variant.product
 
+        variant_channel_listing = None
+        rules_info = []
+        if extend:
+            variant_channel_listing = get_prefetched_variant_listing(
+                variant, channel.id
+            )
+            if not variant_channel_listing:
+                continue
+
+            rules_info = (
+                fetch_variant_rules_info(variant_channel_listing, order.language_code)
+                if not line.is_gift
+                else []
+            )
+
         lines_info.append(
             EditableOrderLineInfo(
                 line=line,
@@ -145,8 +176,11 @@ def fetch_draft_order_lines_info(
                 voucher=None,
                 voucher_code=None,
                 voucher_denormalized_info=None,
+                channel_listing=variant_channel_listing,
+                rules_info=rules_info,
             )
         )
+
     voucher = order.voucher
     if voucher and (
         voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order
@@ -158,6 +192,17 @@ def fetch_draft_order_lines_info(
             lines_info, denormalized_voucher_info, order.voucher_code
         )
     return lines_info
+
+
+def get_prefetched_variant_listing(
+    variant: ProductVariant | None, channel_id: int
+) -> ProductVariantChannelListing | None:
+    if not variant:
+        return None
+    for channel_listing in variant.channel_listings.all():
+        if channel_listing.channel_id == channel_id:
+            return channel_listing
+    return None
 
 
 def _get_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], voucher):
