@@ -46,22 +46,23 @@ def test_user_is_cached_on_request(
     mocked_authenticate_user.assert_called_once()
 
 
-def test_get_context_value_not_override_dataloaders_if_passed_already(rf):
+def test_get_context_value_preserves_dataloaders_if_already_set(rf):
+    """Ensure `get_context_value` does not overwrite dataloaders if already on the request."""
     # given
     request = rf.request()
-    dataloaders: dict[str, DataLoader] = {}
-    dataloaders_id = id(dataloaders)
+    dataloaders = {}
     request.dataloaders = dataloaders
 
     # when
     context = get_context_value(request)
 
     # then
+    # Using `is` because we want the exact same object, not just equal contents
     assert context.dataloaders is dataloaders
-    assert id(context.dataloaders) == dataloaders_id
 
 
-def test_get_context_value_uses_request_time_if_passed_already(rf):
+def test_get_context_value_preserves_request_time_if_already_set(rf):
+    """Ensure `get_context_value` does not overwrite request_time if already on the request."""
     # given
     request = rf.request()
     request_time = timezone.now()
@@ -71,6 +72,7 @@ def test_get_context_value_uses_request_time_if_passed_already(rf):
     context = get_context_value(request)
 
     # then
+    # Using `==` is sufficient for datetimes, which are equal if their time is the same
     assert context.request_time == request_time
 
 
