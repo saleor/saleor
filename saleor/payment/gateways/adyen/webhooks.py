@@ -14,7 +14,6 @@ import Adyen
 import graphene
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
-from django.core.handlers.wsgi import WSGIRequest
 from django.forms.models import model_to_dict
 from django.http import (
     HttpResponse,
@@ -33,6 +32,7 @@ from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
+from ....graphql.core import SaleorContext
 from ....graphql.core.utils import from_global_id_or_error
 from ....order.actions import (
     cancel_order,
@@ -984,7 +984,7 @@ def validate_merchant_account(
 
 
 @transaction_with_commit_on_errors()
-def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
+def handle_webhook(request: SaleorContext, gateway_config: "GatewayConfig"):
     try:
         json_data = json.loads(request.body)
     except JSONDecodeError:
@@ -1020,7 +1020,7 @@ class HttpResponseRedirectWithTrustedProtocol(HttpResponseRedirect):
 
 @transaction_with_commit_on_errors()
 def handle_additional_actions(
-    request: WSGIRequest, payment_details: Callable, channel_slug: str
+    request: SaleorContext, payment_details: Callable, channel_slug: str
 ):
     """Handle redirect with additional actions.
 
@@ -1089,7 +1089,7 @@ def handle_additional_actions(
     return HttpResponseRedirectWithTrustedProtocol(redirect_url)
 
 
-def prepare_api_request_data(request: WSGIRequest, data: dict):
+def prepare_api_request_data(request: SaleorContext, data: dict):
     if "parameters" not in data or "payment_data" not in data:
         raise KeyError(
             "Cannot perform payment. Lack of payment data and parameters information."

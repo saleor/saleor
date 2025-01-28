@@ -3,7 +3,6 @@ from typing import cast
 
 import stripe
 from django.core.exceptions import ValidationError
-from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Prefetch
 from django.http import HttpResponse
 from stripe.error import SignatureVerificationError
@@ -14,6 +13,7 @@ from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
+from ....graphql.core import SaleorContext
 from ....order.actions import order_charged, order_refunded, order_voided
 from ....order.fetch import fetch_order_info
 from ....order.models import Order
@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 
 @transaction_with_commit_on_errors()
 def handle_webhook(
-    request: WSGIRequest, gateway_config: "GatewayConfig", channel_slug: str
+    request: SaleorContext, gateway_config: "GatewayConfig", channel_slug: str
 ):
     payload = request.body
     sig_header = request.headers["stripe-signature"]

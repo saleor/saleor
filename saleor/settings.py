@@ -66,8 +66,6 @@ PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 
 ROOT_URLCONF = "saleor.urls"
 
-WSGI_APPLICATION = "saleor.wsgi.application"
-
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
