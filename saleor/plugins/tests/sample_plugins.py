@@ -2,12 +2,12 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from prices import Money, TaxedMoney
 
 from ...account.models import User
 from ...core.taxes import TaxData, TaxLineData, TaxType
+from ...graphql.core import SaleorContext
 from ...order.interface import OrderTaxedPricesData
 from ...payment.interface import (
     PaymentGatewayData,
@@ -90,7 +90,9 @@ class PluginSample(BasePlugin):
         },
     }
 
-    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+    def webhook(
+        self, request: SaleorContext, path: str, previous_value
+    ) -> HttpResponse:
         if path == "/webhook/paid":
             return JsonResponse(data={"received": True, "paid": True})
         if path == "/webhook/failed":
@@ -170,36 +172,38 @@ class PluginSample(BasePlugin):
         return [TaxType(code="123", description="abc")]
 
     def external_authentication_url(
-        self, data: dict, request: WSGIRequest, previous_value
+        self, data: dict, request: SaleorContext, previous_value
     ) -> dict:
         return {"authorizeUrl": "http://www.auth.provider.com/authorize/"}
 
     def external_obtain_access_tokens(
-        self, data: dict, request: WSGIRequest, previous_value
+        self, data: dict, request: SaleorContext, previous_value
     ) -> ExternalAccessTokens:
         return ExternalAccessTokens(
             token="token1", refresh_token="refresh2", csrf_token="csrf3"
         )
 
     def external_refresh(
-        self, data: dict, request: WSGIRequest, previous_value
+        self, data: dict, request: SaleorContext, previous_value
     ) -> ExternalAccessTokens:
         return ExternalAccessTokens(
             token="token4", refresh_token="refresh5", csrf_token="csrf6"
         )
 
     def external_verify(
-        self, data: dict, request: WSGIRequest, previous_value
+        self, data: dict, request: SaleorContext, previous_value
     ) -> tuple[User | None, dict]:
         user = User.objects.get()
         return user, {"some_data": "data"}
 
     def authenticate_user(
-        self, request: WSGIRequest, previous_value
+        self, request: SaleorContext, previous_value
     ) -> Optional["User"]:
         return User.objects.filter().first()
 
-    def external_logout(self, data: dict, request: WSGIRequest, previous_value) -> dict:
+    def external_logout(
+        self, data: dict, request: SaleorContext, previous_value
+    ) -> dict:
         return {"logoutUrl": "http://www.auth.provider.com/logout/"}
 
     def sale_created(
@@ -403,7 +407,7 @@ class PluginInactive(BasePlugin):
     DEFAULT_ACTIVE = False
 
     def external_obtain_access_tokens(
-        self, data: dict, request: WSGIRequest, previous_value
+        self, data: dict, request: SaleorContext, previous_value
     ) -> ExternalAccessTokens:
         return ExternalAccessTokens(
             token="token1", refresh_token="refresh2", csrf_token="csrf3"
