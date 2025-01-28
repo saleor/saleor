@@ -48,7 +48,6 @@ package-mode = false
   graphene = "<3.0"
   graphql-core = "^2.3.2"
   graphql-relay = "^2.0.1"
-  gunicorn = "^22.0.0"
   html-to-draftjs = "^1.0.1"
   jaeger-client = "^4.5.0"
   lxml = "^4.9.3"
@@ -145,7 +144,7 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
   [tool.deptry.per_rule_ignores]
   DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "gunicorn", "psycopg", "pyxb"]
+  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
 
 [tool.django-stubs]
 django_settings_module = "saleor.settings"
