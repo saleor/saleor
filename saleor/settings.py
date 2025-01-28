@@ -31,6 +31,7 @@ from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
+from .graphql.promise import patch_promise
 
 django_stubs_ext.monkeypatch()
 
@@ -1009,3 +1010,8 @@ ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION = get_bool_from_env(
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# Patch Promise to remove all references that could result in reference cycles, allowing memory to be freed
+# immediately, without the need of a deep garbage collection cycle.
+patch_promise()
