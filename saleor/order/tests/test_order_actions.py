@@ -1017,13 +1017,11 @@ def test_order_fulfilled_dont_trigger_webhooks(
     setup_order_webhooks,
     fulfilled_order,
     settings,
-    site_settings,
     django_capture_on_commit_callbacks,
     app,
 ):
     # given
     fulfillment = fulfilled_order.fulfillments.first()
-    fulfillment_lines = list(fulfillment.lines.all())
     mocked_send_webhook_request_sync.return_value = []
     (
         tax_webhook,
@@ -1044,10 +1042,7 @@ def test_order_fulfilled_dont_trigger_webhooks(
             [fulfillment],
             None,
             app,
-            fulfillment_lines,
             plugins_manager,
-            [],
-            site_settings,
         )
 
     # then
