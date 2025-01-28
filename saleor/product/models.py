@@ -641,6 +641,7 @@ class ProductMedia(SortableModel, ModelWithMetadata):
     )
     external_url = models.CharField(max_length=256, blank=True, null=True)
     oembed_data = JSONField(blank=True, default=dict)
+    downloaded = models.BooleanField(default=True, blank=True, null=True)
     # DEPRECATED
     to_remove = models.BooleanField(default=False)
 

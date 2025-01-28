@@ -15,13 +15,15 @@ PRODUCT_MEDIA_CREATE_QUERY = """
         $product: ID!,
         $image: Upload,
         $mediaUrl: String,
-        $alt: String
+        $alt: String,
+        $asyncDownload: Boolean
     ) {
         productMediaCreate(input: {
             product: $product,
             mediaUrl: $mediaUrl,
             alt: $alt,
-            image: $image
+            image: $image,
+            asyncDownload: $asyncDownload
         }) {
             product {
                 media {
@@ -292,3 +294,42 @@ def test_product_media_create_mutation_alt_character_limit(
     errors = content["data"]["productMediaCreate"]["errors"]
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+@patch("saleor.product.tasks.async_media_downloader.delay")
+def test_product_media_create_mutation_with_unknown_url_but_async_download(
+    mock_async_media_downloader_delay,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://m.media-amazon.com/images/I/41WIBAhNLnL._MCnd_AC_.jpg",
+        "alt": "Test Alt Text",
+        "asyncDownload": True,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, file="", file_name="name"
+    )
+    # when
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 0
+    media = content["data"]["productMediaCreate"]["product"]["media"]
+    alt = "Test Alt Text"
+    assert len(media) == 1
+    assert (
+        media[0]["url"]
+        == "https://m.media-amazon.com/images/I/41WIBAhNLnL._MCnd_AC_.jpg"
+    )
+    assert media[0]["alt"] == alt
+    assert media[0]["type"] == ProductMediaTypes.IMAGE
+
+    # we need to check that celery task `async_media_downloader` has been delayed
+    assert mock_async_media_downloader_delay.call_count == 1
