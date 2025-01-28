@@ -1,6 +1,7 @@
 import base64
 
 import graphene
+from django.conf import settings
 
 from ...app import models
 from ...app.types import AppExtensionTarget
@@ -52,12 +53,27 @@ from .dataloaders import (
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
     app_promise_callback,
 )
-from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
+from .enums import (
+    AppExtensionMountEnum,
+    AppExtensionTargetEnum,
+    AppTypeEnum,
+    CircuitBreakerState,
+    CircuitBreakerStateEnum,
+)
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
     resolve_app_extension_url,
 )
+
+# TODO: Remove the conditional when unit tests circular import is solved.
+breaker_board = None
+if settings.ENABLE_BREAKER_BOARD:
+    from ...webhook.circuit_breaker.breaker_board import (
+        initialize_breaker_board,
+    )
+
+    breaker_board = initialize_breaker_board()
 
 # Maximal thumbnail size for manifest preview
 MANIFEST_THUMBNAIL_MAX_SIZE = 512
@@ -521,6 +537,10 @@ class App(ModelObjectType[models.App]):
         required=True,
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
+    breaker_state = CircuitBreakerStateEnum(
+        description="Circuit breaker state, if open, sync webhooks operation is disrupted.",
+        required=True,
+    )
 
     class Meta:
         description = "Represents app data."
@@ -593,6 +613,16 @@ class App(ModelObjectType[models.App]):
         if root.brand_logo_default:
             return root
         return None
+
+    @staticmethod
+    def resolve_breaker_state(root: models.App, _info: ResolveInfo):
+        if not breaker_board:
+            return CircuitBreakerState.CLOSED
+        return (
+            CircuitBreakerState.CLOSED
+            if breaker_board.is_closed(root.id)
+            else CircuitBreakerState.OPEN
+        )
 
 
 class AppCountableConnection(CountableConnection):
