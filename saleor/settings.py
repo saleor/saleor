@@ -32,6 +32,7 @@ from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
+from .plugins.openid_connect.patch import patch_authlib
 
 django_stubs_ext.monkeypatch()
 
@@ -1015,3 +1016,7 @@ warnings.filterwarnings("ignore", category=CacheKeyWarning)
 # Patch Promise to remove all references that could result in reference cycles, allowing memory to be freed
 # immediately, without the need of a deep garbage collection cycle.
 patch_promise()
+
+# Patch `OAuth2Session` and `TokenAuth` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_authlib()
