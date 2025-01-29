@@ -14,6 +14,9 @@ from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountValueType
 from .....discount.models import VoucherCustomer
+from .....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
 from .....order.actions import (
@@ -255,6 +258,7 @@ def test_draft_order_complete_with_voucher(
     order.voucher_code = code_instance.code
     order.should_refresh_prices = True
     order.save(update_fields=["voucher", "voucher_code", "should_refresh_prices"])
+    create_or_update_voucher_discount_objects_for_order(order)
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
     discount_value = voucher_listing.discount_value
