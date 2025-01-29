@@ -81,7 +81,7 @@ package-mode = false
   text-unidecode = "^1.2"
   urllib3 = "^1.26.19"
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
-  setuptools = "^75.6.0"
+  setuptools = "^75.8.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
 
     [tool.poetry.dependencies.celery]
