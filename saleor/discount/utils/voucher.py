@@ -304,15 +304,6 @@ def get_products_voucher_discount(
     return total_amount
 
 
-def create_or_update_discount_objects_from_voucher(
-    order, lines_info, database_connection_name
-):
-    create_or_update_discount_object_from_order_level_voucher(
-        order, database_connection_name
-    )
-    create_or_update_line_discount_objects_from_voucher(lines_info)
-
-
 def create_or_update_discount_object_from_order_level_voucher(
     order, database_connection_name
 ):

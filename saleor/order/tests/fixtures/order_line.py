@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 from prices import Money, TaxedMoney
 
+from ....discount import DiscountType
 from ....warehouse.models import Allocation, Stock
 from ... import OrderOrigin
 from ...fetch import OrderLineInfo
@@ -46,6 +47,9 @@ def order_line_on_promotion(order_line, catalogue_promotion):
     channel = order_line.order.channel
     reward_value = Decimal("1.0")
     rule = catalogue_promotion.rules.first()
+    rule.reward_value = reward_value
+    rule.save(update_fields=["reward_value"])
+
     variant_channel_listing = variant.channel_listings.get(channel=channel)
 
     variant_channel_listing.discounted_price_amount = (
@@ -85,6 +89,18 @@ def order_line_on_promotion(order_line, catalogue_promotion):
 
     order_line.unit_discount_amount = reward_value
     order_line.save()
+
+    order_line.discounts.create(
+        type=DiscountType.PROMOTION,
+        promotion_rule=rule,
+        value_type=rule.reward_value_type,
+        value=reward_value,
+        amount_value=reward_value * order_line.quantity,
+        currency=channel.currency_code,
+        reason="Catalogue promotion reason",
+        unique_type=DiscountType.PROMOTION,
+    )
+
     return order_line
 
 

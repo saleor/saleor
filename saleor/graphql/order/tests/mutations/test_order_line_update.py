@@ -6,6 +6,7 @@ import pytest
 from django.test import override_settings
 
 from .....core.models import EventDelivery
+from .....core.prices import quantize_price
 from .....discount import DiscountType, RewardValueType
 from .....order import OrderStatus
 from .....order import events as order_events
@@ -35,6 +36,40 @@ ORDER_LINE_UPDATE_MUTATION = """
                 unitDiscountType
                 unitDiscountValue
                 isGift
+                                totalPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
+                undiscountedTotalPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
+                unitPrice {
+                    gross {
+                        amount
+                        currency
+                    }
+                    net {
+                        amount
+                        currency
+                    }
+                }
+                undiscountedUnitPrice {
+                    gross {
+                        amount
+                    }
+                    net {
+                        amount
+                    }
+                }
             }
             order {
                 total {
@@ -667,3 +702,70 @@ def test_order_line_update_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+def test_order_line_update_catalogue_discount(
+    order_with_lines_and_catalogue_promotion,
+    permission_group_manage_orders,
+    staff_api_client,
+    tax_configuration_flat_rates,
+):
+    # give
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    tax_rate = Decimal(1.23)
+
+    currency = order.currency
+    line = order.lines.first()
+    old_quantity = line.quantity
+    lines_count = len(order.lines.all())
+    undiscounted_unit_price = line.undiscounted_base_unit_price_amount
+
+    discount = line.discounts.get()
+    initial_discount_amount = discount.amount_value
+    unit_discount = quantize_price(initial_discount_amount / old_quantity, currency)
+
+    new_quantity = 4
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"lineId": line_id, "quantity": new_quantity}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    assert order.lines.count() == lines_count
+    line.refresh_from_db()
+    line_data = content["data"]["orderLineUpdate"]["orderLine"]
+    assert line_data["quantity"] == new_quantity
+    unit_price = undiscounted_unit_price - unit_discount
+    assert line_data["unitPrice"]["net"]["amount"] == unit_price
+    assert Decimal(str(line_data["unitPrice"]["gross"]["amount"])) == quantize_price(
+        unit_price * tax_rate, currency
+    )
+    assert (
+        line_data["undiscountedUnitPrice"]["net"]["amount"] == undiscounted_unit_price
+    )
+    assert Decimal(
+        str(line_data["undiscountedUnitPrice"]["gross"]["amount"])
+    ) == quantize_price(undiscounted_unit_price * tax_rate, currency)
+    total_price = unit_price * new_quantity
+    assert line_data["totalPrice"]["net"]["amount"] == total_price
+    assert Decimal(str(line_data["totalPrice"]["gross"]["amount"])) == quantize_price(
+        total_price * tax_rate, currency
+    )
+    assert (
+        line_data["undiscountedTotalPrice"]["net"]["amount"]
+        == undiscounted_unit_price * new_quantity
+    )
+    assert Decimal(
+        str(line_data["undiscountedTotalPrice"]["gross"]["amount"])
+    ) == quantize_price(undiscounted_unit_price * new_quantity * tax_rate, currency)
+
+    discount.refresh_from_db()
+    assert discount.amount_value != initial_discount_amount
+    assert discount.amount_value == unit_discount * new_quantity
