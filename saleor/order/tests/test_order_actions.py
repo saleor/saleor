@@ -92,9 +92,10 @@ def test_handle_fully_paid_order_digital_lines(
 
     # then
     fulfillment = order.fulfillments.first()
-    event_order_paid = order.events.get()
-
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
+    assert set(order.events.values_list("type", flat=True)) == {
+        OrderEvents.ORDER_FULLY_PAID,
+        OrderEvents.FULFILLMENT_AUTOMATIC_FULFILLED_ITEMS,
+    }
 
     mock_send_payment_confirmation.assert_called_once_with(order_info, manager)
     send_fulfillment_confirmation_to_customer.assert_called_once_with(
@@ -1535,6 +1536,7 @@ def test_fulfill_digital_lines(
     order_with_lines,
     media_root,
 ):
+    # given
     mock_digital_settings.return_value = {"automatic_fulfillment": True}
     line = order_with_lines.lines.all()[0]
 
@@ -1558,8 +1560,10 @@ def test_fulfill_digital_lines(
     order_info = fetch_order_info(order_with_lines)
     manager = get_plugins_manager(allow_replica=False)
 
+    # when
     automatically_fulfill_digital_lines(order_info, manager)
 
+    # then
     line.refresh_from_db()
     fulfillment = Fulfillment.objects.get(order=order_with_lines)
     fulfillment_lines = fulfillment.lines.all()
@@ -1568,6 +1572,14 @@ def test_fulfill_digital_lines(
     assert line.digital_content_url
     assert mock_email_fulfillment.called
     mock_fulfillment_created.assert_called_once_with(fulfillment)
+
+    event = order_with_lines.events.filter(
+        type=OrderEvents.FULFILLMENT_AUTOMATIC_FULFILLED_ITEMS
+    ).first()
+    assert event
+    assert set(event.parameters["fulfilled_items"]) == {
+        line.pk for line in fulfillment_lines
+    }
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")

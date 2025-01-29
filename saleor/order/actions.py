@@ -379,7 +379,7 @@ def handle_fully_paid_order(
     if order_info.customer_email:
         send_payment_confirmation(order_info, manager)
         if utils.order_needs_automatic_fulfillment(order_info.lines_data):
-            automatically_fulfill_digital_lines(order_info, manager)
+            automatically_fulfill_digital_lines(order_info, manager, user, app)
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
@@ -1060,7 +1060,10 @@ def fulfill_order_lines(
 
 
 def automatically_fulfill_digital_lines(
-    order_info: "OrderInfo", manager: "PluginsManager"
+    order_info: "OrderInfo",
+    manager: "PluginsManager",
+    user: User | None = None,
+    app: Optional["App"] = None,
 ):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
@@ -1108,6 +1111,9 @@ def automatically_fulfill_digital_lines(
 
         FulfillmentLine.objects.bulk_create(fulfillments)
         fulfill_order_lines(lines_info, manager)
+        events.fulfillment_automatic_fulfilled_items_event(
+            order=order, user=user, app=app, fulfillment_lines=fulfillments
+        )
 
         send_fulfillment_confirmation_to_customer(
             order, fulfillment, user=order.user, app=None, manager=manager
