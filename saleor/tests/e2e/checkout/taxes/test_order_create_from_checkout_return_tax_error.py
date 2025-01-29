@@ -1,8 +1,7 @@
 import pytest
 
 from ...apps.utils import add_app
-
-# from ...orders.utils import raw_order_create_from_checkout
+from ...orders.utils import raw_order_create_from_checkout
 from ...product.utils.preparing_product import prepare_product
 from ...shop.utils import prepare_default_shop
 from ...taxes.utils import get_tax_configurations, update_tax_configuration
@@ -124,13 +123,14 @@ def test_order_create_from_checkout_return_tax_error_when_app_not_respond_CORE_2
     calculated_total_net = product_variant_price + shipping_price
     assert checkout_data["totalPrice"]["net"]["amount"] == calculated_total_net
 
-    # BUG: https://linear.app/saleor/issue/SHOPX-1712/
-    # uncomment this step when the bug is fixed
-    # # Step 4 - Place order via orderCreateFromCheckout
-    # order_data = raw_order_create_from_checkout(
-    #     e2e_app_api_client,
-    #     checkout_id,
-    # )
-    # assert order_data["errors"] is not None
-    # assert order_data["errors"][0]["code"] == "TAX_ERROR"
-    # assert order_data["errors"][0]["message"] == "Configured Tax App didn't responded."
+    # Step 4 - Place order via orderCreateFromCheckout
+    order_data = raw_order_create_from_checkout(
+        e2e_app_api_client,
+        checkout_id,
+    )
+    assert order_data["errors"] is not None
+    assert order_data["errors"][0]["code"] == "TAX_ERROR"
+    assert (
+        order_data["errors"][0]["message"]
+        == "Configured Tax App returned invalid response."
+    )

@@ -2,6 +2,7 @@ import hashlib
 from unittest.mock import patch
 
 import graphene
+import pytest
 from opentracing.mocktracer import MockTracer
 
 
@@ -460,3 +461,55 @@ def test_tracing_have_app_data_app_as_requestor(
     # then
     assert span.tags["app.name"] == app.name
     assert span.tags["app.id"] == app.id
+
+
+@pytest.mark.parametrize(
+    ("header_source", "expected_result"),
+    [
+        ("saleor.dashboard", "saleor.dashboard"),
+        ("saleor.dashboard.playground", "saleor.dashboard.playground"),
+        ("saleor.playground", "saleor.playground"),
+        ("saleor.DASHBOARD", "saleor.dashboard"),
+        ("SALEOR.dashboard", "saleor.dashboard"),
+        ("saleor.dashboard.Playground", "saleor.dashboard.playground"),
+        ("saleor.playgrounD", "saleor.playground"),
+        ("incorrect-value", "unknown_service"),
+        (None, "unknown_service"),
+    ],
+)
+@patch("saleor.graphql.views.opentracing.global_tracer")
+def test_tracing_have_source_service_name_set(
+    tracing_mock,
+    header_source,
+    expected_result,
+    app_api_client,
+    permission_manage_products,
+):
+    # given
+    tracer = MockTracer()
+    tracing_mock.return_value = tracer
+    query = """
+        query test {
+          products(first:5) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+    """
+    app = app_api_client.app
+    app.permissions.add(permission_manage_products)
+
+    # when
+    app_api_client.post_graphql(query, headers={"source-service-name": header_source})
+
+    # then
+    spans = list(
+        filter(lambda s: s.tags.get("source.service.name"), tracer.finished_spans())
+    )
+    assert len(spans) == 1
+    span = spans[0]
+    assert span.tags["source.service.name"] == expected_result

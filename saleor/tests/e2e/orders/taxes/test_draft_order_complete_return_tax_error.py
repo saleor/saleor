@@ -129,4 +129,6 @@ def test_draft_order_complte_return_tax_error_when_app_not_respond_CORE_2015(
     )
     assert order["errors"] is not None
     assert order["errors"][0]["code"] == "TAX_ERROR"
-    assert order["errors"][0]["message"] == "Configured Tax App didn't responded."
+    assert (
+        order["errors"][0]["message"] == "Configured Tax App returned invalid response."
+    )

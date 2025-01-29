@@ -6,7 +6,6 @@ import opentracing
 import opentracing.tags
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.urls import reverse
 from requests.exceptions import SSLError
@@ -14,6 +13,7 @@ from requests.exceptions import SSLError
 from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
+from ....graphql.core import SaleorContext
 from ....order.events import external_notification_event
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ....plugins.error_codes import PluginErrorCode
@@ -240,7 +240,9 @@ class AdyenGatewayPlugin(BasePlugin):
         base_url = build_absolute_uri(api_path)
         return urljoin(base_url, "webhooks")
 
-    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+    def webhook(
+        self, request: SaleorContext, path: str, previous_value
+    ) -> HttpResponse:
         """Handle a request received from Adyen.
 
         The method handles two types of requests:

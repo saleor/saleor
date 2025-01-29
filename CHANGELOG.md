@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - `SetPassword` - #16243 by @kadewu
 - Require `MANAGE_ORDERS` for updating order and order line metadata - #17223 by @IKarbowiak
   - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
+- Fix updating `metadata` and `privateMetadata` in `transactionUpdate` - #17261 by @IKarbowiak
+  - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
 
 ### GraphQL API
 
@@ -28,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
 - Fix checkout `line.undiscountedTotalPrice` and `line.undiscountedUnitPrice` calculation. - #17193 by @IKarbowiak
   - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
+- Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
 
 ### Webhooks
 
@@ -52,3 +55,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix undiscounted price taxation when prices are entered with taxes - #16992 by @zedzior
 - Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
+- Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
