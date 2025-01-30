@@ -31,7 +31,7 @@ Saleor uses various tools to maintain a common coding style and help with develo
 To install all the development tools, use [Poetry](https://python-poetry.org):
 
 ```shell
-poetry install
+poetry sync
 ```
 
 Saleor uses the [pre-commit](https://pre-commit.com/#install) tool to check and automatically fix any formatting issue before creating a git commit.
