@@ -181,7 +181,7 @@ def get_active_voucher_code(voucher, channel_slug):
     return voucher_code
 
 
-def apply_voucher_to_line(
+def attach_voucher_to_line_info(
     voucher_info: "VoucherInfo",
     lines_info: Sequence["LineInfo"],
 ):

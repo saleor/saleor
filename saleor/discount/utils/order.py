@@ -11,7 +11,6 @@ from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...graphql.core.scalars import Decimal
 from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order, OrderLine
 from .. import DiscountType
@@ -287,12 +286,13 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     return []
 
 
-def refresh_order_prices_and_discounts(
+def refresh_order_base_prices_and_discounts(
     order: "Order",
     lines_info: list["EditableOrderLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Force order to fetch the latest channel listing prices and update discounts."""
+    _set_channel_listing_prices(lines_info)
     refresh_order_line_discount_objects_for_catalogue_promotions(lines_info)
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
@@ -303,6 +303,15 @@ def refresh_order_prices_and_discounts(
         order, database_connection_name
     )
     _copy_unit_discount_data_to_order_line(lines_info)
+
+
+def _set_channel_listing_prices(lines_info: list["EditableOrderLineInfo"]):
+    for line_info in lines_info:
+        line = line_info.line
+        channel_listing = line_info.channel_listing
+        if channel_listing and channel_listing.price_amount:
+            line.undiscounted_base_unit_price_amount = channel_listing.price_amount
+            line.base_unit_price_amount = channel_listing.price_amount
 
 
 def refresh_order_line_discount_objects_for_catalogue_promotions(
