@@ -37,8 +37,8 @@
 <br>
 
 <div align="center">
-  <a href="http://codecov.io/github/saleor/saleor?branch=master">
-    <img src="http://codecov.io/github/saleor/saleor/coverage.svg?branch=master" alt="Codecov" />
+  <a href="https://codecov.io/gh/saleor/saleor" >
+    <img src="https://codecov.io/gh/saleor/saleor/graph/badge.svg?token=qkNcTJ4TmI" alt="Coverage"/>
   </a>
   <a href="https://docs.saleor.io/">
     <img src="https://img.shields.io/badge/docs-docs.saleor.io-brightgreen.svg" alt="Documentation" />
