@@ -3,7 +3,6 @@ from collections.abc import Callable, Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-import opentracing
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
@@ -13,6 +12,7 @@ from ..channel.models import Channel
 from ..checkout import base_calculations
 from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery
+from ..core.otel import tracer
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
@@ -130,7 +130,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def __init__(self, plugins: list[str], requestor_getter=None, allow_replica=True):
-        with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
+        with tracer.start_as_current_span("PluginsManager.__init__"):
             self.plugins = plugins
             self._allow_replica = allow_replica
             self.all_plugins = []
@@ -156,7 +156,7 @@ class PluginsManager(PaymentInterface):
             global_db_config = self._get_db_plugin_configs(None)
 
             for plugin_path in self.plugins:
-                with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
+                with tracer.start_as_current_span(f"{plugin_path}"):
                     PluginClass = import_string(plugin_path)
                     if not getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
                         plugin = self._load_plugin(
@@ -182,7 +182,7 @@ class PluginsManager(PaymentInterface):
             channel_db_config = self._get_db_plugin_configs(channel)
 
             for plugin_path in self.plugins:
-                with opentracing.global_tracer().start_active_span(f"{plugin_path}"):
+                with tracer.start_as_current_span(f"{plugin_path}"):
                     PluginClass = import_string(plugin_path)
                     if getattr(PluginClass, "CONFIGURATION_PER_CHANNEL", False):
                         plugin = self._load_plugin(
@@ -200,7 +200,7 @@ class PluginsManager(PaymentInterface):
             self.loaded_channels.add(channel_slug)
 
     def _get_db_plugin_configs(self, channel: Channel | None):
-        with opentracing.global_tracer().start_active_span("_get_db_plugin_configs"):
+        with tracer.start_as_current_span("_get_db_plugin_configs"):
             plugin_manager_configs = PluginConfiguration.objects.using(
                 self.database
             ).filter(channel=channel)
@@ -2656,7 +2656,7 @@ class PluginsManager(PaymentInterface):
         return None
 
     def _get_all_plugin_configs(self):
-        with opentracing.global_tracer().start_active_span("_get_all_plugin_configs"):
+        with tracer.start_as_current_span("_get_all_plugin_configs"):
             if not hasattr(self, "_plugin_configs"):
                 plugin_configurations = (
                     PluginConfiguration.objects.using(self.database)
@@ -2907,7 +2907,7 @@ def get_plugins_manager(
     allow_replica: bool,
     requestor_getter: Callable[[], "Requestor"] | None = None,
 ) -> PluginsManager:
-    with opentracing.global_tracer().start_active_span("get_plugins_manager"):
+    with tracer.start_as_current_span("get_plugins_manager"):
         if allow_replica:
             return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)
         with allow_writer():

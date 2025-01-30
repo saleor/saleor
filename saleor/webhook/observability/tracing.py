@@ -1,14 +1,11 @@
 from contextlib import contextmanager
 
-import opentracing
+from ...core.otel import tracer
 
 
 @contextmanager
-def opentracing_trace(span_name, component):
-    with opentracing.global_tracer().start_active_span(
-        f"observability.{span_name}"
-    ) as scope:
-        span = scope.span
-        span.set_tag("service.name", "observability")
-        span.set_tag(opentracing.tags.COMPONENT, component)
+def otel_trace(span_name, component):
+    with tracer.start_as_current_span(f"observability.{span_name}") as span:
+        span.set_attribute("service.name", "observability")
+        span.set_attribute("component", component)
         yield
