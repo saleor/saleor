@@ -967,3 +967,8 @@ TRANSACTION_ITEMS_LIMIT = 100
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# OTel settings
+# Endpoint for sending public OpenTelemetry traces
+OTEL_PUBLIC_ENDPOINT = os.environ.get("OTEL_PUBLIC_ENDPOINT")

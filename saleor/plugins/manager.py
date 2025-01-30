@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound
 from django.utils.module_loading import import_string
+from opentelemetry.trace import SpanContext
 from prices import TaxedMoney
 
 from ..channel.models import Channel
@@ -654,6 +655,7 @@ class PluginsManager(PaymentInterface):
         lines,
         app_identifier,
         pregenerated_subscription_payloads: dict | None = None,
+        public_span_ctx: SpanContext | None = None,
     ) -> TaxData | None:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -664,6 +666,7 @@ class PluginsManager(PaymentInterface):
             app_identifier,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             channel_slug=checkout_info.channel.slug,
+            public_span_ctx=public_span_ctx,
         )
 
     # Note: this method is deprecated in Saleor 3.20 and will be removed in Saleor 3.21.

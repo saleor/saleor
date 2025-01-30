@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional, cast
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from opentelemetry.trace import SpanContext
 from prices import Money, TaxedMoney
 
 from ..checkout import base_calculations
@@ -101,6 +102,7 @@ def checkout_subtotal(
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -116,6 +118,7 @@ def checkout_subtotal(
         address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        public_span_ctx=public_span_ctx,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -306,6 +309,7 @@ def _fetch_checkout_prices_if_expired(
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ) -> tuple["CheckoutInfo", list["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -361,6 +365,7 @@ def _fetch_checkout_prices_if_expired(
                 address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+                public_span_ctx=public_span_ctx,
             )
         except TaxDataError as e:
             if str(e) != TaxDataErrorMessage.EMPTY:
@@ -392,6 +397,7 @@ def _fetch_checkout_prices_if_expired(
                     address,
                     database_connection_name=database_connection_name,
                     pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+                    public_span_ctx=public_span_ctx,
                 )
             except TaxDataError as e:
                 if str(e) != TaxDataErrorMessage.EMPTY:
@@ -455,6 +461,7 @@ def _calculate_and_add_tax(
     address: Optional["Address"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
 
@@ -475,6 +482,7 @@ def _calculate_and_add_tax(
                 lines,
                 tax_app_identifier,
                 pregenerated_subscription_payloads,
+                public_span_ctx=public_span_ctx,
             )
             if not tax_data:
                 log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -489,6 +497,7 @@ def _calculate_and_add_tax(
                 lines,
                 address,
                 pregenerated_subscription_payloads,
+                public_span_ctx=public_span_ctx,
             )
     else:
         # Get taxes calculated with flat rates and apply to checkout.
@@ -510,6 +519,7 @@ def _call_plugin_or_tax_app(
     lines: list["CheckoutLineInfo"],
     address: Optional["Address"] = None,
     pregenerated_subscription_payloads: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ):
     from .utils import log_address_if_validation_skipped_for_checkout
 
@@ -541,6 +551,7 @@ def _call_plugin_or_tax_app(
             lines,
             tax_app_identifier,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+            public_span_ctx=public_span_ctx,
         )
         if tax_data is None:
             log_address_if_validation_skipped_for_checkout(checkout_info, logger)
@@ -706,6 +717,7 @@ def fetch_checkout_data(
     force_status_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ):
     """Fetch checkout data.
 
@@ -723,6 +735,7 @@ def fetch_checkout_data(
         force_update=force_update,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        public_span_ctx=public_span_ctx,
     )
     current_total_gross = checkout_info.checkout.total.gross
     if current_total_gross != previous_total_gross or force_status_update:
