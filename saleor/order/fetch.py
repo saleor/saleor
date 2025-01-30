@@ -20,8 +20,8 @@ from ..discount.interface import (
 from ..discount.models import OrderLineDiscount
 from ..discount.utils.voucher import (
     VoucherDenormalizedInfo,
-    apply_voucher_to_line,
     get_the_cheapest_line,
+    attach_voucher_to_line_info,
 )
 from ..graphql.core.types import Money
 from ..payment.models import Payment
@@ -186,11 +186,12 @@ def fetch_draft_order_lines_info(
         voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order
     ):
         voucher_info = fetch_voucher_info(voucher, order.voucher_code)
-        apply_voucher_to_line(voucher_info, lines_info)
+        attach_voucher_to_line_info(voucher_info, lines_info)
         denormalized_voucher_info = _get_denormalized_voucher_info(lines_info, voucher)
         _apply_denormalized_voucher_to_line_info(
             lines_info, denormalized_voucher_info, order.voucher_code
         )
+
     return lines_info
 
 
