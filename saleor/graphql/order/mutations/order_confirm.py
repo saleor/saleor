@@ -91,7 +91,7 @@ class OrderConfirm(ModelMutation):
                 transaction.on_commit(
                     lambda: order_charged(
                         order_info,
-                        info.context.user,
+                        user,
                         app,
                         authorized_payment.total,
                         authorized_payment,
