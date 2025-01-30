@@ -915,6 +915,7 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 database_connection_name=database_connection_name,
                 pregenerated_subscription_payloads=payloads,
+                public_span_ctx=info.context.public_span_ctx,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))

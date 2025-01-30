@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Optional, Union
 
 import graphene
 from django.conf import settings
+from opentelemetry.trace import SpanContext
 
 from ...app.models import App
 from ...channel.models import Channel
@@ -3389,6 +3390,7 @@ class WebhookPlugin(BasePlugin):
         payload_gen: Callable,
         subscriptable_object=None,
         pregenerated_subscription_payloads: dict | None = None,
+        public_span_ctx: SpanContext | None = None,
     ):
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -3430,6 +3432,7 @@ class WebhookPlugin(BasePlugin):
             request=request_context,
             requestor=self.requestor,
             pregenerated_subscription_payload=pregenerated_subscription_payload,
+            public_span_ctx=public_span_ctx,
         )
         return parse_tax_data(response)
 
@@ -3440,6 +3443,7 @@ class WebhookPlugin(BasePlugin):
         app_identifier,
         previous_value,
         pregenerated_subscription_payloads: dict | None = None,
+        public_span_ctx: SpanContext | None = None,
     ) -> Optional["TaxData"]:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
@@ -3453,6 +3457,7 @@ class WebhookPlugin(BasePlugin):
                 ),
                 checkout_info.checkout,
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+                public_span_ctx=public_span_ctx,
             )
         return trigger_all_webhooks_sync(
             event_type,
