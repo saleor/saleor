@@ -42,3 +42,15 @@ class CustomerEvents:
         (EMAIL_ASSIGNED, "A customer's email address was edited"),
         (NOTE_ADDED, "A note was added to the customer"),
     ]
+
+
+class AddressSavingStrategy:
+    """The different address saving strategies for checkout and order."""
+
+    SAVE_IN_USER_ADDRESS_BOOK = "save_in_user_address_book"
+    DO_NOT_SAVE_IN_USER_ADDRESS_BOOK = "do_not_save_in_user_address_book"
+
+    CHOICES = [
+        (SAVE_IN_USER_ADDRESS_BOOK, "Save in user address book"),
+        (DO_NOT_SAVE_IN_USER_ADDRESS_BOOK, "Do not save in user address book"),
+    ]
