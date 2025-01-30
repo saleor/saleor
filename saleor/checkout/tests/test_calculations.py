@@ -23,6 +23,7 @@ from ...plugins.avatax.plugin import AvataxPlugin
 from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
+from ...product.models import ProductVariantChannelListing
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..base_calculations import (
@@ -1030,3 +1031,74 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
     assert checkout.tax_error == TaxDataErrorMessage.OVERFLOW
     assert TaxDataErrorMessage.OVERFLOW in caplog.text
     assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+def test_fetch_checkout_with_prior_price_change(
+    fetch_kwargs,
+    checkout_with_items,
+):
+    # given
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+    line = checkout_with_items.lines.first()
+    listing = ProductVariantChannelListing.objects.filter(
+        variant=line.variant, channel=checkout_with_items.channel
+    ).first()
+    new_prior_price_amount = Decimal(7)
+    assert listing is not None
+    assert listing.prior_price_amount != new_prior_price_amount
+    listing.prior_price_amount = new_prior_price_amount
+    listing.save(update_fields=["prior_price_amount"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout_with_items)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout_with_items, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout_with_items.shipping_address
+        or checkout_with_items.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    line.refresh_from_db()
+    assert line.prior_unit_price_amount == new_prior_price_amount
+
+
+def test_fetch_checkout_with_prior_price_none(
+    fetch_kwargs,
+    checkout_with_items,
+):
+    # given
+    checkout_with_items.price_expiration = timezone.now()
+    checkout_with_items.save(update_fields=["price_expiration"])
+    line = checkout_with_items.lines.first()
+    listing = ProductVariantChannelListing.objects.filter(
+        variant=line.variant, channel=checkout_with_items.channel
+    ).first()
+    assert listing is not None
+    listing.prior_price_amount = None
+    listing.save(update_fields=["prior_price_amount"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout_with_items)
+
+    fetch_kwargs = {
+        "checkout_info": fetch_checkout_info(checkout_with_items, lines_info, manager),
+        "manager": manager,
+        "lines": lines_info,
+        "address": checkout_with_items.shipping_address
+        or checkout_with_items.billing_address,
+    }
+
+    # when
+    fetch_checkout_data(**fetch_kwargs)
+
+    # then
+    line.refresh_from_db()
+    assert line.prior_unit_price_amount is None
+    assert line.currency is not None

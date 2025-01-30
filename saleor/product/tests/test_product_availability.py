@@ -434,16 +434,17 @@ def test_filter_not_published_product_without_assigned_channel(
     assert not_available_products_pln.count() == 1
 
 
-@pytest.mark.parametrize("prior_price", [Decimal(15), Decimal(10), Decimal(5)])
-def test_availability_with_prior_price(product, channel_USD, prior_price):
+def test_availability_with_prior_price(product, channel_USD):
     # given
+    price = 20
+    discounted_price = 10
+    prior_price = 15
+
     product_channel_listing = product.channel_listings.get()
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.get()
     variant_channel_listing.prior_price_amount = Decimal(prior_price)
-    price = 20
     variant_channel_listing.price_amount = Decimal(price)
-    discounted_price = 10
     variant_channel_listing.discounted_price_amount = Decimal(discounted_price)
     variant_channel_listing.save()
 
@@ -463,12 +464,40 @@ def test_availability_with_prior_price(product, channel_USD, prior_price):
         == variant_channel_listing.prior_price_amount
     )
 
-    if prior_price > discounted_price:
-        assert availability.discount_prior is not None
-        assert (
-            availability.discount_prior.gross.amount == prior_price - discounted_price
-        )
-    else:
-        assert availability.discount_prior is None
+    assert availability.discount_prior is not None
+    assert availability.discount_prior.gross.amount == prior_price - discounted_price
     assert availability.discount is not None
     assert availability.discount.gross.amount == price - discounted_price
+
+
+@pytest.mark.parametrize("prior_price", [Decimal(10), Decimal(5), Decimal(0)])
+def test_availability_with_negative_prior_discount(product, channel_USD, prior_price):
+    # given
+    price = 20
+    discounted_price = 10
+
+    product_channel_listing = product.channel_listings.get()
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get()
+    variant_channel_listing.prior_price_amount = Decimal(prior_price)
+    variant_channel_listing.price_amount = Decimal(price)
+    variant_channel_listing.discounted_price_amount = Decimal(discounted_price)
+    variant_channel_listing.save()
+
+    # when
+    availability = get_product_availability(
+        product_channel_listing=product_channel_listing,
+        variants_channel_listing=[variant_channel_listing],
+        tax_rate=Decimal(19),
+        tax_calculation_strategy="TAX_APP",
+        prices_entered_with_tax=True,
+    )
+
+    # then
+    assert availability.price_range_prior is not None
+    assert (
+        availability.price_range_prior.start.gross.amount
+        == variant_channel_listing.prior_price_amount
+    )
+
+    assert availability.discount_prior is None

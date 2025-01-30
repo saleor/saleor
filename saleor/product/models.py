@@ -421,7 +421,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     def get_prior_price_amount(
         self,
         channel_listing: Optional["ProductVariantChannelListing"],
-    ):
+    ) -> Decimal | None:
         if channel_listing is None or channel_listing.prior_price is None:
             return None
 

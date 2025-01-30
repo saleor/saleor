@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
@@ -623,16 +624,20 @@ def test_variant_channel_listing_update_preorder(
     )
 
 
+@pytest.mark.parametrize("prior_price", [1.5, 0])
 def test_variant_channel_listing_update_with_prior_price(
-    staff_api_client, product, permission_manage_products, channel_USD
+    staff_api_client, product, permission_manage_products, channel_USD, prior_price
 ):
     # given
+    price = 1.0
     variant = product.variants.get()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "id": variant_id,
-        "input": [{"channelId": channel_usd_id, "priorPrice": 1.5, "price": 1}],
+        "input": [
+            {"channelId": channel_usd_id, "priorPrice": prior_price, "price": price}
+        ],
     }
 
     # when
@@ -649,4 +654,4 @@ def test_variant_channel_listing_update_with_prior_price(
     assert not data["errors"]
     assert variant_data["id"] == variant_id
     assert variant_data["channelListings"][0]["priorPrice"]["currency"] == "USD"
-    assert variant_data["channelListings"][0]["priorPrice"]["amount"] == 1.5
+    assert variant_data["channelListings"][0]["priorPrice"]["amount"] == prior_price

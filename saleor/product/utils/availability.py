@@ -200,16 +200,12 @@ def get_variant_availability(
     )
     prior_price = variant_channel_listing.prior_price
     prior_price_taxed = None
-    if prior_price:
-        prior_price_taxed = (
-            _calculate_product_price_with_taxes(
-                prior_price,
-                tax_rate,
-                tax_calculation_strategy,
-                prices_entered_with_tax,
-            )
-            if prior_price
-            else None
+    if prior_price is not None:
+        prior_price_taxed = _calculate_product_price_with_taxes(
+            prior_price,
+            tax_rate,
+            tax_calculation_strategy,
+            prices_entered_with_tax,
         )
     discount = _get_total_discount(undiscounted_price_taxed, discounted_price_taxed)
 
