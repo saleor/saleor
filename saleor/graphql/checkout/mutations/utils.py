@@ -19,7 +19,7 @@ from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....checkout.utils import (
     calculate_checkout_quantity,
     clear_delivery_method,
-    delete_external_shipping_id,
+    delete_external_shipping_id_if_present,
     get_external_shipping_id,
     is_shipping_required,
 )
@@ -103,7 +103,7 @@ def update_checkout_external_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo]
 ):
     if not _is_external_shipping_valid(checkout_info):
-        delete_external_shipping_id(checkout_info.checkout, save=True)
+        delete_external_shipping_id_if_present(checkout_info.checkout)
 
 
 def update_checkout_shipping_method_if_invalid(
