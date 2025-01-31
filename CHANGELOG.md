@@ -56,3 +56,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
+- Added support for the AWS_S3_URL_PROTOCOL environment variable - #17305 by @p-febis
