@@ -1,3 +1,12 @@
+"""Custom context management for telemetry.
+
+This module provides a custom context implementation for storing and managing trace
+attributes independently of OpenTelemetry's built-in context. This approach is
+necessary when working with third-party libraries (e.g., ddtrace) that provide
+their own SDK implementations and may modify the default context behavior, making
+it unable to store additional information beyond OpenTelemetry's standard use cases.
+"""
+
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import cast
