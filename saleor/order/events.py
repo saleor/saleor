@@ -605,6 +605,22 @@ def fulfillment_fulfilled_items_event(
     )
 
 
+def fulfillment_automatic_fulfilled_items_event(
+    *,
+    order: Order,
+    user: User | None,
+    app: App | None,
+    fulfillment_lines: list[FulfillmentLine],
+) -> OrderEvent:
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.FULFILLMENT_AUTOMATIC_FULFILLED_ITEMS,
+        user=user,
+        app=app,
+        parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+    )
+
+
 def fulfillment_awaits_approval_event(
     *,
     order: Order,

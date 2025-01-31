@@ -379,7 +379,7 @@ def handle_fully_paid_order(
     if order_info.customer_email:
         send_payment_confirmation(order_info, manager)
         if utils.order_needs_automatic_fulfillment(order_info.lines_data):
-            automatically_fulfill_digital_lines(order_info, manager)
+            automatically_fulfill_digital_lines(order_info, manager, user, app)
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
@@ -532,15 +532,10 @@ def order_fulfilled(
     fulfillments: list[Fulfillment],
     user: User | None,
     app: Optional["App"],
-    fulfillment_lines: list[FulfillmentLine],
     manager: "PluginsManager",
-    gift_card_lines_info: list[GiftCardLineData],
-    site_settings: "SiteSettings",
     notify_customer=True,
     webhook_event_map: dict[str, set["Webhook"]] | None = None,
 ):
-    from ..giftcard.utils import gift_cards_create
-
     if webhook_event_map is None:
         webhook_event_map = get_webhooks_for_multiple_events(
             WEBHOOK_EVENTS_FOR_ORDER_FULFILLED
@@ -549,18 +544,6 @@ def order_fulfilled(
     # transaction ensures webhooks are triggered only when order status and fulfillment
     # events are successfully created
     with traced_atomic_transaction():
-        update_order_status(order)
-        gift_cards_create(
-            order,
-            gift_card_lines_info,
-            site_settings,
-            user,
-            app,
-            manager,
-        )
-        events.fulfillment_fulfilled_items_event(
-            order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
-        )
         webhook_events = [WebhookEventAsyncType.ORDER_UPDATED]
         for fulfillment in fulfillments:
             call_event(manager.fulfillment_created, fulfillment, notify_customer)
@@ -1077,7 +1060,10 @@ def fulfill_order_lines(
 
 
 def automatically_fulfill_digital_lines(
-    order_info: "OrderInfo", manager: "PluginsManager"
+    order_info: "OrderInfo",
+    manager: "PluginsManager",
+    user: User | None = None,
+    app: Optional["App"] = None,
 ):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
@@ -1125,6 +1111,9 @@ def automatically_fulfill_digital_lines(
 
         FulfillmentLine.objects.bulk_create(fulfillments)
         fulfill_order_lines(lines_info, manager)
+        events.fulfillment_automatic_fulfilled_items_event(
+            order=order, user=user, app=app, fulfillment_lines=fulfillments
+        )
 
         send_fulfillment_confirmation_to_customer(
             order, fulfillment, user=order.user, app=None, manager=manager
@@ -1302,6 +1291,8 @@ def create_fulfillments(
         InsufficientStock: If system hasn't containt enough item in stock for any line.
 
     """
+    from ..giftcard.utils import gift_cards_create
+
     fulfillments: list[Fulfillment] = []
     fulfillment_lines: list[FulfillmentLine] = []
     gift_card_lines_info: list[GiftCardLineData] = []
@@ -1349,16 +1340,26 @@ def create_fulfillments(
 
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
         order.refresh_from_db()
+
         if approved:
+            update_order_status(order)
+            events.fulfillment_fulfilled_items_event(
+                order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
+            )
+            gift_cards_create(
+                order,
+                gift_card_lines_info,
+                site_settings,
+                user,
+                app,
+                manager,
+            )
             transaction.on_commit(
                 lambda: order_fulfilled(
                     fulfillments,
                     user,
                     app,
-                    fulfillment_lines,
                     manager,
-                    gift_card_lines_info,
-                    site_settings,
                     notify_customer,
                 )
             )

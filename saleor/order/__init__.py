@@ -135,6 +135,7 @@ class OrderEvents:
     FULFILLMENT_CANCELED = "fulfillment_canceled"
     FULFILLMENT_RESTOCKED_ITEMS = "fulfillment_restocked_items"
     FULFILLMENT_FULFILLED_ITEMS = "fulfillment_fulfilled_items"
+    FULFILLMENT_AUTOMATIC_FULFILLED_ITEMS = "fulfillment_automatic_fulfilled_items"
     FULFILLMENT_REFUNDED = "fulfillment_refunded"
     FULFILLMENT_RETURNED = "fulfillment_returned"
     FULFILLMENT_REPLACED = "fulfillment_replaced"
@@ -195,6 +196,10 @@ class OrderEvents:
         (FULFILLMENT_CANCELED, "A fulfillment was canceled"),
         (FULFILLMENT_RESTOCKED_ITEMS, "The items of the fulfillment were restocked"),
         (FULFILLMENT_FULFILLED_ITEMS, "Some items were fulfilled"),
+        (
+            FULFILLMENT_AUTOMATIC_FULFILLED_ITEMS,
+            "Some items were automatically fulfilled",
+        ),
         (FULFILLMENT_REFUNDED, "Some items were refunded"),
         (FULFILLMENT_RETURNED, "Some items were returned"),
         (FULFILLMENT_REPLACED, "Some items were replaced"),
