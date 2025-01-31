@@ -31,6 +31,9 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
+from ....webhook.circuit_breaker.breaker_board import (
+    initialize_breaker_board,
+)
 from ... import observability
 from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...event_types import WebhookEventSyncType
@@ -328,6 +331,10 @@ def trigger_webhook_sync(
         kwargs = {"timeout": timeout}
 
     return send_webhook_request_sync(delivery, **kwargs)
+
+
+if breaker_board := initialize_breaker_board():
+    trigger_webhook_sync = breaker_board(trigger_webhook_sync)
 
 
 def trigger_all_webhooks_sync(
