@@ -17,7 +17,7 @@ RUN apt-get update \
   mime-support
 
 WORKDIR /app
-RUN pip install poetry==1.8.4
+RUN pip install poetry==2.0.1
 RUN poetry config virtualenvs.create false
 COPY poetry.lock pyproject.toml /app/
-RUN poetry install --no-root
+RUN poetry sync

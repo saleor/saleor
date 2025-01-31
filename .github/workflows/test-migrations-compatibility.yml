@@ -38,7 +38,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          pip install poetry==1.8.4
+          pip install poetry==2.0.1
 
       - name: Restore venv from cache
         id: cached-poetry-dependencies-restore
@@ -55,7 +55,7 @@ jobs:
         if: steps.cached-poetry-dependencies-restore.outputs.cache-hit != 'true'
         run: |
           poetry env use python3.12
-          poetry install --sync --no-root
+          poetry sync
 
       - name: Add Python Virtual Environment to PATH
         run: |
@@ -84,7 +84,7 @@ jobs:
       # Sync dependencies to ensure consistency with base branch
       - name: Synchronize dependencies
         run: |
-          poetry install --sync --no-root
+          poetry sync
 
       - name: Run tests
         run: |
