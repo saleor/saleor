@@ -551,14 +551,15 @@ def order_fulfilled(
     # events are successfully created
     with traced_atomic_transaction():
         update_order_status(order)
-        gift_cards_create(
-            order,
-            gift_card_lines_info,
-            site_settings,
-            user,
-            app,
-            manager,
-        )
+        if gift_card_lines_info:
+            gift_cards_create(
+                order,
+                gift_card_lines_info,
+                site_settings,
+                user,
+                app,
+                manager,
+            )
         events.fulfillment_fulfilled_items_event(
             order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
         )
@@ -579,8 +580,13 @@ def order_fulfilled(
         )
     if notify_customer:
         for fulfillment in fulfillments:
-            send_fulfillment_confirmation_to_customer(
-                order, fulfillment, user, app, manager
+            call_event(
+                send_fulfillment_confirmation_to_customer,
+                order,
+                fulfillment,
+                user,
+                app,
+                manager,
             )
 
 
@@ -1351,27 +1357,23 @@ def create_fulfillments(
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
         order.refresh_from_db()
         if approved:
-            transaction.on_commit(
-                lambda: order_fulfilled(
-                    fulfillments,
-                    user,
-                    app,
-                    fulfillment_lines,
-                    manager,
-                    gift_card_lines_info,
-                    site_settings,
-                    notify_customer,
-                )
+            order_fulfilled(
+                fulfillments,
+                user,
+                app,
+                fulfillment_lines,
+                manager,
+                gift_card_lines_info,
+                site_settings,
+                notify_customer,
             )
         else:
-            transaction.on_commit(
-                lambda: order_awaits_fulfillment_approval(
-                    fulfillments,
-                    user,
-                    app,
-                    fulfillment_lines,
-                    manager,
-                )
+            order_awaits_fulfillment_approval(
+                fulfillments,
+                user,
+                app,
+                fulfillment_lines,
+                manager,
             )
     return fulfillments
 
