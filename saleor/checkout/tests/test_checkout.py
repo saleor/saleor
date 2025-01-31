@@ -68,14 +68,14 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
     # no shipping method assigned
     assert not delivery_method_info.is_valid_delivery_method()
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert delivery_method_info.is_valid_delivery_method()
 
@@ -83,7 +83,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     shipping_method.shipping_zone = zone
     shipping_method.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -120,7 +120,7 @@ def test_is_valid_delivery_method_external_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -165,7 +165,7 @@ def test_is_valid_delivery_method_external_method_with_metadata_and_description(
 
     # when
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     # then
     assert delivery_method_info.delivery_method.metadata == metadata
@@ -227,7 +227,7 @@ def test_is_valid_delivery_method_external_method_with_invalid_metadata(
 
     # when
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     # then
     assert delivery_method_info.delivery_method.metadata == {}
@@ -270,7 +270,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -310,7 +310,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -343,7 +343,7 @@ def test_is_valid_delivery_method_external_method_no_longer_available(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info) is False
 
@@ -2179,7 +2179,7 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
 
     assert isinstance(delivery_method_info, DeliveryMethodBase)
     assert not delivery_method_info.is_valid_delivery_method()

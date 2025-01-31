@@ -109,23 +109,58 @@ class CheckoutInfo:
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
     pregenerated_payloads_for_excluded_shipping_method: dict | None = None
 
-    @cached_property
-    def all_shipping_methods(self) -> list["ShippingMethodData"]:
-        all_methods = get_all_shipping_methods_list(
-            self,
-            self.shipping_address,
-            self.lines,
-            self.shipping_channel_listings,
-            self.manager,
-            self.database_connection_name,
-        )
-        # Filter shipping methods using sync webhooks
-        excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
-            self.checkout,
-            self.channel,
-            all_methods,
-            self.pregenerated_payloads_for_excluded_shipping_method,
-        )
+    _cached_built_in_shipping_methods: list[ShippingMethodData] | None = None
+    _cached_external_shipping_methods: list[ShippingMethodData] | None = None
+
+    def all_shipping_methods(
+        self, allow_stale: bool = False
+    ) -> list["ShippingMethodData"]:
+        """Return list of all available shipping methods.
+
+        If allow_state is set to True, any external calls will be skipped.
+        If allow_state is set to False, the external calls like: external shipping
+        methods or exclude shipping methods will be called.
+
+        The fetched values are stored in self object to remove any additional
+        external/DB calls.
+        """
+        if (
+            self._cached_external_shipping_methods is not None
+            and self._cached_built_in_shipping_methods is not None
+        ):
+            return (
+                self._cached_built_in_shipping_methods
+                + self._cached_external_shipping_methods
+            )
+
+        if allow_stale and self._cached_built_in_shipping_methods is not None:
+            return self._cached_built_in_shipping_methods
+
+        if self._cached_built_in_shipping_methods is None:
+            self._cached_built_in_shipping_methods = (
+                get_available_built_in_shipping_methods_for_checkout_info(self)
+            )
+
+        if allow_stale:
+            excluded_methods = []
+            all_methods = self._cached_built_in_shipping_methods
+        else:
+            self._cached_external_shipping_methods = (
+                get_external_shipping_methods_for_checkout_info(self)
+            )
+            all_methods = (
+                self._cached_built_in_shipping_methods
+                + self._cached_external_shipping_methods
+            )
+            # Filter shipping methods using sync webhooks
+            excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
+                self.checkout,
+                self.channel,
+                all_methods,
+                self.pregenerated_payloads_for_excluded_shipping_method,
+            )
+
+        # FIXME: make sure, that cache fields stores the proper values
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
@@ -139,8 +174,9 @@ class CheckoutInfo:
             )
         )
 
-    @property
-    def delivery_method_info(self) -> "DeliveryMethodBase":
+    # FIXME: rename me to `get_delivery_method_info`
+    # FIXME: check all calls of this method
+    def delivery_method_info(self, allow_stale: bool = False) -> "DeliveryMethodBase":
         from ..webhook.transport.shipping import convert_to_app_id_with_identifier
         from .utils import get_external_shipping_id
 
@@ -160,7 +196,10 @@ class CheckoutInfo:
                 )
 
         elif external_shipping_method_id := get_external_shipping_id(self.checkout):
-            methods = {method.id: method for method in self.all_shipping_methods}
+            methods = {
+                method.id: method
+                for method in self.all_shipping_methods(allow_stale=allow_stale)
+            }
             if method := methods.get(external_shipping_method_id):
                 delivery_method = method
             else:
@@ -536,17 +575,13 @@ def fetch_checkout_info(
     return checkout_info
 
 
-def get_valid_internal_shipping_method_list_for_checkout_info(
+def get_available_built_in_shipping_methods_for_checkout_info(
     checkout_info: "CheckoutInfo",
-    shipping_address: Optional["Address"],
-    lines: list[CheckoutLineInfo],
-    shipping_channel_listings: Iterable[ShippingMethodChannelListing],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list["ShippingMethodData"]:
     from . import base_calculations
-    from .utils import get_valid_internal_shipping_methods_for_checkout
+    from .utils import get_valid_internal_shipping_methods_for_checkout_info
 
-    country_code = shipping_address.country.code if shipping_address else None
+    lines = checkout_info.lines
 
     subtotal = base_calculations.base_checkout_subtotal(
         lines,
@@ -569,38 +604,30 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     if not is_shipping_voucher and not is_voucher_for_specific_product:
         subtotal -= checkout_info.checkout.discount
 
-    valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
+    valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout_info(
         checkout_info,
-        lines,
         subtotal,
-        shipping_channel_listings,
-        country_code=country_code,
-        database_connection_name=database_connection_name,
     )
 
     return valid_shipping_methods
 
 
+def get_external_shipping_methods_for_checkout_info(checkout_info):
+    manager = checkout_info.manager
+    return manager.list_shipping_methods_for_checkout(
+        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+    )
+
+
 def get_all_shipping_methods_list(
     checkout_info,
-    shipping_address,
-    lines,
-    shipping_channel_listings,
-    manager,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     return list(
         itertools.chain(
-            get_valid_internal_shipping_method_list_for_checkout_info(
+            get_available_built_in_shipping_methods_for_checkout_info(
                 checkout_info,
-                shipping_address,
-                lines,
-                shipping_channel_listings,
-                database_connection_name=database_connection_name,
             ),
-            manager.list_shipping_methods_for_checkout(
-                checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
-            ),
+            get_external_shipping_methods_for_checkout_info(checkout_info),
         )
     )
 

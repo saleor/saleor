@@ -111,6 +111,7 @@ def base_checkout_delivery_price(
     )
 
 
+# FIXME
 def base_checkout_undiscounted_delivery_price(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"] | None = None,
@@ -118,7 +119,7 @@ def base_checkout_undiscounted_delivery_price(
     """Calculate base (untaxed) undiscounted price for any kind of delivery method."""
     from .fetch import ShippingMethodInfo
 
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.delivery_method_info()
     currency = checkout_info.checkout.currency
 
     if not isinstance(delivery_method_info, ShippingMethodInfo):

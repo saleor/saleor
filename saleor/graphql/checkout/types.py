@@ -922,7 +922,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_shipping_method(root: SyncWebhookControlContext[models.Checkout], info):
         def with_checkout_info(checkout_info):
-            delivery_method = checkout_info.delivery_method_info.delivery_method
+            delivery_method = checkout_info.delivery_method_info().delivery_method
             if not delivery_method or not isinstance(
                 delivery_method, ShippingMethodData
             ):
@@ -943,6 +943,9 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
+            # if not root.allow_sync_webhooks:
+            #     return checkout_info.all_shipping_methods(allow_stale=True)
+            # return checkout_info.all_shipping_methods(allow_stale=False)
             return checkout_info.all_shipping_methods
 
         return (
@@ -957,7 +960,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
-            return checkout_info.delivery_method_info.delivery_method
+            # return checkout_info.delivery_method_info(allow_stale=False).delivery_method
+            return checkout_info.delivery_method_info().delivery_method
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)

@@ -118,7 +118,7 @@ def update_checkout_shipping_method_if_invalid(
     is_valid = clean_delivery_method(
         checkout_info=checkout_info,
         lines=lines,
-        method=checkout_info.delivery_method_info.delivery_method,
+        method=checkout_info.delivery_method_info().delivery_method,
     )
 
     if not is_valid:
@@ -580,7 +580,9 @@ def _set_checkout_base_subtotal_and_total_on_checkout_creation(
         for variant_id, discounted_price, price in product_models.ProductVariantChannelListing.objects.filter(
             variant_id__in=variants_id,
             channel_id=checkout.channel_id,
-        ).values_list("variant_id", "discounted_price_amount", "price_amount")
+        ).values_list(
+            "variant_id", "discounted_price_amount", "price_amount"
+        )
     }
     subtotal = Decimal("0")
     for line in checkout.lines.all():

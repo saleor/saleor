@@ -79,7 +79,9 @@ def fetch_order_prices_if_expired(
         lines,
         database_connection_name=database_connection_name,
     )
-
+    # FIXME: we recieved the taxes data from the app, but in DB we have different set
+    #  of rows. We can't mark them as valid prices, we need to raise an exception or
+    # force second re-calculation.
     order.should_refresh_prices = False
     with transaction.atomic(savepoint=False):
         with allow_writer():
