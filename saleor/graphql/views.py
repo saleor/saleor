@@ -22,7 +22,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.otel import tracer
+from ..core.otel import public_tracer, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -162,7 +162,9 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with tracer.start_as_current_span("http", kind=trace.SpanKind.SERVER) as span:
+        with public_tracer.start_as_current_span(
+            "http", kind=trace.SpanKind.SERVER
+        ) as span:
             span.set_attribute("component", "http")
             span.set_attribute("resource.name", request.path)
             span.set_attribute(SpanAttributes.HTTP_METHOD, request.method)  # type: ignore[arg-type]
@@ -273,7 +275,7 @@ class GraphQLView(View):
             return None, ExecutionResult(errors=[e], invalid=True)
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
-        with tracer.start_as_current_span("graphql_query") as span:
+        with public_tracer.start_as_current_span("graphql_query") as span:
             span.set_attribute("component", "graphql")
             span.set_attribute(
                 SpanAttributes.HTTP_URL,
