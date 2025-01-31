@@ -418,6 +418,15 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
             price=price, rules=rules, currency=channel_listing.currency
         )
 
+    def get_prior_price_amount(
+        self,
+        channel_listing: Optional["ProductVariantChannelListing"],
+    ) -> Decimal | None:
+        if channel_listing is None or channel_listing.prior_price is None:
+            return None
+
+        return channel_listing.prior_price.amount
+
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
 
@@ -525,6 +534,16 @@ class ProductVariantChannelListing(models.Model):
         null=True,
     )
     cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
+
+    prior_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    prior_price = MoneyField(
+        amount_field="prior_price_amount", currency_field="currency"
+    )
 
     discounted_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

@@ -22,6 +22,8 @@ def checkout_with_item_on_promotion(checkout_with_item):
     variant = line.variant
 
     reward_value = Decimal("5")
+    reward_value_prior = Decimal("2")
+
     rule = promotion.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -38,7 +40,12 @@ def checkout_with_item_on_promotion(checkout_with_item):
     variant_channel_listing.discounted_price_amount = (
         variant_channel_listing.price_amount - reward_value
     )
-    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+    variant_channel_listing.prior_price_amount = (
+        variant_channel_listing.price_amount - reward_value_prior
+    )
+    variant_channel_listing.save(
+        update_fields=["discounted_price_amount", "prior_price_amount"]
+    )
 
     variant_channel_listing.variantlistingpromotionrule.create(
         promotion_rule=rule,

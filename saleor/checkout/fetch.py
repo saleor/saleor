@@ -1,6 +1,7 @@
 import itertools
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from decimal import Decimal
 from functools import cached_property, singledispatch
 from typing import TYPE_CHECKING, Any, Optional, Union
 from uuid import UUID
@@ -88,6 +89,13 @@ class CheckoutLineInfo(LineInfo):
                 self.channel_listing, self.line.price_override
             )
         return self.line.undiscounted_unit_price
+
+    @cached_property
+    def prior_unit_price_amount(self) -> Decimal | None:
+        """Provide prior unit price."""
+        if self.channel_listing and self.channel_listing.price is not None:
+            return self.variant.get_prior_price_amount(self.channel_listing)
+        return self.line.prior_unit_price_amount
 
 
 @dataclass

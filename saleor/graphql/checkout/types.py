@@ -9,6 +9,7 @@ from ...checkout import calculations, models, problems
 from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.db.connection import allow_writer_in_context
+from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...graphql.core.context import get_database_connection_name
 from ...payment.interface import ListStoredPaymentMethodsRequestData
@@ -215,6 +216,11 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         description="The unit price of the checkout line, without discounts.",
         required=True,
     )
+    prior_unit_price = graphene.Field(
+        Money,
+        description="The unit price of the checkout line prior to promotion."
+        + ADDED_IN_321,
+    )
     total_price = BaseField(
         TaxedMoney,
         description="The sum of the checkout line price, taxes and discounts.",
@@ -230,6 +236,11 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         Money,
         description="The sum of the checkout line price, without discounts.",
         required=True,
+    )
+    prior_total_price = graphene.Field(
+        Money,
+        description="The sum of the checkout line price prior to promotion."
+        + ADDED_IN_321,
     )
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered.",
@@ -421,6 +432,19 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             .load(root.checkout_id)
             .then(with_checkout)
         )
+
+    @staticmethod
+    def resolve_prior_total_price(
+        root: models.CheckoutLine, info: ResolveInfo
+    ) -> Money | None:
+        if root.prior_unit_price is None:
+            return None
+
+        quantized_amount = quantize_price(
+            root.prior_unit_price.amount * root.quantity, root.currency
+        )
+
+        return Money(amount=quantized_amount, currency=root.currency)
 
     @staticmethod
     def resolve_requires_shipping(root: models.CheckoutLine, info: ResolveInfo):
