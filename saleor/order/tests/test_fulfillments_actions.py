@@ -30,6 +30,7 @@ def test_create_fulfillments(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
+    notify_customer = True
     manager = get_plugins_manager(allow_replica=False)
     [fulfillment] = create_fulfillments(
         staff_user,
@@ -38,7 +39,7 @@ def test_create_fulfillments(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
+        notify_customer,
     )
     flush_post_commit_hooks()
 
@@ -78,7 +79,7 @@ def test_create_fulfillments(
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, notify_customer)
 
 
 @patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
@@ -663,7 +664,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
         fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
         manager=manager,
         site_settings=site_settings,
-        approved=False,
+        auto_approved=False,
     )
     flush_post_commit_hooks()
 

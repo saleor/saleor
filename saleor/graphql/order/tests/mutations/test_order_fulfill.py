@@ -139,7 +139,7 @@ def test_order_fulfill(
         site_settings,
         True,
         allow_stock_to_be_exceeded=False,
-        approved=fulfillment_auto_approve,
+        auto_approved=fulfillment_auto_approve,
         tracking_number="",
     )
     mocked_fulfillment_tracking_number_updated_event.assert_not_called()
@@ -249,7 +249,7 @@ def test_order_fulfill_with_tracking_number(
         site_settings,
         True,
         allow_stock_to_be_exceeded=False,
-        approved=fulfillment_auto_approve,
+        auto_approved=fulfillment_auto_approve,
         tracking_number="test_tracking_number",
     )
 
@@ -578,7 +578,7 @@ def test_order_fulfill_as_app(
         site_settings,
         True,
         allow_stock_to_be_exceeded=False,
-        approved=True,
+        auto_approved=True,
         tracking_number="",
     )
 
@@ -646,7 +646,7 @@ def test_order_fulfill_many_warehouses(
         site_settings,
         True,
         allow_stock_to_be_exceeded=False,
-        approved=True,
+        auto_approved=True,
         tracking_number="",
     )
 
@@ -934,7 +934,7 @@ def test_order_fulfill_without_notification(
         site_settings,
         False,
         allow_stock_to_be_exceeded=False,
-        approved=True,
+        auto_approved=True,
         tracking_number="",
     )
 
@@ -1001,7 +1001,7 @@ def test_order_fulfill_lines_with_empty_quantity(
         site_settings,
         True,
         allow_stock_to_be_exceeded=False,
-        approved=True,
+        auto_approved=True,
         tracking_number="",
     )
 
@@ -1066,7 +1066,7 @@ def test_order_fulfill_without_sku(
         site_settings,
         True,
         allow_stock_to_be_exceeded=False,
-        approved=fulfillment_auto_approve,
+        auto_approved=fulfillment_auto_approve,
         tracking_number="",
     )
 

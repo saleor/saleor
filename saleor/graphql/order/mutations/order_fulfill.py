@@ -290,7 +290,7 @@ class OrderFulfill(BaseMutation):
                 site.settings,
                 notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
-                approved=approved,
+                auto_approved=approved,
                 tracking_number=tracking_number,
             )
         except InsufficientStock as exc:
