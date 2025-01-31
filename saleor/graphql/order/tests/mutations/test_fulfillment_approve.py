@@ -10,6 +10,7 @@ from .....order.fetch import OrderLineInfo
 from .....order.models import OrderLine
 from .....plugins.manager import get_plugins_manager
 from .....product.models import Product
+from .....tests.utils import flush_post_commit_hooks
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -55,6 +56,7 @@ def test_fulfillment_approve(
     variables = {"id": fulfillment_id, "notifyCustomer": True}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
+    flush_post_commit_hooks()
     data = content["data"]["orderFulfillmentApprove"]
     assert not data["errors"]
     assert data["fulfillment"]["status"] == FulfillmentStatus.FULFILLED.upper()
@@ -183,6 +185,7 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     fulfillment,
     permission_group_manage_orders,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
@@ -196,8 +199,12 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
         "notifyCustomer": True,
         "allowStockToBeExceeded": False,
     }
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
 
+    # then
+    flush_post_commit_hooks()
     content = get_graphql_content(response)
     errors = content["data"]["orderFulfillmentApprove"]["errors"]
 
@@ -222,7 +229,7 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     fulfillment.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
 
-    assert mock_email_fulfillment.call_count == 1
+    mock_email_fulfillment.assert_not_called()
     events = fulfillment.order.events.all()
     assert len(events) == 0
     mock_fulfillment_approved.assert_not_called()
@@ -425,6 +432,7 @@ def test_fulfillment_approve_partial_order_fulfill(
     response = staff_api_client.post_graphql(query, variables)
 
     # then
+    flush_post_commit_hooks()
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentApprove"]
     assert not data["errors"]

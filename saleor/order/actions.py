@@ -538,6 +538,7 @@ def order_fulfilled(
     gift_card_lines_info: list[GiftCardLineData],
     site_settings: "SiteSettings",
     notify_customer=True,
+    manually_approved=False,
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
 ):
     from ..giftcard.utils import gift_cards_create
@@ -551,14 +552,15 @@ def order_fulfilled(
     # events are successfully created
     with traced_atomic_transaction():
         update_order_status(order)
-        gift_cards_create(
-            order,
-            gift_card_lines_info,
-            site_settings,
-            user,
-            app,
-            manager,
-        )
+        if gift_card_lines_info:
+            gift_cards_create(
+                order,
+                gift_card_lines_info,
+                site_settings,
+                user,
+                app,
+                manager,
+            )
         events.fulfillment_fulfilled_items_event(
             order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
         )
@@ -566,10 +568,13 @@ def order_fulfilled(
         for fulfillment in fulfillments:
             call_event(manager.fulfillment_created, fulfillment, notify_customer)
 
-        if order.status == OrderStatus.FULFILLED:
+        order_fulfilled = order.status == OrderStatus.FULFILLED
+        if order_fulfilled:
             webhook_events.append(WebhookEventAsyncType.ORDER_FULFILLED)
+
+        if order_fulfilled or manually_approved:
             for fulfillment in fulfillments:
-                call_event(manager.fulfillment_approved, fulfillment)
+                call_event(manager.fulfillment_approved, fulfillment, notify_customer)
 
         call_order_events(
             manager,
@@ -579,8 +584,13 @@ def order_fulfilled(
         )
     if notify_customer:
         for fulfillment in fulfillments:
-            send_fulfillment_confirmation_to_customer(
-                order, fulfillment, user, app, manager
+            call_event(
+                send_fulfillment_confirmation_to_customer,
+                order,
+                fulfillment,
+                user,
+                app,
+                manager,
             )
 
 
@@ -836,28 +846,17 @@ def approve_fulfillment(
     notify_customer=True,
     allow_stock_to_be_exceeded: bool = False,
 ):
-    from ..giftcard.utils import gift_cards_create
-
     with traced_atomic_transaction():
         fulfillment.status = FulfillmentStatus.FULFILLED
         fulfillment.save()
         order = fulfillment.order
-        if notify_customer:
-            send_fulfillment_confirmation_to_customer(
-                fulfillment.order, fulfillment, user, app, manager
-            )
-        events.fulfillment_fulfilled_items_event(
-            order=order,
-            user=user,
-            app=app,
-            fulfillment_lines=list(fulfillment.lines.all()),
-        )
         lines_to_fulfill = []
         gift_card_lines_info = []
         insufficient_stocks = []
-        for fulfillment_line in fulfillment.lines.all().prefetch_related(
+        fulfillment_lines = fulfillment.lines.all().prefetch_related(
             "order_line__variant"
-        ):
+        )
+        for fulfillment_line in fulfillment_lines:
             order_line = fulfillment_line.order_line
             variant = fulfillment_line.order_line.variant
 
@@ -899,32 +898,17 @@ def approve_fulfillment(
 
         _decrease_stocks(lines_to_fulfill, manager, allow_stock_to_be_exceeded)
         order.refresh_from_db()
-        update_order_status(order)
-
-        webhook_event_map = get_webhooks_for_multiple_events(
-            WEBHOOK_EVENTS_FOR_ORDER_FULFILLED
-        )
-        webhook_events = [WebhookEventAsyncType.ORDER_UPDATED]
-        call_event(manager.fulfillment_approved, fulfillment, notify_customer)
-        if order.status == OrderStatus.FULFILLED:
-            webhook_events.append(WebhookEventAsyncType.ORDER_FULFILLED)
-
-        call_order_events(
+        order_fulfilled(
+            [fulfillment],
+            user,
+            app,
+            list(fulfillment_lines),
             manager,
-            webhook_events,
-            order,
-            webhook_event_map=webhook_event_map,
+            gift_card_lines_info,
+            settings,
+            notify_customer,
+            manually_approved=True,
         )
-
-        if gift_card_lines_info:
-            gift_cards_create(
-                order,
-                gift_card_lines_info,
-                settings,
-                user,
-                app,
-                manager,
-            )
 
     return fulfillment
 
@@ -1260,7 +1244,7 @@ def create_fulfillments(
     manager: "PluginsManager",
     site_settings: "SiteSettings",
     notify_customer: bool = True,
-    approved: bool = True,
+    auto_approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
     tracking_number: str = "",
 ) -> list[Fulfillment]:
@@ -1288,7 +1272,7 @@ def create_fulfillments(
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
         site_settings (SiteSettings): Site settings used for creating gift cards.
-        approved (Boolean): fulfillments will have status fulfilled if it's True,
+        auto_approved (Boolean): fulfillments will have status fulfilled if it's True,
             otherwise waiting_for_approval.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
             Default value is set to `False`.
@@ -1308,7 +1292,7 @@ def create_fulfillments(
     gift_card_lines_info: list[GiftCardLineData] = []
     status = (
         FulfillmentStatus.FULFILLED
-        if approved
+        if auto_approved
         else FulfillmentStatus.WAITING_FOR_APPROVAL
     )
 
@@ -1341,7 +1325,7 @@ def create_fulfillments(
                     order.channel.slug,
                     gift_card_lines_info,
                     manager,
-                    decrease_stock=approved,
+                    decrease_stock=auto_approved,
                     allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 )
             )
@@ -1350,28 +1334,24 @@ def create_fulfillments(
 
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
         order.refresh_from_db()
-        if approved:
-            transaction.on_commit(
-                lambda: order_fulfilled(
-                    fulfillments,
-                    user,
-                    app,
-                    fulfillment_lines,
-                    manager,
-                    gift_card_lines_info,
-                    site_settings,
-                    notify_customer,
-                )
+        if auto_approved:
+            order_fulfilled(
+                fulfillments,
+                user,
+                app,
+                fulfillment_lines,
+                manager,
+                gift_card_lines_info,
+                site_settings,
+                notify_customer,
             )
         else:
-            transaction.on_commit(
-                lambda: order_awaits_fulfillment_approval(
-                    fulfillments,
-                    user,
-                    app,
-                    fulfillment_lines,
-                    manager,
-                )
+            order_awaits_fulfillment_approval(
+                fulfillments,
+                user,
+                app,
+                fulfillment_lines,
+                manager,
             )
     return fulfillments
 
