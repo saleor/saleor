@@ -47,7 +47,6 @@ class _ContextAwareTracer(Tracer):
         )
 
 
-def get_tracer(scope_name: str) -> trace.Tracer:
-    return cast(
-        trace.Tracer, _ContextAwareTracer(trace.get_tracer(scope_name, __version__))
-    )
+def get_tracer(scope_name: str) -> Tracer:
+    tracer = trace.get_tracer(scope_name, __version__)
+    return cast(Tracer, _ContextAwareTracer(tracer))

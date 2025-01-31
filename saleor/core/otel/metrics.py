@@ -51,4 +51,5 @@ class _ContextAwareMeter(Meter):
 
 
 def get_meter(scope_name: str) -> Meter:
-    return cast(Meter, _ContextAwareMeter(metrics.get_meter(scope_name, __version__)))
+    meter = metrics.get_meter(scope_name, __version__)
+    return cast(Meter, _ContextAwareMeter(meter))
