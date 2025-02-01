@@ -21,9 +21,11 @@ from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
 from ..discount.utils.manual_discount import apply_discount_to_value
+from ..discount.utils.order import (
+    create_order_line_discount_objects_for_catalogue_promotions,
+    update_catalogue_promotion_discount_amount_for_order,
+)
 from ..discount.utils.promotion import (
-    get_discount_name,
-    get_discount_translated_name,
     get_sale_id,
     prepare_promotion_discount_reason,
 )
@@ -64,11 +66,15 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
-    from ..discount.interface import VariantPromotionRuleInfo
+    from ..graphql.order.utils import OrderLineData
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
 
 logger = logging.getLogger(__name__)
+
+
+def order_qs_select_for_update():
+    return Order.objects.order_by("id").select_for_update(of=(["self"]))
 
 
 def order_lines_qs_select_for_update():
@@ -234,7 +240,6 @@ def create_order_line(
     total_price = unit_price * quantity
     undiscounted_total_price = undiscounted_unit_price * quantity
 
-    tax_class = None
     if product.tax_class_id:
         tax_class = product.tax_class
     else:
@@ -249,6 +254,7 @@ def create_order_line(
         translated_product_name = ""
     if translated_variant_name == variant_name:
         translated_variant_name = ""
+    # TODO zedzior: this trigger multiple db calls for multiple lines
     line = order.lines.create(
         product_name=product_name,
         variant_name=variant_name,
@@ -273,11 +279,16 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
-            line_discounts = create_order_line_discounts(line, rules_info)
+            # TODO zedzior: this trigger multiple db calls for multiple lines
+            line_discounts = (
+                create_order_line_discount_objects_for_catalogue_promotions(
+                    line, rules_info, channel
+                )
+            )
             promotion = rules_info[0].promotion
             line.sale_id = get_sale_id(promotion)
             line.unit_discount_reason = (
-                prepare_promotion_discount_reason(promotion, line.sale_id)
+                prepare_promotion_discount_reason(rules_info[0].promotion)
                 if line_discounts
                 else None
             )
@@ -320,41 +331,14 @@ def create_order_line(
     return line
 
 
-def create_order_line_discounts(
-    line: "OrderLine", rules_info: Iterable["VariantPromotionRuleInfo"]
-) -> Iterable["OrderLineDiscount"]:
-    line_discounts_to_create: list[OrderLineDiscount] = []
-    for rule_info in rules_info:
-        rule = rule_info.rule
-        if not rule_info.variant_listing_promotion_rule:
-            continue
-        rule_discount_amount = rule_info.variant_listing_promotion_rule.discount_amount
-        line_discounts_to_create.append(
-            OrderLineDiscount(
-                line=line,
-                type=DiscountType.PROMOTION,
-                value_type=rule.reward_value_type,
-                value=rule.reward_value,
-                amount_value=rule_discount_amount,
-                currency=line.currency,
-                name=get_discount_name(rule, rule_info.promotion),
-                translated_name=get_discount_translated_name(rule_info),
-                reason=None,
-                promotion_rule=rule,
-            )
-        )
-
-    return OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
-
-
 @traced_atomic_transaction()
 def add_variant_to_order(
-    order,
-    line_data,
-    user,
-    app,
-    manager,
-    allocate_stock=False,
+    order: Order,
+    line_data: "OrderLineData",
+    user: Optional["User"],
+    app: Optional["App"],
+    manager: "PluginsManager",
+    allocate_stock: bool = False,
 ) -> OrderLine:
     """Add total_quantity of variant to order.
 
@@ -362,7 +346,8 @@ def add_variant_to_order(
     """
     channel = order.channel
 
-    if line_data.line_id:
+    is_new_line = not line_data.line_id
+    if not is_new_line:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
@@ -432,7 +417,6 @@ def update_line_base_unit_prices_with_custom_price(
     line.undiscounted_base_unit_price_amount = price_override
     line.undiscounted_unit_price_gross_amount = price_override
     line.undiscounted_unit_price_net_amount = price_override
-
     update_fields.extend(
         [
             "is_price_overridden",
@@ -545,18 +529,19 @@ def _update_allocations_for_line(
 
 
 def change_order_line_quantity(
-    user,
-    app,
-    line_info,
+    user: Optional["User"],
+    app: Optional["App"],
+    line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
     channel: "Channel",
     manager: "PluginsManager",
-    send_event=True,
-    update_fields=None,
+    send_event: bool = True,
+    update_fields: list[str] | None = None,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
+    currency = channel.currency_code
     if new_quantity:
         if line.order.is_unconfirmed():
             _update_allocations_for_line(
@@ -565,9 +550,9 @@ def change_order_line_quantity(
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
         total_price_gross_amount = line.quantity * line.unit_price_gross_amount
-        line.total_price_net_amount = total_price_net_amount.quantize(Decimal("0.001"))
-        line.total_price_gross_amount = total_price_gross_amount.quantize(
-            Decimal("0.001")
+        line.total_price_net_amount = quantize_price(total_price_net_amount, currency)
+        line.total_price_gross_amount = quantize_price(
+            total_price_gross_amount, currency
         )
         undiscounted_total_price_gross_amount = (
             line.quantity * line.undiscounted_unit_price_gross_amount
@@ -575,11 +560,11 @@ def change_order_line_quantity(
         undiscounted_total_price_net_amount = (
             line.quantity * line.undiscounted_unit_price_net_amount
         )
-        line.undiscounted_total_price_gross_amount = (
-            undiscounted_total_price_gross_amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price_gross_amount = quantize_price(
+            undiscounted_total_price_gross_amount, currency
         )
-        line.undiscounted_total_price_net_amount = (
-            undiscounted_total_price_net_amount.quantize(Decimal("0.001"))
+        line.undiscounted_total_price_net_amount = quantize_price(
+            undiscounted_total_price_net_amount, currency
         )
         fields = [
             "quantity",
@@ -592,6 +577,14 @@ def change_order_line_quantity(
             update_fields.extend(fields)
         else:
             line.save(update_fields=fields)
+
+        if catalogue_discount := line.discounts.filter(
+            type=DiscountType.PROMOTION
+        ).first():
+            update_catalogue_promotion_discount_amount_for_order(
+                catalogue_discount, line, new_quantity, currency
+            )
+
     else:
         delete_order_line(line_info, manager)
 
@@ -1274,16 +1267,6 @@ def order_info_for_logs(order: Order, lines: Iterable[OrderLine]):
                 "total_price_net_amount": line_info.line.total_price_net_amount,
                 "total_price_gross_amount": line_info.line.total_price_gross_amount,
                 "has_voucher_code": bool(line_info.line.voucher_code),
-                "variant_listing_price": (
-                    line_info.channel_listing.price_amount
-                    if line_info.channel_listing
-                    else None
-                ),
-                "variant_listing_discounted_price": (
-                    line_info.channel_listing.discounted_price_amount
-                    if line_info.channel_listing
-                    else None
-                ),
                 "unit_discount_amount": line_info.line.unit_discount_amount,
                 "unit_discount_type": line_info.line.unit_discount_type,
                 "unit_discount_reason": line_info.line.unit_discount_reason,

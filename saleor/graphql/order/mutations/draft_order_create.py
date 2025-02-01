@@ -99,6 +99,7 @@ class DraftOrderInput(BaseInputObjectType):
         description="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
+    # TODO zedzior: what is this field for?
     discount = PositiveDecimal(description="Discount amount for the order.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
     shipping_method = graphene.ID(
