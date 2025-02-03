@@ -392,7 +392,8 @@ def handle_fully_paid_order(
         )
 
     if not order.is_draft() and order.channel.automatically_confirm_all_new_orders:
-        update_order_status(order)
+        order = update_order_status(order)
+        order_info.order = order
 
     call_order_events(
         manager,
@@ -551,7 +552,7 @@ def order_fulfilled(
     # transaction ensures webhooks are triggered only when order status and fulfillment
     # events are successfully created
     with traced_atomic_transaction():
-        update_order_status(order)
+        order = update_order_status(order)
         if gift_card_lines_info:
             gift_cards_create(
                 order,
