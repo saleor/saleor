@@ -40,7 +40,7 @@ def cors_handler(application: ASGI3Application) -> ASGI3Application:
                 (b"access-control-allow-credentials", b"true"),
                 (
                     b"access-control-allow-headers",
-                    b"Origin, Content-Type, Accept, Authorization, "
+                    b"Origin, Content-Type, Accept, Authorization, Source-Service-Name, "
                     b"Authorization-Bearer",
                 ),
                 (b"access-control-allow-methods", b"POST, OPTIONS"),

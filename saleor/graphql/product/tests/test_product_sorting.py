@@ -144,6 +144,59 @@ def test_sort_products_within_collection(
     assert products[2]["node"]["id"] == product
 
 
+def test_sort_products_within_collection_when_null_as_sort_order(
+    staff_api_client,
+    published_collection,
+    collection_with_products,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
+
+    products = collection_with_products
+
+    collection = products[0].collections.first()
+
+    collection_products = collection.collectionproduct.all()
+    for c_p in collection_products:
+        c_p.sort_order = None
+    CollectionProduct.objects.bulk_update(collection_products, ["sort_order"])
+
+    collection_products = sorted(
+        collection.collectionproduct.all(), key=lambda c: c.product_id
+    )
+
+    collection_prod_1 = collection_products[0]
+    collection_prod_2 = collection_products[1]
+    collection_prod_3 = collection_products[2]
+
+    product = graphene.Node.to_global_id("Product", collection_prod_1.product_id)
+    second_product = graphene.Node.to_global_id("Product", collection_prod_2.product_id)
+    third_product = graphene.Node.to_global_id("Product", collection_prod_3.product_id)
+
+    variables = {
+        "collectionId": collection_id,
+        "moves": [{"productId": third_product, "sortOrder": -2}],
+    }
+
+    # when
+    content = get_graphql_content(
+        staff_api_client.post_graphql(COLLECTION_RESORT_QUERY, variables)
+    )["data"]["collectionReorderProducts"]
+
+    # then
+    assert not content["errors"]
+
+    assert content["collection"]["id"] == collection_id
+
+    products = content["collection"]["products"]["edges"]
+    assert products[0]["node"]["id"] == third_product
+    assert products[1]["node"]["id"] == product
+    assert products[2]["node"]["id"] == second_product
+
+
 GET_SORTED_PRODUCTS_QUERY = """
 query Products($sortBy: ProductOrder, $channel: String) {
     products(first: 10, sortBy: $sortBy, channel: $channel) {

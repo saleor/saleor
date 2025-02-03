@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
 - Fix checkout `line.undiscountedTotalPrice` and `line.undiscountedUnitPrice` calculation. - #17193 by @IKarbowiak
   - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
+- Add prior price fields to `VariantPricingInfo`, `ProductPricingInfo` and `CheckoutLine` - #17202 by @delemeator
 - Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
 
 ### Webhooks
@@ -38,7 +39,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Truncate lenghty responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
 
 ### Other changes
-
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
 - Fixed a potential crash when Checkout metadata is accessed with high concurrency - #16411 by @patrys
 - Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator

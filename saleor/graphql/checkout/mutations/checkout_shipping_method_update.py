@@ -5,8 +5,7 @@ from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
-    delete_external_shipping_id,
-    get_checkout_metadata,
+    delete_external_shipping_id_if_present,
     invalidate_checkout,
     is_shipping_required,
     set_external_shipping_id,
@@ -210,7 +209,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info, lines, delivery_method=delivery_method
         )
 
-        delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
@@ -221,7 +219,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save()
+        delete_external_shipping_id_if_present(checkout=checkout)
 
         call_checkout_info_event(
             manager,
@@ -264,7 +262,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save()
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
@@ -279,7 +276,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     @classmethod
     def remove_shipping_method(cls, checkout, checkout_info, lines, manager):
         checkout.shipping_method = None
-        delete_external_shipping_id(checkout=checkout)
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
@@ -289,7 +285,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save()
+        delete_external_shipping_id_if_present(checkout=checkout)
 
         call_checkout_info_event(
             manager,

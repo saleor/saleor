@@ -133,6 +133,7 @@ def calculate_checkout_total_with_gift_cards(
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    force_update: bool = False,
     allow_sync_webhooks: bool = True,
 ) -> "TaxedMoney":
     if pregenerated_subscription_payloads is None:
@@ -144,6 +145,7 @@ def calculate_checkout_total_with_gift_cards(
         address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        force_update=force_update,
         allow_sync_webhooks=allow_sync_webhooks,
     ) - checkout_info.checkout.get_total_gift_cards_balance(database_connection_name)
 
@@ -158,6 +160,7 @@ def checkout_total(
     address: Optional["Address"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
+    force_update: bool = False,
     allow_sync_webhooks: bool = True,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
@@ -177,6 +180,7 @@ def checkout_total(
         address=address,
         database_connection_name=database_connection_name,
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        force_update=force_update,
         allow_sync_webhooks=allow_sync_webhooks,
     )
     return quantize_price(checkout_info.checkout.total, currency)
@@ -310,6 +314,23 @@ def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]
         line_info.line.undiscounted_unit_price = line_info.undiscounted_unit_price
 
 
+def update_prior_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
+    """Update line prior unit price amount.
+
+    Prior unit price stores the price of the variant before promotion.
+    """
+    for line_info in lines:
+        listing = line_info.channel_listing
+        if not listing:
+            continue
+
+        # Updating amount instead of Money to avoid overriding currency with None
+        if listing.prior_price_amount is None:
+            line_info.line.prior_unit_price_amount = None
+        else:
+            line_info.line.prior_unit_price_amount = line_info.prior_unit_price_amount
+
+
 def _fetch_checkout_prices_if_expired(
     checkout_info: "CheckoutInfo",
     manager: "PluginsManager",
@@ -360,6 +381,7 @@ def _fetch_checkout_prices_if_expired(
 
     lines = cast(list, lines)
     update_undiscounted_unit_price_for_lines(lines)
+    update_prior_unit_price_for_lines(lines)
 
     create_or_update_discount_objects_from_promotion_for_checkout(
         checkout_info, lines, database_connection_name
@@ -459,6 +481,7 @@ def _fetch_checkout_prices_if_expired(
                     "total_price_gross_amount",
                     "tax_rate",
                     "undiscounted_unit_price_amount",
+                    "prior_unit_price_amount",
                 ],
             )
     return checkout_info, lines

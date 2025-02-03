@@ -101,9 +101,11 @@ class ModelWithMetadata(models.Model):
     def clear_private_metadata(self):
         self.private_metadata = {}
 
-    def delete_value_from_private_metadata(self, key: str):
+    def delete_value_from_private_metadata(self, key: str) -> bool:
         if key in self.private_metadata:
             del self.private_metadata[key]
+            return True
+        return False
 
     def get_value_from_metadata(self, key: str, default: Any = None) -> Any:
         return self.metadata.get(key, default)

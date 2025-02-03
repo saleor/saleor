@@ -7176,6 +7176,13 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   costPrice: Money
 
   """
+  Prior price of the variant used for discount calculations.
+  
+  Added in Saleor 3.21.
+  """
+  priorPrice: Money
+
+  """
   Gross margin percentage value.
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -7203,6 +7210,13 @@ type VariantPricingInfo @doc(category: "Products") {
   """The discount amount if in sale (null otherwise)."""
   discount: TaxedMoney
 
+  """
+  The discount amount compared to prior price. Null if product is not on sale or prior price was not provided in VariantChannelListing
+  
+  Added in Saleor 3.21.
+  """
+  discountPrior: TaxedMoney
+
   """The discount amount in the local currency."""
   discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
@@ -7211,6 +7225,13 @@ type VariantPricingInfo @doc(category: "Products") {
 
   """The price without any discount."""
   priceUndiscounted: TaxedMoney
+
+  """
+  The price prior to discount.
+  
+  Added in Saleor 3.21.
+  """
+  pricePrior: TaxedMoney
 
   """The discounted price in the local currency."""
   priceLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
@@ -7584,6 +7605,13 @@ type ProductPricingInfo @doc(category: "Products") {
   """The discount amount if in sale (null otherwise)."""
   discount: TaxedMoney
 
+  """
+  The discount amount compared to prior price. Null if product is not on sale or prior price was not provided in VariantChannelListing
+  
+  Added in Saleor 3.21.
+  """
+  discountPrior: TaxedMoney
+
   """The discount amount in the local currency."""
   discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
@@ -7595,6 +7623,13 @@ type ProductPricingInfo @doc(category: "Products") {
 
   """The undiscounted price range of the product variants."""
   priceRangeUndiscounted: TaxedMoneyRange
+
+  """
+  The prior price range of the product variants.
+  
+  Added in Saleor 3.21.
+  """
+  priceRangePrior: TaxedMoneyRange
 
   """
   The discounted price range of the product variants in the local currency.
@@ -10386,6 +10421,13 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   undiscountedUnitPrice: Money!
 
   """
+  The unit price of the checkout line prior to promotion.
+  
+  Added in Saleor 3.21.
+  """
+  priorUnitPrice: Money
+
+  """
   The sum of the checkout line price, taxes and discounts.
   
   Triggers the following webhook events:
@@ -10395,6 +10437,13 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 
   """The sum of the checkout line price, without discounts."""
   undiscountedTotalPrice: Money!
+
+  """
+  The sum of the checkout line price prior to promotion.
+  
+  Added in Saleor 3.21.
+  """
+  priorTotalPrice: Money
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
@@ -21080,6 +21129,13 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
   """Cost price of the variant in channel."""
   costPrice: PositiveDecimal
 
+  """
+  Previous price of the variant in channel. Useful for providing promotion information required by customer protection laws such as EU Omnibus directive.
+  
+  Added in Saleor 3.21.
+  """
+  priorPrice: PositiveDecimal
+
   """The threshold for preorder variant in channel."""
   preorderThreshold: Int
 }
@@ -21915,6 +21971,9 @@ input ChannelListingUpdateInput @doc(category: "Products") {
 
   """Cost price of the variant in channel."""
   costPrice: PositiveDecimal
+
+  """Price of the variant before discount."""
+  priorPrice: PositiveDecimal
 
   """The threshold for preorder variant in channel."""
   preorderThreshold: Int

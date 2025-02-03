@@ -17,10 +17,7 @@ from jwt import InvalidTokenError
 
 from ...account.models import User
 from ...app.models import App
-from ...core.exceptions import (
-    CircularSubscriptionSyncEvent,
-    PermissionDenied,
-)
+from ...core.exceptions import CircularSubscriptionSyncEvent, PermissionDenied
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
@@ -50,6 +47,12 @@ ALLOWED_ERRORS = [
     ValidationError,
     QueryCostError,
 ]
+
+AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG = {
+    "saleor.dashboard",
+    "saleor.dashboard.playground",
+    "saleor.playground",
+}
 
 INTERNAL_ERROR_MESSAGE = "Internal Server Error"
 
@@ -309,3 +312,12 @@ def format_error(error, handled_exceptions, query=None):
                 lines.extend(line.rstrip().splitlines())
         result["extensions"]["exception"]["stacktrace"] = lines
     return result
+
+
+def get_source_service_name_value(header_source: str | None) -> str | None:
+    default_value = "unknown_service"
+    if not header_source:
+        return default_value
+    if header_source.lower() in AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG:
+        return header_source.lower()
+    return default_value
