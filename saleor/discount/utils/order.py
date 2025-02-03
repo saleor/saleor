@@ -1,11 +1,11 @@
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
 from prices import TaxedMoney
-from uuid import UUID
 
 from ...channel.models import Channel
 from ...core.db.connection import allow_writer
@@ -78,7 +78,9 @@ def create_order_line_discount_objects(
                 discount.id for discount in discount_to_remove
             ]:
                 affected_line_ids.extend(
-                    discount.line_id for discount in discount_to_remove
+                    discount.line_id
+                    for discount in discount_to_remove
+                    if discount.line_id is not None
                 )
                 OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
@@ -101,6 +103,7 @@ def create_order_line_discount_objects(
     affected_line_ids.extend(
         discount_line.line_id
         for discount_line in (new_line_discounts + discounts_to_update)
+        if discount_line.line_id is not None
     )
 
     modified_lines_info = [

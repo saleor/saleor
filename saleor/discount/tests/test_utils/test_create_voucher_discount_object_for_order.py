@@ -86,8 +86,9 @@ def test_create_discount_for_voucher_specific_product_fixed(
         * tax_rate
     )
     assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
+    assert discounted_line.unit_discount_type == voucher.discount_value_type
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
+    assert discounted_line.unit_discount_value == unit_discount_amount
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
     assert (
@@ -99,16 +100,21 @@ def test_create_discount_for_voucher_specific_product_fixed(
         == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
     )
     assert line_1.unit_discount_amount == 0
+    assert line_1.unit_discount_value == 0
     assert line_1.unit_discount_type is None
     assert line_1.unit_discount_reason is None
 
     assert discounted_line.discounts.count() == 1
     line_discount = discounted_line.discounts.first()
     assert line_discount.amount_value == discount_amount
-    assert line_discount.value_type == DiscountValueType.FIXED
+    assert (
+        line_discount.value_type
+        == DiscountValueType.FIXED
+        == voucher.discount_value_type
+    )
     assert line_discount.type == DiscountType.VOUCHER
     assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
+    assert line_discount.value == unit_discount_amount
 
 
 def test_create_discount_for_voucher_specific_product_percentage(
@@ -186,8 +192,9 @@ def test_create_discount_for_voucher_specific_product_percentage(
         * tax_rate
     )
     assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
+    assert discounted_line.unit_discount_type == DiscountValueType.PERCENTAGE
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
+    assert discounted_line.unit_discount_value == discount_value
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
     assert (
@@ -205,11 +212,14 @@ def test_create_discount_for_voucher_specific_product_percentage(
     assert discounted_line.discounts.count() == 1
     line_discount = discounted_line.discounts.first()
     assert line_discount.amount_value == discount_amount
-    # TODO: should be from voucher probably
-    assert line_discount.value_type == DiscountValueType.FIXED
+    assert (
+        line_discount.value_type
+        == voucher.discount_value_type
+        == DiscountValueType.PERCENTAGE
+    )
     assert line_discount.type == DiscountType.VOUCHER
     assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
+    assert line_discount.value == discount_value
 
 
 def test_create_discount_for_voucher_apply_once_per_order_percentage(
@@ -291,7 +301,7 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
         * tax_rate
     )
     assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
+    assert discounted_line.unit_discount_type == DiscountValueType.PERCENTAGE
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
 
     assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
@@ -310,10 +320,14 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
     assert discounted_line.discounts.count() == 1
     line_discount = discounted_line.discounts.first()
     assert line_discount.amount_value == discount_amount
-    assert line_discount.value_type == DiscountValueType.FIXED
+    assert (
+        line_discount.value_type
+        == voucher.discount_value_type
+        == DiscountValueType.PERCENTAGE
+    )
     assert line_discount.type == DiscountType.VOUCHER
     assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
+    assert line_discount.value == discount_value
 
 
 def test_create_discount_for_voucher_apply_once_per_order_fixed(
@@ -945,9 +959,8 @@ def test_create_discount_for_voucher_specific_product_line_with_catalogue_discou
     )
     voucher_discount_amount = voucher_unit_discount_amount * line_1.quantity
     assert voucher_discount.amount_value == voucher_discount_amount
-    # FIXME: percentage vouchers are always stored as fixed value
-    # assert voucher_discount.value == voucher_reward_value
-    # assert voucher_discount.value_type == voucher_reward_value_type
+    assert voucher_discount.value == voucher_reward_value
+    assert voucher_discount.value_type == voucher_reward_value_type
     assert voucher_discount.type == DiscountType.VOUCHER
     assert voucher_discount.reason == f"Voucher code: {order.voucher_code}"
 

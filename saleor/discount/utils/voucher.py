@@ -408,8 +408,8 @@ def create_or_update_line_discount_objects_from_voucher(lines_info):
     """
     # FIXME: temporary - create_order_line_discount_objects should be moved to shared
     from .order import (
-        create_order_line_discount_objects,
         copy_unit_discount_data_to_order_line,
+        create_order_line_discount_objects,
     )
 
     discount_data = prepare_line_discount_objects_for_voucher(lines_info)
