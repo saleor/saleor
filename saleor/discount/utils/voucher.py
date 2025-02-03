@@ -407,13 +407,16 @@ def create_or_update_line_discount_objects_from_voucher(lines_info):
 
     """
     # FIXME: temporary - create_order_line_discount_objects should be moved to shared
-    from .order import create_order_line_discount_objects
+    from .order import (
+        create_order_line_discount_objects,
+        copy_unit_discount_data_to_order_line,
+    )
 
     discount_data = prepare_line_discount_objects_for_voucher(lines_info)
     modified_lines_info = create_order_line_discount_objects(lines_info, discount_data)
-    # base unit price must reflect all actual line voucher discounts
     if modified_lines_info:
         _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
+        copy_unit_discount_data_to_order_line(modified_lines_info)
 
 
 # TODO (SHOPX-912): share the method with checkout
@@ -430,7 +433,7 @@ def prepare_line_discount_objects_for_voucher(
 
     for line_info in lines_info:
         line = line_info.line
-        total_price = line.base_unit_price * line.quantity
+        total_price = line_info.variant_discounted_price * line.quantity
         discount_amount = calculate_line_discount_amount_from_voucher(
             line_info, total_price
         )
@@ -452,6 +455,8 @@ def prepare_line_discount_objects_for_voucher(
         discount_reason = f"Voucher code: {code}"
         voucher = cast(Voucher, line_info.voucher)
         discount_name = f"{voucher.name}"
+        # TODO zedzior: optimize fetching the discount value and discount amount
+        voucher_listing = voucher.channel_listings.get(channel=line_info.channel)
         if discount_to_update:
             update_discount(
                 rule=None,
@@ -460,9 +465,8 @@ def prepare_line_discount_objects_for_voucher(
                 # TODO (SHOPX-914): set translated voucher name
                 translated_name="",
                 discount_reason=discount_reason,
-                # TODO (SHOPX-914): should be taken from voucher value_type and value
                 discount_amount=discount_amount,
-                value=discount_amount,
+                value=voucher_listing.discount_value,
                 value_type=voucher.discount_value_type,
                 unique_type=DiscountType.VOUCHER,
                 discount_to_update=discount_to_update,
@@ -474,9 +478,8 @@ def prepare_line_discount_objects_for_voucher(
             line_discount_input = {
                 "line": line,
                 "type": DiscountType.VOUCHER,
-                # TODO (SHOPX-914): should be taken from voucher value_type and value
-                "value_type": DiscountValueType.FIXED,
-                "value": discount_amount,
+                "value_type": voucher.discount_value_type,
+                "value": voucher_listing.discount_value,
                 "amount_value": discount_amount,
                 "currency": line.currency,
                 "name": discount_name,
@@ -543,7 +546,7 @@ def _reduce_base_unit_price_for_voucher_discount(
 ):
     for line_info in lines_info:
         line = line_info.line
-        base_unit_price = line.base_unit_price_amount
+        base_unit_price = line_info.variant_discounted_price.amount
         for discount in line_info.get_voucher_discounts():
             base_unit_price -= discount.amount_value / line.quantity
         line.base_unit_price_amount = max(base_unit_price, Decimal(0))

@@ -1,9 +1,11 @@
 from collections.abc import Iterable
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db import transaction
 from prices import TaxedMoney
+from uuid import UUID
 
 from ...channel.models import Channel
 from ...core.db.connection import allow_writer
@@ -39,7 +41,7 @@ def create_or_update_discount_objects_for_order(
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
-    _copy_unit_discount_data_to_order_line(lines_info)
+    copy_unit_discount_data_to_order_line(lines_info)
 
 
 def create_order_line_discount_objects(
@@ -64,6 +66,7 @@ def create_order_line_discount_objects(
     ) = discount_data
 
     new_line_discounts: list[OrderLineDiscount] = []
+    affected_line_ids: list[UUID] = []
     with allow_writer():
         with transaction.atomic():
             # Protect against potential thread race. OrderLine object can have only
@@ -74,6 +77,9 @@ def create_order_line_discount_objects(
             if discount_ids_to_remove := [
                 discount.id for discount in discount_to_remove
             ]:
+                affected_line_ids.extend(
+                    discount.line_id for discount in discount_to_remove
+                )
                 OrderLineDiscount.objects.filter(id__in=discount_ids_to_remove).delete()
 
             if discounts_to_create_inputs:
@@ -92,11 +98,11 @@ def create_order_line_discount_objects(
     update_line_info_cached_discounts(
         lines_info, new_line_discounts, discounts_to_update, discount_ids_to_remove
     )
-    affected_line_ids = [
+    affected_line_ids.extend(
         discount_line.line_id
         for discount_line in (new_line_discounts + discounts_to_update)
-    ]
-    affected_line_ids.extend(discount_ids_to_remove)
+    )
+
     modified_lines_info = [
         line_info for line_info in lines_info if line_info.line.id in affected_line_ids
     ]
@@ -127,12 +133,12 @@ def update_catalogue_promotion_discount_amount_for_order(
     discount_to_update.save(update_fields=["amount_value"])
 
 
-def _copy_unit_discount_data_to_order_line(
+def copy_unit_discount_data_to_order_line(
     lines_info: list["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:
+        line = line_info.line
         if discounts := line_info.discounts:
-            line = line_info.line
             discount_amount = sum([discount.amount_value for discount in discounts])
             unit_discount_amount = discount_amount / line.quantity
             discount_reason = "; ".join(
@@ -151,6 +157,11 @@ def _copy_unit_discount_data_to_order_line(
             line.unit_discount_reason = discount_reason
             line.unit_discount_type = discount_type
             line.unit_discount_value = discount_value
+        else:
+            line.unit_discount_amount = Decimal("0.0")
+            line.unit_discount_reason = None
+            line.unit_discount_type = None
+            line.unit_discount_value = Decimal("0.0")
 
 
 def create_order_discount_objects_for_order_promotions(
