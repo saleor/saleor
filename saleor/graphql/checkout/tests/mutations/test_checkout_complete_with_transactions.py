@@ -1304,6 +1304,7 @@ def test_checkout_complete(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     order_token = data["order"]["token"]
     order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
@@ -1426,6 +1427,7 @@ def test_checkout_complete_with_metadata(
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
 
+    flush_post_commit_hooks()
     assert order.metadata == {
         **checkout.metadata_storage.metadata,
         metadata_key: metadata_value,
@@ -1535,6 +1537,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     data = content["data"]["checkoutComplete"]
 
     # then
+    flush_post_commit_hooks()
     assert not data["errors"]
     assert Order.objects.count() == 1
     order = Order.objects.first()
@@ -1800,6 +1803,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     order_token = data["order"]["token"]
     order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
@@ -2452,6 +2456,7 @@ def test_checkout_complete_with_shipping_voucher(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     order_token = data["order"]["token"]
     order_id = data["order"]["id"]
     assert Order.objects.count() == orders_count + 1
@@ -2768,6 +2773,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     order_token = data["order"]["token"]
     order_id = data["order"]["id"]
     assert Order.objects.count() == 1
@@ -3853,6 +3859,7 @@ def test_checkout_complete_with_preorder_variant(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     order_token = data["order"]["token"]
     order_id = data["order"]["id"]
     assert Order.objects.count() == 1

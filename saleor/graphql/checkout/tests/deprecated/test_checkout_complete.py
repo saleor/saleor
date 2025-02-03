@@ -11,6 +11,7 @@ from .....core.taxes import zero_money
 from .....order import OrderOrigin, OrderStatus
 from .....order.models import Order
 from .....plugins.manager import get_plugins_manager
+from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_COMPLETE = """
@@ -115,6 +116,7 @@ def test_checkout_complete(
     variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    flush_post_commit_hooks()
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -283,6 +285,7 @@ def test_checkout_complete_for_token_as_input(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
+    flush_post_commit_hooks()
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()

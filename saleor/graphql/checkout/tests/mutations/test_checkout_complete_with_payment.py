@@ -222,6 +222,7 @@ def test_checkout_complete(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
+    flush_post_commit_hooks()
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -360,6 +361,7 @@ def test_checkout_complete_with_metadata(
     data = content["data"]["checkoutComplete"]
 
     # then
+    flush_post_commit_hooks()
     assert not data["errors"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
@@ -499,6 +501,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     data = content["data"]["checkoutComplete"]
 
     # then
+    flush_post_commit_hooks()
     assert not data["errors"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
@@ -3853,6 +3856,7 @@ def test_checkout_complete_with_preorder_variant(
     address,
     shipping_method,
 ):
+    # given
     checkout = checkout_with_item_and_preorder_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -3884,8 +3888,12 @@ def test_checkout_complete_with_preorder_variant(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
+    flush_post_commit_hooks()
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
