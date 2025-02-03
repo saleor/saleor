@@ -380,7 +380,7 @@ def handle_fully_paid_order(
     if order_info.customer_email:
         send_payment_confirmation(order_info, manager)
         if utils.order_needs_automatic_fulfillment(order_info.lines_data):
-            automatically_fulfill_digital_lines(order_info, manager)
+            automatically_fulfill_digital_lines(order_info, manager, user, app)
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
@@ -539,6 +539,7 @@ def order_fulfilled(
     gift_card_lines_info: list[GiftCardLineData],
     site_settings: "SiteSettings",
     notify_customer=True,
+    auto=False,
     manually_approved=False,
     webhook_event_map: Optional[dict[str, set["Webhook"]]] = None,
 ):
@@ -563,7 +564,11 @@ def order_fulfilled(
                 manager,
             )
         events.fulfillment_fulfilled_items_event(
-            order=order, user=user, app=app, fulfillment_lines=fulfillment_lines
+            order=order,
+            user=user,
+            app=app,
+            fulfillment_lines=fulfillment_lines,
+            auto=auto,
         )
         webhook_events = [WebhookEventAsyncType.ORDER_UPDATED]
         for fulfillment in fulfillments:
@@ -1063,7 +1068,10 @@ def fulfill_order_lines(
 
 
 def automatically_fulfill_digital_lines(
-    order_info: "OrderInfo", manager: "PluginsManager"
+    order_info: "OrderInfo",
+    manager: "PluginsManager",
+    user: Optional[User] = None,
+    app: Optional["App"] = None,
 ):
     """Fulfill all digital lines which have enabled automatic fulfillment setting.
 
@@ -1111,6 +1119,9 @@ def automatically_fulfill_digital_lines(
 
         FulfillmentLine.objects.bulk_create(fulfillments)
         fulfill_order_lines(lines_info, manager)
+        events.fulfillment_fulfilled_items_event(
+            order=order, user=user, app=app, fulfillment_lines=fulfillments, auto=True
+        )
 
         send_fulfillment_confirmation_to_customer(
             order, fulfillment, user=order.user, app=None, manager=manager
@@ -1244,7 +1255,9 @@ def create_fulfillments(
     fulfillment_lines_for_warehouses: dict[UUID, list[OrderFulfillmentLineInfo]],
     manager: "PluginsManager",
     site_settings: "SiteSettings",
+    *,
     notify_customer: bool = True,
+    auto: bool = False,
     auto_approved: bool = True,
     allow_stock_to_be_exceeded: bool = False,
     tracking_number: str = "",
@@ -1273,6 +1286,7 @@ def create_fulfillments(
         notify_customer (bool): If `True` system send email about
             fulfillments to customer.
         site_settings (SiteSettings): Site settings used for creating gift cards.
+        auto (Boolean): define if the fulfillment is automatic
         auto_approved (Boolean): fulfillments will have status fulfilled if it's True,
             otherwise waiting_for_approval.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
@@ -1345,6 +1359,7 @@ def create_fulfillments(
                 gift_card_lines_info,
                 site_settings,
                 notify_customer,
+                auto,
             )
         else:
             order_awaits_fulfillment_approval(

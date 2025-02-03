@@ -39,7 +39,7 @@ def test_create_fulfillments(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        notify_customer,
+        notify_customer=notify_customer,
     )
     flush_post_commit_hooks()
 
@@ -74,6 +74,7 @@ def test_create_fulfillments(
     assert set(event.parameters["fulfilled_items"]) == set(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
+    assert event.parameters["auto"] is False
 
     flush_post_commit_hooks()
     mock_email_fulfillment.assert_called_once_with(
@@ -111,8 +112,8 @@ def test_create_fulfillments_require_approval(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
-        False,
+        notify_customer=True,
+        auto_approved=False,
     )
     flush_post_commit_hooks()
 
@@ -180,8 +181,8 @@ def test_create_fulfillments_require_approval_as_app(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
-        False,
+        notify_customer=True,
+        auto_approved=False,
     )
     flush_post_commit_hooks()
 
@@ -245,7 +246,7 @@ def test_create_fulfillments_without_notification(
         fulfillment_lines_for_warehouses,
         get_plugins_manager(allow_replica=False),
         site_settings,
-        False,
+        notify_customer=False,
     )
     flush_post_commit_hooks()
 
@@ -310,7 +311,7 @@ def test_create_fulfillments_many_warehouses(
         fulfillment_lines_for_warehouses,
         get_plugins_manager(allow_replica=False),
         site_settings,
-        False,
+        notify_customer=False,
     )
     flush_post_commit_hooks()
 
@@ -366,7 +367,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
+        notify_customer=True,
     )
     flush_post_commit_hooks()
 
@@ -420,7 +421,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
+        notify_customer=True,
     )
     flush_post_commit_hooks()
 
@@ -471,7 +472,7 @@ def test_create_fulfillments_without_allocations(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
+        notify_customer=True,
     )
     flush_post_commit_hooks()
 
@@ -528,7 +529,7 @@ def test_create_fulfillments_warehouse_without_stock(
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     assert len(exc.value.items) == 2
@@ -583,7 +584,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     assert len(exc.value.items) == 1
@@ -719,7 +720,7 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
         fulfillment_lines_for_warehouses,
         manager,
         site_settings,
-        True,
+        notify_customer=True,
     )
     flush_post_commit_hooks()
 
@@ -781,5 +782,5 @@ def test_create_fulfillments_validate_lines_raise_error(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )

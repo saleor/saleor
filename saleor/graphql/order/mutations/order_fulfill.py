@@ -288,7 +288,7 @@ class OrderFulfill(BaseMutation):
                 dict(lines_for_warehouses),
                 manager,
                 site.settings,
-                notify_customer,
+                notify_customer=notify_customer,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 auto_approved=approved,
                 tracking_number=tracking_number,
