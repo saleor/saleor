@@ -74,7 +74,7 @@ class OrderConfirm(ModelMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         order = update_order_status(order)
         update_order_display_gross_prices(order)
-        order.save(update_fields=["display_gross_prices"])
+        order.save(update_fields=["updated_at", "display_gross_prices"])
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = get_plugin_manager_promise(info.context).get()
