@@ -54,7 +54,7 @@ AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG = {
     "saleor.playground",
     "saleor.app.avatax",
     "saleor.app.cms",
-    "saleor.app.klaviyo"
+    "saleor.app.klaviyo",
     "saleor.app.payment.adyen",
     "saleor.app.product-feed",
     "saleor.app.search",
