@@ -10,7 +10,6 @@ from .....order.fetch import OrderLineInfo
 from .....order.models import OrderLine
 from .....plugins.manager import get_plugins_manager
 from .....product.models import Product
-from .....tests.utils import flush_post_commit_hooks
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -47,16 +46,22 @@ def test_fulfillment_approve(
     staff_api_client,
     fulfillment,
     permission_group_manage_orders,
+    django_capture_on_commit_callbacks,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
     query = APPROVE_FULFILLMENT_MUTATION
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     variables = {"id": fulfillment_id, "notifyCustomer": True}
-    response = staff_api_client.post_graphql(query, variables)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
     data = content["data"]["orderFulfillmentApprove"]
     assert not data["errors"]
     assert data["fulfillment"]["status"] == FulfillmentStatus.FULFILLED.upper()
@@ -184,6 +189,7 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     staff_api_client,
     fulfillment,
     permission_group_manage_orders,
+    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -201,10 +207,10 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     }
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
 
     # then
-    flush_post_commit_hooks()
     content = get_graphql_content(response)
     errors = content["data"]["orderFulfillmentApprove"]["errors"]
 
@@ -400,6 +406,7 @@ def test_fulfillment_approve_partial_order_fulfill(
     staff_api_client,
     fulfillment_awaiting_approval,
     permission_group_manage_orders,
+    django_capture_on_commit_callbacks,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -429,10 +436,10 @@ def test_fulfillment_approve_partial_order_fulfill(
     variables = {"id": fulfillment_id, "notifyCustomer": False}
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
 
     # then
-    flush_post_commit_hooks()
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentApprove"]
     assert not data["errors"]
