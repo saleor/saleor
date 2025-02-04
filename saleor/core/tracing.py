@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from contextlib import contextmanager
 
 from django.db import transaction
@@ -29,13 +30,15 @@ def webhooks_otel_trace(
     payload_size: int,
     sync=False,
     app=None,
+    links: Sequence[trace.Link] | None = None,
 ):
     """Context manager for tracing webhooks.
 
     :param payload_size: size of the payload in bytes
     """
+    links = links or []
     with tracer.start_as_current_span(
-        f"webhooks.{span_name}", kind=trace.SpanKind.CLIENT
+        f"webhooks.{span_name}", kind=trace.SpanKind.CLIENT, links=links
     ) as span:
         if app:
             span.set_attribute("app.id", app.id)
