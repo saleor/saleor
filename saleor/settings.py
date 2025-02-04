@@ -28,6 +28,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
+from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
@@ -1025,3 +1026,8 @@ patch_authlib()
 # Patch `Local` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_local()
+
+# Patch `DatabaseClient`, `DatabaseCreation`, `DatabaseFeatures`, `DatabaseIntrospection`, `DatabaseOperations`,
+# `BaseDatabaseValidation` and `DatabaseErrorWrapper` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_db()
