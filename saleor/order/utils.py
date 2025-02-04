@@ -167,7 +167,7 @@ def _calculate_quantity_including_returns(order):
     return total_quantity, quantity_fulfilled, quantity_returned
 
 
-def update_order_status(order: Order):
+def update_order_status(order: Order) -> Order:
     """Update order status depending on fulfillments."""
     # Add a transaction block to ensure that the order status won't be overridden by
     # another process.
