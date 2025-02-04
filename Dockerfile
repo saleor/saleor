@@ -12,7 +12,7 @@ WORKDIR /app
 RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install poetry==2.0.1
 RUN poetry config virtualenvs.create false
 COPY poetry.lock pyproject.toml /app/
-RUN --mount=type=cache,mode=0755,target=/root/.cache/pypoetry poetry sync
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pypoetry poetry install
 
 ### Final image
 FROM python:3.12-slim
