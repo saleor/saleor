@@ -322,16 +322,25 @@ def create_or_update_discount_object_from_order_level_voucher(
 ):
     """Create or update discount object for ENTIRE_ORDER and SHIPPING voucher."""
     voucher = order.voucher
-    if not order.voucher_id or (
-        is_order_level_voucher(voucher)
-        and order.discounts.filter(type=DiscountType.MANUAL)
-    ):
+
+    # The order-level voucher discount should be deleted when:
+    # - order.voucher_id is None
+    # - manual order-level discount exists together with order-level voucher
+    # - the order has line-level voucher attached
+    should_delete_order_level_voucher_discount = (
+        not order.voucher_id
+        or (
+            is_order_level_voucher(voucher)
+            and order.discounts.filter(type=DiscountType.MANUAL)
+        )
+        or (not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher))
+    )
+    if should_delete_order_level_voucher_discount:
         with allow_writer():
             order.discounts.filter(type=DiscountType.VOUCHER).delete()
+            if not is_shipping_voucher(voucher):
+                order.base_shipping_price = order.undiscounted_base_shipping_price
             return
-
-    if not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher):
-        return
 
     voucher_channel_listing = (
         voucher.channel_listings.using(database_connection_name)
@@ -346,6 +355,7 @@ def create_or_update_discount_object_from_order_level_voucher(
         discount_amount = voucher.get_discount_amount_for(
             order.subtotal.net, order.channel
         )
+
     if is_shipping_voucher(voucher):
         discount_amount = voucher.get_discount_amount_for(
             order.undiscounted_base_shipping_price, order.channel
@@ -356,6 +366,8 @@ def create_or_update_discount_object_from_order_level_voucher(
             order.undiscounted_base_shipping_price - discount_amount,
             zero_money(order.currency),
         )
+    else:
+        order.base_shipping_price = order.undiscounted_base_shipping_price
 
     discount_reason = f"Voucher code: {order.voucher_code}"
     discount_name = voucher.name or ""
@@ -365,6 +377,7 @@ def create_or_update_discount_object_from_order_level_voucher(
         "value_type": voucher.discount_value_type,
         "value": voucher_channel_listing.discount_value,
         "amount_value": discount_amount.amount,
+        "currency": order.currency,
         "reason": discount_reason,
         "name": discount_name,
         "type": DiscountType.VOUCHER,
