@@ -474,6 +474,8 @@ def test_tracing_have_app_data_app_as_requestor(
         ("saleor.dashboard.Playground", "saleor.dashboard.playground"),
         ("saleor.playgrounD", "saleor.playground"),
         ("incorrect-value", "unknown_service"),
+        ("saleor.App.avatax", "saleor.app.avatax"),
+        ("saleor.app.payment.ADYEN", "saleor.app.payment.adyen"),
         (None, "unknown_service"),
     ],
 )
