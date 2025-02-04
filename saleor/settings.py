@@ -33,6 +33,7 @@ from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
+from .patch_gzip import patch_gzip
 from .patch_local import patch_local
 from .plugins.openid_connect.patch import patch_authlib
 
@@ -1031,3 +1032,7 @@ patch_local()
 # `BaseDatabaseValidation` and `DatabaseErrorWrapper` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_db()
+
+# Patch `_WriteBufferStream` from `gizip` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_gzip()
