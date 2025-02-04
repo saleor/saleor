@@ -186,11 +186,6 @@ class GraphQLView(View):
             span.set_tag("http.useragent", request.headers.get("user-agent", ""))
             span.set_tag("span.type", "web")
 
-            source_service_name = get_source_service_name_value(
-                request.headers.get("source-service-name")
-            )
-            span.set_tag("source.service.name", source_service_name)
-
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
 
@@ -298,6 +293,10 @@ class GraphQLView(View):
             span.set_tag("graphql.query", raw_query_string)
             span.set_tag("graphql.query_identifier", _query_identifier)
             span.set_tag("graphql.query_fingerprint", query_fingerprint(document))
+            source_service_name = get_source_service_name_value(
+                request.headers.get("source-service-name")
+            )
+            span.set_tag("source.service.name", source_service_name)
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
