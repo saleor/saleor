@@ -2538,3 +2538,48 @@ def test_order_from_checkout_tax_error(
     assert data["errors"][0]["field"] is None
     assert not Order.objects.exists()
     assert "Tax app error for checkout" in caplog.text
+
+
+def test_order_from_checkout_with_transaction_empty_product_translation(
+    app_api_client,
+    site_settings,
+    checkout_with_item,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_product = checkout_line_variant.product
+    checkout_line_product.translations.create(language_code="en")
+    checkout_line_variant.translations.create(language_code="en")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
