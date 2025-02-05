@@ -34,7 +34,6 @@ from .....product.models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
-from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from ....core.utils import to_global_id_or_none
@@ -1258,6 +1257,7 @@ def test_checkout_complete(
     transaction_events_generator,
     transaction_item_generator,
     caplog,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1297,7 +1297,8 @@ def test_checkout_complete(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
@@ -1383,6 +1384,7 @@ def test_checkout_complete_with_metadata(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1414,7 +1416,8 @@ def test_checkout_complete_with_metadata(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
@@ -1503,6 +1506,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1530,7 +1534,8 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
 
@@ -1679,6 +1684,7 @@ def test_checkout_complete_gift_card_bought(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -1706,19 +1712,18 @@ def test_checkout_complete_gift_card_bought(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
 
-    flush_post_commit_hooks()
     assert Order.objects.count() == 1
     order = Order.objects.first()
     assert order.status == OrderStatus.PARTIALLY_FULFILLED
 
-    flush_post_commit_hooks()
     gift_card = GiftCard.objects.get()
     assert GiftCardEvent.objects.filter(gift_card=gift_card, type=GiftCardEvents.BOUGHT)
     send_notification_mock.assert_called_once_with(
@@ -1746,6 +1751,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     voucher_free_shipping,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     shipping_listing = shipping_method.channel_listings.get(
@@ -1793,7 +1799,8 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
@@ -2397,6 +2404,7 @@ def test_checkout_complete_with_shipping_voucher(
     voucher_free_shipping,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = checkout_with_voucher_free_shipping
@@ -2445,7 +2453,8 @@ def test_checkout_complete_with_shipping_voucher(
     variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
@@ -2718,6 +2727,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout_with_item_and_voucher_specific_products.gift_cards.add(gift_card)
@@ -2761,7 +2771,8 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
@@ -3816,6 +3827,7 @@ def test_checkout_complete_with_preorder_variant(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -3846,7 +3858,8 @@ def test_checkout_complete_with_preorder_variant(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)

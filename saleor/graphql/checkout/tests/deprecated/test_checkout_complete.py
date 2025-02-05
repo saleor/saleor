@@ -73,7 +73,9 @@ def test_checkout_complete(
     payment_dummy,
     address,
     shipping_method,
+    django_capture_on_commit_callbacks,
 ):
+    # given
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
@@ -113,8 +115,12 @@ def test_checkout_complete(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     redirect_url = "https://www.example.com"
     variables = {"checkoutId": checkout_id, "redirectUrl": redirect_url}
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -234,6 +240,7 @@ def test_checkout_complete_for_token_as_input(
     payment_dummy,
     address,
     shipping_method,
+    django_capture_on_commit_callbacks,
 ):
     # given
     assert not gift_card.last_used_on
@@ -276,7 +283,8 @@ def test_checkout_complete_for_token_as_input(
     variables = {"token": checkout.token, "redirectUrl": redirect_url}
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)

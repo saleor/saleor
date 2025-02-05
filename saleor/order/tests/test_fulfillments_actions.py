@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from ...core.exceptions import InsufficientStock
 from ...order import OrderEvents
 from ...plugins.manager import get_plugins_manager
-from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
 from ..actions import create_fulfillments
 from ..models import FulfillmentLine, OrderStatus
@@ -21,6 +20,7 @@ def test_create_fulfillments(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -30,17 +30,18 @@ def test_create_fulfillments(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
+    notify_customer = True
     manager = get_plugins_manager(allow_replica=False)
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=notify_customer,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -73,12 +74,12 @@ def test_create_fulfillments(
     assert set(event.parameters["fulfilled_items"]) == set(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
+    assert event.parameters["auto"] is False
 
-    flush_post_commit_hooks()
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, notify_customer)
 
 
 @patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
@@ -90,6 +91,7 @@ def test_create_fulfillments_require_approval(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_status = order.status
@@ -103,17 +105,17 @@ def test_create_fulfillments_require_approval(
         ]
     }
     manager = get_plugins_manager(allow_replica=False)
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-        False,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=True,
+            auto_approved=False,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -147,7 +149,6 @@ def test_create_fulfillments_require_approval(
         [fulfillment_lines[0].pk, fulfillment_lines[1].pk]
     )
 
-    flush_post_commit_hooks()
     mock_email_fulfillment.assert_not_called()
     mock_fulfillment_approved.assert_not_called()
 
@@ -159,6 +160,7 @@ def test_create_fulfillments_require_approval_as_app(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_status = order.status
@@ -172,17 +174,17 @@ def test_create_fulfillments_require_approval_as_app(
         ]
     }
     manager = get_plugins_manager(allow_replica=False)
-    [fulfillment] = create_fulfillments(
-        None,
-        app,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-        False,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            None,
+            app,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=True,
+            auto_approved=False,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -227,6 +229,7 @@ def test_create_fulfillments_without_notification(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -237,16 +240,16 @@ def test_create_fulfillments_without_notification(
         ]
     }
 
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        get_plugins_manager(allow_replica=False),
-        site_settings,
-        False,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+            notify_customer=False,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -279,6 +282,7 @@ def test_create_fulfillments_many_warehouses(
     order_with_lines,
     warehouses_with_shipping_zone,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     warehouse1, warehouse2 = warehouses_with_shipping_zone
@@ -302,16 +306,16 @@ def test_create_fulfillments_many_warehouses(
         warehouse2.pk: [{"order_line": order_line2, "quantity": 1}],
     }
 
-    [fulfillment1, fulfillment2] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        get_plugins_manager(allow_replica=False),
-        site_settings,
-        False,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment1, fulfillment2] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+            notify_customer=False,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -347,6 +351,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -358,16 +363,16 @@ def test_create_fulfillments_with_one_line_empty_quantity(
     }
 
     manager = get_plugins_manager(allow_replica=False)
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=True,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -402,6 +407,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     order_with_line_without_inventory_tracking,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_line_without_inventory_tracking
     order_line = order.lines.get()
@@ -412,16 +418,16 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
     }
 
     manager = get_plugins_manager(allow_replica=False)
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=True,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -451,6 +457,7 @@ def test_create_fulfillments_without_allocations(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -463,16 +470,16 @@ def test_create_fulfillments_without_allocations(
     }
 
     manager = get_plugins_manager(allow_replica=False)
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=True,
+        )
 
     order.refresh_from_db()
     fulfillment_lines = FulfillmentLine.objects.filter(
@@ -527,7 +534,7 @@ def test_create_fulfillments_warehouse_without_stock(
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     assert len(exc.value.items) == 2
@@ -582,7 +589,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     assert len(exc.value.items) == 1
@@ -616,6 +623,7 @@ def test_create_fullfilment_with_out_of_stock_webhook(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -626,15 +634,15 @@ def test_create_fullfilment_with_out_of_stock_webhook(
         ]
     }
     manager = get_plugins_manager(allow_replica=False)
-    create_fulfillments(
-        user=staff_user,
-        app=None,
-        order=order,
-        fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
-        manager=manager,
-        site_settings=site_settings,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        create_fulfillments(
+            user=staff_user,
+            app=None,
+            order=order,
+            fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
+            manager=manager,
+            site_settings=site_settings,
+        )
 
     product_variant_out_of_stock_webhook.assert_called_once()
 
@@ -646,6 +654,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
@@ -656,16 +665,16 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
         ]
     }
     manager = get_plugins_manager(allow_replica=False)
-    create_fulfillments(
-        user=staff_user,
-        app=None,
-        order=order,
-        fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
-        manager=manager,
-        site_settings=site_settings,
-        approved=False,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        create_fulfillments(
+            user=staff_user,
+            app=None,
+            order=order,
+            fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
+            manager=manager,
+            site_settings=site_settings,
+            auto_approved=False,
+        )
 
     product_variant_out_of_stock_webhook.assert_not_called()
 
@@ -677,6 +686,7 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     order_with_lines,
     warehouse,
     site_settings,
+    django_capture_on_commit_callbacks,
 ):
     """Test that stock allocation is immune to overselling."""
     # given
@@ -711,16 +721,16 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
     manager = get_plugins_manager(allow_replica=False)
 
     # when
-    [fulfillment] = create_fulfillments(
-        staff_user,
-        None,
-        order,
-        fulfillment_lines_for_warehouses,
-        manager,
-        site_settings,
-        True,
-    )
-    flush_post_commit_hooks()
+    with django_capture_on_commit_callbacks(execute=True):
+        [fulfillment] = create_fulfillments(
+            staff_user,
+            None,
+            order,
+            fulfillment_lines_for_warehouses,
+            manager,
+            site_settings,
+            notify_customer=True,
+        )
 
     # then
     order.refresh_from_db()
@@ -780,5 +790,5 @@ def test_create_fulfillments_validate_lines_raise_error(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )

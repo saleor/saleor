@@ -155,6 +155,7 @@ def fulfill_gift_card_lines(
         manager,
         settings,
         notify_customer=True,
+        auto=True,
     )
 
 
