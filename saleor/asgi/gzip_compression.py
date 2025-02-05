@@ -140,6 +140,8 @@ def gzip_compression(
                         await send(message)
 
                 await app(scope, receive, send_compressed)
+                gzip_file.close()
+                gzip_buffer.close()
                 return
         await app(scope, receive, send)
 
