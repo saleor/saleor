@@ -1402,7 +1402,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     assert line_discount.value_type == DiscountValueType.FIXED
     assert line_discount.type == DiscountType.VOUCHER
     assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == voucher_discount_amount
+    assert line_discount.value == unit_discount_amount
 
 
 def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_order(

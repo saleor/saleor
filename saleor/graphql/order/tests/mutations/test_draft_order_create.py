@@ -815,7 +815,9 @@ def test_draft_order_create_with_voucher_specific_product(
         discounted_line_data["unitDiscount"]["amount"]
         == discount_amount / variant_0_qty
     )
-    assert discounted_line_data["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert (
+        discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
+    )
     assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
 
     assert line_1_data["productVariantId"] == variant_1_id
@@ -835,8 +837,8 @@ def test_draft_order_create_with_voucher_specific_product(
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
     assert order_line_discount.type == DiscountType.VOUCHER
-    assert order_line_discount.value_type == DiscountValueType.FIXED
-    assert order_line_discount.value == discount_amount
+    assert order_line_discount.value_type == voucher.discount_value_type
+    assert order_line_discount.value == discount_value
     assert order_line_discount.amount_value == discount_amount
 
 
@@ -957,7 +959,9 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
         discounted_line_data["unitDiscount"]["amount"]
         == discount_amount / variant_0_qty
     )
-    assert discounted_line_data["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert (
+        discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
+    )
     assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
 
     assert line_1_data["productVariantId"] == variant_1_id
@@ -977,8 +981,8 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
     assert order_line_discount.type == DiscountType.VOUCHER
-    assert order_line_discount.value_type == DiscountValueType.FIXED
-    assert order_line_discount.value == discount_amount
+    assert order_line_discount.value_type == voucher.discount_value_type
+    assert order_line_discount.value == discount_value
     assert order_line_discount.amount_value == discount_amount
 
 

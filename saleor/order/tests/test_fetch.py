@@ -81,6 +81,7 @@ def test_editable_order_line_info_variant_discounted_price(
         channel=channel,
         voucher=None,
         voucher_code=None,
+        voucher_denormalized_info=None,
     )
     # then
     assert order_line_info.variant_discounted_price == expected_discounted_variant_price
