@@ -446,9 +446,13 @@ def _create_lines_for_order(
         quantities.append(line_info.line.quantity)
         products.append(line_info.product)
 
-    products_translation = ProductTranslation.objects.filter(
-        product__in=products, language_code=translation_language_code
-    ).values("product_id", "name")
+    products_translation = (
+        ProductTranslation.objects.filter(
+            product__in=products, language_code=translation_language_code
+        )
+        .exclude(name__isnull=True)
+        .values("product_id", "name")
+    )
     product_translations = {
         product_translation["product_id"]: product_translation.get("name")
         for product_translation in products_translation
