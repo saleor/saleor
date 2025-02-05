@@ -33,6 +33,8 @@ from ..discount.utils.promotion import (
 from ..discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
     create_or_update_line_discount_objects_from_voucher,
+    create_or_update_voucher_discount_objects_for_order,
+    is_line_level_voucher,
     is_order_level_voucher,
     is_shipping_voucher,
 )
@@ -334,6 +336,9 @@ def create_order_line(
             channel,
             manager=manager,
         )
+
+    if is_line_level_voucher(order.voucher):
+        create_or_update_voucher_discount_objects_for_order(order, denormalized=True)
 
     return line
 
