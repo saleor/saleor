@@ -2717,6 +2717,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout_with_item_and_voucher_specific_products.gift_cards.add(gift_card)
@@ -2760,7 +2761,8 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)

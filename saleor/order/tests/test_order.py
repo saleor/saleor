@@ -385,6 +385,7 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
 
 
 def test_update_order_status_partially_fulfilled(fulfilled_order):
+    # given
     fulfillment = fulfilled_order.fulfillments.first()
     line = fulfillment.lines.first()
     order_line = line.order_line
@@ -392,8 +393,12 @@ def test_update_order_status_partially_fulfilled(fulfilled_order):
     order_line.quantity_fulfilled -= line.quantity
     order_line.save()
     line.delete()
+
+    # when
     update_order_status(fulfilled_order)
 
+    # then
+    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
 
