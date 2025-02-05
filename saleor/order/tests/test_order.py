@@ -316,6 +316,43 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     assert existing_line.quantity_unfulfilled == quantity_unfulfilled_before + 1
 
 
+def test_add_variant_to_order_adds_line_empty_product_translation(
+    order_with_lines,
+    product,
+    anonymous_plugins,
+):
+    # given
+    order = order_with_lines
+    variant = product.variants.get()
+    product.translations.create(language_code="en")
+    lines_before = order.lines.count()
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
+    # when
+    add_variant_to_order(
+        order=order,
+        line_data=line_data,
+        user=None,
+        app=None,
+        manager=anonymous_plugins,
+    )
+
+    # then
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
+    assert line.quantity == 1
+    assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+    assert line.translated_product_name == ""
+    assert line.translated_variant_name == ""
+    assert not line.unit_discount_amount
+    assert not line.unit_discount_value
+    assert not line.unit_discount_reason
+
+
 def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
