@@ -82,7 +82,6 @@ class RedisStorage(Storage):
                 raise ImproperlyConfigured(
                     "Redis storage cannot be used when Redis cache is not configured"
                 )
-
             self._client = cache._cache.get_client()  # type: ignore[attr-defined]
 
     def last_open(self, app_id: int) -> int:
