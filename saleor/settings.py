@@ -1000,9 +1000,7 @@ warnings.filterwarnings("ignore", category=CacheKeyWarning)
 ENABLE_BREAKER_BOARD = get_bool_from_env("ENABLE_BREAKER_BOARD", False)
 # Storage class string for the breaker board, for example:
 # "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
-BREAKER_BOARD_STORAGE_CLASS_STRING = os.environ.get(
-    "BREAKER_BOARD_STORAGE_CLASS_STRING"
-)
+BREAKER_BOARD_STORAGE_CLASS = os.environ.get("BREAKER_BOARD_STORAGE_CLASS")
 BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = int(
     os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE", 50)
 )
@@ -1015,7 +1013,7 @@ BREAKER_BOARD_COOLDOWN_SECONDS = int(
 )
 BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 10 * 60))
 
-if ENABLE_BREAKER_BOARD is True and not BREAKER_BOARD_STORAGE_CLASS_STRING:
+if ENABLE_BREAKER_BOARD is True and not BREAKER_BOARD_STORAGE_CLASS:
     raise ImproperlyConfigured(
-        "BREAKER_BOARD_STORAGE_CLASS_STRING must be defined when ENABLE_BREAKER_BOARD is set to True"
+        "BREAKER_BOARD_STORAGE_CLASS must be defined when ENABLE_BREAKER_BOARD is set to True"
     )

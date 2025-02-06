@@ -108,7 +108,7 @@ def initialize_breaker_board():
     if not settings.ENABLE_BREAKER_BOARD:
         return None
 
-    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)  # type: ignore[arg-type]
+    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)  # type: ignore[arg-type]
     return BreakerBoard(
         storage=storage_class(),
         failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,

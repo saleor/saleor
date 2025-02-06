@@ -29,7 +29,7 @@ def test_breaker_board(
     expected_data = {"some": "data"}
 
     settings.ENABLE_BREAKER_BOARD = enable_breaker_board
-    settings.BREAKER_BOARD_STORAGE_CLASS_STRING = storage_class_string
+    settings.BREAKER_BOARD_STORAGE_CLASS = storage_class_string
     _, webhook = app_with_webhook
 
     # Import alone is not sufficient, once module is imported the subsequent tests will
@@ -55,7 +55,7 @@ def test_breaker_board(
 
 def test_breaker_board_open(settings, app_with_webhook, caplog):
     settings.ENABLE_BREAKER_BOARD = True
-    settings.BREAKER_BOARD_STORAGE_CLASS_STRING = (
+    settings.BREAKER_BOARD_STORAGE_CLASS = (
         "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
     )
     settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = 50
@@ -94,7 +94,7 @@ def test_breaker_board_open(settings, app_with_webhook, caplog):
 
 def test_breaker_board_closes(settings, app_with_webhook, caplog):
     settings.ENABLE_BREAKER_BOARD = True
-    settings.BREAKER_BOARD_STORAGE_CLASS_STRING = (
+    settings.BREAKER_BOARD_STORAGE_CLASS = (
         "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
     )
     settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = 50
