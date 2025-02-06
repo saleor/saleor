@@ -4,14 +4,17 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
 from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
+from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....core.taxes import (
     TaxDataError,
     TaxDataErrorMessage,
@@ -41,6 +44,7 @@ mutation orderCreateFromCheckout(
         ){
         order{
             id
+            status
             token
             original
             origin
@@ -2620,3 +2624,50 @@ def test_order_from_checkout_with_transaction_empty_product_translation(
     order_line = order.lines.first()
     assert order_line.translated_product_name == ""
     assert order_line.translated_variant_name == ""
+
+
+def test_order_from_checkout_order_status_changed_after_creation(
+    checkout_with_item_total_0,
+    customer_user,
+    app_api_client,
+    permission_handle_checkouts,
+):
+    """Ensure order status is valid in the mutation response.
+    In case that order is created with `UNCONFIRMED` and then changed into `UNFULFILLED`
+    in post commit action, the returned order status should be upt-to-date.
+    """
+    # given
+    checkout = checkout_with_item_total_0
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.save()
+
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
+
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    def immediate_on_commit(func):
+        func()
+
+    # when
+    with patch.object(transaction, "on_commit", side_effect=immediate_on_commit):
+        response = app_api_client.post_graphql(
+            MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+            variables,
+            permissions=[permission_handle_checkouts],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = data["order"]
+    assert order
+    assert order["status"] == OrderStatus.UNFULFILLED.upper()
