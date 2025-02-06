@@ -9,8 +9,9 @@ from django.test import override_settings
 
 from .....core.models import EventDelivery
 from .....core.prices import quantize_price
+from .....core.taxes import zero_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
-from .....discount.models import OrderLineDiscount
+from .....discount.models import OrderLineDiscount, PromotionRule
 from .....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
 )
@@ -22,6 +23,7 @@ from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent, OrderLine
 from .....product.models import Product, ProductVariant
 from .....product.utils.variant_prices import update_discounted_prices_for_promotion
+from .....product.utils.variants import fetch_variants_for_promotion_rules
 from .....warehouse.models import Allocation, Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -1351,18 +1353,19 @@ def test_order_lines_create_triggers_webhooks(
     assert wrapped_call_order_event.called
 
 
-def test_order_lines_create_update_catalogue_discount(
+def test_order_lines_create_with_catalogue_discount_existing_variant(
     order_with_lines_and_catalogue_promotion,
     permission_group_manage_orders,
     staff_api_client,
     tax_configuration_flat_rates,
 ):
-    # give
+    # given
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines_and_catalogue_promotion
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
-    tax_rate = Decimal(1.23)
+    channel = order.channel
+    tax_rate = Decimal("1.23")
 
     currency = order.currency
     line = order.lines.first()
@@ -1374,6 +1377,21 @@ def test_order_lines_create_update_catalogue_discount(
     discount = line.discounts.get()
     initial_discount_amount = discount.amount_value
     unit_discount = quantize_price(initial_discount_amount / old_qty, currency)
+
+    # update variant channel listing
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    new_variant_price = undiscounted_unit_price + Decimal(100)
+    variant_channel_listing.price_amount = new_variant_price
+    variant_channel_listing.save(update_fields=["price_amount"])
+
+    # update catalogue discount
+    rule = discount.promotion_rule
+    reward_value = rule.reward_value
+    new_reward_value = reward_value + Decimal(10)
+    rule.reward_value = new_reward_value
+    rule.save(update_fields=["reward_value"])
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+    update_discounted_prices_for_promotion(Product.objects.all())
 
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -1428,7 +1446,7 @@ def test_order_lines_create_update_catalogue_discount(
     assert discount.amount_value == unit_discount * new_qty
 
 
-def test_order_lines_create_update_apply_once_per_order_voucher_discount(
+def test_order_lines_create_apply_once_per_order_voucher_new_cheapest_line(
     order_with_lines,
     permission_group_manage_orders,
     staff_api_client,
@@ -1449,8 +1467,15 @@ def test_order_lines_create_update_apply_once_per_order_voucher_discount(
     currency = order.currency
     tax_rate = Decimal("1.23")
 
+    lines = order.lines.all()
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price
+    undiscounted_subtotal = zero_money(currency)
+    for line in lines:
+        undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
+
     # apply voucher apply once per order type
-    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    initial_discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.discount_value_type = initial_discount_value_type
     voucher.type = VoucherType.ENTIRE_ORDER
     voucher.apply_once_per_order = True
     voucher.save(update_fields=["discount_value_type", "type", "apply_once_per_order"])
@@ -1481,10 +1506,14 @@ def test_order_lines_create_update_apply_once_per_order_voucher_discount(
     assert initial_discount.value_type == DiscountValueType.PERCENTAGE
     assert initial_discount.amount_value == initial_discount_amount
 
-    # update voucher discount value
+    # update voucher listing value and voucher discount value type
     voucher_listing.discount_value /= 2
     voucher_listing.save(update_fields=["discount_value"])
     assert voucher_listing.discount_value != initial_discount_value
+    new_voucher_discount_value_type = DiscountValueType.FIXED
+    voucher.discount_value_type = new_voucher_discount_value_type
+    voucher.save(update_fields=["discount_value_type"])
+    assert initial_discount_value_type != new_voucher_discount_value_type
 
     # prepare new line with the cheapest product
     new_variant = product_variant_list[0]
@@ -1502,7 +1531,12 @@ def test_order_lines_create_update_apply_once_per_order_voucher_discount(
     )
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", new_variant.id)
-    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "forceNewLine": False,
+    }
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
@@ -1555,7 +1589,7 @@ def test_order_lines_create_update_apply_once_per_order_voucher_discount(
     new_unit_discount_amount = new_discount_amount / new_line.quantity
     assert new_discount.value == initial_discount_value
     assert new_discount.amount_value == new_discount_amount
-    assert new_discount.value_type == voucher.discount_value_type
+    assert new_discount.value_type == initial_discount_value_type
     assert new_discount.type == DiscountType.VOUCHER
     assert new_discount.reason == f"Voucher code: {order.voucher_code}"
 
@@ -1579,6 +1613,202 @@ def test_order_lines_create_update_apply_once_per_order_voucher_discount(
         currency,
     )
     assert new_line.unit_discount_amount == new_unit_discount_amount
-    assert new_line.unit_discount_type == DiscountValueType.PERCENTAGE
+    assert new_line.unit_discount_type == initial_discount_value_type
     assert new_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
     assert new_line.unit_discount_value == initial_discount_value
+
+    assert order.undiscounted_base_shipping_price == undiscounted_shipping_price
+    assert order.base_shipping_price == undiscounted_shipping_price
+    assert order.shipping_price_net == undiscounted_shipping_price
+    assert order.shipping_price_gross == quantize_price(
+        undiscounted_shipping_price * tax_rate, currency
+    )
+
+    undiscounted_subtotal += new_line.undiscounted_total_price.net
+    assert (
+        order.undiscounted_total_net
+        == undiscounted_subtotal + undiscounted_shipping_price
+    )
+    assert (
+        order.undiscounted_total_gross
+        == (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate
+    )
+    assert (
+        order.subtotal_net_amount == undiscounted_subtotal.amount - new_discount_amount
+    )
+    assert quantize_price(order.subtotal_gross_amount, currency) == quantize_price(
+        order.subtotal_net_amount * tax_rate, currency
+    )
+    assert (
+        order.total_net_amount
+        == order.subtotal_net_amount + order.base_shipping_price_amount
+    )
+    assert quantize_price(order.total_gross_amount, currency) == quantize_price(
+        (order.undiscounted_total_net_amount - new_discount_amount) * tax_rate, currency
+    )
+
+
+def test_order_lines_create_apply_once_per_order_voucher_existing_variant(
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    tax_configuration_flat_rates,
+    voucher,
+    plugins_manager,
+):
+    """Creating line with existing variant should only update voucher discount amount.
+
+    The voucher discount should use denormalized voucher reward.
+    """
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    currency = order.currency
+    tax_rate = Decimal("1.23")
+
+    lines = order.lines.all()
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price
+    undiscounted_subtotal = zero_money(currency)
+    for line in lines:
+        undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
+
+    # apply voucher apply once per order type
+    initial_discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.discount_value_type = initial_discount_value_type
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["discount_value_type", "type", "apply_once_per_order"])
+    voucher_listing = voucher.channel_listings.get(channel=order.channel)
+    initial_discount_value = voucher_listing.discount_value
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.save(update_fields=["voucher_code", "voucher_id", "status"])
+    create_or_update_voucher_discount_objects_for_order(order)
+    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+
+    line_1, line_2 = lines
+    assert line_1.undiscounted_base_unit_price < line_2.undiscounted_base_unit_price
+    discount = line_1.discounts.get()
+    initial_discount_amount = (
+        line_1.undiscounted_base_unit_price_amount * initial_discount_value / 100
+    )
+    initial_unit_discount_amount = initial_discount_amount / line_1.quantity
+    assert quantize_price(line_1.base_unit_price_amount, currency) == quantize_price(
+        line_1.undiscounted_base_unit_price_amount - initial_unit_discount_amount,
+        currency,
+    )
+    assert quantize_price(line_1.total_price_net_amount, currency) == quantize_price(
+        line_1.undiscounted_total_price_net_amount - initial_discount_amount,
+        currency,
+    )
+    assert discount.value == initial_discount_value
+    assert discount.value_type == DiscountValueType.PERCENTAGE
+    assert discount.amount_value == initial_discount_amount
+
+    # update voucher listing value and voucher discount value type
+    voucher_listing.discount_value /= 2
+    voucher_listing.save(update_fields=["discount_value"])
+    assert voucher_listing.discount_value != initial_discount_value
+    new_voucher_discount_value_type = DiscountValueType.FIXED
+    voucher.discount_value_type = new_voucher_discount_value_type
+    voucher.save(update_fields=["discount_value_type"])
+    assert initial_discount_value_type != new_voucher_discount_value_type
+
+    # add 1 unit of line 1 variant
+    extra_quantity = 1
+    new_quantity = line_1.quantity + extra_quantity
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", line_1.variant.id)
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": extra_quantity,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderLinesCreate"]
+    assert not data["errors"]
+
+    order.refresh_from_db()
+    line_1, line_2 = order.lines.all()
+    new_unit_discount_amount = initial_discount_amount / new_quantity
+
+    discount.refresh_from_db()
+    assert discount.value == initial_discount_value
+    assert discount.value_type == initial_discount_value_type
+    assert discount.amount_value == initial_discount_amount
+    assert discount.type == DiscountType.VOUCHER
+    assert discount.reason == f"Voucher code: {order.voucher_code}"
+
+    assert quantize_price(line_1.base_unit_price_amount, currency) == quantize_price(
+        line_1.undiscounted_base_unit_price_amount - new_unit_discount_amount,
+        currency,
+    )
+    assert quantize_price(line_1.total_price_net_amount, currency) == quantize_price(
+        line_1.undiscounted_total_price_net_amount - initial_discount_amount,
+        currency,
+    )
+    assert quantize_price(line_1.total_price_gross_amount, currency) == quantize_price(
+        line_1.base_unit_price_amount * new_quantity * tax_rate, currency
+    )
+    assert quantize_price(
+        line_1.undiscounted_total_price_gross_amount, currency
+    ) == quantize_price(
+        line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate,
+        currency,
+    )
+    assert line_1.unit_discount_amount == new_unit_discount_amount
+    assert line_1.unit_discount_type == initial_discount_value_type
+    assert line_1.unit_discount_reason == f"Voucher code: {order.voucher_code}"
+    assert line_1.unit_discount_value == initial_discount_value
+
+    assert line_2.base_unit_price_amount == line_2.undiscounted_base_unit_price_amount
+    assert (
+        line_2.total_price_gross_amount
+        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    )
+    assert (
+        line_2.undiscounted_total_price_gross_amount
+        == line_2.undiscounted_base_unit_price_amount * line_2.quantity * tax_rate
+    )
+    assert line_2.unit_discount_amount == 0
+    assert line_2.unit_discount_type is None
+    assert line_2.unit_discount_reason is None
+    assert line_2.unit_discount_value == 0
+
+    assert order.undiscounted_base_shipping_price == undiscounted_shipping_price
+    assert order.base_shipping_price == undiscounted_shipping_price
+    assert order.shipping_price_net == undiscounted_shipping_price
+    assert order.shipping_price_gross == quantize_price(
+        undiscounted_shipping_price * tax_rate, currency
+    )
+
+    undiscounted_subtotal += line_1.undiscounted_unit_price.net
+    assert (
+        order.undiscounted_total_net
+        == undiscounted_subtotal + undiscounted_shipping_price
+    )
+    assert (
+        order.undiscounted_total_gross
+        == (undiscounted_subtotal + undiscounted_shipping_price) * tax_rate
+    )
+    assert (
+        order.subtotal_net_amount
+        == undiscounted_subtotal.amount - initial_discount_amount
+    )
+    assert quantize_price(order.subtotal_gross_amount, currency) == quantize_price(
+        order.subtotal_net_amount * tax_rate, currency
+    )
+    assert (
+        order.total_net_amount
+        == order.subtotal_net_amount + order.base_shipping_price_amount
+    )
+    assert quantize_price(order.total_gross_amount, currency) == quantize_price(
+        (order.undiscounted_total_net_amount - initial_discount_amount) * tax_rate,
+        currency,
+    )
