@@ -2880,11 +2880,15 @@ class PluginsManager(PaymentInterface):
         available_shipping_methods: list["ShippingMethodData"],
         pregenerated_subscription_payloads: dict | None = None,
     ) -> list[ExcludedShippingMethod]:
+        default_value: list[ExcludedShippingMethod] = []
+
+        if not available_shipping_methods:
+            return default_value
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         return self.__run_method_on_plugins(
             "excluded_shipping_methods_for_checkout",
-            [],
+            default_value,
             checkout,
             available_shipping_methods,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
