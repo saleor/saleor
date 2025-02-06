@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 
 from saleor.webhook.circuit_breaker.breaker_board import BreakerBoard
 from saleor.webhook.circuit_breaker.storage import InMemoryStorage
@@ -159,3 +160,54 @@ def test_breaker_board_clear_state_for_app(
     error = breaker_board.storage.clear_state_for_app(app.id)
     assert not error
     assert not bool(breaker_board.storage.last_open(app.id))
+
+
+def test_breaker_board_configuration_invalid_events(settings):
+    event_name = "invalid"
+    settings.BREAKER_BOARD_SYNC_EVENTS = [event_name]
+    with pytest.raises(ImproperlyConfigured) as e:
+        BreakerBoard(
+            storage=InMemoryStorage(),
+            failure_threshold=3,
+            failure_min_count=1,
+            cooldown_seconds=10,
+            ttl_seconds=10,
+        )
+    assert (
+        e.value.args[0] == f'Event "{event_name}" is not supported by circuit breaker.'
+    )
+
+
+def test_breaker_board_configuration_empty_event(settings):
+    event_name = ""
+    settings.BREAKER_BOARD_SYNC_EVENTS = [event_name]
+    with pytest.raises(ImproperlyConfigured) as e:
+        BreakerBoard(
+            storage=InMemoryStorage(),
+            failure_threshold=3,
+            failure_min_count=1,
+            cooldown_seconds=10,
+            ttl_seconds=10,
+        )
+    assert e.value.args[0] == "BREAKER_BOARD_SYNC_EVENTS cannot be empty."
+
+
+def test_breaker_board_configuration_miexed_events(settings):
+    bad_event_name = "bad_event"
+    settings.BREAKER_BOARD_SYNC_EVENTS = [
+        "checkout_calculate_taxes",
+        "shipping_list_methods_for_checkout",
+        bad_event_name,
+    ]
+    with pytest.raises(ImproperlyConfigured) as e:
+        BreakerBoard(
+            storage=InMemoryStorage(),
+            failure_threshold=3,
+            failure_min_count=1,
+            cooldown_seconds=10,
+            ttl_seconds=10,
+        )
+    assert (
+        e.value.args[0]
+        == f'Event "{bad_event_name}" is not supported by circuit breaker.'
+    )
