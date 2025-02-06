@@ -1012,6 +1012,9 @@ BREAKER_BOARD_COOLDOWN_SECONDS = int(
     os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS", 5 * 60)
 )
 BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 10 * 60))
+# List of lowercase sync webhook events that should be monitored by the breaker board, for ex:
+# "checkout_calculate_taxes, shipping_list_methods_for_checkout".
+BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS", ""))
 
 if ENABLE_BREAKER_BOARD is True and not BREAKER_BOARD_STORAGE_CLASS:
     raise ImproperlyConfigured(

@@ -5,7 +5,10 @@ from saleor.webhook.circuit_breaker.storage import InMemoryStorage
 from saleor.webhook.event_types import WebhookEventSyncType
 
 
-def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
+def test_breaker_board_failure(
+    settings, app_with_webhook, failed_response_function_mock
+):
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = BreakerBoard(
         storage=InMemoryStorage(),
         failure_threshold=1,
@@ -15,10 +18,6 @@ def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
     )
     app, webhook = app_with_webhook
 
-    assert (
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-        in breaker_board.webhook_event_types
-    )
     wrapped_function_mock = breaker_board(failed_response_function_mock)
 
     assert failed_response_function_mock.call_count == 0
@@ -36,8 +35,9 @@ def test_breaker_board_failure(app_with_webhook, failed_response_function_mock):
 
 
 def test_breaker_board_failure_ignored_webhook_event_type(
-    app_with_webhook, failed_response_function_mock
+    settings, app_with_webhook, failed_response_function_mock
 ):
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = BreakerBoard(
         storage=InMemoryStorage(),
         failure_threshold=1,
@@ -47,7 +47,6 @@ def test_breaker_board_failure_ignored_webhook_event_type(
     )
     app, webhook = app_with_webhook
 
-    assert WebhookEventSyncType.PAYMENT_CAPTURE not in breaker_board.webhook_event_types
     wrapped_function_mock = breaker_board(failed_response_function_mock)
 
     assert failed_response_function_mock.call_count == 0
@@ -60,7 +59,10 @@ def test_breaker_board_failure_ignored_webhook_event_type(
     assert breaker_board.storage.last_open(app.id) == 0
 
 
-def test_breaker_board_success(app_with_webhook, success_response_function_mock):
+def test_breaker_board_success(
+    settings, app_with_webhook, success_response_function_mock
+):
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = BreakerBoard(
         storage=InMemoryStorage(),
         failure_threshold=1,
@@ -70,10 +72,6 @@ def test_breaker_board_success(app_with_webhook, success_response_function_mock)
     )
     app, webhook = app_with_webhook
 
-    assert (
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-        in breaker_board.webhook_event_types
-    )
     wrapped_function_mock = breaker_board(success_response_function_mock)
 
     assert success_response_function_mock.call_count == 0
@@ -104,10 +102,12 @@ def test_breaker_board_threshold(
     failed_attempts,
     threshold,
     tripped,
+    settings,
     app_with_webhook,
     failed_response_function_mock,
     success_response_function_mock,
 ):
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = BreakerBoard(
         storage=InMemoryStorage(),
         failure_threshold=threshold,
@@ -117,10 +117,6 @@ def test_breaker_board_threshold(
     )
     app, webhook = app_with_webhook
 
-    assert (
-        WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-        in breaker_board.webhook_event_types
-    )
     wrapped_function_mock_success = breaker_board(success_response_function_mock)
     wrapped_function_mock_failed = breaker_board(failed_response_function_mock)
 
@@ -138,9 +134,11 @@ def test_breaker_board_threshold(
 
 
 def test_breaker_board_clear_state_for_app(
+    settings,
     app_with_webhook,
     failed_response_function_mock,
 ):
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     breaker_board = BreakerBoard(
         storage=InMemoryStorage(),
         failure_threshold=3,
