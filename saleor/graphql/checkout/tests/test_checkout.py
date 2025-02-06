@@ -524,6 +524,58 @@ def test_checkout_available_shipping_methods(
     assert data[field][0]["translation"]["name"] == translated_name
 
 
+GET_CHECKOUT_SHIPPING_METHODS_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+			shippingMethods{
+        id
+      }
+    }
+}
+"""
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
+)
+def test_query_checkout_empty_address_with_shipping_method_without_exclude_webhook(
+    mock__run_method_on_plugins, api_client, checkout_with_item, shipping_method
+):
+    # given checkout without address
+    # and checkout in channel with available shipping methods
+
+    checkout_with_item.shipping_address = None
+    checkout_with_item.billing_address = None
+
+    # when query is invoked
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then webhook plugin is not executing excluded_shipping_methods_for_checkout
+
+    mock__run_method_on_plugins.assert_not_called()
+
+
+@mock.patch(
+    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
+)
+def test_query_checkout_with_address_with_shipping_method_without_exclude_webhook(
+    mock__run_method_on_plugins, api_client, checkout_with_item, shipping_method
+):
+    # GIVEN checkout with address
+    # AND checkout in channel with available shipping methods
+
+    # TODO Add addresses
+
+    # when query is invoked
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then webhook plugin is not executing excluded_shipping_methods_for_checkout
+
+    mock__run_method_on_plugins.assert_called_once()
+
+
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
 def test_checkout_available_shipping_methods_with_weight_based_shipping_method(
     api_client,
