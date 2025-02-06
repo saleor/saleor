@@ -14,7 +14,7 @@ from ..core.taxes import zero_money
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
 from ..discount.models import OrderLineDiscount
-from ..discount.utils.voucher import apply_voucher_to_line
+from ..discount.utils.voucher import VoucherDenormalizedInfo, apply_voucher_to_line
 from ..graphql.core.types import Money
 from ..payment.models import Payment
 from ..product.models import DigitalContent, ProductVariant
@@ -79,6 +79,7 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 class EditableOrderLineInfo(LineInfo):
     line: "OrderLine"
     discounts: list["OrderLineDiscount"]
+    voucher_denormalized_info: VoucherDenormalizedInfo | None
 
     @cached_property
     def variant_discounted_price(self) -> Money:
@@ -139,6 +140,7 @@ def fetch_draft_order_lines_info(
                 channel=channel,
                 voucher=None,
                 voucher_code=None,
+                voucher_denormalized_info=None,
             )
         )
     voucher = order.voucher
@@ -147,4 +149,29 @@ def fetch_draft_order_lines_info(
     ):
         voucher_info = fetch_voucher_info(voucher, order.voucher_code)
         apply_voucher_to_line(voucher_info, lines_info)
+        _get_denormalized_voucher_info(lines_info, voucher)
     return lines_info
+
+
+def _get_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], voucher):
+    voucher_discounts = [
+        discount
+        for line_info in lines_info
+        for discount in line_info.discounts
+        if discount.voucher == voucher
+    ]
+    if not voucher_discounts:
+        return
+
+    voucher_discount = voucher_discounts[0]
+    voucher_info = VoucherDenormalizedInfo(
+        discount_value=voucher_discount.value,
+        discount_value_type=voucher_discount.value_type,
+        voucher_type=voucher.type,
+        reason=voucher_discount.reason,
+        name=voucher_discount.name,
+        apply_once_per_order=voucher.apply_once_per_order,
+    )
+    for line_info in lines_info:
+        if line_info.voucher:
+            line_info.voucher_denormalized_info = voucher_info
