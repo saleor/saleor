@@ -4,12 +4,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import asdict
 from decimal import Decimal
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -337,11 +332,11 @@ def generate_order_payload(
         "original": graphene.Node.to_global_id("Order", order.original_id),
         "lines": json.loads(generate_order_lines_payload(lines)),
         "fulfillments": json.loads(fulfillments_data),
-        "collection_point": json.loads(
-            _generate_collection_point_payload(order.collection_point)
-        )[0]
-        if order.collection_point
-        else None,
+        "collection_point": (
+            json.loads(_generate_collection_point_payload(order.collection_point))[0]
+            if order.collection_point
+            else None
+        ),
         "payments": json.loads(_generate_order_payment_payload(payments)),
         "shipping_method": _generate_shipping_method_payload(
             order.shipping_method, order.channel
@@ -580,25 +575,31 @@ def generate_checkout_payload(
                 checkout.shipping_method, checkout.channel
             ),
             "lines": list(lines_dict_data),
-            "collection_point": json.loads(
-                _generate_collection_point_payload(checkout.collection_point)
-            )[0]
-            if checkout.collection_point
-            else None,
+            "collection_point": (
+                json.loads(
+                    _generate_collection_point_payload(checkout.collection_point)
+                )[0]
+                if checkout.collection_point
+                else None
+            ),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
             "created": checkout.created_at,
             # We add token as a graphql ID as it worked in that way since we introduce
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
             "metadata": (
-                lambda c=checkout: get_checkout_metadata(c).metadata
-                if hasattr(c, "metadata_storage")
-                else {}
+                lambda c=checkout: (
+                    get_checkout_metadata(c).metadata  # type: ignore[union-attr]
+                    if hasattr(c, "metadata_storage")
+                    else {}
+                )
             ),
             "private_metadata": (
-                lambda c=checkout: get_checkout_metadata(c).private_metadata
-                if hasattr(c, "metadata_storage")
-                else {}
+                lambda c=checkout: (
+                    get_checkout_metadata(c).private_metadata  # type: ignore[union-attr]
+                    if hasattr(c, "metadata_storage")
+                    else {}
+                )
             ),
         },
     )
@@ -660,9 +661,11 @@ def generate_collection_payload(
             "metadata",
         ],
         extra_dict_data={
-            "background_image": build_absolute_uri(collection.background_image.url)
-            if collection.background_image
-            else None,
+            "background_image": (
+                build_absolute_uri(collection.background_image.url)
+                if collection.background_image
+                else None
+            ),
             "meta": generate_meta(requestor_data=generate_requestor(requestor)),
         },
     )
@@ -908,15 +911,19 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
             "product_sku": lambda fl: fl.order_line.product_sku,
             "product_variant_id": lambda fl: fl.order_line.product_variant_id,
             "weight": (
-                lambda fl: fl.order_line.variant.get_weight().g
-                if fl.order_line.variant
-                else None
+                lambda fl: (
+                    fl.order_line.variant.get_weight().g
+                    if fl.order_line.variant
+                    else None
+                )
             ),
             "weight_unit": "gram",
             "product_type": (
-                lambda fl: fl.order_line.variant.product.product_type.name
-                if fl.order_line.variant
-                else None
+                lambda fl: (
+                    fl.order_line.variant.product.product_type.name
+                    if fl.order_line.variant
+                    else None
+                )
             ),
             "unit_price_net": lambda fl: quantize_price(
                 fl.order_line.unit_price_net_amount, fl.order_line.currency
@@ -951,11 +958,11 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
                 * fl.quantity
             ),
             "currency": lambda fl: fl.order_line.currency,
-            "warehouse_id": lambda fl: graphene.Node.to_global_id(
-                "Warehouse", fl.stock.warehouse_id
-            )
-            if fl.stock
-            else None,
+            "warehouse_id": lambda fl: (
+                graphene.Node.to_global_id("Warehouse", fl.stock.warehouse_id)
+                if fl.stock
+                else None
+            ),
             "sale_id": lambda fl: fl.order_line.sale_id,
             "voucher_code": lambda fl: fl.order_line.voucher_code,
         },
@@ -1355,9 +1362,11 @@ def generate_checkout_payload_for_tax_calculation(
             "discounts": discounts,
             "lines": lines_dict_data,
             "metadata": (
-                lambda c=checkout: get_checkout_metadata(c).metadata
-                if hasattr(c, "metadata_storage")
-                else {}
+                lambda c=checkout: (
+                    get_checkout_metadata(c).metadata  # type: ignore[union-attr]
+                    if hasattr(c, "metadata_storage")
+                    else {}
+                )
             ),
         },
     )
@@ -1383,9 +1392,9 @@ def _generate_order_lines_payload_for_tax_calculation(lines: QuerySet[OrderLine]
                 lambda line: line.variant.product.metadata if line.variant else {}
             ),
             "product_type_metadata": (
-                lambda line: line.variant.product.product_type.metadata
-                if line.variant
-                else {}
+                lambda line: (
+                    line.variant.product.product_type.metadata if line.variant else {}
+                )
             ),
             "charge_taxes": (lambda _line: charge_taxes),
             "sku": (lambda line: line.product_sku),

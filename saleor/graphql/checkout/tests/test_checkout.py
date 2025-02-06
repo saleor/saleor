@@ -1776,6 +1776,16 @@ query getCheckout($id: ID) {
               amount
             }
           }
+          priceUndiscounted {
+            gross {
+              amount
+            }
+          }
+          pricePrior {
+            gross {
+              amount
+            }
+        }
         }
         product {
           id
@@ -1784,6 +1794,11 @@ query getCheckout($id: ID) {
           pricing{
             onSale
             discount{
+              gross{
+                amount
+              }
+            }
+            discountPrior {
               gross{
                 amount
               }
@@ -1812,6 +1827,18 @@ query getCheckout($id: ID) {
                 }
               }
             }
+            priceRangePrior{
+              start{
+                gross{
+                  amount
+                }
+              }
+              stop{
+                gross{
+                  amount
+                }
+              }
+            }
           }
         }
       }
@@ -1824,6 +1851,10 @@ query getCheckout($id: ID) {
         amount
         currency
       }
+      priorUnitPrice {
+        amount
+        currency
+      }
       totalPrice {
         currency
         gross {
@@ -1831,6 +1862,10 @@ query getCheckout($id: ID) {
         }
       }
       undiscountedTotalPrice {
+        amount
+        currency
+      }
+      priorTotalPrice {
         amount
         currency
       }
@@ -2169,6 +2204,14 @@ def test_checkout_prices_with_promotion(
         data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
     )
     assert line_total_price.gross.amount < undiscounted_total_price
+
+    assert data["lines"][0]["priorUnitPrice"] is not None
+    prior_unit_price_amount = (
+        line_info.variant.get_prior_price_amount(line_info.channel_listing) or 0
+    )
+    prior_total_price = prior_unit_price_amount * line_info.line.quantity
+    assert data["lines"][0]["priorUnitPrice"]["amount"] == prior_unit_price_amount
+    assert data["lines"][0]["priorTotalPrice"]["amount"] == prior_total_price
 
 
 @pytest.mark.parametrize(

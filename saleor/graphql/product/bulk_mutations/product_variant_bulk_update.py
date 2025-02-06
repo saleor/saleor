@@ -64,6 +64,7 @@ class ChannelListingUpdateInput(BaseInputObjectType):
     channel_listing = graphene.ID(required=True, description="ID of a channel listing.")
     price = PositiveDecimal(description="Price of the particular variant in channel.")
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
+    prior_price = PositiveDecimal(description="Price of the variant before discount.")
     preorder_threshold = graphene.Int(
         description="The threshold for preorder variant in channel."
     )
@@ -174,6 +175,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         cls,
         price,
         cost_price,
+        prior_price,
         currency_code,
         channel_id,
         variant_index,
@@ -195,6 +197,17 @@ class ProductVariantBulkUpdate(BaseMutation):
         clean_price(
             cost_price,
             "cost_price",
+            currency_code,
+            channel_id,
+            variant_index,
+            listing_index,
+            None,
+            index_error_map,
+            path_prefix,
+        )
+        clean_price(
+            prior_price,
+            "prior_price",
             currency_code,
             channel_id,
             variant_index,
@@ -243,6 +256,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 channel_listing = listings_global_id_to_instance_map[listing_id]
                 price = listing_data.get("price")
                 cost_price = listing_data.get("cost_price")
+                prior_price = listing_data.get("prior_price")
                 currency_code = channel_listing.currency
                 channel_id = channel_listing.channel_id
                 errors_count_before_prices = len(index_error_map[variant_index])
@@ -250,6 +264,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 cls.clean_prices(
                     price,
                     cost_price,
+                    prior_price,
                     currency_code,
                     channel_id,
                     variant_index,
@@ -610,6 +625,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                     # value will be calculated asynchronously in the celery task
                     discounted_price_amount=listing_data["price"],
                     cost_price_amount=listing_data.get("cost_price"),
+                    prior_price_amount=listing_data.get("prior_price"),
                     currency=listing_data["channel"].currency_code,
                     preorder_quantity_threshold=listing_data.get("preorder_threshold"),
                 )
@@ -630,6 +646,8 @@ class ProductVariantBulkUpdate(BaseMutation):
                     listing.discounted_price_amount = listing_data["price"]
                 if "cost_price" in listing_data:
                     listing.cost_price_amount = listing_data["cost_price"]
+                if "prior_price" in listing_data:
+                    listing.prior_price_amount = listing_data["prior_price"]
                 listings_to_update.append(listing)
 
     @classmethod
@@ -700,6 +718,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "price_amount",
                 "discounted_price_amount",
                 "cost_price_amount",
+                "prior_price_amount",
                 "preorder_quantity_threshold",
             ],
         )

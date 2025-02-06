@@ -234,6 +234,7 @@ def add_variant_to_checkout(
     variant_price_amount = variant.get_base_price(
         variant_channel_listing, price_override
     ).amount
+    variant_prior_price_amount = variant.get_prior_price_amount(variant_channel_listing)
 
     new_quantity, line = check_variant_in_stock(
         checkout,
@@ -250,6 +251,7 @@ def add_variant_to_checkout(
             quantity=quantity,
             price_override=price_override,
             undiscounted_unit_price_amount=variant_price_amount,
+            prior_unit_price_amount=variant_prior_price_amount,
         )
         return checkout
 
@@ -266,6 +268,7 @@ def add_variant_to_checkout(
             currency=checkout.currency,
             price_override=price_override,
             undiscounted_unit_price_amount=variant_price_amount,
+            prior_unit_price_amount=variant_prior_price_amount,
         )
     elif new_quantity > 0:
         line.quantity = new_quantity
@@ -418,9 +421,11 @@ def _append_line_to_create(
     new_variant_listing_map: dict[int, "product_models.ProductVariantChannelListing"],
 ):
     if line_data.quantity > 0:
+        variant_listing = new_variant_listing_map.get(variant.id)
         variant_price_amount = variant.get_base_price(
-            new_variant_listing_map.get(variant.id), line_data.custom_price
+            variant_listing, line_data.custom_price
         ).amount
+        variant_prior_price_amount = variant.get_prior_price_amount(variant_listing)
         checkout_line = CheckoutLine(
             checkout=checkout,
             variant=variant,
@@ -428,6 +433,7 @@ def _append_line_to_create(
             currency=checkout.currency,
             price_override=line_data.custom_price,
             undiscounted_unit_price_amount=variant_price_amount,
+            prior_unit_price_amount=variant_prior_price_amount,
         )
         if line_data.metadata_list:
             checkout_line.store_value_in_metadata(
@@ -1012,7 +1018,6 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
 
-    delete_external_shipping_id(checkout=checkout)
     checkout.save(
         update_fields=[
             "shipping_method",
@@ -1020,7 +1025,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    get_checkout_metadata(checkout).save()
+    delete_external_shipping_id_if_present(checkout=checkout)
 
 
 def is_fully_paid(
@@ -1096,22 +1101,36 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
     metadata.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
+    metadata.save()
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    metadata_object: ModelWithMetadata
+    metadata_object: ModelWithMetadata | None
     if isinstance(container, Checkout):
         metadata_object = get_checkout_metadata(container)
     else:
         metadata_object = container
+    if not metadata_object:
+        return None
     return metadata_object.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def delete_external_shipping_id(checkout: Checkout, save: bool = False):
-    metadata = get_or_create_checkout_metadata(checkout)
-    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
-    if save:
+def delete_external_shipping_id_if_present(checkout: Checkout):
+    """Delete external shipping key if present in metadata."""
+    metadata = get_checkout_metadata(checkout)
+    if not metadata:
+        return
+
+    field_deleted = metadata.delete_value_from_private_metadata(
+        PRIVATE_META_APP_SHIPPING_ID
+    )
+    if field_deleted:
         metadata.save(update_fields=["private_metadata"])
+
+
+@allow_writer()
+def create_checkout_metadata(checkout: "Checkout"):
+    return CheckoutMetadata.objects.create(checkout=checkout)
 
 
 @allow_writer()
@@ -1123,11 +1142,11 @@ def get_or_create_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata:
 
 
 @allow_writer()
-def get_checkout_metadata(checkout: "Checkout"):
+def get_checkout_metadata(checkout: "Checkout") -> CheckoutMetadata | None:
     if hasattr(checkout, "metadata_storage"):
         # TODO: load metadata_storage with dataloader and pass as an argument
         return checkout.metadata_storage
-    return CheckoutMetadata(checkout=checkout)
+    return None
 
 
 def calculate_checkout_weight(lines: list["CheckoutLineInfo"]) -> "Weight":

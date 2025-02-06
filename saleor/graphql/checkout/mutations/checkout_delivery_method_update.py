@@ -10,8 +10,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
 )
 from ....checkout.utils import (
-    delete_external_shipping_id,
-    get_or_create_checkout_metadata,
+    delete_external_shipping_id_if_present,
     invalidate_checkout,
     is_shipping_required,
     set_external_shipping_id,
@@ -247,7 +246,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 checkout=checkout, app_shipping_id=external_shipping_method.id
             )
         else:
-            delete_external_shipping_id(checkout=checkout)
+            delete_external_shipping_id_if_present(checkout=checkout)
 
         # Clear checkout shipping address if it was switched from C&C.
         if checkout.collection_point_id and not collection_point:
@@ -266,7 +265,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout.save(
             update_fields=checkout_fields_to_update + invalidate_prices_updated_fields
         )
-        get_or_create_checkout_metadata(checkout).save()
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
