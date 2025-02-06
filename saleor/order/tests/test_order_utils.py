@@ -71,7 +71,7 @@ def test_change_quantity_generates_proper_event(
         line_info,
         previous_quantity,
         new_quantity,
-        order_with_lines.channel,
+        order_with_lines,
         get_plugins_manager(allow_replica=False),
     )
 
@@ -123,7 +123,7 @@ def test_change_quantity_update_line_fields(
         line_info,
         line.quantity,
         new_quantity,
-        order_with_lines.channel,
+        order_with_lines,
         get_plugins_manager(allow_replica=False),
     )
 

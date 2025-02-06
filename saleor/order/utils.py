@@ -376,7 +376,7 @@ def add_variant_to_order(
             line_info,
             old_quantity,
             new_quantity,
-            channel,
+            order,
             manager=manager,
             send_event=False,
             update_fields=update_fields,
@@ -546,13 +546,14 @@ def change_order_line_quantity(
     line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
-    channel: "Channel",
+    order: "Order",
     manager: "PluginsManager",
     send_event: bool = True,
     update_fields: list[str] | None = None,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
+    channel = order.channel
     currency = channel.currency_code
     if new_quantity:
         if line.order.is_unconfirmed():
@@ -595,6 +596,11 @@ def change_order_line_quantity(
         ).first():
             update_catalogue_promotion_discount_amount_for_order(
                 catalogue_discount, line, new_quantity, currency
+            )
+
+        if is_line_level_voucher(order.voucher):
+            create_or_update_voucher_discount_objects_for_order(
+                order, denormalized=True
             )
 
     else:
