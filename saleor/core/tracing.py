@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from django.db import transaction
 from opentelemetry import trace
 
-from ..core.otel import public_tracer, tracer
+from ..core.otel import tracer
 
 
 @contextmanager
@@ -34,8 +34,8 @@ def webhooks_otel_trace(
 
     :param payload_size: size of the payload in bytes
     """
-    with public_tracer.start_as_current_span(
-        f"webhooks.{span_name}", kind=trace.SpanKind.CLIENT
+    with tracer.start_as_current_span(
+        f"webhooks.{span_name}", internal=False, kind=trace.SpanKind.CLIENT
     ) as span:
         if app:
             span.set_attribute("app.id", app.id)

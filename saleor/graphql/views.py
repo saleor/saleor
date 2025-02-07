@@ -22,7 +22,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.otel import public_meter, public_tracer, report_duration_ms, tracer
+from ..core.otel import meter, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -38,13 +38,6 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-graphql_queries = public_meter.create_counter(
-    "saleor.graphql_queries", unit="{request}"
-)
-graphql_query_duration = public_meter.create_histogram(
-    "saleor.graphql_query_duration", unit="ms"
-)
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -169,8 +162,8 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with public_tracer.start_as_current_span(
-            "http", kind=trace.SpanKind.SERVER
+        with tracer.start_as_current_span(
+            "http", internal=False, kind=trace.SpanKind.SERVER
         ) as span:
             span.set_attribute("component", "http")
             span.set_attribute("resource.name", request.path)
@@ -283,10 +276,10 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            public_tracer.start_as_current_span("graphql_query") as span,
-            report_duration_ms(graphql_query_duration),
+            tracer.start_as_current_span("graphql_query", internal=False) as span,
+            meter.record_duration_ms("saleor.graphql_query_duration"),
         ):
-            graphql_queries.add(1)
+            meter.record("saleor.graphql_queries", 1)
             span.set_attribute("component", "graphql")
             span.set_attribute(
                 SpanAttributes.HTTP_URL,
