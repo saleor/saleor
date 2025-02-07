@@ -1,4 +1,4 @@
-s<div align="center" width="100px">
+<div align="center" width="100px">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/4006792/214640818-fd4de9e6-bdee-47f0-ae66-e69ee9ec84bb.png">
    <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/4006792/214636328-8e4f83e8-66cb-4114-a3d8-473eb908b9c3.png">
@@ -50,21 +50,16 @@ s<div align="center" width="100px">
 
 ## Table of Contents
 
-- [Table of Contents](#table-of-contents)
 - [What makes Saleor special?](#what-makes-saleor-special)
 - [Why API-only Architecture?](#why-api-only-architecture)
-  - [What are the tradeoffs?](#what-are-the-tradeoffs)
 - [Features](#features)
 - [Installation](#installation)
-  - [Saleor Cloud](#saleor-cloud)
 - [Documentation](#documentation)
 - [Saleor Platform](#saleor-platform)
 - [Storefront](#storefront)
 - [Dashboard](#dashboard)
 - [Contributing](#contributing)
-  - [Running Saleor locally with DB in docker (MacOS)](#running-saleor-locally-with-db-in-docker-macos)
 - [License](#license)
-    - [Crafted with ❤️ by Saleor Commerce](#crafted-with-️-by-saleor-commerce)
 
 ## What makes Saleor special?
 
@@ -211,15 +206,29 @@ If you didn’t set python version globally set [pyenv](https://github.com/pyenv
 pyenv local 3.12
 ```
 
-Run `poetry sync` (it will create virtualenv for you and install deps)
+To create virtualenv and install dependencies run:
 
-Activate poetry virtualenv via `eval $(poetry env activate)`. See [poetry docs](https://python-poetry.org/docs/managing-environments/#bash-csh-zsh) for all supported shells.
+```shell
+poetry sync
+```
+
+After installation activate virtualenv:
+
+```shell
+eval $(poetry env activate)
+```
+
+See [poetry docs](https://python-poetry.org/docs/managing-environments/#bash-csh-zsh) for all supported shells.
 
 > [!TIP]
 > Your shell prompt should have virtualenv information available and should look similar to this:
 > ```(saleor-py3.12) ~/D/saleor %```
 
-Run `pre-commit install`
+Install pre commit hooks:
+
+```shell
+pre-commit install
+```
 
 You are ready to go 🎉.
 
