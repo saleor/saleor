@@ -167,43 +167,61 @@ def _calculate_quantity_including_returns(order):
     return total_quantity, quantity_fulfilled, quantity_returned
 
 
-def update_order_status(order: Order) -> Order:
+def update_order_status(order: Order):
     """Update order status depending on fulfillments."""
-    # Add a transaction block to ensure that the order status won't be overridden by
-    # another process.
     with transaction.atomic():
-        order = Order.objects.select_for_update().get(pk=order.pk)
+        # Add a transaction block to ensure that the order status won't be overridden by
+        # another process.
+        locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        # Calculate the quantities for the most recent data
         (
             total_quantity,
             quantity_fulfilled,
             quantity_returned,
-        ) = _calculate_quantity_including_returns(order)
+        ) = _calculate_quantity_including_returns(locked_order)
 
         # check if order contains any fulfillments that awaiting approval
-        awaiting_approval = order.fulfillments.filter(
+        awaiting_approval = locked_order.fulfillments.filter(
             status=FulfillmentStatus.WAITING_FOR_APPROVAL
         ).exists()
 
-        # total_quantity == 0 means that all products have been replaced, we don't change
-        # the order status in that case
-        if total_quantity == 0:
-            status = order.status
-        elif quantity_fulfilled <= 0:
-            status = OrderStatus.UNFULFILLED
-        elif 0 < quantity_returned < total_quantity:
-            status = OrderStatus.PARTIALLY_RETURNED
-        elif quantity_returned == total_quantity:
-            status = OrderStatus.RETURNED
-        elif quantity_fulfilled < total_quantity or awaiting_approval:
-            status = OrderStatus.PARTIALLY_FULFILLED
-        else:
-            status = OrderStatus.FULFILLED
+        status = determine_order_status(
+            order,
+            total_quantity,
+            quantity_fulfilled,
+            quantity_returned,
+            awaiting_approval,
+        )
 
+        # we would like to update the status for the order provided as the argument
+        # to ensure that the reference order has up to date status
         if status != order.status:
             order.status = status
             order.save(update_fields=["status", "updated_at"])
 
-    return order
+
+def determine_order_status(
+    order: Order,
+    total_quantity: int,
+    quantity_fulfilled: int,
+    quantity_returned: int,
+    awaiting_approval: bool,
+):
+    # total_quantity == 0 means that all products have been replaced, we don't change
+    # the order status in that case
+    if total_quantity == 0:
+        status = order.status
+    elif quantity_fulfilled <= 0:
+        status = OrderStatus.UNFULFILLED
+    elif 0 < quantity_returned < total_quantity:
+        status = OrderStatus.PARTIALLY_RETURNED
+    elif quantity_returned == total_quantity:
+        status = OrderStatus.RETURNED
+    elif quantity_fulfilled < total_quantity or awaiting_approval:
+        status = OrderStatus.PARTIALLY_FULFILLED
+    else:
+        status = OrderStatus.FULFILLED
+    return status
 
 
 @traced_atomic_transaction()
