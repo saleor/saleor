@@ -22,7 +22,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.otel import meter, tracer
+from ..core.otel import MetricType, meter, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -38,6 +38,13 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
+
+meter.create_metric(
+    "saleor.graphql_queries", MetricType.Counter, internal=False, unit="{request}"
+)
+meter.create_metric(
+    "saleor.graphql_query_duration", MetricType.Histogram, internal=False, unit="ms"
+)
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -206,7 +213,9 @@ class GraphQLView(View):
                     span.set_attribute(f"ip_{additional_ip_header}", request_ips[:100])
 
             response = self._handle_query(request)
-            span.set_attribute(SpanAttributes.HTTP_STATUS_CODE, response.status_code)
+            tracer.get_current_span().set_attribute(
+                SpanAttributes.HTTP_STATUS_CODE, response.status_code
+            )
 
             # RFC2616: Content-Length is defined in bytes,
             # we can calculate the RAW UTF-8 size using the length of

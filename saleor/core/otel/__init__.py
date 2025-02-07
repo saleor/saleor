@@ -8,9 +8,8 @@ PUBLIC_SCOPE = "saleor.tracer.public"
 tracer = Tracer(INTERNAL_SCOPE, PUBLIC_SCOPE, __version__)
 meter = Meter(INTERNAL_SCOPE, PUBLIC_SCOPE, __version__)
 
-meter.create_instrument(
-    "saleor.graphql_queries", MetricType.Counter, internal=False, unit="{request}"
-)
-meter.create_instrument(
-    "saleor.graphql_query_duration", MetricType.Histogram, internal=False, unit="ms"
-)
+__all__ = [
+    "tracer",
+    "meter",
+    "MetricType",
+]
