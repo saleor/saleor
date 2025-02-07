@@ -307,7 +307,7 @@ def test_prepare_products_relations_data_only_channel_ids(
 def test_prepare_products_relations_data_sets_published_dates(
     collection_list, channel_PLN, channel_USD, product_available_in_many_channels
 ):
-    # givenq
+    # given
     collection_list[0].products.add(product_available_in_many_channels)
     collection_list[1].products.add(product_available_in_many_channels)
     qs = Product.objects.all()

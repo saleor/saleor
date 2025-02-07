@@ -81,8 +81,8 @@ def test_export_products(
     assert set(args[0].values_list("pk", flat=True)) == set(
         Product.objects.all().values_list("pk", flat=True)
     )
-    # charge taxes are deprecated, and do not return any value. In case of requesting
-    # them, the headers number needs to match to the size of the row
+    # `charge taxes` field is deprecated, and do not return any value. In case of
+    # requesting it, the headers number needs to match to the number of the rows.
     expected_charge_taxes = ""
     assert args[1:] == (
         export_info,
