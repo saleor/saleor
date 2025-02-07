@@ -178,6 +178,8 @@ Get more details in our [Contributing Guide](https://docs.saleor.io/docs/develop
 The easiest way of running Saleor for local development is to use [development containers](https://containers.dev/).
 If you have Visual Studio Code follow their [guide](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container) on how to open existing folder in container.
 
+Development container only creates container, you still need to start the server. See [common-commands](#common-commands) section to learn more.
+
 ### Running Saleor locally with database and additional services in docker
 
 Install & setup prerequisites via homebrew:
