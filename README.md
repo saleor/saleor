@@ -1,4 +1,4 @@
-<div align="center" width="100px">
+s<div align="center" width="100px">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/4006792/214640818-fd4de9e6-bdee-47f0-ae66-e69ee9ec84bb.png">
    <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/4006792/214636328-8e4f83e8-66cb-4114-a3d8-473eb908b9c3.png">
@@ -50,13 +50,21 @@
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [What makes Saleor special?](#what-makes-saleor-special)
+- [Why API-only Architecture?](#why-api-only-architecture)
+  - [What are the tradeoffs?](#what-are-the-tradeoffs)
 - [Features](#features)
 - [Installation](#installation)
+  - [Saleor Cloud](#saleor-cloud)
 - [Documentation](#documentation)
+- [Saleor Platform](#saleor-platform)
+- [Storefront](#storefront)
+- [Dashboard](#dashboard)
 - [Contributing](#contributing)
-- [Your feedback](#your-feedback)
+  - [Running Saleor locally with DB in docker (MacOS)](#running-saleor-locally-with-db-in-docker-macos)
 - [License](#license)
+    - [Crafted with ❤️ by Saleor Commerce](#crafted-with-️-by-saleor-commerce)
 
 ## What makes Saleor special?
 
@@ -168,9 +176,53 @@ For the dashboard, go to the [saleor-dashboard](https://github.com/saleor/saleor
 
 We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Good first issue`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22+)
 
-If nothing grabs your attention, check [our roadmap](https://github.com/orgs/saleor/projects/3/views/4) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
-
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
+
+### Running Saleor locally with DB in docker (MacOS)
+
+Install & setup prerequisites via homebrew:
+
+```shell
+brew install libmagic
+brew install pyenv
+
+pyenv install 3.12
+
+# optionally set python globaly
+pyenv global 3.12
+
+brew install pipx
+pipx install poetry
+```
+
+Clone [saleor-platform](https://github.com/saleor/saleor-platform) and setup database in docker:
+
+```shell
+docker compose run --rm api python3 manage.py migrate
+docker compose run --rm api python3 manage.py populatedb --createsuperuser
+docker compose up db
+```
+
+Clone this [repository](https://github.com/saleor/saleor)
+
+If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
+
+```shell
+pyenv local 3.12
+```
+
+Run `poetry sync` (it will create virtualenv for you and install deps)
+
+Activate poetry virtualenv via `eval $(poetry env activate)`. See [poetry docs](https://python-poetry.org/docs/managing-environments/#bash-csh-zsh) for all supported shells.
+
+> [!TIP]
+> Your shell prompt should have virtualenv information available and should look similar to this:
+> ```(saleor-py3.12) ~/D/saleor %```
+
+Run `pre-commit install`
+
+You are ready to go 🎉.
+
 
 ## License
 
