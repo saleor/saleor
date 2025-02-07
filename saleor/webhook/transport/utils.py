@@ -20,6 +20,8 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.urls import reverse
 from google.cloud import pubsub_v1
+from opentelemetry.context import get_current
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 from requests import RequestException
 from requests_hardened.ip_filter import InvalidIPAddress
 
@@ -169,6 +171,9 @@ def send_webhook_using_http(
 
     if custom_headers:
         headers.update(custom_headers)
+
+    # Extend headers with trace context for distributed tracing
+    TraceContextTextMapPropagator().inject(headers, get_current())
 
     try:
         response = HTTPClient.send_request(
