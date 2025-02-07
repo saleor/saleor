@@ -222,7 +222,9 @@ See [poetry docs](https://python-poetry.org/docs/managing-environments/#bash-csh
 
 > [!TIP]
 > Your shell prompt should have virtualenv information available and should look similar to this:
-> ```(saleor-py3.12) ~/D/saleor %```
+> ```shell
+> (saleor-py3.12) ~/D/saleor %
+> ```
 
 Install pre commit hooks:
 
