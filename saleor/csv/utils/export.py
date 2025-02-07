@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from ..models import ExportFile
 
 
-BATCH_SIZE = 10000
+BATCH_SIZE = 1000
 
 
 def export_products(
@@ -214,7 +214,6 @@ def export_products_in_batches(
                 "category",
             )
         )
-
         export_data = get_products_data(
             product_batch, export_fields, attributes, warehouses, channels
         )
