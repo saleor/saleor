@@ -173,7 +173,12 @@ We love your contributions and do our best to provide you with mentorship and su
 
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
 
-### Running Saleor locally with DB in docker (MacOS)
+### Running Saleor locally in development containers
+
+The easiest way of running Saleor for local development is to use [development containers](https://containers.dev/).
+If you have Visual Studio Code follow their [guide](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container) on how to open existing folder in container.
+
+### Running Saleor locally with database and additional services in docker
 
 Install & setup prerequisites via homebrew:
 
@@ -183,22 +188,20 @@ brew install pyenv
 
 pyenv install 3.12
 
-# optionally set python globaly
+# optionally set python globally
 pyenv global 3.12
 
 brew install pipx
 pipx install poetry
 ```
 
-Clone [saleor-platform](https://github.com/saleor/saleor-platform) and setup database in docker:
+Clone this [repository](https://github.com/saleor/saleor) and setup database and additional services in docker:
 
 ```shell
-docker compose run --rm api python3 manage.py migrate
-docker compose run --rm api python3 manage.py populatedb --createsuperuser
-docker compose up db
+cd .devcontainer
+docker compose up db dashboard redis mailpit
 ```
 
-Clone this [repository](https://github.com/saleor/saleor)
 
 If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
 
@@ -206,7 +209,7 @@ If you didn’t set python version globally set [pyenv](https://github.com/pyenv
 pyenv local 3.12
 ```
 
-To create virtualenv and install dependencies run:
+To create virtualenv and install dependencies run in root of the repository:
 
 ```shell
 poetry sync
@@ -231,6 +234,42 @@ pre-commit install
 ```
 
 You are ready to go 🎉.
+
+### Running tests
+
+To run tests, enter pytest in your terminal.
+
+```shell
+pytest
+```
+
+We recommend using the reuse-db flag to speed up testing time.
+
+```shell
+pytest --reuse-db
+```
+
+### Common commands
+
+To start server:
+
+```shell
+python manage.py runserver
+```
+
+To run database migrations:
+
+```shell
+python manage.py migrate
+```
+
+To populate database with example data and create the admin user:
+
+```shell
+python manage.py populatedb --createsuperuser
+```
+
+*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
 
 
 ## License
