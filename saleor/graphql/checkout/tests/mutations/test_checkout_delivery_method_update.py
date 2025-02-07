@@ -118,7 +118,7 @@ def test_checkout_delivery_method_update(
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
     if is_valid_delivery_method:
@@ -243,7 +243,7 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
     if is_valid_delivery_method:
@@ -605,7 +605,7 @@ def test_checkout_delivery_method_update_valid_method_not_all_shipping_data(
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
 
@@ -660,7 +660,7 @@ def test_checkout_delivery_method_update_valid_method_not_all_shipping_data_for_
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
     assert checkout.shipping_address == delivery_method.address
@@ -720,7 +720,7 @@ def test_checkout_delivery_method_update_invalid_method_not_all_shipping_data(
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
 
@@ -788,7 +788,7 @@ def test_checkout_delivery_method_update_invalid_with_not_valid_address_data(
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
 
@@ -853,7 +853,7 @@ def test_checkout_delivery_method_update_valid_with_not_valid_address_data(
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
 
@@ -913,7 +913,7 @@ def test_checkout_delivery_method_update_valid_with_not_valid_address_data_for_c
     checkout.refresh_from_db()
 
     mock_clean_delivery.assert_called_once_with(
-        checkout_info=checkout_info, lines=lines, method=shipping_method_data
+        checkout_info=checkout_info, method=shipping_method_data
     )
     errors = data["errors"]
 
