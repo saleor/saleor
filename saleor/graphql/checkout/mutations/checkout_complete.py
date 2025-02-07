@@ -336,10 +336,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             metadata_list=metadata,
         )
 
-        # Refresh the order status as it might be updated in post commit actions
-        if order:
-            order.refresh_from_db(fields=["status"])
-
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(

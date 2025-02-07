@@ -219,8 +219,4 @@ class OrderCreateFromCheckout(BaseMutation):
                 code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
             )
 
-        # Refresh the order status as it might be updated in post commit actions
-        if order:
-            order.refresh_from_db(fields=["status"])
-
         return OrderCreateFromCheckout(order=order)
