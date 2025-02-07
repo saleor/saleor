@@ -12,11 +12,17 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from opentelemetry import trace
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
+from ....core.otel import (
+    create_span_link,
+    get_span_link_data,
+    tracer,
+)
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
@@ -390,6 +396,9 @@ def trigger_webhooks_async_for_multiple_objects(
                 )
             )
 
+    current_span = trace.get_current_span()
+    span_link_data = get_span_link_data(current_span)
+
     for _, deferred_deliveries in deferred_deliveries_per_object.items():
         if not deferred_deliveries:
             continue
@@ -408,13 +417,14 @@ def trigger_webhooks_async_for_multiple_objects(
                 "event_delivery_ids": event_delivery_ids,
                 "deferred_payload_data": asdict(deferred_payload_data),
                 "send_webhook_queue": queue,
+                "span_link_data": span_link_data,
             },
             bind=True,
         )
 
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
-            kwargs={"event_delivery_id": delivery.pk},
+            kwargs={"event_delivery_id": delivery.pk, "span_link_data": span_link_data},
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
                 default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
@@ -475,89 +485,99 @@ def generate_deferred_payloads(
     event_delivery_ids: list,
     deferred_payload_data: dict,
     send_webhook_queue: str | None = None,
+    span_link_data: dict | None = None,
 ):
-    deliveries = list(
-        get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
-    )
-    args_obj = DeferredPayloadData(**deferred_payload_data)
-    requestor = None
-    if args_obj.requestor_object_id and args_obj.requestor_model_name in (
-        RequestorModelName.APP,
-        RequestorModelName.USER,
-    ):
-        model = apps.get_model(args_obj.requestor_model_name)
-        requestor = model.objects.filter(pk=args_obj.requestor_object_id).first()
-
-    subscribable_object = (
-        apps.get_model(args_obj.model_name)
-        .objects.filter(pk=args_obj.object_id)
-        .first()
-    )
-    if not subscribable_object:
-        EventDelivery.objects.filter(pk__in=event_delivery_ids).update(
-            status=EventDeliveryStatus.FAILED
+    links = create_span_link(span_link_data)
+    with tracer.start_as_current_span(
+        "generate_deferred_payloads", kind=trace.SpanKind.CLIENT, links=links
+    ) as span:
+        deliveries = list(
+            get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
         )
-        return
+        args_obj = DeferredPayloadData(**deferred_payload_data)
+        requestor = None
+        if args_obj.requestor_object_id and args_obj.requestor_model_name in (
+            RequestorModelName.APP,
+            RequestorModelName.USER,
+        ):
+            model = apps.get_model(args_obj.requestor_model_name)
+            requestor = model.objects.filter(pk=args_obj.requestor_object_id).first()
 
-    event_payloads = []
-    event_payloads_data = []
-    event_deliveries_for_bulk_update = []
-
-    for delivery in deliveries:
-        event_type = delivery.event_type
-        webhook = delivery.webhook
-        if not webhook.subscription_query:
-            continue
-
-        request = initialize_request(
-            requestor,
-            event_type in WebhookEventSyncType.ALL,
-            event_type=event_type,
-            allow_replica=True,
-            request_time=args_obj.request_time,
+        subscribable_object = (
+            apps.get_model(args_obj.model_name)
+            .objects.filter(pk=args_obj.object_id)
+            .first()
         )
-        data_promise = generate_payload_promise_from_subscription(
-            event_type=event_type,
-            subscribable_object=subscribable_object,
-            subscription_query=webhook.subscription_query,
-            request=request,
-            app=webhook.app,
-        )
+        if not subscribable_object:
+            EventDelivery.objects.filter(pk__in=event_delivery_ids).update(
+                status=EventDeliveryStatus.FAILED
+            )
+            return
 
-        if data_promise:
-            data = data_promise.get()
-            if data:
-                data_json = json.dumps({**data})
-                event_payloads_data.append(data_json)
-                event_payload = EventPayload()
-                event_payloads.append(event_payload)
-                delivery.payload = event_payload
-                event_deliveries_for_bulk_update.append(delivery)
+        event_payloads = []
+        event_payloads_data = []
+        event_deliveries_for_bulk_update = []
 
-    if event_deliveries_for_bulk_update:
-        with allow_writer():
-            with transaction.atomic():
-                EventPayload.objects.bulk_create_with_payload_files(
-                    event_payloads, event_payloads_data
-                )
-                EventDelivery.objects.bulk_update(
-                    event_deliveries_for_bulk_update, ["payload"]
-                )
+        for delivery in deliveries:
+            event_type = delivery.event_type
+            webhook = delivery.webhook
+            if not webhook.subscription_query:
+                continue
 
-    for delivery in event_deliveries_for_bulk_update:
-        # Trigger webhook delivery task when the payload is ready.
-        send_webhook_request_async.apply_async(
-            kwargs={
-                "event_delivery_id": delivery.pk,
-            },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            bind=True,
-            retry_backoff=10,
-            retry_kwargs={"max_retries": 5},
-        )
+            request = initialize_request(
+                requestor,
+                event_type in WebhookEventSyncType.ALL,
+                event_type=event_type,
+                allow_replica=True,
+                request_time=args_obj.request_time,
+            )
+            data_promise = generate_payload_promise_from_subscription(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                subscription_query=webhook.subscription_query,
+                request=request,
+                app=webhook.app,
+            )
+
+            if data_promise:
+                data = data_promise.get()
+                if data:
+                    data_json = json.dumps({**data})
+                    event_payloads_data.append(data_json)
+                    event_payload = EventPayload()
+                    event_payloads.append(event_payload)
+                    delivery.payload = event_payload
+                    event_deliveries_for_bulk_update.append(delivery)
+
+        if event_deliveries_for_bulk_update:
+            with allow_writer():
+                with transaction.atomic():
+                    EventPayload.objects.bulk_create_with_payload_files(
+                        event_payloads, event_payloads_data
+                    )
+                    EventDelivery.objects.bulk_update(
+                        event_deliveries_for_bulk_update, ["payload"]
+                    )
+
+        # Create new span_link_data for the next task to link it with the current one.
+        span_link_data = get_span_link_data(span)
+
+        for delivery in event_deliveries_for_bulk_update:
+            # Trigger webhook delivery task when the payload is ready.
+            send_webhook_request_async.apply_async(
+                kwargs={
+                    "event_delivery_id": delivery.pk,
+                    "span_link_data": span_link_data,
+                },
+                queue=get_queue_name_for_webhook(
+                    delivery.webhook,
+                    default_queue=send_webhook_queue
+                    or settings.WEBHOOK_CELERY_QUEUE_NAME,
+                ),
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
 
 
 @app.task(
@@ -567,7 +587,7 @@ def generate_deferred_payloads(
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def send_webhook_request_async(self, event_delivery_id) -> None:
+def send_webhook_request_async(self, event_delivery_id, span_link_data=None) -> None:
     delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
         if not_found:
@@ -588,8 +608,9 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
         data = data if isinstance(data, bytes) else data.encode("utf-8")
         # Count payload size in bytes.
         payload_size = len(data)
+        links = create_span_link(span_link_data)
         with webhooks_otel_trace(
-            delivery.event_type, domain, payload_size, app=webhook.app
+            delivery.event_type, domain, payload_size, app=webhook.app, links=links
         ):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,

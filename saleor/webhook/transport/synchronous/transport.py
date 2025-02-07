@@ -8,12 +8,13 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from opentelemetry.trace import SpanContext
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
-from ....core.tracing import webhooks_otel_trace
+from ....core.tracing import public_webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.events import call_event
 from ....core.utils.url import sanitize_url_for_logging
@@ -95,7 +96,10 @@ def handle_transaction_request_task(self, delivery_id, request_event_id) -> None
 
 
 def _send_webhook_request_sync(
-    delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, attempt=None
+    delivery,
+    timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+    attempt=None,
+    public_span_ctx: SpanContext | None = None,
 ) -> tuple[WebhookResponse, dict[Any, Any] | None]:
     event_payload = delivery.payload
     data = event_payload.get_payload()
@@ -121,8 +125,13 @@ def _send_webhook_request_sync(
     response_data = None
 
     try:
-        with webhooks_otel_trace(
-            delivery.event_type, domain, payload_size, sync=True, app=webhook.app
+        with public_webhooks_otel_trace(
+            delivery.event_type,
+            domain,
+            payload_size,
+            sync=True,
+            app=webhook.app,
+            public_span_ctx=public_span_ctx,
         ):
             response = send_webhook_using_http(
                 webhook.target_url,
@@ -169,9 +178,13 @@ def _send_webhook_request_sync(
 
 
 def send_webhook_request_sync(
-    delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+    delivery,
+    timeout=settings.WEBHOOK_SYNC_TIMEOUT,
+    public_span_ctx: SpanContext | None = None,
 ) -> dict[Any, Any] | None:
-    response, response_data = _send_webhook_request_sync(delivery, timeout)
+    response, response_data = _send_webhook_request_sync(
+        delivery, timeout, public_span_ctx=public_span_ctx
+    )
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
 
@@ -187,6 +200,7 @@ def trigger_webhook_sync_if_not_cached(
     request=None,
     requestor=None,
     pregenerated_subscription_payload: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ) -> dict | None:
     """Get response for synchronous webhook.
 
@@ -209,6 +223,7 @@ def trigger_webhook_sync_if_not_cached(
             request=request,
             requestor=requestor,
             pregenerated_subscription_payload=pregenerated_subscription_payload,
+            public_span_ctx=public_span_ctx,
         )
         if response_data is not None:
             cache.set(
@@ -300,6 +315,7 @@ def trigger_webhook_sync(
     request=None,
     requestor=None,
     pregenerated_subscription_payload: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ) -> dict[Any, Any] | None:
     """Send a synchronous webhook request."""
     if webhook.subscription_query:
@@ -327,7 +343,9 @@ def trigger_webhook_sync(
     if timeout:
         kwargs = {"timeout": timeout}
 
-    return send_webhook_request_sync(delivery, **kwargs)
+    return send_webhook_request_sync(
+        delivery, public_span_ctx=public_span_ctx, **kwargs
+    )
 
 
 def trigger_all_webhooks_sync(
@@ -338,6 +356,7 @@ def trigger_all_webhooks_sync(
     requestor=None,
     allow_replica=False,
     pregenerated_subscription_payloads: dict | None = None,
+    public_span_ctx: SpanContext | None = None,
 ) -> R | None:
     """Send all synchronous webhook request for given event type.
 
@@ -388,7 +407,7 @@ def trigger_all_webhooks_sync(
                 webhook=webhook,
             )
 
-        response_data = send_webhook_request_sync(delivery)
+        response_data = send_webhook_request_sync(delivery, public_span_ctx)
         if parsed_response := parse_response(response_data):
             return parsed_response
     return None

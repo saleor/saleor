@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 from django.conf import settings
 from django.http import HttpRequest
 from django.utils.functional import empty
+from opentelemetry.trace import SpanContext
 
 from ...account.models import User
 from ...app.models import App
@@ -19,6 +20,7 @@ class SaleorContext(HttpRequest):
     dataloaders: dict[str, "DataLoader"]
     app: App | None
     user: User | None  # type: ignore[assignment]
+    public_span_ctx: SpanContext | None
     requestor: App | User | None
     request_time: datetime.datetime
 
