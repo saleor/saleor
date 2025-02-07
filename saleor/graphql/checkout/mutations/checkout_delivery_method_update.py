@@ -216,7 +216,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             error_msg = "This pick up point is not applicable."
 
         delivery_method_is_valid = clean_delivery_method(
-            checkout_info=checkout_info, lines=lines, method=delivery_method
+            checkout_info=checkout_info, method=delivery_method
         )
         if not delivery_method_is_valid:
             raise ValidationError(

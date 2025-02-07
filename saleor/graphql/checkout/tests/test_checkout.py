@@ -70,7 +70,7 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     delivery_method = convert_to_shipping_method_data(
         shipping_method, shipping_method.channel_listings.first()
     )
-    is_valid_method = clean_delivery_method(checkout_info, lines, delivery_method)
+    is_valid_method = clean_delivery_method(checkout_info, delivery_method)
     assert is_valid_method is True
 
 
@@ -83,7 +83,7 @@ def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
+    is_valid_method = clean_delivery_method(checkout_info, warehouses_for_cc[1])
 
     assert is_valid_method is True
 
@@ -98,7 +98,7 @@ def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, lines, None)
+    is_valid_method = clean_delivery_method(checkout_info, None)
     assert is_valid_method is True
 
 

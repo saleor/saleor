@@ -77,7 +77,6 @@ def test_checkout_shipping_method_update(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mock_clean_shipping.assert_called_once_with(
         checkout_info=checkout_info,
-        lines=lines,
         method=convert_to_shipping_method_data(
             shipping_method, shipping_method.channel_listings.first()
         ),
