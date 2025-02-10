@@ -3,6 +3,7 @@ import time
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
 from saleor.webhook.event_types import WebhookEventSyncType
@@ -32,19 +33,23 @@ class BreakerBoard:
         cooldown_seconds: int,
         ttl_seconds: int,
     ):
+        self.validate_sync_events()
         self.storage = storage
-
-        # TODO - make event types configurable
-        self.webhook_event_types = [
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-        ]
         self.failure_threshold = failure_threshold
         self.failure_min_count = failure_min_count
         self.cooldown_seconds = cooldown_seconds
         self.ttl_seconds = ttl_seconds
 
+    def validate_sync_events(self):
+        if settings.BREAKER_BOARD_SYNC_EVENTS == [""]:
+            raise ImproperlyConfigured("BREAKER_BOARD_SYNC_EVENTS cannot be empty.")
+        for event in settings.BREAKER_BOARD_SYNC_EVENTS:
+            if not WebhookEventSyncType.EVENT_MAP.get(event):
+                raise ImproperlyConfigured(
+                    f'Event "{event}" is not supported by circuit breaker.'
+                )
+
     def is_closed(self, app_id: int):
-        # TODO - cache last open to optimize?
         return self.storage.last_open(app_id) < (time.time() - self.cooldown_seconds)
 
     def register_error(self, app_id: int):
@@ -82,20 +87,18 @@ class BreakerBoard:
             event_type: str = args[0]
             webhook: Webhook = args[2]
 
-            if event_type not in self.webhook_event_types:
+            if event_type not in settings.BREAKER_BOARD_SYNC_EVENTS:
                 return func(*args, **kwargs)
 
-            # TODO - ensure webhook and app are preloaded
-            app = webhook.app
-
-            if not self.is_closed(app.id):
+            app_id = webhook.app.id
+            if not self.is_closed(app_id):
                 return None
 
             response = func(*args, **kwargs)
             if response is None:
-                self.register_error(app.id)
+                self.register_error(app_id)
             else:
-                self.register_success(app.id)
+                self.register_success(app_id)
 
             return response
 
@@ -108,7 +111,7 @@ def initialize_breaker_board():
     if not settings.ENABLE_BREAKER_BOARD:
         return None
 
-    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS_STRING)  # type: ignore[arg-type]
+    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)  # type: ignore[arg-type]
     return BreakerBoard(
         storage=storage_class(),
         failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
