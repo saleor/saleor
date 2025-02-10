@@ -256,7 +256,7 @@ pytest --reuse-db
 To start server:
 
 ```shell
-python manage.py runserver
+uvicorn saleor.asgi:application --reload
 ```
 
 To run database migrations:
