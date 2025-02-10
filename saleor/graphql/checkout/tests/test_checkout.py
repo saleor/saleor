@@ -20,7 +20,11 @@ from ....checkout.checkout_cleaner import (
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ....checkout.utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+)
 from ....core.db.connection import allow_writer
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
@@ -528,9 +532,9 @@ def test_checkout_available_shipping_methods(
 GET_CHECKOUT_SHIPPING_METHODS_QUERY = """
 query getCheckout($id: ID) {
     checkout(id: $id) {
-			shippingMethods{
-        id
-      }
+		shippingMethods{
+            id
+        }
     }
 }
 """
@@ -549,6 +553,9 @@ def test_query_checkout_empty_address_with_shipping_method_without_exclude_webho
     # given checkout without address
     # and checkout in channel with available shipping methods
 
+    checkout_with_item.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
+    }
     checkout_with_item.shipping_address = None
     checkout_with_item.billing_address = None
 
@@ -577,6 +584,9 @@ def test_query_checkout_with_address_with_shipping_method_without_exclude_webhoo
     # GIVEN checkout with address
     # AND checkout in channel with available shipping methods
 
+    checkout_with_item.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
+    }
     checkout_with_item.shipping_address = address
     checkout_with_item.billing_address = address
 
