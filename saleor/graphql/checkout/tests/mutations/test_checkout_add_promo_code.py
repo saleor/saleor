@@ -14,7 +14,7 @@ from .....checkout import base_calculations, calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
+from .....checkout.utils import add_variant_to_checkout, set_external_shipping
 from .....core.models import EventDelivery
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
@@ -23,6 +23,7 @@ from .....product.models import (
     ProductChannelListing,
     ProductVariantChannelListing,
 )
+from .....shipping.interface import ShippingMethodData
 from .....warehouse.models import Stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
@@ -173,14 +174,18 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
     address,
     settings,
 ):
+    # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
+    shipping_name = "Provider - Economy"
+    shipping_price = Decimal(10)
+    currency = "USD"
     mock_json_response = [
         {
             "id": response_method_id,
-            "name": "Provider - Economy",
-            "amount": "10",
-            "currency": "USD",
+            "name": shipping_name,
+            "amount": shipping_price,
+            "currency": currency,
             "maximum_delivery_days": "7",
         }
     ]
@@ -189,10 +194,15 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
     external_shipping_method_id = graphene.Node.to_global_id(
         "app", f"{shipping_app.id}:{response_method_id}"
     )
+    external_shipping_method = ShippingMethodData(
+        id=external_shipping_method_id,
+        name=shipping_name,
+        price=Money(shipping_price, currency),
+    )
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    set_external_shipping_id(checkout, external_shipping_method_id)
+    set_external_shipping(checkout, external_shipping_method)
     checkout.save(update_fields=["shipping_address"])
     checkout.metadata_storage.save(update_fields=["private_metadata"])
 
@@ -200,8 +210,11 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
+
+    # when
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
     assert not data["errors"]
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert data["checkout"]["voucherCode"] == voucher.code

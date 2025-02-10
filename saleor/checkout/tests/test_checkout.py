@@ -49,7 +49,6 @@ from ..utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
-    delete_external_shipping_id,
     get_checkout_metadata,
     get_external_shipping_id,
     get_voucher_discount_for_checkout,
@@ -57,8 +56,9 @@ from ..utils import (
     get_voucher_for_checkout_info,
     is_fully_paid,
     recalculate_checkout_discount,
+    remove_external_shipping,
     remove_voucher_from_checkout,
-    set_external_shipping_id,
+    set_external_shipping,
 )
 
 
@@ -1253,6 +1253,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         spec=Checkout,
         channel=channel_USD,
         get_value_from_private_metadata=Mock(return_value=None),
+        external_shipping_method_id=None,
     )
 
     voucher = Voucher.objects.create(
@@ -2188,20 +2189,75 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
 
-def test_manage_external_shipping_id(checkout):
+def test_set_external_shipping(checkout):
+    # given
     app_shipping_id = "abcd"
+    app_shipping_name = "Shipping"
+    external_shipping_data = ShippingMethodData(
+        name=app_shipping_name, id=app_shipping_id, price=Money(0, "USD")
+    )
     initial_private_metadata = {"test": 123}
     checkout.metadata_storage.private_metadata = initial_private_metadata
     checkout.metadata_storage.save()
 
-    set_external_shipping_id(checkout, app_shipping_id)
-    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
+    # when
+    set_external_shipping(checkout, external_shipping_data)
 
+    # then
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
+    assert (
+        checkout.metadata_storage.private_metadata[PRIVATE_META_APP_SHIPPING_ID]
+        == app_shipping_id
+    )
+    assert checkout.external_shipping_method_id == app_shipping_id
+    assert checkout.shipping_method_name == app_shipping_name
+
+
+def test_get_external_shipping_id_from_metadata(checkout):
+    # given
+    app_shipping_id = "abcd"
+    initial_private_metadata = {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
+    checkout.metadata_storage.private_metadata = initial_private_metadata
+    checkout.metadata_storage.save()
+
+    # when
     shipping_id = get_external_shipping_id(checkout)
+
+    # then
     assert shipping_id == app_shipping_id
 
-    delete_external_shipping_id(checkout)
-    assert checkout.metadata_storage.private_metadata == initial_private_metadata
+
+def test_get_external_shipping_id(checkout):
+    # given
+    app_shipping_id = "abcd"
+    checkout.external_shipping_method_id = app_shipping_id
+
+    # when
+    shipping_id = get_external_shipping_id(checkout)
+
+    # then
+    assert shipping_id == app_shipping_id
+
+
+def test_remove_external_shipping(checkout):
+    # given
+    app_shipping_id = "abcd"
+    expected_private_metadata = {"test": "123"}
+    initial_private_metadata = {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
+    checkout.external_shipping_method_id = app_shipping_id
+
+    initial_private_metadata.update(expected_private_metadata)
+    checkout.metadata_storage.private_metadata = initial_private_metadata
+    checkout.metadata_storage.save()
+
+    # when
+    remove_external_shipping(checkout)
+
+    # then
+    assert checkout.metadata_storage.private_metadata == expected_private_metadata
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_name is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
 
 
 def test_checkout_total_setter():
