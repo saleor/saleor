@@ -1676,17 +1676,18 @@ def test_excluded_shipping_methods_for_checkout_dont_run_webhook_on_missing_ship
 
     # given shipping methods are empty
 
-    non_empty_shipping_methods = []
+    empty_shipping_methods = []
 
     # when manager executes for shipping methods exclusion
 
     manager.excluded_shipping_methods_for_checkout(
-        checkout, channel_USD, non_empty_shipping_methods
+        checkout, channel_USD, empty_shipping_methods
     )
 
     # then webhook should not be emitted
 
     mock__run_method_on_plugins.assert_not_called()
+
 
 @mock.patch(
     "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
@@ -1711,13 +1712,12 @@ def test_excluded_shipping_methods_for_order_run_webhook_on_existing_shipping_me
 
     # when manager executes for shipping methods exclusion
 
-    manager.excluded_shipping_methods_for_order(
-        draft_order, non_empty_shipping_methods
-    )
+    manager.excluded_shipping_methods_for_order(draft_order, non_empty_shipping_methods)
 
     # then webhook should be emitted
 
     mock__run_method_on_plugins.assert_called_once()
+
 
 @mock.patch(
     "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
@@ -1737,9 +1737,7 @@ def test_excluded_shipping_methods_for_order_dont_run_webhook_on_missing_shippin
 
     # when manager executes for shipping methods exclusion
 
-    manager.excluded_shipping_methods_for_order(
-        draft_order, non_empty_shipping_methods
-    )
+    manager.excluded_shipping_methods_for_order(draft_order, non_empty_shipping_methods)
 
     # then webhook should not be emitted
 

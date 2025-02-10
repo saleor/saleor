@@ -6,6 +6,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
@@ -536,10 +537,14 @@ query getCheckout($id: ID) {
 
 
 @mock.patch(
-    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
 )
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_query_checkout_empty_address_with_shipping_method_without_exclude_webhook(
-    mock__run_method_on_plugins, api_client, checkout_with_item, shipping_method
+    mock_excluded_shipping_methods_for_checkout,
+    api_client,
+    checkout_with_item,
+    shipping_method,
 ):
     # given checkout without address
     # and checkout in channel with available shipping methods
@@ -547,25 +552,35 @@ def test_query_checkout_empty_address_with_shipping_method_without_exclude_webho
     checkout_with_item.shipping_address = None
     checkout_with_item.billing_address = None
 
+    checkout_with_item.save(update_fields=["shipping_address", "billing_address"])
+
     # when query is invoked
     variables = {"id": to_global_id_or_none(checkout_with_item)}
     api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
 
     # then webhook plugin is not executing excluded_shipping_methods_for_checkout
 
-    mock__run_method_on_plugins.assert_not_called()
+    mock_excluded_shipping_methods_for_checkout.assert_not_called()
 
 
 @mock.patch(
-    "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
 )
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_query_checkout_with_address_with_shipping_method_without_exclude_webhook(
-    mock__run_method_on_plugins, api_client, checkout_with_item, shipping_method
+    mock_excluded_shipping_methods_for_checkout,
+    api_client,
+    checkout_with_item,
+    shipping_method,
+    address,
 ):
     # GIVEN checkout with address
     # AND checkout in channel with available shipping methods
 
-    # TODO Add addresses
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+
+    checkout_with_item.save(update_fields=["shipping_address", "billing_address"])
 
     # when query is invoked
     variables = {"id": to_global_id_or_none(checkout_with_item)}
@@ -573,7 +588,7 @@ def test_query_checkout_with_address_with_shipping_method_without_exclude_webhoo
 
     # then webhook plugin is not executing excluded_shipping_methods_for_checkout
 
-    mock__run_method_on_plugins.assert_called_once()
+    mock_excluded_shipping_methods_for_checkout.assert_called_once()
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
