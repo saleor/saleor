@@ -3383,7 +3383,6 @@ def test_checkout_complete_with_digital(
 ):
     """Ensure it is possible to complete a digital checkout without shipping."""
 
-    order_count = Order.objects.count()
     checkout = checkout_with_digital_item
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -3415,10 +3414,58 @@ def test_checkout_complete_with_digital(
     content = get_graphql_content(response)["data"]["checkoutComplete"]
     assert not content["errors"]
 
+    order = Order.objects.first()
     # Ensure the order was actually created
-    assert (
-        Order.objects.count() == order_count + 1
-    ), "The order should have been created"
+    assert order, "The order should have been created"
+
+    assert not order.shipping_address
+    assert order.billing_address
+
+
+def test_checkout_complete_with_digital_and_shipping_address(
+    api_client, checkout_with_digital_item, address, payment_dummy
+):
+    """Ensure it is possible to complete a digital checkout without shipping."""
+
+    checkout = checkout_with_digital_item
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # Set a billing address
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.save(update_fields=["billing_address", "shipping_address"])
+
+    # Create a dummy payment to charge
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    # Send the creation request
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+
+    # FIXME: fix together with ext-1684
+    assert not order.shipping_address
+    assert order.billing_address
 
 
 @pytest.mark.integration

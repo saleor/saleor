@@ -107,10 +107,12 @@ def prepare_checkout_for_test(
     transaction_item_generator,
     transaction_events_generator,
     voucher=None,
+    user=None,
 ):
     checkout.shipping_address = shipping_address
     checkout.shipping_method = shipping_method
     checkout.billing_address = billing_address
+    checkout.user = user
     checkout.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -3482,6 +3484,7 @@ def test_checkout_complete_with_digital(
     address,
     transaction_events_generator,
     transaction_item_generator,
+    customer_user,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -3491,6 +3494,7 @@ def test_checkout_complete_with_digital(
         None,
         transaction_item_generator,
         transaction_events_generator,
+        user=customer_user,
     )
 
     variables = {
@@ -3505,8 +3509,51 @@ def test_checkout_complete_with_digital(
     content = get_graphql_content(response)["data"]["checkoutComplete"]
     assert not content["errors"]
 
+    order = Order.objects.first()
     # Ensure the order was actually created
-    assert Order.objects.count() == 1, "The order should have been created"
+    assert order, "The order should have been created"
+
+    # FIXME: fix together with ext-1684
+    assert not order.shipping_address
+    assert order.billing_address
+
+
+def test_checkout_complete_with_digital_no_shipping_address_set(
+    api_client,
+    checkout_with_digital_item,
+    address,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_digital_item,
+        None,
+        address,
+        None,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+    assert not order.shipping_address
+    assert order.billing_address
 
 
 def test_complete_checkout_for_local_click_and_collect(
