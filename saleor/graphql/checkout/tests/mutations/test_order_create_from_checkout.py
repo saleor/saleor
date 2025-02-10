@@ -1726,7 +1726,6 @@ def test_order_from_checkout_with_digital(
 ):
     """Ensure it is possible to complete a digital checkout without shipping."""
 
-    order_count = Order.objects.count()
     checkout = checkout_with_digital_item
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
@@ -1743,10 +1742,46 @@ def test_order_from_checkout_with_digital(
     content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
     assert not content["errors"]
 
+    order = Order.objects.first()
     # Ensure the order was actually created
-    assert Order.objects.count() == order_count + 1, (
-        "The order should have been created"
+    assert order, "The order should have been created"
+
+    assert not order.shipping_address
+    assert order.billing_address
+
+
+def test_order_from_checkout_with_digital_and_shipping_address(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_digital_item,
+    address,
+):
+    """Ensure it is possible to complete a digital checkout without shipping."""
+
+    checkout = checkout_with_digital_item
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # Set a billing address
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.save(update_fields=["billing_address", "shipping_address"])
+
+    # Send the creation request
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
     )
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+
+    # FIXME: fix together with ext-1684
+    assert not order.shipping_address
+    assert order.billing_address
 
 
 @pytest.mark.integration
