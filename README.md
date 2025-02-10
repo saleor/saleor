@@ -51,11 +51,14 @@
 ## Table of Contents
 
 - [What makes Saleor special?](#what-makes-saleor-special)
+- [Why API-only Architecture?](#why-api-only-architecture)
 - [Features](#features)
 - [Installation](#installation)
 - [Documentation](#documentation)
+- [Saleor Platform](#saleor-platform)
+- [Storefront](#storefront)
+- [Dashboard](#dashboard)
 - [Contributing](#contributing)
-- [Your feedback](#your-feedback)
 - [License](#license)
 
 ## What makes Saleor special?
@@ -168,9 +171,108 @@ For the dashboard, go to the [saleor-dashboard](https://github.com/saleor/saleor
 
 We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Good first issue`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22+)
 
-If nothing grabs your attention, check [our roadmap](https://github.com/orgs/saleor/projects/3/views/4) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
-
 Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
+
+### Running Saleor locally in development containers
+
+The easiest way of running Saleor for local development is to use [development containers](https://containers.dev/).
+If you have Visual Studio Code follow their [guide](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container) on how to open existing folder in container.
+
+Development container only creates container, you still need to start the server. See [common-commands](#common-commands) section to learn more.
+
+### Running Saleor locally with database and additional services in docker
+
+Install & setup prerequisites via homebrew:
+
+```shell
+brew install libmagic
+brew install pyenv
+
+pyenv install 3.12
+
+# optionally set python globally
+pyenv global 3.12
+
+brew install pipx
+pipx install poetry
+```
+
+Clone this [repository](https://github.com/saleor/saleor) and setup database and additional services in docker:
+
+```shell
+cd .devcontainer
+docker compose up db dashboard redis mailpit
+```
+
+
+If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
+
+```shell
+pyenv local 3.12
+```
+
+To create virtualenv and install dependencies run in root of the repository:
+
+```shell
+poetry sync
+```
+
+After installation activate virtualenv:
+
+```shell
+eval $(poetry env activate)
+```
+
+See [poetry docs](https://python-poetry.org/docs/managing-environments/#bash-csh-zsh) for all supported shells.
+
+> [!TIP]
+> Your shell prompt should have virtualenv information available and should look similar to this:
+> `(saleor-py3.12) ~/D/saleor %`
+
+Install pre commit hooks:
+
+```shell
+pre-commit install
+```
+
+You are ready to go 🎉.
+
+### Running tests
+
+To run tests, enter pytest in your terminal.
+
+```shell
+pytest
+```
+
+We recommend using the reuse-db flag to speed up testing time.
+
+```shell
+pytest --reuse-db
+```
+
+### Common commands
+
+To start server:
+
+```shell
+uvicorn saleor.asgi:application --reload
+```
+
+To run database migrations:
+
+```shell
+python manage.py migrate
+```
+
+To populate database with example data and create the admin user:
+
+```shell
+python manage.py populatedb --createsuperuser
+```
+
+*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
+
 
 ## License
 
