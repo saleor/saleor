@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
 - Add prior price fields to `VariantPricingInfo`, `ProductPricingInfo` and `CheckoutLine` - #17202 by @delemeator
 - Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
+- The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
 
 ### Webhooks
 
