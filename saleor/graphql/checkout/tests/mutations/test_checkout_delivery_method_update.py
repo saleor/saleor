@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
 
@@ -260,7 +261,6 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
         assert checkout.collection_point is None
 
 
-@pytest.mark.parametrize("is_valid_delivery_method", [True, False])
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
@@ -271,22 +271,23 @@ def test_checkout_delivery_method_update_external_shipping(
     mock_send_request,
     api_client,
     checkout_with_item_for_cc,
-    is_valid_delivery_method,
     settings,
     shipping_app,
     channel_USD,
 ):
     checkout = checkout_with_item_for_cc
     query = MUTATION_UPDATE_DELIVERY_METHOD
-    mock_clean_delivery.return_value = is_valid_delivery_method
+    mock_clean_delivery.return_value = True
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
+    response_shipping_name = "Provider - Economy"
+    response_shipping_price = "10"
     mock_json_response = [
         {
             "id": response_method_id,
-            "name": "Provider - Economy",
-            "amount": "10",
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
             "currency": "USD",
             "maximum_delivery_days": "7",
         }
@@ -304,22 +305,76 @@ def test_checkout_delivery_method_update_external_shipping(
     checkout.refresh_from_db()
 
     errors = data["errors"]
-    if is_valid_delivery_method:
-        assert not errors
-        assert (
-            PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
-        )
-        assert data["checkout"]["deliveryMethod"]["id"] == method_id
-    else:
-        assert len(errors) == 1
-        assert errors[0]["field"] == "deliveryMethodId"
-        assert (
-            errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-        )
-        assert (
-            PRIVATE_META_APP_SHIPPING_ID
-            not in checkout.metadata_storage.private_metadata
-        )
+
+    assert not errors
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
+    assert checkout.external_shipping_method_id
+    assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(
+        response_shipping_price
+    )
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "clean_delivery_method"
+)
+def test_checkout_delivery_method_update_external_shipping_when_invalid(
+    mock_clean_delivery,
+    mock_send_request,
+    api_client,
+    checkout_with_item_for_cc,
+    settings,
+    shipping_app,
+    channel_USD,
+):
+    # given
+    checkout = checkout_with_item_for_cc
+    query = MUTATION_UPDATE_DELIVERY_METHOD
+    mock_clean_delivery.return_value = False
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    response_shipping_name = "Provider - Economy"
+    response_shipping_price = "10"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    # when
+    response = api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "deliveryMethodId"
+    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_name is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")

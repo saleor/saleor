@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
 
@@ -7,6 +8,7 @@ from django.test import override_settings
 
 from .....account.models import Address
 from .....checkout.actions import call_checkout_info_event
+from .....checkout.calculations import fetch_checkout_data
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, invalidate_checkout
@@ -110,11 +112,13 @@ def test_checkout_shipping_method_update_external_shipping_method(
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
+    method_price = Decimal("10")
+    method_name = "Provider - Economy"
     mock_json_response = [
         {
             "id": response_method_id,
-            "name": "Provider - Economy",
-            "amount": "10",
+            "name": method_name,
+            "amount": method_price,
             "currency": "USD",
             "maximum_delivery_days": "7",
         }
@@ -136,10 +140,68 @@ def test_checkout_shipping_method_update_external_shipping_method(
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     checkout.refresh_from_db()
 
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
-    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
+
+    assert checkout.external_shipping_method_id == method_id
+    assert checkout.undiscounted_base_shipping_price_amount == method_price
+    assert checkout.shipping_method_name == method_name
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
+
+
+def test_checkout_shipping_method_update_overwrites_external_shipping(
+    staff_api_client, shipping_method, checkout_with_item_and_shipping_method, address
+):
+    # given
+    checkout = checkout_with_item_and_shipping_method
+    checkout.external_shipping_method_id = "ext-ship"
+    checkout.undiscounted_base_shipping_price_amount = Decimal("110")
+    checkout.shipping_method_name = "Ext shipping"
+    checkout.shipping_address = address
+    checkout.save()
+
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    checkout.refresh_from_db()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
+    errors = data["errors"]
+    assert not errors
+    assert checkout.shipping_method == shipping_method
+    assert checkout.external_shipping_method_id is None
+    assert (
+        checkout.undiscounted_base_shipping_price_amount
+        == shipping_method.channel_listings.get().price_amount
+    )
+    assert checkout.shipping_method_name == shipping_method.name
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -287,6 +349,9 @@ def test_checkout_shipping_method_update_excluded_webhook(
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.shipping_method_name is None
 
 
 # Deprecated
@@ -319,6 +384,9 @@ def test_checkout_shipping_method_update_excluded_postal_code(
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.shipping_method_name is None
     assert (
         mock_is_shipping_method_available.call_count
         == shipping_models.ShippingMethod.objects.count()
@@ -350,8 +418,23 @@ def test_checkout_shipping_method_update_with_not_all_required_shipping_address_
 
     checkout.refresh_from_db()
 
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
     assert not data["errors"]
     assert checkout.shipping_method == shipping_method
+    assert checkout.external_shipping_method_id is None
+    assert (
+        checkout.undiscounted_base_shipping_price_amount
+        == shipping_method.channel_listings.get().price_amount
+    )
+    assert checkout.shipping_method_name == shipping_method.name
 
 
 def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
@@ -385,8 +468,23 @@ def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
 
     checkout.refresh_from_db()
 
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
     assert not data["errors"]
     assert checkout.shipping_method == shipping_method
+    assert checkout.external_shipping_method_id is None
+    assert (
+        checkout.undiscounted_base_shipping_price_amount
+        == shipping_method.channel_listings.get().price_amount
+    )
+    assert checkout.shipping_method_name == shipping_method.name
 
 
 def test_checkout_delivery_method_update_unavailable_variant(
@@ -442,11 +540,23 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
 
     checkout.refresh_from_db()
 
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "shippingMethod"
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.shipping_method_name is None
 
 
 # Deprecated
@@ -471,12 +581,26 @@ def test_checkout_shipping_method_update_shipping_zone_with_channel(
 
     checkout.refresh_from_db()
 
-    checkout.refresh_from_db()
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    fetch_checkout_data(
+        checkout_info,
+        manager,
+        lines,
+    )
+
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
 
     assert checkout.shipping_method == shipping_method
+    assert checkout.external_shipping_method_id is None
+    assert (
+        checkout.undiscounted_base_shipping_price_amount
+        == shipping_method.channel_listings.get().price_amount
+    )
+    assert checkout.shipping_method_name == shipping_method.name
 
 
 def test_checkout_update_shipping_method_with_digital(
@@ -507,6 +631,9 @@ def test_checkout_update_shipping_method_with_digital(
     # Ensure the shipping method was unchanged
     checkout.refresh_from_db(fields=["shipping_method"])
     assert checkout.shipping_method is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.shipping_method_name is None
 
 
 def test_with_active_problems_flow(
@@ -683,7 +810,7 @@ def test_checkout_shipping_method_update_external_shipping_triggers_webhooks(
     assert mocked_send_webhook_request_async.call_count == 1
 
     # confirm each sync webhook was called without saving event delivery
-    assert mocked_send_webhook_request_sync.call_count == 5
+    assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(
         webhook_id=checkout_updated_webhook.id
     ).exists()

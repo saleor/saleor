@@ -1018,14 +1018,17 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
 
+    remove_external_shipping(checkout=checkout)
+
     checkout.save(
         update_fields=[
             "shipping_method",
             "collection_point",
             "last_change",
+            "external_shipping_method_id",
+            "shipping_method_name",
         ]
     )
-    delete_external_shipping_id_if_present(checkout=checkout)
 
 
 def is_fully_paid(
@@ -1096,15 +1099,26 @@ def validate_variants_in_checkout_lines(lines: list["CheckoutLineInfo"]):
         )
 
 
-def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
-    metadata = get_or_create_checkout_metadata(checkout)
-    metadata.store_value_in_private_metadata(
-        {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
-    )
-    metadata.save()
+def set_external_shipping(
+    checkout: Checkout, external_shipping_method_data: ShippingMethodData
+):
+    # make sure that we don't have absolete data for shipping methods stored in
+    # private metadata
+    _remove_external_shipping_from_metadata(checkout=checkout)
+
+    checkout.external_shipping_method_id = external_shipping_method_data.id
+    checkout.shipping_method_name = external_shipping_method_data.name
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
+    if isinstance(container, Checkout):
+        if container.external_shipping_method_id:
+            return container.external_shipping_method_id
+    # For order & fallback to previous checkout storage method
+    return _get_external_shipping_id_from_meta(container)
+
+
+def _get_external_shipping_id_from_meta(container: Union["Checkout", "Order"]):
     metadata_object: ModelWithMetadata | None
     if isinstance(container, Checkout):
         metadata_object = get_checkout_metadata(container)
@@ -1115,8 +1129,22 @@ def get_external_shipping_id(container: Union["Checkout", "Order"]):
     return metadata_object.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-def delete_external_shipping_id_if_present(checkout: Checkout):
-    """Delete external shipping key if present in metadata."""
+def remove_external_shipping(checkout: Checkout, save: bool = False):
+    if checkout.external_shipping_method_id:
+        checkout.external_shipping_method_id = None
+        checkout.shipping_method_name = None
+        if save:
+            checkout.save(
+                update_fields=[
+                    "external_shipping_method_id",
+                    "shipping_method_name",
+                    "last_change",
+                ]
+            )
+    _remove_external_shipping_from_metadata(checkout)
+
+
+def _remove_external_shipping_from_metadata(checkout: Checkout):
     metadata = get_checkout_metadata(checkout)
     if not metadata:
         return
