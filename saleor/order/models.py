@@ -139,6 +139,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
     tracking_client_id = models.CharField(max_length=36, blank=True, editable=False)
+    save_billing_address = models.BooleanField(default=False)
     billing_address = models.ForeignKey(
         "account.Address",
         related_name="+",
@@ -146,6 +147,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         null=True,
         on_delete=models.SET_NULL,
     )
+    save_shipping_address = models.BooleanField(default=False)
     shipping_address = models.ForeignKey(
         "account.Address",
         related_name="+",
