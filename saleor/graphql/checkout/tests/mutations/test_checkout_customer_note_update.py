@@ -136,6 +136,7 @@ def test_checkout_customer_note_update_triggers_webhooks(
     settings,
     user_api_client,
     checkout_with_item,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -145,6 +146,12 @@ def test_checkout_customer_note_update_triggers_webhooks(
         shipping_filter_webhook,
         checkout_updated_webhook,
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+
+    checkout_with_item.save()
 
     customer_note = "New customer note value"
     variables = {
