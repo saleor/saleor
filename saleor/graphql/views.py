@@ -16,13 +16,11 @@ from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
-from opentelemetry import trace
-from opentelemetry.semconv.trace import SpanAttributes
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.otel import MetricType, meter, tracer
+from ..core.telemetry import MetricType, SpanAttributes, SpanKind, Unit, meter, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -40,17 +38,20 @@ from .utils.validators import check_if_query_contains_only_schema
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 meter.create_metric(
-    "saleor.graphql_queries", MetricType.Counter, internal=False, unit="{request}"
+    "saleor.graphql_queries", service=True, type=MetricType.Counter, unit=Unit.request
 )
 meter.create_metric(
-    "saleor.graphql_query_duration", MetricType.Histogram, internal=False, unit="ms"
+    "saleor.graphql_query_duration",
+    service=True,
+    type=MetricType.Histogram,
+    unit=Unit.millisecond,
 )
 
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
     operation = f"{conn.alias} {conn.display_name}"
-    with tracer.start_as_current_span(operation, kind=trace.SpanKind.CLIENT) as span:
+    with tracer.start_as_current_span(operation, kind=SpanKind.CLIENT) as span:
         span.set_attribute("component", "db")
         span.set_attribute(SpanAttributes.DB_STATEMENT, sql)
         span.set_attribute(SpanAttributes.DB_SYSTEM, conn.display_name)
@@ -170,7 +171,7 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", internal=False, kind=trace.SpanKind.SERVER
+            "http", service=True, kind=SpanKind.SERVER
         ) as span:
             span.set_attribute("component", "http")
             span.set_attribute("resource.name", request.path)
@@ -285,8 +286,8 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            tracer.start_as_current_span("graphql_query", internal=False) as span,
-            meter.record_duration_ms("saleor.graphql_query_duration"),
+            tracer.start_as_current_span("graphql_query", service=True) as span,
+            meter.record_duration("saleor.graphql_query_duration"),
         ):
             meter.record("saleor.graphql_queries", 1)
             span.set_attribute("component", "graphql")

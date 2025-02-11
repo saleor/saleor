@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from ...core.otel import tracer
+from ...core.telemetry import tracer
 
 
 @contextmanager

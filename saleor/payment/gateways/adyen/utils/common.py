@@ -23,7 +23,7 @@ from .....checkout.fetch import (
 )
 from .....checkout.models import Checkout
 from .....checkout.utils import get_checkout_metadata, is_shipping_required
-from .....core.otel import tracer
+from .....core.telemetry import tracer
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError

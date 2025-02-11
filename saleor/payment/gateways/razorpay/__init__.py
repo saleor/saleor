@@ -5,7 +5,7 @@ from decimal import Decimal
 import razorpay
 import razorpay.errors
 
-from ....core.otel import tracer
+from ....core.telemetry import tracer
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import errors

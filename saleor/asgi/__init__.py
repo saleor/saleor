@@ -14,7 +14,7 @@ from django.core.asgi import get_asgi_application
 from .cors_handler import cors_handler
 from .gzip_compression import gzip_compression
 from .health_check import health_check
-from .otel_context import otel_context
+from .telemetry_context import telemetry_context
 
 
 def preload_app() -> None:
@@ -36,6 +36,6 @@ application = get_asgi_application()
 application = health_check(application, "/health/")  # type: ignore[arg-type] # Django's ASGI app is less strict than the spec # noqa: E501
 application = gzip_compression(application)
 application = cors_handler(application)
-application = otel_context(application)
+application = telemetry_context(application)
 
 preload_app()
