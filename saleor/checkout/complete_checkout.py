@@ -180,11 +180,16 @@ def _process_shipping_data_for_order(
     delivery_method_info = checkout_info.delivery_method_info
     shipping_address = delivery_method_info.shipping_address
 
-    if (
+    # allow saving shipping address in case the delivery method is not collection point
+    # or the delivery method is not provided, but the shipping address is set
+    save_shipping_address = checkout_info.checkout.save_shipping_address and (
         delivery_method_info.store_as_customer_address
-        and checkout_info.user
-        and shipping_address
-    ):
+        or not delivery_method_info.delivery_method
+    )
+    if not delivery_method_info.delivery_method:
+        shipping_address = checkout_info.shipping_address
+
+    if save_shipping_address and checkout_info.user and shipping_address:
         store_user_address(
             checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
         )
@@ -214,8 +219,9 @@ def _process_shipping_data_for_order(
 def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
     """Fetch, process and return shipping data from checkout."""
     billing_address = checkout_info.billing_address
+    save_billing_address = checkout_info.checkout.save_billing_address
 
-    if checkout_info.user and billing_address:
+    if checkout_info.user and billing_address and save_billing_address:
         store_user_address(
             checkout_info.user, billing_address, AddressType.BILLING, manager=manager
         )

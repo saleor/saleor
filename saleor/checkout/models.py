@@ -66,7 +66,7 @@ class Checkout(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
-    # do not apply for checkouts with collection point
+    # do not apply on checkouts with collection point
     save_shipping_address = models.BooleanField(default=True)
     shipping_address = models.ForeignKey(
         "account.Address",
