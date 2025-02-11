@@ -442,7 +442,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def display_product(self, translated: bool = False) -> str:
         if translated:
-            product = get_translation(self.product).name
+            product = get_translation(self.product).name or ""
             variant_display = get_translation(self).name
         else:
             variant_display = str(self)
