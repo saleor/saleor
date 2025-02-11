@@ -153,6 +153,8 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         null=True,
         on_delete=models.SET_NULL,
     )
+    draft_save_billing_address = models.BooleanField(null=True, blank=True)
+    draft_save_shipping_address = models.BooleanField(null=True, blank=True)
     user_email = models.EmailField(blank=True, default="")
     original = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.SET_NULL
