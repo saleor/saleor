@@ -32,7 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
 - Add prior price fields to `VariantPricingInfo`, `ProductPricingInfo` and `CheckoutLine` - #17202 by @delemeator
 - Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
-- `productVariantBulkUpdate` mutation is now properly setting variant `preorder_end_date`, `preorder_global_threshold` & `is_preorder` - by @krzysztofzuraw
+- `productVariantBulkUpdate` mutation is now properly setting variant `preorder_end_date`, `preorder_global_threshold` & `is_preorder` - #17342 by @krzysztofzuraw
 
 ### Webhooks
 
