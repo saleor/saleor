@@ -380,6 +380,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     settings,
     api_client,
     checkout,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -392,7 +393,14 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
-    checkout.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
     # when
     response = execute_update_public_metadata_for_item(
         api_client, None, checkout_id, "Checkout"
@@ -460,6 +468,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     settings,
     api_client,
     checkout,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -473,7 +482,14 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
-    checkout.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save(
+        update_fields=["price_expiration", "shipping_address", "billing_address"]
+    )
 
     # when
     response = execute_update_public_metadata_for_item(
