@@ -64,6 +64,7 @@ package-mode = false
   prices = "^1.0"
   promise = "^2.3"
   pybars3 = "^0.9.7"
+  pycurl = "^7.45.0"
   pyjwt = "^2.10.1"
   python-dateutil = "^2.8.2"
   python-http-client = "^3.3.7"
