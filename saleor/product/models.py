@@ -375,6 +375,39 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     objects = managers.ProductVariantManager()
 
+    @staticmethod
+    def get_fields_for_bulk_update():
+        """Fields that should be updated in DB when performing bulk update."""
+        return [
+            "name",
+            "sku",
+            "track_inventory",
+            "weight",
+            "quantity_limit_per_customer",
+            "metadata",
+            "private_metadata",
+            "external_reference",
+            "preorder_end_date",
+            "preorder_global_threshold",
+            "is_preorder",
+        ]
+
+    @property
+    def comparison_fields(self):
+        return [
+            "sku",
+            "name",
+            "track_inventory",
+            "is_preorder",
+            "quantity_limit_per_customer",
+            "weight",
+            "external_reference",
+            "metadata",
+            "private_metadata",
+            "preorder_end_date",
+            "preorder_global_threshold",
+        ]
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
         app_label = "product"
@@ -459,22 +492,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         return self.is_preorder and (
             self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
         )
-
-    @property
-    def comparison_fields(self):
-        return [
-            "sku",
-            "name",
-            "track_inventory",
-            "is_preorder",
-            "quantity_limit_per_customer",
-            "weight",
-            "external_reference",
-            "metadata",
-            "private_metadata",
-            "preorder_end_date",
-            "preorder_global_threshold",
-        ]
 
     def serialize_for_comparison(self):
         return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
