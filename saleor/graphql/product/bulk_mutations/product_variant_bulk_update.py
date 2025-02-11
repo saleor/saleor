@@ -700,6 +700,9 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "metadata",
                 "private_metadata",
                 "external_reference",
+                "preorder_end_date",
+                "preorder_global_threshold",
+                "is_preorder",
             ],
         )
         if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
