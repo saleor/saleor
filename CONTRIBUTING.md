@@ -134,7 +134,9 @@ Running `poetry lock` generates `poetry.lock` which has all versions pinned.
 You can install Poetry by following the official installation [guide](https://python-poetry.org/docs/#installation).
 We recommend using at least version `2.0.1` as it contains many fixes and features that Saleor relies on.
 
-*Tip:* We recommend that you use this workflow and keep `pyproject.toml` as well as `poetry.lock` under version control to make sure all computers and environments run exactly the same code.
+> [!TIP]
+> We recommend using this workflow and keeping `pyproject.toml` and `poetry.lock` under version control to ensure that all computers and environments run the same code.
+
 
 
 ## File structure
@@ -325,7 +327,7 @@ Use [ruff](https://github.com/astral-sh/ruff) to check and format your code.
 
 [EditorConfig](http://editorconfig.org/) is a standard configuration file that aims to ensure consistent style across multiple programming environments.
 
-Saleor’s repository contains [an `.editorconfig` file](https://github.com/saleor/saleor/blob/master/.editorconfig) describing our formatting requirements.
+Saleor’s repository contains [an `.editorconfig` file](.editorconfig) describing our formatting requirements.
 
 Most editors and IDEs support this file either directly or via plugins. See the [list of supported editors and IDEs](http://editorconfig.org/#download) for detailed instructions.
 
@@ -380,10 +382,10 @@ Also, do not forget about the docstring, especially in a complicated function.
 So far, we have mainly used the `GinIndex` and `ilike` operators for searching, but currently, we are testing a new solution with the use of `SearchVector` and `SearchRank`.
 You can find it in this PR [#9344](https://github.com/saleor/saleor/pull/9344).
 
-:::note
-The search vector update task is triggered by [celery beat scheduler](./developer/running-saleor/task-queue.mdx#periodic-tasks).
-This feature will not work without task queue configuration.
-:::
+> [!NOTE]
+> The search vector update task is triggered by [celery beat scheduler](https://docs.saleor.io/developer/running-saleor/task-queue#periodic-tasks).
+> This feature will not work without task queue configuration.
+
 
 ### API
 
@@ -407,9 +409,8 @@ In the case of mutations, the permissions are defined in the `Meta` arguments in
 To represent all permissions the same way, we introduced the `AuthorizationFilters` enum that represents permission checks that are based on functions instead of named admin permission scopes.
 When raising `PermissionDenied`, the error should mention which permissions are required to perform the given action.
 
-:::note
-Required permissions should be mentioned in the GraphQL description.
-:::
+> [!NOTE]
+> Required permissions should be mentioned in the GraphQL description.
 
 #### Handling changes on API in PREVIEW_FEATURE
 
@@ -472,33 +473,30 @@ class AppSortingInput(SortInputObjectType):
         type_name = "apps"
 ```
 
-:::warning
-Remember, the list with sorting order must have a unique field.
-:::
+> [!WARNING]
+> Remember, the list with sorting order must have a unique field.
 
-:::tip
-Sometimes you would like to sort the data by some field that should be calculated, which isn't the model field. There is an option for that; you need to create a method whose name starts with `qs_with` followed by a sort field name in lowercase.
-The method should annotate the queryset to contain the new value. Look at the example:
+> [!TIP]
+> Sometimes you would like to sort the data by some field that should be calculated, which isn't the model field. There is an option for that; you need to create a method whose name starts with `qs_with` followed by a sort field name in lowercase.
+> The method should annotate the queryset to contain the new value. Look at the example:
+> ```python
+> class CollectionSortField(graphene.Enum):
+>     NAME = ["name", "slug"]
+>     PRODUCT_COUNT = ["product_count", "slug"]
+>
+>     @property
+>     def description(self):
+>         if self.name in CollectionSortField.__enum__._member_names_:
+>             sort_name = self.name.lower().replace("_", " ")
+>             return f"Sort collections by {sort_name}."
+>         raise ValueError("Unsupported enum value: %s" % self.value)
+>
+>     @staticmethod
+>     def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
+>         return queryset.annotate(product_count=Count("collectionproduct__id"))
+>
+> ```
 
-```python
-class CollectionSortField(graphene.Enum):
-    NAME = ["name", "slug"]
-    PRODUCT_COUNT = ["product_count", "slug"]
-
-    @property
-    def description(self):
-        if self.name in CollectionSortField.__enum__._member_names_:
-            sort_name = self.name.lower().replace("_", " ")
-            return f"Sort collections by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
-
-    @staticmethod
-    def qs_with_product_count(queryset: QuerySet, **_kwargs) -> QuerySet:
-        return queryset.annotate(product_count=Count("collectionproduct__id"))
-
-```
-
-:::
 
 A similar behavior can be found in filtering: you need to create `FilterInputObjectType`
 and Django `FilterSet` in a dedicated `filters.py` file.
@@ -551,9 +549,8 @@ class AppQueries(graphene.ObjectType):
 To check if your solution is well-optimized, you can visualize the execution plan for
 the performed SQL statements.
 
-:::note
-To reliably check the performance, it should be tested on at least 1000 instances.
-:::
+> [!NOTE]
+> To reliably check the performance, it should be tested on at least 1000 instances.
 
 Below you find a step-by-step guide on how to do this with the use of [explain](https://explain.dalibo.com/).
 
@@ -606,8 +603,8 @@ To speed up the review process and to keep the logs tidy, we recommend the follo
 - If you want, use bullet points (each bullet beginning with a hyphen or an asterisk)
 - Avoid writing in one line. Use line breaks so the reader does not have to scroll horizontally
 
-*Tip*: To ease review, try to limit your commits to a single, self-contained issue. This will also help others to understand and manage them in the future.
-
+> [!TIP]
+> To ease review, try to limit your commits to a single, self-contained issue. This will also help others to understand and manage them in the future.
 
 For more information and tips on how to write good commit messages, see the GitHub [guide](https://github.com/erlang/otp/wiki/writing-good-commit-messages).
 
