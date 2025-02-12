@@ -3,8 +3,14 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poe.tasks]
-start = "uvicorn saleor.asgi:application --reload"
-worker = "celery --app=saleor.celeryconf:app worker --beat"
+start.help = "Start development server with hot reload"
+start.cmd = "uvicorn saleor.asgi:application --reload"
+
+worker.help = "Start celery worker"
+worker.cmd = "celery --app=saleor.celeryconf:app worker --beat"
+
+migrate = "python manage.py migrate"
+populatedb = "python manage.py populatedb --createsuperuser"
 
 [tool.poetry]
 name = "saleor"

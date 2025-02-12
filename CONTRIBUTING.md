@@ -106,19 +106,19 @@ You are ready to go 🎉.
 To start server:
 
 ```shell
-uvicorn saleor.asgi:application --reload
+poe start
 ```
 
 To run database migrations:
 
 ```shell
-python manage.py migrate
+poe migrate
 ```
 
 To populate database with example data and create the admin user:
 
 ```shell
-python manage.py populatedb --createsuperuser
+poe populatedb
 ```
 
 *Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
