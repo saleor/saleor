@@ -691,7 +691,16 @@ class ProductVariantBulkUpdate(BaseMutation):
         # perform db queries
         models.ProductVariant.objects.bulk_update(
             variants_to_update,
-            models.ProductVariant.get_fields_for_bulk_update(),
+            [
+                "name",
+                "sku",
+                "track_inventory",
+                "weight",
+                "quantity_limit_per_customer",
+                "metadata",
+                "private_metadata",
+                "external_reference",
+            ],
         )
 
         if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
