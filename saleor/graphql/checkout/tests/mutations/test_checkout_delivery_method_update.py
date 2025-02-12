@@ -419,11 +419,8 @@ def test_checkout_delivery_method_update_external_shipping_invalid_currency(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "deliveryMethodId"
-    assert errors[0]["code"] == CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.name
-    assert (
-        errors[0]["message"]
-        == "Cannot choose shipping method with different currency than the checkout."
-    )
+    assert errors[0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    assert errors[0]["message"] == f"Couldn't resolve to a node: ${method_id}"
 
 
 @patch(
