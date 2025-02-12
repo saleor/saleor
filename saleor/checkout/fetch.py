@@ -241,6 +241,9 @@ class DeliveryMethodBase:
     def is_method_in_valid_methods(self, checkout_info: "CheckoutInfo") -> bool:
         return False
 
+    def is_delivery_method_set(self) -> bool:
+        return bool(self.delivery_method)
+
 
 @dataclass(frozen=True)
 class ShippingMethodInfo(DeliveryMethodBase):
