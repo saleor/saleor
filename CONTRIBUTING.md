@@ -341,7 +341,7 @@ pre-commit install
 For more information on how it works, see the `.pre-commit-config.yaml` configuration file.
 
 > [!NOTE]
-> Running `git commit` for the first time might take a while, since all dependencnies will be setting up.
+> Running `git commit` for the first time might take a while, since all dependencies will be setting up.
 
 Saleor has a strict formatting policy enforced by the [black formatting tool](https://github.com/python/black).
 
