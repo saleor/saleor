@@ -103,25 +103,40 @@ You are ready to go 🎉.
 
 ### Common commands
 
+Saleor uses [Makefile](https://www.cs.colby.edu/maxwell/courses/tutorials/maketutor/) to store common development commands.
+
+List all development commands:
+
+```shell
+make
+```
+
 To start server:
 
 ```shell
-uvicorn saleor.asgi:application --reload
+make runserver
+```
+
+To run all tests (with database reuse):
+
+```shell
+make test
 ```
 
 To run database migrations:
 
 ```shell
-python manage.py migrate
+make migrate
 ```
 
 To populate database with example data and create the admin user:
 
 ```shell
-python manage.py populatedb --createsuperuser
+make populatedb
 ```
 
-*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
+> [!NOTE]
+> `populatedb` populates database with example data and creates an admin account for `admin@example.com` with the password set to `admin`.*
 
 
 ## Managing dependencies
@@ -214,20 +229,6 @@ to ensure that our tests do not hit any external API without explicitly allowing
 The test file structure was introduced in the [tests file structure](./contributing#tests-file-structure).
 The main rule is not to overload test files. Smaller files are always preferable over big ones where lots of logic is tested, and it's hard to extend.
 In the case of testing the `API`, we would like to split all tests into `mutations` and `queries` sections and test every query and mutation in a separate file.
-
-### How to run tests?
-
-To run tests, enter `pytest` in your terminal.
-
-```bash
-pytest
-```
-
-We recommend using the `reuse-db` flag to speed up testing time.
-
-```bash
-pytest --reuse-db
-```
 
 ### How to run particular tests?
 
@@ -352,7 +353,7 @@ Use relative imports.
 ### Migrations
 
 Try to combine multiple migrations into one, but remember not to mix changes on the database with updating rows in migrations. In other words, operations that alter tables and use `RunPython` to run methods on existing data should be in separate files.
-Follow [zero-downtime policy](./developer/community/zero-downtime-migrations.mdx) when writing migrations.
+Follow [zero-downtime policy](https://docs.saleor.io/developer/community/zero-downtime-migrations) when writing migrations.
 
 ### Handling migrations between versions
 
