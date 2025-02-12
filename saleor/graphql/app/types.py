@@ -68,7 +68,7 @@ from .resolvers import (
 
 # TODO: Remove the conditional when unit tests circular import is solved.
 breaker_board = None
-if settings.ENABLE_BREAKER_BOARD:
+if settings.BREAKER_BOARD_ENABLED:
     from ...webhook.circuit_breaker.breaker_board import (
         initialize_breaker_board,
     )

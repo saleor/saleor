@@ -91,8 +91,17 @@ class BreakerBoard:
                 return func(*args, **kwargs)
 
             app_id = webhook.app.id
+
             if not self.is_closed(app_id):
-                return None
+                if not settings.BREAKER_BOARD_DRY_RUN:
+                    # Skip func execution to prevent sending webhooks
+                    return None
+                else:  # noqa: RET505
+                    logger.debug(
+                        "[App ID: %r] Sending disabled webhook due to breaker dry-run",
+                        app_id,
+                    )
+                    return func(*args, **kwargs)
 
             response = func(*args, **kwargs)
             if response is None:
@@ -108,7 +117,7 @@ class BreakerBoard:
 
 
 def initialize_breaker_board():
-    if not settings.ENABLE_BREAKER_BOARD:
+    if not settings.BREAKER_BOARD_ENABLED:
         return None
 
     storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)  # type: ignore[arg-type]
