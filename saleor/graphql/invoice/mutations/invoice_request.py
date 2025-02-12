@@ -1,4 +1,3 @@
-from pprint import pprint
 import graphene
 from django.core.exceptions import ValidationError
 
