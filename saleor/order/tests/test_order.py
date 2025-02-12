@@ -385,6 +385,7 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
 
 
 def test_update_order_status_partially_fulfilled(fulfilled_order):
+    # given
     fulfillment = fulfilled_order.fulfillments.first()
     line = fulfillment.lines.first()
     order_line = line.order_line
@@ -392,8 +393,11 @@ def test_update_order_status_partially_fulfilled(fulfilled_order):
     order_line.quantity_fulfilled -= line.quantity
     order_line.save()
     line.delete()
+
+    # when
     update_order_status(fulfilled_order)
 
+    # then
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
 
@@ -403,7 +407,6 @@ def test_update_order_status_unfulfilled(order_with_lines):
 
     update_order_status(order_with_lines)
 
-    order_with_lines.refresh_from_db()
     assert order_with_lines.status == OrderStatus.UNFULFILLED
 
 
@@ -423,7 +426,6 @@ def test_update_order_status_fulfilled(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.FULFILLED
 
 
@@ -434,7 +436,6 @@ def test_update_order_status_returned(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.RETURNED
 
 
@@ -467,7 +468,6 @@ def test_update_order_status_partially_returned(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.PARTIALLY_RETURNED
 
 
@@ -478,7 +478,6 @@ def test_update_order_status_waiting_for_approval(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
 

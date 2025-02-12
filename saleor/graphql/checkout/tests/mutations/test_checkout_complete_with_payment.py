@@ -3895,6 +3895,7 @@ def test_checkout_complete_with_preorder_variant(
     address,
     shipping_method,
 ):
+    # given
     checkout = checkout_with_item_and_preorder_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -3926,8 +3927,11 @@ def test_checkout_complete_with_preorder_variant(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]

@@ -1035,6 +1035,7 @@ def test_create_order_with_voucher_0_total(
         )
 
     # then
+    order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
     assert order.lines.count() == 1
     assert order.discounts.count() == 1
