@@ -1733,11 +1733,11 @@ def test_excluded_shipping_methods_for_order_dont_run_webhook_on_missing_shippin
 
     # given shipping methods are empty
 
-    non_empty_shipping_methods = []
+    empty_shipping_methods = []
 
     # when manager executes for shipping methods exclusion
 
-    manager.excluded_shipping_methods_for_order(draft_order, non_empty_shipping_methods)
+    manager.excluded_shipping_methods_for_order(draft_order, empty_shipping_methods)
 
     # then webhook should not be emitted
 
