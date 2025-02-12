@@ -1,3 +1,4 @@
+import logging
 import time
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
@@ -5,52 +6,44 @@ from contextlib import contextmanager
 from enum import Enum
 from threading import Lock
 
-from django.conf import settings
 from opentelemetry.util.types import Attributes, AttributeValue
 
-from .utils import enrich_with_global_attributes, load_object
+from .utils import Amount, Unit, enrich_with_global_attributes
 
-Amount = int | float
+logger = logging.getLogger(__name__)
+
+
+class DuplicateMetricError(RuntimeError):
+    def __init__(self, name):
+        super().__init__(f"Metric {name} already created")
 
 
 class MetricType(Enum):
-    Counter = "counter"
-    UpDownCounter = "up_down_counter"
-    Histogram = "histogram"
-
-
-class Unit(Enum):
-    second = "s"
-    millisecond = "ms"
-    nanosecond = "ns"
-    request = "{request}"
-
-
-UNIT_CONVERSIONS: dict[tuple[Unit, Unit], float] = {
-    (Unit.nanosecond, Unit.millisecond): 1e-6,
-    (Unit.nanosecond, Unit.second): 1e-9,
-}
-
-
-def convert_unit(amount: Amount, unit: Unit | None, to_unit: Unit) -> Amount:
-    if unit is None or unit == to_unit:
-        return amount
-    try:
-        return amount * UNIT_CONVERSIONS[(unit, to_unit)]
-    except KeyError as e:
-        raise ValueError(f"Conversion from {unit} to {to_unit} not supported") from e
+    COUNTER = "counter"
+    UP_DOWN_COUNTER = "up_down_counter"
+    HISTOGRAM = "histogram"
 
 
 class Meter(ABC):
-    @abstractmethod
     def create_metric(
         self,
         name: str,
         *,
         type: MetricType,
         unit: Unit,
-        service: bool = False,
+        service_scope: bool = False,
         description: str = "",
+    ) -> None:
+        return self._create_metric(name, type, unit, service_scope, description)
+
+    @abstractmethod
+    def _create_metric(
+        self,
+        name: str,
+        type: MetricType,
+        unit: Unit,
+        service_scope: bool,
+        description: str,
     ) -> None:
         pass
 
@@ -84,42 +77,32 @@ class Meter(ABC):
         finally:
             duration = time.monotonic_ns() - start
             self.record(
-                metric_name, duration, unit=Unit.nanosecond, attributes=attributes
+                metric_name, duration, unit=Unit.NANOSECOND, attributes=attributes
             )
-
-
-def load_meter() -> type[Meter]:
-    meter_cls = load_object(settings.TELEMETRY_METER_CLASS)
-    if not issubclass(meter_cls, Meter):
-        raise ValueError(
-            "settings.TELEMETRY_METER_CLASS must point to a subclass of Meter"
-        )
-    return meter_cls
 
 
 class MeterProxy(Meter):
     def __init__(self):
         self._meter: Meter | None = None
-        self._metrics: dict[str, dict] = {}
+        self._metrics: dict[str, tuple[tuple, dict]] = {}
         self._lock = Lock()
 
     def initialize(self, meter_cls: type[Meter]) -> None:
-        if not settings.TELEMETRY_ENABLED:
-            return
         if self._meter:
-            raise RuntimeError("Meter already initialized")
+            logger.warning("Tracer already initialized")
         self._meter = meter_cls()
-        for name, kwargs in self._metrics.items():
-            self._meter.create_metric(name, **kwargs)
-
-    def create_metric(self, name: str, **kwargs) -> None:
-        if self._meter:
-            self._meter.create_metric(name, **kwargs)
-            return
         with self._lock:
-            if name in self._metrics:
-                raise RuntimeError(f"Metric {name} already created")
-            self._metrics[name] = kwargs
+            for name, (args, kwargs) in self._metrics.items():
+                self._meter._create_metric(name, *args, **kwargs)
+
+    def _create_metric(self, name: str, *args, **kwargs) -> None:
+        if self._meter:
+            self._meter._create_metric(name, *args, **kwargs)
+        else:
+            with self._lock:
+                if name in self._metrics:
+                    raise DuplicateMetricError(name)
+                self._metrics[name] = args, kwargs
 
     def _record(self, *args, **kwargs) -> None:
         if self._meter:

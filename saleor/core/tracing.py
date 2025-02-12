@@ -34,7 +34,7 @@ def webhooks_otel_trace(
     :param payload_size: size of the payload in bytes
     """
     with tracer.start_as_current_span(
-        f"webhooks.{span_name}", service=True, kind=SpanKind.CLIENT
+        f"webhooks.{span_name}", service_scope=True, kind=SpanKind.CLIENT
     ) as span:
         if app:
             span.set_attribute("app.id", app.id)

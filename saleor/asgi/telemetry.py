@@ -4,22 +4,21 @@ from asgiref.typing import (
     ASGISendCallable,
     Scope,
 )
+from opentelemetry.semconv.trace import SpanAttributes
 
-from ..core.telemetry import SpanAttributes, set_global_attributes
+from ..core.telemetry import set_global_attributes
 
 
 def get_hostname(scope: Scope) -> str:
-    hostname: str = ""
     if scope["type"] == "http":
         for header, value in scope["headers"]:
             if header.lower() == b"host":
-                hostname = value.decode("utf-8")
-                break
-    return hostname.lower()
+                return value.decode("ascii").strip().lower()
+    return ""
 
 
-def telemetry_context(application: ASGI3Application) -> ASGI3Application:
-    async def telemetry_context_wrapper(
+def telemetry_middleware(application: ASGI3Application) -> ASGI3Application:
+    async def telemetry_wrapper(
         scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
         with set_global_attributes(
@@ -27,4 +26,4 @@ def telemetry_context(application: ASGI3Application) -> ASGI3Application:
         ):
             return await application(scope, receive, send)
 
-    return telemetry_context_wrapper
+    return telemetry_wrapper

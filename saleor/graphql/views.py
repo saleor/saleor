@@ -38,13 +38,18 @@ from .utils.validators import check_if_query_contains_only_schema
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 meter.create_metric(
-    "saleor.graphql_queries", service=True, type=MetricType.Counter, unit=Unit.request
+    "saleor.graphql_queries",
+    service_scope=True,
+    type=MetricType.COUNTER,
+    unit=Unit.REQUEST,
+    description="Number of GraphQL queries.",
 )
 meter.create_metric(
     "saleor.graphql_query_duration",
-    service=True,
-    type=MetricType.Histogram,
-    unit=Unit.millisecond,
+    service_scope=True,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.MILLISECOND,
+    description="Duration of GraphQL queries.",
 )
 
 
@@ -171,7 +176,7 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", service=True, kind=SpanKind.SERVER
+            "http", service_scope=True, kind=SpanKind.SERVER
         ) as span:
             span.set_attribute("component", "http")
             span.set_attribute("resource.name", request.path)
@@ -214,9 +219,7 @@ class GraphQLView(View):
                     span.set_attribute(f"ip_{additional_ip_header}", request_ips[:100])
 
             response = self._handle_query(request)
-            tracer.get_current_span().set_attribute(
-                SpanAttributes.HTTP_STATUS_CODE, response.status_code
-            )
+            span.set_attribute(SpanAttributes.HTTP_STATUS_CODE, response.status_code)
 
             # RFC2616: Content-Length is defined in bytes,
             # we can calculate the RAW UTF-8 size using the length of
@@ -286,7 +289,7 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            tracer.start_as_current_span("graphql_query", service=True) as span,
+            tracer.start_as_current_span("graphql_query", service_scope=True) as span,
             meter.record_duration("saleor.graphql_query_duration"),
         ):
             meter.record("saleor.graphql_queries", 1)

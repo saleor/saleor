@@ -1,21 +1,37 @@
+from importlib import import_module
+from typing import Any
+
 from django.conf import settings
 from opentelemetry.semconv.trace import SpanAttributes
 
-from .metric import Meter, MeterProxy, MetricType, Unit, load_meter
-from .trace import SpanKind, Tracer, TracerProxy, load_tracer
-from .utils import set_global_attributes
+from .metric import Meter, MeterProxy, MetricType
+from .trace import SpanKind, Tracer, TracerProxy
+from .utils import Unit, set_global_attributes
 
-_tracer = TracerProxy()
-_meter = MeterProxy()
-tracer: Tracer = _tracer
-meter: Meter = _meter
+tracer = TracerProxy()
+meter = MeterProxy()
+
+
+def load_object(python_path: str) -> Any:
+    module, obj = python_path.rsplit(".", 1)
+    return getattr(import_module(module), obj)
 
 
 def initialize_telemetry() -> None:
-    if not settings.TELEMETRY_ENABLED:
-        return
-    _tracer.initialize(load_tracer())
-    _meter.initialize(load_meter())
+    """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
+    tracer_cls = load_object(settings.TELEMETRY_TRACER_CLASS)
+    if not issubclass(tracer_cls, Tracer):
+        raise ValueError(
+            "settings.TELEMETRY_TRACER_CLASS must point to a subclass of Tracer"
+        )
+    tracer.initialize(tracer_cls)
+
+    meter_cls = load_object(settings.TELEMETRY_METER_CLASS)
+    if not issubclass(meter_cls, Meter):
+        raise ValueError(
+            "settings.TELEMETRY_METER_CLASS must point to a subclass of Meter"
+        )
+    meter.initialize(meter_cls)
 
 
 __all__ = [

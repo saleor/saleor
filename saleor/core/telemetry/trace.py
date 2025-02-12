@@ -1,13 +1,15 @@
+import logging
 from abc import ABC, abstractmethod
 from collections.abc import Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from typing import TypedDict
 
-from django.conf import settings
 from opentelemetry.trace import INVALID_SPAN, Link, Span, SpanKind
 from opentelemetry.util.types import Attributes
 
-from .utils import enrich_with_global_attributes, load_object
+from .utils import enrich_with_global_attributes
+
+logger = logging.getLogger(__name__)
 
 
 class SpanConfig(TypedDict):
@@ -24,7 +26,7 @@ class Tracer(ABC):
         self,
         name: str,
         *,
-        service: bool = False,
+        service_scope: bool = False,
         kind: SpanKind = SpanKind.INTERNAL,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
@@ -42,11 +44,13 @@ class Tracer(ABC):
             record_exception=record_exception,
             set_status_on_exception=set_status_on_exception,
         )
-        return self._start_as_current_span(name, service, span_config, end_on_exit)
+        return self._start_as_current_span(
+            name, service_scope, span_config, end_on_exit
+        )
 
     @abstractmethod
     def _start_as_current_span(
-        self, name: str, service: bool, span_config: SpanConfig, end_on_exit: bool
+        self, name: str, service_scope: bool, span_config: SpanConfig, end_on_exit: bool
     ) -> AbstractContextManager[Span]:
         pass
 
@@ -54,7 +58,7 @@ class Tracer(ABC):
         self,
         name: str,
         *,
-        service: bool = False,
+        service_scope: bool = False,
         kind: SpanKind = SpanKind.INTERNAL,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
@@ -71,24 +75,17 @@ class Tracer(ABC):
             record_exception=record_exception,
             set_status_on_exception=set_status_on_exception,
         )
-        return self._start_span(name, service, span_config)
+        return self._start_span(name, service_scope, span_config)
 
     @abstractmethod
-    def _start_span(self, name: str, service: bool, span_config: SpanConfig) -> Span:
+    def _start_span(
+        self, name: str, service_scope: bool, span_config: SpanConfig
+    ) -> Span:
         pass
 
     @abstractmethod
     def get_current_span(self) -> Span:
         pass
-
-
-def load_tracer() -> type[Tracer]:
-    tracer_cls = load_object(settings.TELEMETRY_TRACER_CLASS)
-    if not issubclass(tracer_cls, Tracer):
-        raise ValueError(
-            "settings.TELEMETRY_TRACER_CLASS must point to a subclass of Tracer"
-        )
-    return tracer_cls
 
 
 class TracerProxy(Tracer):
@@ -97,7 +94,7 @@ class TracerProxy(Tracer):
 
     def initialize(self, tracer_cls: type[Tracer]):
         if self._tracer is not None:
-            raise RuntimeError("Tracer already initialized")
+            logger.warning("Tracer already initialized")
         self._tracer = tracer_cls()
 
     @contextmanager

@@ -968,6 +968,5 @@ TRANSACTION_ITEMS_LIMIT = 100
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
 
-TELEMETRY_ENABLED = get_bool_from_env("TELEMETRY_ENABLED", False)
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.otel.OpenTelemetryTracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.otel.OpenTelemetryMeter"

@@ -6,7 +6,6 @@ from django.db.models import CharField, TextField
 from django.utils.module_loading import import_string
 
 from .db.filters import PostgresILike
-from .telemetry import initialize_telemetry
 
 
 class CoreAppConfig(AppConfig):
@@ -18,7 +17,6 @@ class CoreAppConfig(AppConfig):
         if settings.SENTRY_DSN:
             settings.SENTRY_INIT(settings.SENTRY_DSN, settings.SENTRY_OPTS)
         self.validate_jwt_manager()
-        initialize_telemetry()
 
     def validate_jwt_manager(self) -> None:
         jwt_manager_path = getattr(settings, "JWT_MANAGER_PATH", None)
