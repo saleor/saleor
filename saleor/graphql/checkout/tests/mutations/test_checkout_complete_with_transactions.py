@@ -4749,6 +4749,7 @@ def test_complete_checkout_order_status_changed_after_creation(
     user_api_client,
 ):
     """Ensure order status is valid in the mutation response.
+
     In case that order is created with `UNCONFIRMED` and then changed into `UNFULFILLED`
     in post commit action, the returned order status should be upt-to-date.
     """
