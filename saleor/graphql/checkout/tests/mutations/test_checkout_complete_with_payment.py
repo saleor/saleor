@@ -3369,7 +3369,7 @@ def test_create_order_raises_insufficient_stock(
 
 
 def test_checkout_complete_with_digital(
-    api_client, checkout_with_digital_item, address, payment_dummy
+    api_client, checkout_with_digital_item, address, payment_dummy, customer_user
 ):
     """Ensure it is possible to complete a digital checkout without shipping."""
 
@@ -3381,7 +3381,8 @@ def test_checkout_complete_with_digital(
 
     # Set a billing address
     checkout.billing_address = address
-    checkout.save(update_fields=["billing_address"])
+    checkout.user = customer_user
+    checkout.save(update_fields=["billing_address", "user"])
 
     # Create a dummy payment to charge
     manager = get_plugins_manager(allow_replica=False)
@@ -3413,7 +3414,7 @@ def test_checkout_complete_with_digital(
 
 
 def test_checkout_complete_with_digital_and_shipping_address(
-    api_client, checkout_with_digital_item, address, payment_dummy
+    api_client, checkout_with_digital_item, address, payment_dummy, customer_user
 ):
     """Ensure it is possible to complete a digital checkout without shipping."""
 
@@ -3426,7 +3427,8 @@ def test_checkout_complete_with_digital_and_shipping_address(
     # Set a billing address
     checkout.billing_address = address
     checkout.shipping_address = address
-    checkout.save(update_fields=["billing_address", "shipping_address"])
+    checkout.user = customer_user
+    checkout.save(update_fields=["billing_address", "shipping_address", "user"])
 
     # Create a dummy payment to charge
     manager = get_plugins_manager(allow_replica=False)
@@ -3453,9 +3455,70 @@ def test_checkout_complete_with_digital_and_shipping_address(
     # Ensure the order was actually created
     assert order, "The order should have been created"
 
-    # FIXME: fix together with ext-1684
-    assert not order.shipping_address
+    assert order.shipping_address
     assert order.billing_address
+
+
+def test_checkout_complete_with_digital_saving_addresses_off(
+    api_client, checkout_with_digital_item, address, payment_dummy, customer_user
+):
+    """Ensure it is possible to complete a digital checkout without shipping."""
+
+    checkout = checkout_with_digital_item
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # Set a billing address
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.user = customer_user
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.save(
+        update_fields=[
+            "billing_address",
+            "shipping_address",
+            "user",
+            "save_shipping_address",
+            "save_billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    # Create a dummy payment to charge
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    # Send the creation request
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+
+    assert order.shipping_address
+    assert order.billing_address
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+    assert customer_user.addresses.count() == user_address_count
 
 
 @pytest.mark.integration
@@ -4793,6 +4856,80 @@ def test_checkout_complete_reservations_drop(
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
     assert not len(Reservation.objects.all())
+
+
+def test_checkout_complete_saving_addresses_off(
+    user_api_client,
+    checkout_with_item,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+    customer_user,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.user = customer_user
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    metadata_value = "metaValue"
+    metadata_key = "metaKey"
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": redirect_url,
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    # then
+    assert not data["errors"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+
+    assert order.billing_address
+    assert order.shipping_address
+    assert customer_user.addresses.count() == user_address_count
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
 
 
 @pytest.mark.django_db(transaction=True)
