@@ -1000,30 +1000,30 @@ warnings.filterwarnings("ignore", category=CacheKeyWarning)
 BREAKER_BOARD_ENABLED = get_bool_from_env("BREAKER_BOARD_ENABLED", False)
 BREAKER_BOARD_DRY_RUN = get_bool_from_env("BREAKER_BOARD_DRY_RUN", False)
 # Storage class string for the breaker board, for example:
-# "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
+# "saleor.webhook.circuit_breaker.storage.RedisStorage"
 BREAKER_BOARD_STORAGE_CLASS = os.environ.get("BREAKER_BOARD_STORAGE_CLASS")
 BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = int(
     os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE", 50)
 )
-BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_HALF_OPEN = int(
-    os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_HALF_OPEN", 50)
+BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY = int(
+    os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY", 50)
 )
 # Minimum events count to consider the breaker board threshold percentage
 BREAKER_BOARD_FAILURE_MIN_COUNT = int(
     os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT", 10)
 )
-BREAKER_BOARD_FAILURE_MIN_COUNT_HALF_OPEN = int(
-    os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT_HALF_OPEN", 10)
+BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY = int(
+    os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY", 10)
 )
 BREAKER_BOARD_COOLDOWN_SECONDS = int(
     os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS", 5 * 60)
 )
-BREAKER_BOARD_COOLDOWN_SECONDS_HALF_OPEN = int(
-    os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS_HALF_OPEN", 5 * 60)
+BREAKER_BOARD_COOLDOWN_SECONDS_RECOVERY = int(
+    os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS_RECOVERY", 5 * 60)
 )
 BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 5 * 60))
-BREAKER_BOARD_TTL_SECONDS_HALF_OPEN = int(
-    os.environ.get("BREAKER_BOARD_TTL_SECONDS_HALF_OPEN", 5 * 60)
+BREAKER_BOARD_TTL_SECONDS_RECOVERY = int(
+    os.environ.get("BREAKER_BOARD_TTL_SECONDS_RECOVERY", 5 * 60)
 )
 # List of lowercase sync webhook events that should be monitored by the breaker board, for ex:
 # "checkout_calculate_taxes, shipping_list_methods_for_checkout".

@@ -59,67 +59,73 @@ class BreakerBoard:
                     f'Event "{event}" is not supported by circuit breaker.'
                 )
 
+    def exceeded_error_threshold(
+        self, state: CircuitBreakerState, total: int, errors: int
+    ) -> bool:
+        min_count = (
+            self.failure_min_count
+            if state == CircuitBreakerState.CLOSED
+            else self.failure_min_count_half_open
+        )
+        threshold = (
+            self.failure_threshold
+            if state == CircuitBreakerState.CLOSED
+            else self.failure_threshold_half_open
+        )
+        return total > min_count and (errors / total) * 100 >= threshold
+
+    def _open_breaker(self, app_id: int) -> str:
+        self.storage.clear_state_for_app(app_id)
+        self.storage.update_open(app_id, int(time.time()), CircuitBreakerState.OPEN)
+        logger.info(
+            "[App ID: %r] Circuit breaker tripped, cooldown is %r [seconds].",
+            app_id,
+            self.cooldown_seconds,
+        )
+        return CircuitBreakerState.OPEN
+
+    def _half_open_breaker(self, app_id: int):
+        self.storage.clear_state_for_app(app_id)
+        self.storage.update_open(
+            app_id, int(time.time()), CircuitBreakerState.HALF_OPEN
+        )
+        logger.info(
+            "[App ID: %r] Circuit breaker state changed to %s.",
+            app_id,
+            CircuitBreakerState.HALF_OPEN,
+        )
+        return CircuitBreakerState.HALF_OPEN
+
+    def _close_breaker(self, app_id: int):
+        self.storage.clear_state_for_app(app_id)
+        self.storage.update_open(app_id, 0, CircuitBreakerState.CLOSED)
+        logger.info(
+            "[App ID: %r] Circuit breaker fully recovered.",
+            app_id,
+        )
+        return CircuitBreakerState.CLOSED
+
     def update_breaker_state(self, app_id: int):
         last_open, state = self.storage.last_open(app_id)
         total = self.storage.get_event_count(app_id, "total") or 1
         errors = self.storage.get_event_count(app_id, "error")
         # CLOSED to OPEN
-        if state == CircuitBreakerState.CLOSED:
-            if (
-                total > self.failure_min_count
-                and (errors / total) * 100 >= self.failure_threshold
-            ):
-                self.storage.clear_state_for_app(app_id)
-                self.storage.update_open(
-                    app_id, int(time.time()), CircuitBreakerState.OPEN
-                )
-                logger.info(
-                    "[App ID: %r] Circuit breaker tripped, cooldown is %r [seconds].",
-                    app_id,
-                    self.cooldown_seconds,
-                )
-                return CircuitBreakerState.OPEN
+        if state == CircuitBreakerState.CLOSED and self.exceeded_error_threshold(
+            state, total, errors
+        ):
+            return self._open_breaker(app_id)
         # OPEN TO HALF-OPEN
-        if state == CircuitBreakerState.OPEN:
-            if last_open < (time.time() - self.cooldown_seconds):
-                if (errors / total) * 100 < self.failure_threshold:
-                    self.storage.clear_state_for_app(app_id)
-                    self.storage.update_open(
-                        app_id, int(time.time()), CircuitBreakerState.HALF_OPEN
-                    )
-                    logger.info(
-                        "[App ID: %r] Circuit breaker state changed to %s.",
-                        app_id,
-                        CircuitBreakerState.HALF_OPEN,
-                    )
-                    return CircuitBreakerState.HALF_OPEN
+        if state == CircuitBreakerState.OPEN and last_open < (
+            time.time() - self.cooldown_seconds
+        ):
+            return self._half_open_breaker(app_id)
         # HALF-OPEN to CLOSED / OPEN
-        if state == CircuitBreakerState.HALF_OPEN:
-            # HALF-OPEN to CLOSED
-            if last_open < (time.time() - self.cooldown_seconds_half_open):
-                if (errors / total) * 100 < self.failure_threshold_half_open:
-                    self.storage.clear_state_for_app(app_id)
-                    self.storage.update_open(app_id, 0, CircuitBreakerState.CLOSED)
-                    logger.info(
-                        "[App ID: %r] Circuit breaker fully recovered.",
-                        app_id,
-                    )
-                    return CircuitBreakerState.CLOSED
-            # HALF-OPEN to OPEN
-            if (
-                total > self.failure_min_count_half_open
-                and (errors / total) * 100 >= self.failure_threshold_half_open
-            ):
-                self.storage.clear_state_for_app(app_id)
-                self.storage.update_open(
-                    app_id, int(time.time()), CircuitBreakerState.OPEN
-                )
-                logger.info(
-                    "[App ID: %r] Circuit breaker tripped, cooldown is %r [seconds].",
-                    app_id,
-                    self.cooldown_seconds,
-                )
-                return CircuitBreakerState.OPEN
+        if state == CircuitBreakerState.HALF_OPEN and last_open < (
+            time.time() - self.cooldown_seconds_half_open
+        ):
+            if self.exceeded_error_threshold(state, total, errors):
+                return self._open_breaker(app_id)
+            return self._close_breaker(app_id)
         return state
 
     def is_closed(self, app_id: int):
@@ -181,11 +187,11 @@ def initialize_breaker_board():
     return BreakerBoard(
         storage=storage_class(),
         failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
-        failure_threshold_half_open=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_HALF_OPEN,
+        failure_threshold_half_open=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY,
         failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
-        failure_min_count_half_open=settings.BREAKER_BOARD_FAILURE_MIN_COUNT_HALF_OPEN,
+        failure_min_count_half_open=settings.BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY,
         cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
-        cooldown_seconds_half_open=settings.BREAKER_BOARD_COOLDOWN_SECONDS_HALF_OPEN,
+        cooldown_seconds_half_open=settings.BREAKER_BOARD_COOLDOWN_SECONDS_RECOVERY,
         ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
-        ttl_seconds_half_open=settings.BREAKER_BOARD_TTL_SECONDS_HALF_OPEN,
+        ttl_seconds_half_open=settings.BREAKER_BOARD_TTL_SECONDS_RECOVERY,
     )
