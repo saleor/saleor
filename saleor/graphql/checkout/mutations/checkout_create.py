@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 import graphene
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType, models
 from ....checkout.actions import call_checkout_event
@@ -136,12 +137,26 @@ class CheckoutCreateInput(BaseInputObjectType):
         required=True,
     )
     email = graphene.String(description="The customer's email address.")
+    save_shipping_address = graphene.Boolean(
+        description=(
+            "Indicates whether the shipping address should be saved "
+            "to the user’s address book upon checkout completion."
+            "Can only be set when a shipping address is provided."
+        )
+    )
     shipping_address = AddressInput(
         description=(
             "The mailing address to where the checkout will be shipped. "
             "Note: the address will be ignored if the checkout "
             "doesn't contain shippable items. `skipValidation` requires "
             "HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions."
+        )
+    )
+    save_billing_address = graphene.Boolean(
+        description=(
+            "Indicates whether the billing address should be saved "
+            "to the user’s address book upon checkout completion. "
+            "Can only be set when a billing address is provided."
         )
     )
     billing_address = AddressInput(
@@ -290,11 +305,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
+        save_shipping_address = data.get("save_shipping_address")
         shipping_address_metadata = (
             data.get("shipping_address", {}).pop("metadata", [])
             if data.get("shipping_address")
             else None
         )
+        save_billing_address = data.get("save_billing_address")
         billing_address_metadata = (
             data.get("billing_address", {}).pop("metadata", [])
             if data.get("billing_address")
@@ -306,6 +323,28 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             cls.update_metadata(shipping_address, shipping_address_metadata)
         if billing_address:
             cls.update_metadata(billing_address, billing_address_metadata)
+
+        if save_shipping_address is not None and not shipping_address:
+            raise ValidationError(
+                {
+                    "save_shipping_address": ValidationError(
+                        "This option can only be selected if a shipping address "
+                        "is provided.",
+                        code=CheckoutErrorCode.MISSING_ADDRESS_DATA.value,
+                    )
+                }
+            )
+
+        if save_billing_address is not None and not billing_address:
+            raise ValidationError(
+                {
+                    "save_billing_address": ValidationError(
+                        "This option can only be selected if a billing address "
+                        "is provided.",
+                        code=CheckoutErrorCode.MISSING_ADDRESS_DATA.value,
+                    )
+                }
+            )
 
         country = get_active_country(
             channel,

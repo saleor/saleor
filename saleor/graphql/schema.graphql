@@ -26734,6 +26734,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   NON_EDITABLE_GIFT_LINE
   NON_REMOVABLE_GIFT_LINE
   SHIPPING_CHANGE_FORBIDDEN
+  MISSING_ADDRESS_DATA
 }
 
 """
@@ -26827,9 +26828,19 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   email: String
 
   """
+  Indicates whether the shipping address should be saved to the user’s address book upon checkout completion.Can only be set when a shipping address is provided.
+  """
+  saveShippingAddress: Boolean
+
+  """
   The mailing address to where the checkout will be shipped. Note: the address will be ignored if the checkout doesn't contain shippable items. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
   """
   shippingAddress: AddressInput
+
+  """
+  Indicates whether the billing address should be saved to the user’s address book upon checkout completion. Can only be set when a billing address is provided.
+  """
+  saveBillingAddress: Boolean
 
   """
   Billing address of the customer. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
