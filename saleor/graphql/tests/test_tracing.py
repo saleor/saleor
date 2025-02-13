@@ -8,6 +8,8 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
 
+from ...core.telemetry import initialize_telemetry
+
 
 @pytest.fixture(scope="session", autouse=True)
 def in_memory_span_exporter():
@@ -16,6 +18,7 @@ def in_memory_span_exporter():
     provider = TracerProvider()
     provider.add_span_processor(exporter_processor)
     trace_api.set_tracer_provider(provider)
+    initialize_telemetry()
     return span_exporter
 
 
