@@ -61,3 +61,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for the AWS_S3_URL_PROTOCOL environment variable - #17305 by @p-febis
 - Fixed pycurl dependency and required system libraries to fix Celery worker issues when using SQS by @mariobrgomes
 - Fix the issue of returning external shipping methods in a currency different from the checkout currency. - #17350 by @korycins
+- `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins

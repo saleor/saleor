@@ -381,7 +381,7 @@ class PluginSample(BasePlugin):
             ShippingMethodData(
                 id="123",
                 price=Money(Decimal(10), currency=checkout.currency),
-                name="Defualt shipping",
+                name="Default shipping",
             ),
         ]
 
