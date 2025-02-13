@@ -74,7 +74,6 @@ def test_app_create_mutation(
     assert default_token[-4:] == app.tokens.get().token_last_4
     assert app.uuid is not None
     assert app.identifier == "test.test"
-    assert True is False
 
 
 def test_app_create_no_identifier_mutation(
