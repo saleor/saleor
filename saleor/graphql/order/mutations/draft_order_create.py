@@ -36,6 +36,7 @@ from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_318,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -130,12 +131,12 @@ class DraftOrderInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="Order public metadata.",
+        description="Order public metadata." + ADDED_IN_321,
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description="Order private metadata.",
+        description="Order private metadata." + ADDED_IN_321,
         required=False,
     )
 

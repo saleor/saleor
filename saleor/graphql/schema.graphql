@@ -23362,10 +23362,18 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """External ID of this order."""
   externalReference: String
 
-  """Order public metadata."""
+  """
+  Order public metadata.
+  
+  Added in Saleor 3.21.
+  """
   metadata: [MetadataInput!]
 
-  """Order private metadata."""
+  """
+  Order private metadata.
+  
+  Added in Saleor 3.21.
+  """
   privateMetadata: [MetadataInput!]
 
   """Variant line input consisting of variant ID and quantity of products."""
@@ -23479,10 +23487,18 @@ input DraftOrderInput @doc(category: "Orders") {
   """External ID of this order."""
   externalReference: String
 
-  """Order public metadata."""
+  """
+  Order public metadata.
+  
+  Added in Saleor 3.21.
+  """
   metadata: [MetadataInput!]
 
-  """Order private metadata."""
+  """
+  Order private metadata.
+  
+  Added in Saleor 3.21.
+  """
   privateMetadata: [MetadataInput!]
 }
 
