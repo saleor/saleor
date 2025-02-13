@@ -31,6 +31,8 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
@@ -74,6 +76,9 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             manager=manager,
         )
 
+    # Isnt it calling super() method? why?
+    # it seems to work if metadata was added prevously...
+    # why i get errors "can finalize order" if i only update metadata?
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
@@ -86,8 +91,8 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         data = data.get("input")
 
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.get("metadata")
-        private_metadata_list = cleaned_input.get("private_metadata")
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
 
         instance = cls.construct_instance(instance, cleaned_input)
 

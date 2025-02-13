@@ -238,8 +238,8 @@ class DraftOrderCreate(
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
 
-        cleaned_input["metadata"] = data.pop("metadata")
-        cleaned_input["private_metadata"] = data.pop("private_metadata")
+        cleaned_input["metadata"] = data.pop("metadata", [])
+        cleaned_input["private_metadata"] = data.pop("private_metadata", [])
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address, manager

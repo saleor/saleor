@@ -570,7 +570,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def validate_and_update_metadata(
-        cls, instance, metadata_list, private_metadata_list
+        cls, instance, metadata_list: list[dict], private_metadata_list: list[dict]
     ):
         if cls._meta.support_meta_field and metadata_list is not None:
             cls.validate_metadata_keys(metadata_list)
