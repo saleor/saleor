@@ -12,13 +12,14 @@ start.cmd = "uvicorn saleor.asgi:application --reload"
 worker.help = "Start celery worker"
 worker.cmd = "celery --app=saleor.celeryconf:app worker --beat"
 
-migrate = "python manage.py migrate"
-populatedb = "python manage.py populatedb --createsuperuser"
-
 build-schema.shell = "python manage.py get_graphql_schema > saleor/graphql/schema.graphql"
 build-schema.help = "Build GraphQL schema to schema.graphql file"
 
 release.shell = "npm run release"
+
+migrate = "python manage.py migrate"
+
+populatedb = "python manage.py populatedb --createsuperuser"
 
 [tool.poetry]
 name = "saleor"
