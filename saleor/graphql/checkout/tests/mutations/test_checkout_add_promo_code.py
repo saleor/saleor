@@ -13,7 +13,10 @@ from .....checkout import base_calculations, calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.utils import add_variant_to_checkout, set_external_shipping
+from .....checkout.utils import (
+    add_variant_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 from .....core.models import EventDelivery
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
@@ -203,7 +206,7 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
 
     checkout = checkout_with_item
     checkout.shipping_address = address
-    set_external_shipping(checkout, external_shipping_method)
+    assign_external_shipping_to_checkout(checkout, external_shipping_method)
     checkout.save(
         update_fields=[
             "shipping_address",

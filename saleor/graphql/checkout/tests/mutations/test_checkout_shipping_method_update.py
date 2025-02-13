@@ -48,8 +48,7 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
     "clean_delivery_method"
 )
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
-    "invalidate_checkout",
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
     wraps=invalidate_checkout,
 )
 def test_checkout_shipping_method_update(
@@ -663,7 +662,7 @@ def test_with_active_problems_flow(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update.call_checkout_info_event",
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -740,7 +739,7 @@ def test_checkout_shipping_method_update_triggers_webhooks(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update.call_checkout_info_event",
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -838,7 +837,7 @@ def test_checkout_shipping_method_update_external_shipping_triggers_webhooks(
 
 
 @patch(
-    "saleor.graphql.checkout.mutations.checkout_shipping_method_update.call_checkout_info_event",
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
     wraps=call_checkout_info_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -867,7 +866,8 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout_with_items.shipping_address = address
-    checkout_with_items.save(update_fields=["shipping_address"])
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.save(update_fields=["shipping_address", "shipping_method"])
 
     # when
     response = api_client.post_graphql(
@@ -923,3 +923,400 @@ def test_checkout_shipping_method_update_to_none_triggers_webhooks(
 
     tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_external_shipping_to_different_external(
+    mocked_invalidate_checkout,
+    mocked_send_webhook_request_sync,
+    mocked_call_checkout_info_event,
+    settings,
+    shipping_app,
+    checkout_with_delivery_method_for_external_shipping,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_external_shipping
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "new-abcd"
+    response_shipping_name = "New Provider - Economy"
+    response_shipping_price = "10"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mocked_send_webhook_request_sync.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.external_shipping_method_id == method_id
+    assert checkout.shipping_method_name == response_shipping_name
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_external_shipping_to_the_same_external(
+    mocked_invalidate_checkout,
+    mocked_send_webhook_request_sync,
+    mocked_call_checkout_info_event,
+    address,
+    settings,
+    shipping_app,
+    checkout_with_item,
+    api_client,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "new-abcd"
+    response_shipping_name = "New Provider - Economy"
+    response_shipping_price = "10"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+
+    mocked_send_webhook_request_sync.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.external_shipping_method_id = method_id
+    checkout.shipping_method_name = response_shipping_name
+    checkout.save()
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.external_shipping_method_id == method_id
+    assert checkout.shipping_method_name == response_shipping_name
+
+    mocked_invalidate_checkout.assert_not_called()
+    mocked_call_checkout_info_event.assert_not_called()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_external_shipping_to_built_in_method(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_delivery_method_for_external_shipping,
+    shipping_method,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_external_shipping
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {
+            "id": to_global_id_or_none(checkout),
+            "shippingMethodId": to_global_id_or_none(shipping_method),
+        },
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+
+    assert checkout.collection_point_id is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_id == shipping_method.id
+    assert checkout.shipping_method_name == shipping_method.name
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_external_shipping_to_none(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_delivery_method_for_external_shipping,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_external_shipping
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"id": to_global_id_or_none(checkout), "shippingMethodId": None},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+
+    assert checkout.collection_point_id is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.shipping_method_name is None
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_built_in_shipping_to_different_built_in(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_shipping_method,
+    other_shipping_method,
+    api_client,
+):
+    # given
+    checkout = checkout_with_shipping_method
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {
+            "id": to_global_id_or_none(checkout),
+            "shippingMethodId": to_global_id_or_none(other_shipping_method),
+        },
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_id == other_shipping_method.id
+    assert checkout.shipping_method_name == other_shipping_method.name
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_built_in_shipping_to_external(
+    mocked_invalidate_checkout,
+    mocked_send_webhook_request_sync,
+    mocked_call_checkout_info_event,
+    settings,
+    checkout_with_shipping_method,
+    shipping_app,
+    api_client,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "new-abcd"
+    response_shipping_name = "New Provider - Economy"
+    response_shipping_price = "10"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+
+    mocked_send_webhook_request_sync.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    checkout = checkout_with_shipping_method
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.external_shipping_method_id == method_id
+    assert checkout.shipping_method_name == response_shipping_name
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_built_in_shipping_to_the_same_built_in(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_shipping_method,
+    api_client,
+):
+    # given
+    checkout = checkout_with_shipping_method
+
+    shipping_method = checkout.shipping_method
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {
+            "id": to_global_id_or_none(checkout),
+            "shippingMethodId": to_global_id_or_none(shipping_method),
+        },
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_id == shipping_method.id
+    assert checkout.shipping_method_name == shipping_method.name
+
+    mocked_invalidate_checkout.assert_not_called()
+    mocked_call_checkout_info_event.assert_not_called()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@mock.patch(
+    "saleor.graphql.checkout.mutations.utils.invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_shipping_method_update_from_built_in_shipping_to_none(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_shipping_method,
+    api_client,
+):
+    # given
+    checkout = checkout_with_shipping_method
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"id": to_global_id_or_none(checkout), "shippingMethodId": None},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_name is None
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()

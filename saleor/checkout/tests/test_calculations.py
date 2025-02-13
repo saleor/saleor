@@ -9,7 +9,10 @@ from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
 
-from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping
+from ...checkout.utils import (
+    add_promo_code_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxDataErrorMessage, TaxLineData, zero_taxed_money
 from ...graphql.core.utils import to_global_id_or_none
@@ -691,7 +694,9 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_single_item.shipping_address = address
-    set_external_shipping(checkout_with_single_item, external_shipping_method)
+    assign_external_shipping_to_checkout(
+        checkout_with_single_item, external_shipping_method
+    )
     checkout_with_single_item.save()
     checkout_with_single_item.metadata_storage.save()
     checkout_lines, _ = fetch_checkout_lines(checkout_with_single_item)
