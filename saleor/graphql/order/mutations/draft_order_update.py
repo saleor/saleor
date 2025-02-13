@@ -93,9 +93,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
 
         instance = cls.construct_instance(instance, cleaned_input)
 
-        cls.validate_and_update_metadata(
-            instance, metadata_list, private_metadata_list
-        )  # <-
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         cls.save_draft_order(
             info, instance, cleaned_input, old_voucher, old_voucher_code

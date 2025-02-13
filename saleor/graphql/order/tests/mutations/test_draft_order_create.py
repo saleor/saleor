@@ -3788,8 +3788,3 @@ def test_draft_order_create_with_metadata(
 
     assert private_metadata_result_list[0]["key"] == private_metadata_key
     assert private_metadata_result_list[0]["value"] == private_metadata_value
-
-
-# todo
-# test for draftOrderUpdate
-# todo bulk order create / update

@@ -96,8 +96,6 @@ class ModelWithMetadata(models.Model):
     def store_value_in_private_metadata(self, items: dict):
         if not self.private_metadata:
             self.private_metadata = {}
-
-        # TODO For some reason self.private_metadata is list instead of dict
         self.private_metadata.update(items)
 
     def clear_private_metadata(self):
