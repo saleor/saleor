@@ -1,4 +1,4 @@
-.PHONY: runserver migrate populatedb test help
+.PHONY: runserver migrate populatedb test help build-schema release
 
 help: ## Display this help message
 	@echo "Saleor Development Commands:"
