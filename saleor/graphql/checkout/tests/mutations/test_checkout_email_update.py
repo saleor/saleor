@@ -143,6 +143,7 @@ def test_checkout_email_update_triggers_webhooks(
     settings,
     user_api_client,
     checkout_with_item,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -155,7 +156,12 @@ def test_checkout_email_update_triggers_webhooks(
 
     checkout = checkout_with_item
     checkout.email = None
-    checkout.save(update_fields=["email"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save(update_fields=["email", "billing_address", "shipping_address"])
 
     email = "test@example.com"
     variables = {"id": to_global_id_or_none(checkout), "email": email}

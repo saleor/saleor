@@ -803,6 +803,7 @@ def test_checkout_remove_triggers_webhooks(
     settings,
     api_client,
     checkout_with_voucher,
+    address,
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
@@ -813,6 +814,12 @@ def test_checkout_remove_triggers_webhooks(
         shipping_filter_webhook,
         checkout_updated_webhook,
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_voucher.shipping_address = address
+    checkout_with_voucher.billing_address = address
+
+    checkout_with_voucher.save()
 
     variables = {
         "id": to_global_id_or_none(checkout_with_voucher),
