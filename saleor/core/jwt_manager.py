@@ -145,7 +145,7 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def get_jwks(cls) -> dict:
         jwk_dict = json.loads(RSAAlgorithm.to_jwk(cls.get_public_key()))
-        jwk_dict.update({"use": "sig", "kid": cls.get_key_id()})
+        jwk_dict.update({"use": "sig", "kid": cls.get_key_id(), "alg": cls._ALG})
         return {"keys": [jwk_dict]}
 
     @classmethod
