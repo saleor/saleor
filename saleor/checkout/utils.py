@@ -488,8 +488,8 @@ def change_billing_address_in_checkout(checkout, address) -> list[str]:
 def change_shipping_address_in_checkout(
     checkout_info: "CheckoutInfo",
     address: "Address",
+    store_in_user_addresses: bool,
     lines: list["CheckoutLineInfo"],
-    manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
     """Save shipping address in checkout if changed.
@@ -516,6 +516,9 @@ def change_shipping_address_in_checkout(
             shipping_channel_listings=shipping_channel_listings,
         )
         updated_fields = ["shipping_address", "last_change"]
+    if checkout.save_shipping_address != store_in_user_addresses:
+        checkout.save_shipping_address = store_in_user_addresses
+        updated_fields.append("save_shipping_address")
     return updated_fields
 
 

@@ -17571,6 +17571,9 @@ type Mutation {
     """The checkout's ID."""
     id: ID
 
+    """If true, the address will be saved in the user's address book."""
+    saveAddress: Boolean = true
+
     """The mailing address to where the checkout will be shipped."""
     shippingAddress: AddressInput!
 
