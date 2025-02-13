@@ -352,6 +352,7 @@ def test_checkout_lines_delete_triggers_webhooks(
     settings,
     api_client,
     checkout_with_items,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -369,6 +370,12 @@ def test_checkout_lines_delete_triggers_webhooks(
         "id": to_global_id_or_none(checkout_with_items),
         "linesIds": [first_line_id],
     }
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
+    checkout_with_items.save()
 
     # when
     response = api_client.post_graphql(
