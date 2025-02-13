@@ -588,6 +588,10 @@ psql -h localhost -p 5432 -U saleor -XqAt -f data.sql > analyze.json
    Add an optional corresponding SQL query if you wish.
 7. Press the `Submit` button and that's it. You can analyze what you get.
 
+### Debugging
+
+We recommend you use `breakpoint()` function to set debugger. If you are using devcontainer `breakpoint` will use [ipdb](https://pypi.org/project/ipdb/). To learn more about `breakpoint` see official [PEP 553](https://peps.python.org/pep-0553/).
+
 ## Git commit messages
 
 To speed up the review process and to keep the logs tidy, we recommend the following simple rules on how to write good commit messages:
