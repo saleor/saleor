@@ -78,17 +78,26 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         channel_id = cls.get_instance_channel_id(instance, **data)
+
         cls.check_channel_permissions(info, [channel_id])
+
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
         data = data.get("input")
+
         cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.get("metadata")
+        private_metadata_list = cleaned_input.get("private_metadata")
+
         instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         cls.save_draft_order(
             info, instance, cleaned_input, old_voucher, old_voucher_code
         )
         cls._save_m2m(info, instance, cleaned_input)
+
         return cls.success_response(instance)
 
     @classmethod

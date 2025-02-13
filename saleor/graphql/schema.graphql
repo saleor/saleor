@@ -23362,6 +23362,12 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """External ID of this order."""
   externalReference: String
 
+  """Order public metadata."""
+  metadata: [MetadataInput!]
+
+  """Order private metadata."""
+  privateMetadata: [MetadataInput!]
+
   """Variant line input consisting of variant ID and quantity of products."""
   lines: [OrderLineCreateInput!]
 }
@@ -23472,6 +23478,12 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """External ID of this order."""
   externalReference: String
+
+  """Order public metadata."""
+  metadata: [MetadataInput!]
+
+  """Order private metadata."""
+  privateMetadata: [MetadataInput!]
 }
 
 """

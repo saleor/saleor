@@ -43,6 +43,7 @@ from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...core.utils import from_global_id_or_error
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
@@ -127,6 +128,16 @@ class DraftOrderInput(BaseInputObjectType):
     external_reference = graphene.String(
         description="External ID of this order.", required=False
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description="Order public metadata.",
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Order private metadata.",
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -162,6 +173,8 @@ class DraftOrderCreate(
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def get_instance_channel_id(cls, instance, **data):
@@ -223,6 +236,9 @@ class DraftOrderCreate(
         cls.clean_lines(cleaned_input, lines, channel)
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
+
+        cleaned_input["metadata"] = data.pop("metadata")
+        cleaned_input["private_metadata"] = data.pop("private_metadata")
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address, manager
