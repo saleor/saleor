@@ -1005,14 +1005,26 @@ BREAKER_BOARD_STORAGE_CLASS = os.environ.get("BREAKER_BOARD_STORAGE_CLASS")
 BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = int(
     os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE", 50)
 )
+BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_HALF_OPEN = int(
+    os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_HALF_OPEN", 50)
+)
 # Minimum events count to consider the breaker board threshold percentage
 BREAKER_BOARD_FAILURE_MIN_COUNT = int(
     os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT", 10)
 )
+BREAKER_BOARD_FAILURE_MIN_COUNT_HALF_OPEN = int(
+    os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT_HALF_OPEN", 10)
+)
 BREAKER_BOARD_COOLDOWN_SECONDS = int(
     os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS", 5 * 60)
 )
-BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 10 * 60))
+BREAKER_BOARD_COOLDOWN_SECONDS_HALF_OPEN = int(
+    os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS_HALF_OPEN", 5 * 60)
+)
+BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 5 * 60))
+BREAKER_BOARD_TTL_SECONDS_HALF_OPEN = int(
+    os.environ.get("BREAKER_BOARD_TTL_SECONDS_HALF_OPEN", 5 * 60)
+)
 # List of lowercase sync webhook events that should be monitored by the breaker board, for ex:
 # "checkout_calculate_taxes, shipping_list_methods_for_checkout".
 BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS", ""))

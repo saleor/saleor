@@ -22,10 +22,12 @@ def description(enum):
 
 class CircuitBreakerState:
     CLOSED = "closed"
+    HALF_OPEN = "half_open"
     OPEN = "open"
 
     CHOICES = [
         (CLOSED, "closed"),
+        (HALF_OPEN, "half_open"),
         (OPEN, "open"),
     ]
 
