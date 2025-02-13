@@ -1290,8 +1290,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         shipping_method = None
         shipping_channel_listings = []
 
-    media_storage_mock = Mock()
-    media_storage_mock.get_value_from_private_metadata.return_value = None
+    meta_storage_mock = Mock()
+    meta_storage_mock.get_value_from_private_metadata.return_value = None
     checkout = Mock(
         is_shipping_required=Mock(return_value=is_shipping_required),
         shipping_method=shipping_method,
@@ -1299,7 +1299,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         quantity=total_quantity,
         spec=Checkout,
         channel=channel_USD,
-        metadata_storage=media_storage_mock,
+        metadata_storage=meta_storage_mock,
         external_shipping_method_id=None,
     )
 
@@ -2258,7 +2258,6 @@ def test_set_external_shipping(checkout):
     assert checkout.shipping_method_name == app_shipping_name
 
 
-# FIXME:
 def test_get_external_shipping_id_from_metadata(checkout):
     # given
     app_shipping_id = "abcd"
