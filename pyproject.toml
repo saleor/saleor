@@ -28,7 +28,7 @@ Prerequisities:
 """
 
 shell.cmd = "python manage.py shell"
-shell.help = "Start Python interactive interpreter"
+shell.help = "Start Django shell in interactive mode"
 
 populatedb.cmd = "python manage.py populatedb --createsuperuser"
 populatedb.help = """
