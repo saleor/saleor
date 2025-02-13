@@ -7,6 +7,8 @@ from opentelemetry.util.types import Attributes, AttributeValue
 Amount = int | float
 
 _GLOBAL_ATTRS: ContextVar[dict[str, AttributeValue]] = ContextVar("global_attrs")
+CORE_SCOPE = "saleor.core"
+SERVICE_SCOPE = "saleor.service"
 
 
 class Unit(Enum):
