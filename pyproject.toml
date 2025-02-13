@@ -12,14 +12,30 @@ start.cmd = "uvicorn saleor.asgi:application --reload"
 worker.help = "Start celery worker"
 worker.cmd = "celery --app=saleor.celeryconf:app worker --beat"
 
-build-schema.shell = "python manage.py get_graphql_schema > saleor/graphql/schema.graphql"
-build-schema.help = "Build GraphQL schema to schema.graphql file"
+build-schema.cmd = "python manage.py get_graphql_schema"
+build-schema.capture_stdout = "saleor/graphql/schema.graphql"
+build-schema.help = "Build GraphQL schema to saleor/graphql/schema.graphql file"
+
+migrate.cmd = "python manage.py migrate"
+migrate.help = "Run database migrations"
 
 release.shell = "npm run release"
+release.help = """
+Release new Saleor verison
+Prerequisities:
+- Node installed on machine
+- Run npm install to install dependencies
+"""
 
-migrate = "python manage.py migrate"
+shell.cmd = "python manage.py shell"
+shell.help = "Start Python interactive interpreter"
 
-populatedb = "python manage.py populatedb --createsuperuser"
+populatedb.cmd = "python manage.py populatedb --createsuperuser"
+populatedb.help = """
+Populates database with sample data and creates admin user with credentials:
+- email: admin@example.com
+- password: admin
+"""
 
 [tool.poetry]
 name = "saleor"

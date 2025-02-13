@@ -103,10 +103,18 @@ You are ready to go 🎉.
 
 ### Common commands
 
+> [!TIP]
+> To run these commands you don't need to activate virtualenv via `poetry env activate`
+
 To start server:
 
 ```shell
 poe start
+```
+
+to start Celery worker:
+```
+poe worker
 ```
 
 To run database migrations:
@@ -121,8 +129,20 @@ To populate database with example data and create the admin user:
 poe populatedb
 ```
 
-*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
+> [!NOTE]
+> `populatedb` populates database with example data and creates an admin account for `admin@example.com` with the password set to `admin`.*
 
+To build `schema.graphql` file:
+
+```shell
+poe build-schema
+```
+
+To start Python interactive interpreter:
+
+```
+poe shell
+```
 
 ## Managing dependencies
 
