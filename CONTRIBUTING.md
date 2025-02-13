@@ -123,6 +123,11 @@ python manage.py populatedb --createsuperuser
 
 *Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
 
+To run Django shell:
+
+```shell
+python manage.py shell
+```
 
 ## Managing dependencies
 
