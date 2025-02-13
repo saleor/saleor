@@ -9,6 +9,7 @@ from django.utils.module_loading import import_string
 from saleor.webhook.event_types import WebhookEventSyncType
 
 from ...graphql.app.types import CircuitBreakerState
+from ...webhook.observability.tracing import load_tests_breaker_opentracing_trace
 
 if TYPE_CHECKING:
     from ...webhook.models import Webhook
@@ -131,11 +132,13 @@ class BreakerBoard:
         return state != CircuitBreakerState.OPEN
 
     def register_error(self, app_id: int, ttl: int):
-        self.storage.register_event(app_id, "error", self.ttl_seconds)
-        self.storage.register_event(app_id, "total", self.ttl_seconds)
+        with load_tests_breaker_opentracing_trace("breaker_board", "register_error"):
+            self.storage.register_event(app_id, "error", self.ttl_seconds)
+            self.storage.register_event(app_id, "total", self.ttl_seconds)
 
     def register_success(self, app_id: int, ttl: int):
-        self.storage.register_event(app_id, "total", self.ttl_seconds)
+        with load_tests_breaker_opentracing_trace("breaker_board", "register_success"):
+            self.storage.register_event(app_id, "total", self.ttl_seconds)
 
     def __call__(self, func):
         def inner(*args, **kwargs):
