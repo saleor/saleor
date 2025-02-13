@@ -16,3 +16,9 @@ populatedb: ## Populate database with example data and create superuser
 
 test: ## Run tests with database reuse
 	pytest --reuse-db
+
+build-schema: ## Build GraphQL schema
+	npm run build-schema
+
+release: ## Create a new release
+	npm run release
