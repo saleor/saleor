@@ -435,20 +435,22 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         instance = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.get("metadata", None)
-        private_metadata_list = cleaned_input.get("private_metadata", None)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
 
         cls.clean_instance(info, instance)
-        cls.save(info, instance, cleaned_input)
-        cls._save_m2m(info, instance, cleaned_input)
 
         # add to cleaned_input popped metadata to allow running post save events
         # that depends on the metadata inputs
+        # also it's needed in save() method to create metadata
         if metadata_list:
             cleaned_input["metadata"] = metadata_list
         if private_metadata_list:
             cleaned_input["private_metadata"] = private_metadata_list
+
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
 
         cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)
