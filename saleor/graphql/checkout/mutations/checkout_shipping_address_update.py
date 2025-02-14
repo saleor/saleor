@@ -64,6 +64,15 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             required=True,
             description="The mailing address to where the checkout will be shipped.",
         )
+        save_address = graphene.Boolean(
+            required=False,
+            default_value=True,
+            description=(
+                "Indicates whether the shipping address should be saved "
+                "to the user’s address book upon checkout completion. "
+                "If not provided, the default behavior is to save the address."
+            ),
+        )
         validation_rules = CheckoutAddressValidationRules(
             required=False,
             description=(
@@ -119,6 +128,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         info,
         /,
         shipping_address,
+        save_address,
         validation_rules=None,
         checkout_id=None,
         token=None,
@@ -191,8 +201,8 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             shipping_address_updated_fields = change_shipping_address_in_checkout(
                 checkout_info,
                 shipping_address_instance,
+                save_address,
                 lines,
-                manager,
                 shipping_channel_listings,
             )
         invalidate_prices_updated_fields = invalidate_checkout(
