@@ -3007,6 +3007,7 @@ enum IconThumbnailFormatEnum {
 
 enum CircuitBreakerStateEnum @doc(category: "Apps") {
   CLOSED
+  HALF_OPEN
   OPEN
 }
 
