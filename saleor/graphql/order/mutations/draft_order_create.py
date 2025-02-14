@@ -95,12 +95,28 @@ class OrderLineCreateInput(OrderLineInput):
 
 class DraftOrderInput(BaseInputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
+    save_billing_address = graphene.Boolean(
+        description=(
+            "Indicates whether the billing address should be saved "
+            "to the user’s address book upon draft order completion. "
+            "Can only be set when a billing address is provided. If not specified "
+            "along with the address, the default behavior is to not save the address."
+        )
+    )
     user = graphene.ID(
         description="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
     discount = PositiveDecimal(description="Discount amount for the order.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
+    save_shipping_address = graphene.Boolean(
+        description=(
+            "Indicates whether the shipping address should be saved "
+            "to the user’s address book upon draft order completion."
+            "Can only be set when a shipping address is provided. If not specified "
+            "along with the address, the default behavior is to not save the address."
+        )
+    )
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"
     )
@@ -417,6 +433,8 @@ class DraftOrderCreate(
         billing_address,
         manager,
     ):
+        save_shipping_address = cleaned_input.get("save_shipping_address")
+        save_billing_address = cleaned_input.get("save_billing_address")
         if shipping_address:
             shipping_address = cls.validate_address(
                 shipping_address,
@@ -428,6 +446,19 @@ class DraftOrderCreate(
                 shipping_address, "shipping", user=instance
             )
             cleaned_input["shipping_address"] = shipping_address
+            cleaned_input["draft_save_shipping_address"] = (
+                save_shipping_address or False
+            )
+        elif save_shipping_address is not None:
+            raise ValidationError(
+                {
+                    "save_shipping_address": ValidationError(
+                        "This option can only be selected if a shipping address "
+                        "is provided.",
+                        code=OrderErrorCode.MISSING_ADDRESS_DATA.value,
+                    )
+                }
+            )
         if billing_address:
             billing_address = cls.validate_address(
                 billing_address,
@@ -439,6 +470,17 @@ class DraftOrderCreate(
                 billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
+            cleaned_input["draft_save_billing_address"] = save_billing_address or False
+        elif save_billing_address is not None:
+            raise ValidationError(
+                {
+                    "save_billing_address": ValidationError(
+                        "This option can only be selected if a billing address "
+                        "is provided.",
+                        code=OrderErrorCode.MISSING_ADDRESS_DATA.value,
+                    )
+                }
+            )
 
     @classmethod
     def clean_redirect_url(cls, redirect_url):
