@@ -41,6 +41,23 @@ def get_instrument_method(
 
 
 class Meter:
+    """Interface for instrumenting code with metrics collection.
+
+    The class provides an interface for creating and recording metrics.
+    This default implementation uses OpenTelemetry to provide that but can be easily
+    subclassed to alter or change the telemetry implementation.
+
+    The Meter operates with two distinct scopes:
+        - core: For internal system operations and core functionality
+        - service: For business logic and service-level operations
+
+    Note:
+        The Meter internally uses the global OpenTelemetry MeterProvider, which should
+        be initialized following OpenTelemetry's standard process, for example using
+        the `opentelemetry-instrument` tool.
+
+    """
+
     def __init__(self, instrumentation_version: str):
         self._core_tracer = get_meter(CORE_SCOPE, instrumentation_version)
         self._service_tracer = get_meter(SERVICE_SCOPE, instrumentation_version)
@@ -73,6 +90,16 @@ class Meter:
         service_scope: bool = False,
         description: str = "",
     ) -> None:
+        """Create a new metric with specified parameters.
+
+        Args:
+            name: The name of the metric
+            type: Type of the metric
+            unit: Unit of the metric
+            service_scope: If True, use service scope instead of default core
+            description: Optional description of the metric
+
+        """
         meter = self._service_tracer if service_scope else self._core_tracer
         with self._lock:
             if name in self._instruments:
@@ -88,6 +115,15 @@ class Meter:
         unit: Unit | None = None,
         attributes: Attributes = None,
     ) -> None:
+        """Record a measurement for the specified metric.
+
+        Args:
+            metric_name: Name of the metric to record a measurement
+            amount: Value to record
+            unit: Optional unit of the measurement (converted if different from metric unit)
+            attributes: Attributes to record with the measurement
+
+        """
         attributes = enrich_with_global_attributes(attributes)
         if metric_name not in self._instruments:
             raise RuntimeError(f"Metric {metric_name} must be created first")
@@ -109,6 +145,12 @@ class Meter:
 
 
 class MeterProxy(Meter):
+    """A proxy that enables delayed initialization of Meter.
+
+    This class is designed to ensure fork safety in multi-process environments by
+    allowing Meter initialization to be deferred until after process forking.
+    """
+
     def __init__(self):
         self._meter: Meter | None = None
         self._metrics: dict[str, dict] = {}

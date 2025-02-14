@@ -18,6 +18,23 @@ logger = logging.getLogger(__name__)
 
 
 class Tracer:
+    """Interface for instrumenting code with distributed tracing.
+
+    The class provides an interface for creating and managing trace spans.
+    This default implementation uses OpenTelemetry to provide that but can be easily
+    subclassed to alter or change the telemetry implementation.
+
+    The Tracer operates with two distinct scopes:
+        - core: For internal system operations and core functionality
+        - service: For business logic and service-level operations
+
+    Note:
+        The Tracer internally uses the global OpenTelemetry TracerProvider, which should
+        be initialized following OpenTelemetry's standard process, for example using
+        the `opentelemetry-instrument` tool.
+
+    """
+
     def __init__(self, instrumentation_version: str):
         self._core_tracer = get_tracer(CORE_SCOPE, instrumentation_version)
         self._service_tracer = get_tracer(SERVICE_SCOPE, instrumentation_version)
@@ -36,6 +53,23 @@ class Tracer:
         set_status_on_exception: bool = True,
         end_on_exit: bool = True,
     ) -> Iterator[Span]:
+        """Start a new span and set it as the current span in the context.
+
+        Args:
+            name: The name of the span
+            service_scope: If True, use service scope instead of default core
+            kind: The SpanKind of the span
+            attributes: Initial attributes for the span
+            links: Links to other spans
+            start_time: Optional start time for the span in nanoseconds
+            record_exception: Whether to record exceptions as span events
+            set_status_on_exception: Whether to set span status on exception
+            end_on_exit: Whether to end the span when exiting the context
+
+        Yields:
+            The newly created span
+
+        """
         attributes = enrich_with_global_attributes(attributes)
         tracer = self._service_tracer if service_scope else self._core_tracer
         with tracer.start_as_current_span(
@@ -62,6 +96,22 @@ class Tracer:
         record_exception: bool = True,
         set_status_on_exception: bool = True,
     ) -> Span:
+        """Create a new span without setting it as current in the context.
+
+        Args:
+            name: The name of the span
+            service_scope: If True, use service scope instead of default core
+            kind: The SpanKind of the span
+            attributes: Initial attributes for the span
+            links: Links to other spans
+            start_time: Optional start time for the span in nanoseconds
+            record_exception: Whether to record exceptions as span events
+            set_status_on_exception: Whether to set span status on exception
+
+        Returns:
+            The newly created span
+
+        """
         attributes = enrich_with_global_attributes(attributes)
         tracer = self._service_tracer if service_scope else self._core_tracer
         return tracer.start_span(
@@ -75,10 +125,17 @@ class Tracer:
         )
 
     def get_current_span(self) -> Span:
+        """Return the current span from the context."""
         return get_current_span()
 
 
 class TracerProxy(Tracer):
+    """A proxy that enables delayed initialization of Tracer.
+
+    This class is designed to ensure fork safety in multi-process environments by
+    allowing Tracer initialization to be deferred until after process forking.
+    """
+
     def __init__(self):
         self._tracer: Tracer | None = None
 
