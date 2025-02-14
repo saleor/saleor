@@ -837,8 +837,11 @@ if JAEGER_HOST:
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get("REDIS_URL")
-if REDIS_URL:
-    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+CACHE_URL = (
+    os.environ.setdefault("CACHE_URL", REDIS_URL)
+    if REDIS_URL
+    else os.environ.get("CACHE_URL")
+)
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
@@ -991,3 +994,30 @@ TRANSACTION_ITEMS_LIMIT = 100
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# Breaker board configuration
+BREAKER_BOARD_ENABLED = get_bool_from_env("BREAKER_BOARD_ENABLED", False)
+BREAKER_BOARD_DRY_RUN = get_bool_from_env("BREAKER_BOARD_DRY_RUN", False)
+# Storage class string for the breaker board, for example:
+# "saleor.webhook.circuit_breaker.storage.InMemoryStorage"
+BREAKER_BOARD_STORAGE_CLASS = os.environ.get("BREAKER_BOARD_STORAGE_CLASS")
+BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = int(
+    os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE", 50)
+)
+# Minimum events count to consider the breaker board threshold percentage
+BREAKER_BOARD_FAILURE_MIN_COUNT = int(
+    os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT", 10)
+)
+BREAKER_BOARD_COOLDOWN_SECONDS = int(
+    os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS", 5 * 60)
+)
+BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 10 * 60))
+# List of lowercase sync webhook events that should be monitored by the breaker board, for ex:
+# "checkout_calculate_taxes, shipping_list_methods_for_checkout".
+BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS", ""))
+
+if BREAKER_BOARD_ENABLED is True and not BREAKER_BOARD_STORAGE_CLASS:
+    raise ImproperlyConfigured(
+        "BREAKER_BOARD_STORAGE_CLASS must be defined when BREAKER_BOARD_ENABLED is set to True"
+    )

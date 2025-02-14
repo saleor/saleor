@@ -46,6 +46,7 @@ pytest_plugins = [
     "saleor.account.tests.fixtures",
     "saleor.graphql.account.tests.fixtures",
     "saleor.payment.tests.fixtures",
+    "saleor.webhook.tests.circuit_breaker.fixtures",
 ]
 
 
