@@ -741,10 +741,6 @@ class ModelMutation(BaseMutation):
         _info: ResolveInfo,
         instance,
         _cleaned_input,
-        # Metadata is removed from cleaned input, but sometimes it may be needed in save() method
-        # For example when it saves metadata there
-        metadata_list: list[dict],
-        private_metadata_list: list[dict],
         /,
     ):
         instance.save()
@@ -807,7 +803,7 @@ class ModelMutation(BaseMutation):
 
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
-        cls.save(info, instance, cleaned_input, metadata_list, private_metadata_list)
+        cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
 
         # add to cleaned_input popped metadata to allow running post save events
@@ -876,7 +872,7 @@ class ModelWithRestrictedChannelAccessMutation(ModelMutation):
 
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
-        cls.save(info, instance, cleaned_input, metadata_list, private_metadata_list)
+        cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)

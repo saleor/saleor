@@ -208,14 +208,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             )
         ]
 
-        # CheckoutCreate DOES support metadata creation, but these flags control
-        # base method on model. If we set them to True, it will try to save
-        # metadata on Checkout model. In case of Checkout we don't want that
-        # because we save metadata in CheckoutMetadata model.
-        #
-        # This is a subject of refactoring to avoid using inheritance due to problems like this
-        support_meta_field = False
-        support_private_meta_field = False
+        # Set to True, but it they do not make sense - base perform_mutation method
+        # is not executed, so these fields are not consumed.
+        # This should be refactored
+        # Fields are left to explicitly mark the hacky behavior
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_checkout_lines(
@@ -365,8 +363,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         info: ResolveInfo,
         instance: models.Checkout,
         cleaned_input,
-        metadata_list,
-        private_metadata_list,
     ):
         with traced_atomic_transaction():
             # Create the checkout object
@@ -407,9 +403,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             instance.save()
             checkout_metadata = create_checkout_metadata(instance)
 
-            metadata_dict = {metadata.key: metadata.value for metadata in metadata_list}
+            metadata_dict = {
+                metadata.key: metadata.value for metadata in cleaned_input["metadata"]
+            }
             private_metadata_dict = {
-                metadata.key: metadata.value for metadata in private_metadata_list
+                metadata.key: metadata.value
+                for metadata in cleaned_input["private_metadata"]
             }
 
             checkout_metadata.private_metadata = private_metadata_dict
@@ -425,6 +424,35 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             instance.user = user
         return instance
 
+    # Same perform_mutation as base class, but slightly changed
+    # Due to incorrect inheritance model, base method can't be used,
+    # because it's removing metadata from cleaned_input.
+    # However, it's required here.
+    #
+    # TODO: This should be refactored
+    @classmethod
+    def _perform_base_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.get("metadata", None)
+        private_metadata_list = cleaned_input.get("private_metadata", None)
+        instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+
+        # add to cleaned_input popped metadata to allow running post save events
+        # that depends on the metadata inputs
+        if metadata_list:
+            cleaned_input["metadata"] = metadata_list
+        if private_metadata_list:
+            cleaned_input["private_metadata"] = private_metadata_list
+
+        cls.post_save_action(info, instance, cleaned_input)
+        return cls.success_response(instance)
+
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, input
@@ -435,7 +463,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         if channel:
             input["channel"] = channel
-        response = super().perform_mutation(_root, info, input=input)
+        response = cls._perform_base_mutation(_root, info, input=input)
 
         checkout = response.checkout
         apply_gift_reward_if_applicable_on_checkout_creation(response.checkout)
