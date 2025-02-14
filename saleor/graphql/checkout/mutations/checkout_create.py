@@ -17,7 +17,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
@@ -158,6 +158,18 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=("The checkout validation rules that can be changed."),
     )
 
+    metadata = NonNullList(
+        MetadataInput,
+        description="Checkout public metadata." + ADDED_IN_321,
+        required=False,
+    )
+
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Checkout private metadata." + ADDED_IN_321,
+        required=False,
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
 
@@ -195,6 +207,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 description="A checkout was created.",
             )
         ]
+
+        # Set to True, but it they do not make sense - base perform_mutation method
+        # is not executed, so these fields are not consumed.
+        # This should be refactored
+        # Fields are left to explicitly mark the hacky behavior
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_checkout_lines(
@@ -335,10 +354,16 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_address"] = shipping_address
         cleaned_input["billing_address"] = billing_address
         cleaned_input["country"] = country
+
         return cleaned_input
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance: models.Checkout, cleaned_input):
+    def save(
+        cls,
+        info: ResolveInfo,
+        instance: models.Checkout,
+        cleaned_input,
+    ):
         with traced_atomic_transaction():
             # Create the checkout object
             instance.save()
@@ -350,6 +375,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             channel = cleaned_input["channel"]
             variants = cleaned_input.get("variants")
             checkout_lines_data = cleaned_input.get("lines_data")
+
             if variants and checkout_lines_data:
                 site = get_site_promise(info.context).get()
                 add_variants_to_checkout(
@@ -375,7 +401,20 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 instance.billing_address = billing_address.get_copy()
 
             instance.save()
-            create_checkout_metadata(instance)
+            checkout_metadata = create_checkout_metadata(instance)
+
+            metadata_dict = {
+                metadata.key: metadata.value for metadata in cleaned_input["metadata"]
+            }
+            private_metadata_dict = {
+                metadata.key: metadata.value
+                for metadata in cleaned_input["private_metadata"]
+            }
+
+            checkout_metadata.private_metadata = private_metadata_dict
+            checkout_metadata.metadata = metadata_dict
+
+            checkout_metadata.save()
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
@@ -384,6 +423,37 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if user:
             instance.user = user
         return instance
+
+    # Same perform_mutation as base class, but slightly changed
+    # Due to incorrect inheritance model, base method can't be used,
+    # because it's removing metadata from cleaned_input.
+    # However, it's required here.
+    #
+    # TODO: This should be refactored
+    @classmethod
+    def _perform_base_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.clean_instance(info, instance)
+
+        # add to cleaned_input popped metadata to allow running post save events
+        # that depends on the metadata inputs
+        # also it's needed in save() method to create metadata
+        if metadata_list:
+            cleaned_input["metadata"] = metadata_list
+        if private_metadata_list:
+            cleaned_input["private_metadata"] = private_metadata_list
+
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+
+        cls.post_save_action(info, instance, cleaned_input)
+        return cls.success_response(instance)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -395,7 +465,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         if channel:
             input["channel"] = channel
-        response = super().perform_mutation(_root, info, input=input)
+        response = cls._perform_base_mutation(_root, info, input=input)
+
         checkout = response.checkout
         apply_gift_reward_if_applicable_on_checkout_creation(response.checkout)
         manager = get_plugin_manager_promise(info.context).get()

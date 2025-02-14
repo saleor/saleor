@@ -736,7 +736,13 @@ class ModelMutation(BaseMutation):
         return cls(**{cls._meta.return_field_name: instance, "errors": []})
 
     @classmethod
-    def save(cls, _info: ResolveInfo, instance, _cleaned_input, /):
+    def save(
+        cls,
+        _info: ResolveInfo,
+        instance,
+        _cleaned_input,
+        /,
+    ):
         instance.save()
 
     @classmethod
