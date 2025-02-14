@@ -103,26 +103,47 @@ You are ready to go 🎉.
 
 ### Common commands
 
+> [!TIP]
+> To run these commands you don't need to activate virtualenv via `poetry env activate`
+> You also don't need it if you're running commands in devcontainer
+
 To start server:
 
 ```shell
-uvicorn saleor.asgi:application --reload
+poe start
+```
+
+to start Celery worker:
+```
+poe worker
 ```
 
 To run database migrations:
 
 ```shell
-python manage.py migrate
+poe migrate
 ```
 
 To populate database with example data and create the admin user:
 
 ```shell
-python manage.py populatedb --createsuperuser
+poe populatedb
 ```
 
-*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
+> [!NOTE]
+> `populatedb` populates database with example data and creates an admin account for `admin@example.com` with the password set to `admin`.*
 
+To build `schema.graphql` file:
+
+```shell
+poe build-schema
+```
+
+To start Python interactive interpreter:
+
+```
+poe shell
+```
 
 ## Managing dependencies
 
