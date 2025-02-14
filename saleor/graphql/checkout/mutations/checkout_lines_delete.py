@@ -7,6 +7,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -108,4 +109,4 @@ class CheckoutLinesDelete(BaseMutation):
             lines=lines,
         )
 
-        return CheckoutLinesDelete(checkout=checkout)
+        return CheckoutLinesDelete(checkout=SyncWebhookControlContext(node=checkout))

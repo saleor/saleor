@@ -9,6 +9,7 @@ from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import User
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -123,4 +124,4 @@ class CheckoutCustomerAttach(BaseMutation):
             checkout=checkout,
         )
 
-        return CheckoutCustomerAttach(checkout=checkout)
+        return CheckoutCustomerAttach(checkout=SyncWebhookControlContext(node=checkout))

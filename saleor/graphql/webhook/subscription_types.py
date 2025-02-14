@@ -7,6 +7,7 @@ from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
 from ...channel.models import Channel
+from ...checkout import models as checkout_models
 from ...core.prices import quantize_price
 from ...discount.models import (
     PromotionRuleTranslation,
@@ -42,7 +43,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
-from ..core.context import get_database_connection_name
+from ..core.context import SyncWebhookControlContext, get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
@@ -1469,7 +1470,7 @@ class CheckoutBase(AbstractType):
     @staticmethod
     def resolve_checkout(root, _info: ResolveInfo):
         _, checkout = root
-        return checkout
+        return SyncWebhookControlContext(node=checkout)
 
 
 class CheckoutCreated(SubscriptionObjectType, CheckoutBase):
@@ -1865,6 +1866,8 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
     def resolve_source_object(root, _info: ResolveInfo):
         _, objects = root
         source_object, _, _ = objects
+        if isinstance(source_object, checkout_models.Checkout):
+            return SyncWebhookControlContext(node=source_object)
         return source_object
 
     @staticmethod
@@ -1933,6 +1936,10 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
         cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
     ):
         _, transaction_session_data = root
+        if isinstance(transaction_session_data.source_object, checkout_models.Checkout):
+            return SyncWebhookControlContext(
+                node=transaction_session_data.source_object
+            )
         return transaction_session_data.source_object
 
     @classmethod

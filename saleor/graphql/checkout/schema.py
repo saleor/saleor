@@ -6,11 +6,11 @@ from ...permission.enums import (
     PaymentPermissions,
 )
 from ..core import ResolveInfo
-from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import (
-    DEPRECATED_IN_3X_FIELD,
-    DEPRECATED_IN_3X_INPUT,
+from ..core.connection import (
+    create_connection_slice_for_sync_webhook_control_context,
+    filter_connection_queryset,
 )
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.fields import BaseField, ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
@@ -99,13 +99,15 @@ class CheckoutQueries(graphene.ObjectType):
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
-        return create_connection_slice(qs, info, kwargs, CheckoutCountableConnection)
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, CheckoutCountableConnection, allow_sync_webhooks=False
+        )
 
     @staticmethod
     def resolve_checkout_lines(_root, info: ResolveInfo, **kwargs):
         qs = resolve_checkout_lines(info)
-        return create_connection_slice(
-            qs, info, kwargs, CheckoutLineCountableConnection
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, CheckoutLineCountableConnection, allow_sync_webhooks=False
         )
 
 

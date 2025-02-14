@@ -21,6 +21,7 @@ from ....account.i18n import I18nMixin
 from ....checkout.mutations.utils import get_checkout
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
+from ....core.context import SyncWebhookControlContext
 from ....core.descriptions import DEPRECATED_IN_3X_INPUT
 from ....core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
@@ -327,4 +328,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     metadata=metadata,
                 )
 
-        return CheckoutPaymentCreate(payment=payment, checkout=checkout)
+        return CheckoutPaymentCreate(
+            payment=payment, checkout=SyncWebhookControlContext(node=checkout)
+        )

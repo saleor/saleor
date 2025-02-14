@@ -1646,7 +1646,7 @@ def tax_configuration_flat_rates(channel_USD):
     tc.country_exceptions.all().delete()
     tc.prices_entered_with_tax = False
     tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
-    tc.tax_app_id = "avatax.app"
+    tc.tax_app_id = None
     tc.save()
     return tc
 

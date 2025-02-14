@@ -10,7 +10,6 @@ from graphene.types.resolver import get_default_resolver
 from promise import Promise
 
 from ...channel import models
-from ...core.models import ModelWithMetadata
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     ChannelPermissions,
@@ -101,65 +100,6 @@ class ChannelContextType(ChannelContextTypeForObjectType[T]):
             model = cast(type[Model], root._meta.model._meta.concrete_model)
 
         return model == cls._meta.model
-
-
-TM = TypeVar("TM", bound=ModelWithMetadata)
-
-
-class ChannelContextTypeWithMetadataForObjectType(ChannelContextTypeForObjectType[TM]):
-    """A Graphene type for that uses ChannelContext as root in resolvers.
-
-    Same as ChannelContextType, but for types that implement ObjectWithMetadata
-    interface.
-    """
-
-    class Meta:
-        abstract = True
-
-    @staticmethod
-    def resolve_metadata(root: ChannelContext[TM], info: ResolveInfo):
-        # Used in metadata API to resolve metadata fields from an instance.
-        return ObjectWithMetadata.resolve_metadata(root.node, info)
-
-    @staticmethod
-    def resolve_metafield(root: ChannelContext[TM], info: ResolveInfo, *, key: str):
-        # Used in metadata API to resolve metadata fields from an instance.
-        return ObjectWithMetadata.resolve_metafield(root.node, info, key=key)
-
-    @staticmethod
-    def resolve_metafields(root: ChannelContext[TM], info: ResolveInfo, *, keys=None):
-        # Used in metadata API to resolve metadata fields from an instance.
-        return ObjectWithMetadata.resolve_metafields(root.node, info, keys=keys)
-
-    @staticmethod
-    def resolve_private_metadata(root: ChannelContext[TM], info: ResolveInfo):
-        # Used in metadata API to resolve private metadata fields from an instance.
-        return ObjectWithMetadata.resolve_private_metadata(root.node, info)
-
-    @staticmethod
-    def resolve_private_metafield(
-        root: ChannelContext[TM], info: ResolveInfo, *, key: str
-    ):
-        # Used in metadata API to resolve private metadata fields from an instance.
-        return ObjectWithMetadata.resolve_private_metafield(root.node, info, key=key)
-
-    @staticmethod
-    def resolve_private_metafields(
-        root: ChannelContext[TM], info: ResolveInfo, *, keys=None
-    ):
-        # Used in metadata API to resolve private metadata fields from an instance.
-        return ObjectWithMetadata.resolve_private_metafields(root.node, info, keys=keys)
-
-
-class ChannelContextTypeWithMetadata(ChannelContextTypeWithMetadataForObjectType[TM]):
-    """A Graphene type for that uses ChannelContext as root in resolvers.
-
-    Same as ChannelContextType, but for types that implement ObjectWithMetadata
-    interface.
-    """
-
-    class Meta:
-        abstract = True
 
 
 class StockSettings(BaseObjectType):

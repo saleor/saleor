@@ -10,6 +10,7 @@ from ....order.models import Order
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
@@ -95,6 +96,7 @@ class TaxExemptionManage(BaseMutation):
         if isinstance(obj, Checkout):
             cls._invalidate_checkout(info, obj)
             obj.save(update_fields=["tax_exemption", "price_expiration", "last_change"])
+            obj = SyncWebhookControlContext(node=obj)
 
         if isinstance(obj, Order):
             cls.validate_order_status(obj)

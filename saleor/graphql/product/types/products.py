@@ -47,7 +47,7 @@ from ...attribute.types import (
 )
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
+from ...channel.types import ChannelContextType
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,
@@ -277,7 +277,7 @@ class PreorderData(BaseObjectType):
 
 
 @federated_entity("id channel")
-class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
+class ProductVariant(ChannelContextType[models.ProductVariant]):
     id = graphene.GlobalID(required=True, description="The ID of the product variant.")
     name = graphene.String(
         required=True, description="The name of the product variant."
@@ -853,7 +853,7 @@ class ProductVariantCountableConnection(CountableConnection):
 
 
 @federated_entity("id channel")
-class Product(ChannelContextTypeWithMetadata[models.Product]):
+class Product(ChannelContextType[models.Product]):
     id = graphene.GlobalID(required=True, description="The ID of the product.")
     seo_title = graphene.String(description="SEO title of the product.")
     seo_description = graphene.String(description="SEO description of the product.")

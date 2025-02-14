@@ -21,6 +21,7 @@ from ....warehouse.reservations import is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -210,4 +211,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             lines=lines,
         )
 
-        return CheckoutShippingAddressUpdate(checkout=checkout)
+        return CheckoutShippingAddressUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
