@@ -81,6 +81,8 @@ def test_order_update(
     assert order.billing_address.last_name == graphql_address_data["lastName"]
     assert order.shipping_address.validation_skipped is False
     assert order.billing_address.validation_skipped is False
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
     assert order.user_email == email
     assert order.user is None
     assert order.status == OrderStatus.UNFULFILLED
