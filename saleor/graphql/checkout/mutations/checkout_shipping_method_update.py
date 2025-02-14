@@ -220,10 +220,11 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                              "shipping_method", "collection_point",
-                              "external_shipping_method_id",
-                              "shipping_method_name",
-                          ]
+                "shipping_method",
+                "collection_point",
+                "external_shipping_method_id",
+                "shipping_method_name",
+            ]
             + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()
@@ -266,10 +267,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         )
         checkout.save(
             update_fields=[
-                              "shipping_method",
-                              "external_shipping_method_id",
-                              "shipping_method_name",
-                              "collection_point"
+                "shipping_method",
+                "external_shipping_method_id",
+                "shipping_method_name",
+                "collection_point",
             ]
             + invalidate_prices_updated_fields
         )
