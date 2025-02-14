@@ -14,7 +14,6 @@ from ....checkout.fetch import (
 from ....checkout.utils import (
     change_shipping_address_in_checkout,
     invalidate_checkout,
-    is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
 from ....graphql.account.mixins import AddressMetadataMixin
@@ -34,7 +33,6 @@ from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
     ERROR_CC_ADDRESS_CHANGE_FORBIDDEN,
-    ERROR_DOES_NOT_SHIP,
     check_lines_quantity,
     get_checkout,
     update_checkout_shipping_method_if_invalid,
@@ -144,15 +142,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             checkout,
         )
 
-        if use_legacy_error_flow_for_checkout and not is_shipping_required(lines):
-            raise ValidationError(
-                {
-                    "shipping_address": ValidationError(
-                        ERROR_DOES_NOT_SHIP,
-                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value,
-                    )
-                }
-            )
         # prevent from changing the shipping address when click and collect is used.
         if checkout.collection_point_id:
             raise ValidationError(

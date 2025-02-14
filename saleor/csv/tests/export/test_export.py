@@ -57,6 +57,7 @@ def test_export_products(
             ProductFieldEnum.NAME.value,
             ProductFieldEnum.VARIANT_ID.value,
             ProductFieldEnum.VARIANT_SKU.value,
+            ProductFieldEnum.CHARGE_TAXES.value,
         ],
         "warehouses": [],
         "attributes": [],
@@ -73,17 +74,20 @@ def test_export_products(
 
     # then
     create_file_with_headers_mock.assert_called_once_with(
-        ["id", "name", "variant id", "variant sku"], ",", file_type
+        ["id", "name", "variant id", "variant sku", "charge taxes"], ",", file_type
     )
     assert export_products_in_batches_mock.call_count == 1
     args, kwargs = export_products_in_batches_mock.call_args
     assert set(args[0].values_list("pk", flat=True)) == set(
         Product.objects.all().values_list("pk", flat=True)
     )
+    # charge taxes are deprecated, and do not return any value. In case of requesting
+    # them, the headers number needs to match to the size of the row
+    expected_charge_taxes = ""
     assert args[1:] == (
         export_info,
-        {"id", "name", "variants__id", "variants__sku"},
-        ["id", "name", "variants__id", "variants__sku"],
+        {"id", "name", "variants__id", "variants__sku", expected_charge_taxes},
+        ["id", "name", "variants__id", "variants__sku", expected_charge_taxes],
         ",",
         mock_file,
         file_type,

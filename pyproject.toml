@@ -64,6 +64,7 @@ package-mode = false
   prices = "^1.0"
   promise = "^2.3"
   pybars3 = "^0.9.7"
+  pycurl = "^7.45.0"
   pyjwt = "^2.10.1"
   python-dateutil = "^2.8.2"
   python-http-client = "^3.3.7"
@@ -144,7 +145,7 @@ extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
 
   [tool.deptry.per_rule_ignores]
   DEP001 = ["pkg_resources"]
-  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
+  DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb", "pycurl"]
 
 [tool.django-stubs]
 django_settings_module = "saleor.settings"

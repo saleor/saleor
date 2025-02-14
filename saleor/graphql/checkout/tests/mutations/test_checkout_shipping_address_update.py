@@ -43,6 +43,9 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
                     id
                     name
                 }
+                shippingAddress {
+                    postalCode
+                }
             }
             errors {
                 field
@@ -995,17 +998,12 @@ def test_checkout_update_shipping_address_with_digital(
     content = get_graphql_content(response)
     data = content["data"]["checkoutShippingAddressUpdate"]
 
-    assert data["errors"] == [
-        {
-            "field": "shippingAddress",
-            "message": "This checkout doesn't need shipping",
-            "code": CheckoutErrorCode.SHIPPING_NOT_REQUIRED.name,
-        }
-    ]
+    assert not data["errors"]
+    assert data["checkout"]["shippingAddress"]
 
-    # Ensure the address was unchanged
+    # Ensure the address was set
     checkout.refresh_from_db(fields=["shipping_address"])
-    assert checkout.shipping_address is None
+    assert checkout.shipping_address
 
 
 def test_checkout_shipping_address_update_with_not_applicable_voucher(

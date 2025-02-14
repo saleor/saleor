@@ -30,6 +30,7 @@ def test_create_fulfillments(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
+    notify_customer = True
     manager = get_plugins_manager(allow_replica=False)
     with django_capture_on_commit_callbacks(execute=True):
         [fulfillment] = create_fulfillments(
@@ -39,7 +40,7 @@ def test_create_fulfillments(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=notify_customer,
         )
 
     order.refresh_from_db()
@@ -74,11 +75,12 @@ def test_create_fulfillments(
         fulfillment_lines[0].pk,
         fulfillment_lines[1].pk,
     }
+    assert event.parameters["auto"] is False
 
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
-    mock_fulfillment_approved.assert_called_once_with(fulfillment)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, notify_customer)
 
 
 @patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
@@ -112,8 +114,8 @@ def test_create_fulfillments_require_approval(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
-            False,
+            notify_customer=True,
+            auto_approved=False,
         )
 
     order.refresh_from_db()
@@ -182,8 +184,8 @@ def test_create_fulfillments_require_approval_as_app(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
-            False,
+            notify_customer=True,
+            auto_approved=False,
         )
 
     order.refresh_from_db()
@@ -249,7 +251,7 @@ def test_create_fulfillments_without_notification(
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            False,
+            notify_customer=False,
         )
 
     order.refresh_from_db()
@@ -315,7 +317,7 @@ def test_create_fulfillments_many_warehouses(
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            False,
+            notify_customer=False,
         )
 
     order.refresh_from_db()
@@ -372,7 +374,7 @@ def test_create_fulfillments_with_one_line_empty_quantity(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     order.refresh_from_db()
@@ -427,7 +429,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     order.refresh_from_db()
@@ -479,7 +481,7 @@ def test_create_fulfillments_without_allocations(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     order.refresh_from_db()
@@ -535,7 +537,7 @@ def test_create_fulfillments_warehouse_without_stock(
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     assert len(exc.value.items) == 2
@@ -590,7 +592,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
             fulfillment_lines_for_warehouses,
             get_plugins_manager(allow_replica=False),
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     assert len(exc.value.items) == 1
@@ -674,7 +676,7 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
             fulfillment_lines_for_warehouses=fulfillment_lines_for_warehouses,
             manager=manager,
             site_settings=site_settings,
-            approved=False,
+            auto_approved=False,
         )
 
     product_variant_out_of_stock_webhook.assert_not_called()
@@ -730,7 +732,7 @@ def test_create_fulfillments_quantity_allocated_lower_than_line_quantity(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )
 
     # then
@@ -791,5 +793,5 @@ def test_create_fulfillments_validate_lines_raise_error(
             fulfillment_lines_for_warehouses,
             manager,
             site_settings,
-            True,
+            notify_customer=True,
         )

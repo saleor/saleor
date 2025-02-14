@@ -1361,6 +1361,7 @@ def test_checkout_add_voucher_triggers_webhooks(
     api_client,
     checkout_with_item,
     voucher,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -1375,6 +1376,12 @@ def test_checkout_add_voucher_triggers_webhooks(
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+
+    checkout_with_item.save()
 
     # when
     response = api_client.post_graphql(MUTATION_CHECKOUT_ADD_PROMO_CODE, variables)

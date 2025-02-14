@@ -1258,6 +1258,7 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
         )
 
     # then
+    order.refresh_from_db()
     assert order
     assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert order.charge_status == OrderChargeStatus.FULL
@@ -2760,6 +2761,7 @@ def test_checkout_complete_with_voucher_0_total(
         )
 
     # then
+    order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
     assert order.lines.count() == 1
     assert order.discounts.count() == 1

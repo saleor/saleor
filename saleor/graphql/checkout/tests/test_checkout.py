@@ -6,6 +6,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
@@ -19,7 +20,11 @@ from ....checkout.checkout_cleaner import (
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ....checkout.utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+)
 from ....core.db.connection import allow_writer
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
@@ -70,7 +75,7 @@ def test_clean_delivery_method_after_shipping_address_changes_stay_the_same(
     delivery_method = convert_to_shipping_method_data(
         shipping_method, shipping_method.channel_listings.first()
     )
-    is_valid_method = clean_delivery_method(checkout_info, lines, delivery_method)
+    is_valid_method = clean_delivery_method(checkout_info, delivery_method)
     assert is_valid_method is True
 
 
@@ -83,7 +88,7 @@ def test_clean_delivery_method_with_preorder_is_valid_for_enabled_warehouse(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, lines, warehouses_for_cc[1])
+    is_valid_method = clean_delivery_method(checkout_info, warehouses_for_cc[1])
 
     assert is_valid_method is True
 
@@ -98,7 +103,7 @@ def test_clean_delivery_method_does_nothing_if_no_shipping_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    is_valid_method = clean_delivery_method(checkout_info, lines, None)
+    is_valid_method = clean_delivery_method(checkout_info, None)
     assert is_valid_method is True
 
 
@@ -522,6 +527,78 @@ def test_checkout_available_shipping_methods(
     assert data[field][0]["metadata"][0]["key"] == metadata_key
     assert data[field][0]["metadata"][0]["value"] == metadata_value
     assert data[field][0]["translation"]["name"] == translated_name
+
+
+GET_CHECKOUT_SHIPPING_METHODS_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+		shippingMethods{
+            id
+        }
+    }
+}
+"""
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_query_checkout_empty_address_with_shipping_method_without_exclude_webhook(
+    mock_excluded_shipping_methods_for_checkout,
+    api_client,
+    checkout_with_item,
+    shipping_method,
+):
+    # given checkout without address
+    # and checkout in channel with available shipping methods
+
+    checkout_with_item.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
+    }
+    checkout_with_item.shipping_address = None
+    checkout_with_item.billing_address = None
+
+    checkout_with_item.save(update_fields=["shipping_address", "billing_address"])
+
+    # when query is invoked
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then webhook plugin is not executing excluded_shipping_methods_for_checkout
+
+    mock_excluded_shipping_methods_for_checkout.assert_not_called()
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_query_checkout_with_address_with_shipping_method_without_exclude_webhook(
+    mock_excluded_shipping_methods_for_checkout,
+    api_client,
+    checkout_with_item,
+    shipping_method,
+    address,
+):
+    # GIVEN checkout with address
+    # AND checkout in channel with available shipping methods
+
+    checkout_with_item.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
+    }
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+
+    checkout_with_item.save(update_fields=["shipping_address", "billing_address"])
+
+    # when query is invoked
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then webhook plugin is not executing excluded_shipping_methods_for_checkout
+
+    mock_excluded_shipping_methods_for_checkout.assert_called_once()
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])

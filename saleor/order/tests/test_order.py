@@ -308,6 +308,43 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
     assert existing_line.quantity_unfulfilled == quantity_unfulfilled_before + 1
 
 
+def test_add_variant_to_order_adds_line_empty_product_translation(
+    order_with_lines,
+    product,
+    anonymous_plugins,
+):
+    # given
+    order = order_with_lines
+    variant = product.variants.get()
+    product.translations.create(language_code="en")
+    lines_before = order.lines.count()
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
+    # when
+    add_variant_to_order(
+        order=order,
+        line_data=line_data,
+        user=None,
+        app=None,
+        manager=anonymous_plugins,
+    )
+
+    # then
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
+    assert line.quantity == 1
+    assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+    assert line.translated_product_name == ""
+    assert line.translated_variant_name == ""
+    assert not line.unit_discount_amount
+    assert not line.unit_discount_value
+    assert not line.unit_discount_reason
+
+
 def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
@@ -348,6 +385,7 @@ def test_restock_fulfillment_lines(fulfilled_order, warehouse):
 
 
 def test_update_order_status_partially_fulfilled(fulfilled_order):
+    # given
     fulfillment = fulfilled_order.fulfillments.first()
     line = fulfillment.lines.first()
     order_line = line.order_line
@@ -355,8 +393,11 @@ def test_update_order_status_partially_fulfilled(fulfilled_order):
     order_line.quantity_fulfilled -= line.quantity
     order_line.save()
     line.delete()
+
+    # when
     update_order_status(fulfilled_order)
 
+    # then
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
 
@@ -366,7 +407,6 @@ def test_update_order_status_unfulfilled(order_with_lines):
 
     update_order_status(order_with_lines)
 
-    order_with_lines.refresh_from_db()
     assert order_with_lines.status == OrderStatus.UNFULFILLED
 
 
@@ -386,7 +426,6 @@ def test_update_order_status_fulfilled(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.FULFILLED
 
 
@@ -397,7 +436,6 @@ def test_update_order_status_returned(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.RETURNED
 
 
@@ -430,7 +468,6 @@ def test_update_order_status_partially_returned(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.PARTIALLY_RETURNED
 
 
@@ -441,7 +478,6 @@ def test_update_order_status_waiting_for_approval(fulfilled_order):
 
     update_order_status(fulfilled_order)
 
-    fulfilled_order.refresh_from_db()
     assert fulfilled_order.status == OrderStatus.PARTIALLY_FULFILLED
 
 

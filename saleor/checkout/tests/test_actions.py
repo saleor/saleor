@@ -626,11 +626,19 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
     setup_checkout_webhooks,
     settings,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
-    checkout_with_items.save(update_fields=["price_expiration"])
+
+    # Set address - so SHIPPING_LIST_METHODS_FOR_CHECKOUT is executed too
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
+    checkout_with_items.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (
@@ -713,11 +721,19 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     setup_checkout_webhooks,
     settings,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
+
+    # Ensure shipping & billing is set, so shipping webhooks are actually emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
     checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
-    checkout_with_items.save(update_fields=["price_expiration"])
+    checkout_with_items.save(
+        update_fields=["price_expiration", "shipping_address", "billing_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (
@@ -938,11 +954,19 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     setup_checkout_webhooks,
     settings,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
     checkout_with_items.price_expiration = timezone.now()
-    checkout_with_items.save(update_fields=["price_expiration"])
+    checkout_with_items.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (
@@ -1036,11 +1060,19 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     setup_checkout_webhooks,
     settings,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
     checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
-    checkout_with_items.save(update_fields=["price_expiration"])
+    checkout_with_items.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (
@@ -1249,11 +1281,19 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     checkout_with_items,
     transaction_item_generator,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now() - datetime.timedelta(hours=10)
-    checkout_with_items.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
+    checkout_with_items.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (
@@ -1382,11 +1422,19 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
     setup_checkout_webhooks,
     settings,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now()
-    checkout_with_items.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
+    checkout_with_items.save(
+        update_fields=["price_expiration", "shipping_address", "billing_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (
@@ -1477,11 +1525,19 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
     setup_checkout_webhooks,
     settings,
     django_capture_on_commit_callbacks,
+    address,
 ):
     # given
     plugins_manager = get_plugins_manager(allow_replica=False)
     checkout_with_items.price_expiration = timezone.now() + datetime.timedelta(hours=1)
-    checkout_with_items.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout_with_items.shipping_address = address
+    checkout_with_items.billing_address = address
+
+    checkout_with_items.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
 
     mocked_send_webhook_request_sync.return_value = []
     (

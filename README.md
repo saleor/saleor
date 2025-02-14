@@ -51,11 +51,14 @@
 ## Table of Contents
 
 - [What makes Saleor special?](#what-makes-saleor-special)
+- [Why API-only Architecture?](#why-api-only-architecture)
 - [Features](#features)
 - [Installation](#installation)
 - [Documentation](#documentation)
+- [Saleor Platform](#saleor-platform)
+- [Storefront](#storefront)
+- [Dashboard](#dashboard)
 - [Contributing](#contributing)
-- [Your feedback](#your-feedback)
 - [License](#license)
 
 ## What makes Saleor special?
@@ -168,9 +171,9 @@ For the dashboard, go to the [saleor-dashboard](https://github.com/saleor/saleor
 
 We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Good first issue`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22+)
 
-If nothing grabs your attention, check [our roadmap](https://github.com/orgs/saleor/projects/3/views/4) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
+If nothing grabs your attention, check [our roadmap](https://saleor.notion.site/roadmap) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
 
-Get more details in our [Contributing Guide](https://docs.saleor.io/docs/developer/community/contributing).
+Get more details (e.g how to run Saleor on your local machine) in our [Contributing Guide](./CONTRIBUTING.md).
 
 ## License
 
