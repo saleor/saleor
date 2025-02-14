@@ -68,7 +68,9 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             required=False,
             default_value=True,
             description=(
-                "If true, the address will be saved in the user's address book."
+                "Indicates whether the shipping address should be saved "
+                "to the user’s address book upon checkout completion."
+                "If not provided, the default behavior is to save the address."
             ),
         )
         validation_rules = CheckoutAddressValidationRules(

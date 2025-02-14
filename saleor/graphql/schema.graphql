@@ -17206,7 +17206,9 @@ type Mutation {
     """The checkout's ID."""
     id: ID
 
-    """If true, the address will be saved in the user's address book."""
+    """
+    Indicates whether the billing address should be saved to the user’s address book upon checkout completion.If not provided, the default behavior is to save the address.
+    """
     saveAddress: Boolean = true
 
     """
@@ -17574,7 +17576,9 @@ type Mutation {
     """The checkout's ID."""
     id: ID
 
-    """If true, the address will be saved in the user's address book."""
+    """
+    Indicates whether the shipping address should be saved to the user’s address book upon checkout completion.If not provided, the default behavior is to save the address.
+    """
     saveAddress: Boolean = true
 
     """The mailing address to where the checkout will be shipped."""
@@ -26834,7 +26838,7 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   email: String
 
   """
-  Indicates whether the shipping address should be saved to the user’s address book upon checkout completion.Can only be set when a shipping address is provided.
+  Indicates whether the shipping address should be saved to the user’s address book upon checkout completion.Can only be set when a shipping address is provided. If not specified along with the address, the default behavior is to save the address.
   """
   saveShippingAddress: Boolean
 
@@ -26844,7 +26848,7 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   shippingAddress: AddressInput
 
   """
-  Indicates whether the billing address should be saved to the user’s address book upon checkout completion. Can only be set when a billing address is provided.
+  Indicates whether the billing address should be saved to the user’s address book upon checkout completion. Can only be set when a billing address is provided.  If not specified along with the address, the default behavior is to save the address.
   """
   saveBillingAddress: Boolean
 

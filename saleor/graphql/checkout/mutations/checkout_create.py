@@ -141,7 +141,8 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             "Indicates whether the shipping address should be saved "
             "to the user’s address book upon checkout completion."
-            "Can only be set when a shipping address is provided."
+            "Can only be set when a shipping address is provided. If not specified "
+            "along with the address, the default behavior is to save the address."
         )
     )
     shipping_address = AddressInput(
@@ -156,7 +157,8 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             "Indicates whether the billing address should be saved "
             "to the user’s address book upon checkout completion. "
-            "Can only be set when a billing address is provided."
+            "Can only be set when a billing address is provided.  If not specified "
+            "along with the address, the default behavior is to save the address."
         )
     )
     billing_address = AddressInput(
