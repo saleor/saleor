@@ -3,7 +3,8 @@ import time
 import uuid
 from collections import defaultdict
 
-from redis import Redis, RedisError
+from django.core.cache import cache
+from redis import RedisError
 
 from ...graphql.app.types import CircuitBreakerState
 
@@ -78,7 +79,7 @@ class RedisStorage(Storage):
 
     def __init__(self):
         super().__init__()
-        self._client = Redis()
+        self._client = cache._cache.get_client()  # type: ignore[attr-defined]
 
     def get_base_storage_key(self) -> str:
         return self.KEY_PREFIX
