@@ -229,6 +229,10 @@ We recommend using the `reuse-db` flag to speed up testing time.
 pytest --reuse-db
 ```
 
+> [!TIP]
+> When running test's it's recommended to use local database, not a one running in Docker, to make them execute faster.
+> On macOS you can easily install Postgres by using [Postgres.app](https://github.com/PostgresApp/PostgresApp)
+
 ### How to run particular tests?
 
 As running all tests is quite time-consuming, sometimes you want to run only tests from one dictionary or even just a particular test.
