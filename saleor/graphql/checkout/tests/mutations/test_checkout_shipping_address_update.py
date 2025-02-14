@@ -136,6 +136,7 @@ def test_checkout_shipping_address_with_metadata_update(
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.save_shipping_address is True
 
 
 @pytest.mark.parametrize(
@@ -198,6 +199,7 @@ def test_checkout_shipping_address_when_variant_without_listing(
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.save_shipping_address is True
 
 
 @mock.patch(
@@ -246,6 +248,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.country == shipping_address["country"]
     assert checkout.last_change != previous_last_change
+    assert checkout.save_shipping_address is True
 
 
 @mock.patch(

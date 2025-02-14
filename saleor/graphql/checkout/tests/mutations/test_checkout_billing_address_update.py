@@ -62,6 +62,7 @@ def test_checkout_billing_address_update_by_id(
     assert not data["errors"]
     checkout.refresh_from_db()
     validate_address_data(checkout.billing_address, billing_address)
+    assert checkout.save_billing_address is True
 
 
 @pytest.mark.parametrize(
@@ -102,6 +103,7 @@ def test_checkout_billing_address_update_when_line_without_listing(
     assert not data["errors"]
     checkout.refresh_from_db()
     validate_address_data(checkout.billing_address, billing_address)
+    assert checkout.save_billing_address is True
 
 
 def test_checkout_billing_address_update_by_id_without_required_fields(
@@ -164,6 +166,7 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
     assert not data["errors"]
     checkout.refresh_from_db()
     validate_address_data(checkout.billing_address, billing_address)
+    assert checkout.save_billing_address is True
 
 
 @mock.patch(
@@ -211,6 +214,7 @@ def test_checkout_billing_address_update(
     validate_address_data(checkout.billing_address, billing_address)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.save_billing_address is True
 
 
 @pytest.mark.parametrize(
