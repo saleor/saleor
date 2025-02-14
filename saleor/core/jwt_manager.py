@@ -69,6 +69,7 @@ class JWTManagerBase:
 
 class JWTManager(JWTManagerBase):
     KEY_FILE_FOR_DEBUG = ".jwt_key.pem"
+    _ALG = "RS256"
 
     @classmethod
     def get_domain(cls) -> str:
@@ -144,7 +145,7 @@ class JWTManager(JWTManagerBase):
     @classmethod
     def get_jwks(cls) -> dict:
         jwk_dict = json.loads(RSAAlgorithm.to_jwk(cls.get_public_key()))
-        jwk_dict.update({"use": "sig", "kid": cls.get_key_id()})
+        jwk_dict.update({"use": "sig", "kid": cls.get_key_id(), "alg": cls._ALG})
         return {"keys": [jwk_dict]}
 
     @classmethod
@@ -166,7 +167,7 @@ class JWTManager(JWTManagerBase):
         return api_jwt.encode(
             payload,
             cls.get_private_key(),
-            algorithm="RS256",
+            algorithm=cls._ALG,
             headers={"kid": cls.get_key_id()},
         )
 
@@ -175,7 +176,7 @@ class JWTManager(JWTManagerBase):
         return api_jws.encode(
             payload,
             key=cls.get_private_key(),
-            algorithm="RS256",
+            algorithm=cls._ALG,
             headers={"kid": cls.get_key_id(), "crit": ["b64"]},
             is_payload_detached=is_payload_detached,
         )
@@ -185,11 +186,11 @@ class JWTManager(JWTManagerBase):
         # `verify_aud` set to false as we decode our own tokens
         # we can have `aud` defined for app or custom.
         headers = jwt.get_unverified_header(token)
-        if headers.get("alg") == "RS256":
+        if headers.get("alg") == cls._ALG:
             return jwt.decode(
                 token,
                 cls.get_public_key(),
-                algorithms=["RS256"],
+                algorithms=[cls._ALG],
                 options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
             )
         return jwt.decode(
