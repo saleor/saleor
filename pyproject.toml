@@ -134,6 +134,7 @@ package-mode = false
   types-requests = "^2.31.0" # Cannot upgrade due to using an old version of urllib3 (https://github.com/saleor/saleor/issues/17130)
   types-six = "^1.16.17"
   vcrpy = ">=4.0,<7.0"
+  ipdb = "^0.13.13"
 
 [tool.deptry]
 extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
