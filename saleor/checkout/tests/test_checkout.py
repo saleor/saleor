@@ -2260,6 +2260,28 @@ def test_remove_external_shipping(checkout):
     assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
 
 
+def test_remove_external_shippin_with_save(checkout):
+    # given
+    app_shipping_id = "abcd"
+    expected_private_metadata = {"test": "123"}
+    initial_private_metadata = {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
+    checkout.external_shipping_method_id = app_shipping_id
+
+    initial_private_metadata.update(expected_private_metadata)
+    checkout.metadata_storage.private_metadata = initial_private_metadata
+    checkout.metadata_storage.save()
+
+    # when
+    remove_external_shipping(checkout, save=True)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.metadata_storage.private_metadata == expected_private_metadata
+    assert checkout.external_shipping_method_id is None
+    assert checkout.shipping_method_name is None
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
+
+
 def test_checkout_total_setter():
     # given
     currency = "USD"
