@@ -15,7 +15,6 @@ from ...core.utils import WebhookEventInfo
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Invoice
-from ..utils import is_event_active_for_any_plugin
 
 
 class InvoiceRequest(ModelMutation):
@@ -75,7 +74,10 @@ class InvoiceRequest(ModelMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         cls.clean_order(order)
         manager = get_plugin_manager_promise(info.context).get()
-        if not is_event_active_for_any_plugin("invoice_request", manager.all_plugins):
+
+        if not manager.is_event_active_for_any_plugin(
+            "invoice_request", channel_slug=order.channel.slug
+        ):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
