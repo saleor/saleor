@@ -24323,6 +24323,7 @@ enum OrderBulkCreateErrorCode {
   ORDER_LINE_FULFILLMENT_LINE_MISMATCH
   METADATA_KEY_REQUIRED
   INCORRECT_CURRENCY
+  MISSING_SHIPPING_ADDRESS_DATA
 }
 
 input OrderBulkCreateInput @doc(category: "Orders") {
@@ -24344,8 +24345,18 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """Billing address of the customer."""
   billingAddress: AddressInput!
 
+  """
+  Indicates whether the billing address should be saved to the user’s address book. The default behavior is to not save the address.
+  """
+  saveBillingAddress: Boolean = false
+
   """Shipping address of the customer."""
   shippingAddress: AddressInput
+
+  """
+  Indicates whether the shipping address should be saved to the user’s address book. The default behavior is to not save the address.
+  """
+  saveShippingAddress: Boolean
 
   """Currency code."""
   currency: String!

@@ -111,6 +111,12 @@ class OrderBulkTransaction:
 
 
 @dataclass
+class OrderBulkUserAddress:
+    user: User
+    address: Address
+
+
+@dataclass
 class OrderBulkCreateData:
     order: Order | None = None
     errors: list[OrderBulkError] = dataclass_field(default_factory=list)
@@ -121,6 +127,7 @@ class OrderBulkCreateData:
     invoices: list[Invoice] = dataclass_field(default_factory=list)
     discounts: list[OrderDiscount] = dataclass_field(default_factory=list)
     gift_cards: list[GiftCard] = dataclass_field(default_factory=list)
+    user_addresses: list[OrderBulkUserAddress] = dataclass_field(default_factory=list)
     user: User | None = None
     billing_address: Address | None = None
     channel: Channel | None = None
@@ -540,8 +547,23 @@ class OrderBulkCreateInput(BaseInputObjectType):
     billing_address = graphene.Field(
         AddressInput, required=True, description="Billing address of the customer."
     )
+    save_billing_address = graphene.Boolean(
+        description=(
+            "Indicates whether the billing address should be saved "
+            "to the user’s address book. "
+            "The default behavior is to not save the address."
+        ),
+        default_value=False,
+    )
     shipping_address = graphene.Field(
         AddressInput, description="Shipping address of the customer."
+    )
+    save_shipping_address = graphene.Boolean(
+        description=(
+            "Indicates whether the shipping address should be saved "
+            "to the user’s address book. "
+            "The default behavior is to not save the address."
+        ),
     )
     currency = graphene.String(required=True, description="Currency code.")
     metadata = NonNullList(MetadataInput, description="Metadata of the order.")
@@ -1050,6 +1072,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
+        if (
+            not shipping_address
+            and order_input.get("save_shipping_address") is not None
+        ):
+            order_data.errors.append(
+                OrderBulkError(
+                    message=(
+                        "This option can only be selected if a shipping address "
+                        "is provided."
+                    ),
+                    path="save_shipping_address",
+                    code=OrderBulkCreateErrorCode.MISSING_SHIPPING_ADDRESS_DATA,
+                )
+            )
 
         voucher_code = None
         if order_input.get("voucher_code"):
@@ -2093,6 +2129,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 field=order_data.order.shipping_tax_class_private_metadata,
             )
 
+        if order_data.user:
+            if order_input.get("save_shipping_address") and order_data.shipping_address:
+                order_data.user_addresses.append(
+                    OrderBulkUserAddress(
+                        user=order_data.user, address=order_data.shipping_address
+                    )
+                )
+            if order_input.get("save_billing_address") and order_data.billing_address:
+                order_data.user_addresses.append(
+                    OrderBulkUserAddress(
+                        user=order_data.user, address=order_data.billing_address
+                    )
+                )
+
         return order_data
 
     @classmethod
@@ -2226,6 +2276,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 if shipping_address := order_data.order.shipping_address:
                     addresses.append(shipping_address)
         Address.objects.bulk_create(addresses)
+
+        UserAddress = User.addresses.through
+        user_addresses = [
+            UserAddress(user=user_address_data.user, address=user_address_data.address)
+            for order_data in orders_data
+            for user_address_data in order_data.user_addresses
+            if order_data.order
+        ]
+
+        UserAddress.objects.bulk_create(user_addresses)
 
         orders = [order_data.order for order_data in orders_data if order_data.order]
         Order.objects.bulk_create(orders)

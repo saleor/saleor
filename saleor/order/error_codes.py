@@ -90,6 +90,7 @@ class OrderBulkCreateErrorCode(Enum):
     ORDER_LINE_FULFILLMENT_LINE_MISMATCH = "order_line_fulfillment_line_mismatch"
     METADATA_KEY_REQUIRED = "metadata_key_required"
     INCORRECT_CURRENCY = "incorrect_currency"
+    MISSING_SHIPPING_ADDRESS_DATA = "missing_shipping_address_data"
 
 
 class OrderNoteAddErrorCode(Enum):
