@@ -2791,3 +2791,46 @@ def test_checkout_create_triggers_webhooks(
     assert WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES in sync_deliveries
     tax_delivery = sync_deliveries[WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+def test_checkout_create_with_metadata(api_client, graphql_address_data, channel_USD):
+    """Create checkout object using GraphQL API."""
+    test_email = "test@example.com"
+
+    metadata_key = "metadata_key"
+    metadata_key_2 = "metadata_key_2"
+    metadata_value = "metadata_value"
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [],
+            "email": test_email,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            # Make it more diverse, set 2 keys
+            "privateMetadata": [
+                {"key": metadata_key, "value": metadata_value},
+                {"key": metadata_key_2, "value": metadata_value},
+            ],
+        }
+    }
+
+    assert not Checkout.objects.exists()
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    get_graphql_content(response)["data"]["checkoutCreate"]
+
+    new_checkout = Checkout.objects.first()
+
+    assert new_checkout is not None
+
+    metadata_storage = new_checkout.metadata_storage
+    metadata = metadata_storage.metadata
+    private_metadata = metadata_storage.private_metadata
+
+    assert len(metadata) == 1
+    assert len(private_metadata) == 2
+
+    assert metadata[metadata_key] == metadata_value
+    assert private_metadata[metadata_key] == metadata_value
+    assert private_metadata[metadata_key_2] == metadata_value
