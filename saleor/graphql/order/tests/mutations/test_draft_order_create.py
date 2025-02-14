@@ -1702,6 +1702,8 @@ def test_draft_order_create_without_sku(
     assert order.shipping_method == shipping_method
     assert order.billing_address
     assert order.shipping_address
+    assert order.draft_save_billing_address is False
+    assert order.draft_save_shipping_address is False
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
@@ -3721,3 +3723,168 @@ def test_draft_order_create_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+@pytest.mark.parametrize(
+    ("save_shipping_address", "save_billing_address"),
+    [(True, True), (True, False), (False, True), (False, False)],
+)
+def test_draft_order_create_with_save_address_option_provided(
+    save_shipping_address,
+    save_billing_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given input with provided shipping, billing addresses with save settings
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "saveShippingAddress": save_shipping_address,
+            "saveBillingAddress": save_billing_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when draft order is created
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then the addresses with save settings are set
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+
+    order = Order.objects.first()
+    assert order.user == customer_user
+    assert order.shipping_method == shipping_method
+    assert order.billing_address
+    assert order.shipping_address
+    assert order.draft_save_billing_address == save_billing_address
+    assert order.draft_save_shipping_address == save_shipping_address
+
+
+@pytest.mark.parametrize("save_shipping_address", [True, False])
+def test_draft_order_create_no_shipping_address_provided_save_address_raising_error(
+    save_shipping_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given input with save shipping address and shipping method not provided
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    billing_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": billing_address,
+            "saveShippingAddress": save_shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+
+    error = data["errors"][0]
+    assert error["field"] == "saveShippingAddress"
+    assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
+
+
+@pytest.mark.parametrize("save_billing_address", [True, False])
+def test_draft_order_create_no_billing_address_provided_save_address_raising_error(
+    save_billing_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given input with save shipping address and shipping method not provided
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "saveBillingAddress": save_billing_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+
+    error = data["errors"][0]
+    assert error["field"] == "saveBillingAddress"
+    assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
