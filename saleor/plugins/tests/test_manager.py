@@ -1630,6 +1630,25 @@ def test_run_plugin_method_until_first_success_for_active_plugins_only(
     assert mock_run_method.call_count == calls
 
 
+def test_manager_skips_external_shipping_with_different_currency_than_checkout_currency(
+    checkout_with_item,
+):
+    # given
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
+
+    # when
+    shipping_methods = PluginsManager(
+        plugins=plugins
+    ).list_shipping_methods_for_checkout(
+        checkout=checkout_with_item,
+        channel_slug=checkout_with_item.channel.slug,
+    )
+
+    # then
+    assert len(shipping_methods) == 1
+    assert shipping_methods[0].price.currency == checkout_with_item.currency
+
+
 @mock.patch(
     "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_plugins"
 )
