@@ -14,9 +14,9 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_lines
 from ...checkout.utils import log_address_if_validation_skipped_for_checkout
-from ...core.otel import tracer
 from ...core.prices import MAXIMUM_PRICE
 from ...core.taxes import TaxDataErrorMessage, TaxError, TaxType, zero_taxed_money
+from ...core.telemetry import tracer
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType

@@ -3,8 +3,8 @@ from django.conf import settings
 
 from ...celeryconf import app
 from ...core.db.connection import allow_writer
-from ...core.otel import tracer
 from ...core.taxes import TaxError
+from ...core.telemetry import tracer
 from ...order.events import external_notification_event
 from ...order.models import Order
 from . import AvataxConfiguration, api_post_request

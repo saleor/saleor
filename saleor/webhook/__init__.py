@@ -1,4 +1,4 @@
-from ..core.otel import tracer
+from ..core.telemetry import tracer
 
 
 def traced_payload_generator(func):

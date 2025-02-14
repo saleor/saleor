@@ -2,7 +2,7 @@ import braintree as braintree_sdk
 from braintree.exceptions.braintree_error import BraintreeError
 from django.core.exceptions import ImproperlyConfigured
 
-from ....core.otel import tracer
+from ....core.telemetry import tracer
 from ... import TransactionKind
 from ...interface import (
     CustomerSource,

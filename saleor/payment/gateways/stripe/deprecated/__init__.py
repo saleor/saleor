@@ -1,6 +1,6 @@
 import stripe
 
-from .....core.otel import tracer
+from .....core.telemetry import tracer
 from .... import TransactionKind
 from ....interface import (
     CustomerSource,
