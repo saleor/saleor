@@ -19,19 +19,23 @@ def load_object(python_path: str) -> Any:
 
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
+
+    # To avoid circular imports.
+    from ... import __version__ as saleor_version
+
     tracer_cls = load_object(settings.TELEMETRY_TRACER_CLASS)
     if not issubclass(tracer_cls, Tracer):
         raise ValueError(
             "settings.TELEMETRY_TRACER_CLASS must point to a subclass of Tracer"
         )
-    tracer.initialize(tracer_cls)
+    tracer.initialize(tracer_cls, saleor_version)
 
     meter_cls = load_object(settings.TELEMETRY_METER_CLASS)
     if not issubclass(meter_cls, Meter):
         raise ValueError(
             "settings.TELEMETRY_METER_CLASS must point to a subclass of Meter"
         )
-    meter.initialize(meter_cls)
+    meter.initialize(meter_cls, saleor_version)
 
 
 __all__ = [

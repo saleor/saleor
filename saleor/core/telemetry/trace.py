@@ -12,16 +12,15 @@ from opentelemetry.trace import (
 )
 from opentelemetry.util.types import Attributes
 
-from ... import __version__ as saleor_version
 from .utils import CORE_SCOPE, SERVICE_SCOPE, enrich_with_global_attributes
 
 logger = logging.getLogger(__name__)
 
 
 class Tracer:
-    def __init__(self):
-        self._core_tracer = get_tracer(CORE_SCOPE, saleor_version)
-        self._service_tracer = get_tracer(SERVICE_SCOPE, saleor_version)
+    def __init__(self, instrumentation_version: str):
+        self._core_tracer = get_tracer(CORE_SCOPE, instrumentation_version)
+        self._service_tracer = get_tracer(SERVICE_SCOPE, instrumentation_version)
 
     @contextmanager
     def start_as_current_span(
@@ -83,10 +82,10 @@ class TracerProxy(Tracer):
     def __init__(self):
         self._tracer: Tracer | None = None
 
-    def initialize(self, tracer_cls: type[Tracer]):
+    def initialize(self, tracer_cls: type[Tracer], instrumentation_version: str):
         if self._tracer is not None:
             logger.warning("Tracer already initialized")
-        self._tracer = tracer_cls()
+        self._tracer = tracer_cls(instrumentation_version)
 
     @contextmanager
     def start_as_current_span(

@@ -9,7 +9,6 @@ from opentelemetry.metrics import Meter as OtelMeter
 from opentelemetry.metrics import Synchronous, get_meter
 from opentelemetry.util.types import Attributes, AttributeValue
 
-from ... import __version__ as saleor_version
 from .utils import (
     CORE_SCOPE,
     SERVICE_SCOPE,
@@ -42,9 +41,9 @@ def get_instrument_method(
 
 
 class Meter:
-    def __init__(self):
-        self._core_tracer = get_meter(CORE_SCOPE, saleor_version)
-        self._service_tracer = get_meter(SERVICE_SCOPE, saleor_version)
+    def __init__(self, instrumentation_version: str):
+        self._core_tracer = get_meter(CORE_SCOPE, instrumentation_version)
+        self._service_tracer = get_meter(SERVICE_SCOPE, instrumentation_version)
         self._instruments: dict[str, tuple[Unit, Synchronous]] = {}
         self._lock = Lock()
 
@@ -115,10 +114,10 @@ class MeterProxy(Meter):
         self._metrics: dict[str, dict] = {}
         self._lock = Lock()
 
-    def initialize(self, meter_cls: type[Meter]) -> None:
+    def initialize(self, meter_cls: type[Meter], instrumentation_version: str) -> None:
         if self._meter:
             logger.warning("Tracer already initialized")
-        self._meter = meter_cls()
+        self._meter = meter_cls(instrumentation_version)
         with self._lock:
             for name, kwargs in self._metrics.items():
                 self._meter.create_metric(name, **kwargs)
