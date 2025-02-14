@@ -17,7 +17,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
@@ -158,6 +158,18 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=("The checkout validation rules that can be changed."),
     )
 
+    metadata = NonNullList(
+        MetadataInput,
+        description="Checkout public metadata." + ADDED_IN_321,
+        required=False,
+    )
+
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Checkout private metadata." + ADDED_IN_321,
+        required=False,
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
 
@@ -195,6 +207,15 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 description="A checkout was created.",
             )
         ]
+
+        # CheckoutCreate DOES support metadata creation, but these flags control
+        # base method on model. If we set them to True, it will try to save
+        # metadata on Checkout model. In case of Checkout we don't want that
+        # because we save metadata in CheckoutMetadata model.
+        #
+        # This is a subject of refactoring to avoid using inheritance due to problems like this
+        support_meta_field = False
+        support_private_meta_field = False
 
     @classmethod
     def clean_checkout_lines(
@@ -335,10 +356,18 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_address"] = shipping_address
         cleaned_input["billing_address"] = billing_address
         cleaned_input["country"] = country
+
         return cleaned_input
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance: models.Checkout, cleaned_input):
+    def save(
+        cls,
+        info: ResolveInfo,
+        instance: models.Checkout,
+        cleaned_input,
+        metadata_list,
+        private_metadata_list,
+    ):
         with traced_atomic_transaction():
             # Create the checkout object
             instance.save()
@@ -350,6 +379,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             channel = cleaned_input["channel"]
             variants = cleaned_input.get("variants")
             checkout_lines_data = cleaned_input.get("lines_data")
+
             if variants and checkout_lines_data:
                 site = get_site_promise(info.context).get()
                 add_variants_to_checkout(
@@ -375,7 +405,17 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 instance.billing_address = billing_address.get_copy()
 
             instance.save()
-            create_checkout_metadata(instance)
+            checkout_metadata = create_checkout_metadata(instance)
+
+            metadata_dict = {metadata.key: metadata.value for metadata in metadata_list}
+            private_metadata_dict = {
+                metadata.key: metadata.value for metadata in private_metadata_list
+            }
+
+            checkout_metadata.private_metadata = private_metadata_dict
+            checkout_metadata.metadata = metadata_dict
+
+            checkout_metadata.save()
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
@@ -396,6 +436,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         if channel:
             input["channel"] = channel
         response = super().perform_mutation(_root, info, input=input)
+
         checkout = response.checkout
         apply_gift_reward_if_applicable_on_checkout_creation(response.checkout)
         manager = get_plugin_manager_promise(info.context).get()
