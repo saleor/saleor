@@ -157,7 +157,7 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             "Indicates whether the billing address should be saved "
             "to the user’s address book upon checkout completion. "
-            "Can only be set when a billing address is provided.  If not specified "
+            "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
     )

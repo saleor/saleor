@@ -69,7 +69,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             default_value=True,
             description=(
                 "Indicates whether the shipping address should be saved "
-                "to the user’s address book upon checkout completion."
+                "to the user’s address book upon checkout completion. "
                 "If not provided, the default behavior is to save the address."
             ),
         )
