@@ -183,7 +183,7 @@ def test_group_on_update_when_one_line_and_mixed_parameters_provided(
     )
 
 
-def validate_address_data(address, address_data, validation_skipped=False):
+def assert_address_data(address, address_data, validation_skipped=False):
     if metadata := address_data.get("metadata"):
         assert address.metadata == {data["key"]: data["value"] for data in metadata}
 

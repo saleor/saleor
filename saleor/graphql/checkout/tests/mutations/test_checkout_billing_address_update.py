@@ -11,7 +11,7 @@ from .....product.models import ProductChannelListing, ProductVariantChannelList
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from .test_utils import validate_address_data
+from .test_utils import assert_address_data
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
@@ -61,7 +61,7 @@ def test_checkout_billing_address_update_by_id(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, billing_address)
+    assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
 
 
@@ -102,7 +102,7 @@ def test_checkout_billing_address_update_when_line_without_listing(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, billing_address)
+    assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
 
 
@@ -165,7 +165,7 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, billing_address)
+    assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
 
 
@@ -211,7 +211,7 @@ def test_checkout_billing_address_update(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, billing_address)
+    assert_address_data(checkout.billing_address, billing_address)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_billing_address is True
@@ -784,7 +784,7 @@ def test_checkout_billing_address_update_reset_the_save_address_flag_to_default_
     assert not data["errors"]
 
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, graphql_address_data)
+    assert_address_data(checkout.billing_address, graphql_address_data)
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is False
 
@@ -815,7 +815,7 @@ def test_checkout_billing_address_update_with_save_address_to_false(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, graphql_address_data)
+    assert_address_data(checkout.billing_address, graphql_address_data)
     assert checkout.save_billing_address is save_address
     assert checkout.save_shipping_address is True
 
@@ -849,6 +849,6 @@ def test_checkout_billing_address_update_change_save_address_option_to_true(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    validate_address_data(checkout.billing_address, graphql_address_data)
+    assert_address_data(checkout.billing_address, graphql_address_data)
     assert checkout.save_billing_address is True
     assert checkout.save_shipping_address is False
