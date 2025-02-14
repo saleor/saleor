@@ -37,7 +37,6 @@ class BreakerBoard:
         cooldown_seconds: int,
         cooldown_seconds_half_open: int,
         ttl_seconds: int,
-        ttl_seconds_half_open: int,
     ):
         self.validate_sync_events()
         self.storage = storage
@@ -48,7 +47,7 @@ class BreakerBoard:
         self.cooldown_seconds = cooldown_seconds
         self.cooldown_seconds_half_open = cooldown_seconds_half_open
         self.ttl_seconds = ttl_seconds
-        self.ttl_seconds_half_open = ttl_seconds_half_open
+        self.ttl_seconds_half_open = cooldown_seconds_half_open
 
     def validate_sync_events(self):
         if settings.BREAKER_BOARD_SYNC_EVENTS == [""]:
@@ -183,7 +182,7 @@ def initialize_breaker_board():
     if not settings.BREAKER_BOARD_ENABLED:
         return None
 
-    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)  # type: ignore[arg-type]
+    storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)
     return BreakerBoard(
         storage=storage_class(),
         failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
@@ -193,5 +192,4 @@ def initialize_breaker_board():
         cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
         cooldown_seconds_half_open=settings.BREAKER_BOARD_COOLDOWN_SECONDS_RECOVERY,
         ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
-        ttl_seconds_half_open=settings.BREAKER_BOARD_TTL_SECONDS_RECOVERY,
     )

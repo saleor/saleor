@@ -3,9 +3,6 @@ import time
 import uuid
 from collections import defaultdict
 
-from django.conf import settings
-from django.core.cache import cache
-from django.core.exceptions import ImproperlyConfigured
 from redis import Redis, RedisError
 
 from ...graphql.app.types import CircuitBreakerState
@@ -79,24 +76,19 @@ class RedisStorage(Storage):
     EVENT_KEYS = ["error", "total"]
     STATE_KEY = "state"
 
-    def __init__(self, client: Redis | None = None):
+    def __init__(self):
         super().__init__()
+        self._client = Redis()
 
-        if client:
-            self._client = client
-        else:
-            if settings.CACHE_URL is None or not settings.CACHE_URL.startswith("redis"):
-                raise ImproperlyConfigured(
-                    "Redis storage cannot be used when Redis cache is not configured"
-                )
-
-            self._client = cache._cache.get_client()  # type: ignore[attr-defined]
+    def get_base_storage_key(self) -> str:
+        return self.KEY_PREFIX
 
     def last_open(self, app_id: int) -> tuple[int, str]:
+        base_key = self.get_base_storage_key()
+        state_key = f"{base_key}-{app_id}-{self.STATE_KEY}"
+        half_open_key = f"{state_key}-{CircuitBreakerState.HALF_OPEN}"
+        open_key = f"{state_key}-{CircuitBreakerState.OPEN}"
         try:
-            state_key = f"{self.KEY_PREFIX}-{app_id}-{self.STATE_KEY}"
-            half_open_key = f"{state_key}-{CircuitBreakerState.HALF_OPEN}"
-            open_key = f"{state_key}-{CircuitBreakerState.OPEN}"
             half_open_val, open_val = self._client.mget([half_open_key, open_key])
             if half_open_val:
                 value = int(str(half_open_val, "utf-8"))
@@ -112,20 +104,23 @@ class RedisStorage(Storage):
     def update_open(
         self, app_id: int, open_time_seconds: int, state: CircuitBreakerState
     ):
+        base_key = self.get_base_storage_key()
         try:
             self._client.set(
-                f"{self.KEY_PREFIX}-{app_id}-{self.STATE_KEY}-{state}",
+                f"{base_key}-{app_id}-{self.STATE_KEY}-{state}",
                 open_time_seconds,
             )
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
 
     def get_event_count(self, app_id: int, name: str) -> int:
-        key = f"{self.KEY_PREFIX}-{app_id}-{name}"
+        base_key = self.get_base_storage_key()
+        key = f"{base_key}-{app_id}-{name}"
         return self._client.zcard(key)
 
     def register_event(self, app_id: int, name: str, ttl_seconds: int) -> int:
-        key = f"{self.KEY_PREFIX}-{app_id}-{name}"
+        base_key = self.get_base_storage_key()
+        key = f"{base_key}-{app_id}-{name}"
         now = int(time.time())
 
         try:
@@ -153,19 +148,20 @@ class RedisStorage(Storage):
             return 0
 
     def clear_state_for_app(self, app_id: int):
-        try:
-            keys = [f"{self.KEY_PREFIX}-{app_id}-{name}" for name in self.EVENT_KEYS]
-            keys.append(f"{self.KEY_PREFIX}-{app_id}")
-            keys.extend(
-                [
-                    f"{self.KEY_PREFIX}-{app_id}-{self.STATE_KEY}-{state}"
-                    for state in [
-                        CircuitBreakerState.CLOSED,
-                        CircuitBreakerState.OPEN,
-                        CircuitBreakerState.HALF_OPEN,
-                    ]
+        base_key = self.get_base_storage_key()
+        keys = [f"{base_key}-{app_id}-{name}" for name in self.EVENT_KEYS]
+        keys.append(f"{base_key}-{app_id}")
+        keys.extend(
+            [
+                f"{base_key}-{app_id}-{self.STATE_KEY}-{state}"
+                for state in [
+                    CircuitBreakerState.CLOSED,
+                    CircuitBreakerState.OPEN,
+                    CircuitBreakerState.HALF_OPEN,
                 ]
-            )
+            ]
+        )
+        try:
             self._client.delete(*keys)
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
