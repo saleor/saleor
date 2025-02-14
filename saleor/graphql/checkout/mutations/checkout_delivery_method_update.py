@@ -10,10 +10,10 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
 )
 from ....checkout.utils import (
-    delete_external_shipping_id_if_present,
     invalidate_checkout,
     is_shipping_required,
-    set_external_shipping_id,
+    remove_external_shipping,
+    set_external_shipping,
 )
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
@@ -239,14 +239,20 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         external_shipping_method: shipping_interface.ShippingMethodData | None,
         collection_point: Warehouse | None,
     ) -> None:
-        checkout_fields_to_update = ["shipping_method", "collection_point"]
+        checkout_fields_to_update = [
+            "shipping_method",
+            "collection_point",
+            "external_shipping_method_id",
+            "shipping_method_name",
+        ]
         checkout = checkout_info.checkout
         if external_shipping_method:
-            set_external_shipping_id(
-                checkout=checkout, app_shipping_id=external_shipping_method.id
+            set_external_shipping(
+                checkout=checkout,
+                external_shipping_method_data=external_shipping_method,
             )
         else:
-            delete_external_shipping_id_if_present(checkout=checkout)
+            remove_external_shipping(checkout=checkout)
 
         # Clear checkout shipping address if it was switched from C&C.
         if checkout.collection_point_id and not collection_point:
@@ -254,6 +260,11 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_fields_to_update += ["shipping_address"]
 
         checkout.shipping_method = shipping_method
+        if shipping_method:
+            checkout.shipping_method_name = shipping_method.name
+        elif not external_shipping_method:
+            checkout.shipping_method_name = None
+
         checkout.collection_point = collection_point
         if collection_point is not None:
             checkout.shipping_address = collection_point.address.get_copy()

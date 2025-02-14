@@ -5,10 +5,10 @@ from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
-    delete_external_shipping_id_if_present,
     invalidate_checkout,
     is_shipping_required,
-    set_external_shipping_id,
+    remove_external_shipping,
+    set_external_shipping,
 )
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
@@ -207,17 +207,22 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info, lines, delivery_method=delivery_method
         )
 
+        remove_external_shipping(checkout=checkout)
+
         checkout.shipping_method = shipping_method
+        checkout.shipping_method_name = delivery_method.name
+
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
             update_fields=[
                 "shipping_method",
+                "external_shipping_method_id",
+                "shipping_method_name",
             ]
             + invalidate_prices_updated_fields
         )
-        delete_external_shipping_id_if_present(checkout=checkout)
 
         call_checkout_info_event(
             manager,
@@ -247,7 +252,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info, lines, delivery_method=delivery_method
         )
 
-        set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
+        set_external_shipping(
+            checkout=checkout, external_shipping_method_data=delivery_method
+        )
         checkout.shipping_method = None
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
@@ -255,6 +262,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout.save(
             update_fields=[
                 "shipping_method",
+                "external_shipping_method_id",
+                "shipping_method_name",
             ]
             + invalidate_prices_updated_fields
         )
@@ -270,16 +279,19 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     @classmethod
     def remove_shipping_method(cls, checkout, checkout_info, lines, manager):
         checkout.shipping_method = None
+        checkout.shipping_method_name = None
+        remove_external_shipping(checkout=checkout)
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
             update_fields=[
                 "shipping_method",
+                "external_shipping_method_id",
+                "shipping_method_name",
             ]
             + invalidate_prices_updated_fields
         )
-        delete_external_shipping_id_if_present(checkout=checkout)
 
         call_checkout_info_event(
             manager,
