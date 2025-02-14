@@ -213,13 +213,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
+        checkout.collection_point = None
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
-            update_fields=[
-                "shipping_method",
-            ]
+            update_fields=["shipping_method", "collection_point"]
             + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()
@@ -254,13 +253,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
         checkout.shipping_method = None
+        checkout.collection_point = None
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
-            update_fields=[
-                "shipping_method",
-            ]
+            update_fields=["shipping_method", "collection_point"]
             + invalidate_prices_updated_fields
         )
         get_checkout_metadata(checkout).save()

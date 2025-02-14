@@ -99,6 +99,39 @@ def test_checkout_shipping_method_update(
         assert checkout.last_change == previous_last_change
 
 
+def test_checkout_shipping_method_update_removes_c_and_c(
+    staff_api_client,
+    shipping_method,
+    checkout_with_item_and_shipping_method,
+    address,
+    warehouse_for_cc,
+):
+    # given
+    checkout = checkout_with_item_and_shipping_method
+    checkout.shipping_address = address
+    checkout.collection_point = warehouse_for_cc
+    checkout.save(update_fields=["shipping_address", "collection_point"])
+
+    query = MUTATION_UPDATE_SHIPPING_METHOD
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {"id": to_global_id_or_none(checkout), "shippingMethodId": method_id}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+    assert not errors
+    assert data["checkout"]["token"] == str(checkout.token)
+    assert checkout.shipping_method == shipping_method
+    assert checkout.collection_point is None
+
+
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_checkout_shipping_method_update_external_shipping_method(
     mock_send_request,
@@ -139,6 +172,53 @@ def test_checkout_shipping_method_update_external_shipping_method(
 
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_shipping_method_update_external_shipping_method_removes_c_and_c(
+    mock_send_request,
+    staff_api_client,
+    address,
+    checkout_with_item,
+    shipping_app,
+    channel_USD,
+    settings,
+    warehouse_for_cc,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": "Provider - Economy",
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mock_send_request.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.collection_point = warehouse_for_cc
+    checkout.save(update_fields=["shipping_address", "collection_point"])
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        {"id": to_global_id_or_none(checkout_with_item), "shippingMethodId": method_id},
+    )
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    checkout.refresh_from_db()
+
+    errors = data["errors"]
+    assert not errors
+    assert checkout.collection_point is None
     assert data["checkout"]["token"] == str(checkout_with_item.token)
     assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
 
