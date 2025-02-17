@@ -1,8 +1,10 @@
 from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db import DatabaseError
+from django.db.models import F, JSONField, Value
 
 from ....checkout.models import Checkout
 from ....checkout.utils import get_or_create_checkout_metadata
+from ....core.db.expressions import JsonCat
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 
@@ -27,3 +29,9 @@ def save_instance(instance, metadata_fields: list):
         raise ValidationError(
             {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
         ) from e
+
+
+def update_metadata(instance, items):
+    instance._meta.model.objects.filter(pk=instance.pk).update(
+        metadata=JsonCat(F("metadata"), Value(items, output_field=JSONField()))
+    )
