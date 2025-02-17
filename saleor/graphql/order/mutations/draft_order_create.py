@@ -36,6 +36,7 @@ from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_318,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -102,6 +103,7 @@ class DraftOrderInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
+        + ADDED_IN_321
     )
     user = graphene.ID(
         description="Customer associated with the draft order.", name="user"
@@ -116,6 +118,7 @@ class DraftOrderInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
+        + ADDED_IN_321
     )
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"

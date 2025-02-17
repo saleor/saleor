@@ -50,7 +50,7 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_318, ADDED_IN_319
+from ...core.descriptions import ADDED_IN_318, ADDED_IN_319, ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -552,7 +552,8 @@ class OrderBulkCreateInput(BaseInputObjectType):
             "Indicates whether the billing address should be saved "
             "to the user’s address book. "
             "The default behavior is to not save the address."
-        ),
+        )
+        + ADDED_IN_321,
         default_value=False,
     )
     shipping_address = graphene.Field(
@@ -563,7 +564,8 @@ class OrderBulkCreateInput(BaseInputObjectType):
             "Indicates whether the shipping address should be saved "
             "to the user’s address book. "
             "The default behavior is to not save the address."
-        ),
+        )
+        + ADDED_IN_321,
     )
     currency = graphene.String(required=True, description="Currency code.")
     metadata = NonNullList(MetadataInput, description="Metadata of the order.")
