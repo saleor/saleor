@@ -6,6 +6,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
+from ....account import models as account_models
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
 from ....account.search import prepare_user_search_document_value
@@ -324,7 +325,27 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             instance.default_billing_address = default_billing_address
 
         is_creation = instance.pk is None
-        super().save(info, instance, cleaned_input)
+
+        # Use get_or_create instead save, to avoid race condition
+        # Once 2 concurrent calls occur, the 2nd one will check against existence in DB and return validation error
+        instance, created = account_models.User.objects.get_or_create(
+            email=cleaned_input.get("email"), defaults=cleaned_input
+        )
+
+        if not created:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this Email already exists.",
+                        code=AccountErrorCode.UNIQUE.value,
+                    )
+                }
+            )
+
+        # 1. test mutation
+        # 2. before mutation create
+        # 3
+
         if default_billing_address:
             instance.addresses.add(default_billing_address)
         if default_shipping_address:
