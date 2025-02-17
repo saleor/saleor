@@ -17,6 +17,12 @@ from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
+from ....core.telemetry import (
+    Link,
+    TaskTelemetryContext,
+    tracer,
+    with_telemetry_context,
+)
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
@@ -411,10 +417,14 @@ def trigger_webhooks_async_for_multiple_objects(
             },
             bind=True,
         )
-
+    context = tracer.get_current_span().get_span_context()
+    telemetry_context = TaskTelemetryContext(links=[Link(context)])
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
-            kwargs={"event_delivery_id": delivery.pk},
+            kwargs={
+                "event_delivery_id": delivery.pk,
+                "telemetry_context": telemetry_context.to_dict(),
+            },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
                 default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
@@ -567,7 +577,10 @@ def generate_deferred_payloads(
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def send_webhook_request_async(self, event_delivery_id) -> None:
+@with_telemetry_context
+def send_webhook_request_async(
+    self, event_delivery_id, telemetry_context: TaskTelemetryContext
+) -> None:
     delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
         if not_found:
@@ -589,7 +602,11 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
         # Count payload size in bytes.
         payload_size = len(data)
         with webhooks_otel_trace(
-            delivery.event_type, domain, payload_size, app=webhook.app
+            delivery.event_type,
+            domain,
+            payload_size,
+            app=webhook.app,
+            telemetry_context=telemetry_context,
         ):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,

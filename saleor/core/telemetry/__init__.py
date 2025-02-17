@@ -6,8 +6,14 @@ from opentelemetry.semconv.trace import SpanAttributes
 from opentelemetry.util.types import AttributeValue
 
 from .metric import Meter, MeterProxy, MetricType
-from .trace import SpanKind, Tracer, TracerProxy
-from .utils import Scope, Unit, set_global_attributes
+from .trace import Link, SpanKind, Tracer, TracerProxy
+from .utils import (
+    Scope,
+    TaskTelemetryContext,
+    Unit,
+    set_global_attributes,
+    with_telemetry_context,
+)
 
 tracer = TracerProxy()
 meter = MeterProxy()
@@ -50,4 +56,7 @@ __all__ = [
     "SpanAttributes",
     "AttributeValue",
     "Scope",
+    "Link",
+    "TaskTelemetryContext",
+    "with_telemetry_context",
 ]
