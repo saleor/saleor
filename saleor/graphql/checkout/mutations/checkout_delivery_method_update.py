@@ -251,14 +251,16 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         # Clear checkout shipping address if it was switched from C&C.
         if checkout.collection_point_id and not collection_point:
             checkout.shipping_address = None
-            checkout_fields_to_update += ["shipping_address"]
+            checkout.save_shipping_address = False
+            checkout_fields_to_update += ["shipping_address", "save_shipping_address"]
 
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
         if collection_point is not None:
             checkout.shipping_address = collection_point.address.get_copy()
+            checkout.save_shipping_address = False
             checkout_info.shipping_address = checkout.shipping_address
-            checkout_fields_to_update += ["shipping_address"]
+            checkout_fields_to_update += ["shipping_address", "save_shipping_address"]
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
