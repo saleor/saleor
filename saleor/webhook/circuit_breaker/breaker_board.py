@@ -17,8 +17,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-# TODO - check - given how this is running in production (gunicorn, uvicorn) does this code NEED
-# to be thread safe (in a span of a single process)
 class BreakerBoard:
     """Base class for breaker board implementations.
 
@@ -30,24 +28,23 @@ class BreakerBoard:
     def __init__(
         self,
         storage,
-        failure_threshold: int,
-        failure_threshold_half_open: int,
         failure_min_count: int,
-        failure_min_count_half_open: int,
+        failure_threshold: int,
+        failure_min_count_recovery: int,
+        failure_threshold_recovery: int,
+        success_count_recovery: int,
         cooldown_seconds: int,
-        cooldown_seconds_half_open: int,
         ttl_seconds: int,
     ):
         self.validate_sync_events()
         self.storage = storage
-        self.failure_threshold = failure_threshold
-        self.failure_threshold_half_open = failure_threshold_half_open
         self.failure_min_count = failure_min_count
-        self.failure_min_count_half_open = failure_min_count_half_open
+        self.failure_min_count_recovery = failure_min_count_recovery
+        self.success_count_recovery = success_count_recovery
+        self.failure_threshold = failure_threshold
+        self.failure_threshold_recovery = failure_threshold_recovery
         self.cooldown_seconds = cooldown_seconds
-        self.cooldown_seconds_half_open = cooldown_seconds_half_open
         self.ttl_seconds = ttl_seconds
-        self.ttl_seconds_half_open = cooldown_seconds_half_open
 
     def validate_sync_events(self):
         if settings.BREAKER_BOARD_SYNC_EVENTS == [""]:
@@ -62,16 +59,19 @@ class BreakerBoard:
         self, state: CircuitBreakerState, total: int, errors: int
     ) -> bool:
         min_count = (
-            self.failure_min_count
-            if state == CircuitBreakerState.CLOSED
-            else self.failure_min_count_half_open
+            self.failure_min_count_recovery
+            if state == CircuitBreakerState.HALF_OPEN
+            else self.failure_min_count
         )
         threshold = (
-            self.failure_threshold
-            if state == CircuitBreakerState.CLOSED
-            else self.failure_threshold_half_open
+            self.failure_threshold_recovery
+            if state == CircuitBreakerState.HALF_OPEN
+            else self.failure_threshold
         )
-        return total > min_count and (errors / total) * 100 >= threshold
+        return errors >= min_count and (errors / total) * 100 >= threshold
+
+    def reached_half_open_target_success_count(self, total: int, errors: int) -> bool:
+        return total - errors >= self.success_count_recovery
 
     def _open_breaker(self, app_id: int) -> str:
         self.storage.clear_state_for_app(app_id)
@@ -83,7 +83,7 @@ class BreakerBoard:
         )
         return CircuitBreakerState.OPEN
 
-    def _half_open_breaker(self, app_id: int):
+    def _half_open_breaker(self, app_id: int) -> str:
         self.storage.clear_state_for_app(app_id)
         self.storage.update_open(
             app_id, int(time.time()), CircuitBreakerState.HALF_OPEN
@@ -95,7 +95,7 @@ class BreakerBoard:
         )
         return CircuitBreakerState.HALF_OPEN
 
-    def _close_breaker(self, app_id: int):
+    def _close_breaker(self, app_id: int) -> str:
         self.storage.clear_state_for_app(app_id)
         self.storage.update_open(app_id, 0, CircuitBreakerState.CLOSED)
         logger.info(
@@ -104,7 +104,7 @@ class BreakerBoard:
         )
         return CircuitBreakerState.CLOSED
 
-    def update_breaker_state(self, app_id: int):
+    def update_breaker_state(self, app_id: int) -> str:
         last_open, state = self.storage.last_open(app_id)
         total = self.storage.get_event_count(app_id, "total") or 1
         errors = self.storage.get_event_count(app_id, "error")
@@ -119,15 +119,14 @@ class BreakerBoard:
         ):
             return self._half_open_breaker(app_id)
         # HALF-OPEN to CLOSED / OPEN
-        if state == CircuitBreakerState.HALF_OPEN and last_open < (
-            time.time() - self.cooldown_seconds_half_open
-        ):
+        if state == CircuitBreakerState.HALF_OPEN:
             if self.exceeded_error_threshold(state, total, errors):
                 return self._open_breaker(app_id)
-            return self._close_breaker(app_id)
+            if self.reached_half_open_target_success_count(total, errors):
+                return self._close_breaker(app_id)
         return state
 
-    def is_closed(self, app_id: int):
+    def is_closed(self, app_id: int) -> bool:
         state = self.update_breaker_state(app_id)
         return state != CircuitBreakerState.OPEN
 
@@ -160,16 +159,10 @@ class BreakerBoard:
                     return func(*args, **kwargs)
 
             response = func(*args, **kwargs)
-            _, state = self.storage.last_open(app_id)
-            ttl = (
-                self.ttl_seconds_half_open
-                if state == CircuitBreakerState.HALF_OPEN
-                else self.ttl_seconds
-            )
             if response is None:
-                self.register_error(app_id, ttl)
+                self.register_error(app_id, self.ttl_seconds)
             else:
-                self.register_success(app_id, ttl)
+                self.register_success(app_id, self.ttl_seconds)
 
             return response
 
@@ -178,18 +171,18 @@ class BreakerBoard:
         return inner
 
 
-def initialize_breaker_board():
+def initialize_breaker_board() -> BreakerBoard | None:
     if not settings.BREAKER_BOARD_ENABLED:
         return None
 
     storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)
     return BreakerBoard(
         storage=storage_class(),
-        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
-        failure_threshold_half_open=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY,
         failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
-        failure_min_count_half_open=settings.BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY,
+        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
+        failure_min_count_recovery=settings.BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY,
+        failure_threshold_recovery=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY,
+        success_count_recovery=settings.BREAKER_BOARD_SUCCESS_COUNT_RECOVERY,
         cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
-        cooldown_seconds_half_open=settings.BREAKER_BOARD_COOLDOWN_SECONDS_RECOVERY,
         ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
     )
