@@ -31,6 +31,7 @@ RUN apt-get update \
   libtiff6 \
   libwebp7 \
   libpq5 \
+  # Required by celery[sqs] which uses pycurl for AWS SQS support
   libcurl4 \
   shared-mime-info \
   mime-support \
