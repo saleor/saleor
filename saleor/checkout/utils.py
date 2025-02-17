@@ -466,7 +466,9 @@ def _check_new_checkout_address(checkout, address, address_type):
     return has_address_changed, remove_old_address
 
 
-def change_billing_address_in_checkout(checkout, address) -> list[str]:
+def change_billing_address_in_checkout(
+    checkout: "Checkout", address: "Address", store_in_user_addresses: bool
+) -> list[str]:
     """Save billing address in checkout if changed.
 
     Remove previously saved address if not connected to any user.
@@ -479,17 +481,20 @@ def change_billing_address_in_checkout(checkout, address) -> list[str]:
     updated_fields = []
     if changed:
         if remove:
-            checkout.billing_address.delete()
+            checkout.billing_address.delete()  # type: ignore[union-attr]
         checkout.billing_address = address
         updated_fields = ["billing_address", "last_change"]
+    if checkout.save_billing_address != store_in_user_addresses:
+        checkout.save_billing_address = store_in_user_addresses
+        updated_fields.append("save_billing_address")
     return updated_fields
 
 
 def change_shipping_address_in_checkout(
     checkout_info: "CheckoutInfo",
     address: "Address",
+    store_in_user_addresses: bool,
     lines: list["CheckoutLineInfo"],
-    manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
     """Save shipping address in checkout if changed.
@@ -516,6 +521,9 @@ def change_shipping_address_in_checkout(
             shipping_channel_listings=shipping_channel_listings,
         )
         updated_fields = ["shipping_address", "last_change"]
+    if checkout.save_shipping_address != store_in_user_addresses:
+        checkout.save_shipping_address = store_in_user_addresses
+        updated_fields.append("save_shipping_address")
     return updated_fields
 
 
