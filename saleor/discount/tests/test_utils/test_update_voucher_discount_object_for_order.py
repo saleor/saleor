@@ -8,14 +8,8 @@ from ....core.taxes import zero_money
 from ....order import OrderStatus
 from ....order.calculations import fetch_order_prices_if_expired
 from ... import DiscountType, DiscountValueType, VoucherType
-from ...models import (
-    OrderDiscount,
-    OrderLineDiscount,
-    Voucher,
-)
-from ...utils.voucher import (
-    create_or_update_voucher_discount_objects_for_order,
-)
+from ...models import OrderDiscount, OrderLineDiscount, Voucher
+from ...utils.voucher import create_or_update_voucher_discount_objects_for_order
 
 
 def test_update_voucher_discount_specific_product_with_different_variants(

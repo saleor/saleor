@@ -2,6 +2,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
+from uuid import UUID
 
 from django.db.models import Exists, F, OuterRef
 from django.utils import timezone
@@ -44,6 +45,7 @@ class VoucherDenormalizedInfo:
     reason: str | None
     name: str | None
     apply_once_per_order: bool
+    origin_line_id: UUID | None
 
 
 def is_order_level_voucher(voucher: Voucher | None):
@@ -197,7 +199,7 @@ def apply_voucher_to_line(
         )
         lines_included_in_discount = discounted_lines_by_voucher
     if voucher.apply_once_per_order:
-        if cheapest_line := _get_the_cheapest_line(lines_included_in_discount):
+        if cheapest_line := get_the_cheapest_line(lines_included_in_discount):
             discounted_lines_by_voucher = [cheapest_line]
     for line_info in lines_info:
         if line_info in discounted_lines_by_voucher:
@@ -241,7 +243,7 @@ def get_discounted_lines(
     return discounted_lines
 
 
-def _get_the_cheapest_line(
+def get_the_cheapest_line(
     lines_info: Iterable["LineInfo"] | None,
 ) -> Optional["LineInfo"]:
     if not lines_info:
@@ -478,7 +480,12 @@ def prepare_line_discount_objects_for_voucher(
         # manual line discount do not stack with other line discounts
         manual_line_discount = line_info.get_manual_line_discount()
 
-        if not voucher or line.is_gift or manual_line_discount:
+        if (
+            not voucher
+            and denormalized is False
+            or line.is_gift
+            or manual_line_discount
+        ):
             if discount_to_update:
                 line_discounts_to_remove.append(discount_to_update)
             continue
@@ -486,7 +493,8 @@ def prepare_line_discount_objects_for_voucher(
         if denormalized:
             # TODO zedzior test when voucher deleted
             if not line_info.voucher_denormalized_info:
-                # TODO zedzior: check co tu zrobić, czy w ogole mozemy tu wyladaowac
+                if discount_to_update:
+                    line_discounts_to_remove.append(discount_to_update)
                 continue
 
             discount_amount = (
