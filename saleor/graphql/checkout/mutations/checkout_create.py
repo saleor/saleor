@@ -18,7 +18,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
@@ -144,6 +144,7 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
+        + ADDED_IN_321
     )
     shipping_address = AddressInput(
         description=(
@@ -160,6 +161,7 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
+        + ADDED_IN_321
     )
     billing_address = AddressInput(
         description=(
