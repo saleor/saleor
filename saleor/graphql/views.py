@@ -20,12 +20,13 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.telemetry import MetricType, SpanAttributes, SpanKind, Unit, meter, tracer
+from ..core.telemetry import SpanAttributes, SpanKind, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
+from .metrics import incr_graphql_queries, record_graphql_query_duration
 from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
@@ -36,21 +37,6 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-meter.create_metric(
-    "saleor.graphql_queries",
-    service_scope=True,
-    type=MetricType.COUNTER,
-    unit=Unit.REQUEST,
-    description="Number of GraphQL queries.",
-)
-meter.create_metric(
-    "saleor.graphql_query_duration",
-    service_scope=True,
-    type=MetricType.HISTOGRAM,
-    unit=Unit.MILLISECOND,
-    description="Duration of GraphQL queries.",
-)
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -290,9 +276,9 @@ class GraphQLView(View):
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
             tracer.start_as_current_span("graphql_query", service_scope=True) as span,
-            meter.record_duration("saleor.graphql_query_duration"),
+            record_graphql_query_duration(),
         ):
-            meter.record("saleor.graphql_queries", 1)
+            incr_graphql_queries()
             span.set_attribute("component", "graphql")
             span.set_attribute(
                 SpanAttributes.HTTP_URL,

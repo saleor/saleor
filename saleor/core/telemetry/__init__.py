@@ -3,6 +3,7 @@ from typing import Any
 
 from django.conf import settings
 from opentelemetry.semconv.trace import SpanAttributes
+from opentelemetry.util.types import AttributeValue
 
 from .metric import Meter, MeterProxy, MetricType
 from .trace import SpanKind, Tracer, TracerProxy
@@ -47,4 +48,5 @@ __all__ = [
     "MetricType",
     "SpanKind",
     "SpanAttributes",
+    "AttributeValue",
 ]
