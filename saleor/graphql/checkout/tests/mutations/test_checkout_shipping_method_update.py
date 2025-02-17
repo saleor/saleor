@@ -24,19 +24,31 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 MUTATION_UPDATE_SHIPPING_METHOD = """
-    mutation checkoutShippingMethodUpdate(
-            $id: ID, $shippingMethodId: ID){
-        checkoutShippingMethodUpdate(
-            id: $id, shippingMethodId: $shippingMethodId) {
-            errors {
-                field
-                message
-                code
-            }
-            checkout {
-                token
-            }
+    mutation checkoutShippingMethodUpdate($id: ID, $shippingMethodId: ID) {
+      checkoutShippingMethodUpdate(id: $id, shippingMethodId: $shippingMethodId) {
+        errors {
+          field
+          message
+          code
         }
+        checkout {
+          token
+          deliveryMethod {
+            __typename
+            ... on ShippingMethod {
+              name
+              id
+              translation(languageCode: EN_US) {
+                name
+              }
+            }
+            ... on Warehouse {
+              name
+              id
+            }
+          }
+        }
+      }
     }
 """
 
@@ -975,6 +987,8 @@ def test_checkout_shipping_method_update_from_external_shipping_to_different_ext
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+    assert data["checkout"]["deliveryMethod"]["name"] == response_shipping_name
 
     checkout.refresh_from_db()
 
@@ -1043,6 +1057,8 @@ def test_checkout_shipping_method_update_from_external_shipping_to_the_same_exte
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+    assert data["checkout"]["deliveryMethod"]["name"] == response_shipping_name
 
     checkout.refresh_from_db()
 
@@ -1086,6 +1102,10 @@ def test_checkout_shipping_method_update_from_external_shipping_to_built_in_meth
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+    assert data["checkout"]["deliveryMethod"]["name"] == shipping_method.name
 
     checkout.refresh_from_db()
 
@@ -1125,6 +1145,7 @@ def test_checkout_shipping_method_update_from_external_shipping_to_none(
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"] is None
 
     checkout.refresh_from_db()
 
@@ -1168,6 +1189,10 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_different_bui
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        other_shipping_method
+    )
+    assert data["checkout"]["deliveryMethod"]["name"] == other_shipping_method.name
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
@@ -1230,6 +1255,8 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_external(
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+    assert data["checkout"]["deliveryMethod"]["name"] == response_shipping_name
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
@@ -1273,6 +1300,10 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_the_same_buil
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == to_global_id_or_none(
+        shipping_method
+    )
+    assert data["checkout"]["deliveryMethod"]["name"] == shipping_method.name
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
@@ -1311,6 +1342,7 @@ def test_checkout_shipping_method_update_from_built_in_shipping_to_none(
     data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
     errors = data["errors"]
     assert not errors
+    assert data["checkout"]["deliveryMethod"] is None
 
     checkout.refresh_from_db()
     assert checkout.collection_point_id is None
