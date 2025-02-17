@@ -3509,6 +3509,7 @@ description = "PycURL -- A Python Interface To The cURL library"
 optional = false
 python-versions = ">=3.5"
 groups = ["main"]
+markers = "sys_platform != \"win32\" and platform_python_implementation == \"CPython\""
 files = [
     {file = "pycurl-7.45.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:247b4af8eab7d04137a7f1a98391930e04ea93dc669b64db5625070fe15f80a3"},
     {file = "pycurl-7.45.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:561f88697f7540634b1c750146f37bdc0da367b15f6b4ab2bb780871ee6ab005"},
@@ -5556,4 +5557,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "b31b3af23357240cec00c8bab341bdff155c0f5a47ad8969623004461968cf90"
+content-hash = "fa928d5336a27c413678455c54507aa7a4b56b6faf8e0f75be22487e8e32f36e"
