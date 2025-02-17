@@ -106,26 +106,29 @@ class BreakerBoard:
         return CircuitBreakerState.CLOSED
 
     def update_breaker_state(self, app_id: int) -> str:
-        last_open, state = self.storage.last_open(app_id)
-        total = self.storage.get_event_count(app_id, "total") or 1
-        errors = self.storage.get_event_count(app_id, "error")
-        # CLOSED to OPEN
-        if state == CircuitBreakerState.CLOSED and self.exceeded_error_threshold(
-            state, total, errors
+        with load_tests_breaker_opentracing_trace(
+            "breaker_board", "update_breaker_state"
         ):
-            return self._open_breaker(app_id)
-        # OPEN TO HALF-OPEN
-        if state == CircuitBreakerState.OPEN and last_open < (
-            time.time() - self.cooldown_seconds
-        ):
-            return self._half_open_breaker(app_id)
-        # HALF-OPEN to CLOSED / OPEN
-        if state == CircuitBreakerState.HALF_OPEN:
-            if self.exceeded_error_threshold(state, total, errors):
+            last_open, state = self.storage.last_open(app_id)
+            total = self.storage.get_event_count(app_id, "total") or 1
+            errors = self.storage.get_event_count(app_id, "error")
+            # CLOSED to OPEN
+            if state == CircuitBreakerState.CLOSED and self.exceeded_error_threshold(
+                state, total, errors
+            ):
                 return self._open_breaker(app_id)
-            if self.reached_half_open_target_success_count(total, errors):
-                return self._close_breaker(app_id)
-        return state
+            # OPEN TO HALF-OPEN
+            if state == CircuitBreakerState.OPEN and last_open < (
+                time.time() - self.cooldown_seconds
+            ):
+                return self._half_open_breaker(app_id)
+            # HALF-OPEN to CLOSED / OPEN
+            if state == CircuitBreakerState.HALF_OPEN:
+                if self.exceeded_error_threshold(state, total, errors):
+                    return self._open_breaker(app_id)
+                if self.reached_half_open_target_success_count(total, errors):
+                    return self._close_breaker(app_id)
+            return state
 
     def is_closed(self, app_id: int) -> bool:
         state = self.update_breaker_state(app_id)
