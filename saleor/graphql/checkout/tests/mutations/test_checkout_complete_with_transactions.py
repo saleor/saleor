@@ -6,6 +6,7 @@ import graphene
 import pytest
 from django.db import transaction
 from django.db.models.aggregates import Sum
+from django.test import override_settings
 from django.utils import timezone
 from prices import TaxedMoney
 
@@ -16,7 +17,7 @@ from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
-from .....checkout.utils import add_voucher_to_checkout
+from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, add_voucher_to_checkout
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....discount.models import CheckoutLineDiscount, PromotionRule, Voucher
@@ -4787,3 +4788,77 @@ def test_complete_checkout_order_status_changed_after_creation(
     order = data["order"]
     assert order
     assert order["status"] == OrderStatus.UNFULFILLED.upper()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_checkout_complete_with_external_shipping_method(
+    mocked_sync_webhook,
+    user_api_client,
+    checkout_with_item,
+    transaction_item_generator,
+    address,
+    shipping_app,
+):
+    # given
+    external_shipping_method_id = "ABC"
+    external_shipping_name = "Provider - Economy"
+    graphql_externa_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{external_shipping_method_id}"
+    )
+    mock_json_response = [
+        {
+            "id": external_shipping_method_id,
+            "name": external_shipping_name,
+            "amount": "10",
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mocked_sync_webhook.return_value = mock_json_response
+
+    checkout = checkout_with_item
+    checkout.external_shipping_method_id = graphql_externa_method_id
+    checkout.shipping_method_name = external_shipping_name
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.tax_exemption = True
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    order = Order.objects.get()
+    assert (
+        order.private_metadata[PRIVATE_META_APP_SHIPPING_ID]
+        == graphql_externa_method_id
+    )

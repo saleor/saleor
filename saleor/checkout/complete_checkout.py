@@ -81,6 +81,7 @@ from .fetch import (
 )
 from .models import Checkout
 from .utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
     calculate_checkout_weight,
     delete_checkouts,
     get_checkout_metadata,
@@ -730,6 +731,15 @@ def _create_order(
             {data.key: data.value for data in private_metadata_list}
         )
 
+    if checkout_info.checkout.external_shipping_method_id:
+        # Add external shipping method to metadata, as order still uses private
+        # metadata for external shipping id.
+        order.store_value_in_private_metadata(
+            {
+                PRIVATE_META_APP_SHIPPING_ID: checkout_info.checkout.external_shipping_method_id
+            }
+        )
+
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
     order.search_vector = FlatConcatSearchVector(
@@ -1298,6 +1308,16 @@ def _create_order_from_checkout(
     if private_metadata_list:
         checkout_metadata.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
+        )
+
+    if checkout_info.checkout.external_shipping_method_id:
+        # Add external shipping method to metadata, as order still uses private
+        # metadata for external shipping id. The metadata will be transfered to the
+        # order.
+        checkout_metadata.store_value_in_private_metadata(
+            {
+                PRIVATE_META_APP_SHIPPING_ID: checkout_info.checkout.external_shipping_method_id
+            }
         )
 
     # order
