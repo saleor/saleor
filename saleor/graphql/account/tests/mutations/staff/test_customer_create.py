@@ -581,12 +581,11 @@ def test_customer_create_race_condition(
     }
 
     def create_existing_customer(*args, **kwargs):
-        User.objects.create(email=email_to_create).save()
+        User.objects.create(email=email_to_create)
 
     # when User is synthetically created just before the model save
-    # TODO this doesnt work with @classmethod
     with race_condition.RunBefore(
-        "saleor.graphql.account.mutations.base.BaseCustomerCreate.save",
+        "saleor.graphql.account.mutations.staff.customer_create.CustomerCreate.save",
         create_existing_customer,
     ):
         response = staff_api_client.post_graphql(
@@ -598,6 +597,4 @@ def test_customer_create_race_condition(
         errors_list = content["data"]["customerCreate"]["errors"]
 
         assert len(errors_list) == 1
-        # todo assert error validation type
-
-        # print(errors_list[0])
+        assert errors_list[0]["code"] == "UNIQUE"

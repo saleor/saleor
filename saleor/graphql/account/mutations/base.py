@@ -308,15 +308,18 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info: ResolveInfo, instance, cleaned_input):
-        default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
+
+        default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
+        default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
+
         if default_shipping_address:
             default_shipping_address = manager.change_user_address(
                 default_shipping_address, "shipping", instance
             )
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
-        default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
+
         if default_billing_address:
             default_billing_address = manager.change_user_address(
                 default_billing_address, "billing", instance
@@ -335,16 +338,14 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if not created:
             raise ValidationError(
                 {
+                    # This validation error mimics built-in validation error
+                    # So graphQL response is the same
                     "email": ValidationError(
                         "User with this Email already exists.",
                         code=AccountErrorCode.UNIQUE.value,
                     )
                 }
             )
-
-        # 1. test mutation
-        # 2. before mutation create
-        # 3
 
         if default_billing_address:
             instance.addresses.add(default_billing_address)
