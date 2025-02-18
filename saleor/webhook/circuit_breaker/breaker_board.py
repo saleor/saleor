@@ -126,10 +126,6 @@ class BreakerBoard:
                 return self._close_breaker(app_id)
         return state
 
-    def is_closed(self, app_id: int) -> bool:
-        state = self.update_breaker_state(app_id)
-        return state != CircuitBreakerState.OPEN
-
     def register_error(self, app_id: int, ttl: int):
         self.storage.register_event(app_id, "error", self.ttl_seconds)
         self.storage.register_event(app_id, "total", self.ttl_seconds)
@@ -146,8 +142,8 @@ class BreakerBoard:
                 return func(*args, **kwargs)
 
             app_id = webhook.app.id
-
-            if not self.is_closed(app_id):
+            state = self.update_breaker_state(app_id)
+            if state == CircuitBreakerState.OPEN:
                 if not settings.BREAKER_BOARD_DRY_RUN:
                     # Skip func execution to prevent sending webhooks
                     return None
