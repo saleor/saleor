@@ -447,9 +447,13 @@ def _create_lines_for_order(
         quantities.append(line_info.line.quantity)
         products.append(line_info.product)
 
-    products_translation = ProductTranslation.objects.filter(
-        product__in=products, language_code=translation_language_code
-    ).values("product_id", "name")
+    products_translation = (
+        ProductTranslation.objects.filter(
+            product__in=products, language_code=translation_language_code
+        )
+        .exclude(name__isnull=True)
+        .values("product_id", "name")
+    )
     product_translations = {
         product_translation["product_id"]: product_translation.get("name")
         for product_translation in products_translation
@@ -706,19 +710,21 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
-    checkout_metadata = get_checkout_metadata(checkout)
 
     # store current tax configuration
     update_order_display_gross_prices(order)
 
+    checkout_metadata = get_checkout_metadata(checkout)
     # copy metadata from the checkout into the new order
-    order.metadata = checkout_metadata.metadata
+    if checkout_metadata:
+        order.metadata = checkout_metadata.metadata
+        order.private_metadata = checkout_metadata.private_metadata
+
     if metadata_list:
         order.store_value_in_metadata({data.key: data.value for data in metadata_list})
 
     order.redirect_url = checkout.redirect_url
 
-    order.private_metadata = checkout_metadata.private_metadata
     if private_metadata_list:
         order.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}

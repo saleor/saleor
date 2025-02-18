@@ -176,6 +176,7 @@ def test_checkout_customer_detach_triggers_webhooks(
     user_api_client,
     checkout_with_item,
     customer_user,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -188,7 +189,12 @@ def test_checkout_customer_detach_triggers_webhooks(
 
     checkout = checkout_with_item
     checkout.user = customer_user
-    checkout.save(update_fields=["user"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save(update_fields=["user", "shipping_address", "billing_address"])
 
     variables = {"id": to_global_id_or_none(checkout)}
 

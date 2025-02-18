@@ -41,6 +41,7 @@ from ...tax.dataloaders import (
 )
 from ...tax.enums import TaxableObjectDiscountTypeEnum
 from .. import ResolveInfo
+from ..context import SyncWebhookControlContext
 from .common import NonNullList
 from .money import Money as MoneyType
 from .order_or_checkout import OrderOrCheckoutBase
@@ -57,6 +58,8 @@ class TaxSourceLine(graphene.Union):
 
     @classmethod
     def resolve_type(cls, instance, info: ResolveInfo):
+        if isinstance(instance, SyncWebhookControlContext):
+            instance = instance.node
         if isinstance(instance, CheckoutLine):
             return checkout_types.CheckoutLine
         if isinstance(instance, OrderLine):
@@ -153,6 +156,8 @@ class TaxableObjectLine(BaseObjectType):
 
     @staticmethod
     def resolve_source_line(root: CheckoutLine | OrderLine, _info: ResolveInfo):
+        if isinstance(root, CheckoutLine):
+            return SyncWebhookControlContext(node=root)
         return root
 
     @staticmethod
@@ -331,6 +336,8 @@ class TaxableObject(BaseObjectType):
 
     @staticmethod
     def resolve_source_object(root: Checkout | Order, _info: ResolveInfo):
+        if isinstance(root, Checkout):
+            return SyncWebhookControlContext(node=root)
         return root
 
     @staticmethod

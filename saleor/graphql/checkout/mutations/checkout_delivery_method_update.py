@@ -10,8 +10,7 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
 )
 from ....checkout.utils import (
-    delete_external_shipping_id,
-    get_or_create_checkout_metadata,
+    delete_external_shipping_id_if_present,
     invalidate_checkout,
     is_shipping_required,
     set_external_shipping_id,
@@ -23,6 +22,7 @@ from ....warehouse import models as warehouse_models
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -124,7 +124,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=None,
             collection_point=None,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def perform_on_external_shipping_method(
@@ -174,7 +176,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=delivery_method,
             collection_point=None,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def perform_on_collection_point(
@@ -199,7 +203,9 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             external_shipping_method=None,
             collection_point=collection_point,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=checkout)
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @staticmethod
     def _check_delivery_method(
@@ -217,7 +223,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             error_msg = "This pick up point is not applicable."
 
         delivery_method_is_valid = clean_delivery_method(
-            checkout_info=checkout_info, lines=lines, method=delivery_method
+            checkout_info=checkout_info, method=delivery_method
         )
         if not delivery_method_is_valid:
             raise ValidationError(
@@ -247,7 +253,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
                 checkout=checkout, app_shipping_id=external_shipping_method.id
             )
         else:
-            delete_external_shipping_id(checkout=checkout)
+            delete_external_shipping_id_if_present(checkout=checkout)
 
         # Clear checkout shipping address if it was switched from C&C.
         if checkout.collection_point_id and not collection_point:
@@ -266,7 +272,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout.save(
             update_fields=checkout_fields_to_update + invalidate_prices_updated_fields
         )
-        get_or_create_checkout_metadata(checkout).save()
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,

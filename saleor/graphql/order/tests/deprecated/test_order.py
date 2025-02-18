@@ -281,9 +281,9 @@ def test_order_fulfill_old_line_id(
         fulfillment_lines_for_warehouses,
         ANY,
         site_settings,
-        True,
+        notify_customer=True,
         allow_stock_to_be_exceeded=False,
-        approved=fulfillment_auto_approve,
+        auto_approved=fulfillment_auto_approve,
         tracking_number="",
     )
 

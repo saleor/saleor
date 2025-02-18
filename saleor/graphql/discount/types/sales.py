@@ -6,12 +6,7 @@ from ....permission.enums import DiscountPermissions
 from ....product.models import Category, Collection, Product, ProductVariant
 from ...channel import ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import (
-    Channel,
-    ChannelContext,
-    ChannelContextType,
-    ChannelContextTypeWithMetadata,
-)
+from ...channel.types import Channel, ChannelContext, ChannelContextType
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
@@ -64,7 +59,7 @@ class SaleChannelListing(BaseObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Promotion]):
+class Sale(ChannelContextType, ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True, description="The ID of the sale.")
     name = graphene.String(required=True, description="The name of the sale.")
     type = SaleType(required=True, description="Type of the sale, fixed or percentage.")

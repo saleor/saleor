@@ -14,6 +14,7 @@ from ...core import TimePeriodType
 from ...core.exceptions import GiftCardNotApplicable
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.promo_code import InvalidPromoCode
+from ...order import OrderEvents
 from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
@@ -694,6 +695,11 @@ def test_fulfill_gift_card_lines(
         )
         assert card.fulfillment_line
         assert GiftCardEvent.objects.filter(gift_card=card, type=GiftCardEvents.BOUGHT)
+
+    event = order.events.filter(type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS).first()
+    assert event
+    assert "auto" in event.parameters
+    assert event.parameters["auto"] is True
 
 
 def test_fulfill_gift_card_lines_lack_of_stock(

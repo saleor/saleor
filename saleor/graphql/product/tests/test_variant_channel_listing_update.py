@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from ....product.error_codes import ProductErrorCode
 from ....product.models import ProductChannelListing
@@ -32,6 +33,10 @@ mutation UpdateProductVariantChannelListing(
                     currencyCode
                 }
                 price {
+                    amount
+                    currency
+                }
+                priorPrice {
                     amount
                     currency
                 }
@@ -617,3 +622,36 @@ def test_variant_channel_listing_update_preorder(
         channel_pln_data["preorderThreshold"]["quantity"]
         == preorder_threshold_channel_pln
     )
+
+
+@pytest.mark.parametrize("prior_price", [1.5, 0])
+def test_variant_channel_listing_update_with_prior_price(
+    staff_api_client, product, permission_manage_products, channel_USD, prior_price
+):
+    # given
+    price = 1.0
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": variant_id,
+        "input": [
+            {"channelId": channel_usd_id, "priorPrice": prior_price, "price": price}
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantChannelListingUpdate"]
+    variant_data = data["variant"]
+    assert not data["errors"]
+    assert variant_data["id"] == variant_id
+    assert variant_data["channelListings"][0]["priorPrice"]["currency"] == "USD"
+    assert variant_data["channelListings"][0]["priorPrice"]["amount"] == prior_price

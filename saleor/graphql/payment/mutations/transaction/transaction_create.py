@@ -16,7 +16,7 @@ from .....order.actions import order_transaction_updated
 from .....order.events import transaction_event as order_transaction_event
 from .....order.fetch import fetch_order_info
 from .....order.search import update_order_search_vector
-from .....order.utils import updates_amounts_for_order
+from .....order.utils import update_order_status, updates_amounts_for_order
 from .....payment import TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionCreateErrorCode
@@ -321,8 +321,7 @@ class TransactionCreate(BaseMutation):
             order.channel.automatically_confirm_all_new_orders
             and order.status == OrderStatus.UNCONFIRMED
         ):
-            order.status = OrderStatus.UNFULFILLED
-            update_fields.append("status")
+            update_order_status(order)
 
         if update_search_vector:
             update_order_search_vector(order, save=False)

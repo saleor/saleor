@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional, cast
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import QuerySet, Sum
 from django.template.defaultfilters import pluralize
 from django.utils import timezone
@@ -168,17 +169,44 @@ def _calculate_quantity_including_returns(order):
 
 def update_order_status(order: Order):
     """Update order status depending on fulfillments."""
-    (
-        total_quantity,
-        quantity_fulfilled,
-        quantity_returned,
-    ) = _calculate_quantity_including_returns(order)
+    with transaction.atomic():
+        # Add a transaction block to ensure that the order status won't be overridden by
+        # another process.
+        locked_order = Order.objects.select_for_update().get(pk=order.pk)
+        # Calculate the quantities for the most recent data
+        (
+            total_quantity,
+            quantity_fulfilled,
+            quantity_returned,
+        ) = _calculate_quantity_including_returns(locked_order)
 
-    # check if order contains any fulfillments that awaiting approval
-    awaiting_approval = order.fulfillments.filter(
-        status=FulfillmentStatus.WAITING_FOR_APPROVAL
-    ).exists()
+        # check if order contains any fulfillments that awaiting approval
+        awaiting_approval = locked_order.fulfillments.filter(
+            status=FulfillmentStatus.WAITING_FOR_APPROVAL
+        ).exists()
 
+        status = determine_order_status(
+            order,
+            total_quantity,
+            quantity_fulfilled,
+            quantity_returned,
+            awaiting_approval,
+        )
+
+        # we would like to update the status for the order provided as the argument
+        # to ensure that the reference order has up to date status
+        if status != order.status:
+            order.status = status
+            order.save(update_fields=["status", "updated_at"])
+
+
+def determine_order_status(
+    order: Order,
+    total_quantity: int,
+    quantity_fulfilled: int,
+    quantity_returned: int,
+    awaiting_approval: bool,
+):
     # total_quantity == 0 means that all products have been replaced, we don't change
     # the order status in that case
     if total_quantity == 0:
@@ -193,10 +221,7 @@ def update_order_status(order: Order):
         status = OrderStatus.PARTIALLY_FULFILLED
     else:
         status = OrderStatus.FULFILLED
-
-    if status != order.status:
-        order.status = status
-        order.save(update_fields=["status", "updated_at"])
+    return status
 
 
 @traced_atomic_transaction()
@@ -243,8 +268,8 @@ def create_order_line(
     product_name = str(product)
     variant_name = str(variant)
     language_code = order.language_code
-    translated_product_name = get_translation(product, language_code).name
-    translated_variant_name = get_translation(variant, language_code).name
+    translated_product_name = get_translation(product, language_code).name or ""
+    translated_variant_name = get_translation(variant, language_code).name or ""
     if translated_product_name == product_name:
         translated_product_name = ""
     if translated_variant_name == variant_name:

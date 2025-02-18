@@ -40,6 +40,14 @@ DRAFT_ORDER_CREATE_MUTATION = """
                     addressType
                 }
                 order {
+                    metadata {
+                      key
+                      value
+                    }
+                    privateMetadata {
+                      key
+                      value
+                    }
                     id
                     discount {
                         amount
@@ -3685,3 +3693,62 @@ def test_draft_order_create_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+def test_draft_order_create_with_metadata(
+    staff_api_client,
+    permission_group_manage_orders,
+    channel_USD,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    public_metadata_key = "public metadata key"
+    public_metadata_value = "public metadata value"
+    private_metadata_key = "private metadata key"
+    private_metadata_value = "private metadata value"
+
+    variables = {
+        "input": {
+            "metadata": [
+                {
+                    "key": public_metadata_key,
+                    "value": public_metadata_value,
+                }
+            ],
+            "privateMetadata": [
+                {
+                    "key": private_metadata_key,
+                    "value": private_metadata_value,
+                }
+            ],
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    assert not content["data"]["draftOrderCreate"]["errors"]
+
+    metadata_result_list: list[dict[str, str]] = content["data"]["draftOrderCreate"][
+        "order"
+    ]["metadata"]
+    private_metadata_result_list: list[dict[str, str]] = content["data"][
+        "draftOrderCreate"
+    ]["order"]["privateMetadata"]
+
+    assert len(metadata_result_list) == 1
+    assert len(private_metadata_result_list) == 1
+
+    assert metadata_result_list[0]["key"] == public_metadata_key
+    assert metadata_result_list[0]["value"] == public_metadata_value
+
+    assert private_metadata_result_list[0]["key"] == private_metadata_key
+    assert private_metadata_result_list[0]["value"] == private_metadata_value

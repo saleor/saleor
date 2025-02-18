@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.utils import timezone
 from prices import TaxedMoney
@@ -51,6 +52,7 @@ MUTATION_CHECKOUT_COMPLETE = """
             ) {
             order {
                 id
+                status
                 token
                 original
                 origin
@@ -104,10 +106,12 @@ def prepare_checkout_for_test(
     transaction_item_generator,
     transaction_events_generator,
     voucher=None,
+    user=None,
 ):
     checkout.shipping_address = shipping_address
     checkout.shipping_method = shipping_method
     checkout.billing_address = billing_address
+    checkout.user = user
     checkout.save()
 
     manager = get_plugins_manager(allow_replica=False)
@@ -2715,6 +2719,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    django_capture_on_commit_callbacks,
 ):
     # given
     checkout_with_item_and_voucher_specific_products.gift_cards.add(gift_card)
@@ -2758,7 +2763,8 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     }
 
     # when
-    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
     # then
     content = get_graphql_content(response)
@@ -3466,6 +3472,7 @@ def test_checkout_complete_with_digital(
     address,
     transaction_events_generator,
     transaction_item_generator,
+    customer_user,
 ):
     # given
     checkout = prepare_checkout_for_test(
@@ -3475,6 +3482,7 @@ def test_checkout_complete_with_digital(
         None,
         transaction_item_generator,
         transaction_events_generator,
+        user=customer_user,
     )
 
     variables = {
@@ -3489,8 +3497,51 @@ def test_checkout_complete_with_digital(
     content = get_graphql_content(response)["data"]["checkoutComplete"]
     assert not content["errors"]
 
+    order = Order.objects.first()
     # Ensure the order was actually created
-    assert Order.objects.count() == 1, "The order should have been created"
+    assert order, "The order should have been created"
+
+    # FIXME: fix together with ext-1684
+    assert not order.shipping_address
+    assert order.billing_address
+
+
+def test_checkout_complete_with_digital_no_shipping_address_set(
+    api_client,
+    checkout_with_digital_item,
+    address,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_digital_item,
+        None,
+        address,
+        None,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+    assert not order.shipping_address
+    assert order.billing_address
 
 
 def test_complete_checkout_for_local_click_and_collect(
@@ -4590,3 +4641,149 @@ def test_checkout_complete_log_unknown_discount_reason(
     assert not order_line.unit_discount_reason
     assert "Unknown discount reason" in caplog.text
     assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+
+
+@patch("saleor.order.calculations._recalculate_with_plugins")
+@patch("saleor.plugins.manager.PluginsManager.order_confirmed")
+def test_checkout_complete_empty_product_translation(
+    order_confirmed_mock,
+    recalculate_with_plugins_mock,
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    caplog,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_gift_card,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+    checkout_line_product = checkout_line_variant.product
+
+    checkout_line_product.translations.create(language_code="en")
+    checkout_line_variant.translations.create(language_code="en")
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert str(order.id) == order_token
+    assert order.redirect_url == redirect_url
+    assert order.total.gross == total.gross
+    assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+    transaction = order.payment_transactions.first()
+    assert transaction
+    assert order.total_charged_amount == transaction.charged_value
+    assert order.total_authorized == zero_money(order.currency)
+
+    order_line = order.lines.first()
+
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order_line.translated_product_name == ""
+    assert order_line.translated_variant_name == ""
+
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+    assert order.search_vector
+
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance == zero_money(gift_card.currency)
+    assert gift_card.last_used_on
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+    order_confirmed_mock.assert_called_once_with(order, webhooks=set())
+    recalculate_with_plugins_mock.assert_not_called()
+
+    assert not len(Reservation.objects.all())
+
+
+def test_complete_checkout_order_status_changed_after_creation(
+    checkout_with_item_total_0,
+    customer_user,
+    user_api_client,
+):
+    """Ensure order status is valid in the mutation response.
+
+    In case that order is created with `UNCONFIRMED` and then changed into `UNFULFILLED`
+    in post commit action, the returned order status should be upt-to-date.
+    """
+    # given
+    checkout = checkout_with_item_total_0
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.save()
+
+    update_checkout_payment_statuses(
+        checkout, zero_money(checkout.currency), checkout_has_lines=True
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    def immediate_on_commit(func):
+        func()
+
+    # when
+    with patch.object(transaction, "on_commit", side_effect=immediate_on_commit):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = data["order"]
+    assert order
+    assert order["status"] == OrderStatus.UNFULFILLED.upper()

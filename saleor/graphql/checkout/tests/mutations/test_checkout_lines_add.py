@@ -61,6 +61,12 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
         undiscountedUnitPrice {
           amount
         }
+        priorTotalPrice {
+          amount
+        }
+        priorUnitPrice {
+          amount
+        }
         quantity
         variant {
           id
@@ -1904,6 +1910,7 @@ def test_checkout_lines_add_triggers_webhooks(
     user_api_client,
     checkout_with_item,
     stock,
+    address,
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
@@ -1918,6 +1925,12 @@ def test_checkout_lines_add_triggers_webhooks(
     variant = stock.product_variant
 
     checkout = checkout_with_item
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3
@@ -2008,3 +2021,35 @@ def test_checkout_lines_add_when_line_deleted(user_api_client, checkout_with_ite
     ).first()
     assert newly_created_checkout_line
     assert newly_created_checkout_line.id != line.id
+
+
+def test_checkout_lines_add_with_prior_price(
+    user_api_client,
+    checkout,
+    stock,
+):
+    # given
+    variant = stock.product_variant
+    variant_channel_listing = variant.channel_listings.first()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 2}],
+        "channelSlug": variant_channel_listing.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    checkout = get_graphql_content(response)["data"]["checkoutLinesAdd"]["checkout"]
+    assert (
+        checkout["lines"][0]["priorUnitPrice"]["amount"]
+        == variant_channel_listing.prior_price_amount
+    )
+    assert (
+        checkout["lines"][0]["priorTotalPrice"]["amount"]
+        == variant_channel_listing.prior_price_amount * 2
+    )
