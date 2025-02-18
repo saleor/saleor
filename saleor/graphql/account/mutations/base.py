@@ -331,7 +331,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         try:
             instance.save()
-        except IntegrityError:
+        except IntegrityError as e:
             raise ValidationError(
                 {
                     # This validation error mimics built-in validation error
@@ -341,7 +341,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                         code=AccountErrorCode.UNIQUE.value,
                     )
                 }
-            ) from None
+            ) from e
 
         if default_billing_address:
             instance.addresses.add(default_billing_address)
