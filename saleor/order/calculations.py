@@ -62,7 +62,6 @@ def fetch_order_prices_if_expired(
 
     # handle promotions
     lines_info: list[EditableOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
-
     create_or_update_discount_objects_for_order(
         order, lines_info, database_connection_name
     )
