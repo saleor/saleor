@@ -1,18 +1,18 @@
 from contextlib import AbstractContextManager
 
-from ..core.telemetry import AttributeValue, MetricType, Unit, meter
+from ..core.telemetry import AttributeValue, MetricType, Scope, Unit, meter
 
 # Initialize metrics
 meter.create_metric(
     "saleor.graphql_queries",
-    service_scope=True,
+    scope=Scope.SERVICE,
     type=MetricType.COUNTER,
     unit=Unit.REQUEST,
     description="Number of GraphQL queries.",
 )
 meter.create_metric(
     "saleor.graphql_query_duration",
-    service_scope=True,
+    scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.MILLISECOND,
     description="Duration of GraphQL queries.",

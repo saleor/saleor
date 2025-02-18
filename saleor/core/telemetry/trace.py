@@ -12,7 +12,7 @@ from opentelemetry.trace import (
 )
 from opentelemetry.util.types import Attributes
 
-from .utils import CORE_SCOPE, SERVICE_SCOPE, enrich_with_global_attributes
+from .utils import Scope, enrich_with_global_attributes
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +25,8 @@ class Tracer:
     subclassed to alter or change the telemetry implementation.
 
     The Tracer operates with two distinct scopes:
-        - core: For internal system operations and core functionality
-        - service: For business logic and service-level operations
+        - CORE: For internal system operations and core functionality
+        - SERVICE: For business logic and service-level operations
 
     Note:
         The Tracer internally uses the global OpenTelemetry TracerProvider, which should
@@ -36,15 +36,15 @@ class Tracer:
     """
 
     def __init__(self, instrumentation_version: str):
-        self._core_tracer = get_tracer(CORE_SCOPE, instrumentation_version)
-        self._service_tracer = get_tracer(SERVICE_SCOPE, instrumentation_version)
+        self._core_tracer = get_tracer(Scope.CORE.value, instrumentation_version)
+        self._service_tracer = get_tracer(Scope.SERVICE.value, instrumentation_version)
 
     @contextmanager
     def start_as_current_span(
         self,
         name: str,
         *,
-        service_scope: bool = False,
+        scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
@@ -57,7 +57,7 @@ class Tracer:
 
         Args:
             name: The name of the span
-            service_scope: If True, use service scope instead of default core
+            scope: The scope of the span, defaults to Scope.CORE
             kind: The SpanKind of the span
             attributes: Initial attributes for the span
             links: Links to other spans
@@ -71,7 +71,7 @@ class Tracer:
 
         """
         attributes = enrich_with_global_attributes(attributes)
-        tracer = self._service_tracer if service_scope else self._core_tracer
+        tracer = self._service_tracer if scope.is_service else self._core_tracer
         with tracer.start_as_current_span(
             name,
             kind=kind,
@@ -88,7 +88,7 @@ class Tracer:
         self,
         name: str,
         *,
-        service_scope: bool = False,
+        scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
@@ -100,7 +100,7 @@ class Tracer:
 
         Args:
             name: The name of the span
-            service_scope: If True, use service scope instead of default core
+            scope: The scope of the span, defaults to Scope.CORE
             kind: The SpanKind of the span
             attributes: Initial attributes for the span
             links: Links to other spans
@@ -113,7 +113,7 @@ class Tracer:
 
         """
         attributes = enrich_with_global_attributes(attributes)
-        tracer = self._service_tracer if service_scope else self._core_tracer
+        tracer = self._service_tracer if scope.is_service else self._core_tracer
         return tracer.start_span(
             name,
             kind=kind,
@@ -149,7 +149,7 @@ class TracerProxy(Tracer):
         self,
         name: str,
         *,
-        service_scope: bool = False,
+        scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
@@ -163,7 +163,7 @@ class TracerProxy(Tracer):
         else:
             with self._tracer.start_as_current_span(
                 name,
-                service_scope=service_scope,
+                scope=scope,
                 kind=kind,
                 attributes=attributes,
                 links=links,
@@ -178,7 +178,7 @@ class TracerProxy(Tracer):
         self,
         name: str,
         *,
-        service_scope: bool = False,
+        scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
@@ -190,7 +190,7 @@ class TracerProxy(Tracer):
             return INVALID_SPAN
         return self._tracer.start_span(
             name,
-            service_scope=service_scope,
+            scope=scope,
             kind=kind,
             attributes=attributes,
             links=links,

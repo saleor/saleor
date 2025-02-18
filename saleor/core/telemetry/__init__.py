@@ -7,7 +7,7 @@ from opentelemetry.util.types import AttributeValue
 
 from .metric import Meter, MeterProxy, MetricType
 from .trace import SpanKind, Tracer, TracerProxy
-from .utils import Unit, set_global_attributes
+from .utils import Scope, Unit, set_global_attributes
 
 tracer = TracerProxy()
 meter = MeterProxy()
@@ -49,4 +49,5 @@ __all__ = [
     "SpanKind",
     "SpanAttributes",
     "AttributeValue",
+    "Scope",
 ]

@@ -20,7 +20,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.telemetry import SpanAttributes, SpanKind, tracer
+from ..core.telemetry import Scope, SpanAttributes, SpanKind, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -162,7 +162,7 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", service_scope=True, kind=SpanKind.SERVER
+            "http", scope=Scope.SERVICE, kind=SpanKind.SERVER
         ) as span:
             span.set_attribute("component", "http")
             span.set_attribute("resource.name", request.path)
@@ -275,7 +275,7 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            tracer.start_as_current_span("graphql_query", service_scope=True) as span,
+            tracer.start_as_current_span("graphql_query", scope=Scope.SERVICE) as span,
             record_graphql_query_duration(),
         ):
             incr_graphql_queries()

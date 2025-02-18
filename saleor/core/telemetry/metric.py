@@ -10,9 +10,8 @@ from opentelemetry.metrics import Synchronous, get_meter
 from opentelemetry.util.types import Attributes, AttributeValue
 
 from .utils import (
-    CORE_SCOPE,
-    SERVICE_SCOPE,
     Amount,
+    Scope,
     Unit,
     convert_unit,
     enrich_with_global_attributes,
@@ -48,8 +47,8 @@ class Meter:
     subclassed to alter or change the telemetry implementation.
 
     The Meter operates with two distinct scopes:
-        - core: For internal system operations and core functionality
-        - service: For business logic and service-level operations
+        - CORE: For internal system operations and core functionality
+        - SERVICE: For business logic and service-level operations
 
     Note:
         The Meter internally uses the global OpenTelemetry MeterProvider, which should
@@ -59,8 +58,8 @@ class Meter:
     """
 
     def __init__(self, instrumentation_version: str):
-        self._core_tracer = get_meter(CORE_SCOPE, instrumentation_version)
-        self._service_tracer = get_meter(SERVICE_SCOPE, instrumentation_version)
+        self._core_tracer = get_meter(Scope.CORE.value, instrumentation_version)
+        self._service_tracer = get_meter(Scope.SERVICE.value, instrumentation_version)
         self._instruments: dict[str, tuple[Unit, Synchronous]] = {}
         self._lock = Lock()
 
@@ -87,7 +86,7 @@ class Meter:
         *,
         type: MetricType,
         unit: Unit,
-        service_scope: bool = False,
+        scope: Scope = Scope.CORE,
         description: str = "",
     ) -> None:
         """Create a new metric with specified parameters.
@@ -96,11 +95,11 @@ class Meter:
             name: The name of the metric
             type: Type of the metric
             unit: Unit of the metric
-            service_scope: If True, use service scope instead of default core
+            scope: The scope of the metric, defaults to Scope.CORE
             description: Optional description of the metric
 
         """
-        meter = self._service_tracer if service_scope else self._core_tracer
+        meter = self._service_tracer if scope.is_service else self._core_tracer
         with self._lock:
             if name in self._instruments:
                 raise DuplicateMetricError(name)
@@ -170,13 +169,13 @@ class MeterProxy(Meter):
         *,
         type: MetricType,
         unit: Unit,
-        service_scope: bool = False,
+        scope: Scope = Scope.CORE,
         description: str = "",
     ) -> None:
         kwargs = {
             "type": type,
             "unit": unit,
-            "service_scope": service_scope,
+            "scope": scope,
             "description": description,
         }
         if self._meter:
@@ -184,7 +183,7 @@ class MeterProxy(Meter):
                 name,
                 type=type,
                 unit=unit,
-                service_scope=service_scope,
+                scope=scope,
                 description=description,
             )
         else:
