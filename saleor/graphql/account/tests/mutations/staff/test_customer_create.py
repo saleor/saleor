@@ -12,9 +12,8 @@ from ......account.search import (
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
-from .....tests.utils import get_graphql_content
 from ......tests import race_condition
-
+from .....tests.utils import get_graphql_content
 from ....tests.utils import convert_dict_keys_to_camel_case
 
 CUSTOMER_CREATE_MUTATION = """
