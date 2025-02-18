@@ -65,3 +65,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed pycurl dependency and required system libraries to fix Celery worker issues when using SQS by @mariobrgomes
 - Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski
 - `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins
+- On concurrent `customerCreate` and `accountUpdate` mutations we will handle race conditions due to email uniqueness - instead of 500 the ValidationError will be returned - #17376 by @lkostrowski
