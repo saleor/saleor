@@ -1,7 +1,6 @@
 import logging
 import time
 import uuid
-from collections import defaultdict
 
 from django.core.cache import cache
 from redis import RedisError
@@ -20,55 +19,17 @@ class Storage:
     ):
         pass
 
-    def register_event_returning_count(  # type: ignore[empty-body]
-        self, app_id: int, name: str, ttl_seconds: int
-    ) -> int:
+    def get_event_count(self, app_id: int, name: str) -> int:  # type: ignore[empty-body]
+        pass
+
+    def register_event(self, app_id: int, name: str, ttl_seconds: int):
         pass
 
     def clear_state_for_app(self, app_id: int):
         pass
 
-
-class InMemoryStorage(Storage):
-    def __init__(self):
-        super().__init__()
-        self._events = defaultdict(list)
-        self._last_open = {}
-
-    def last_open(self, app_id: int) -> tuple[int, str]:
-        if app_id not in self._last_open:
-            return 0, CircuitBreakerState.CLOSED
-
-        return self._last_open[app_id]
-
-    def update_open(
-        self, app_id: int, open_time_seconds: int, state: CircuitBreakerState
-    ):
-        self._last_open[app_id] = open_time_seconds
-
-    def register_event_returning_count(
-        self, app_id: int, name: str, ttl_seconds: int
-    ) -> int:
-        key = f"{app_id}-{name}"
-        events = self._events[key]
-
-        now = int(time.time())
-        events.append(now)
-
-        filtered_entries = [event for event in events if event > now - ttl_seconds]
-        self._events[key] = filtered_entries
-        return len(filtered_entries)
-
-    def clear_state_for_app(self, app_id: int):
-        self._last_open.pop(app_id, None)
-        self._events = defaultdict(
-            list,
-            {
-                key: value
-                for key, value in self._events.items()
-                if not key.startswith(str(app_id))
-            },
-        )
+    class Meta:
+        abstract = True
 
 
 class RedisStorage(Storage):
@@ -77,9 +38,12 @@ class RedisStorage(Storage):
     EVENT_KEYS = ["error", "total"]
     STATE_KEY = "state"
 
-    def __init__(self):
+    def __init__(self, client=None):
         super().__init__()
-        self._client = cache._cache.get_client()  # type: ignore[attr-defined]
+        if client:
+            self._client = client
+        else:
+            self._client = cache._cache.get_client()  # type: ignore[attr-defined]
 
     def get_base_storage_key(self) -> str:
         return self.KEY_PREFIX
@@ -117,9 +81,12 @@ class RedisStorage(Storage):
     def get_event_count(self, app_id: int, name: str) -> int:
         base_key = self.get_base_storage_key()
         key = f"{base_key}-{app_id}-{name}"
-        return self._client.zcard(key)
+        try:
+            return self._client.zcard(key)
+        except RedisError:
+            return 0
 
-    def register_event(self, app_id: int, name: str, ttl_seconds: int) -> int:
+    def register_event(self, app_id: int, name: str, ttl_seconds: int):
         base_key = self.get_base_storage_key()
         key = f"{base_key}-{app_id}-{name}"
         now = int(time.time())
@@ -134,19 +101,14 @@ class RedisStorage(Storage):
             p.zremrangebyscore(key, "-inf", now - ttl_seconds)
 
             # Add event to `key` set where event is random identifier and event's score is
-            # event's registration time).
+            # event's registration time.
             # Event is random identifier because underlying structure to contain items
             # within Redis is a set.
             p.zadd(key, {uuid.uuid4().bytes: now})
 
-            # Return number of events in `key` set.
-            p.zcard(key)
-
-            result = p.execute()
-            return result.pop()
-        except (RedisError, IndexError):
-            logger.warning(self.WARNING_MESSAGE, exc_info=True)
-            return 0
+            p.execute()
+        except RedisError:
+            pass
 
     def clear_state_for_app(self, app_id: int):
         base_key = self.get_base_storage_key()

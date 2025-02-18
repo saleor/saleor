@@ -23,7 +23,7 @@ breaker_board = initialize_breaker_board()
 class ReenableSyncWebhooks(BaseMutation):
     app = graphene.Field(
         App,
-        description="App for which sync webhooks were re-enabled. ",
+        description="App for which sync webhooks were re-enabled.",
     )
 
     class Arguments:

@@ -1,10 +1,28 @@
 from unittest.mock import MagicMock
 
+import fakeredis
 import pytest
 
 from ....app.models import App
+from ....webhook.circuit_breaker.storage import RedisStorage
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
+
+
+@pytest.fixture
+def breaker_storage():
+    server = fakeredis.FakeServer()
+    server.connected = True
+
+    return RedisStorage(client=fakeredis.FakeRedis(server=server))
+
+
+@pytest.fixture
+def breaker_not_connected_storage():
+    server = fakeredis.FakeServer()
+    server.connected = False
+
+    return RedisStorage(client=fakeredis.FakeRedis(server=server))
 
 
 @pytest.fixture

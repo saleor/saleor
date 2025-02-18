@@ -9,7 +9,7 @@ from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
 from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
-from ....app.enums import CircuitBreakerStateEnum
+from ....app.enums import CircuitBreakerState, CircuitBreakerStateEnum
 from ....tests.fixtures import ApiClient
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -691,23 +691,24 @@ def test_app_query_with_metafields_staff_user_without_permissions(
 
 
 @pytest.mark.parametrize(
-    ("is_closed", "breaker_state"),
+    ("breaker_state", "expected_response_status"),
     [
-        (False, CircuitBreakerStateEnum.OPEN.name),
-        (True, CircuitBreakerStateEnum.CLOSED.name),
+        (CircuitBreakerState.OPEN, CircuitBreakerStateEnum.OPEN.name),
+        (CircuitBreakerState.HALF_OPEN, CircuitBreakerStateEnum.HALF_OPEN.name),
+        (CircuitBreakerState.CLOSED, CircuitBreakerStateEnum.CLOSED.name),
     ],
 )
 @patch("saleor.graphql.app.types.breaker_board")
 def test_app_query_open_breaker(
     breaker_board_mock,
-    is_closed,
     breaker_state,
+    expected_response_status,
     staff_api_client,
     permission_manage_apps,
     app,
 ):
     # given
-    breaker_board_mock.is_closed.side_effect = lambda id: is_closed
+    breaker_board_mock.update_breaker_state.side_effect = lambda id: breaker_state
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
 
@@ -720,4 +721,4 @@ def test_app_query_open_breaker(
 
     # then
     content = get_graphql_content(response)
-    assert content["data"]["app"]["breakerState"] == breaker_state
+    assert content["data"]["app"]["breakerState"] == expected_response_status
