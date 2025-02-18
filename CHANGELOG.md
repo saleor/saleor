@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
 - The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
+- Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 
 ### Webhooks
 

@@ -38,6 +38,7 @@ from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
@@ -101,7 +102,13 @@ class DraftOrderInput(BaseInputObjectType):
         description="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
-    discount = PositiveDecimal(description="Discount amount for the order.")
+    discount = PositiveDecimal(
+        description=(
+            f"Discount amount for the order."
+            f"{DEPRECATED_IN_3X_INPUT} Providing a value for the field has no effect. "
+            f"Use `orderDiscountAdd` mutation instead."
+        )
+    )
     shipping_address = AddressInput(description="Shipping address of the customer.")
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"
