@@ -23329,7 +23329,11 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """Email address of the customer."""
   userEmail: String
 
-  """Discount amount for the order."""
+  """
+  Discount amount for the order.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing a value for the field has no effect. Use `orderDiscountAdd` mutation instead.
+  """
   discount: PositiveDecimal
 
   """Shipping address of the customer."""
@@ -23454,7 +23458,11 @@ input DraftOrderInput @doc(category: "Orders") {
   """Email address of the customer."""
   userEmail: String
 
-  """Discount amount for the order."""
+  """
+  Discount amount for the order.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing a value for the field has no effect. Use `orderDiscountAdd` mutation instead.
+  """
   discount: PositiveDecimal
 
   """Shipping address of the customer."""
