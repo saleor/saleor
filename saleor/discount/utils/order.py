@@ -289,26 +289,37 @@ def create_order_line_discount_objects_for_catalogue_promotions(
 def refresh_order_base_prices_and_discounts(
     order: "Order",
     lines_info: list["EditableOrderLineInfo"],
+    line_ids_to_refresh: list[UUID] | None = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Force order to fetch the latest channel listing prices and update discounts."""
-    _set_channel_listing_prices(lines_info)
-    refresh_order_line_discount_objects_for_catalogue_promotions(lines_info)
+    if line_ids_to_refresh:
+        lines_info_to_update = [
+            line_info
+            for line_info in lines_info
+            if line_info.line.id in line_ids_to_refresh
+        ]
+    else:
+        lines_info_to_update = lines_info
+
+    _set_channel_listing_prices(lines_info_to_update)
+    refresh_order_line_discount_objects_for_catalogue_promotions(lines_info_to_update)
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
-    refresh_manual_line_discount_object(lines_info)
-    create_or_update_line_discount_objects_from_voucher(lines_info)
+    refresh_manual_line_discount_object(lines_info_to_update)
+    create_or_update_line_discount_objects_from_voucher(lines_info_to_update)
     create_or_update_discount_object_from_order_level_voucher(
         order, database_connection_name
     )
-    _copy_unit_discount_data_to_order_line(lines_info)
+    update_unit_discount_data_on_order_line(lines_info)
 
 
 def _set_channel_listing_prices(lines_info: list["EditableOrderLineInfo"]):
     for line_info in lines_info:
         line = line_info.line
         channel_listing = line_info.channel_listing
+        # TODO zedzior: should we do anything if the listing is not available anymore
         if channel_listing and channel_listing.price_amount:
             line.undiscounted_base_unit_price_amount = channel_listing.price_amount
             line.base_unit_price_amount = channel_listing.price_amount

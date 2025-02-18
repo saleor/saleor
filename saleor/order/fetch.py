@@ -20,8 +20,8 @@ from ..discount.interface import (
 from ..discount.models import OrderLineDiscount
 from ..discount.utils.voucher import (
     VoucherDenormalizedInfo,
-    get_the_cheapest_line,
     attach_voucher_to_line_info,
+    get_the_cheapest_line,
 )
 from ..graphql.core.types import Money
 from ..payment.models import Payment
@@ -187,8 +187,10 @@ def fetch_draft_order_lines_info(
     ):
         voucher_info = fetch_voucher_info(voucher, order.voucher_code)
         attach_voucher_to_line_info(voucher_info, lines_info)
-        denormalized_voucher_info = _get_denormalized_voucher_info(lines_info, voucher)
-        _apply_denormalized_voucher_to_line_info(
+        denormalized_voucher_info = _fetch_denormalized_voucher_info(
+            lines_info, voucher
+        )
+        _attach_denormalized_voucher_to_line_info(
             lines_info, denormalized_voucher_info, order.voucher_code
         )
 
@@ -206,7 +208,7 @@ def _get_variant_listing(
     return None
 
 
-def _get_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], voucher):
+def _fetch_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], voucher):
     voucher_discounts = [
         discount
         for line_info in lines_info
@@ -230,7 +232,7 @@ def _get_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], vouc
     )
 
 
-def _apply_denormalized_voucher_to_line_info(
+def _attach_denormalized_voucher_to_line_info(
     lines_info: list[EditableOrderLineInfo],
     denormalized_voucher_info: VoucherDenormalizedInfo | None,
     voucher_code: str | None,
