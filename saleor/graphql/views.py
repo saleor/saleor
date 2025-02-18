@@ -26,7 +26,7 @@ from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
-from .metrics import incr_graphql_queries, record_graphql_query_duration
+from .metrics import record_graphql_queries_count, record_graphql_query_duration
 from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
@@ -278,7 +278,7 @@ class GraphQLView(View):
             tracer.start_as_current_span("graphql_query", scope=Scope.SERVICE) as span,
             record_graphql_query_duration(),
         ):
-            incr_graphql_queries()
+            record_graphql_queries_count()
             span.set_attribute("component", "graphql")
             span.set_attribute(
                 SpanAttributes.HTTP_URL,

@@ -20,7 +20,7 @@ meter.create_metric(
 
 
 # Helper functions
-def incr_graphql_queries(amount: int = 1) -> None:
+def record_graphql_queries_count(amount: int = 1) -> None:
     meter.record("saleor.graphql_queries", amount)
 
 
