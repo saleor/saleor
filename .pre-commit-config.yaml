@@ -57,6 +57,7 @@ repos:
     rev: 2.0.1
     hooks:
       - id: poetry-lock
+        files: "^pyproject.toml$"
 
   - repo: local
     hooks:
