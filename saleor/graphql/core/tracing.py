@@ -2,7 +2,7 @@ from functools import wraps
 
 from graphene import ResolveInfo
 
-from ...core.otel import tracer
+from ...core.telemetry import tracer
 
 
 def traced_resolver(func):
