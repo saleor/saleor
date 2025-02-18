@@ -556,6 +556,7 @@ def test_customer_create_webhook_event_triggered(
     User.objects.get(email=email)
     mocked_trigger_webhooks_async.assert_called()
 
+
 def test_customer_create_race_condition(
     staff_api_client, site_settings, permission_manage_users
 ):
