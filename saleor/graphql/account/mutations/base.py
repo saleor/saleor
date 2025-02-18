@@ -4,9 +4,9 @@ from urllib.parse import urlencode
 import graphene
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from ....account import events as account_events
-from ....account import models as account_models
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
 from ....account.search import prepare_user_search_document_value
@@ -329,13 +329,9 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         is_creation = instance.pk is None
 
-        # Use get_or_create instead save, to avoid race condition
-        # Once 2 concurrent calls occur, the 2nd one will check against existence in DB and return validation error
-        instance, created = account_models.User.objects.get_or_create(
-            email=cleaned_input.get("email"), defaults=cleaned_input
-        )
-
-        if not created:
+        try:
+            instance.save()
+        except IntegrityError:
             raise ValidationError(
                 {
                     # This validation error mimics built-in validation error
@@ -345,7 +341,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                         code=AccountErrorCode.UNIQUE.value,
                     )
                 }
-            )
+            ) from None
 
         if default_billing_address:
             instance.addresses.add(default_billing_address)

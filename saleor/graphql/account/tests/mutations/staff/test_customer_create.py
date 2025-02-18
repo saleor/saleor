@@ -557,17 +557,17 @@ def test_customer_create_webhook_event_triggered(
     mocked_trigger_webhooks_async.assert_called()
 
 
-"""
-This test checks case when two concurrent mutations fail, due to unique constraint
-on email field. In race-condition scenario it's possible that two calls will pass
-validation (user doesn't exist yet), but the second one will fail due to DB having
-a user created already.
-"""
-
-
 def test_customer_create_race_condition(
     staff_api_client, site_settings, permission_manage_users
 ):
+    """Context.
+
+    This test checks case when two concurrent mutations fail,
+    due to unique constraint on email field. In race-condition scenario it's possible
+    that two calls will pass validation (user doesn't exist yet), but the second one
+    will fail due to DB having a user created already.
+    """
+
     # given
     site_settings.enable_account_confirmation_by_email = False
     site_settings.save(update_fields=["enable_account_confirmation_by_email"])
