@@ -618,11 +618,8 @@ class App(ModelObjectType[models.App]):
     def resolve_breaker_state(root: models.App, _info: ResolveInfo):
         if not breaker_board:
             return CircuitBreakerState.CLOSED
-        return (
-            CircuitBreakerState.CLOSED
-            if breaker_board.is_closed(root.id)
-            else CircuitBreakerState.OPEN
-        )
+        status = breaker_board.update_breaker_state(root.id)
+        return status
 
 
 class AppCountableConnection(CountableConnection):
