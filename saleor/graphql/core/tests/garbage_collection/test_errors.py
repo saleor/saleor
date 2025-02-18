@@ -55,11 +55,6 @@ def test_permission_error(rf, product, channel_USD):
             ignore_errors=True,
         )
         # Enforce garbage collection to populate the garbage list for inspection.
-        import refcycle
-
-        graph = refcycle.garbage()  # <- do NOT run gc.collect() prior to that!
-        graph.export_image("garbage_tests.svg")
-
         gc.collect()
 
         # then
