@@ -614,21 +614,28 @@ def assign_delivery_method_to_checkout(
             fields_to_update = remove_delivery_method_from_checkout(
                 checkout=checkout_info.checkout
             )
+            checkout_info.shipping_method = None
+            checkout_info.collection_point = None
 
         elif isinstance(delivery_method_data, shipping_interface.ShippingMethodData):
             if delivery_method_data.is_external:
                 fields_to_update = assign_external_shipping_to_checkout(
                     checkout, delivery_method_data
                 )
+                checkout_info.shipping_method = None
+                checkout_info.collection_point = None
             else:
                 fields_to_update = assign_built_in_shipping_to_checkout(
                     checkout, delivery_method_data
                 )
+                checkout_info.shipping_method = checkout.shipping_method
+                checkout_info.collection_point = None
         elif isinstance(delivery_method_data, warehouse_models.Warehouse):
             fields_to_update = assign_collection_point_to_checkout(
                 checkout, delivery_method_data
             )
             checkout_info.shipping_address = checkout.shipping_address
+            checkout_info.shipping_method = None
 
         if not fields_to_update:
             return

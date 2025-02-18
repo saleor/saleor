@@ -10,9 +10,7 @@ from ....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
 )
-from ....checkout.utils import (
-    is_shipping_required,
-)
+from ....checkout.utils import is_shipping_required
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
 from ....shipping.interface import ShippingMethodData
@@ -97,15 +95,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             field="delivery_method_id",
             qs=warehouse_models.Warehouse.objects.select_related("address"),
         )
-        if collection_point not in checkout_info.valid_pick_up_points:
-            raise ValidationError(
-                {
-                    "delivery_method_id": ValidationError(
-                        "This pick up point is not applicable.",
-                        code=CheckoutErrorCode.DELIVERY_METHOD_NOT_APPLICABLE.value,
-                    )
-                }
-            )
         return collection_point
 
     @classmethod
