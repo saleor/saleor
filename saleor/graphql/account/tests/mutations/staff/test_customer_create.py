@@ -560,6 +560,7 @@ def test_customer_create_race_condition(
     staff_api_client, site_settings, permission_manage_users
 ):
     """Context.
+
     This test checks case when two concurrent mutations fail,
     due to unique constraint on email field. In race-condition scenario it's possible
     that two calls will pass validation (user doesn't exist yet), but the second one
