@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 import graphene
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
@@ -330,7 +331,21 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             instance.default_billing_address = default_billing_address
 
         is_creation = instance.pk is None
-        super().save(info, instance, cleaned_input)
+
+        try:
+            instance.save()
+        except IntegrityError as e:
+            raise ValidationError(
+                {
+                    # This validation error mimics built-in validation error
+                    # So graphQL response is the same
+                    "email": ValidationError(
+                        "User with this Email already exists.",
+                        code=AccountErrorCode.UNIQUE.value,
+                    )
+                }
+            ) from e
+
         if default_billing_address:
             instance.addresses.add(default_billing_address)
         if default_shipping_address:
