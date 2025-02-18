@@ -9,7 +9,10 @@ from prices import Money
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import add_variants_to_checkout, set_external_shipping
+from .....checkout.utils import (
+    add_variants_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 from .....discount import RewardValueType
 from .....discount.models import CheckoutLineDiscount, PromotionRule
 from .....plugins.manager import get_plugins_manager
@@ -994,7 +997,9 @@ def test_add_checkout_lines_with_external_shipping(
     )
 
     checkout_with_single_item.shipping_address = address
-    set_external_shipping(checkout_with_single_item, external_shipping_method)
+    assign_external_shipping_to_checkout(
+        checkout_with_single_item, external_shipping_method
+    )
     checkout_with_single_item.save()
     checkout_with_single_item.metadata_storage.save()
 
