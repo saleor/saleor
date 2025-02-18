@@ -24,6 +24,8 @@ services:
 
   db:
     image: library/postgres:15-alpine
+    ports:
+     - 5432:5432
     restart: unless-stopped
     volumes:
       - saleor-db:/var/lib/postgresql/data

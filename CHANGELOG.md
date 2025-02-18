@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
 - Fix updating `metadata` and `privateMetadata` in `transactionUpdate` - #17261 by @IKarbowiak
   - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
+ -Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
 
 ### GraphQL API
 
@@ -30,15 +31,18 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `productVariants` field to `Product` instead of `variants`. Mark `Product.variants` as deprecated - #16998 by @kadewu
 - Fix checkout `line.undiscountedTotalPrice` and `line.undiscountedUnitPrice` calculation. - #17193 by @IKarbowiak
   - Return the normalized price in case the checkout prices are not expired, otherwise fetch the price from variant channel listing.
+- Add prior price fields to `VariantPricingInfo`, `ProductPricingInfo` and `CheckoutLine` - #17202 by @delemeator
 - Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
+- The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
+- Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
 
 ### Webhooks
 
 - Fixed webhookTrigger payload type for events related to ProductVariant - #16956 by @delemeator
 - Truncate lenghty responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
+- Webhooks `CHECKOUT_FILTER_SHIPPING_METHODS` & `ORDER_FILTER_SHIPPING_METHODS` are no longer executed when not needed (no available shipping methods, e.g. due to lack of shipping address) - #17328 by @lkostrowski
 
 ### Other changes
-
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
 - Fixed a potential crash when Checkout metadata is accessed with high concurrency - #16411 by @patrys
 - Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
@@ -56,3 +60,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `products` sorting when using `sortBy: {field: COLLECTION}` - #17189 by @korycins
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
+- Added support for the AWS_S3_URL_PROTOCOL environment variable - #17305 by @p-febis
+- Fixed pycurl dependency and required system libraries to fix Celery worker issues when using SQS by @mariobrgomes
+- Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski

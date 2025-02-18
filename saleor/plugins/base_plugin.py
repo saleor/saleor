@@ -5,13 +5,13 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse
 from django.utils.functional import SimpleLazyObject
 from prices import TaxedMoney
 from promise.promise import Promise
 
 from ..core.models import EventDelivery
+from ..graphql.core import SaleorContext
 from ..payment.interface import (
     CustomerSource,
     GatewayResponse,
@@ -336,7 +336,7 @@ class BasePlugin:
     # Authenticate user which should be assigned to the request.
     #
     # Overwrite this method if the plugin handles authentication flow.
-    authenticate_user: Callable[[WSGIRequest, Optional["User"]], Union["User", None]]
+    authenticate_user: Callable[[SaleorContext, Optional["User"]], Union["User", None]]
 
     authorize_payment: Callable[["PaymentData", Any], GatewayResponse]
 
@@ -635,18 +635,18 @@ class BasePlugin:
     # Handle authentication request.
     #
     # Overwrite this method if the plugin handles authentication flow.
-    external_authentication_url: Callable[[dict, WSGIRequest, dict], dict]
+    external_authentication_url: Callable[[dict, SaleorContext, dict], dict]
 
     # Handle logout request.
     #
     # Overwrite this method if the plugin handles logout flow.
-    external_logout: Callable[[dict, WSGIRequest, dict], Any]
+    external_logout: Callable[[dict, SaleorContext, dict], Any]
 
     # Handle authentication request responsible for obtaining access tokens.
     #
     # Overwrite this method if the plugin handles authentication flow.
     external_obtain_access_tokens: Callable[
-        [dict, WSGIRequest, ExternalAccessTokens], ExternalAccessTokens
+        [dict, SaleorContext, ExternalAccessTokens], ExternalAccessTokens
     ]
 
     # Handle authentication refresh request.
@@ -654,14 +654,14 @@ class BasePlugin:
     # Overwrite this method if the plugin handles authentication flow and supports
     # refreshing the access.
     external_refresh: Callable[
-        [dict, WSGIRequest, ExternalAccessTokens], ExternalAccessTokens
+        [dict, SaleorContext, ExternalAccessTokens], ExternalAccessTokens
     ]
 
     # Verify the provided authentication data.
     #
     # Overwrite this method if the plugin should validate the authentication data.
     external_verify: Callable[
-        [dict, WSGIRequest, tuple[Union["User", None], dict]],
+        [dict, SaleorContext, tuple[Union["User", None], dict]],
         tuple[Union["User", None], dict],
     ]
 
@@ -1700,7 +1700,7 @@ class BasePlugin:
     # Handle received http request.
     #
     # Overwrite this method if the plugin expects the incoming requests.
-    webhook: Callable[[WSGIRequest, str, Any], HttpResponse]
+    webhook: Callable[[SaleorContext, str, Any], HttpResponse]
 
     # Triggers retry mechanism for event delivery
     #

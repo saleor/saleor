@@ -301,6 +301,13 @@ class GraphQLView(View):
             span.set_attribute("graphql.query", raw_query_string)
             span.set_attribute("graphql.query_identifier", query_identifier(document))
             span.set_attribute("graphql.query_fingerprint", query_fingerprint(document))
+
+            source_service_name = get_source_service_name_value(
+                request.headers.get("source-service-name")
+            )
+            if source_service_name:
+                span.set_attribute("source.service.name", source_service_name)
+
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:

@@ -379,9 +379,15 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
     setup_checkout_webhooks,
     settings,
     api_client,
-    checkout,
+    checkout_with_item,
+    address,
+    shipping_method,
 ):
     # given
+
+    # Include item so shipping webhooks are emitted
+    checkout = checkout_with_item
+
     mocked_send_webhook_request_sync.return_value = []
     (
         tax_webhook,
@@ -392,7 +398,14 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
-    checkout.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save(
+        update_fields=["price_expiration", "billing_address", "shipping_address"]
+    )
     # when
     response = execute_update_public_metadata_for_item(
         api_client, None, checkout_id, "Checkout"
@@ -459,9 +472,15 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     setup_checkout_webhooks,
     settings,
     api_client,
-    checkout,
+    checkout_with_item,
+    address,
+    shipping_method,
 ):
     # given
+
+    # Include item so shipping is also triggered
+    checkout = checkout_with_item
+
     mocked_send_webhook_request_sync.return_value = []
     (
         tax_webhook,
@@ -471,9 +490,15 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED)
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     checkout.price_expiration = timezone.now() - datetime.timedelta(hours=10)
-    checkout.save(update_fields=["price_expiration"])
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save(
+        update_fields=["price_expiration", "shipping_address", "billing_address"]
+    )
 
     # when
     response = execute_update_public_metadata_for_item(

@@ -5,8 +5,7 @@ from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
-    delete_external_shipping_id,
-    get_checkout_metadata,
+    delete_external_shipping_id_if_present,
     invalidate_checkout,
     is_shipping_required,
     set_external_shipping_id,
@@ -17,6 +16,7 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -158,7 +158,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     ) -> None:
         delivery_method_is_valid = clean_delivery_method(
             checkout_info=checkout_info,
-            lines=lines,
             method=delivery_method,
         )
         if not delivery_method_is_valid or not delivery_method:
@@ -209,7 +208,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info, lines, delivery_method=delivery_method
         )
 
-        delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
@@ -220,7 +218,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save()
+        delete_external_shipping_id_if_present(checkout=checkout)
 
         call_checkout_info_event(
             manager,
@@ -228,7 +226,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info=checkout_info,
             lines=lines,
         )
-        return CheckoutShippingMethodUpdate(checkout=checkout)
+        return CheckoutShippingMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def perform_on_external_shipping_method(
@@ -261,7 +261,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save()
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
@@ -269,12 +268,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             lines=lines,
         )
 
-        return CheckoutShippingMethodUpdate(checkout=checkout)
+        return CheckoutShippingMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )
 
     @classmethod
     def remove_shipping_method(cls, checkout, checkout_info, lines, manager):
         checkout.shipping_method = None
-        delete_external_shipping_id(checkout=checkout)
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
@@ -284,7 +284,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save()
+        delete_external_shipping_id_if_present(checkout=checkout)
 
         call_checkout_info_event(
             manager,
@@ -292,4 +292,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout_info=checkout_info,
             lines=lines,
         )
-        return CheckoutShippingMethodUpdate(checkout=checkout)
+        return CheckoutShippingMethodUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )

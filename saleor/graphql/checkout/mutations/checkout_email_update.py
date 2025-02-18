@@ -5,6 +5,7 @@ from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -85,4 +86,4 @@ class CheckoutEmailUpdate(BaseMutation):
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout=checkout,
         )
-        return CheckoutEmailUpdate(checkout=checkout)
+        return CheckoutEmailUpdate(checkout=SyncWebhookControlContext(node=checkout))

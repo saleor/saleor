@@ -6,7 +6,8 @@
   "forwardPorts": [
     8000,
     "dashboard:9000",
-    "mailpit:8025"
+    "mailpit:8025",
+    "db:5432"
   ],
   "portsAttributes": {
     "8000": {
@@ -17,6 +18,9 @@
     },
     "mailpit:8025": {
       "label": "Mailpit UI"
+    },
+    "db:5432": {
+      "label": "PostgreSQL"
     }
   },
   "postCreateCommand": "python manage.py migrate",

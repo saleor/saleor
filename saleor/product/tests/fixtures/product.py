@@ -86,6 +86,7 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
         price_amount=Decimal(10),
         discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
+        prior_price_amount=Decimal(8),
         currency=channel_USD.currency_code,
     )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)

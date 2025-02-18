@@ -61,7 +61,7 @@ async def test_access_control_header_preflight(asgi_app: ASGI3Application, setti
                 (b"access-control-allow-credentials", b"true"),
                 (
                     b"access-control-allow-headers",
-                    b"Origin, Content-Type, Accept, Authorization, "
+                    b"Origin, Content-Type, Accept, Authorization, Source-Service-Name, "
                     b"Authorization-Bearer",
                 ),
                 (b"access-control-allow-methods", b"POST, OPTIONS"),

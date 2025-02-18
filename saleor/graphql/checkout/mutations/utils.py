@@ -19,7 +19,7 @@ from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....checkout.utils import (
     calculate_checkout_quantity,
     clear_delivery_method,
-    delete_external_shipping_id,
+    delete_external_shipping_id_if_present,
     get_external_shipping_id,
     is_shipping_required,
 )
@@ -65,18 +65,12 @@ class CheckoutLineData:
 
 def clean_delivery_method(
     checkout_info: "CheckoutInfo",
-    lines: list[CheckoutLineInfo],
     method: shipping_interface.ShippingMethodData | warehouse_models.Warehouse | None,
 ) -> bool:
     """Check if current shipping method is valid."""
     if not method:
         # no shipping method was provided, it is valid
         return True
-
-    if not is_shipping_required(lines):
-        raise ValidationError(
-            ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
-        )
 
     if not checkout_info.shipping_address and isinstance(
         method, shipping_interface.ShippingMethodData
@@ -103,7 +97,7 @@ def update_checkout_external_shipping_method_if_invalid(
     checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo]
 ):
     if not _is_external_shipping_valid(checkout_info):
-        delete_external_shipping_id(checkout_info.checkout, save=True)
+        delete_external_shipping_id_if_present(checkout_info.checkout)
 
 
 def update_checkout_shipping_method_if_invalid(
@@ -117,7 +111,6 @@ def update_checkout_shipping_method_if_invalid(
 
     is_valid = clean_delivery_method(
         checkout_info=checkout_info,
-        lines=lines,
         method=checkout_info.delivery_method_info.delivery_method,
     )
 

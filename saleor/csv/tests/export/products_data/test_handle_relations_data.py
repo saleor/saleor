@@ -1,10 +1,9 @@
 import datetime
 from unittest.mock import patch
 
-from .....attribute.models import (
-    Attribute,
-    AttributeValue,
-)
+from django.utils import timezone
+
+from .....attribute.models import Attribute, AttributeValue
 from .....attribute.tests.model_helpers import get_product_attributes
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product.models import Product, ProductMedia, ProductVariant, VariantMedia
@@ -277,16 +276,20 @@ def test_prepare_products_relations_data_only_attributes_ids(
 
 
 def test_prepare_products_relations_data_only_channel_ids(
-    product_with_image, collection_list, channel_PLN, channel_USD
+    collection_list, channel_PLN, channel_USD, product_available_in_many_channels
 ):
     # given
-    pk = product_with_image.pk
-    collection_list[0].products.add(product_with_image)
-    collection_list[1].products.add(product_with_image)
+    pk = product_available_in_many_channels.pk
+
+    collection_list[0].products.add(product_available_in_many_channels)
+    collection_list[1].products.add(product_available_in_many_channels)
     qs = Product.objects.all()
     fields = {"name"}
     attribute_ids = []
     channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
+    product_available_in_many_channels.channel_listings.update(
+        published_at=timezone.now()
+    )
 
     # when
     result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
@@ -295,10 +298,57 @@ def test_prepare_products_relations_data_only_channel_ids(
     expected_result = {pk: {}}
 
     expected_result = add_channel_to_expected_product_data(
-        expected_result, product_with_image, channel_ids, pk
+        expected_result, product_available_in_many_channels, channel_ids, pk
     )
 
     assert result == expected_result
+
+
+def test_prepare_products_relations_data_sets_published_dates(
+    collection_list, channel_PLN, channel_USD, product_available_in_many_channels
+):
+    # givenq
+    collection_list[0].products.add(product_available_in_many_channels)
+    collection_list[1].products.add(product_available_in_many_channels)
+    qs = Product.objects.all()
+    fields = {"name"}
+    attribute_ids = []
+    channel_ids = [str(channel_PLN.pk), str(channel_USD.pk)]
+    product_available_in_many_channels.channel_listings.update(
+        published_at=timezone.now()
+    )
+    usd_listing = product_available_in_many_channels.channel_listings.get(
+        channel=channel_USD
+    )
+    pln_listing = product_available_in_many_channels.channel_listings.get(
+        channel=channel_PLN
+    )
+
+    # when
+    result = prepare_products_relations_data(qs, fields, attribute_ids, channel_ids)
+
+    # then
+    single_result = result[product_available_in_many_channels.pk]
+
+    assert usd_listing.published_at
+    assert pln_listing.published_at
+    assert (
+        single_result.get(f"{channel_USD.slug} (channel published at)")
+        == usd_listing.published_at
+    )
+    assert (
+        single_result.get(f"{channel_USD.slug} (channel publication date)")
+        == usd_listing.published_at
+    )
+
+    assert (
+        single_result.get(f"{channel_PLN.slug} (channel published at)")
+        == pln_listing.published_at
+    )
+    assert (
+        single_result.get(f"{channel_PLN.slug} (channel publication date)")
+        == pln_listing.published_at
+    )
 
 
 @patch("saleor.csv.utils.products_data.prepare_variants_relations_data")
@@ -1454,10 +1504,9 @@ def test_add_channel_info_to_data(product):
         "published": True,
     }
     input_data = {pk: {}}
-    fields = ["currency_code", "published"]
 
     # when
-    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+    result = add_channel_info_to_data(product.pk, channel_data, input_data)
 
     # then
     assert len(result[pk]) == 2
@@ -1482,10 +1531,9 @@ def test_add_channel_info_to_data_not_changed(product):
             f"{slug} (channel published)": True,
         }
     }
-    fields = ["currency_code", "published"]
 
     # when
-    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+    result = add_channel_info_to_data(product.pk, channel_data, input_data)
 
     # then
     assert result == input_data
@@ -1500,10 +1548,9 @@ def test_add_channel_info_to_data_no_slug(product):
         "published": None,
     }
     input_data = {pk: {}}
-    fields = ["currency_code"]
 
     # when
-    result = add_channel_info_to_data(product.pk, channel_data, input_data, fields)
+    result = add_channel_info_to_data(product.pk, channel_data, input_data)
 
     # then
     assert result == input_data

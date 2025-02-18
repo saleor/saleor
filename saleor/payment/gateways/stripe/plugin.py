@@ -2,11 +2,11 @@ import logging
 from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
-from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 from django.http.request import split_domain_port
 
 from ....core.utils import get_domain
+from ....graphql.core import SaleorContext
 from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from ... import PaymentError, TransactionKind
@@ -126,7 +126,9 @@ class StripeGatewayPlugin(BasePlugin):
             store_customer=True,
         )
 
-    def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+    def webhook(
+        self, request: SaleorContext, path: str, previous_value
+    ) -> HttpResponse:
         config = self.config
         if not self.channel:
             return HttpResponseNotFound()

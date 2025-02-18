@@ -14,10 +14,13 @@ RUN apt-get update \
   libwebp7 \
   libpq5 \
   shared-mime-info \
-  mime-support
+  mime-support \
+  pipx
+
+RUN pipx ensurepath
 
 WORKDIR /app
-RUN pip install poetry==1.8.4
+RUN pipx install poetry==2.0.1
 RUN poetry config virtualenvs.create false
 COPY poetry.lock pyproject.toml /app/
-RUN poetry install --no-root
+RUN poetry sync

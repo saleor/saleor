@@ -131,6 +131,7 @@ def test_checkout_update_language_code_triggers_webhooks(
     settings,
     user_api_client,
     checkout_with_gift_card,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -143,6 +144,13 @@ def test_checkout_update_language_code_triggers_webhooks(
 
     language_code = "PL"
     checkout = checkout_with_gift_card
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save()
+
     variables = {"id": to_global_id_or_none(checkout), "languageCode": language_code}
 
     # when
