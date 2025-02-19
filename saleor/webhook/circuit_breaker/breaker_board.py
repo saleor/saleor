@@ -17,6 +17,28 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# Time frame for webhook events to be analyzed by the breaker board.
+BREAKER_BOARD_TTL_SECONDS: int = 5 * 60
+
+# Minimum webhook failure count (within TTL) required to open circuit breaker.
+BREAKER_BOARD_FAILURE_MIN_COUNT: int = 100
+
+# Minimum webhook failures percentage (within TTL) required to open circuit breaker.
+BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE: int = 35
+
+# Minimum webhook failure count (within TTL) required to re-open circuit breaker in half-open state.
+BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY: int = 20
+
+# Minimum webhook failures percentage (within TTL) required to re-open circuit breaker in half-open state.
+BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY: int = 30
+
+# Minimum webhook success count (within TTL) required to fully recover (close half-opened circuit breaker).
+BREAKER_BOARD_SUCCESS_COUNT_RECOVERY = 50
+
+# Time to keep circuit breaker in opened state before starting recovery (half-open state).
+BREAKER_BOARD_COOLDOWN_SECONDS: int = 2 * 60
+
+
 class BreakerBoard:
     """Base class for breaker board implementations.
 
@@ -53,6 +75,11 @@ class BreakerBoard:
             if not WebhookEventSyncType.EVENT_MAP.get(event):
                 raise ImproperlyConfigured(
                     f'Event "{event}" is not supported by circuit breaker.'
+                )
+        for event in settings.BREAKER_BOARD_DRY_RUN_SYNC_EVENTS:
+            if not event in settings.BREAKER_BOARD_SYNC_EVENTS:
+                raise ImproperlyConfigured(
+                    f'Dry-run event "{event}" is not monitored by circuit breaker.'
                 )
 
     def exceeded_error_threshold(
@@ -151,15 +178,17 @@ class BreakerBoard:
             webhook: Webhook = args[2]
 
             if event_type not in settings.BREAKER_BOARD_SYNC_EVENTS:
+                # Execute webhook without affecting breaker state
                 return func(*args, **kwargs)
 
             app_id = webhook.app.id
             state = self.update_breaker_state(app_id)
             if state == CircuitBreakerState.OPEN:
-                if not settings.BREAKER_BOARD_DRY_RUN:
+                if event_type not in settings.BREAKER_BOARD_DRY_RUN_SYNC_EVENTS:
                     # Skip func execution to prevent sending webhooks
                     return None
                 else:  # noqa: RET505
+                    # Dry-run: execute webhook, but ignore result (pretend it's skipped)
                     return func(*args, **kwargs)
 
             response = func(*args, **kwargs)
@@ -182,11 +211,11 @@ def initialize_breaker_board() -> BreakerBoard | None:
     storage_class = import_string(settings.BREAKER_BOARD_STORAGE_CLASS)
     return BreakerBoard(
         storage=storage_class(),
-        failure_min_count=settings.BREAKER_BOARD_FAILURE_MIN_COUNT,
-        failure_threshold=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
-        failure_min_count_recovery=settings.BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY,
-        failure_threshold_recovery=settings.BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY,
-        success_count_recovery=settings.BREAKER_BOARD_SUCCESS_COUNT_RECOVERY,
-        cooldown_seconds=settings.BREAKER_BOARD_COOLDOWN_SECONDS,
-        ttl_seconds=settings.BREAKER_BOARD_TTL_SECONDS,
+        failure_min_count=BREAKER_BOARD_FAILURE_MIN_COUNT,
+        failure_threshold=BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE,
+        failure_min_count_recovery=BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY,
+        failure_threshold_recovery=BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY,
+        success_count_recovery=BREAKER_BOARD_SUCCESS_COUNT_RECOVERY,
+        cooldown_seconds=BREAKER_BOARD_COOLDOWN_SECONDS,
+        ttl_seconds=BREAKER_BOARD_TTL_SECONDS,
     )
