@@ -1,10 +1,13 @@
 import logging
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....app import models as app_models
 from ....app.error_codes import AppErrorCode
 from ....graphql.app.types import App
+from ....graphql.core.descriptions import ADDED_IN_321
 from ....permission.enums import AppPermission
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
@@ -35,7 +38,7 @@ class ReenableSyncWebhooks(BaseMutation):
         description = (
             "Re-enable sync webhooks for provided app. "
             "Can be used to manually re-enable sync webhooks for the app before "
-            "the cooldown period ends."
+            "the cooldown period ends." + ADDED_IN_321
         )
         doc_category = DOC_CATEGORY_APPS
         permissions = (AppPermission.MANAGE_APPS,)
@@ -47,21 +50,23 @@ class ReenableSyncWebhooks(BaseMutation):
         app = cls.get_node_or_error(
             info, data.get("app_id"), only_type="App", field="appId"
         )
+        app = cast(app_models.App, app)
         if breaker_board:
-            error = breaker_board.storage.clear_state_for_app(app.id)  # type: ignore[union-attr]
+            error = breaker_board.storage.clear_state_for_app(app.id)
             if error:
                 raise ValidationError(
                     {
                         "app_id": ValidationError(
-                            f"Cannot re-enable sync webhooks for the app {app.name}.",  # type: ignore[union-attr]
+                            f"Cannot re-enable sync webhooks for the app {app.name}.",
                             code=AppErrorCode.INVALID.value,
                         )
                     }
                 )
+            breaker_board.storage.register_state_change(app.id)
             requestor = get_user_or_app_from_context(info.context)
             logger.info(
                 "[App ID: %r] Circuit breaker manually reset by %r.",
-                app.id,  # type: ignore[union-attr]
+                app.id,
                 requestor,
             )
         return ReenableSyncWebhooks(app=app)

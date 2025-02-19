@@ -3,6 +3,7 @@ import time
 import uuid
 
 from django.core.cache import cache
+from django.utils import timezone
 from redis import RedisError
 
 from ...graphql.app.types import CircuitBreakerState
@@ -23,6 +24,9 @@ class Storage:
         pass
 
     def register_event(self, app_id: int, name: str, ttl_seconds: int):
+        pass
+
+    def register_state_change(self, app_id: int):
         pass
 
     def clear_state_for_app(self, app_id: int):
@@ -107,6 +111,25 @@ class RedisStorage(Storage):
             p.zadd(key, {uuid.uuid4().bytes: now})
 
             p.execute()
+        except RedisError:
+            pass
+
+    def register_state_change(self, app_id: int):
+        base_key = self.get_base_storage_key()
+        state_change_key = "state-change"
+        key = f"{base_key}-{app_id}-{state_change_key}"
+        now = timezone.now()
+        try:
+            self._client.set(key, now.isoformat())
+        except RedisError:
+            pass
+
+    def retrieve_last_state_change(self, app_id: int):
+        base_key = self.get_base_storage_key()
+        state_change_key = "state-change"
+        key = f"{base_key}-{app_id}-{state_change_key}"
+        try:
+            return self._client.get(key)
         except RedisError:
             pass
 

@@ -1,4 +1,5 @@
 import base64
+import datetime
 
 import graphene
 from django.conf import settings
@@ -26,6 +27,7 @@ from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
 from ..core.descriptions import (
     ADDED_IN_319,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
@@ -66,7 +68,6 @@ from .resolvers import (
     resolve_app_extension_url,
 )
 
-# TODO: Remove the conditional when unit tests circular import is solved.
 breaker_board = None
 if settings.BREAKER_BOARD_ENABLED:
     from ...webhook.circuit_breaker.breaker_board import (
@@ -74,6 +75,7 @@ if settings.BREAKER_BOARD_ENABLED:
     )
 
     breaker_board = initialize_breaker_board()
+
 
 # Maximal thumbnail size for manifest preview
 MANIFEST_THUMBNAIL_MAX_SIZE = 512
@@ -538,8 +540,13 @@ class App(ModelObjectType[models.App]):
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
     breaker_state = CircuitBreakerStateEnum(
-        description="Circuit breaker state, if open, sync webhooks operation is disrupted.",
+        description="Circuit breaker state, if open, sync webhooks operation is disrupted."
+        + ADDED_IN_321,
         required=True,
+    )
+    breaker_last_state_change = DateTime(
+        description="Circuit breaker last state change date." + ADDED_IN_321,
+        required=False,
     )
 
     class Meta:
@@ -618,8 +625,15 @@ class App(ModelObjectType[models.App]):
     def resolve_breaker_state(root: models.App, _info: ResolveInfo):
         if not breaker_board:
             return CircuitBreakerState.CLOSED
-        status = breaker_board.update_breaker_state(root.id)
-        return status
+        return breaker_board.update_breaker_state(root.id)
+
+    @staticmethod
+    def resolve_breaker_last_state_change(root: models.App, _info: ResolveInfo):
+        if not breaker_board:
+            return None
+        if last_change := breaker_board.storage.retrieve_last_state_change(root.id):
+            return datetime.datetime.fromisoformat(str(last_change, "utf-8"))
+        return None
 
 
 class AppCountableConnection(CountableConnection):

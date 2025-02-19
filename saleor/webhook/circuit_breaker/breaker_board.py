@@ -56,8 +56,14 @@ class BreakerBoard:
                 )
 
     def exceeded_error_threshold(
-        self, state: CircuitBreakerState, total: int, errors: int
+        self, state: CircuitBreakerState, total_webhook_calls: int, errors: int
     ) -> bool:
+        """Check if the error threshold has been exceeded.
+
+        min_count and threshold (percentage) are different in different states.
+        If min count is met and the percentage of errors is greater than the threshold,
+        the breaker should be tripped (go to open state).
+        """
         min_count = (
             self.failure_min_count_recovery
             if state == CircuitBreakerState.HALF_OPEN
@@ -68,13 +74,21 @@ class BreakerBoard:
             if state == CircuitBreakerState.HALF_OPEN
             else self.failure_threshold
         )
-        return errors >= min_count and (errors / total) * 100 >= threshold
+        return errors >= min_count and (errors / total_webhook_calls) * 100 >= threshold
 
     def reached_half_open_target_success_count(self, total: int, errors: int) -> bool:
         return total - errors >= self.success_count_recovery
 
-    def _open_breaker(self, app_id: int) -> str:
+    def set_breaker_state(self, app_id: int, state: str) -> str:
         self.storage.clear_state_for_app(app_id)
+        self.storage.register_state_change(app_id)
+        if state == CircuitBreakerState.OPEN:
+            return self._open_breaker(app_id)
+        if state == CircuitBreakerState.HALF_OPEN:
+            return self._half_open_breaker(app_id)
+        return self._close_breaker(app_id)
+
+    def _open_breaker(self, app_id: int) -> str:
         self.storage.update_open(app_id, int(time.time()), CircuitBreakerState.OPEN)
         logger.info(
             "[App ID: %r] Circuit breaker tripped, cooldown is %r [seconds].",
@@ -84,7 +98,6 @@ class BreakerBoard:
         return CircuitBreakerState.OPEN
 
     def _half_open_breaker(self, app_id: int) -> str:
-        self.storage.clear_state_for_app(app_id)
         self.storage.update_open(
             app_id, int(time.time()), CircuitBreakerState.HALF_OPEN
         )
@@ -96,7 +109,6 @@ class BreakerBoard:
         return CircuitBreakerState.HALF_OPEN
 
     def _close_breaker(self, app_id: int) -> str:
-        self.storage.clear_state_for_app(app_id)
         self.storage.update_open(app_id, 0, CircuitBreakerState.CLOSED)
         logger.info(
             "[App ID: %r] Circuit breaker fully recovered.",
@@ -112,18 +124,18 @@ class BreakerBoard:
         if state == CircuitBreakerState.CLOSED and self.exceeded_error_threshold(
             state, total, errors
         ):
-            return self._open_breaker(app_id)
+            return self.set_breaker_state(app_id, CircuitBreakerState.OPEN)
         # OPEN TO HALF-OPEN
         if state == CircuitBreakerState.OPEN and last_open < (
             time.time() - self.cooldown_seconds
         ):
-            return self._half_open_breaker(app_id)
+            return self.set_breaker_state(app_id, CircuitBreakerState.HALF_OPEN)
         # HALF-OPEN to CLOSED / OPEN
         if state == CircuitBreakerState.HALF_OPEN:
             if self.exceeded_error_threshold(state, total, errors):
-                return self._open_breaker(app_id)
+                return self.set_breaker_state(app_id, CircuitBreakerState.OPEN)
             if self.reached_half_open_target_success_count(total, errors):
-                return self._close_breaker(app_id)
+                return self.set_breaker_state(app_id, CircuitBreakerState.CLOSED)
         return state
 
     def register_error(self, app_id: int, ttl: int):
@@ -148,10 +160,6 @@ class BreakerBoard:
                     # Skip func execution to prevent sending webhooks
                     return None
                 else:  # noqa: RET505
-                    logger.debug(
-                        "[App ID: %r] Sending disabled webhook due to breaker dry-run",
-                        app_id,
-                    )
                     return func(*args, **kwargs)
 
             response = func(*args, **kwargs)
