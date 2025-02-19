@@ -111,6 +111,9 @@ cp .env.example .env
 >
 > Learn more about each env variable in [Environment Variable docs](https://docs.saleor.io/setup/configuration)
 
+> [!TIP]
+> Env variables from `.env` file are loaded automatically by [Poe the Poet](https://poethepoet.natn.io/index.html) (when using `poe` commands below)
+
 You are ready to go 🎉.
 
 ### Common commands
