@@ -98,26 +98,6 @@ Install pre commit hooks:
 pre-commit install
 ```
 
-Set environment variables for your setup. You can use [direnv](https://direnv.net/) to do this automatically.
-Create `.envrc` file:
-
-```shell
-export CELERY_BROKER_URL=redis://localhost:6379/1
-export DATABASE_URL=postgres://saleor:saleor@localhost/saleor
-export DEFAULT_FROM_EMAIL=noreply@example.com
-export EMAIL_URL=smtp://localhost:1025
-export SECRET_KEY=changeme
-export DEFAULT_CHANNEL_SLUG=default-channel
-export HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS=True
-export DASHBOARD_URL=http://localhost:9000/
-```
-
-Run command to set variables from this file:
-
-```shell
-direnv allow
-```
-
 You are ready to go 🎉.
 
 ### Common commands
