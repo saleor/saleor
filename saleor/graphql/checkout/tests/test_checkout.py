@@ -130,7 +130,7 @@ def test_update_checkout_shipping_method_if_invalid(
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
 
     assert checkout.shipping_method is None
-    assert checkout_info.delivery_method_info.delivery_method is None
+    assert checkout_info.get_delivery_method_info().delivery_method is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])
@@ -164,7 +164,7 @@ def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
 
     # then
     assert checkout.shipping_method is None
-    assert checkout_info.delivery_method_info.delivery_method is None
+    assert checkout_info.get_delivery_method_info().delivery_method is None
 
     # Ensure the checkout's shipping method was saved
     checkout.refresh_from_db(fields=["shipping_method"])

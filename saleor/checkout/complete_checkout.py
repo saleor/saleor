@@ -178,7 +178,7 @@ def _process_shipping_data_for_order(
     lines: list["CheckoutLineInfo"],
 ) -> dict[str, Any]:
     """Fetch, process and return shipping data from checkout."""
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
     shipping_address = delivery_method_info.shipping_address
 
     if (
@@ -387,7 +387,7 @@ def _create_line_for_order(
         is_digital=is_digital,
         variant=variant,
         digital_content=variant.digital_content if is_digital and variant else None,
-        warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
+        warehouse_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         line_discounts=line_discounts,
     )
 
@@ -469,7 +469,7 @@ def _create_lines_for_order(
     }
 
     additional_warehouse_lookup = (
-        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+        checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     check_stock_and_preorder_quantity_bulk(
         variants,
@@ -477,7 +477,7 @@ def _create_lines_for_order(
         quantities,
         checkout_info.channel.slug,
         global_quantity_limit=None,
-        delivery_method_info=checkout_info.delivery_method_info,
+        delivery_method_info=checkout_info.get_delivery_method_info(),
         additional_filter_lookup=additional_warehouse_lookup,
         existing_lines=lines,
         replace=True,
@@ -688,14 +688,14 @@ def _create_order(
 
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
-        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+        checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     allocate_stocks(
         order_lines_info,
         country_code,
         checkout_info.channel,
         manager,
-        checkout_info.delivery_method_info.warehouse_pk,
+        checkout_info.get_delivery_method_info().warehouse_pk,
         additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
@@ -1139,14 +1139,14 @@ def _handle_allocations_of_order_lines(
 ):
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
-        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+        checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     allocate_stocks(
         order_lines_info,
         country_code,
         checkout_info.channel,
         manager,
-        checkout_info.delivery_method_info.warehouse_pk,
+        checkout_info.get_delivery_method_info().warehouse_pk,
         additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],

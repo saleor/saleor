@@ -84,7 +84,7 @@ def _trigger_checkout_sync_webhooks(
     webhook_event_map: dict[str, set["Webhook"]],
     address: Optional["Address"] = None,
 ):
-    _ = checkout_info.all_shipping_methods
+    _ = checkout_info.get_all_shipping_methods()
 
     # + timedelta(seconds=10) to confirm that triggered webhooks will still have
     # valid prices. Triggered only when we have active sync tax webhook.

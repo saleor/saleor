@@ -232,7 +232,11 @@ def test_assign_built_in_shipping_to_checkout_without_delivery_method(
     checkout, shipping_method
 ):
     # given
-    expected_updated_fields = {"shipping_method_id", "shipping_method_name"}
+    expected_updated_fields = {
+        "shipping_method_id",
+        "shipping_method_name",
+        "undiscounted_base_shipping_price_amount",
+    }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
@@ -259,6 +263,7 @@ def test_assign_built_in_shipping_to_checkout_with_cc(
         "shipping_method_name",
         "collection_point_id",
         "shipping_address_id",
+        "undiscounted_base_shipping_price_amount",
     }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
@@ -287,6 +292,7 @@ def test_assign_built_in_shipping_to_checkout_with_external_shipping_method(
         "shipping_method_id",
         "shipping_method_name",
         "external_shipping_method_id",
+        "undiscounted_base_shipping_price_amount",
     }
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
@@ -320,6 +326,7 @@ def test_assign_built_in_shipping_to_checkout_with_different_shipping_method(
     expected_updated_fields = {
         "shipping_method_id",
         "shipping_method_name",
+        "undiscounted_base_shipping_price_amount",
     }
 
     # when
@@ -337,13 +344,15 @@ def test_assign_built_in_shipping_to_checkout_with_the_same_shipping_method(
     checkout, shipping_method
 ):
     # given
+    shipping_price_amount = Decimal(10)
     checkout.shipping_method = shipping_method
     checkout.shipping_method_name = shipping_method.name
+    checkout.undiscounted_base_shipping_price_amount = shipping_price_amount
 
     shipping_method_data = ShippingMethodData(
         id=str(shipping_method.id),
         name=shipping_method.name,
-        price=Money(10, checkout.currency),
+        price=Money(shipping_price_amount, checkout.currency),
     )
 
     # when
