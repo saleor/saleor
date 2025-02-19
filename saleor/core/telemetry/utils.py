@@ -1,13 +1,15 @@
-from collections.abc import Callable
+import logging
+from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
-from typing import Any
 
-from opentelemetry.trace import Link, SpanContext
+from opentelemetry.trace import Link, SpanContext, TraceFlags
 from opentelemetry.util.types import Attributes, AttributeValue
+
+logger = logging.getLogger(__name__)
 
 Amount = int | float
 
@@ -62,9 +64,12 @@ def enrich_with_global_attributes(attributes: Attributes) -> Attributes:
     return {**(attributes or {}), **get_global_attributes()}
 
 
-@dataclass
-class TaskTelemetryContext:
-    links: list[Link] = field(default_factory=list)
+@dataclass(frozen=True)
+class TelemetryContext:
+    """Carries telemetry context when propagated to Celery tasks."""
+
+    # TODO add TraceState support
+    links: Sequence[Link] | None = None
     global_attributes: dict[str, AttributeValue] = field(
         default_factory=get_global_attributes
     )
@@ -80,39 +85,52 @@ class TaskTelemetryContext:
                     },
                     "attributes": link.attributes,
                 }
-                for link in self.links
+                for link in (self.links or [])
             ],
             "global_attributes": dict(self.global_attributes),
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "TaskTelemetryContext":
-        links = [
-            Link(
-                context=SpanContext(
-                    trace_id=link["context"]["trace_id"],
-                    span_id=link["context"]["span_id"],
-                    is_remote=True,
-                    trace_flags=link["context"]["trace_flags"],
-                ),
-                attributes=link.get("attributes"),
-            )
-            for link in data["links"]
-        ]
-        return cls(links=links, global_attributes=data["global_attributes"])
+    def from_dict(cls, data: dict | None) -> "TelemetryContext":
+        if not data:
+            return cls(global_attributes={})
+        try:
+            links = [
+                Link(
+                    context=SpanContext(
+                        trace_id=link["context"]["trace_id"],
+                        span_id=link["context"]["span_id"],
+                        is_remote=True,
+                        trace_flags=TraceFlags(link["context"]["trace_flags"]),
+                    ),
+                    attributes=link.get("attributes"),
+                )
+                for link in data.get("links", [])
+            ]
+            return cls(links=links, global_attributes=data.get("global_attributes", {}))
+        except (KeyError, ValueError, TypeError) as e:
+            raise ValueError(f"Invalid telemetry context data: {e}") from e
 
 
-def with_telemetry_context(func: Callable) -> Callable:
+def task_with_telemetry_context(func: Callable) -> Callable:
+    """Propagate telemetry context to Celery tasks.
+
+    Sets global attributes within task context. Wrapped function must accept span_links kwarg.
+    Task must be invoked with telemetry_context kwarg.
+    """
+
     @wraps(func)
-    def wrapper(*args, **kwargs) -> Any:
-        context = TaskTelemetryContext()
-        if context_data := kwargs.pop("telemetry_context", {}):
-            if isinstance(context_data, TaskTelemetryContext):
-                context = context_data
-            else:
-                context = TaskTelemetryContext.from_dict(context_data)
-        kwargs["telemetry_context"] = context
+    def wrapper(*args, **kwargs):
+        context = TelemetryContext(global_attributes={})
+        if "telemetry_context" not in kwargs:
+            logger.warning("No telemetry_context provided for the task")
+        else:
+            try:
+                context = TelemetryContext.from_dict(kwargs.pop("telemetry_context"))
+            except ValueError:
+                logger.exception("Failed to parse telemetry context")
+
         with set_global_attributes(context.global_attributes):
-            return func(*args, **kwargs)
+            return func(*args, span_links=context.links, **kwargs)
 
     return wrapper

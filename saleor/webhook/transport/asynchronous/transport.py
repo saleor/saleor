@@ -19,9 +19,9 @@ from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
 from ....core.telemetry import (
     Link,
-    TaskTelemetryContext,
-    tracer,
-    with_telemetry_context,
+    TelemetryContext,
+    get_current_context,
+    task_with_telemetry_context,
 )
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
@@ -414,16 +414,15 @@ def trigger_webhooks_async_for_multiple_objects(
                 "event_delivery_ids": event_delivery_ids,
                 "deferred_payload_data": asdict(deferred_payload_data),
                 "send_webhook_queue": queue,
+                "telemetry_context": get_current_context().to_dict(),
             },
             bind=True,
         )
-    context = tracer.get_current_span().get_span_context()
-    telemetry_context = TaskTelemetryContext(links=[Link(context)])
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,
-                "telemetry_context": telemetry_context.to_dict(),
+                "telemetry_context": get_current_context().to_dict(),
             },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
@@ -480,11 +479,13 @@ def trigger_webhooks_async(
 
 @app.task(bind=True)
 @allow_writer()
+@task_with_telemetry_context
 def generate_deferred_payloads(
     self,
     event_delivery_ids: list,
     deferred_payload_data: dict,
     send_webhook_queue: str | None = None,
+    span_links: Sequence[Link] | None = None,
 ):
     deliveries = list(
         get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
@@ -553,12 +554,14 @@ def generate_deferred_payloads(
                 EventDelivery.objects.bulk_update(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
-
+    # Propagate received telemetry context
+    telemetry_context = TelemetryContext(links=span_links)
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,
+                "telemetry_context": telemetry_context.to_dict(),
             },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
@@ -577,9 +580,9 @@ def generate_deferred_payloads(
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-@with_telemetry_context
+@task_with_telemetry_context
 def send_webhook_request_async(
-    self, event_delivery_id, telemetry_context: TaskTelemetryContext
+    self, event_delivery_id, span_links: Sequence[Link] | None = None
 ) -> None:
     delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
@@ -606,7 +609,7 @@ def send_webhook_request_async(
             domain,
             payload_size,
             app=webhook.app,
-            telemetry_context=telemetry_context,
+            span_links=span_links,
         ):
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
