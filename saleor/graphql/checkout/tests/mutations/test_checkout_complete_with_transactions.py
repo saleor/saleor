@@ -3839,7 +3839,7 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     assert not checkout_info.valid_pick_up_points
-    assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
+    assert not checkout_info.get_delivery_method_info().is_method_in_valid_methods(
         checkout_info
     )
     # when
@@ -3979,7 +3979,7 @@ def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_wareho
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     assert not checkout_info.valid_pick_up_points
-    assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
+    assert not checkout_info.get_delivery_method_info().is_method_in_valid_methods(
         checkout_info
     )
 

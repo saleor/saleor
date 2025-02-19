@@ -31,6 +31,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import VariantChannelListingPromotionRule
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
+from ...webhook.event_types import WebhookEventSyncType
 from .. import base_calculations, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -65,14 +66,14 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
     # no shipping method assigned
     assert not delivery_method_info.is_valid_delivery_method()
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_valid_delivery_method()
 
@@ -80,7 +81,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     shipping_method.shipping_zone = zone
     shipping_method.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -117,7 +118,7 @@ def test_is_valid_delivery_method_external_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -162,12 +163,140 @@ def test_is_valid_delivery_method_external_method_with_metadata_and_description(
 
     # when
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     # then
     assert delivery_method_info.delivery_method.metadata == metadata
     assert delivery_method_info.delivery_method.description == description
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_delivery_method_external_method_with_not_allowed_webhooks(
+    mocked_request, checkout_with_item, shipping_app, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    shipping_method_id = "abcd"
+    shipping_method_name = "Default shipping"
+    graphql_shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{shipping_method_id}"
+    )
+
+    checkout = checkout_with_item
+    shipping_price = Money(Decimal(10), currency=checkout.currency)
+
+    checkout.external_shipping_method_id = graphql_shipping_method_id
+    checkout.undiscounted_base_shipping_price = shipping_price
+    checkout.shipping_method_name = shipping_method_name
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    delivery_method_info = checkout_info.get_delivery_method_info()
+
+    # then
+    delivery_method = delivery_method_info.delivery_method
+    assert isinstance(delivery_method, ShippingMethodData)
+    assert delivery_method.name == shipping_method_name
+    assert delivery_method.price == shipping_price
+    assert delivery_method.id == graphql_shipping_method_id
+    mocked_request.assert_not_called()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_delivery_method_exclude_shipping_methods_with_not_allowed_webhooks(
+    mocked_request, checkout_with_item, shipping_app, settings
+):
+    # given
+    webhook = shipping_app.webhooks.get()
+    webhook.events.create(
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    shipping_method_id = "abcd"
+    shipping_method_name = "Default shipping"
+    graphql_shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{shipping_method_id}"
+    )
+
+    checkout = checkout_with_item
+    shipping_price = Money(Decimal(10), currency=checkout.currency)
+
+    checkout.external_shipping_method_id = graphql_shipping_method_id
+    checkout.undiscounted_base_shipping_price = shipping_price
+    checkout.shipping_method_name = shipping_method_name
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    delivery_method_info = checkout_info.get_delivery_method_info()
+
+    # then
+    delivery_method = delivery_method_info.delivery_method
+    assert isinstance(delivery_method, ShippingMethodData)
+    assert delivery_method.name == shipping_method_name
+    assert delivery_method.price == shipping_price
+    assert delivery_method.id == graphql_shipping_method_id
+    mocked_request.assert_not_called()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_get_all_shipping_methods_with_external_methods_and_not_allowed_webhooks(
+    mocked_request, checkout_with_shipping_method, shipping_app, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    checkout = checkout_with_shipping_method
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    shipping_methods = checkout_info.get_all_shipping_methods()
+
+    # then
+    assert all(not shipping_method.is_external for shipping_method in shipping_methods)
+    mocked_request.assert_not_called()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_get_all_shipping_methods_with_exclude_shipping_methods_with_not_allowed_webhooks(
+    mocked_request, checkout_with_shipping_method, shipping_app, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    webhook = shipping_app.webhooks.get()
+    webhook.events.create(
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+
+    checkout = checkout_with_shipping_method
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    shipping_methods = checkout_info.get_all_shipping_methods()
+
+    # then
+    assert all(shipping_method.active for shipping_method in shipping_methods)
+    mocked_request.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -224,7 +353,7 @@ def test_is_valid_delivery_method_external_method_with_invalid_metadata(
 
     # when
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     # then
     assert delivery_method_info.delivery_method.metadata == {}
@@ -267,7 +396,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -307,7 +436,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -340,7 +469,7 @@ def test_is_valid_delivery_method_external_method_no_longer_available(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info) is False
 
@@ -353,7 +482,7 @@ def test_clear_delivery_method(checkout, shipping_method):
     clear_delivery_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
 
 
 @patch.object(CheckoutMetadata, "save")
@@ -373,7 +502,7 @@ def test_clear_delivery_method_do_not_update_metadata_when_no_external_shipping(
     checkout.refresh_from_db()
     assert not mocked_metadata_save.called
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
 
 
 @patch.object(CheckoutMetadata, "save")
@@ -396,7 +525,7 @@ def test_clear_delivery_method_update_metadata_when_external_shipping(
     checkout.metadata_storage.refresh_from_db()
     assert mocked_metadata_save.called
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
     assert (
         PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
     )
@@ -1960,7 +2089,7 @@ def test_change_address_in_checkout_invalidates_shipping_methods(
         shipping_channel_listings=shipping_method.channel_listings.all(),
     )
 
-    all_shipping_methods = checkout_info.all_shipping_methods
+    all_shipping_methods = checkout_info.get_all_shipping_methods()
     assert all_shipping_methods == []
 
     # when
@@ -1979,7 +2108,7 @@ def test_change_address_in_checkout_invalidates_shipping_methods(
     assert checkout.shipping_address == address
     assert checkout.billing_address == address
     assert checkout_info.shipping_address == address
-    assert checkout_info.all_shipping_methods
+    assert checkout_info.get_all_shipping_methods()
 
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
@@ -2225,7 +2354,7 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert isinstance(delivery_method_info, DeliveryMethodBase)
     assert not delivery_method_info.is_valid_delivery_method()

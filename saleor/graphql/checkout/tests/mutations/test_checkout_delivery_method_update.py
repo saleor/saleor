@@ -2013,6 +2013,7 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
     checkout.shipping_address = address
     checkout.external_shipping_method_id = method_id
     checkout.shipping_method_name = response_shipping_name
+    checkout.undiscounted_base_shipping_price_amount = Decimal(response_shipping_price)
     checkout.save()
 
     # when
@@ -2215,8 +2216,10 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_ship
 ):
     # given
     checkout = checkout_with_shipping_method
-
     shipping_method = checkout.shipping_method
+    price = shipping_method.channel_listings.get().price
+    checkout.undiscounted_base_shipping_price_amount = price.amount
+    checkout.save()
 
     # when
     response = api_client.post_graphql(

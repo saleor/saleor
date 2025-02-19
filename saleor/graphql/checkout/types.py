@@ -342,6 +342,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
             @allow_writer_in_context(info.context)
             def calculate_line_unit_price(data):
                 checkout_info, lines, payloads = data
+                checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
                 database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
                     if line_info.line.pk == root.node.pk:
@@ -379,6 +380,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
+
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
@@ -421,6 +423,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
+
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
@@ -431,6 +434,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
             @allow_writer_in_context(info.context)
             def calculate_line_total_price(data):
                 checkout_info, lines, payloads = data
+                checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
                 database_connection_name = get_database_connection_name(info.context)
                 for line_info in lines:
                     if line_info.line.pk == root.node.pk:
@@ -947,7 +951,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_shipping_method(root: SyncWebhookControlContext[models.Checkout], info):
         def with_checkout_info(checkout_info):
-            delivery_method = checkout_info.delivery_method_info.delivery_method
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+            delivery_method = checkout_info.get_delivery_method_info().delivery_method
             if not delivery_method or not isinstance(
                 delivery_method, ShippingMethodData
             ):
@@ -968,7 +973,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
-            return checkout_info.all_shipping_methods
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+            return checkout_info.get_all_shipping_methods()
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
@@ -982,7 +988,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
-            return checkout_info.delivery_method_info.delivery_method
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+            return checkout_info.get_delivery_method_info().delivery_method
 
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
@@ -1013,6 +1020,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         def calculate_total_price(data):
             address, lines, checkout_info, manager, payloads = data
             database_connection_name = get_database_connection_name(info.context)
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -1037,6 +1046,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         def calculate_subtotal_price(data):
             address, lines, checkout_info, manager, payloads = data
             database_connection_name = get_database_connection_name(info.context)
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -1060,6 +1071,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         def calculate_shipping_price(data):
             address, lines, checkout_info, manager, payloads = data
             database_connection_name = get_database_connection_name(info.context)
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
@@ -1099,6 +1112,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     ):
         @allow_writer_in_context(info.context)
         def with_checkout_info(checkout_info):
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+
             return checkout_info.valid_shipping_methods
 
         return (
@@ -1142,7 +1157,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
 
         @allow_writer_in_context(info.context)
         def get_available_payment_gateways(results):
-            (checkout_info, lines_info) = results
+            checkout_info, lines_info = results
             return manager.list_payment_gateways(
                 currency=root.node.currency,
                 checkout_info=checkout_info,
@@ -1385,6 +1400,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         def _resolve_charge_status(data):
             address, lines, checkout_info, manager, payloads, transactions = data
             database_connection_name = get_database_connection_name(info.context)
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -1410,6 +1427,8 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
 
         def _calculate_total_balance_for_transactions(data):
             address, lines, checkout_info, manager, payloads, transactions = data
+            checkout_info.allow_sync_webhooks = root.allow_sync_webhooks
+
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,

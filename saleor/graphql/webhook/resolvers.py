@@ -80,10 +80,5 @@ def resolve_shipping_methods_for_checkout(
     )
     all_shipping_methods = get_all_shipping_methods_list(
         checkout_info,
-        checkout.shipping_address,
-        lines,
-        shipping_channel_listings,
-        manager,
-        database_connection_name=database_connection_name,
     )
     return all_shipping_methods

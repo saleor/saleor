@@ -181,7 +181,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 lines,
                 country,
                 checkout_info.channel.slug,
-                checkout_info.delivery_method_info,
+                checkout_info.get_delivery_method_info(),
             )
 
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
