@@ -103,10 +103,6 @@ You are ready to go 🎉.
 
 ### Common commands
 
-> [!TIP]
-> To run these commands you don't need to activate virtualenv via `poetry env activate`
-> You also don't need it if you're running commands in devcontainer
-
 To start server:
 
 ```shell
