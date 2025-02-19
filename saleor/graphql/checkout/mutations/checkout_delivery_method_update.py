@@ -292,4 +292,6 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             manager,
             delivery_method_data,
         )
-        return CheckoutDeliveryMethodUpdate(checkout=SyncWebhookControlContext(checkout_info.checkout))
+        return CheckoutDeliveryMethodUpdate(
+            checkout=SyncWebhookControlContext(checkout_info.checkout)
+        )
