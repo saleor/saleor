@@ -6,6 +6,7 @@ from unittest import mock
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
@@ -13,13 +14,18 @@ from measurement.measures import Weight
 from prices import Money
 
 from ....checkout import base_calculations, calculations
+from ....checkout.calculations import _fetch_checkout_prices_if_expired
 from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
+from ....checkout.utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
+    add_variant_to_checkout,
+    add_voucher_to_checkout,
+)
 from ....core.db.connection import allow_writer
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
@@ -522,6 +528,78 @@ def test_checkout_available_shipping_methods(
     assert data[field][0]["metadata"][0]["key"] == metadata_key
     assert data[field][0]["metadata"][0]["value"] == metadata_value
     assert data[field][0]["translation"]["name"] == translated_name
+
+
+GET_CHECKOUT_SHIPPING_METHODS_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+		shippingMethods{
+            id
+        }
+    }
+}
+"""
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_query_checkout_empty_address_with_shipping_method_without_exclude_webhook(
+    mock_excluded_shipping_methods_for_checkout,
+    api_client,
+    checkout_with_item,
+    shipping_method,
+):
+    # given checkout without address
+    # and checkout in channel with available shipping methods
+
+    checkout_with_item.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
+    }
+    checkout_with_item.shipping_address = None
+    checkout_with_item.billing_address = None
+
+    checkout_with_item.save(update_fields=["shipping_address", "billing_address"])
+
+    # when query is invoked
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then webhook plugin is not executing excluded_shipping_methods_for_checkout
+
+    mock_excluded_shipping_methods_for_checkout.assert_not_called()
+
+
+@mock.patch(
+    "saleor.plugins.webhook.plugin.WebhookPlugin.excluded_shipping_methods_for_checkout"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_query_checkout_with_address_with_shipping_method_without_exclude_webhook(
+    mock_excluded_shipping_methods_for_checkout,
+    api_client,
+    checkout_with_item,
+    shipping_method,
+    address,
+):
+    # GIVEN checkout with address
+    # AND checkout in channel with available shipping methods
+
+    checkout_with_item.metadata_storage.private_metadata = {
+        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
+    }
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+
+    checkout_with_item.save(update_fields=["shipping_address", "billing_address"])
+
+    # when query is invoked
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    api_client.post_graphql(GET_CHECKOUT_SHIPPING_METHODS_QUERY, variables)
+
+    # then webhook plugin is not executing excluded_shipping_methods_for_checkout
+
+    mock_excluded_shipping_methods_for_checkout.assert_called_once()
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
@@ -3633,6 +3711,33 @@ CHECKOUTS_QUERY = """
             edges {
                 node {
                     token
+                    totalPrice {
+                        currency
+                        gross {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+CHECKOUTS_WITH_LINES_TOTAL_PRICE_QUERY = """
+    {
+        checkouts(first: 20) {
+            edges {
+                node {
+                    token
+                    lines{
+                        totalPrice {
+                            currency
+                            gross {
+                                amount
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -3697,6 +3802,105 @@ def test_query_checkouts(
     assert str(checkout.token) == received_checkout["token"]
 
 
+@pytest.mark.parametrize(
+    "query", [CHECKOUTS_QUERY, CHECKOUTS_WITH_LINES_TOTAL_PRICE_QUERY]
+)
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations._calculate_and_add_tax")
+def test_query_checkouts_do_not_trigger_sync_tax_webhooks(
+    mocked_calculate_and_add_tax,
+    mocked_fetch_checkout_prices_if_expired,
+    query,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_tax_app,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_calculate_and_add_tax.assert_not_called()
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
+@pytest.mark.parametrize(
+    "query", [CHECKOUTS_QUERY, CHECKOUTS_WITH_LINES_TOTAL_PRICE_QUERY]
+)
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations.update_checkout_prices_with_flat_rates")
+def test_query_checkouts_calculate_flat_taxes(
+    mocked_update_order_prices_with_flat_rates,
+    mocked_fetch_checkout_prices_if_expired,
+    query,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_flat_rates,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkouts"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once_with(
+        checkout_with_item,
+        mock.ANY,
+        lines,
+        tax_configuration_flat_rates.prices_entered_with_tax,
+        None,
+        database_connection_name=mock.ANY,
+    )
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
 def test_query_with_channel(
     checkouts_list, staff_api_client, permission_manage_checkouts, channel_USD
 ):
@@ -3730,6 +3934,116 @@ def test_query_without_channel(
     # then
     content = get_graphql_content(response)
     assert len(content["data"]["checkouts"]["edges"]) == 5
+
+
+CHECKOUT_LINES_WITH_TOTAL_PRICE = """
+{
+    checkoutLines(first: 20) {
+        edges {
+            node {
+                id
+                totalPrice {
+                    currency
+                    gross {
+                        amount
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations._calculate_and_add_tax")
+def test_query_checkout_lines_do_not_trigger_sync_tax_webhooks(
+    mocked_calculate_and_add_tax,
+    mocked_fetch_checkout_prices_if_expired,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_tax_app,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_LINES_WITH_TOTAL_PRICE, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkoutLines"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_calculate_and_add_tax.assert_not_called()
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
+
+
+@mock.patch(
+    "saleor.checkout.calculations._fetch_checkout_prices_if_expired",
+    wraps=_fetch_checkout_prices_if_expired,
+)
+@mock.patch("saleor.checkout.calculations.update_checkout_prices_with_flat_rates")
+def test_query_checkout_lines_calculate_flat_taxes(
+    mocked_update_order_prices_with_flat_rates,
+    mocked_fetch_checkout_prices_if_expired,
+    checkout_with_item,
+    staff_api_client,
+    permission_manage_checkouts,
+    tax_configuration_flat_rates,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now()
+    checkout.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_LINES_WITH_TOTAL_PRICE, {}, permissions=[permission_manage_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["checkoutLines"]["edges"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once_with(
+        checkout_with_item,
+        mock.ANY,
+        lines,
+        tax_configuration_flat_rates.prices_entered_with_tax,
+        None,
+        database_connection_name=mock.ANY,
+    )
+    mocked_fetch_checkout_prices_if_expired.assert_called_once_with(
+        checkout_info=mock.ANY,
+        allow_sync_webhooks=False,
+        address=None,
+        database_connection_name=mock.ANY,
+        force_update=False,
+        lines=lines,
+        manager=mock.ANY,
+        pregenerated_subscription_payloads=mock.ANY,
+    )
 
 
 def test_query_checkout_lines(

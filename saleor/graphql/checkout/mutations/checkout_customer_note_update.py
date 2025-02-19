@@ -3,6 +3,7 @@ import graphene
 from ....checkout.actions import call_checkout_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -58,4 +59,6 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout=checkout,
         )
-        return CheckoutCustomerNoteUpdate(checkout=checkout)
+        return CheckoutCustomerNoteUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )

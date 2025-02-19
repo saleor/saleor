@@ -135,7 +135,7 @@ To build `schema.graphql` file:
 poe build-schema
 ```
 
-To start Python interactive interpreter:
+To run Django shell:
 
 ```
 poe shell
@@ -604,6 +604,10 @@ psql -h localhost -p 5432 -U saleor -XqAt -f data.sql > analyze.json
 6. Open the `analyze.json`, copy the data and paste it to the `plan` input field in [explain.dalibo](https://explain.dalibo.com/).
    Add an optional corresponding SQL query if you wish.
 7. Press the `Submit` button and that's it. You can analyze what you get.
+
+### Debugging
+
+We recommend you use `breakpoint()` function to set debugger. If you are using devcontainer `breakpoint` will use [ipdb](https://pypi.org/project/ipdb/). To learn more about `breakpoint` see official [PEP 553](https://peps.python.org/pep-0553/).
 
 ## Git commit messages
 
