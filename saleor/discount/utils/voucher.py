@@ -328,6 +328,15 @@ def get_products_voucher_discount(
 def create_or_update_voucher_discount_objects_for_order(
     order: "Order", denormalized=False
 ):
+    """Handle voucher discount objects for order.
+
+    Take into account all the mutual dependence and exclusivity between various types of
+    discounts.
+
+    `denormalized=True` indicates, that the discount should be calculated based on the
+    conditions from the moment of the voucher application. Otherwise, the latest
+    voucher values will be retrieved from the database.
+    """
     from ...order.fetch import fetch_draft_order_lines_info
     from ...order.models import OrderLine
 
@@ -349,14 +358,15 @@ def create_or_update_discount_object_from_order_level_voucher(
     # - order.voucher_id is None
     # - manual order-level discount exists together with order-level voucher
     # - the order has line-level voucher attached
+    is_manual_discount = order.discounts.filter(type=DiscountType.MANUAL).exists()
+    is_order_voucher = is_order_level_voucher(voucher)
+    is_line_level_voucher = not is_order_voucher and not is_shipping_voucher(voucher)
     should_delete_order_level_voucher_discount = (
         not order.voucher_id
-        or (
-            is_order_level_voucher(voucher)
-            and order.discounts.filter(type=DiscountType.MANUAL)
-        )
-        or (not is_order_level_voucher(voucher) and not is_shipping_voucher(voucher))
+        or (is_order_voucher and is_manual_discount)
+        or is_line_level_voucher
     )
+
     if should_delete_order_level_voucher_discount:
         with allow_writer():
             order.discounts.filter(type=DiscountType.VOUCHER).delete()
@@ -440,18 +450,21 @@ def create_or_update_line_discount_objects_from_voucher(lines_info, denormalized
     The LineDiscount object is created for each line with voucher applied.
     Only `SPECIFIC_PRODUCT` and `apply_once_per_order` voucher types are applied.
 
+    `denormalized=True` indicates, that the discount should be calculated based on the
+    conditions from the moment of the voucher application. Otherwise, the latest
+    voucher values will be retrieved from the database.
     """
     # FIXME: temporary - create_order_line_discount_objects should be moved to shared
     from .order import (
-        copy_unit_discount_data_to_order_line,
         create_order_line_discount_objects,
+        update_unit_discount_data_on_order_line,
     )
 
     discount_data = prepare_line_discount_objects_for_voucher(lines_info, denormalized)
     modified_lines_info = create_order_line_discount_objects(lines_info, discount_data)
     if modified_lines_info:
         _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
-        copy_unit_discount_data_to_order_line(modified_lines_info)
+        update_unit_discount_data_on_order_line(modified_lines_info)
 
 
 # TODO (SHOPX-912): share the method with checkout
@@ -459,6 +472,12 @@ def prepare_line_discount_objects_for_voucher(
     lines_info: list["EditableOrderLineInfo"],
     denormalized=False,
 ):
+    """Prepare line-level voucher discount objects to be created, updated and deleted.
+
+    `denormalized=True` indicates, that the discount should be calculated based on the
+    conditions from the moment of the voucher application. Otherwise, the latest
+    voucher values will be retrieved from the database.
+    """
     line_discounts_to_create_inputs: list[dict] = []
     line_discounts_to_update: list[OrderLineDiscount] = []
     line_discounts_to_remove: list[OrderLineDiscount] = []
@@ -622,10 +641,7 @@ def calculate_order_line_discount_amount_from_denormalized_voucher(
                 currency=currency,
                 price_to_discount=total_price,
             )
-            voucher_discount_amount = max(
-                total_price - discounted_total_price, zero_money(total_price.currency)
-            )
-            discount_amount = min(voucher_discount_amount, total_price)
+            discount_amount = min(total_price - discounted_total_price, total_price)
         else:
             unit_price = total_price / quantity
             discounted_unit_price = apply_discount_to_value(
@@ -637,7 +653,7 @@ def calculate_order_line_discount_amount_from_denormalized_voucher(
             voucher_unit_discount_amount = max(
                 unit_price - discounted_unit_price, zero_money(unit_price.currency)
             )
-            discount_amount = min(voucher_unit_discount_amount, unit_price)
+            discount_amount = min(voucher_unit_discount_amount * quantity, total_price)
     else:
         unit_price = total_price / quantity
         discounted_unit_price = apply_discount_to_value(
@@ -649,6 +665,7 @@ def calculate_order_line_discount_amount_from_denormalized_voucher(
         voucher_unit_discount_amount = max(
             unit_price - discounted_unit_price, zero_money(unit_price.currency)
         )
+        # vouchers applicable once per order discounts only a single unit of the line
         discount_amount = min(voucher_unit_discount_amount, unit_price)
     return discount_amount
 

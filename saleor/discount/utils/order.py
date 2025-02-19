@@ -41,7 +41,7 @@ def create_or_update_discount_objects_for_order(
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
-    copy_unit_discount_data_to_order_line(lines_info)
+    update_unit_discount_data_on_order_line(lines_info)
 
 
 def create_order_line_discount_objects(
@@ -136,7 +136,7 @@ def update_catalogue_promotion_discount_amount_for_order(
     discount_to_update.save(update_fields=["amount_value"])
 
 
-def copy_unit_discount_data_to_order_line(
+def update_unit_discount_data_on_order_line(
     lines_info: list["EditableOrderLineInfo"],
 ):
     for line_info in lines_info:

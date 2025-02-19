@@ -121,6 +121,7 @@ class ShippingMethodUpdateMixin:
             order.undiscounted_base_shipping_price = undiscounted_shipping_price
             order.base_shipping_price = undiscounted_shipping_price
 
+            # for new instances, the shipping discount object doesn't exist yet
             if is_new_instance:
                 return
 

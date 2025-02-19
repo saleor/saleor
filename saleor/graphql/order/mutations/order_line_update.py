@@ -97,7 +97,6 @@ class OrderLineUpdate(
                     instance.quantity,
                     order,
                     manager,
-                    instance.order,
                 )
             except InsufficientStock as e:
                 raise ValidationError(

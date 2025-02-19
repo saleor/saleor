@@ -613,10 +613,11 @@ class DraftOrderCreate(
         old_voucher_code: str | None,
     ):
         voucher = cleaned_input["voucher"]
+        if voucher is None and old_voucher is None:
+            return
 
         # create or update voucher discount object
-        if voucher or old_voucher:
-            create_or_update_voucher_discount_objects_for_order(instance)
+        create_or_update_voucher_discount_objects_for_order(instance)
 
         # handle voucher usage
         user_email = instance.user_email
