@@ -305,6 +305,7 @@ def test_checkout_customer_triggers_webhooks(
     checkout_with_item,
     customer_user2,
     permission_impersonate_user,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -317,6 +318,11 @@ def test_checkout_customer_triggers_webhooks(
 
     checkout = checkout_with_item
     checkout.email = "old@email.com"
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
     checkout.save()
 
     query = MUTATION_CHECKOUT_CUSTOMER_ATTACH

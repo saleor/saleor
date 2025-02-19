@@ -716,6 +716,7 @@ def test_checkout_billing_address_triggers_webhooks(
     user_api_client,
     checkout_with_item,
     graphql_address_data,
+    address,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -727,6 +728,12 @@ def test_checkout_billing_address_triggers_webhooks(
     ) = setup_checkout_webhooks(WebhookEventAsyncType.CHECKOUT_UPDATED)
 
     checkout = checkout_with_item
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save()
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
     billing_address = graphql_address_data

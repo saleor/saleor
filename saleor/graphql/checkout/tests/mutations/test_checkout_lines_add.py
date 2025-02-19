@@ -1910,6 +1910,7 @@ def test_checkout_lines_add_triggers_webhooks(
     user_api_client,
     checkout_with_item,
     stock,
+    address,
 ):
     # given
     mocked_send_webhook_using_scheme_method.return_value = WebhookResponse(content="")
@@ -1924,6 +1925,12 @@ def test_checkout_lines_add_triggers_webhooks(
     variant = stock.product_variant
 
     checkout = checkout_with_item
+
+    # Ensure shipping is set so shipping webhooks are emitted
+    checkout.shipping_address = address
+    checkout.billing_address = address
+
+    checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
     assert calculate_checkout_quantity(lines) == 3

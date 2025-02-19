@@ -14,11 +14,7 @@ from ...graphql.meta.inputs import MetadataInput
 from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import (
-    AccountPermissions,
-    AppPermission,
-    OrderPermissions,
-)
+from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
 from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
@@ -33,13 +29,13 @@ from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
-from ..core.connection import CountableConnection, create_connection_slice
-from ..core.context import get_database_connection_name
-from ..core.descriptions import (
-    ADDED_IN_319,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
+from ..core.connection import (
+    CountableConnection,
+    create_connection_slice,
+    create_connection_slice_for_sync_webhook_control_context,
 )
+from ..core.context import SyncWebhookControlContext, get_database_connection_name
+from ..core.descriptions import ADDED_IN_319, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -473,9 +469,12 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     def resolve_checkout(root: models.User, info: ResolveInfo):
         database_connection_name = get_database_connection_name(info.context)
-        return get_user_checkout(
+        checkout = get_user_checkout(
             root, database_connection_name=database_connection_name
         )
+        if not checkout:
+            return None
+        return SyncWebhookControlContext(node=checkout)
 
     @staticmethod
     @traced_resolver
@@ -526,8 +525,12 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     def resolve_checkouts(root: models.User, info: ResolveInfo, **kwargs):
         def _resolve_checkouts(checkouts):
-            return create_connection_slice(
-                checkouts, info, kwargs, CheckoutCountableConnection
+            return create_connection_slice_for_sync_webhook_control_context(
+                checkouts,
+                info,
+                kwargs,
+                CheckoutCountableConnection,
+                allow_sync_webhooks=False,
             )
 
         if channel := kwargs.get("channel"):

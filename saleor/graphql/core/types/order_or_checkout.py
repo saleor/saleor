@@ -4,6 +4,7 @@ from ....checkout.models import Checkout
 from ....order.models import Order
 from ...checkout import types as checkout_types
 from ...order import types as order_types
+from ..context import SyncWebhookControlContext
 
 # The file hasn't been attached to the __init__ file as it generates the circular
 # graphql import. Graphene for Union types requires already initialized types so
@@ -20,6 +21,9 @@ class OrderOrCheckoutBase(graphene.Union):
 
     @classmethod
     def resolve_type(cls, instance, info: graphene.ResolveInfo):
+        if isinstance(instance, SyncWebhookControlContext):
+            instance = instance.node
+
         if isinstance(instance, Checkout):
             return checkout_types.Checkout
         if isinstance(instance, Order):

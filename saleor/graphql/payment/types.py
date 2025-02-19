@@ -14,6 +14,7 @@ from ..app.dataloaders import ActiveAppsByAppIdentifierLoader, AppByIdLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.context import SyncWebhookControlContext
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString, PermissionsField
 from ..core.scalars import JSON, DateTime
@@ -278,7 +279,17 @@ class Payment(ModelObjectType[models.Payment]):
     def resolve_checkout(root: models.Payment, info):
         if not root.checkout_id:
             return None
-        return CheckoutByTokenLoader(info.context).load(root.checkout_id)
+
+        def _wrap_with_webhook_sync_control(checkout):
+            if not checkout:
+                return None
+            return SyncWebhookControlContext(node=checkout)
+
+        return (
+            CheckoutByTokenLoader(info.context)
+            .load(root.checkout_id)
+            .then(_wrap_with_webhook_sync_control)
+        )
 
 
 class PaymentCountableConnection(CountableConnection):
@@ -542,7 +553,17 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     def resolve_checkout(root: models.TransactionItem, info):
         if not root.checkout_id:
             return None
-        return CheckoutByTokenLoader(info.context).load(root.checkout_id)
+
+        def _wrap_with_webhook_sync_control(checkout):
+            if not checkout:
+                return None
+            return SyncWebhookControlContext(node=checkout)
+
+        return (
+            CheckoutByTokenLoader(info.context)
+            .load(root.checkout_id)
+            .then(_wrap_with_webhook_sync_control)
+        )
 
     @staticmethod
     def resolve_events(root: models.TransactionItem, info):
