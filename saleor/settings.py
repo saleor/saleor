@@ -35,7 +35,7 @@ django_stubs_ext.monkeypatch()
 
 
 def get_list(text):
-    return [item.strip() for item in text.split(",")]
+    return [item.strip() for item in text.split(",") if item]
 
 
 def get_bool_from_env(name, default_value):

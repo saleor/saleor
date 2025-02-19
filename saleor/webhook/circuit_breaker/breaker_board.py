@@ -69,7 +69,7 @@ class BreakerBoard:
         self.ttl_seconds = ttl_seconds
 
     def validate_sync_events(self):
-        if settings.BREAKER_BOARD_SYNC_EVENTS == [""]:
+        if not settings.BREAKER_BOARD_SYNC_EVENTS:
             raise ImproperlyConfigured("BREAKER_BOARD_SYNC_EVENTS cannot be empty.")
         for event in settings.BREAKER_BOARD_SYNC_EVENTS:
             if not WebhookEventSyncType.EVENT_MAP.get(event):
@@ -77,7 +77,7 @@ class BreakerBoard:
                     f'Event "{event}" is not supported by circuit breaker.'
                 )
         for event in settings.BREAKER_BOARD_DRY_RUN_SYNC_EVENTS:
-            if not event in settings.BREAKER_BOARD_SYNC_EVENTS:
+            if event not in settings.BREAKER_BOARD_SYNC_EVENTS:
                 raise ImproperlyConfigured(
                     f'Dry-run event "{event}" is not monitored by circuit breaker.'
                 )
