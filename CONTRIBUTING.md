@@ -110,9 +110,19 @@ poe start
 ```
 
 to start Celery worker:
+
 ```
 poe worker
 ```
+
+to start Celery Beat scheduler:
+
+```
+poe scheduler
+```
+
+> [!NOTE]
+> To learn more about Celery tasks and scheduler, check [Task Queue docs](https://docs.saleor.io/developer/running-saleor/task-queue#periodic-tasks)
 
 To run database migrations:
 

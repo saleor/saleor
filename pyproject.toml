@@ -9,8 +9,11 @@ envfile = ".env"
 start.help = "Start development server with hot reload"
 start.cmd = "uvicorn saleor.asgi:application --reload"
 
-worker.help = "Start celery worker"
-worker.cmd = "celery --app=saleor.celeryconf:app worker --beat"
+worker.help = "Start Celery worker"
+worker.cmd = "celery --app saleor.celeryconf:app worker -E"
+
+scheduler.help = "Start Celery Beat scheduler"
+scheduler.cmd = "celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler"
 
 build-schema.cmd = "python manage.py get_graphql_schema"
 build-schema.capture_stdout = "saleor/graphql/schema.graphql"
