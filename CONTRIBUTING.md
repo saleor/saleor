@@ -99,6 +99,18 @@ Install pre commit hooks:
 pre-commit install
 ```
 
+Create environment variables, by creating a `.env` file. You can use existing example for development:
+
+```shell
+cp .env.example .env
+```
+
+> [!NOTE]
+> Example env variables set-up Celery broker, mail server, allow `localhost` URLs and set Dashboard URL
+> so that your development setup works with additional services set-up via `docker compose`
+>
+> Learn more about each env variable in [Environment Variable docs](https://docs.saleor.io/setup/configuration)
+
 You are ready to go 🎉.
 
 ### Common commands
@@ -117,7 +129,7 @@ poe worker
 
 to start Celery Beat scheduler:
 
-```
+```shell
 poe scheduler
 ```
 
