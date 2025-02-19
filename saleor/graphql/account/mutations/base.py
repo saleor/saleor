@@ -342,8 +342,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 # If yes, it means we have a race-condition
                 # This eventually leads to ValidationError because this user
                 # already exists
-                with transaction.atomic():
-                    account_models.User.objects.get(email=instance.email)
+                account_models.User.objects.get(email=instance.email)
 
                 raise ValidationError(
                     {
