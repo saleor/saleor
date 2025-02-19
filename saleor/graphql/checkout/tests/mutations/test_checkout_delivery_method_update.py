@@ -1406,3 +1406,175 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
 
     tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_checkout_delivery_method_update_from_cc_to_external_shipping(
+    mocked_send_webhook_request_sync,
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    settings,
+    checkout_with_delivery_method_for_cc,
+    shipping_app,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_cc
+    assert checkout.shipping_address
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    response_shipping_name = "Provider - Economy"
+    response_shipping_price = "10"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": response_shipping_name,
+            "amount": response_shipping_price,
+            "currency": "USD",
+            "maximum_delivery_days": "7",
+        }
+    ]
+    mocked_send_webhook_request_sync.return_value = mock_json_response
+
+    method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_DELIVERY_METHOD,
+        {"id": to_global_id_or_none(checkout), "deliveryMethodId": method_id},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_address_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.save_billing_address is True
+    # the save_shipping_address should be reset to the default value
+    assert checkout.save_shipping_address is False
+    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_delivery_method_update_from_cc_to_none(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_delivery_method_for_cc,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_cc
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_DELIVERY_METHOD,
+        {"id": to_global_id_or_none(checkout), "deliveryMethodId": None},
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    checkout_data = data["checkout"]
+    assert not checkout_data["deliveryMethod"]
+    assert not checkout_data["shippingAddress"]
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_address_id is None
+    assert checkout.shipping_method_id is None
+    assert checkout.save_billing_address is True
+    # the save_shipping_address should be reset to the default value
+    assert checkout.save_shipping_address is False
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
+
+
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update.call_checkout_info_event",
+    wraps=call_checkout_info_event,
+)
+@patch(
+    "saleor.graphql.checkout.mutations.checkout_delivery_method_update."
+    "invalidate_checkout",
+    wraps=invalidate_checkout,
+)
+def test_checkout_delivery_method_update_from_cc_to_built_in_shipping(
+    mocked_invalidate_checkout,
+    mocked_call_checkout_info_event,
+    checkout_with_delivery_method_for_cc,
+    shipping_method,
+    api_client,
+):
+    # given
+    checkout = checkout_with_delivery_method_for_cc
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
+    method_id = to_global_id_or_none(shipping_method)
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_UPDATE_DELIVERY_METHOD,
+        {
+            "id": to_global_id_or_none(checkout),
+            "deliveryMethodId": method_id,
+        },
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+    assert data["checkout"]["deliveryMethod"]["id"] == method_id
+
+    checkout.refresh_from_db()
+    assert checkout.collection_point_id is None
+    assert checkout.shipping_address_id is None
+    assert checkout.save_billing_address is True
+    # the save_shipping_address should be reset to the default value
+    assert checkout.save_shipping_address is False
+    assert (
+        PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
+    )
+    assert checkout.shipping_method_id == shipping_method.id
+
+    mocked_invalidate_checkout.assert_called_once()
+    mocked_call_checkout_info_event.assert_called_once()
