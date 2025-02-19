@@ -5,20 +5,11 @@ from ....discount import models
 from ....permission.enums import DiscountPermissions
 from ...channel import ChannelQsContext
 from ...channel.dataloaders import ChannelByIdLoader
-from ...channel.types import (
-    Channel,
-    ChannelContext,
-    ChannelContextType,
-    ChannelContextTypeWithMetadata,
-)
+from ...channel.types import Channel, ChannelContext, ChannelContextType
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
-from ...core.descriptions import (
-    ADDED_IN_318,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_318, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
@@ -86,7 +77,7 @@ class VoucherCodeCountableConnection(CountableConnection):
         node = VoucherCode
 
 
-class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
+class Voucher(ChannelContextType[models.Voucher]):
     id = graphene.GlobalID(required=True, description="The ID of the voucher.")
     name = graphene.String(description="The name of the voucher.")
     codes = ConnectionField(
@@ -264,9 +255,9 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
-                lambda channel_listing: channel_listing.discount_value
-                if channel_listing
-                else None
+                lambda channel_listing: (
+                    channel_listing.discount_value if channel_listing else None
+                )
             )
         )
 
@@ -279,9 +270,9 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
-                lambda channel_listing: channel_listing.currency
-                if channel_listing
-                else None
+                lambda channel_listing: (
+                    channel_listing.currency if channel_listing else None
+                )
             )
         )
 
@@ -294,9 +285,9 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
             VoucherChannelListingByVoucherIdAndChannelSlugLoader(info.context)
             .load((root.node.id, root.channel_slug))
             .then(
-                lambda channel_listing: channel_listing.min_spent
-                if channel_listing
-                else None
+                lambda channel_listing: (
+                    channel_listing.min_spent if channel_listing else None
+                )
             )
         )
 

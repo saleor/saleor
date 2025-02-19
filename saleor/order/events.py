@@ -595,13 +595,17 @@ def fulfillment_fulfilled_items_event(
     user: User | None,
     app: App | None,
     fulfillment_lines: list[FulfillmentLine],
+    auto: bool = False,
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.FULFILLMENT_FULFILLED_ITEMS,
         user=user,
         app=app,
-        parameters={"fulfilled_items": [line.pk for line in fulfillment_lines]},
+        parameters={
+            "fulfilled_items": [line.pk for line in fulfillment_lines],
+            "auto": auto,
+        },
     )
 
 

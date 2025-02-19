@@ -18,6 +18,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
@@ -447,5 +448,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             event_name=WebhookEventAsyncType.CHECKOUT_CREATED,
             checkout=checkout,
         )
-        response.created = True
-        return response
+        return CheckoutCreate(
+            checkout=SyncWebhookControlContext(node=checkout), created=True
+        )

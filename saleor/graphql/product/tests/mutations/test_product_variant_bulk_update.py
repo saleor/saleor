@@ -119,6 +119,10 @@ def test_product_variant_bulk_update(
         {
             "id": variant_id,
             "name": new_name,
+            "preorder": {
+                "endDate": "2022-12-12T12:12:12Z",
+                "globalThreshold": 10,
+            },
             "metadata": [{"key": metadata_key, "value": metadata_value}],
         }
     ]
@@ -147,6 +151,12 @@ def test_product_variant_bulk_update(
     assert product_variant_created_webhook_mock.call_count == data["count"]
     for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
+
+    variant.refresh_from_db()
+
+    assert variant.preorder_end_date
+    assert variant.preorder_global_threshold
+    assert variant.is_preorder
 
 
 @pytest.mark.parametrize(

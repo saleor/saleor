@@ -8,6 +8,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
@@ -124,4 +125,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             checkout_info=checkout_info,
             lines=lines,
         )
-        return CheckoutBillingAddressUpdate(checkout=checkout)
+        return CheckoutBillingAddressUpdate(
+            checkout=SyncWebhookControlContext(node=checkout)
+        )

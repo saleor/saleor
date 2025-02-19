@@ -14,7 +14,7 @@ from ....thumbnail.utils import (
 )
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
+from ...channel.types import ChannelContextType
 from ...core import ResolveInfo
 from ...core.connection import (
     CountableConnection,
@@ -22,10 +22,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import get_database_connection_name
-from ...core.descriptions import (
-    DEPRECATED_IN_3X_FIELD,
-    RICH_CONTENT,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -47,7 +44,7 @@ from .products import ProductCountableConnection
 
 
 @federated_entity("id channel")
-class Collection(ChannelContextTypeWithMetadata[models.Collection]):
+class Collection(ChannelContextType[models.Collection]):
     id = graphene.GlobalID(required=True, description="The ID of the collection.")
     seo_title = graphene.String(description="SEO title of the collection.")
     seo_description = graphene.String(description="SEO description of the collection.")

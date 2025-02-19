@@ -34,6 +34,14 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                     message
                 }
                 order {
+                    metadata {
+                      key
+                      value
+                    }
+                    privateMetadata {
+                      key
+                      value
+                    }
                     userEmail
                     externalReference
                     channel {
@@ -2589,3 +2597,66 @@ def test_draft_order_update_no_billing_address_save_addresses_raising_error(
     error = errors[0]
     assert error["field"] == "saveBillingAddress"
     assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
+
+
+def test_draft_order_update_with_metadata(
+    app_api_client, permission_manage_orders, draft_order, channel_PLN
+):
+    # given
+    order = draft_order
+    order.channel = channel_PLN
+    order.metadata = []
+    order.private_metadata = []
+
+    order.save(update_fields=["channel", "private_metadata", "metadata"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    public_metadata_key = "public metadata key"
+    public_metadata_value = "public metadata value"
+    private_metadata_key = "private metadata key"
+    private_metadata_value = "private metadata value"
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [
+                {
+                    "key": public_metadata_key,
+                    "value": public_metadata_value,
+                }
+            ],
+            "privateMetadata": [
+                {
+                    "key": private_metadata_key,
+                    "value": private_metadata_value,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert not data["errors"]
+
+    metadata_result_list: list[dict[str, str]] = data["order"]["metadata"]
+    private_metadata_result_list: list[dict[str, str]] = data["order"][
+        "privateMetadata"
+    ]
+
+    assert len(metadata_result_list) == 1
+    assert len(private_metadata_result_list) == 1
+
+    assert metadata_result_list[0]["key"] == public_metadata_key
+    assert metadata_result_list[0]["value"] == public_metadata_value
+
+    assert private_metadata_result_list[0]["key"] == private_metadata_key
+    assert private_metadata_result_list[0]["value"] == private_metadata_value

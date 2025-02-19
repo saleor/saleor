@@ -38,12 +38,14 @@ from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...core.utils import from_global_id_or_error
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
@@ -109,7 +111,13 @@ class DraftOrderInput(BaseInputObjectType):
         description="Customer associated with the draft order.", name="user"
     )
     user_email = graphene.String(description="Email address of the customer.")
-    discount = PositiveDecimal(description="Discount amount for the order.")
+    discount = PositiveDecimal(
+        description=(
+            f"Discount amount for the order."
+            f"{DEPRECATED_IN_3X_INPUT} Providing a value for the field has no effect. "
+            f"Use `orderDiscountAdd` mutation instead."
+        )
+    )
     shipping_address = AddressInput(description="Shipping address of the customer.")
     save_shipping_address = graphene.Boolean(
         description=(
@@ -146,6 +154,16 @@ class DraftOrderInput(BaseInputObjectType):
     external_reference = graphene.String(
         description="External ID of this order.", required=False
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description="Order public metadata." + ADDED_IN_321,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Order private metadata." + ADDED_IN_321,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -181,6 +199,8 @@ class DraftOrderCreate(
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def get_instance_channel_id(cls, instance, **data):

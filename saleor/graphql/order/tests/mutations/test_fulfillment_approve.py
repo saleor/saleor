@@ -47,13 +47,18 @@ def test_fulfillment_approve(
     fulfillment,
     permission_group_manage_orders,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
     query = APPROVE_FULFILLMENT_MUTATION
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
     variables = {"id": fulfillment_id, "notifyCustomer": True}
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentApprove"]
     assert not data["errors"]
@@ -182,7 +187,9 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     staff_api_client,
     fulfillment,
     permission_group_manage_orders,
+    django_capture_on_commit_callbacks,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
@@ -196,8 +203,12 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
         "notifyCustomer": True,
         "allowStockToBeExceeded": False,
     }
-    response = staff_api_client.post_graphql(query, variables)
 
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["orderFulfillmentApprove"]["errors"]
 
@@ -222,7 +233,7 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     fulfillment.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
 
-    assert mock_email_fulfillment.call_count == 1
+    mock_email_fulfillment.assert_not_called()
     events = fulfillment.order.events.all()
     assert len(events) == 0
     mock_fulfillment_approved.assert_not_called()
