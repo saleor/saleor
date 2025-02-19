@@ -177,8 +177,7 @@ def test_breaker_board_configuration_invalid_events(settings, breaker_storage):
 
 def test_breaker_board_configuration_empty_event(settings, breaker_storage):
     # given
-    event_name = ""
-    settings.BREAKER_BOARD_SYNC_EVENTS = [event_name]
+    settings.BREAKER_BOARD_SYNC_EVENTS = []
 
     # when
     with pytest.raises(ImproperlyConfigured) as e:
@@ -188,7 +187,7 @@ def test_breaker_board_configuration_empty_event(settings, breaker_storage):
     assert e.value.args[0] == "BREAKER_BOARD_SYNC_EVENTS cannot be empty."
 
 
-def test_breaker_board_configuration_miexed_events(settings, breaker_storage):
+def test_breaker_board_configuration_mixed_events(settings, breaker_storage):
     # given
     bad_event_name = "bad_event"
     settings.BREAKER_BOARD_SYNC_EVENTS = [
@@ -205,4 +204,23 @@ def test_breaker_board_configuration_miexed_events(settings, breaker_storage):
     assert (
         e.value.args[0]
         == f'Event "{bad_event_name}" is not supported by circuit breaker.'
+    )
+
+
+def test_breaker_board_configuration_unexpected_dry_run_event(
+    settings, breaker_storage
+):
+    # given
+    event_name = "shipping_list_methods_for_checkout"
+    settings.BREAKER_BOARD_SYNC_EVENTS = ["checkout_calculate_taxes"]
+    settings.BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = [event_name]
+
+    # when
+    with pytest.raises(ImproperlyConfigured) as e:
+        create_breaker_board(breaker_storage)
+
+    # then
+    assert (
+        e.value.args[0]
+        == f'Dry-run event "{event_name}" is not monitored by circuit breaker.'
     )

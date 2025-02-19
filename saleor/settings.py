@@ -35,7 +35,7 @@ django_stubs_ext.monkeypatch()
 
 
 def get_list(text):
-    return [item.strip() for item in text.split(",")]
+    return [item.strip() for item in text.split(",") if item]
 
 
 def get_bool_from_env(name, default_value):
@@ -998,7 +998,6 @@ warnings.filterwarnings("ignore", category=CacheKeyWarning)
 
 # Breaker board configuration
 BREAKER_BOARD_ENABLED = get_bool_from_env("BREAKER_BOARD_ENABLED", False)
-BREAKER_BOARD_DRY_RUN = get_bool_from_env("BREAKER_BOARD_DRY_RUN", False)
 # Storage class string for the breaker board, for example:
 # "saleor.webhook.circuit_breaker.storage.RedisStorage"
 BREAKER_BOARD_STORAGE_CLASS = "saleor.webhook.circuit_breaker.storage.RedisStorage"
@@ -1010,27 +1009,8 @@ if BREAKER_BOARD_ENABLED and (CACHE_URL is None or not CACHE_URL.startswith("red
 # "checkout_calculate_taxes, shipping_list_methods_for_checkout".
 BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS", ""))
 
-# Minimum failure events count to consider the breaker board threshold percentage.
-BREAKER_BOARD_FAILURE_MIN_COUNT = int(
-    os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT", 10)
+# Subset of BREAKER_BOARD_SYNC_EVENTS that should be monitored by the breaker board,
+# but should not be disabled in case of exceeding failure thresholds
+BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
+    os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
 )
-BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE = int(
-    os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE", 50)
-)
-# Minimum failure events count to consider threshold percentage in half-open state.
-BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY = int(
-    os.environ.get("BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY", 10)
-)
-BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY = int(
-    os.environ.get("BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY", 50)
-)
-# Minimum success events count to recover (half-open to closed).
-BREAKER_BOARD_SUCCESS_COUNT_RECOVERY = int(
-    os.environ.get("BREAKER_BOARD_SUCCESS_COUNT_RECOVERY", 10)
-)
-# Time to switch from open to half-open state.
-BREAKER_BOARD_COOLDOWN_SECONDS = int(
-    os.environ.get("BREAKER_BOARD_COOLDOWN_SECONDS", 5 * 60)
-)
-# Time frame for events to be analyzed in the breaker board (last x seconds).
-BREAKER_BOARD_TTL_SECONDS = int(os.environ.get("BREAKER_BOARD_TTL_SECONDS", 5 * 60))
