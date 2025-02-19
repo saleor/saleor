@@ -2,6 +2,44 @@
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poe]
+envfile = ".env"
+
+[tool.poe.tasks]
+start.help = "Start development server with hot reload"
+start.cmd = "uvicorn saleor.asgi:application --reload"
+
+worker.help = "Start Celery worker"
+worker.cmd = "celery --app saleor.celeryconf:app worker -E"
+
+scheduler.help = "Start Celery Beat scheduler"
+scheduler.cmd = "celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler"
+
+build-schema.cmd = "python manage.py get_graphql_schema"
+build-schema.capture_stdout = "saleor/graphql/schema.graphql"
+build-schema.help = "Build GraphQL schema to saleor/graphql/schema.graphql file"
+
+migrate.cmd = "python manage.py migrate"
+migrate.help = "Run database migrations"
+
+release.shell = "npm run release"
+release.help = """
+Release new Saleor verison
+Prerequisities:
+- Node installed on machine
+- Run npm install to install dependencies
+"""
+
+shell.cmd = "python manage.py shell"
+shell.help = "Start Django shell in interactive mode"
+
+populatedb.cmd = "python manage.py populatedb --createsuperuser"
+populatedb.help = """
+Populates database with sample data and creates admin user with credentials:
+- email: admin@example.com
+- password: admin
+"""
+
 [tool.poetry]
 name = "saleor"
 version = "3.21.0-a.0"
@@ -133,6 +171,7 @@ package-mode = false
   types-requests = "^2.31.0" # Cannot upgrade due to using an old version of urllib3 (https://github.com/saleor/saleor/issues/17130)
   types-six = "^1.16.17"
   vcrpy = ">=4.0,<7.0"
+  poethepoet = "^0.32.2"
   ipdb = "^0.13.13"
 
 [tool.deptry]

@@ -2999,6 +2999,18 @@ qa = ["flake8 (==5.0.4)", "mypy (==0.971)", "types-setuptools (==67.2.0.1)"]
 testing = ["docopt", "pytest"]
 
 [[package]]
+name = "pastel"
+version = "0.2.1"
+description = "Bring colors to your terminal."
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+groups = ["dev"]
+files = [
+    {file = "pastel-0.2.1-py2.py3-none-any.whl", hash = "sha256:4349225fcdf6c2bb34d483e523475de5bb04a5c10ef711263452cb37d7dd4364"},
+    {file = "pastel-0.2.1.tar.gz", hash = "sha256:e6581ac04e973cac858828c6202c1e1e81fee1dc7de7683f3e1ffe0bfd8a573d"},
+]
+
+[[package]]
 name = "peewee"
 version = "3.17.8"
 description = "a little orm"
@@ -3270,6 +3282,25 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "poethepoet"
+version = "0.32.2"
+description = "A task runner that works well with poetry."
+optional = false
+python-versions = ">=3.9"
+groups = ["dev"]
+files = [
+    {file = "poethepoet-0.32.2-py3-none-any.whl", hash = "sha256:97e165de8e00b07d33fd8d72896fad8b20ccafcd327b1118bb6a3da26af38d33"},
+    {file = "poethepoet-0.32.2.tar.gz", hash = "sha256:1d68871dac1b191e27bd68fea57d0e01e9afbba3fcd01dbe6f6bc3fcb071fe4c"},
+]
+
+[package.dependencies]
+pastel = ">=0.2.1,<0.3.0"
+pyyaml = ">=6.0.2,<7.0"
+
+[package.extras]
+poetry-plugin = ["poetry (>=1.2.0,<3.0.0)"]
 
 [[package]]
 name = "posuto"
@@ -5784,4 +5815,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "a998a3ad102c119f4f3e34d9fc02283055de6f70f31c3d9f479615c41ab0888c"
+content-hash = "ee3d1bdbc410a32fc1c6e9e551aa0d5a57b6ab21f0e1203272e1ebaa90f233fc"
