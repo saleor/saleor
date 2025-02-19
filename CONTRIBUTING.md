@@ -128,12 +128,6 @@ To start server:
 uvicorn saleor.asgi:application --reload
 ```
 
-To start Celery worker:
-
-```shell
-celery --app=saleor.celeryconf:app worker --beat
-```
-
 To run database migrations:
 
 ```shell
