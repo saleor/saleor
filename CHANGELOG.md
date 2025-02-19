@@ -37,7 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
-- `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - # by @lkostrowski
+- `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17382 by @lkostrowski
 
 ### Webhooks
 
