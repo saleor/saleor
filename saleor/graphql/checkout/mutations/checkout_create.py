@@ -402,13 +402,21 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         checkout_metadata = create_checkout_metadata(instance)
 
+        metadata_from_input = cleaned_input.get("metadata", [])
+        private_metadata_from_input = cleaned_input.get("private_metadata", [])
+
+        nothing_to_write = (
+            len(metadata_from_input) == 0 and len(private_metadata_from_input) == 0
+        )
+
+        if nothing_to_write:
+            return
+
         metadata_dict = {
-            metadata.key: metadata.value
-            for metadata in cleaned_input.get("metadata", [])
+            metadata.key: metadata.value for metadata in metadata_from_input
         }
         private_metadata_dict = {
-            metadata.key: metadata.value
-            for metadata in cleaned_input.get("private_metadata", [])
+            metadata.key: metadata.value for metadata in private_metadata_from_input
         }
 
         checkout_metadata.private_metadata = private_metadata_dict
