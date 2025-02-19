@@ -18,7 +18,7 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
@@ -159,6 +159,18 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=("The checkout validation rules that can be changed."),
     )
 
+    metadata = NonNullList(
+        MetadataInput,
+        description="Checkout public metadata." + ADDED_IN_321,
+        required=False,
+    )
+
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Checkout private metadata." + ADDED_IN_321,
+        required=False,
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
 
@@ -196,6 +208,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 description="A checkout was created.",
             )
         ]
+
+        # This mutation *does* save metadata but not via "support_meta_field"
+        # flags. Checkout metadata is held in separate objects
+        # Flags are set to False to be explicit and should not be enabled
+        support_meta_field = False
+        support_private_meta_field = False
 
     @classmethod
     def clean_checkout_lines(
@@ -376,7 +394,27 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 instance.billing_address = billing_address.get_copy()
 
             instance.save()
-            create_checkout_metadata(instance)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        # Write metadata in post-save action because in "save" metadata doesn't exist in
+        # cleaned_input.
+
+        checkout_metadata = create_checkout_metadata(instance)
+
+        metadata_dict = {
+            metadata.key: metadata.value
+            for metadata in cleaned_input.get("metadata", [])
+        }
+        private_metadata_dict = {
+            metadata.key: metadata.value
+            for metadata in cleaned_input.get("private_metadata", [])
+        }
+
+        checkout_metadata.private_metadata = private_metadata_dict
+        checkout_metadata.metadata = metadata_dict
+
+        checkout_metadata.save()
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
