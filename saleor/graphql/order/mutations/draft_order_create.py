@@ -549,9 +549,11 @@ class DraftOrderCreate(
                         method, instance
                     )
                     cls.update_shipping_method(instance, method)
-                    cls._update_shipping_price(
-                        instance, shipping_channel_listing, is_new_instance
-                    )
+                    cls.assign_shipping_price(instance, shipping_channel_listing)
+                    # for new instance the shipping discount is created later
+                    if not is_new_instance:
+                        cls.update_shipping_discount(instance)
+
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:

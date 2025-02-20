@@ -106,7 +106,12 @@ class ShippingMethodUpdateMixin:
         return shipping_channel_listing
 
     @classmethod
-    def _update_shipping_price(cls, order, shipping_channel_listing, is_new_instance):
+    def update_shipping_price(cls, order, shipping_channel_listing):
+        cls.assign_shipping_price(order, shipping_channel_listing)
+        cls.update_shipping_discount(order)
+
+    @classmethod
+    def assign_shipping_price(cls, order, shipping_channel_listing):
         if not shipping_channel_listing:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
@@ -121,28 +126,27 @@ class ShippingMethodUpdateMixin:
             order.undiscounted_base_shipping_price = undiscounted_shipping_price
             order.base_shipping_price = undiscounted_shipping_price
 
-            # for new instances, the shipping discount object doesn't exist yet
-            if is_new_instance:
-                return
-
-            if shipping_discount := order.discounts.filter(
-                voucher__type=VoucherType.SHIPPING
-            ).first():
-                shipping_price = apply_discount_to_value(
-                    value=shipping_discount.value,
-                    value_type=shipping_discount.value_type,
-                    currency=order.currency,
-                    price_to_discount=undiscounted_shipping_price,
-                )
-                order.base_shipping_price = shipping_price
-                shipping_discount_amount = undiscounted_shipping_price - shipping_price
-                if shipping_discount.amount != shipping_discount_amount:
-                    shipping_discount.amount = shipping_discount_amount
-                    shipping_discount.save(update_fields=["amount_value"])
-
         else:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
+
+    @classmethod
+    def update_shipping_discount(cls, order):
+        if shipping_discount := order.discounts.filter(
+            voucher__type=VoucherType.SHIPPING
+        ).first():
+            undiscounted_shipping_price = order.undiscounted_base_shipping_price
+            shipping_price = apply_discount_to_value(
+                value=shipping_discount.value,
+                value_type=shipping_discount.value_type,
+                currency=order.currency,
+                price_to_discount=undiscounted_shipping_price,
+            )
+            order.base_shipping_price = shipping_price
+            shipping_discount_amount = undiscounted_shipping_price - shipping_price
+            if shipping_discount.amount != shipping_discount_amount:
+                shipping_discount.amount = shipping_discount_amount
+                shipping_discount.save(update_fields=["amount_value"])
 
 
 def clean_order_update_shipping(
