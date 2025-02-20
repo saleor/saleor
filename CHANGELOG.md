@@ -21,7 +21,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
 - Fix updating `metadata` and `privateMetadata` in `transactionUpdate` - #17261 by @IKarbowiak
   - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
- -Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
+- Fixed `invoiceRequest` no longer throws an error, when only app with webhook `INVOICE_REQUESTED` is installed, without invoice plugin - #17355 by @witoszekdev
+- Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
 
 ### GraphQL API
 
