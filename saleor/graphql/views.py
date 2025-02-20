@@ -26,6 +26,7 @@ from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
+from .error import clear_errors
 from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
@@ -220,6 +221,9 @@ class GraphQLView(View):
                     response["errors"] = [
                         self.format_error(e) for e in execution_result.errors
                     ]
+                    # Error handling form `GraphQL-Core-Legacy` creates a multiple references cycles in
+                    # the error object. We need to clear them.
+                    clear_errors(execution_result.errors)
                 if execution_result.invalid:
                     status_code = 400
                 else:
