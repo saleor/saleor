@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 class VoucherDenormalizedInfo:
     discount_value: Decimal
     discount_value_type: str
-    voucher_type: VoucherType
+    voucher_type: str
     reason: str | None
     name: str | None
     apply_once_per_order: bool

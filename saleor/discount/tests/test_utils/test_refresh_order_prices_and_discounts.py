@@ -6,7 +6,6 @@ import pytest
 from ....core.prices import quantize_price
 from ....core.taxes import zero_money
 from ....order import OrderStatus
-from ....order.fetch import fetch_draft_order_lines_info
 from ....product.models import Product
 from ....product.utils.variant_prices import update_discounted_prices_for_promotion
 from ....product.utils.variants import fetch_variants_for_promotion_rules
@@ -49,13 +48,11 @@ def test_refresh_order_base_prices(order_with_lines):
     channel_listing_2.discounted_price_amount = new_variant_2_price
     channel_listing_2.save(update_fields=["price_amount", "discounted_price_amount"])
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
-
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info)
+    refresh_order_base_prices_and_discounts(order)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
     assert line_2.undiscounted_base_unit_price_amount == new_variant_2_price
@@ -89,14 +86,13 @@ def test_refresh_order_base_prices_single_line(order_with_lines):
     channel_listing_2.discounted_price_amount = new_variant_2_price
     channel_listing_2.save(update_fields=["price_amount", "discounted_price_amount"])
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
     line_ids_to_refresh = [line_1.id]
 
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info, line_ids_to_refresh)
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
     assert line_2.undiscounted_base_unit_price_amount == initial_variant_2_price
@@ -194,13 +190,11 @@ def test_refresh_order_base_prices_catalogue_discount(
     expected_unit_discount_2 = undiscounted_unit_price_2 - expected_unit_price_2
     expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
-
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info)
+    refresh_order_base_prices_and_discounts(order)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == undiscounted_unit_price_1
     assert line_1.base_unit_price_amount == expected_unit_price_1
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -313,14 +307,13 @@ def test_refresh_order_base_prices_catalogue_discount_single_line(
     expected_unit_discount_2 = initial_reward_value_2
     expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
     line_ids_to_refresh = [line_1.id]
 
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info, line_ids_to_refresh)
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == undiscounted_unit_price_1
     assert line_1.base_unit_price_amount == expected_unit_price_1
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -413,13 +406,11 @@ def test_refresh_order_base_prices_manual_line_discount(order_with_lines):
     expected_unit_discount_2 = new_variant_2_price - expected_unit_price_2
     expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
-
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info)
+    refresh_order_base_prices_and_discounts(order)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == expected_unit_price_1
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -508,14 +499,13 @@ def test_refresh_order_base_prices_manual_line_discount_single_line(order_with_l
     expected_unit_discount_2 = new_variant_2_price - expected_unit_price_2
     expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
     line_ids_to_refresh = [line_2.id]
 
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info, line_ids_to_refresh)
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == initial_variant_1_price
     assert line_1.base_unit_price_amount == expected_unit_price_1
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -613,13 +603,11 @@ def test_refresh_order_base_prices_specific_product_voucher(order_with_lines, vo
     expected_unit_discount_2 = new_variant_2_price - expected_unit_price_2
     expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
-
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info)
+    refresh_order_base_prices_and_discounts(order)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == expected_unit_price_1
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -719,14 +707,13 @@ def test_refresh_order_base_prices_specific_product_voucher_single_line(
     expected_unit_discount_2 = initial_variant_2_price - expected_unit_price_2
     expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
     line_ids_to_refresh = [line_1.id]
 
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info, line_ids_to_refresh)
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == expected_unit_price_1
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -819,19 +806,15 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher(
     expected_unit_discount_1 = 0
 
     # line 2 is now the cheapest and should have the price discounted by voucher
-    expected_discount_amount_2 = new_variant_2_price * (
-        1 - new_voucher_unit_discount / 100
-    )
+    expected_discount_amount_2 = new_variant_2_price * (new_voucher_unit_discount / 100)
     expected_unit_discount_2 = expected_discount_amount_2 / line_2.quantity
     expected_unit_price_2 = new_variant_2_price - expected_unit_discount_2
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
-
     # when
-    refresh_order_base_prices_and_discounts(order, lines_info)
+    refresh_order_base_prices_and_discounts(order)
 
     # then
-    line_1, line_2 = (line_info.line for line_info in lines_info)
+    line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
     assert line_1.unit_discount_amount == expected_unit_discount_1
@@ -848,3 +831,205 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher(
     assert discount_2.amount.amount == expected_discount_amount_2
     assert discount_2.value == new_voucher_unit_discount
     assert discount_2.value_type == DiscountValueType.PERCENTAGE
+
+
+def test_refresh_order_base_prices_apply_once_per_order_voucher_single_line_new_cheapest(
+    order_with_lines, voucher
+):
+    # Requesting an update of the line 2, which price has changed and is now the cheapest, should apply the
+    # voucher discount to the new cheapest line 2 and delete the discount from line 1, even if we didn't request
+    # update for line 1
+
+    # given
+    order = order_with_lines
+    currency = order.currency
+    line_1, line_2 = order.lines.all()
+    variant_2 = line_2.variant
+
+    initial_variant_1_price = line_1.undiscounted_base_unit_price_amount
+    initial_variant_2_price = line_2.undiscounted_base_unit_price_amount
+
+    # prepare apply once per order voucher
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["discount_value_type", "type", "apply_once_per_order"])
+
+    voucher_listing = voucher.channel_listings.get()
+    initial_voucher_unit_discount = Decimal(1)
+    voucher_listing.discount_value = initial_voucher_unit_discount
+    voucher_listing.save(update_fields=["discount_value"])
+
+    # apply voucher
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    create_or_update_voucher_discount_objects_for_order(order)
+
+    # line 1 is the cheapest so should have the discount applied
+    assert initial_variant_1_price < initial_variant_2_price
+    line_1.refresh_from_db()
+    discount_1 = line_1.discounts.get()
+    discount_amount_1 = initial_voucher_unit_discount
+    unit_discount_amount_1 = discount_amount_1 / line_1.quantity
+    assert quantize_price(line_1.base_unit_price_amount, currency) == quantize_price(
+        line_1.undiscounted_base_unit_price_amount - unit_discount_amount_1, currency
+    )
+    assert discount_1.value == initial_voucher_unit_discount
+    assert discount_1.amount_value == discount_amount_1
+
+    assert not line_2.discounts.exists()
+    assert line_2.base_unit_price_amount == line_2.undiscounted_base_unit_price_amount
+
+    # change variant 2 pricing to be lower than variant 1
+    channel_listing_2 = variant_2.channel_listings.get()
+    assert initial_variant_2_price == channel_listing_2.price_amount
+    assert initial_variant_2_price == channel_listing_2.discounted_price_amount
+    new_variant_2_price = initial_variant_1_price - Decimal(1)
+    channel_listing_2.price_amount = new_variant_2_price
+    channel_listing_2.discounted_price_amount = new_variant_2_price
+    channel_listing_2.save(update_fields=["price_amount", "discounted_price_amount"])
+
+    # change voucher reward value and type
+    new_voucher_unit_discount = Decimal(25)
+    voucher_listing.discount_value = new_voucher_unit_discount
+    voucher_listing.save(update_fields=["discount_value"])
+    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.save(update_fields=["discount_value_type"])
+
+    # line 1 is not the cheapest anymore, so should not have discount applied
+    assert initial_variant_1_price > new_variant_2_price
+    expected_unit_discount_1 = 0
+
+    # line 2 is now the cheapest and should have the price discounted by voucher
+    expected_discount_amount_2 = new_variant_2_price * (new_voucher_unit_discount / 100)
+    expected_unit_discount_2 = expected_discount_amount_2 / line_2.quantity
+    expected_unit_price_2 = new_variant_2_price - expected_unit_discount_2
+
+    line_ids_to_refresh = [line_2.id]
+
+    # when
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh)
+
+    # then
+    line_1, line_2 = order.lines.all()
+    assert line_1.undiscounted_base_unit_price_amount == initial_variant_1_price
+    assert line_1.base_unit_price_amount == initial_variant_1_price
+    assert line_1.unit_discount_amount == expected_unit_discount_1
+
+    assert line_2.undiscounted_base_unit_price_amount == new_variant_2_price
+    assert line_2.base_unit_price_amount == expected_unit_price_2
+    assert line_2.unit_discount_amount == expected_unit_discount_2
+
+    with pytest.raises(OrderLineDiscount.DoesNotExist):
+        discount_1.refresh_from_db()
+    assert not line_1.discounts.exists()
+
+    discount_2 = line_2.discounts.get()
+    assert discount_2.amount.amount == expected_discount_amount_2
+    assert discount_2.value == new_voucher_unit_discount
+    assert discount_2.value_type == DiscountValueType.PERCENTAGE
+
+
+def test_refresh_order_base_prices_apply_once_per_order_voucher_single_line_old_cheapest(
+    order_with_lines, voucher
+):
+    # Requesting an update of the line 1, which price has changed and is not the cheapest anymore, should apply the
+    # voucher discount to the new cheapest line 2, even if we didn't request to update prices for the line 2
+
+    # given
+    order = order_with_lines
+    currency = order.currency
+    line_1, line_2 = order.lines.all()
+    variant_1 = line_1.variant
+
+    initial_variant_1_price = line_1.undiscounted_base_unit_price_amount
+    initial_variant_2_price = line_2.undiscounted_base_unit_price_amount
+
+    # prepare apply once per order voucher
+    voucher.discount_value_type = DiscountValueType.FIXED
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["discount_value_type", "type", "apply_once_per_order"])
+
+    voucher_listing = voucher.channel_listings.get()
+    initial_voucher_unit_discount = Decimal(1)
+    voucher_listing.discount_value = initial_voucher_unit_discount
+    voucher_listing.save(update_fields=["discount_value"])
+
+    # apply voucher
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    create_or_update_voucher_discount_objects_for_order(order)
+
+    # line 1 is the cheapest so should have the discount applied
+    assert initial_variant_1_price < initial_variant_2_price
+    line_1.refresh_from_db()
+    discount_1 = line_1.discounts.get()
+    discount_amount_1 = initial_voucher_unit_discount
+    unit_discount_amount_1 = discount_amount_1 / line_1.quantity
+    assert quantize_price(line_1.base_unit_price_amount, currency) == quantize_price(
+        line_1.undiscounted_base_unit_price_amount - unit_discount_amount_1, currency
+    )
+    assert discount_1.value == initial_voucher_unit_discount
+    assert discount_1.amount_value == discount_amount_1
+
+    assert not line_2.discounts.exists()
+    assert line_2.base_unit_price_amount == line_2.undiscounted_base_unit_price_amount
+
+    # change variant 1 pricing to be higher than variant 2
+    channel_listing_1 = variant_1.channel_listings.get()
+    assert initial_variant_1_price == channel_listing_1.price_amount
+    assert initial_variant_1_price == channel_listing_1.discounted_price_amount
+    new_variant_1_price = initial_variant_2_price + Decimal(1)
+    channel_listing_1.price_amount = new_variant_1_price
+    channel_listing_1.discounted_price_amount = new_variant_1_price
+    channel_listing_1.save(update_fields=["price_amount", "discounted_price_amount"])
+
+    # change voucher reward value and type
+    new_voucher_unit_discount = Decimal(25)
+    voucher_listing.discount_value = new_voucher_unit_discount
+    voucher_listing.save(update_fields=["discount_value"])
+    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.save(update_fields=["discount_value_type"])
+
+    # line 1 is not the cheapest anymore, so should not have discount applied
+    assert new_variant_1_price > initial_variant_2_price
+    expected_unit_discount_1 = 0
+
+    # line 2 is now the cheapest and should have the price discounted by voucher, even there was no request to update
+    # this line
+    expected_discount_amount_2 = initial_variant_2_price * (
+        new_voucher_unit_discount / 100
+    )
+    expected_unit_discount_2 = expected_discount_amount_2 / line_2.quantity
+    expected_unit_price_2 = initial_variant_2_price - expected_unit_discount_2
+
+    line_ids_to_refresh = [line_1.id]
+
+    # when
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh)
+
+    # then
+    line_1, line_2 = order.lines.all()
+    assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
+    assert line_1.base_unit_price_amount == new_variant_1_price
+    assert line_1.unit_discount_amount == expected_unit_discount_1
+
+    assert line_2.undiscounted_base_unit_price_amount == initial_variant_2_price
+    assert line_2.base_unit_price_amount == expected_unit_price_2
+    assert line_2.unit_discount_amount == expected_unit_discount_2
+
+    with pytest.raises(OrderLineDiscount.DoesNotExist):
+        discount_1.refresh_from_db()
+    assert not line_1.discounts.exists()
+
+    discount_2 = line_2.discounts.get()
+    assert discount_2.amount.amount == expected_discount_amount_2
+    assert discount_2.value == new_voucher_unit_discount
+    assert discount_2.value_type == DiscountValueType.PERCENTAGE
+
+
+def test_refresh_order_base_prices_order_without_lines(order):
+    """The function should not produce error for order without lines."""
+    assert not order.lines.exists()
+    refresh_order_base_prices_and_discounts(order)

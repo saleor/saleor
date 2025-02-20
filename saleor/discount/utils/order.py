@@ -32,8 +32,8 @@ from .promotion import (
 )
 from .shared import update_line_info_cached_discounts
 from .voucher import (
-    create_or_update_discount_object_from_order_level_voucher,
     create_or_update_line_discount_objects_from_voucher,
+    get_the_cheapest_line,
 )
 
 if TYPE_CHECKING:
@@ -288,11 +288,18 @@ def create_order_line_discount_objects_for_catalogue_promotions(
 
 def refresh_order_base_prices_and_discounts(
     order: "Order",
-    lines_info: list["EditableOrderLineInfo"],
     line_ids_to_refresh: list[UUID] | None = None,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Force order to fetch the latest channel listing prices and update discounts."""
+    from ...order.fetch import (
+        fetch_draft_order_lines_info,
+        reattach_apply_once_per_order_voucher_info,
+    )
+
+    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
+    if not lines_info:
+        return
+
     if line_ids_to_refresh:
         lines_info_to_update = [
             line_info
@@ -302,17 +309,44 @@ def refresh_order_base_prices_and_discounts(
     else:
         lines_info_to_update = lines_info
 
+    initial_cheapest_line = get_the_cheapest_line(lines_info)
+
+    # update prices based on the latest channel listing prices
     _set_channel_listing_prices(lines_info_to_update)
+    # update prices based on the latest catalogue promotions
     refresh_order_line_discount_objects_for_catalogue_promotions(lines_info_to_update)
-    create_order_discount_objects_for_order_promotions(
-        order, lines_info, database_connection_name=database_connection_name
-    )
+    # update manual line discount object amount based on the new listing prices
     refresh_manual_line_discount_object(lines_info_to_update)
-    create_or_update_line_discount_objects_from_voucher(lines_info_to_update)
-    create_or_update_discount_object_from_order_level_voucher(
-        order, database_connection_name
+
+    # update prices based on the associated voucher
+    is_apply_once_per_order_voucher = (
+        order.voucher and order.voucher.apply_once_per_order
     )
+    if is_apply_once_per_order_voucher:
+        # voucher of type apply once per order can impact other order line, if the
+        # cheapest line has changed
+        reattach_apply_once_per_order_voucher_info(
+            lines_info, initial_cheapest_line, order
+        )
+        create_or_update_line_discount_objects_from_voucher(lines_info)
+    else:
+        create_or_update_line_discount_objects_from_voucher(lines_info_to_update)
+
+    # update unit discount fields based on updated discounts
     update_unit_discount_data_on_order_line(lines_info)
+
+    lines = [line_info.line for line_info in lines_info]
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_discount_amount",
+            "unit_discount_reason",
+            "unit_discount_type",
+            "unit_discount_value",
+            "base_unit_price_amount",
+            "undiscounted_base_unit_price_amount",
+        ],
+    )
 
 
 def _set_channel_listing_prices(lines_info: list["EditableOrderLineInfo"]):
