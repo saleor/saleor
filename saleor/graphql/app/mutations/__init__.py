@@ -5,12 +5,12 @@ from .app_delete import AppDelete
 from .app_delete_failed_installation import AppDeleteFailedInstallation
 from .app_fetch_manifest import AppFetchManifest
 from .app_install import AppInstall
+from .app_reenable_sync_webhooks import AppReenableSyncWebhooks
 from .app_retry_install import AppRetryInstall
 from .app_token_create import AppTokenCreate
 from .app_token_delete import AppTokenDelete
 from .app_token_verify import AppTokenVerify
 from .app_update import AppUpdate
-from .reenable_sync_webhooks import ReenableSyncWebhooks
 
 __all__ = [
     "AppActivate",
@@ -25,5 +25,5 @@ __all__ = [
     "AppTokenDelete",
     "AppTokenVerify",
     "AppUpdate",
-    "ReenableSyncWebhooks",
+    "AppReenableSyncWebhooks",
 ]

@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.utils import timezone
 from redis import RedisError
 
-from ...graphql.app.types import CircuitBreakerState
+from ...graphql.app.enums import CircuitBreakerState
 
 logger = logging.getLogger(__name__)
 

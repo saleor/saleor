@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from saleor.webhook.event_types import WebhookEventSyncType
 from saleor.webhook.transport.synchronous import transport
 
-from ....graphql.app.types import CircuitBreakerState
+from ....graphql.app.enums import CircuitBreakerState
 from .utils import create_breaker_board
 
 # The intention is to test whether BreakerBoard decorator is compatible with

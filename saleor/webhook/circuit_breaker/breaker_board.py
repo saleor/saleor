@@ -8,7 +8,7 @@ from django.utils.module_loading import import_string
 
 from saleor.webhook.event_types import WebhookEventSyncType
 
-from ...graphql.app.types import CircuitBreakerState
+from ...graphql.app.enums import CircuitBreakerState
 
 if TYPE_CHECKING:
     from ...webhook.models import Webhook
@@ -33,7 +33,7 @@ BREAKER_BOARD_FAILURE_MIN_COUNT_RECOVERY: int = 20
 BREAKER_BOARD_FAILURE_THRESHOLD_PERCENTAGE_RECOVERY: int = 30
 
 # Minimum webhook success count (within TTL) required to fully recover (close half-opened circuit breaker).
-BREAKER_BOARD_SUCCESS_COUNT_RECOVERY = 50
+BREAKER_BOARD_SUCCESS_COUNT_RECOVERY: int = 50
 
 # Time to keep circuit breaker in opened state before starting recovery (half-open state).
 BREAKER_BOARD_COOLDOWN_SECONDS: int = 2 * 60

@@ -3,7 +3,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from saleor.webhook.event_types import WebhookEventSyncType
 
-from ....graphql.app.types import CircuitBreakerState
+from ....graphql.app.enums import CircuitBreakerState
 from .utils import create_breaker_board
 
 

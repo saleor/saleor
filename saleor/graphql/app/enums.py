@@ -21,8 +21,12 @@ def description(enum):
 
 
 class CircuitBreakerState:
+    # CLOSED state means the breaker is conducting (requests are passing through).
     CLOSED = "closed"
+    # HALF_OPEN state means the breaker is in a trial period (to close or open).
+    # Requests are passing through in that state but the thresholds are different.
     HALF_OPEN = "half_open"
+    # OPEN state means the breaker is tripped (no requests are passing).
     OPEN = "open"
 
     CHOICES = [

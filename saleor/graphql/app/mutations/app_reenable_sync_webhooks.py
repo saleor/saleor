@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 breaker_board = initialize_breaker_board()
 
 
-class ReenableSyncWebhooks(BaseMutation):
+class AppReenableSyncWebhooks(BaseMutation):
     app = graphene.Field(
         App,
         description="App for which sync webhooks were re-enabled.",
@@ -69,4 +69,4 @@ class ReenableSyncWebhooks(BaseMutation):
                 app.id,
                 requestor,
             )
-        return ReenableSyncWebhooks(app=app)
+        return AppReenableSyncWebhooks(app=app)

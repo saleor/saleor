@@ -6,8 +6,8 @@ from .....app.error_codes import AppErrorCode
 from ....tests.utils import get_graphql_content
 
 REENABLE_BREAKER_MUTATION = """
-    mutation ReenableSyncWebhooks($appId: ID!) {
-        reenableSyncWebhooks(appId: $appId) {
+    mutation AppReenableSyncWebhooks($appId: ID!) {
+        appReenableSyncWebhooks(appId: $appId) {
             app {
                 name
             }
@@ -43,7 +43,7 @@ def test_reenable_sync_webhooks(
 
     # then
     breaker_board_mock.storage.clear_state_for_app.assert_called_once_with(app.id)
-    data = content["data"]["reenableSyncWebhooks"]
+    data = content["data"]["appReenableSyncWebhooks"]
     assert not data["errors"]
     assert caplog.messages == [
         f"[App ID: {app.id!r}] Circuit breaker manually reset by {staff_user!r}."
@@ -71,7 +71,7 @@ def test_reenable_sync_webhooks_id_not_in_storage(
 
     # then
     breaker_board_mock.storage.clear_state_for_app.assert_called_once_with(app.id)
-    error = content["data"]["reenableSyncWebhooks"]["errors"][0]
+    error = content["data"]["appReenableSyncWebhooks"]["errors"][0]
     assert error["field"] == "appId"
     assert error["code"] == AppErrorCode.INVALID.name
 
@@ -96,6 +96,6 @@ def test_reenable_sync_webhooks_non_existing_app_id(
 
     # then
     breaker_board_mock.storage.clear_state_for_app.assert_not_called()
-    error = content["data"]["reenableSyncWebhooks"]["errors"][0]
+    error = content["data"]["appReenableSyncWebhooks"]["errors"][0]
     assert error["field"] == "appId"
     assert error["code"] == AppErrorCode.NOT_FOUND.name

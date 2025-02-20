@@ -2,7 +2,6 @@ import base64
 import datetime
 
 import graphene
-from django.conf import settings
 
 from ...app import models
 from ...app.types import AppExtensionTarget
@@ -19,6 +18,9 @@ from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
     get_thumbnail_size,
+)
+from ...webhook.circuit_breaker.breaker_board import (
+    initialize_breaker_board,
 )
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
@@ -68,13 +70,7 @@ from .resolvers import (
     resolve_app_extension_url,
 )
 
-breaker_board = None
-if settings.BREAKER_BOARD_ENABLED:
-    from ...webhook.circuit_breaker.breaker_board import (
-        initialize_breaker_board,
-    )
-
-    breaker_board = initialize_breaker_board()
+breaker_board = initialize_breaker_board()
 
 
 # Maximal thumbnail size for manifest preview

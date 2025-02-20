@@ -18178,10 +18178,10 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   """
-  reenableSyncWebhooks(
+  appReenableSyncWebhooks(
     """The app ID to re-enable sync webhooks for."""
     appId: ID!
-  ): ReenableSyncWebhooks @doc(category: "Apps")
+  ): AppReenableSyncWebhooks @doc(category: "Apps")
 
   """Create JWT token."""
   tokenCreate(
@@ -28518,7 +28518,7 @@ Added in Saleor 3.21.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type ReenableSyncWebhooks @doc(category: "Apps") {
+type AppReenableSyncWebhooks @doc(category: "Apps") {
   """App for which sync webhooks were re-enabled."""
   app: App
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")

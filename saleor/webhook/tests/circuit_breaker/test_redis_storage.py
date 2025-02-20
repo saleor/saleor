@@ -2,7 +2,7 @@ import datetime
 
 from freezegun import freeze_time
 
-from ....graphql.app.types import CircuitBreakerState
+from ....graphql.app.enums import CircuitBreakerState
 
 APP_ID = 1
 NAME = "total"

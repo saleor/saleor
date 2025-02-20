@@ -19,12 +19,12 @@ from .mutations import (
     AppDeleteFailedInstallation,
     AppFetchManifest,
     AppInstall,
+    AppReenableSyncWebhooks,
     AppRetryInstall,
     AppTokenCreate,
     AppTokenDelete,
     AppTokenVerify,
     AppUpdate,
-    ReenableSyncWebhooks,
 )
 from .resolvers import (
     resolve_app,
@@ -190,4 +190,4 @@ class AppMutations(graphene.ObjectType):
     app_activate = AppActivate.Field()
     app_deactivate = AppDeactivate.Field()
 
-    reenable_sync_webhooks = ReenableSyncWebhooks.Field()
+    app_reenable_sync_webhooks = AppReenableSyncWebhooks.Field()
