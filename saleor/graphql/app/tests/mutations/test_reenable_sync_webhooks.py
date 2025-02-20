@@ -21,7 +21,7 @@ REENABLE_BREAKER_MUTATION = """
 """
 
 
-@patch("saleor.graphql.app.mutations.reenable_sync_webhooks.breaker_board")
+@patch("saleor.graphql.app.mutations.app_reenable_sync_webhooks.breaker_board")
 def test_reenable_sync_webhooks(
     breaker_board_mock,
     app,
@@ -50,7 +50,7 @@ def test_reenable_sync_webhooks(
     ]
 
 
-@patch("saleor.graphql.app.mutations.reenable_sync_webhooks.breaker_board")
+@patch("saleor.graphql.app.mutations.app_reenable_sync_webhooks.breaker_board")
 def test_reenable_sync_webhooks_id_not_in_storage(
     breaker_board_mock,
     app,
@@ -76,7 +76,7 @@ def test_reenable_sync_webhooks_id_not_in_storage(
     assert error["code"] == AppErrorCode.INVALID.name
 
 
-@patch("saleor.graphql.app.mutations.reenable_sync_webhooks.breaker_board")
+@patch("saleor.graphql.app.mutations.app_reenable_sync_webhooks.breaker_board")
 def test_reenable_sync_webhooks_non_existing_app_id(
     breaker_board_mock,
     permission_manage_apps,
