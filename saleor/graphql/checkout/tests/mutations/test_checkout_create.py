@@ -2793,8 +2793,10 @@ def test_checkout_create_triggers_webhooks(
     assert tax_delivery.webhook_id == tax_webhook.id
 
 
-def test_checkout_create_with_metadata(api_client, graphql_address_data, channel_USD):
-    """Create checkout object using GraphQL API."""
+def test_checkout_create_with_metadata_and_private_metadata(
+    api_client, graphql_address_data, channel_USD
+):
+    # Given
     test_email = "test@example.com"
 
     metadata_key = "metadata_key"
@@ -2817,9 +2819,10 @@ def test_checkout_create_with_metadata(api_client, graphql_address_data, channel
 
     assert not Checkout.objects.exists()
 
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    get_graphql_content(response)["data"]["checkoutCreate"]
+    # When
+    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
+    # Then
     new_checkout = Checkout.objects.first()
 
     assert new_checkout is not None
@@ -2832,5 +2835,81 @@ def test_checkout_create_with_metadata(api_client, graphql_address_data, channel
     assert len(private_metadata) == 2
 
     assert metadata[metadata_key] == metadata_value
+    assert private_metadata[metadata_key] == metadata_value
+    assert private_metadata[metadata_key_2] == metadata_value
+
+
+def test_checkout_create_with_public_metadata(
+    api_client, graphql_address_data, channel_USD
+):
+    # Given
+    test_email = "test@example.com"
+
+    metadata_key = "metadata_key"
+    metadata_value = "metadata_value"
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [],
+            "email": test_email,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+        }
+    }
+
+    assert not Checkout.objects.exists()
+
+    # When
+    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # Then
+    new_checkout = Checkout.objects.first()
+
+    assert new_checkout is not None
+
+    metadata_storage = new_checkout.metadata_storage
+    metadata = metadata_storage.metadata
+
+    assert len(metadata) == 1
+
+    assert metadata[metadata_key] == metadata_value
+
+
+def test_checkout_create_with_private_metadata(
+    api_client, graphql_address_data, channel_USD
+):
+    # Given
+    test_email = "test@example.com"
+
+    metadata_key = "metadata_key"
+    metadata_key_2 = "metadata_key_2"
+    metadata_value = "metadata_value"
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [],
+            "email": test_email,
+            "privateMetadata": [
+                {"key": metadata_key, "value": metadata_value},
+            ],
+        }
+    }
+
+    assert not Checkout.objects.exists()
+
+    # When
+    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # Then
+    new_checkout = Checkout.objects.first()
+
+    assert new_checkout is not None
+
+    metadata_storage = new_checkout.metadata_storage
+    private_metadata = metadata_storage.private_metadata
+
+    assert len(private_metadata) == 2
+
     assert private_metadata[metadata_key] == metadata_value
     assert private_metadata[metadata_key_2] == metadata_value
