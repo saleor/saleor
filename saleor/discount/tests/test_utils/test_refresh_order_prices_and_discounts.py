@@ -1029,7 +1029,51 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher_single_line_old_
     assert discount_2.value_type == DiscountValueType.PERCENTAGE
 
 
-def test_refresh_order_base_prices_order_without_lines(order):
-    """The function should not produce error for order without lines."""
-    assert not order.lines.exists()
+def test_refresh_order_base_prices_confirmed_order(order_with_lines):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.UNFULFILLED
+    order.save(update_fields=["status"])
+
+    line_1, line_2 = order.lines.all()
+    variant_1, variant_2 = line_1.variant, line_2.variant
+
+    initial_variant_1_price = line_1.undiscounted_base_unit_price_amount
+    initial_variant_2_price = line_2.undiscounted_base_unit_price_amount
+
+    # change variant 1 pricing
+    channel_listing_1 = variant_1.channel_listings.get()
+    assert initial_variant_1_price == channel_listing_1.price_amount
+    assert initial_variant_1_price == channel_listing_1.discounted_price_amount
+    new_variant_1_price = initial_variant_1_price + Decimal(1)
+    channel_listing_1.price_amount = new_variant_1_price
+    channel_listing_1.discounted_price_amount = new_variant_1_price
+    channel_listing_1.save(update_fields=["price_amount", "discounted_price_amount"])
+
+    # change variant 2 pricing
+    channel_listing_2 = variant_2.channel_listings.get()
+    assert initial_variant_2_price == channel_listing_2.price_amount
+    assert initial_variant_2_price == channel_listing_2.discounted_price_amount
+    new_variant_2_price = initial_variant_2_price - Decimal(2)
+    channel_listing_2.price_amount = new_variant_2_price
+    channel_listing_2.discounted_price_amount = new_variant_2_price
+    channel_listing_2.save(update_fields=["price_amount", "discounted_price_amount"])
+
+    # when
+    refresh_order_base_prices_and_discounts(order)
+
+    # then
+    line_1, line_2 = order.lines.all()
+    assert line_1.undiscounted_base_unit_price_amount == initial_variant_1_price
+    assert line_1.base_unit_price_amount == initial_variant_1_price
+    assert line_2.undiscounted_base_unit_price_amount == initial_variant_2_price
+    assert line_2.base_unit_price_amount == initial_variant_2_price
+
+
+def test_refresh_order_base_prices_no_lines_no_error(order_with_lines):
+    # given
+    order = order_with_lines
+    order.lines.all().delete()
+
+    # when & then
     refresh_order_base_prices_and_discounts(order)

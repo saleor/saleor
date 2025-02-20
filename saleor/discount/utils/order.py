@@ -11,6 +11,7 @@ from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
+from ...order import ORDER_EDITABLE_STATUS
 from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order, OrderLine
 from .. import DiscountType
@@ -295,6 +296,9 @@ def refresh_order_base_prices_and_discounts(
         fetch_draft_order_lines_info,
         reattach_apply_once_per_order_voucher_info,
     )
+
+    if order.status not in ORDER_EDITABLE_STATUS:
+        return
 
     lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
     if not lines_info:
