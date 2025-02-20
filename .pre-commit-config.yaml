@@ -55,6 +55,12 @@ repos:
         # Replace --quiet with --verbose to debug issues.
         - --quiet
 
+  - repo: https://github.com/python-poetry/poetry
+    rev: 2.0.1
+    hooks:
+      - id: poetry-lock
+        files: "^pyproject.toml$"
+
   - repo: local
     hooks:
       - id: migrations-check
