@@ -58,6 +58,7 @@ class Checkout(models.Model):
         related_name="checkouts",
         on_delete=models.PROTECT,
     )
+    save_billing_address = models.BooleanField(default=True)
     billing_address = models.ForeignKey(
         "account.Address",
         related_name="+",
@@ -65,6 +66,8 @@ class Checkout(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
+    # do not apply on checkouts with collection point
+    save_shipping_address = models.BooleanField(default=True)
     shipping_address = models.ForeignKey(
         "account.Address",
         related_name="+",

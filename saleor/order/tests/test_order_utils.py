@@ -28,6 +28,7 @@ from ..utils import (
     get_valid_shipping_methods_for_order,
     match_orders_with_new_user,
     order_info_for_logs,
+    store_user_addresses_from_draft_order,
     update_order_display_gross_prices,
 )
 
@@ -744,3 +745,198 @@ def test_order_info_for_logs(order_with_lines, voucher, order_promotion_with_rul
     assert extra["order_id"] == graphene.Node.to_global_id("Order", order.pk)
     assert extra["discounts"]
     assert extra["lines"][0]["discounts"]
+
+
+def test_store_user_addresses_from_draft_order(order, customer_user, address_usa):
+    # given
+    order.status = OrderStatus.DRAFT
+    order.user = customer_user
+    order.billing_address = address_usa
+    order.draft_save_shipping_address = True
+    order.draft_save_billing_address = True
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    store_user_addresses_from_draft_order(order, manager)
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 2
+    # ensure that the addresses are not the same instances are addresses assigned to order
+    customer_address_ids = set(customer_user.addresses.values_list("id", flat=True))
+    order_address_ids = {order.billing_address_id, order.shipping_address_id}
+    assert not (customer_address_ids & order_address_ids)
+
+    order.refresh_from_db()
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
+
+
+def test_store_user_addresses_from_draft_order_no_user(order):
+    # given draft order without user set
+    order.user = None
+    order.draft_save_shipping_address = True
+    order.draft_save_billing_address = True
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+        ]
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    store_user_addresses_from_draft_order(order, manager)
+
+    # then
+    order.refresh_from_db()
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
+
+
+def test_store_user_addresses_from_draft_order_save_address_options_set_to_false(
+    order, customer_user, address_usa
+):
+    # given
+    order.status = OrderStatus.DRAFT
+    order.user = customer_user
+    order.billing_address = address_usa
+    order.draft_save_shipping_address = False
+    order.draft_save_billing_address = False
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    store_user_addresses_from_draft_order(order, manager)
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 0
+
+    order.refresh_from_db()
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
+
+
+def test_store_user_addresses_from_draft_order_save_address_options_empty(
+    order, customer_user, address_usa
+):
+    # given
+    order.status = OrderStatus.DRAFT
+    order.user = customer_user
+    order.billing_address = address_usa
+    order.draft_save_shipping_address = None
+    order.draft_save_billing_address = None
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    store_user_addresses_from_draft_order(order, manager)
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 0
+
+    order.refresh_from_db()
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
+
+
+def test_store_user_addresses_from_draft_order_only_draft_save_shipping_address_true(
+    order, customer_user, address_usa
+):
+    # given
+    order.status = OrderStatus.DRAFT
+    order.user = customer_user
+    order.billing_address = address_usa
+    order.draft_save_shipping_address = True
+    order.draft_save_billing_address = None
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    store_user_addresses_from_draft_order(order, manager)
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 1
+    # ensure that the addresses are not the same instances are addresses assigned to order
+    assert customer_user.addresses.first().id != order.shipping_address_id
+
+    order.refresh_from_db()
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
+
+
+def test_store_user_addresses_from_draft_order_only_draft_save_billing_address_true(
+    order, customer_user, address_usa
+):
+    # given
+    order.status = OrderStatus.DRAFT
+    order.user = customer_user
+    order.billing_address = address_usa
+    order.draft_save_shipping_address = None
+    order.draft_save_billing_address = True
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    manager = get_plugins_manager(allow_replica=False)
+
+    # when
+    store_user_addresses_from_draft_order(order, manager)
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 1
+    # ensure that the addresses are not the same instances are addresses assigned to order
+    assert customer_user.addresses.first().id != order.billing_address_id
+
+    order.refresh_from_db()
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
