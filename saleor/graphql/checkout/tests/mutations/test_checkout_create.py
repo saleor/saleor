@@ -2794,7 +2794,7 @@ def test_checkout_create_triggers_webhooks(
 
 
 def test_checkout_create_with_metadata_and_private_metadata(
-    api_client, graphql_address_data, channel_USD
+    staff_api_client, graphql_address_data, channel_USD, permission_manage_checkouts
 ):
     # Given
     test_email = "test@example.com"
@@ -2820,7 +2820,9 @@ def test_checkout_create_with_metadata_and_private_metadata(
     assert not Checkout.objects.exists()
 
     # When
-    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables, permissions=[permission_manage_checkouts]
+    )
 
     # Then
     new_checkout = Checkout.objects.first()
@@ -2876,13 +2878,12 @@ def test_checkout_create_with_public_metadata(
 
 
 def test_checkout_create_with_private_metadata(
-    api_client, graphql_address_data, channel_USD
+    staff_api_client, graphql_address_data, channel_USD, permission_manage_checkouts
 ):
     # Given
     test_email = "test@example.com"
 
     metadata_key = "metadata_key"
-    metadata_key_2 = "metadata_key_2"
     metadata_value = "metadata_value"
 
     variables = {
@@ -2899,7 +2900,9 @@ def test_checkout_create_with_private_metadata(
     assert not Checkout.objects.exists()
 
     # When
-    api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE, variables, permissions=[permission_manage_checkouts]
+    )
 
     # Then
     new_checkout = Checkout.objects.first()
@@ -2909,7 +2912,47 @@ def test_checkout_create_with_private_metadata(
     metadata_storage = new_checkout.metadata_storage
     private_metadata = metadata_storage.private_metadata
 
-    assert len(private_metadata) == 2
+    assert len(private_metadata) == 1
 
     assert private_metadata[metadata_key] == metadata_value
-    assert private_metadata[metadata_key_2] == metadata_value
+
+
+def test_checkout_create_with_private_metadata_without_permission_is_denied(
+    # Act as staff user
+    staff_api_client,
+    graphql_address_data,
+    channel_USD,
+):
+    # Given
+    test_email = "test@example.com"
+
+    metadata_key = "metadata_key"
+    metadata_value = "metadata_value"
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [],
+            "email": test_email,
+            "privateMetadata": [
+                {"key": metadata_key, "value": metadata_value},
+            ],
+        }
+    }
+
+    assert not Checkout.objects.exists()
+
+    # When
+    response = staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE,
+        variables,
+        # Do not set permissions
+        permissions=[],
+    )
+
+    # Then
+    new_checkout = Checkout.objects.first()
+
+    assert new_checkout is None
+
+    assert_no_permission(response)

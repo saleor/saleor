@@ -7,8 +7,10 @@ from ....checkout import AddressType, models
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
+from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
+from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
@@ -306,6 +308,21 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         user = info.context.user
         channel = data.pop("channel")
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+
+        can_set_private_metadata = cls.check_permissions(
+            info.context,
+            permissions=[
+                CheckoutPermissions.HANDLE_CHECKOUTS,
+                CheckoutPermissions.MANAGE_CHECKOUTS,
+            ],
+        )
+
+        trying_to_set_private_metadata = cleaned_input.get("private_metadata")
+
+        if trying_to_set_private_metadata and (not can_set_private_metadata):
+            raise PermissionDenied(
+                "You need MANAGE_CHECKOUTS or HANDLE_CHECKOUTS permission to set privateMetadata"
+            )
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
