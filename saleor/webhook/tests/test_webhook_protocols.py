@@ -1,6 +1,6 @@
 import datetime
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import boto3
 import jwt
@@ -534,7 +534,7 @@ def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
     # then
     delivery = EventDelivery.objects.get()
     mock_async_apply.assert_called_once_with(
-        kwargs={"event_delivery_id": delivery.id},
+        kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
         queue=expected_queue_name,
         bind=True,
         retry_backoff=10,

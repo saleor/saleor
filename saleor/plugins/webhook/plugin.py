@@ -17,6 +17,7 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
 from ...core.taxes import TaxData, TaxType
+from ...core.telemetry import get_current_context
 from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
@@ -2668,7 +2669,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
-        send_webhook_request_async.delay(delivery.pk)
+        send_webhook_request_async.delay(
+            delivery.pk, telemetry_context=get_current_context().to_dict()
+        )
         return previous_value
 
     def stored_payment_method_request_delete(
