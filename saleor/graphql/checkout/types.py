@@ -104,22 +104,25 @@ if TYPE_CHECKING:
 
 
 def get_dataloaders_for_fetching_checkout_data(
-    root: models.Checkout, info: ResolveInfo
+    root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
 ) -> tuple[
     Promise["Address"] | None,
     Promise[list["CheckoutLineInfo"]],
     Promise["CheckoutInfo"],
     Promise["PluginsManager"],
-    Promise[dict[str, Any]],
+    Promise[dict[str, Any]] | None,
 ]:
-    address_id = root.shipping_address_id or root.billing_address_id
+    checkout = root.node
+    address_id = checkout.shipping_address_id or checkout.billing_address_id
     address = AddressByIdLoader(info.context).load(address_id) if address_id else None
-    lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-    checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+    lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(checkout.token)
+    checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(checkout.token)
     manager = get_plugin_manager_promise(info.context)
-    payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(info.context).load(
-        root.token
-    )
+    payloads = None
+    if root.allow_sync_webhooks:
+        payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
+            info.context
+        ).load(checkout.token)
     return address, lines, checkout_info, manager, payloads
 
 
@@ -335,9 +338,11 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
-                info.context
-            ).load(checkout.token)
+            payloads = None
+            if root.allow_sync_webhooks:
+                payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
+                    info.context
+                ).load(checkout.token)
 
             @allow_writer_in_context(info.context)
             def calculate_line_unit_price(data):
@@ -424,9 +429,11 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
-                info.context
-            ).load(checkout.token)
+            payloads = None
+            if root.allow_sync_webhooks:
+                payloads = PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(
+                    info.context
+                ).load(checkout.token)
 
             @allow_writer_in_context(info.context)
             def calculate_line_total_price(data):
@@ -1024,7 +1031,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             )
             return max(taxed_total, zero_taxed_money(root.node.currency))
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_total_price)
 
     @staticmethod
@@ -1047,7 +1054,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_subtotal_price)
 
     @staticmethod
@@ -1070,7 +1077,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         return Promise.all(dataloaders).then(calculate_shipping_price)
 
     @staticmethod
@@ -1373,7 +1380,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             )
             return checkout_info.checkout.authorize_status
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
         )
@@ -1398,7 +1405,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             )
             return checkout_info.checkout.charge_status
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
         )
@@ -1427,7 +1434,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 total_charged += transaction.amount_charge_pending
             return total_charged - checkout_total.gross
 
-        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root.node, info))
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
             TransactionItemsByCheckoutIDLoader(info.context).load(root.node.pk)
         )
