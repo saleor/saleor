@@ -29,7 +29,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-arm-4
     container: python:3.12
 
     services:
