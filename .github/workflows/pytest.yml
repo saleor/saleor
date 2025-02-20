@@ -27,8 +27,14 @@ env:
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
 
+# Will group same workflow in the PR. Once new commit is pushed, old workflow will be cancelled
+# This is saving resources and prevents unnecessary queues when fresh jobs wait for stale ones
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  units:
     runs-on: ubuntu-latest
     container: python:3.12
 
