@@ -24,11 +24,11 @@ from ..utils.promotion import (
 )
 from ..utils.shared import discount_info_for_logs
 from ..utils.voucher import (
-    _get_the_cheapest_line,
     activate_voucher_code,
     add_voucher_usage_by_customer,
     deactivate_voucher_code,
     decrease_voucher_code_usage_value,
+    get_the_cheapest_line,
     increase_voucher_code_usage_value,
     is_order_level_voucher,
     remove_voucher_usage_by_customer,
@@ -648,7 +648,7 @@ def test_is_order_level_voucher_another_type(voucher_type, voucher):
 
 def test_get_the_cheapest_line_no_lines_provided():
     # when
-    line_info = _get_the_cheapest_line(None)
+    line_info = get_the_cheapest_line(None)
     # then
     assert line_info is None
 
@@ -672,7 +672,7 @@ def test_get_the_cheapest_line(checkout_with_items, channel_USD):
         for line in checkout_with_items.lines.all()
     ]
     # when
-    line_info = _get_the_cheapest_line(lines)
+    line_info = get_the_cheapest_line(lines)
     # then
     assert line_info == lines[0]
 

@@ -205,7 +205,7 @@ def test_manual_order_discount_with_entire_order_voucher_CORE_0940(
     assert order_data["voucher"]["codes"]["edges"][0]["node"]["code"] == voucher_code
     assert order_data["voucher"]["codes"]["edges"][0]["node"]["used"] == 1
 
-    # Step 3 - dd manual order discountA
+    # Step 3 - Add manual order discount
     # Manual discount should override voucher
     manual_discount_amount = Decimal(20)
     manual_discount_reason = "Staff discount"

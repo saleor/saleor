@@ -827,6 +827,7 @@ def _handle_gift_reward(
             init_values["rules_info"] = [rule_info]
             gift_line_info = CheckoutLineInfo(**init_values)
         else:
+            init_values["voucher_denormalized_info"] = None
             gift_line_info = EditableOrderLineInfo(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[arg-type]
     else:

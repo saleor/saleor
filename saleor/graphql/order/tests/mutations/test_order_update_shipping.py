@@ -4,12 +4,16 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.test import override_settings
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from .....core.models import EventDelivery
 from .....core.taxes import zero_money, zero_taxed_money
+from .....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
 from .....order import OrderStatus
 from .....order.actions import call_order_event
+from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -474,6 +478,81 @@ def test_draft_order_clear_shipping_method(
     assert draft_order.base_shipping_price == zero_money(draft_order.currency)
     assert draft_order.shipping_price == zero_taxed_money(draft_order.currency)
     assert draft_order.shipping_method_name is None
+
+
+def test_order_update_shipping_with_voucher_discount(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    shipping_method,
+    voucher_free_shipping,
+    plugins_manager,
+):
+    # given
+    voucher = voucher_free_shipping
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    currency = order.currency
+    order.status = OrderStatus.DRAFT
+    assert order.shipping_method != shipping_method
+
+    new_undiscounted_shipping_price = Money(Decimal("16"), currency)
+    assert new_undiscounted_shipping_price > order.undiscounted_base_shipping_price
+    new_shipping_listing = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    )
+    new_shipping_listing.price = new_undiscounted_shipping_price
+    new_shipping_listing.save(update_fields=["price_amount"])
+
+    # apply shipping voucher
+    initial_voucher_reward = Decimal(50)
+    voucher_listing = voucher.channel_listings.get()
+    voucher_listing.discount_value = initial_voucher_reward
+    voucher_listing.save(update_fields=["discount_value"])
+    order.voucher = voucher
+    order.save()
+    create_or_update_voucher_discount_objects_for_order(order)
+    order, lines = fetch_order_prices_if_expired(order, plugins_manager, None, True)
+
+    discount = order.discounts.get()
+    initial_discount_amount = (
+        order.undiscounted_base_shipping_price * initial_voucher_reward / 100
+    )
+    assert discount.amount == initial_discount_amount
+
+    # update voucher listing value
+    new_voucher_reward = Decimal(30)
+    voucher_listing.discount_value = new_voucher_reward
+    voucher_listing.save(update_fields=["discount_value"])
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderUpdateShipping"]
+    assert not data["errors"]
+
+    order.refresh_from_db()
+    new_shipping_discount_amount = Money(
+        new_undiscounted_shipping_price.amount * initial_voucher_reward / 100, currency
+    )
+    assert order.undiscounted_base_shipping_price == new_undiscounted_shipping_price
+    assert (
+        order.base_shipping_price
+        == new_undiscounted_shipping_price - new_shipping_discount_amount
+    )
+    assert order.shipping_method == shipping_method
+    assert order.shipping_price_net == order.base_shipping_price
+
+    discount.refresh_from_db()
+    assert discount.amount == new_shipping_discount_amount
+    assert discount.value == initial_voucher_reward
 
 
 ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL = """

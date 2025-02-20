@@ -15,6 +15,9 @@ from ....discount import (
     VoucherType,
 )
 from ....discount.models import PromotionRule
+from ....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
 from ....graphql.core.utils import to_global_id_or_none
 from ....order import OrderStatus
 from ....order.calculations import fetch_order_prices_if_expired
@@ -924,6 +927,7 @@ def test_order_calculate_taxes_specific_product_voucher(
     voucher_listing.discount_value = unit_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
     voucher_specific_product_type.variants.add(order_line.variant)
+    create_or_update_voucher_discount_objects_for_order(order)
 
     manager = get_plugins_manager(allow_replica=False)
     fetch_order_prices_if_expired(order, manager, order.lines.all(), True)
@@ -1467,6 +1471,7 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_fixed(
     assert voucher.type == VoucherType.SHIPPING
     order.voucher = voucher
     order.save(update_fields=["voucher_id"])
+    create_or_update_voucher_discount_objects_for_order(order)
 
     manual_reward = Decimal(10)
     create_order_discount_for_order(
@@ -1567,6 +1572,7 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_percent
     assert voucher.type == VoucherType.SHIPPING
     order.voucher = voucher
     order.save(update_fields=["voucher_id"])
+    create_or_update_voucher_discount_objects_for_order(order)
     total_amount -= shipping_price_amount
 
     manual_reward = Decimal(10)
