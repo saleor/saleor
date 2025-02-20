@@ -9,7 +9,10 @@ from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
 
-from ...checkout.utils import add_promo_code_to_checkout, set_external_shipping_id
+from ...checkout.utils import (
+    add_promo_code_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxDataErrorMessage, TaxLineData, zero_taxed_money
 from ...graphql.core.utils import to_global_id_or_none
@@ -19,6 +22,7 @@ from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
 from ...product.models import ProductVariantChannelListing
+from ...shipping.interface import ShippingMethodData
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.checkout import update_checkout_prices_with_flat_rates
 from ..base_calculations import (
@@ -778,13 +782,16 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
 ):
     # given
     external_method_id = "method-1-from-shipping-app"
+    shipping_name = "Shipping app method 1"
+    shipping_price = Decimal(10)
+    currency = "USD"
     mock_send_webhook_request_sync.side_effect = (
         [
             {
-                "amount": "1337.0",
-                "currency": "USD",
+                "amount": shipping_price,
+                "currency": currency,
                 "id": external_method_id,
-                "name": "Shipping app method 1",
+                "name": shipping_name,
             }
         ],
         {
@@ -799,12 +806,19 @@ def test_external_shipping_method_called_only_once_during_tax_calculations(
     external_shipping_method_id = Node.to_global_id(
         "app", f"{shipping_app_with_subscription.id}:{external_method_id}"
     )
+    external_shipping_method = ShippingMethodData(
+        id=external_shipping_method_id,
+        name=shipping_name,
+        price=Money(shipping_price, currency),
+    )
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager(allow_replica=False)
 
     checkout_with_single_item.shipping_address = address
-    set_external_shipping_id(checkout_with_single_item, external_shipping_method_id)
+    assign_external_shipping_to_checkout(
+        checkout_with_single_item, external_shipping_method
+    )
     checkout_with_single_item.save()
     checkout_with_single_item.metadata_storage.save()
     checkout_lines, _ = fetch_checkout_lines(checkout_with_single_item)

@@ -4,17 +4,22 @@ from unittest.mock import patch
 import graphene
 import pytest
 from graphene import Node
+from prices import Money
 
 from .....checkout import calculations
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import add_variants_to_checkout, set_external_shipping_id
+from .....checkout.utils import (
+    add_variants_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 from .....discount import RewardValueType
 from .....discount.models import CheckoutLineDiscount, PromotionRule
 from .....plugins.manager import get_plugins_manager
 from .....product.models import Product, ProductVariant, ProductVariantChannelListing
 from .....product.utils.variant_prices import update_discounted_prices_for_promotion
 from .....product.utils.variants import fetch_variants_for_promotion_rules
+from .....shipping.interface import ShippingMethodData
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -965,14 +970,18 @@ def test_add_checkout_lines_with_external_shipping(
     shipping_app,
     settings,
 ):
+    # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
+    shipping_name = "Provider - Economy"
+    shipping_price = Decimal(10)
+    currency = "USD"
     mock_json_response = [
         {
             "id": response_method_id,
-            "name": "Provider - Economy",
-            "amount": "10",
-            "currency": "USD",
+            "name": shipping_name,
+            "amount": shipping_price,
+            "currency": currency,
             "maximum_delivery_days": "7",
         }
     ]
@@ -981,9 +990,16 @@ def test_add_checkout_lines_with_external_shipping(
     external_shipping_method_id = Node.to_global_id(
         "app", f"{shipping_app.id}:{response_method_id}"
     )
+    external_shipping_method = ShippingMethodData(
+        id=external_shipping_method_id,
+        name=shipping_name,
+        price=Money(shipping_price, currency),
+    )
 
     checkout_with_single_item.shipping_address = address
-    set_external_shipping_id(checkout_with_single_item, external_shipping_method_id)
+    assign_external_shipping_to_checkout(
+        checkout_with_single_item, external_shipping_method
+    )
     checkout_with_single_item.save()
     checkout_with_single_item.metadata_storage.save()
 
@@ -1026,9 +1042,13 @@ def test_add_checkout_lines_with_external_shipping(
             },
         ],
     }
+
+    # when
     response = get_graphql_content(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
+
+    # then
     assert not response["data"]["checkoutLinesAdd"]["errors"]
     # Two api calls :
     # - post-mutate() logic used to validate currently selected method
