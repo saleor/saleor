@@ -7,8 +7,10 @@ from ....checkout import AddressType, models
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
+from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
+from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
@@ -18,7 +20,7 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
@@ -159,6 +161,18 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=("The checkout validation rules that can be changed."),
     )
 
+    metadata = NonNullList(
+        MetadataInput,
+        description="Checkout public metadata." + ADDED_IN_321,
+        required=False,
+    )
+
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Checkout private metadata." + ADDED_IN_321,
+        required=False,
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
 
@@ -196,6 +210,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 description="A checkout was created.",
             )
         ]
+
+        # This mutation *does* save metadata but not via "support_meta_field"
+        # flags. Checkout metadata is held in separate objects
+        # Flags are set to False to be explicit and should not be enabled
+        support_meta_field = False
+        support_private_meta_field = False
 
     @classmethod
     def clean_checkout_lines(
@@ -289,6 +309,21 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         channel = data.pop("channel")
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
+        can_set_private_metadata = cls.check_permissions(
+            info.context,
+            permissions=[
+                CheckoutPermissions.HANDLE_CHECKOUTS,
+                CheckoutPermissions.MANAGE_CHECKOUTS,
+            ],
+        )
+
+        trying_to_set_private_metadata = cleaned_input.get("private_metadata")
+
+        if trying_to_set_private_metadata and (not can_set_private_metadata):
+            raise PermissionDenied(
+                "You need MANAGE_CHECKOUTS or HANDLE_CHECKOUTS permission to set privateMetadata"
+            )
+
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
         shipping_address_metadata = (
@@ -376,7 +411,35 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 instance.billing_address = billing_address.get_copy()
 
             instance.save()
-            create_checkout_metadata(instance)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        # Write metadata in post-save action because in "save" metadata doesn't exist in
+        # cleaned_input.
+
+        checkout_metadata = create_checkout_metadata(instance)
+
+        metadata_from_input = cleaned_input.get("metadata", [])
+        private_metadata_from_input = cleaned_input.get("private_metadata", [])
+
+        nothing_to_write = (
+            len(metadata_from_input) == 0 and len(private_metadata_from_input) == 0
+        )
+
+        if nothing_to_write:
+            return
+
+        metadata_dict = {
+            metadata.key: metadata.value for metadata in metadata_from_input
+        }
+        private_metadata_dict = {
+            metadata.key: metadata.value for metadata in private_metadata_from_input
+        }
+
+        checkout_metadata.private_metadata = private_metadata_dict
+        checkout_metadata.metadata = metadata_dict
+
+        checkout_metadata.save()
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
