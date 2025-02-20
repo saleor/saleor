@@ -265,7 +265,10 @@ To run tests, enter `poe test` in your terminal.
 poe test
 ```
 
-By default `poe test` is using the `reuse-db` flag to speed up testing time.
+By default `poe test` is using the `--reuse-db` flag to speed up testing time.
+
+> [!TIP]
+> If you need to ignore `--reuse-db` (e.g when testing Saleor on different versions that have different migrations) add `--create-db` argument: `poe test --create-db`
 
 ### How to run particular tests?
 
