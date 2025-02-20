@@ -101,3 +101,5 @@ CELERY_RESTRICT_WRITER_METHOD = "saleor.core.db.connection.restrict_writer"
 
 PRIVATE_FILE_STORAGE = "saleor.tests.storages.PrivateFileSystemStorage"
 PRIVATE_MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "private-media")  # noqa: F405
+
+BREAKER_BOARD_ENABLED = False
