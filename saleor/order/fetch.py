@@ -178,7 +178,9 @@ def _get_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], vouc
         reason=voucher_discount.reason,
         name=voucher_discount.name,
         apply_once_per_order=voucher.apply_once_per_order,
-        origin_line_id=voucher_discount.line_id,
+        origin_line_ids=[
+            discount.line_id for discount in voucher_discounts if discount.line_id
+        ],
     )
 
 
@@ -191,14 +193,15 @@ def _apply_denormalized_voucher_to_line_info(
         return
 
     # Denormalized vouchers of type SPECIFIC PRODUCT shouldn't be evaluated against
-    # the latest eligible product catalog so it should be applied to the same line
+    # the latest eligible product catalog so it should be applied to the same lines
     # it originates from
     if denormalized_voucher_info.voucher_type == VoucherType.SPECIFIC_PRODUCT:
-        if line_info := next(
+        discounted_lines_info = (
             line_info
             for line_info in lines_info
-            if line_info.line.pk == denormalized_voucher_info.origin_line_id
-        ):
+            if line_info.line.pk in denormalized_voucher_info.origin_line_ids
+        )
+        for line_info in discounted_lines_info:
             line_info.voucher_denormalized_info = denormalized_voucher_info
             line_info.voucher_code = voucher_code
         return

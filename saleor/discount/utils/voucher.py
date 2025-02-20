@@ -45,7 +45,7 @@ class VoucherDenormalizedInfo:
     reason: str | None
     name: str | None
     apply_once_per_order: bool
-    origin_line_id: UUID | None
+    origin_line_ids: list[UUID]
 
 
 def is_order_level_voucher(voucher: Voucher | None):
@@ -326,14 +326,14 @@ def get_products_voucher_discount(
 
 
 def create_or_update_voucher_discount_objects_for_order(
-    order: "Order", denormalized=False
+    order: "Order", use_denormalized_data=False
 ):
     """Handle voucher discount objects for order.
 
     Take into account all the mutual dependence and exclusivity between various types of
     discounts.
 
-    `denormalized=True` indicates, that the discount should be calculated based on the
+    `use_denormalized_data=True` indicates, that the discount should be calculated based on the
     conditions from the moment of the voucher application. Otherwise, the latest
     voucher values will be retrieved from the database.
     """
@@ -342,7 +342,9 @@ def create_or_update_voucher_discount_objects_for_order(
 
     create_or_update_discount_object_from_order_level_voucher(order)
     lines_info = fetch_draft_order_lines_info(order)
-    create_or_update_line_discount_objects_from_voucher(lines_info, denormalized)
+    create_or_update_line_discount_objects_from_voucher(
+        lines_info, use_denormalized_data
+    )
     lines = [line_info.line for line_info in lines_info]
     OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
 
@@ -444,14 +446,16 @@ def create_or_update_discount_object_from_order_level_voucher(
                 discount_object.save(update_fields=updated_fields)
 
 
-def create_or_update_line_discount_objects_from_voucher(lines_info, denormalized=False):
+def create_or_update_line_discount_objects_from_voucher(
+    lines_info, use_denormalized_data=False
+):
     """Create or update line discount object for voucher applied on lines.
 
     The LineDiscount object is created for each line with voucher applied.
     Only `SPECIFIC_PRODUCT` and `apply_once_per_order` voucher types are applied.
 
-    `denormalized=True` indicates, that the discount should be calculated based on the
-    conditions from the moment of the voucher application. Otherwise, the latest
+    `use_denormalized_data=True` indicates, that the discount should be calculated based
+    on the conditions from the moment of the voucher application. Otherwise, the latest
     voucher values will be retrieved from the database.
     """
     # FIXME: temporary - create_order_line_discount_objects should be moved to shared
@@ -460,7 +464,9 @@ def create_or_update_line_discount_objects_from_voucher(lines_info, denormalized
         update_unit_discount_data_on_order_line,
     )
 
-    discount_data = prepare_line_discount_objects_for_voucher(lines_info, denormalized)
+    discount_data = prepare_line_discount_objects_for_voucher(
+        lines_info, use_denormalized_data
+    )
     modified_lines_info = create_order_line_discount_objects(lines_info, discount_data)
     if modified_lines_info:
         _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
@@ -470,11 +476,11 @@ def create_or_update_line_discount_objects_from_voucher(lines_info, denormalized
 # TODO (SHOPX-912): share the method with checkout
 def prepare_line_discount_objects_for_voucher(
     lines_info: list["EditableOrderLineInfo"],
-    denormalized=False,
+    use_denormalized_data=False,
 ):
     """Prepare line-level voucher discount objects to be created, updated and deleted.
 
-    `denormalized=True` indicates, that the discount should be calculated based on the
+    `use_denormalized_data=True` indicates, that the discount should be calculated based on the
     conditions from the moment of the voucher application. Otherwise, the latest
     voucher values will be retrieved from the database.
     """
@@ -500,8 +506,7 @@ def prepare_line_discount_objects_for_voucher(
         manual_line_discount = line_info.get_manual_line_discount()
 
         if (
-            not voucher
-            and denormalized is False
+            (not voucher and use_denormalized_data is False)
             or line.is_gift
             or manual_line_discount
         ):
@@ -509,7 +514,7 @@ def prepare_line_discount_objects_for_voucher(
                 line_discounts_to_remove.append(discount_to_update)
             continue
 
-        if denormalized:
+        if use_denormalized_data:
             # TODO zedzior test when voucher deleted
             if not line_info.voucher_denormalized_info:
                 if discount_to_update:
@@ -643,7 +648,7 @@ def calculate_order_line_discount_amount_from_denormalized_voucher(
             )
             discount_amount = min(total_price - discounted_total_price, total_price)
         else:
-            unit_price = total_price / quantity
+            unit_price = Money(total_price.amount / quantity, currency)
             discounted_unit_price = apply_discount_to_value(
                 value=voucher_info.discount_value,
                 value_type=voucher_info.discount_value_type,
@@ -655,7 +660,7 @@ def calculate_order_line_discount_amount_from_denormalized_voucher(
             )
             discount_amount = min(voucher_unit_discount_amount * quantity, total_price)
     else:
-        unit_price = total_price / quantity
+        unit_price = Money(total_price.amount / quantity, currency)
         discounted_unit_price = apply_discount_to_value(
             value=voucher_info.discount_value,
             value_type=voucher_info.discount_value_type,

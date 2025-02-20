@@ -338,7 +338,9 @@ def create_order_line(
         )
 
     if is_line_level_voucher(order.voucher):
-        create_or_update_voucher_discount_objects_for_order(order, denormalized=True)
+        create_or_update_voucher_discount_objects_for_order(
+            order, use_denormalized_data=True
+        )
 
     return line
 
@@ -600,7 +602,7 @@ def change_order_line_quantity(
 
         if is_line_level_voucher(order.voucher):
             create_or_update_voucher_discount_objects_for_order(
-                order, denormalized=True
+                order, use_denormalized_data=True
             )
 
     else:
