@@ -1,7 +1,9 @@
-from unittest.mock import patch
+from datetime import datetime
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 
 from .....app.models import App
@@ -56,6 +58,7 @@ QUERY_APP = """
                 }
             }
             breakerState
+            breakerLastStateChange
             metafield(key: "test")
             metafields(keys: ["test"])
             metadata{
@@ -690,6 +693,7 @@ def test_app_query_with_metafields_staff_user_without_permissions(
     assert_no_permission(response)
 
 
+@freeze_time("2012-01-14 11:00:00")
 @pytest.mark.parametrize(
     ("breaker_state", "expected_response_status"),
     [
@@ -699,7 +703,7 @@ def test_app_query_with_metafields_staff_user_without_permissions(
     ],
 )
 @patch("saleor.graphql.app.types.breaker_board")
-def test_app_query_open_breaker(
+def test_app_query_breaker_state(
     breaker_board_mock,
     breaker_state,
     expected_response_status,
@@ -708,7 +712,13 @@ def test_app_query_open_breaker(
     app,
 ):
     # given
+    now = timezone.now()
+    storage_mock = Mock()
     breaker_board_mock.update_breaker_state.side_effect = lambda id: breaker_state
+    breaker_board_mock.storage = storage_mock
+    storage_mock.retrieve_last_state_change.return_value = bytes(
+        now.isoformat(), "utf-8"
+    )
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
 
@@ -722,3 +732,81 @@ def test_app_query_open_breaker(
     # then
     content = get_graphql_content(response)
     assert content["data"]["app"]["breakerState"] == expected_response_status
+
+
+def test_app_query_breaker_state_board_disabled(
+    staff_api_client,
+    permission_manage_apps,
+    app,
+):
+    # given
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["app"]["breakerState"] == CircuitBreakerStateEnum.CLOSED.name
+
+
+def test_app_query_breaker_last_change_board_disabled(
+    staff_api_client,
+    permission_manage_apps,
+    app,
+):
+    # given
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["app"]["breakerLastStateChange"] is None
+
+
+@freeze_time("2012-01-14 11:00:00")
+@patch("saleor.graphql.app.types.breaker_board")
+def test_app_query_breaker_last_change(
+    board_mock,
+    staff_api_client,
+    permission_manage_apps,
+    app,
+):
+    # given
+    now = timezone.now()
+    storage_mock = Mock()
+    board_mock.update_breaker_state.side_effect = (
+        lambda id: CircuitBreakerState.HALF_OPEN
+    )
+    board_mock.storage = storage_mock
+    storage_mock.retrieve_last_state_change.return_value = bytes(
+        now.isoformat(), "utf-8"
+    )
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    retrieved_date = datetime.fromisoformat(
+        content["data"]["app"]["breakerLastStateChange"]
+    )
+    assert retrieved_date == now

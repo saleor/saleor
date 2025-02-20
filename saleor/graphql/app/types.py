@@ -629,10 +629,9 @@ class App(ModelObjectType[models.App]):
 
     @staticmethod
     def resolve_breaker_last_state_change(root: models.App, _info: ResolveInfo):
-        if not breaker_board:
-            return None
-        if last_change := breaker_board.storage.retrieve_last_state_change(root.id):
-            return datetime.datetime.fromisoformat(str(last_change, "utf-8"))
+        if breaker_board:
+            if last_change := breaker_board.storage.retrieve_last_state_change(root.id):
+                return datetime.datetime.fromisoformat(str(last_change, "utf-8"))
         return None
 
 
