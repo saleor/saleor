@@ -34,9 +34,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  units:
+  units_and_linters:
     runs-on: ubuntu-latest
     container: python:3.12
+    name: Run units & linters
 
     services:
       postgres:
