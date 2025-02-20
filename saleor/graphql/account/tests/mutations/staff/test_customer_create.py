@@ -1,6 +1,8 @@
 from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
+import before_after
+
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
 from ......account.models import User
@@ -12,7 +14,6 @@ from ......account.search import (
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
-from ......tests import race_condition
 from .....tests.utils import get_graphql_content
 from ....tests.utils import convert_dict_keys_to_camel_case
 
@@ -584,7 +585,7 @@ def test_customer_create_race_condition(
         User.objects.create(email=email_to_create)
 
     # when User is synthetically created just before the model save
-    with race_condition.RunBefore(
+    with before_after.before(
         "saleor.graphql.account.mutations.staff.customer_create.CustomerCreate.save",
         create_existing_customer,
     ):
