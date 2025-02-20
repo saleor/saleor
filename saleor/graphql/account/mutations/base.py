@@ -4,8 +4,10 @@ from urllib.parse import urlencode
 import graphene
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 
 from ....account import events as account_events
+from ....account import models as account_models
 from ....account.error_codes import AccountErrorCode
 from ....account.notifications import send_set_password_notification
 from ....account.search import prepare_user_search_document_value
@@ -330,7 +332,32 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             instance.default_billing_address = default_billing_address
 
         is_creation = instance.pk is None
-        super().save(info, instance, cleaned_input)
+
+        try:
+            with transaction.atomic():
+                instance.save()
+        except IntegrityError:
+            try:
+                # Verify if object already exists in DB.
+                # If yes, it means we have a race-condition
+                # This eventually leads to ValidationError because this user
+                # already exists
+                account_models.User.objects.get(email=instance.email)
+
+                raise ValidationError(
+                    {
+                        # This validation error mimics built-in validation error
+                        # So graphQL response is the same
+                        "email": ValidationError(
+                            "User with this Email already exists.",
+                            code=AccountErrorCode.UNIQUE.value,
+                        )
+                    }
+                )
+            except instance.DoesNotExist:
+                pass
+            raise
+
         if default_billing_address:
             instance.addresses.add(default_billing_address)
         if default_shipping_address:
