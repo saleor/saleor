@@ -157,7 +157,7 @@ def get_product_discount_on_promotion(
     raise NotApplicable("Promotion rule not applicable for this product")
 
 
-def _is_discounted_line_by_catalogue_promotion(
+def is_discounted_line_by_catalogue_promotion(
     variant_channel_listing: "ProductVariantChannelListing",
 ) -> bool:
     """Return True when the price is discounted by catalogue promotion."""
