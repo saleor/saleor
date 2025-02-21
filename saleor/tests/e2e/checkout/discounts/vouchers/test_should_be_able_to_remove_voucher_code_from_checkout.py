@@ -106,8 +106,6 @@ def test_should_be_able_to_remove_voucher_code_from_checkout_CORE_0917(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]

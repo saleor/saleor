@@ -85,8 +85,6 @@ def test_gift_card_total_payment_for_checkout_core_1101(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     calculated_subtotal = round(

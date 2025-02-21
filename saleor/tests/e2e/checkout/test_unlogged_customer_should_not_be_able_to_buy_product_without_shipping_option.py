@@ -63,8 +63,6 @@ def test_unlogged_customer_unable_to_buy_product_without_shipping_option_CORE_01
         lines,
         channel_slug,
         email="jon.doe@saleor.io",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_shipping_required = checkout_data["isShippingRequired"]

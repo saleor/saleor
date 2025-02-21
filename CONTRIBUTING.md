@@ -68,7 +68,6 @@ cd .devcontainer
 docker compose up db dashboard redis mailpit
 ```
 
-
 If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
 
 ```shell
@@ -99,6 +98,21 @@ Install pre commit hooks:
 pre-commit install
 ```
 
+Create environment variables, by creating a `.env` file. You can use existing example for development:
+
+```shell
+cp .env.example .env
+```
+
+> [!NOTE]
+> Example env variables set-up Celery broker, mail server, allow `localhost` URLs and set Dashboard URL
+> so that your development setup works with additional services set-up via `docker compose`
+>
+> Learn more about each env variable in [Environment Variable docs](https://docs.saleor.io/setup/configuration)
+
+> [!TIP]
+> Env variables from `.env` file are loaded automatically by [Poe the Poet](https://poethepoet.natn.io/index.html) (when using `poe` commands below)
+
 You are ready to go 🎉.
 
 ### Common commands
@@ -106,27 +120,49 @@ You are ready to go 🎉.
 To start server:
 
 ```shell
-uvicorn saleor.asgi:application --reload
+poe start
 ```
+
+to start Celery worker:
+
+```
+poe worker
+```
+
+to start Celery Beat scheduler:
+
+```shell
+poe scheduler
+```
+
+> [!NOTE]
+> To learn more about Celery tasks and scheduler, check [Task Queue docs](https://docs.saleor.io/developer/running-saleor/task-queue#periodic-tasks)
 
 To run database migrations:
 
 ```shell
-python manage.py migrate
+poe migrate
 ```
 
 To populate database with example data and create the admin user:
 
 ```shell
-python manage.py populatedb --createsuperuser
+poe populatedb
 ```
 
-*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
+> [!NOTE]
+> `populatedb` populates database with example data and creates an admin account for `admin@example.com` with the password set to `admin`.*
+
+To build `schema.graphql` file:
+
+```shell
+poe build-schema
+```
 
 To run Django shell:
 
-```shell
-python manage.py shell
+```
+poe shell
 ```
 
 ## Managing dependencies
@@ -319,6 +355,9 @@ pre-commit install
 ```
 
 For more information on how it works, see the `.pre-commit-config.yaml` configuration file.
+
+> [!NOTE]
+> Running `git commit` for the first time might take a while, since all dependencies will be setting up.
 
 Saleor has a strict formatting policy enforced by the [black formatting tool](https://github.com/python/black).
 

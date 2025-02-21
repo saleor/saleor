@@ -97,8 +97,6 @@ def test_staff_can_use_voucher_for_staff_only_in_checkout_core_0904(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"][0]

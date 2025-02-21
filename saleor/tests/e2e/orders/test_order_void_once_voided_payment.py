@@ -43,8 +43,6 @@ def prepare_checkout_with_voided_payment(e2e_staff_api_client):
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

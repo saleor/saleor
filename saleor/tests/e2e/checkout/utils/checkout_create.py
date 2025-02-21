@@ -124,8 +124,8 @@ def raw_checkout_create(
     lines,
     channel_slug,
     email=None,
-    set_default_billing_address=False,
-    set_default_shipping_address=False,
+    billing_address=DEFAULT_ADDRESS,
+    shipping_address=DEFAULT_ADDRESS,
 ):
     variables = {
         "input": {
@@ -135,11 +135,11 @@ def raw_checkout_create(
         }
     }
 
-    if set_default_billing_address:
-        variables["input"]["billingAddress"] = DEFAULT_ADDRESS
+    if billing_address:
+        variables["input"]["billingAddress"] = billing_address
 
-    if set_default_shipping_address:
-        variables["input"]["shippingAddress"] = DEFAULT_ADDRESS
+    if shipping_address:
+        variables["input"]["shippingAddress"] = shipping_address
 
     response = api_client.post_graphql(
         CHECKOUT_CREATE_MUTATION,
@@ -157,16 +157,16 @@ def checkout_create(
     lines,
     channel_slug,
     email=None,
-    set_default_billing_address=False,
-    set_default_shipping_address=False,
+    billing_address=DEFAULT_ADDRESS,
+    shipping_address=DEFAULT_ADDRESS,
 ):
     checkout_response = raw_checkout_create(
         api_client,
         lines,
         channel_slug,
         email,
-        set_default_billing_address,
-        set_default_shipping_address,
+        billing_address,
+        shipping_address,
     )
     assert checkout_response["errors"] == []
 

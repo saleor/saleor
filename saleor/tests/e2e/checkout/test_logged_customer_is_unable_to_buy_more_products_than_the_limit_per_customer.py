@@ -104,7 +104,7 @@ def test_checkout_with_product_quantity_exceeding_the_limit_per_customer_core_01
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
+        shipping_address=None,
     )
     checkout_id = checkout_data["id"]
 

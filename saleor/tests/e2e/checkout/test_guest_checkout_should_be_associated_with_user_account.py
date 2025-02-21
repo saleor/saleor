@@ -83,8 +83,6 @@ def test_guest_checkout_should_be_associated_with_user_account_CORE_1517(
         lines,
         channel_slug,
         email,
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 
