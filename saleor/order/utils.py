@@ -32,6 +32,14 @@ from ..discount.utils.promotion import (
     get_sale_id,
     prepare_promotion_discount_reason,
 )
+from ..discount.utils.voucher import (
+    create_or_update_discount_object_from_order_level_voucher,
+    create_or_update_line_discount_objects_from_voucher,
+    create_or_update_voucher_discount_objects_for_order,
+    is_line_level_voucher,
+    is_order_level_voucher,
+    is_shipping_voucher,
+)
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
@@ -355,6 +363,11 @@ def create_order_line(
             manager=manager,
         )
 
+    if is_line_level_voucher(order.voucher):
+        create_or_update_voucher_discount_objects_for_order(
+            order, use_denormalized_data=True
+        )
+
     return line
 
 
@@ -391,7 +404,7 @@ def add_variant_to_order(
             line_info,
             old_quantity,
             new_quantity,
-            channel,
+            order,
             manager=manager,
             send_event=False,
             update_fields=update_fields,
@@ -561,13 +574,14 @@ def change_order_line_quantity(
     line_info: OrderLineInfo,
     old_quantity: int,
     new_quantity: int,
-    channel: "Channel",
+    order: "Order",
     manager: "PluginsManager",
     send_event: bool = True,
     update_fields: list[str] | None = None,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
+    channel = order.channel
     currency = channel.currency_code
     if new_quantity:
         if line.order.is_unconfirmed():
@@ -610,6 +624,11 @@ def change_order_line_quantity(
         ).first():
             update_catalogue_promotion_discount_amount_for_order(
                 catalogue_discount, line, new_quantity, currency
+            )
+
+        if is_line_level_voucher(order.voucher):
+            create_or_update_voucher_discount_objects_for_order(
+                order, use_denormalized_data=True
             )
 
     else:
@@ -837,24 +856,30 @@ def create_order_discount_for_order(
     new_amount = quantize_price((current_total - gross_total).gross, currency)
     kwargs = {} if not type else {"type": type}
 
-    order_discount = order.discounts.create(
-        value_type=value_type,
-        value=value,
-        reason=reason,
-        amount=new_amount,  # type: ignore[misc]
-        **kwargs,
-    )
+    with transaction.atomic():
+        # Manual order discount does not stack with other order-level discounts
+        order.discounts.exclude(voucher__type=VoucherType.SHIPPING).delete()
+        order_discount = order.discounts.create(
+            value_type=value_type,
+            value=value,
+            reason=reason,
+            amount=new_amount,  # type: ignore[misc]
+            **kwargs,
+        )
+
     return order_discount
 
 
 def remove_order_discount_from_order(order: Order, order_discount: OrderDiscount):
     """Remove the order discount from order and update the prices."""
 
-    discount_amount = order_discount.amount
     order_discount.delete()
 
-    order.total += discount_amount
-    order.save(update_fields=["total_net_amount", "total_gross_amount", "updated_at"])
+    # Manual discounts take precedence over vouchers, overriding them when applied.
+    # However, this does not entirely dissociate the voucher from the order.
+    # If the manual discount is removed, the voucher is reevaluated.
+    if order.voucher:
+        create_or_update_discount_object_from_order_level_voucher(order)
 
 
 def update_discount_for_order_line(
@@ -865,9 +890,6 @@ def update_discount_for_order_line(
     value: Decimal | None,
 ):
     """Update discount fields for order line. Apply discount to the price."""
-    # TODO: Move price calculation to fetch_order_prices_if_expired function.
-    # Here we should only create order line discount object
-    # https://github.com/saleor/saleor/issues/15517
     current_value = order_line.unit_discount_value
     current_value_type = order_line.unit_discount_type
     value = value or current_value
@@ -936,7 +958,7 @@ def _update_manual_order_line_discount_object(
     for discount in discounts:
         if discount.type == DiscountType.MANUAL and not discount_to_update:
             discount_to_update = discount
-        elif discount.type != DiscountType.VOUCHER:
+        else:
             discount_to_delete_ids.append(discount.pk)
 
     if discount_to_delete_ids:
@@ -972,6 +994,7 @@ def _update_manual_order_line_discount_object(
 
 def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
+    # TODO zedzior: calculations should be lazy
     order_line.unit_price = TaxedMoney(
         net=order_line.undiscounted_base_unit_price,
         gross=order_line.undiscounted_base_unit_price,
@@ -999,6 +1022,20 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
         ]
     )
     order_line.discounts.all().delete()
+
+    # Manual discounts take precedence over vouchers, overriding them when applied.
+    # However, this does not entirely dissociate the voucher from the order.
+    # If the manual discount is removed, the voucher is reevaluated.
+    voucher = order.voucher
+    if (
+        voucher
+        and not is_order_level_voucher(voucher)
+        and not is_shipping_voucher(voucher)
+    ):
+        lines_info = fetch_draft_order_lines_info(order)
+        create_or_update_line_discount_objects_from_voucher(lines_info)
+        lines = [line_info.line for line_info in lines_info]
+        OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
 
 
 def update_order_charge_status(order: Order, granted_refund_amount: Decimal):

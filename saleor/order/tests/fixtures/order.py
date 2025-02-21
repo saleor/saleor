@@ -527,7 +527,7 @@ def order_with_lines_and_catalogue_promotion(
         name="Catalogue rule fixed",
         catalogue_predicate={
             "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant)]
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
             }
         },
         reward_value_type=RewardValueType.FIXED,

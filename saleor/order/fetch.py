@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Optional
+from typing import Optional, cast
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
@@ -14,7 +14,11 @@ from ..core.taxes import zero_money
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
 from ..discount.models import OrderLineDiscount
-from ..discount.utils.voucher import apply_voucher_to_line
+from ..discount.utils.voucher import (
+    VoucherDenormalizedInfo,
+    apply_voucher_to_line,
+    get_the_cheapest_line,
+)
 from ..graphql.core.types import Money
 from ..payment.models import Payment
 from ..product.models import DigitalContent, ProductVariant
@@ -79,6 +83,7 @@ def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
 class EditableOrderLineInfo(LineInfo):
     line: "OrderLine"
     discounts: list["OrderLineDiscount"]
+    voucher_denormalized_info: VoucherDenormalizedInfo | None
 
     @cached_property
     def variant_discounted_price(self) -> Money:
@@ -139,6 +144,7 @@ def fetch_draft_order_lines_info(
                 channel=channel,
                 voucher=None,
                 voucher_code=None,
+                voucher_denormalized_info=None,
             )
         )
     voucher = order.voucher
@@ -147,4 +153,64 @@ def fetch_draft_order_lines_info(
     ):
         voucher_info = fetch_voucher_info(voucher, order.voucher_code)
         apply_voucher_to_line(voucher_info, lines_info)
+        denormalized_voucher_info = _get_denormalized_voucher_info(lines_info, voucher)
+        _apply_denormalized_voucher_to_line_info(
+            lines_info, denormalized_voucher_info, order.voucher_code
+        )
     return lines_info
+
+
+def _get_denormalized_voucher_info(lines_info: list[EditableOrderLineInfo], voucher):
+    voucher_discounts = [
+        discount
+        for line_info in lines_info
+        for discount in line_info.discounts
+        if discount.voucher == voucher
+    ]
+    if not voucher_discounts:
+        return None
+
+    voucher_discount = voucher_discounts[0]
+    return VoucherDenormalizedInfo(
+        discount_value=voucher_discount.value,
+        discount_value_type=voucher_discount.value_type,
+        voucher_type=voucher.type,
+        reason=voucher_discount.reason,
+        name=voucher_discount.name,
+        apply_once_per_order=voucher.apply_once_per_order,
+        origin_line_ids=[
+            discount.line_id for discount in voucher_discounts if discount.line_id
+        ],
+    )
+
+
+def _apply_denormalized_voucher_to_line_info(
+    lines_info: list[EditableOrderLineInfo],
+    denormalized_voucher_info: VoucherDenormalizedInfo | None,
+    voucher_code: str | None,
+):
+    if not denormalized_voucher_info:
+        return
+
+    # Denormalized vouchers of type SPECIFIC PRODUCT shouldn't be evaluated against
+    # the latest eligible product catalog so it should be applied to the same lines
+    # it originates from
+    if denormalized_voucher_info.voucher_type == VoucherType.SPECIFIC_PRODUCT:
+        discounted_lines_info = (
+            line_info
+            for line_info in lines_info
+            if line_info.line.pk in denormalized_voucher_info.origin_line_ids
+        )
+        for line_info in discounted_lines_info:
+            line_info.voucher_denormalized_info = denormalized_voucher_info
+            line_info.voucher_code = voucher_code
+        return
+
+    # Denormalized voucher applicable once per order can be applied to the different
+    # line than it originates from (it depends on the actual cheapest line)
+    if denormalized_voucher_info.apply_once_per_order is True:
+        if cheapest_line_info := get_the_cheapest_line(lines_info):
+            cheapest_line_info = cast(EditableOrderLineInfo, cheapest_line_info)
+            cheapest_line_info.voucher_denormalized_info = denormalized_voucher_info
+            cheapest_line_info.voucher_code = voucher_code
+        return
