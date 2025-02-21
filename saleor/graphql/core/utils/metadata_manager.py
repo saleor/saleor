@@ -6,6 +6,7 @@ from saleor.core.models import ModelWithMetadata
 
 # Keeps unified logic around validation and storing metadata and private metadata
 # on ModelWithMetadata
+# TODO Test
 class MetadataManager:
     @staticmethod
     def metadata_contains_empty_key(metadata_list: list[dict]) -> bool:

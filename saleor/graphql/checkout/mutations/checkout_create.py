@@ -422,10 +422,13 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Write metadata in post-save action because in "save" metadata doesn't exist in
         # cleaned_input.
 
-        checkout_metadata = create_checkout_metadata(instance)
+        metadata = cleaned_input.get("metadata", [])
+        private_metadata = cleaned_input.get("private_metadata", [])
 
-        metadata = (cleaned_input.get("metadata"),)
-        private_metadata = cleaned_input.get("private_metadata")
+        if not metadata and not private_metadata:
+            return
+
+        checkout_metadata = create_checkout_metadata(instance)
 
         MetadataManager.validate_metadata_keys_and_throw(metadata)
         MetadataManager.validate_metadata_keys_and_throw(private_metadata)
