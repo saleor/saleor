@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             """
             ALTER TABLE channel_channel
-            ALTER COLUMN delete_expired_orders_after
+            ALTER COLUMN draft_order_line_price_freeze_period
             SET DEFAULT 24;
             """,
             migrations.RunSQL.noop,
