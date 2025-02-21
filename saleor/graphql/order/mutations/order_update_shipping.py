@@ -9,6 +9,7 @@ from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, OrderError
@@ -110,7 +111,7 @@ class OrderUpdateShipping(
 
             cls.clear_shipping_method_from_order(order)
             order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
-            return OrderUpdateShipping(order=order)
+            return OrderUpdateShipping(order=SyncWebhookControlContext(order))
 
         method_id: str = input["shipping_method"]
         method: shipping_models.ShippingMethod = cls.get_node_or_error(
@@ -137,4 +138,4 @@ class OrderUpdateShipping(
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
         call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
-        return OrderUpdateShipping(order=order)
+        return OrderUpdateShipping(order=SyncWebhookControlContext(order))

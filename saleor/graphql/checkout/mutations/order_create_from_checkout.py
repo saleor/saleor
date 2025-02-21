@@ -11,6 +11,7 @@ from ....permission.enums import CheckoutPermissions
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
@@ -213,4 +214,4 @@ class OrderCreateFromCheckout(BaseMutation):
                 code=OrderCreateFromCheckoutErrorCode.TAX_ERROR.value,
             ) from e
 
-        return OrderCreateFromCheckout(order=order)
+        return OrderCreateFromCheckout(order=SyncWebhookControlContext(order))
