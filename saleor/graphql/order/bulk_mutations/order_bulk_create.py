@@ -50,6 +50,7 @@ from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_318, ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
@@ -2363,9 +2364,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             ]:
                 cls.call_event(manager.order_bulk_created, created_orders)
 
-            results = [
-                OrderBulkCreateResult(order=order_data.order, errors=order_data.errors)
-                for order_data in orders_data
-            ]
+            results = []
+            for order_data in orders_data:
+                order_detail = None
+                if order_data.order:
+                    order_detail = SyncWebhookControlContext(order_data.order)
+                results.append(
+                    OrderBulkCreateResult(order=order_detail, errors=order_data.errors)
+                )
             count = sum([order_data.order is not None for order_data in orders_data])
             return OrderBulkCreate(count=count, results=results)

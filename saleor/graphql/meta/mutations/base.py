@@ -281,7 +281,13 @@ class BaseMetadataMutation(BaseMutation):
             instance = ChannelContext(node=instance, channel_slug=None)
 
         use_webhook_sync_control_context = isinstance(
-            instance, checkout_models.Checkout | checkout_models.CheckoutLine
+            instance,
+            checkout_models.Checkout
+            | checkout_models.CheckoutLine
+            | order_models.Order
+            | order_models.OrderLine
+            | order_models.Fulfillment
+            | order_models.FulfillmentLine,
         )
 
         if use_webhook_sync_control_context:

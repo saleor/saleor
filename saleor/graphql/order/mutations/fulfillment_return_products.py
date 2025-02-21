@@ -9,6 +9,7 @@ from ....payment import PaymentError
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
@@ -183,9 +184,18 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
             cls.raise_error_for_payment_error()
 
         return_fulfillment, replace_fulfillment, replace_order = response
+        return_fulfillment_response = SyncWebhookControlContext(node=return_fulfillment)
+        replace_fulfillment_response = (
+            SyncWebhookControlContext(node=replace_fulfillment)
+            if replace_fulfillment
+            else None
+        )
+        replace_order_response = (
+            SyncWebhookControlContext(node=replace_order) if replace_order else None
+        )
         return cls(
-            order=order,
-            return_fulfillment=return_fulfillment,
-            replace_fulfillment=replace_fulfillment,
-            replace_order=replace_order,
+            order=SyncWebhookControlContext(order),
+            return_fulfillment=return_fulfillment_response,
+            replace_fulfillment=replace_fulfillment_response,
+            replace_order=replace_order_response,
         )

@@ -10,6 +10,7 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...discount.types import OrderDiscount
@@ -95,4 +96,4 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                     order_discount=order_discount,
                     old_order_discount=order_discount_before_update,
                 )
-        return OrderDiscountUpdate(order=order)
+        return OrderDiscountUpdate(order=SyncWebhookControlContext(order))

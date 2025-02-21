@@ -78,3 +78,7 @@ class BaseContext(Generic[N]):
 @dataclass
 class SyncWebhookControlContext(BaseContext[N]):
     allow_sync_webhooks: bool = True
+
+    def __init__(self, node: N, allow_sync_webhooks: bool = True):
+        self.node = node
+        self.allow_sync_webhooks = allow_sync_webhooks

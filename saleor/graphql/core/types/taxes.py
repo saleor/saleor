@@ -156,9 +156,7 @@ class TaxableObjectLine(BaseObjectType):
 
     @staticmethod
     def resolve_source_line(root: CheckoutLine | OrderLine, _info: ResolveInfo):
-        if isinstance(root, CheckoutLine):
-            return SyncWebhookControlContext(node=root)
-        return root
+        return SyncWebhookControlContext(node=root)
 
     @staticmethod
     def resolve_charge_taxes(root: CheckoutLine | OrderLine, info: ResolveInfo):
@@ -336,9 +334,7 @@ class TaxableObject(BaseObjectType):
 
     @staticmethod
     def resolve_source_object(root: Checkout | Order, _info: ResolveInfo):
-        if isinstance(root, Checkout):
-            return SyncWebhookControlContext(node=root)
-        return root
+        return SyncWebhookControlContext(node=root)
 
     @staticmethod
     def resolve_prices_entered_with_tax(root: Checkout | Order, info: ResolveInfo):
