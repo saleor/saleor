@@ -24,7 +24,7 @@ def test_breaker_board_failure(
     wrapped_function_mock(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, False
     )
-    breaker_board.update_breaker_state(app.id)
+    breaker_board.update_breaker_state(app)
 
     # then only one call was made due to failure threshold
     assert failed_response_function_mock.call_count == 1
@@ -71,7 +71,7 @@ def test_breaker_board_success(
     wrapped_function_mock(
         WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, False
     )
-    breaker_board.update_breaker_state(app.id)
+    breaker_board.update_breaker_state(app)
 
     # then
     assert success_response_function_mock.call_count == 2
@@ -121,7 +121,7 @@ def test_breaker_board_threshold(
         wrapped_function_mock_failed(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, False
         )
-    breaker_board.update_breaker_state(app.id)
+    breaker_board.update_breaker_state(app)
 
     # then
     _, status = breaker_board.storage.last_open(app.id)
@@ -147,7 +147,7 @@ def test_breaker_board_clear_state_for_app(
         wrapped_function_mock_failed(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, False
         )
-    breaker_board.update_breaker_state(app.id)
+    breaker_board.update_breaker_state(app)
     last_open, status = breaker_board.storage.last_open(app.id)
     assert last_open > 0
     assert status == CircuitBreakerState.OPEN
