@@ -27,8 +27,8 @@ from ...core.types import (
     NonNullList,
 )
 from ...core.utils import WebhookEventInfo, get_duplicated_values
+from ...core.utils.metadata_manager import MetadataManager
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
 from ..i18n import I18nMixin
 from ..mutations.base import (
@@ -208,7 +208,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         index: int,
         index_error_map: dict,
     ):
-        if metadata_contains_empty_key(metadata_list):
+        if MetadataManager.metadata_contains_empty_key(metadata_list):
             index_error_map[index].append(
                 CustomerBulkUpdateError(
                     path=f"input.{field_name}",

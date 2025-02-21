@@ -21,7 +21,6 @@ from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
 from ...core.db.connection import allow_writer
-from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
 from ...permission.auth_filters import AuthorizationFilters
@@ -36,7 +35,6 @@ from ..app.dataloaders import get_app_promise
 from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
-from ..payment.utils import metadata_contains_empty_key
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
@@ -57,6 +55,7 @@ from .utils import (
     snake_to_camel_case,
 )
 from .utils.error_codes import get_error_code_from_error
+from .utils.metadata_manager import MetadataManager
 
 
 def get_model_name(model):
@@ -548,25 +547,17 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def update_metadata(cls, instance, meta_data_list: list, is_private: bool = False):
         if is_private:
-            instance.store_value_in_private_metadata(
-                {data.key: data.value for data in meta_data_list}
+            MetadataManager.update_metadata_on_instance(
+                instance, private_metadata=meta_data_list, metadata=None
             )
         else:
-            instance.store_value_in_metadata(
-                {data.key: data.value for data in meta_data_list}
+            MetadataManager.update_metadata_on_instance(
+                instance, metadata=meta_data_list, private_metadata=None
             )
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):
-        if metadata_contains_empty_key(metadata_list):
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Metadata key cannot be empty.",
-                        code=MetadataErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        MetadataManager.validate_metadata_keys_and_throw(metadata_list=metadata_list)
 
     @classmethod
     def validate_and_update_metadata(

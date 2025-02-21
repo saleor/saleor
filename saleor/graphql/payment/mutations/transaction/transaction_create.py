@@ -32,11 +32,11 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
+from ....core.utils.metadata_manager import MetadataManager
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
-from ...utils import metadata_contains_empty_key
 from ..payment.payment_check_balance import MoneyInput
 
 
@@ -131,7 +131,7 @@ class TransactionCreate(BaseMutation):
     ):
         if not metadata_list:
             return
-        if metadata_contains_empty_key(metadata_list):
+        if MetadataManager.metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
                     "transaction": ValidationError(

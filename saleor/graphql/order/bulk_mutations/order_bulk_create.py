@@ -58,13 +58,13 @@ from ...core.scalars import DateTime, PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
+from ...core.utils.metadata_manager import MetadataManager
 from ...discount.enums import DiscountValueTypeEnum
 from ...meta.inputs import MetadataInput
 from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
 )
-from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import (
@@ -920,7 +920,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         path: str,
         field: Any,
     ):
-        if metadata_contains_empty_key(metadata):
+        if MetadataManager.metadata_contains_empty_key(metadata):
             errors.append(
                 OrderBulkError(
                     message="Metadata key cannot be empty.",
