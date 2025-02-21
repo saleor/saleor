@@ -40,6 +40,9 @@ Populates database with sample data and creates admin user with credentials:
 - password: admin
 """
 
+test.cmd="pytest --reuse-db"
+test.help = "Run tests with db reuse to speed up testing time"
+
 [tool.poetry]
 name = "saleor"
 version = "3.21.0-a.0"
