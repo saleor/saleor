@@ -186,7 +186,8 @@ def fetch_draft_order_lines_info(
                 rules_info=rules_info,
             )
         )
-        attach_voucher_info(lines_info, order)
+
+    attach_voucher_info(lines_info, order)
 
     return lines_info
 
