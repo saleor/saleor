@@ -95,8 +95,6 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     assert checkout_id is not None

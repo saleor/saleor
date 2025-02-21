@@ -137,8 +137,6 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"]

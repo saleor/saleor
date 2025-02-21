@@ -62,8 +62,6 @@ def test_unlogged_customer_buy_by_click_and_collect_CORE_0105(
         lines,
         channel_slug,
         email="jon.doe@saleor.io",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

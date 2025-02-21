@@ -55,8 +55,6 @@ def test_checkout_should_be_able_to_remove_shipping_method_CORE_0115(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     assert checkout_data["shippingMethods"] != []

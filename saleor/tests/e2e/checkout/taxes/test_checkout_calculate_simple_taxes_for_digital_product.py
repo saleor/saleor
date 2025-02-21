@@ -95,6 +95,8 @@ def test_digital_checkout_calculate_simple_tax_based_on_billing_country_CORE_200
         lines,
         channel_slug,
         email="testEmail@example.com",
+        shipping_address=None,
+        billing_address=None,
     )
     checkout_id = checkout_data["id"]
     assert checkout_data["isShippingRequired"] is False

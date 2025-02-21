@@ -100,6 +100,8 @@ def test_process_checkout_with_digital_product_CORE_0101(
         lines,
         channel_slug,
         email="testEmail@example.com",
+        billing_address=None,
+        shipping_address=None,
     )
     checkout_id = checkout_data["id"]
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]

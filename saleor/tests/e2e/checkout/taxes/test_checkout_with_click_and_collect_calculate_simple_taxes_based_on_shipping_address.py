@@ -113,7 +113,7 @@ def test_calculate_simple_taxes_order_with_click_and_collect_with_prices_entered
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_shipping_address=True,
+        billing_address=None,
     )
     checkout_id = checkout_data["id"]
 
@@ -283,7 +283,7 @@ def test_calculate_simple_taxes_order_with_click_and_collect_with_prices_entered
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_shipping_address=True,
+        billing_address=None,
     )
     checkout_id = checkout_data["id"]
 

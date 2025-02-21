@@ -175,8 +175,6 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_line1 = checkout_data["lines"][0]
@@ -594,8 +592,6 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_line1 = checkout_data["lines"][0]
@@ -1015,8 +1011,6 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_line1 = checkout_data["lines"][0]
@@ -1435,8 +1429,6 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_line1 = checkout_data["lines"][0]
