@@ -1,10 +1,12 @@
 import logging
 from collections.abc import Iterable
 from decimal import Decimal
+from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
 from django.db.models import prefetch_related_objects
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..core.db.connection import allow_writer
@@ -16,7 +18,11 @@ from ..core.taxes import (
     TaxError,
     zero_taxed_money,
 )
-from ..discount.utils.order import create_or_update_discount_objects_for_order
+from ..discount.utils.order import (
+    create_order_discount_objects_for_order_promotions,
+    refresh_order_base_prices_and_discounts,
+    update_unit_discount_data_on_order_line,
+)
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
@@ -57,14 +63,24 @@ def fetch_order_prices_if_expired(
     if order.status not in ORDER_EDITABLE_STATUS:
         return order, lines
 
-    if not force_update and not order.should_refresh_prices:
+    expired_line_ids = get_expired_line_ids(order, lines)
+    if not force_update and not order.should_refresh_prices and not expired_line_ids:
         return order, lines
 
-    # handle promotions
-    lines_info: list[EditableOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
-    create_or_update_discount_objects_for_order(
-        order, lines_info, database_connection_name
+    # handle price expiration
+    lines_info: list[EditableOrderLineInfo] = []
+    if expired_line_ids:
+        lines_info = refresh_order_base_prices_and_discounts(
+            order, expired_line_ids, lines
+        )
+
+    # handle order promotions
+    if not lines_info:
+        lines_info = fetch_draft_order_lines_info(order, lines)
+    create_order_discount_objects_for_order_promotions(
+        order, lines_info, database_connection_name=database_connection_name
     )
+    update_unit_discount_data_on_order_line(lines_info)
     lines = [line_info.line for line_info in lines_info]
 
     _clear_prefetched_discounts(order, lines)
@@ -120,6 +136,17 @@ def fetch_order_prices_if_expired(
             )
 
         return order, lines
+
+
+def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> list[UUID]:
+    if lines is None:
+        lines = order.lines.all()
+    now = timezone.now()
+    return [
+        line.pk
+        for line in lines
+        if line.price_expired_at and line.price_expired_at < now
+    ]
 
 
 def _clear_prefetched_discounts(order, lines):

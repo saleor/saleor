@@ -41,17 +41,6 @@ if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
 
 
-def create_or_update_discount_objects_for_order(
-    order: "Order",
-    lines_info: list["EditableOrderLineInfo"],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    create_order_discount_objects_for_order_promotions(
-        order, lines_info, database_connection_name=database_connection_name
-    )
-    update_unit_discount_data_on_order_line(lines_info)
-
-
 def create_order_line_discount_objects(
     lines_info: list["EditableOrderLineInfo"],
     discount_data: tuple[
@@ -289,8 +278,9 @@ def create_order_line_discount_objects_for_catalogue_promotions(
 
 def refresh_order_base_prices_and_discounts(
     order: "Order",
-    line_ids_to_refresh: list[UUID] | None = None,
-):
+    line_ids_to_refresh: Iterable[UUID] | None = None,
+    lines: Iterable[OrderLine] | None = None,
+) -> list["EditableOrderLineInfo"]:
     """Force order to fetch the latest channel listing prices and update discounts."""
     from ...order.fetch import (
         fetch_draft_order_lines_info,
@@ -298,13 +288,13 @@ def refresh_order_base_prices_and_discounts(
     )
 
     if order.status not in ORDER_EDITABLE_STATUS:
-        return
+        return []
 
     lines_info = fetch_draft_order_lines_info(
         order, lines=None, fetch_actual_prices=True
     )
     if not lines_info:
-        return
+        return []
 
     if line_ids_to_refresh:
         lines_info_to_update = [
@@ -353,6 +343,7 @@ def refresh_order_base_prices_and_discounts(
             "undiscounted_base_unit_price_amount",
         ],
     )
+    return lines_info
 
 
 def _set_channel_listing_prices(lines_info: list["EditableOrderLineInfo"]):
