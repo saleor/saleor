@@ -35,7 +35,6 @@ from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
 from ... import observability
-from ...const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...event_types import WebhookEventSyncType
 from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
@@ -213,12 +212,12 @@ def trigger_webhook_sync_if_not_cached(
             requestor=requestor,
             pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
-        if response_data is not None:
-            cache.set(
-                cache_key,
-                response_data,
-                timeout=cache_timeout or WEBHOOK_CACHE_DEFAULT_TIMEOUT,
-            )
+        # if response_data is not None:
+        #     cache.set(
+        #         cache_key,
+        #         response_data,
+        #         timeout=cache_timeout or WEBHOOK_CACHE_DEFAULT_TIMEOUT,
+        #     )
     return response_data
 
 

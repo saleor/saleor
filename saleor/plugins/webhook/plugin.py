@@ -59,6 +59,7 @@ from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...thumbnail.models import Thumbnail
 from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TIMEOUT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...webhook.observability.tracing import load_tests_breaker_opentracing_trace
 from ...webhook.payloads import (
     generate_checkout_payload,
     generate_checkout_payload_for_tax_calculation,
@@ -3495,23 +3496,28 @@ class WebhookPlugin(BasePlugin):
             payload = generate_checkout_payload(checkout, self.requestor)
             cache_data = get_cache_data_for_shipping_list_methods_for_checkout(payload)
             for webhook in webhooks:
-                response_data = trigger_webhook_sync_if_not_cached(
-                    event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                    payload=payload,
-                    webhook=webhook,
-                    cache_data=cache_data,
-                    allow_replica=self.allow_replica,
-                    subscribable_object=checkout,
-                    request_timeout=WEBHOOK_SYNC_TIMEOUT,
-                    cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                    requestor=self.requestor,
-                )
-
-                if response_data:
-                    shipping_methods = parse_list_shipping_methods_response(
-                        response_data, webhook.app
+                # TODO: drop added tracing after load tests!
+                with load_tests_breaker_opentracing_trace(
+                    "get_shipping_methods_for_checkout",
+                    "trigger_webhook_sync_if_not_cached",
+                ):
+                    response_data = trigger_webhook_sync_if_not_cached(
+                        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                        payload=payload,
+                        webhook=webhook,
+                        cache_data=cache_data,
+                        allow_replica=self.allow_replica,
+                        subscribable_object=checkout,
+                        request_timeout=WEBHOOK_SYNC_TIMEOUT,
+                        cache_timeout=CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                        requestor=self.requestor,
                     )
-                    methods.extend(shipping_methods)
+
+                    if response_data:
+                        shipping_methods = parse_list_shipping_methods_response(
+                            response_data, webhook.app
+                        )
+                        methods.extend(shipping_methods)
         return methods
 
     def get_tax_code_from_object_meta(
