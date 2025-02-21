@@ -714,7 +714,7 @@ def test_app_query_breaker_state(
     # given
     now = timezone.now()
     storage_mock = Mock()
-    breaker_board_mock.update_breaker_state.side_effect = lambda id: breaker_state
+    breaker_board_mock.update_breaker_state.side_effect = lambda app: breaker_state
     breaker_board_mock.storage = storage_mock
     storage_mock.retrieve_last_state_change.return_value = bytes(
         now.isoformat(), "utf-8"
@@ -788,7 +788,7 @@ def test_app_query_breaker_last_change(
     now = timezone.now()
     storage_mock = Mock()
     board_mock.update_breaker_state.side_effect = (
-        lambda id: CircuitBreakerState.HALF_OPEN
+        lambda app: CircuitBreakerState.HALF_OPEN
     )
     board_mock.storage = storage_mock
     storage_mock.retrieve_last_state_change.return_value = bytes(

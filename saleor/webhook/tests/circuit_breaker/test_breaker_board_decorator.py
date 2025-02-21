@@ -32,19 +32,21 @@ def test_breaker_board(
         response_data = transport.trigger_webhook_sync(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
         )
+    state = breaker_board.update_breaker_state(webhook.app)
 
     # then
     assert response_data == expected_data
+    assert state == CircuitBreakerState.CLOSED
 
 
-def test_breaker_board_trip(settings, breaker_storage, app_with_webhook, caplog):
+def test_breaker_board_trip(settings, breaker_storage, app_with_webhook):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
-    _, webhook = app_with_webhook
+    app, webhook = app_with_webhook
     cooldown = 30
     breaker_board = create_breaker_board(breaker_storage, cooldown_seconds=cooldown)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
-    breaker_board.register_error(app_with_webhook[0].id, 100)
+    breaker_board.register_error(app.id)
 
     # when
     with patch(
@@ -54,19 +56,17 @@ def test_breaker_board_trip(settings, breaker_storage, app_with_webhook, caplog)
         response_data = transport.trigger_webhook_sync(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
         )
+    state = breaker_board.update_breaker_state(app)
 
     # then
     assert response_data is None
-    assert caplog.messages == [
-        f"[App ID: {app_with_webhook[0].id!r}] Circuit breaker tripped, cooldown is {cooldown} [seconds]."
-    ]
+    assert state == CircuitBreakerState.OPEN
 
 
-def test_breaker_board_enter_half_open(
-    settings, breaker_storage, app_with_webhook, caplog
-):
+def test_breaker_board_enter_half_open(settings, breaker_storage, app_with_webhook):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
+    expected_data = {"some": "data"}
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
@@ -75,24 +75,22 @@ def test_breaker_board_enter_half_open(
     # when
     with patch(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
-        new=Mock(return_value=None),
+        new=Mock(return_value=expected_data),
     ):
         response_data = transport.trigger_webhook_sync(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
         )
+    state = breaker_board.update_breaker_state(app)
 
     # then
-    assert response_data is None
-    assert caplog.messages == [
-        f"[App ID: {app_with_webhook[0].id!r}] Circuit breaker state changed to half_open."
-    ]
+    assert response_data is expected_data
+    assert state == CircuitBreakerState.HALF_OPEN
 
 
-def test_breaker_board_closes_on_half_open(
-    settings, breaker_storage, app_with_webhook, caplog
-):
+def test_breaker_board_closes_on_half_open(settings, breaker_storage, app_with_webhook):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
+    expected_data = {"some": "data"}
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage, success_count_recovery=1)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
@@ -101,24 +99,24 @@ def test_breaker_board_closes_on_half_open(
     # when
     with patch(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
-        new=Mock(return_value=None),
+        new=Mock(return_value=expected_data),
     ):
         response_data = transport.trigger_webhook_sync(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
         )
+    state = breaker_board.update_breaker_state(app)
 
     # then
-    assert response_data is None
-    assert caplog.messages == [
-        f"[App ID: {app_with_webhook[0].id!r}] Circuit breaker fully recovered."
-    ]
+    assert response_data is expected_data
+    assert state == CircuitBreakerState.CLOSED
 
 
 def test_breaker_board_closes_stays_half_open_below_threshold(
-    settings, breaker_storage, app_with_webhook, caplog
+    settings, breaker_storage, app_with_webhook
 ):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
+    expected_data = {"some": "data"}
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage, success_count_recovery=2)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
@@ -127,19 +125,20 @@ def test_breaker_board_closes_stays_half_open_below_threshold(
     # when
     with patch(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
-        new=Mock(return_value=None),
+        new=Mock(return_value=expected_data),
     ):
         response_data = transport.trigger_webhook_sync(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
         )
+    state = breaker_board.update_breaker_state(app)
 
     # then
-    assert response_data is None
-    assert caplog.messages == []
+    assert response_data is expected_data
+    assert state == CircuitBreakerState.HALF_OPEN
 
 
 def test_breaker_board_reopens_on_half_open(
-    settings, breaker_storage, app_with_webhook, caplog
+    settings, breaker_storage, app_with_webhook
 ):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
@@ -149,7 +148,7 @@ def test_breaker_board_reopens_on_half_open(
         breaker_storage, cooldown_seconds=cooldown, failure_min_count_recovery=1
     )
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
-    breaker_board.register_error(app.id, 100)
+    breaker_board.register_error(app.id)
     breaker_board.storage.update_open(app.id, 0, CircuitBreakerState.HALF_OPEN)
 
     # when
@@ -160,9 +159,8 @@ def test_breaker_board_reopens_on_half_open(
         response_data = transport.trigger_webhook_sync(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
         )
+    state = breaker_board.update_breaker_state(app)
 
     # then
     assert response_data is None
-    assert caplog.messages == [
-        f"[App ID: {app_with_webhook[0].id!r}] Circuit breaker tripped, cooldown is {cooldown} [seconds]."
-    ]
+    assert state == CircuitBreakerState.OPEN
