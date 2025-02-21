@@ -68,8 +68,6 @@ def test_checkout_void_payment_CORE_0217(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

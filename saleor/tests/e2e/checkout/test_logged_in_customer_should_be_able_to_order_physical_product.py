@@ -58,8 +58,6 @@ def test_process_checkout_with_physical_product_CORE_0103(
         lines,
         channel_slug,
         email=None,
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

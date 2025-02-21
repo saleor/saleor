@@ -83,8 +83,6 @@ def test_complete_checkout_with_transaction_and_inactive_payment_CORE_1602(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

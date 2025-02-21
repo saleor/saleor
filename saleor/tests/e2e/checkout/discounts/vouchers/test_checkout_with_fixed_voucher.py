@@ -99,8 +99,6 @@ def test_checkout_use_fixed_voucher_core_0901(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]

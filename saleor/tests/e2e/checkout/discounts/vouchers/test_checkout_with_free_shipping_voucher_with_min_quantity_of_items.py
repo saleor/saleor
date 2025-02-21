@@ -102,8 +102,6 @@ def test_checkout_use_free_shipping_voucher_with_min_quantity_of_items_0906(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"][0]
