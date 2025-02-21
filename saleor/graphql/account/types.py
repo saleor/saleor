@@ -56,7 +56,7 @@ from ..core.types import (
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
-from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
+from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader, OrdersByUserLoader
 from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -272,10 +272,31 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
         return root.parameters.get("count", None)
 
     @staticmethod
+    def resolve_order(root: models.CustomerEvent, info: ResolveInfo):
+        def _wrap_with_sync_webhook_control_context(order):
+            return SyncWebhookControlContext(node=order, allow_sync_webhooks=False)
+
+        if root.order_id:
+            return (
+                OrderByIdLoader(info.context)
+                .load(root.order_id)
+                .then(_wrap_with_sync_webhook_control_context)
+            )
+        return None
+
+    @staticmethod
     def resolve_order_line(root: models.CustomerEvent, info: ResolveInfo):
         if "order_line_pk" in root.parameters:
-            return OrderLineByIdLoader(info.context).load(
-                uuid.UUID(root.parameters["order_line_pk"])
+
+            def _wrap_with_sync_webhook_control_context(line):
+                if not line:
+                    return None
+                return SyncWebhookControlContext(node=line, allow_sync_webhooks=False)
+
+            return (
+                OrderLineByIdLoader(info.context)
+                .load(uuid.UUID(root.parameters["order_line_pk"]))
+                .then(_wrap_with_sync_webhook_control_context)
             )
         return None
 
@@ -623,8 +644,12 @@ class User(ModelObjectType[models.User]):
                     order for order in orders if order.channel_id in accessible_channels
                 ]
 
-            return create_connection_slice(
-                orders, info, kwargs, OrderCountableConnection
+            return create_connection_slice_for_sync_webhook_control_context(
+                orders,
+                info,
+                kwargs,
+                OrderCountableConnection,
+                allow_sync_webhooks=False,
             )
 
         to_fetch = [OrdersByUserLoader(info.context).load(root.id)]

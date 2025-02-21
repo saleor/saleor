@@ -96,7 +96,6 @@ class TaxExemptionManage(BaseMutation):
         if isinstance(obj, Checkout):
             cls._invalidate_checkout(info, obj)
             obj.save(update_fields=["tax_exemption", "price_expiration", "last_change"])
-            obj = SyncWebhookControlContext(node=obj)
 
         if isinstance(obj, Order):
             cls.validate_order_status(obj)
@@ -105,4 +104,4 @@ class TaxExemptionManage(BaseMutation):
                 update_fields=["tax_exemption", "should_refresh_prices", "updated_at"]
             )
 
-        return TaxExemptionManage(taxable_object=obj)
+        return TaxExemptionManage(taxable_object=SyncWebhookControlContext(node=obj))

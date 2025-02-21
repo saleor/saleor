@@ -34,6 +34,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_321,
@@ -646,3 +647,8 @@ class DraftOrderCreate(
             # handle removing voucher
             voucher_code = VoucherCode.objects.filter(code=old_voucher_code).first()
             release_voucher_code_usage(voucher_code, old_voucher, user_email)
+
+    @classmethod
+    def success_response(cls, order):
+        """Return a success response."""
+        return DraftOrderCreate(order=SyncWebhookControlContext(order))

@@ -1,14 +1,17 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import events, models
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import create_order_discount_for_order, get_order_discounts
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -60,6 +63,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     ):
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(info, order_id, only_type=Order)
+        order = cast(models.Order, order)
         cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, input)
 
@@ -82,4 +86,4 @@ class OrderDiscountAdd(OrderDiscountCommon):
                 app=app,
                 order_discount=order_discount,
             )
-        return OrderDiscountAdd(order=order)
+        return OrderDiscountAdd(order=SyncWebhookControlContext(order))

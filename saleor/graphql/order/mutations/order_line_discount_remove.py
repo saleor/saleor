@@ -6,6 +6,7 @@ from ....order.utils import invalidate_order_prices, remove_discount_from_order_
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ..types import Order, OrderLine
@@ -55,4 +56,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
             )
 
             invalidate_order_prices(order, save=True)
-        return OrderLineDiscountRemove(order_line=order_line, order=order)
+        return OrderLineDiscountRemove(
+            order_line=SyncWebhookControlContext(order_line),
+            order=SyncWebhookControlContext(order),
+        )

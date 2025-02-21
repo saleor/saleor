@@ -17,6 +17,7 @@ from ....order.utils import (
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
@@ -204,7 +205,10 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             )
             call_event_by_order_status(order, manager)
 
-        return OrderLinesCreate(order=order, order_lines=added_lines)
+        return OrderLinesCreate(
+            order=SyncWebhookControlContext(order),
+            order_lines=[SyncWebhookControlContext(node=line) for line in added_lines],
+        )
 
     @classmethod
     def _find_line_id_for_variant_if_exist(cls, variant_id, lines_info) -> None | str:

@@ -23,6 +23,7 @@ from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -185,4 +186,4 @@ class DraftOrderComplete(BaseMutation):
                     from_draft=True,
                 )
             )
-        return DraftOrderComplete(order=order)
+        return DraftOrderComplete(order=SyncWebhookControlContext(node=order))

@@ -13,6 +13,7 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
@@ -295,4 +296,10 @@ class OrderFulfill(BaseMutation):
             errors = prepare_insufficient_stock_order_validation_errors(e)
             raise ValidationError({"stocks": errors}) from e
 
-        return OrderFulfill(fulfillments=fulfillments, order=instance)
+        return OrderFulfill(
+            fulfillments=[
+                SyncWebhookControlContext(node=fulfillment)
+                for fulfillment in fulfillments
+            ],
+            order=SyncWebhookControlContext(instance),
+        )

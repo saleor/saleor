@@ -7,7 +7,10 @@ from ...order import models
 from ...permission.enums import OrderPermissions
 from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
-from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.connection import (
+    create_connection_slice_for_sync_webhook_control_context,
+    filter_connection_queryset,
+)
 from ..core.context import get_database_connection_name
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -163,7 +166,9 @@ class OrderQueries(graphene.ObjectType):
     @staticmethod
     def resolve_homepage_events(_root, info: ResolveInfo, **kwargs):
         qs = resolve_homepage_events(info)
-        return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, OrderEventCountableConnection, allow_sync_webhooks=False
+        )
 
     @staticmethod
     def resolve_order(_root, info: ResolveInfo, *, external_reference=None, id=None):
@@ -204,7 +209,9 @@ class OrderQueries(graphene.ObjectType):
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
-        return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, OrderCountableConnection, allow_sync_webhooks=False
+        )
 
     @staticmethod
     def resolve_draft_orders(_root, info: ResolveInfo, **kwargs):
@@ -225,7 +232,9 @@ class OrderQueries(graphene.ObjectType):
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
-        return create_connection_slice(qs, info, kwargs, OrderCountableConnection)
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, OrderCountableConnection, allow_sync_webhooks=False
+        )
 
     @staticmethod
     def resolve_orders_total(_root, info: ResolveInfo, *, period, channel=None):

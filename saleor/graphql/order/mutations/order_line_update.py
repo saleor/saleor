@@ -14,6 +14,7 @@ from ....order.utils import (
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -110,9 +111,11 @@ class OrderLineUpdate(
 
     @classmethod
     def success_response(cls, instance):
-        response = super().success_response(instance)
-        response.order = instance.order
-        return response
+        return cls(
+            orderLine=SyncWebhookControlContext(node=instance),
+            order=SyncWebhookControlContext(node=instance.order),
+            errors=[],
+        )
 
     @classmethod
     def get_instance_channel_id(cls, instance, **data):

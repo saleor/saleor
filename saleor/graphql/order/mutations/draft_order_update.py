@@ -6,6 +6,7 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -100,7 +101,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         )
         cls._save_m2m(info, instance, cleaned_input)
 
-        return cls.success_response(instance)
+        return DraftOrderUpdate(order=SyncWebhookControlContext(node=instance))
 
     @classmethod
     def save_draft_order(
