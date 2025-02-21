@@ -55,7 +55,10 @@ from .utils import (
     snake_to_camel_case,
 )
 from .utils.error_codes import get_error_code_from_error
-from .utils.metadata_manager import MetadataManager
+from .utils.metadata_manager import (
+    update_metadata_on_instance,
+    validate_metadata_keys_and_throw,
+)
 
 
 def get_model_name(model):
@@ -547,17 +550,17 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def update_metadata(cls, instance, meta_data_list: list, is_private: bool = False):
         if is_private:
-            MetadataManager.update_metadata_on_instance(
+            update_metadata_on_instance(
                 instance, private_metadata=meta_data_list, metadata=None
             )
         else:
-            MetadataManager.update_metadata_on_instance(
+            update_metadata_on_instance(
                 instance, metadata=meta_data_list, private_metadata=None
             )
 
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):
-        MetadataManager.validate_metadata_keys_and_throw(metadata_list=metadata_list)
+        validate_metadata_keys_and_throw(metadata_list=metadata_list)
 
     @classmethod
     def validate_and_update_metadata(
