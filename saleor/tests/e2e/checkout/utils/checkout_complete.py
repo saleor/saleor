@@ -1,6 +1,8 @@
+from ...account.utils.fragments import ADDRESS_FRAGMENT
 from ...utils import get_graphql_content
 
-CHECKOUT_COMPLETE_MUTATION = """
+CHECKOUT_COMPLETE_MUTATION = (
+    """
 mutation CheckoutComplete($checkoutId: ID!) {
   checkoutComplete(id: $checkoutId) {
     errors {
@@ -104,10 +106,18 @@ mutation CheckoutComplete($checkoutId: ID!) {
         id
         last4CodeChars
       }
+      billingAddress {
+        ...Address
+      }
+      shippingAddress {
+        ...Address
+      }
     }
   }
 }
 """
+    + ADDRESS_FRAGMENT
+)
 
 
 def raw_checkout_complete(api_client, checkout_id):
