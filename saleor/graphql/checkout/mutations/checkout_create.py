@@ -6,7 +6,9 @@ from django.conf import settings
 from ....checkout import AddressType, models
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
+from ....checkout.models import CheckoutMetadata
+from ....checkout.utils import add_variants_to_checkout
+from ....core.db.connection import allow_writer
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
@@ -425,13 +427,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         metadata = cleaned_input.get("metadata", [])
         private_metadata = cleaned_input.get("private_metadata", [])
 
-        if not metadata and not private_metadata:
-            return
-
-        checkout_metadata = create_checkout_metadata(instance)
-
         MetadataManager.validate_metadata_keys_and_throw(metadata)
         MetadataManager.validate_metadata_keys_and_throw(private_metadata)
+
+        checkout_metadata = CheckoutMetadata(checkout=instance)
 
         MetadataManager.update_metadata_on_instance(
             instance=checkout_metadata,
@@ -439,7 +438,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             private_metadata=private_metadata,
         )
 
-        checkout_metadata.save()
+        with allow_writer():
+            checkout_metadata.save()
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):

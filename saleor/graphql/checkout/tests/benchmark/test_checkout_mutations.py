@@ -567,6 +567,7 @@ def test_create_checkout_with_order_promotion(
 
     # when
     user_api_client.ensure_access_token()
+    # TODO Fix this one, its running 90 now, but why?
     with django_assert_num_queries(88):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
 
