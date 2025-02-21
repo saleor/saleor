@@ -27,6 +27,7 @@ from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
 from ...core.utils import WebhookEventInfo
+from ...core.utils.metadata_manager import MetadataManager
 from ...core.validators import validate_variants_available_in_channel
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
@@ -422,21 +423,17 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # cleaned_input.
 
         checkout_metadata = create_checkout_metadata(instance)
-        #
-        # metadata_from_input = cleaned_input.get("metadata", [])
-        # private_metadata_from_input = cleaned_input.get("private_metadata", [])
 
-        # nothing_to_write = (
-        #     len(metadata_from_input) == 0 and len(private_metadata_from_input) == 0
-        # )
-        #
-        # if nothing_to_write:
-        #     return
+        metadata = (cleaned_input.get("metadata"),)
+        private_metadata = cleaned_input.get("private_metadata")
 
-        cls.validate_and_update_metadata(
-            checkout_metadata,
-            cleaned_input.get("metadata"),
-            cleaned_input.get("private_metadata"),
+        MetadataManager.validate_metadata_keys_and_throw(metadata)
+        MetadataManager.validate_metadata_keys_and_throw(private_metadata)
+
+        MetadataManager.update_metadata_on_instance(
+            instance=checkout_metadata,
+            metadata=metadata,
+            private_metadata=private_metadata,
         )
 
         checkout_metadata.save()
