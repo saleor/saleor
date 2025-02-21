@@ -26886,7 +26886,7 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   metadata: [MetadataInput!]
 
   """
-  Checkout private metadata.
+  Checkout private metadata. Requires one of the following permissions:MANAGE_CHECKOUTS, HANDLE_CHECKOUTS
   
   Added in Saleor 3.21.
   """
