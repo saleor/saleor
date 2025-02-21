@@ -9,6 +9,7 @@ from django.utils.module_loading import import_string
 from saleor.webhook.event_types import WebhookEventSyncType
 
 from ...graphql.app.enums import CircuitBreakerState
+from ...webhook.observability.tracing import load_tests_breaker_opentracing_trace
 
 if TYPE_CHECKING:
     from ...app.models import App
@@ -127,40 +128,47 @@ class BreakerBoard:
         return state
 
     def update_breaker_state(self, app: "App") -> str:
-        state, changed_at = self.storage.get_app_state(app.id)
+        with load_tests_breaker_opentracing_trace(
+            "breaker_board", "update_breaker_state"
+        ):
+            state, changed_at = self.storage.get_app_state(app.id)
 
-        total = self.storage.get_event_count(app.id, "total") or 1
-        errors = self.storage.get_event_count(app.id, "error")
-        # CLOSED to OPEN
-        if state == CircuitBreakerState.CLOSED and self.exceeded_error_threshold(
-            state, total, errors
-        ):
-            return self.set_breaker_state(app, CircuitBreakerState.OPEN, total, errors)
-        # OPEN TO HALF-OPEN
-        if state == CircuitBreakerState.OPEN and changed_at < (
-            time.time() - self.cooldown_seconds
-        ):
-            return self.set_breaker_state(
-                app, CircuitBreakerState.HALF_OPEN, total, errors
-            )
-        # HALF-OPEN to CLOSED / OPEN
-        if state == CircuitBreakerState.HALF_OPEN:
-            if self.exceeded_error_threshold(state, total, errors):
+            total = self.storage.get_event_count(app.id, "total") or 1
+            errors = self.storage.get_event_count(app.id, "error")
+            # CLOSED to OPEN
+            if state == CircuitBreakerState.CLOSED and self.exceeded_error_threshold(
+                state, total, errors
+            ):
                 return self.set_breaker_state(
                     app, CircuitBreakerState.OPEN, total, errors
                 )
-            if self.reached_half_open_target_success_count(total, errors):
+            # OPEN TO HALF-OPEN
+            if state == CircuitBreakerState.OPEN and changed_at < (
+                time.time() - self.cooldown_seconds
+            ):
                 return self.set_breaker_state(
-                    app, CircuitBreakerState.CLOSED, total, errors
+                    app, CircuitBreakerState.HALF_OPEN, total, errors
                 )
-        return state
+            # HALF-OPEN to CLOSED / OPEN
+            if state == CircuitBreakerState.HALF_OPEN:
+                if self.exceeded_error_threshold(state, total, errors):
+                    return self.set_breaker_state(
+                        app, CircuitBreakerState.OPEN, total, errors
+                    )
+                if self.reached_half_open_target_success_count(total, errors):
+                    return self.set_breaker_state(
+                        app, CircuitBreakerState.CLOSED, total, errors
+                    )
+            return state
 
     def register_error(self, app_id: int):
-        self.storage.register_event(app_id, "error", self.ttl_seconds)
-        self.storage.register_event(app_id, "total", self.ttl_seconds)
+        with load_tests_breaker_opentracing_trace("breaker_board", "register_error"):
+            self.storage.register_event(app_id, "error", self.ttl_seconds)
+            self.storage.register_event(app_id, "total", self.ttl_seconds)
 
     def register_success(self, app_id: int):
-        self.storage.register_event(app_id, "total", self.ttl_seconds)
+        with load_tests_breaker_opentracing_trace("breaker_board", "register_success"):
+            self.storage.register_event(app_id, "total", self.ttl_seconds)
 
     def __call__(self, func):
         def inner(*args, **kwargs):
