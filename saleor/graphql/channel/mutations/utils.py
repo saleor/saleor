@@ -52,6 +52,7 @@ def clean_draft_order_line_price_freeze_period(freeze_period: int):
                 )
             }
         )
+    return freeze_period
 
 
 def clean_input_order_settings(
