@@ -13,6 +13,8 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.models import User
+from ..account.utils import store_user_address
+from ..checkout import AddressType
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
@@ -1343,3 +1345,31 @@ def clean_order_line_quantities(order_lines, quantities_for_lines):
                     )
                 }
             )
+
+
+def store_user_addresses_from_draft_order(order, manager):
+    """Save the user's billing and shipping addresses after draft order completion.
+
+    This function stores the billing and shipping addresses in the customer's
+    address book if the order has an assigned user and the respective flags
+    (`draft_save_billing_address` or `draft_save_shipping_address`) are set to `True`.
+
+    Once the addresses are stored, the flags are reset to `None`, as they are only
+    applicable during the draft order stage.
+    """
+    if order.user:
+        if order.draft_save_billing_address is True and order.billing_address:
+            store_user_address(
+                order.user, order.billing_address, AddressType.BILLING, manager
+            )
+
+        if order.draft_save_shipping_address is True and order.shipping_address:
+            store_user_address(
+                order.user, order.shipping_address, AddressType.SHIPPING, manager
+            )
+
+    order.draft_save_billing_address = None
+    order.draft_save_shipping_address = None
+    order.save(
+        update_fields=["draft_save_billing_address", "draft_save_shipping_address"]
+    )

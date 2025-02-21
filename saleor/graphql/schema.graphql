@@ -11838,6 +11838,7 @@ enum OrderErrorCode @doc(category: "Orders") {
   INVALID_VOUCHER_CODE
   NON_EDITABLE_GIFT_LINE
   NON_REMOVABLE_GIFT_LINE
+  MISSING_ADDRESS_DATA
 }
 
 enum AddressTypeEnum {
@@ -17207,6 +17208,13 @@ type Mutation {
     id: ID
 
     """
+    Indicates whether the billing address should be saved to the user’s address book upon checkout completion. If not provided, the default behavior is to save the address.
+    
+    Added in Saleor 3.21.
+    """
+    saveAddress: Boolean = true
+
+    """
     Checkout token.
     
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
@@ -17570,6 +17578,13 @@ type Mutation {
 
     """The checkout's ID."""
     id: ID
+
+    """
+    Indicates whether the shipping address should be saved to the user’s address book upon checkout completion. If not provided, the default behavior is to save the address.
+    
+    Added in Saleor 3.21.
+    """
+    saveAddress: Boolean = true
 
     """The mailing address to where the checkout will be shipped."""
     shippingAddress: AddressInput!
@@ -23323,6 +23338,13 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """Billing address of the customer."""
   billingAddress: AddressInput
 
+  """
+  Indicates whether the billing address should be saved to the user’s address book upon draft order completion. Can only be set when a billing address is provided. If not specified along with the address, the default behavior is to not save the address.
+  
+  Added in Saleor 3.21.
+  """
+  saveBillingAddress: Boolean
+
   """Customer associated with the draft order."""
   user: ID
 
@@ -23338,6 +23360,13 @@ input DraftOrderCreateInput @doc(category: "Orders") {
 
   """Shipping address of the customer."""
   shippingAddress: AddressInput
+
+  """
+  Indicates whether the shipping address should be saved to the user’s address book upon draft order completion.Can only be set when a shipping address is provided. If not specified along with the address, the default behavior is to not save the address.
+  
+  Added in Saleor 3.21.
+  """
+  saveShippingAddress: Boolean
 
   """ID of a selected shipping method."""
   shippingMethod: ID
@@ -23452,6 +23481,13 @@ input DraftOrderInput @doc(category: "Orders") {
   """Billing address of the customer."""
   billingAddress: AddressInput
 
+  """
+  Indicates whether the billing address should be saved to the user’s address book upon draft order completion. Can only be set when a billing address is provided. If not specified along with the address, the default behavior is to not save the address.
+  
+  Added in Saleor 3.21.
+  """
+  saveBillingAddress: Boolean
+
   """Customer associated with the draft order."""
   user: ID
 
@@ -23467,6 +23503,13 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """Shipping address of the customer."""
   shippingAddress: AddressInput
+
+  """
+  Indicates whether the shipping address should be saved to the user’s address book upon draft order completion.Can only be set when a shipping address is provided. If not specified along with the address, the default behavior is to not save the address.
+  
+  Added in Saleor 3.21.
+  """
+  saveShippingAddress: Boolean
 
   """ID of a selected shipping method."""
   shippingMethod: ID
@@ -26770,6 +26813,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   NON_EDITABLE_GIFT_LINE
   NON_REMOVABLE_GIFT_LINE
   SHIPPING_CHANGE_FORBIDDEN
+  MISSING_ADDRESS_DATA
 }
 
 """
@@ -26863,9 +26907,23 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   email: String
 
   """
+  Indicates whether the shipping address should be saved to the user’s address book upon checkout completion.Can only be set when a shipping address is provided. If not specified along with the address, the default behavior is to save the address.
+  
+  Added in Saleor 3.21.
+  """
+  saveShippingAddress: Boolean
+
+  """
   The mailing address to where the checkout will be shipped. Note: the address will be ignored if the checkout doesn't contain shippable items. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
   """
   shippingAddress: AddressInput
+
+  """
+  Indicates whether the billing address should be saved to the user’s address book upon checkout completion. Can only be set when a billing address is provided. If not specified along with the address, the default behavior is to save the address.
+  
+  Added in Saleor 3.21.
+  """
+  saveBillingAddress: Boolean
 
   """
   Billing address of the customer. `skipValidation` requires HANDLE_CHECKOUTS and AUTHENTICATED_APP permissions.
