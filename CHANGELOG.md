@@ -21,6 +21,8 @@ All notable, unreleased changes to this project will be documented in this file.
   - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
 - Fix updating `metadata` and `privateMetadata` in `transactionUpdate` - #17261 by @IKarbowiak
   - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
+- Fixed `invoiceRequest` no longer throws an error, when only app with webhook `INVOICE_REQUESTED` is installed, without invoice plugin - #17355 by @witoszekdev
+- Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
 
 ### GraphQL API
 
@@ -35,6 +37,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
 - Add `appReenableSyncWebhooks` mutation - #16658 by @tomaszszymanski129
 - Add `breakerState` and `breakerLastStateChange` to the `App` type - #16658 by @tomaszszymanski129
+- Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
+- Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 
 ### Webhooks
 
@@ -62,4 +66,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
 - Added support for the AWS_S3_URL_PROTOCOL environment variable - #17305 by @p-febis
-- Fixed pycurl dependency and required system libraries to fix Celery worker issues when using SQS by @mariobrgomes
+- Fixed Celery worker issues when using SQS by using celery[sqs] extras instead of direct pycurl dependency - by @mariobrgomes
+- Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski
+- `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins

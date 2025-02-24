@@ -1005,9 +1005,10 @@ def get_valid_collection_points_for_checkout(
 
 def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
-    checkout.collection_point = None
-    checkout.shipping_method = None
-    checkout_info.shipping_method = None
+    updated_fields = remove_delivery_method_from_checkout(checkout_info.checkout)
+
+    if "collection_point_id" in updated_fields:
+        checkout_info.shipping_address = checkout_info.checkout.shipping_address
 
     update_delivery_method_lists_for_checkout_info(
         checkout_info=checkout_info,
@@ -1017,15 +1018,13 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         lines=checkout_info.lines,
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
-
-    checkout.save(
-        update_fields=[
-            "shipping_method",
-            "collection_point",
-            "last_change",
-        ]
-    )
-    delete_external_shipping_id_if_present(checkout=checkout)
+    if updated_fields:
+        checkout.save(
+            update_fields=updated_fields
+            + [
+                "last_change",
+            ]
+        )
 
 
 def is_fully_paid(
@@ -1096,27 +1095,7 @@ def validate_variants_in_checkout_lines(lines: list["CheckoutLineInfo"]):
         )
 
 
-def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
-    metadata = get_or_create_checkout_metadata(checkout)
-    metadata.store_value_in_private_metadata(
-        {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
-    )
-    metadata.save()
-
-
-def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    metadata_object: ModelWithMetadata | None
-    if isinstance(container, Checkout):
-        metadata_object = get_checkout_metadata(container)
-    else:
-        metadata_object = container
-    if not metadata_object:
-        return None
-    return metadata_object.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
-
-
-def delete_external_shipping_id_if_present(checkout: Checkout):
-    """Delete external shipping key if present in metadata."""
+def _remove_external_shipping_from_metadata(checkout: Checkout):
     metadata = get_checkout_metadata(checkout)
     if not metadata:
         return
@@ -1126,6 +1105,127 @@ def delete_external_shipping_id_if_present(checkout: Checkout):
     )
     if field_deleted:
         metadata.save(update_fields=["private_metadata"])
+
+
+def remove_external_shipping_from_checkout(
+    checkout: Checkout, save: bool = False
+) -> list[str]:
+    fields_to_update = []
+    if checkout.external_shipping_method_id:
+        checkout.external_shipping_method_id = None
+        fields_to_update.append("external_shipping_method_id")
+        if checkout.shipping_method_name is not None:
+            checkout.shipping_method_name = None
+            fields_to_update.append("shipping_method_name")
+
+        if save:
+            fields_to_update.append("last_change")
+            checkout.save(update_fields=fields_to_update)
+
+    _remove_external_shipping_from_metadata(checkout)
+    return fields_to_update
+
+
+def remove_built_in_shipping_from_checkout(checkout: Checkout) -> list[str]:
+    fields_to_update = []
+    if checkout.shipping_method_id:
+        checkout.shipping_method_id = None
+        fields_to_update.append("shipping_method_id")
+        if checkout.shipping_method_name is not None:
+            checkout.shipping_method_name = None
+            fields_to_update.append("shipping_method_name")
+    return fields_to_update
+
+
+def remove_click_and_collect_from_checkout(checkout: Checkout) -> list[str]:
+    fields_to_update = []
+    if checkout.collection_point_id:
+        checkout.collection_point_id = None
+        fields_to_update.append("collection_point_id")
+        if checkout.shipping_address_id:
+            checkout.shipping_address = None
+            fields_to_update.append("shipping_address_id")
+    return fields_to_update
+
+
+def remove_delivery_method_from_checkout(checkout: Checkout) -> list[str]:
+    fields_to_update = []
+    fields_to_update += remove_built_in_shipping_from_checkout(checkout)
+    fields_to_update += remove_click_and_collect_from_checkout(checkout)
+    fields_to_update += remove_external_shipping_from_checkout(checkout)
+    return fields_to_update
+
+
+def assign_external_shipping_to_checkout(
+    checkout: Checkout, external_shipping_method_data: ShippingMethodData
+) -> list[str]:
+    fields_to_update = []
+    fields_to_update += remove_built_in_shipping_from_checkout(checkout)
+    fields_to_update += remove_click_and_collect_from_checkout(checkout)
+
+    # make sure that we don't have obsolete data for shipping methods stored in
+    # private metadata
+    _remove_external_shipping_from_metadata(checkout=checkout)
+
+    if checkout.external_shipping_method_id != external_shipping_method_data.id:
+        checkout.external_shipping_method_id = external_shipping_method_data.id
+        fields_to_update.append("external_shipping_method_id")
+    if checkout.shipping_method_name != external_shipping_method_data.name:
+        checkout.shipping_method_name = external_shipping_method_data.name
+        fields_to_update.append("shipping_method_name")
+
+    return fields_to_update
+
+
+def assign_built_in_shipping_to_checkout(
+    checkout: Checkout, shipping_method_data: ShippingMethodData
+) -> list[str]:
+    fields_to_update = []
+    fields_to_update += remove_external_shipping_from_checkout(checkout)
+    fields_to_update += remove_click_and_collect_from_checkout(checkout)
+
+    if checkout.shipping_method_id != int(shipping_method_data.id):
+        checkout.shipping_method_id = shipping_method_data.id
+        fields_to_update.append("shipping_method_id")
+    if checkout.shipping_method_name != shipping_method_data.name:
+        checkout.shipping_method_name = shipping_method_data.name
+        fields_to_update.append("shipping_method_name")
+    return fields_to_update
+
+
+def assign_collection_point_to_checkout(
+    checkout, collection_point: Warehouse
+) -> list[str]:
+    fields_to_update = []
+    fields_to_update += remove_external_shipping_from_checkout(checkout)
+    fields_to_update += remove_built_in_shipping_from_checkout(checkout)
+    if checkout.collection_point_id != collection_point.id:
+        checkout.collection_point_id = collection_point.id
+        fields_to_update.append("collection_point_id")
+    if checkout.shipping_address != collection_point.address:
+        checkout.shipping_address = collection_point.address.get_copy()
+        fields_to_update.append("shipping_address_id")
+
+    return fields_to_update
+
+
+def get_external_shipping_id(container: Union["Checkout", "Order"]):
+    if isinstance(container, Checkout):
+        if container.external_shipping_method_id:
+            return container.external_shipping_method_id
+    # For order & fallback to previous checkout storage method
+    return _get_external_shipping_id_from_meta(container)
+
+
+def _get_external_shipping_id_from_meta(container: Union["Checkout", "Order"]):
+    metadata_object: ModelWithMetadata | None
+    if isinstance(container, Checkout):
+        metadata_object = get_checkout_metadata(container)
+    else:
+        metadata_object = container
+    if not metadata_object:
+        return None
+    return metadata_object.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
 @allow_writer()

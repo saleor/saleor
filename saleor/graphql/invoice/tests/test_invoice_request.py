@@ -42,7 +42,7 @@ def setup_dummy_gateways(settings):
 
 
 @patch(
-    "saleor.graphql.invoice.mutations.invoice_request.is_event_active_for_any_plugin",
+    "saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin",
     return_value=True,
 )
 @patch("saleor.plugins.manager.PluginsManager.invoice_request")
@@ -118,7 +118,7 @@ def test_invoice_request_by_user_no_channel_access(
 
 
 @patch(
-    "saleor.graphql.invoice.mutations.invoice_request.is_event_active_for_any_plugin",
+    "saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin",
     return_value=True,
 )
 @patch("saleor.plugins.manager.PluginsManager.invoice_request")
@@ -225,7 +225,7 @@ def test_invoice_request_no_billing_address(
 
 
 @patch(
-    "saleor.graphql.invoice.mutations.invoice_request.is_event_active_for_any_plugin",
+    "saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin",
     return_value=True,
 )
 def test_invoice_request_no_number(
@@ -263,7 +263,7 @@ def test_invoice_request_invalid_id(staff_api_client, permission_group_manage_or
 
 
 @patch(
-    "saleor.graphql.invoice.mutations.invoice_request.is_event_active_for_any_plugin",
+    "saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin",
     return_value=False,
 )
 def test_invoice_request_no_invoice_plugin(

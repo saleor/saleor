@@ -63,8 +63,6 @@ def test_app_can_create_order_from_checkout_CORE_0215(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     assert checkout_id is not None

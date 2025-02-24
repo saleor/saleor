@@ -23361,7 +23361,11 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """Email address of the customer."""
   userEmail: String
 
-  """Discount amount for the order."""
+  """
+  Discount amount for the order.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing a value for the field has no effect. Use `orderDiscountAdd` mutation instead.
+  """
   discount: PositiveDecimal
 
   """Shipping address of the customer."""
@@ -23393,6 +23397,20 @@ input DraftOrderCreateInput @doc(category: "Orders") {
 
   """External ID of this order."""
   externalReference: String
+
+  """
+  Order public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Order private metadata.
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
 
   """Variant line input consisting of variant ID and quantity of products."""
   lines: [OrderLineCreateInput!]
@@ -23472,7 +23490,11 @@ input DraftOrderInput @doc(category: "Orders") {
   """Email address of the customer."""
   userEmail: String
 
-  """Discount amount for the order."""
+  """
+  Discount amount for the order.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Providing a value for the field has no effect. Use `orderDiscountAdd` mutation instead.
+  """
   discount: PositiveDecimal
 
   """Shipping address of the customer."""
@@ -23504,6 +23526,20 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """External ID of this order."""
   externalReference: String
+
+  """
+  Order public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Order private metadata.
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """

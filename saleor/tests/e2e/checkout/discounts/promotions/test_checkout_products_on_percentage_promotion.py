@@ -84,8 +84,6 @@ def test_checkout_products_on_percentage_promotion_core_2104(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     checkout_lines = checkout_data["lines"][0]

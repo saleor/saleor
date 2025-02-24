@@ -97,8 +97,6 @@ def test_order_create_from_checkout_return_tax_error_when_app_not_respond_CORE_2
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

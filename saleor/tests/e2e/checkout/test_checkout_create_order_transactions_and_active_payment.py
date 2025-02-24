@@ -82,8 +82,6 @@ def test_complete_checkout_with_transaction_and_active_payment_CORE_1601(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

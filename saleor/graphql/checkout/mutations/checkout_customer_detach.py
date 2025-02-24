@@ -6,6 +6,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
@@ -75,4 +76,4 @@ class CheckoutCustomerDetach(BaseMutation):
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
             checkout=checkout,
         )
-        return CheckoutCustomerDetach(checkout=checkout)
+        return CheckoutCustomerDetach(checkout=SyncWebhookControlContext(node=checkout))

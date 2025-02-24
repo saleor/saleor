@@ -5,7 +5,7 @@ from ...permission.enums import (
     CheckoutPermissions,
     PaymentPermissions,
 )
-from ..core.context import get_database_connection_name
+from ..core.context import SyncWebhookControlContext, get_database_connection_name
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
@@ -43,7 +43,7 @@ def resolve_checkout(info, token, id):
         return None
     # always return checkout for active channel
     if checkout.channel.is_active:
-        return checkout
+        return SyncWebhookControlContext(node=checkout, allow_sync_webhooks=True)
 
     # resolve checkout for staff or app
     if requester := get_user_or_app_from_context(info.context):
@@ -51,7 +51,7 @@ def resolve_checkout(info, token, id):
         has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)
         has_handle_payments = requester.has_perm(PaymentPermissions.HANDLE_PAYMENTS)
         if has_manage_checkout or has_impersonate_user or has_handle_payments:
-            return checkout
+            return SyncWebhookControlContext(node=checkout, allow_sync_webhooks=True)
 
     raise PermissionDenied(
         permissions=[

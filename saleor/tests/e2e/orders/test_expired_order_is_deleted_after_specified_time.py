@@ -87,8 +87,6 @@ def test_expired_order_is_deleted_after_specified_time_CORE_0216(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     assert checkout_id is not None

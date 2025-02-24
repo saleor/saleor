@@ -68,7 +68,6 @@ cd .devcontainer
 docker compose up db dashboard redis mailpit
 ```
 
-
 If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
 
 ```shell
@@ -99,6 +98,21 @@ Install pre commit hooks:
 pre-commit install
 ```
 
+Create environment variables, by creating a `.env` file. You can use existing example for development:
+
+```shell
+cp .env.example .env
+```
+
+> [!NOTE]
+> Example env variables set-up Celery broker, mail server, allow `localhost` URLs and set Dashboard URL
+> so that your development setup works with additional services set-up via `docker compose`
+>
+> Learn more about each env variable in [Environment Variable docs](https://docs.saleor.io/setup/configuration)
+
+> [!TIP]
+> Env variables from `.env` file are loaded automatically by [Poe the Poet](https://poethepoet.natn.io/index.html) (when using `poe` commands below)
+
 You are ready to go 🎉.
 
 ### Common commands
@@ -106,23 +120,50 @@ You are ready to go 🎉.
 To start server:
 
 ```shell
-uvicorn saleor.asgi:application --reload
+poe start
 ```
+
+to start Celery worker:
+
+```
+poe worker
+```
+
+to start Celery Beat scheduler:
+
+```shell
+poe scheduler
+```
+
+> [!NOTE]
+> To learn more about Celery tasks and scheduler, check [Task Queue docs](https://docs.saleor.io/developer/running-saleor/task-queue#periodic-tasks)
 
 To run database migrations:
 
 ```shell
-python manage.py migrate
+poe migrate
 ```
 
 To populate database with example data and create the admin user:
 
 ```shell
-python manage.py populatedb --createsuperuser
+poe populatedb
 ```
 
-*Note that `--createsuperuser` argument creates an admin account for `admin@example.com` with the password set to `admin`.*
+> [!NOTE]
+> `populatedb` populates database with example data and creates an admin account for `admin@example.com` with the password set to `admin`.*
 
+To build `schema.graphql` file:
+
+```shell
+poe build-schema
+```
+
+To run Django shell:
+
+```
+poe shell
+```
 
 ## Managing dependencies
 
@@ -217,17 +258,16 @@ In the case of testing the `API`, we would like to split all tests into `mutatio
 
 ### How to run tests?
 
-To run tests, enter `pytest` in your terminal.
+To run tests, enter `poe test` in your terminal.
 
 ```bash
-pytest
+poe test
 ```
 
-We recommend using the `reuse-db` flag to speed up testing time.
+By default `poe test` is using the `--reuse-db` flag to speed up testing time.
 
-```bash
-pytest --reuse-db
-```
+> [!TIP]
+> If you need to ignore `--reuse-db` (e.g when testing Saleor on different versions that have different migrations) add `--create-db` argument: `poe test --create-db`
 
 ### How to run particular tests?
 
@@ -235,14 +275,14 @@ As running all tests is quite time-consuming, sometimes you want to run only tes
 You can use the following command for that. In the case of a particular directory or file, provide the path after the `pytest` command, like:
 
 ```bash
-pytest --reuse-db saleor/graphql/app/tests
+poe test saleor/graphql/app/tests
 ```
 
 If you want to run a particular test, you need to provide the path to the file where the test is and the file name after the `::` sign. In the case of running a single test, it's also worth using the `-n0` flag to run the test only in one thread. It will significantly decrease time.
 See an example below:
 
 ```bash
-pytest --reuse-db saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0
+poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0
 ```
 
 ### Using pdb when testing
@@ -251,7 +291,7 @@ If you would like to use `pdb` in code when running a test, you need to use a fe
 So the previous example will look like this:
 
 ```bash
-pytest --reuse-db saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0 -s --allow-hosts=127.0.0.1
+poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0 -s --allow-hosts=127.0.0.1
 ```
 
 ### Recording cassettes
@@ -259,7 +299,7 @@ pytest --reuse-db saleor/graphql/app/tests/mutations/test_app_create.py::test_ap
 Some of our tests use `VCR.py` cassettes to record requests and responses from external APIs. To record one, you need to use the `vcr-record` flag and specify `allow-hosts`:
 
 ```bash
-pytest --vcr-record=once saleor/app/tests/test_app_commands.py --allow-hosts=127.0.0.1
+poe test --vcr-record=once saleor/app/tests/test_app_commands.py --allow-hosts=127.0.0.1
 ```
 
 ### Writing benchmark tests
@@ -314,6 +354,9 @@ pre-commit install
 ```
 
 For more information on how it works, see the `.pre-commit-config.yaml` configuration file.
+
+> [!NOTE]
+> Running `git commit` for the first time might take a while, since all dependencies will be setting up.
 
 Saleor has a strict formatting policy enforced by the [black formatting tool](https://github.com/python/black).
 
@@ -587,6 +630,10 @@ psql -h localhost -p 5432 -U saleor -XqAt -f data.sql > analyze.json
 6. Open the `analyze.json`, copy the data and paste it to the `plan` input field in [explain.dalibo](https://explain.dalibo.com/).
    Add an optional corresponding SQL query if you wish.
 7. Press the `Submit` button and that's it. You can analyze what you get.
+
+### Debugging
+
+We recommend you use `breakpoint()` function to set debugger. If you are using devcontainer `breakpoint` will use [ipdb](https://pypi.org/project/ipdb/). To learn more about `breakpoint` see official [PEP 553](https://peps.python.org/pep-0553/).
 
 ## Git commit messages
 

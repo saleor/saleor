@@ -62,8 +62,6 @@ def test_add_gift_card_before_email_in_checkout_core_1104(
         e2e_not_logged_api_client,
         lines,
         channel_slug,
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
     calculated_subtotal = product_variant_price * 3

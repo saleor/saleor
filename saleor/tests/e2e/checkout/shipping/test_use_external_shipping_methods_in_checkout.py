@@ -93,8 +93,6 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
             lines,
             channel_slug,
             email="testEmail@example.com",
-            set_default_billing_address=True,
-            set_default_shipping_address=True,
         )
     checkout_id = checkout_data["id"]
     assert checkout_data["isShippingRequired"] is True

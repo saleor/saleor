@@ -110,8 +110,6 @@ def test_checkout_calculate_simple_tax_based_on_shipping_tax_class_CORE_2009(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     product_variant_price = float(product_variant_price)
     checkout_id = checkout_data["id"]

@@ -38,12 +38,14 @@ services:
     restart: unless-stopped
     volumes:
       - saleor-redis:/data
+    ports:
+      - 6379:6379
 
   mailpit:
     image: axllent/mailpit
     ports:
-      - "1025" # SMTP Server
-      - "8025" # Mailpit UI
+      - 1025:1025 # SMTP Server
+      - 8025:8025 # Mailpit UI
     restart: unless-stopped
 
 volumes:

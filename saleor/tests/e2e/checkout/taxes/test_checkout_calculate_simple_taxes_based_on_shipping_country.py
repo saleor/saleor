@@ -122,6 +122,8 @@ def test_checkout_calculate_simple_tax_based_on_shipping_country_CORE_2001(
         lines,
         channel_slug,
         email="testEmail@example.com",
+        shipping_address=None,
+        billing_address=None,
     )
     checkout_id = checkout_data["id"]
 

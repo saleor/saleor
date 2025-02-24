@@ -29,6 +29,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+Pipfile
+!.env.example
 
 # Exported results file
 django-queries-results.html

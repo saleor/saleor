@@ -105,6 +105,8 @@ def test_should_not_be_able_to_buy_unavailable_product_core_0108(
         e2e_logged_api_client,
         lines,
         channel_slug,
+        billing_address=None,
+        shipping_address=None,
     )
 
     errors = checkout_data["errors"]
