@@ -118,19 +118,20 @@ class EditableOrderLineInfo(LineInfo):
 def fetch_draft_order_lines_info(
     order: "Order",
     lines: Iterable["OrderLine"] | None = None,
-    extend: bool = False,
+    fetch_actual_prices: bool = False,
 ) -> list[EditableOrderLineInfo]:
     """Fetch the necessary order lines info in order to recalculate its prices.
 
-    `extend` argument determines if the function should additionally retrieve the latest
-    variant channel listing prices
+    `fetch_actual_prices` argument determines if the function should additionally
+    retrieve the latest variant channel listing prices
     """
     prefetch_related_fields = [
         "discounts__promotion_rule__promotion",
         "variant__product__collections",
         "variant__product__product_type",
     ]
-    if extend:
+    if fetch_actual_prices:
+        # TODO zedzior: optimize the prefetch to get channel relevant data only
         prefetch_related_fields.extend(
             [
                 "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
@@ -159,7 +160,7 @@ def fetch_draft_order_lines_info(
 
         variant_channel_listing = None
         rules_info = []
-        if extend:
+        if fetch_actual_prices:
             variant_channel_listing = _get_variant_listing(variant, channel.id)
             if variant_channel_listing:
                 rules_info = (

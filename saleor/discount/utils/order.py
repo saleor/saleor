@@ -300,7 +300,9 @@ def refresh_order_base_prices_and_discounts(
     if order.status not in ORDER_EDITABLE_STATUS:
         return
 
-    lines_info = fetch_draft_order_lines_info(order, lines=None, extend=True)
+    lines_info = fetch_draft_order_lines_info(
+        order, lines=None, fetch_actual_prices=True
+    )
     if not lines_info:
         return
 

@@ -84,7 +84,7 @@ def test_fetch_draft_order_lines_info_extended(
 
     # when
     with django_assert_num_queries(14):
-        lines_info = fetch_draft_order_lines_info(order, extend=True)
+        lines_info = fetch_draft_order_lines_info(order, fetch_actual_prices=True)
 
     # then
     line_info_1 = [line_info for line_info in lines_info if line_info.line == line_1][0]
