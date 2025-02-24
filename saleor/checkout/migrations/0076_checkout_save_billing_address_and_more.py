@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("checkout", "0074_checkoutline_prior_unit_price_amount"),
+        ("checkout", "0075_merge_20250210_1203"),
     ]
 
     operations = [

@@ -258,17 +258,16 @@ In the case of testing the `API`, we would like to split all tests into `mutatio
 
 ### How to run tests?
 
-To run tests, enter `pytest` in your terminal.
+To run tests, enter `poe test` in your terminal.
 
 ```bash
-pytest
+poe test
 ```
 
-We recommend using the `reuse-db` flag to speed up testing time.
+By default `poe test` is using the `--reuse-db` flag to speed up testing time.
 
-```bash
-pytest --reuse-db
-```
+> [!TIP]
+> If you need to ignore `--reuse-db` (e.g when testing Saleor on different versions that have different migrations) add `--create-db` argument: `poe test --create-db`
 
 ### How to run particular tests?
 
@@ -276,14 +275,14 @@ As running all tests is quite time-consuming, sometimes you want to run only tes
 You can use the following command for that. In the case of a particular directory or file, provide the path after the `pytest` command, like:
 
 ```bash
-pytest --reuse-db saleor/graphql/app/tests
+poe test saleor/graphql/app/tests
 ```
 
 If you want to run a particular test, you need to provide the path to the file where the test is and the file name after the `::` sign. In the case of running a single test, it's also worth using the `-n0` flag to run the test only in one thread. It will significantly decrease time.
 See an example below:
 
 ```bash
-pytest --reuse-db saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0
+poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0
 ```
 
 ### Using pdb when testing
@@ -292,7 +291,7 @@ If you would like to use `pdb` in code when running a test, you need to use a fe
 So the previous example will look like this:
 
 ```bash
-pytest --reuse-db saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0 -s --allow-hosts=127.0.0.1
+poe test saleor/graphql/app/tests/mutations/test_app_create.py::test_app_create_mutation -n0 -s --allow-hosts=127.0.0.1
 ```
 
 ### Recording cassettes
@@ -300,7 +299,7 @@ pytest --reuse-db saleor/graphql/app/tests/mutations/test_app_create.py::test_ap
 Some of our tests use `VCR.py` cassettes to record requests and responses from external APIs. To record one, you need to use the `vcr-record` flag and specify `allow-hosts`:
 
 ```bash
-pytest --vcr-record=once saleor/app/tests/test_app_commands.py --allow-hosts=127.0.0.1
+poe test --vcr-record=once saleor/app/tests/test_app_commands.py --allow-hosts=127.0.0.1
 ```
 
 ### Writing benchmark tests
