@@ -1127,10 +1127,10 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher_single_line_old_
     assert discount_2.value_type == DiscountValueType.PERCENTAGE
 
 
-def test_refresh_order_base_prices_confirmed_order(order_with_lines):
+def test_refresh_order_base_prices_non_draft_order(order_with_lines):
     # given
     order = order_with_lines
-    order.status = OrderStatus.UNFULFILLED
+    order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
 
     line_1, line_2 = order.lines.all()

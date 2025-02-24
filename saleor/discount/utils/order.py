@@ -11,7 +11,7 @@ from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...order import ORDER_EDITABLE_STATUS
+from ...order import OrderStatus
 from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order, OrderLine
 from .. import DiscountType
@@ -288,7 +288,7 @@ def refresh_order_base_prices_and_discounts(
     )
     from ...order.utils import get_order_line_price_expiration_date
 
-    if order.status not in ORDER_EDITABLE_STATUS:
+    if order.status != OrderStatus.DRAFT:
         return []
 
     lines_info = fetch_draft_order_lines_info(
@@ -333,7 +333,7 @@ def refresh_order_base_prices_and_discounts(
     update_unit_discount_data_on_order_line(lines_info)
 
     # set price expiration time
-    expiration_time = get_order_line_price_expiration_date(order.channel)
+    expiration_time = get_order_line_price_expiration_date(order)
     for line_info in lines_info_to_update:
         if not line_info.line.is_price_overridden:
             line_info.line.draft_base_price_expire_at = expiration_time
