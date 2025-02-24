@@ -110,42 +110,20 @@ class BreakerBoard:
     def set_breaker_state(self, app: "App", state: str, total: int, errors: int) -> str:
         self.storage.clear_state_for_app(app.id)
         self.storage.register_state_change(app.id)
-        if state == CircuitBreakerState.OPEN:
-            return self._open_breaker(app, total, errors)
-        if state == CircuitBreakerState.HALF_OPEN:
-            return self._half_open_breaker(app, total, errors)
-        return self._close_breaker(app, total, errors)
-
-    def _open_breaker(self, app: "App", total: int, errors: int) -> str:
-        self.storage.update_open(app.id, int(time.time()), CircuitBreakerState.OPEN)
+        open_time = int(time.time()) if state != CircuitBreakerState.CLOSED else 0
+        self.storage.update_open(app.id, open_time, state)
         logger.info(
-            "[App ID: %r] Circuit breaker tripped, cooldown is %r [seconds].",
+            "[App ID: %r] Circuit breaker changed state to %s.",
             app.id,
-            self.cooldown_seconds,
-            extra={"appName": app.name, "total": total, "errors": errors},
+            state,
+            extra={
+                "app_name": app.name,
+                "webhooks_total_count": total,
+                "webhooks_errors_count": errors,
+                "webhooks_cooldown_seconds": self.cooldown_seconds,
+            },
         )
-        return CircuitBreakerState.OPEN
-
-    def _half_open_breaker(self, app: "App", total: int, errors: int) -> str:
-        self.storage.update_open(
-            app.id, int(time.time()), CircuitBreakerState.HALF_OPEN
-        )
-        logger.info(
-            "[App ID: %r] Circuit breaker state changed to %s.",
-            app.id,
-            CircuitBreakerState.HALF_OPEN,
-            extra={"appName": app.name, "total": total, "errors": errors},
-        )
-        return CircuitBreakerState.HALF_OPEN
-
-    def _close_breaker(self, app: "App", total: int, errors: int) -> str:
-        self.storage.update_open(app.id, 0, CircuitBreakerState.CLOSED)
-        logger.info(
-            "[App ID: %r] Circuit breaker fully recovered.",
-            app.id,
-            extra={"appName": app.name, "total": total, "errors": errors},
-        )
-        return CircuitBreakerState.CLOSED
+        return state
 
     def update_breaker_state(self, app: "App") -> str:
         last_open, state = self.storage.last_open(app.id)

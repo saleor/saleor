@@ -357,7 +357,9 @@ LOGGING = {
         "verbose_breaker": {
             "format": (
                 "%(asctime)s %(levelname)s %(name)s %(message)s "
-                "App name: %(appName)s, total %(total)s, errors %(errors)s. "
+                "App name: %(app_name)s, total webhooks %(webhooks_total_count)s, "
+                "errors count %(webhooks_errors_count)s, "
+                "Cooldown is %(webhooks_cooldown_seconds)s seconds. "
                 "[PID:%(process)d:%(threadName)s]"
             )
         },
