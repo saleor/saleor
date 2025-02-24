@@ -55,6 +55,8 @@ class GiftCardUpdate(GiftCardCreate):
                 description="A gift card was updated.",
             )
         ]
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_expiry_date(cls, cleaned_input, instance):
@@ -101,13 +103,18 @@ class GiftCardUpdate(GiftCardCreate):
                 old_instance.tags.order_by("name").values_list("name", flat=True)
             )
 
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
         instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
 
         user = info.context.user
         app = get_app_promise(info.context).get()
+
         if "initial_balance_amount" in cleaned_input:
             events.gift_card_balance_reset_event(instance, old_instance, user, app)
         if "expiry_date" in cleaned_input:
@@ -116,8 +123,18 @@ class GiftCardUpdate(GiftCardCreate):
             )
         if tags_updated:
             events.gift_card_tags_updated_event(instance, old_tags, user, app)
+
         manager = get_plugin_manager_promise(info.context).get()
+
         cls.call_event(manager.gift_card_updated, instance)
+
+        if metadata_list:
+            cleaned_input["metadata"] = metadata_list
+        if private_metadata_list:
+            cleaned_input["private_metadata"] = private_metadata_list
+
+        cls.post_save_action(info, instance, cleaned_input)
+
         return cls.success_response(instance)
 
     @classmethod

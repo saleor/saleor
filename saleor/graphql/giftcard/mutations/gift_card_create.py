@@ -15,13 +15,14 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import ModelMutation
 from ...core.scalars import Date
 from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
 from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_price_precision
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 
@@ -32,6 +33,17 @@ class GiftCardInput(BaseInputObjectType):
         description="The gift card tags to add.",
     )
     expiry_date = Date(description="The gift card expiry date.")
+
+    metadata = NonNullList(
+        MetadataInput,
+        description="Gift Card public metadata." + ADDED_IN_321,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description="Gift Card private metadata." + ADDED_IN_321,
+        required=False,
+    )
 
     # DEPRECATED
     start_date = Date(
@@ -101,6 +113,8 @@ class GiftCardCreate(ModelMutation):
                 description="A notification for created gift card.",
             ),
         ]
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
