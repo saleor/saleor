@@ -3016,9 +3016,19 @@ enum IconThumbnailFormatEnum {
   WEBP
 }
 
+"""Enum determining the state of a circuit breaker."""
 enum CircuitBreakerStateEnum @doc(category: "Apps") {
+  """The breaker is conducting (requests are passing through)."""
   CLOSED
+
+  """
+  The breaker is in a trial period (to close or open). Note that unlike classic breaker patterns, this is not a state where we are throttling the number of requests, it's a state similar to CLOSED but with different thresholds.
+  """
   HALF_OPEN
+
+  """
+  The breaker is tripped (no requests are passing). Breaker will enter half-open state after cooldown period.
+  """
   OPEN
 }
 

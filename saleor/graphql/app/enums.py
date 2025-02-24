@@ -20,13 +20,29 @@ def description(enum):
     return None
 
 
+def breaker_description(enum):
+    if enum is None:
+        return "Enum determining the state of a circuit breaker."
+    if enum == CircuitBreakerStateEnum.CLOSED:
+        return "The breaker is conducting (requests are passing through)."
+    if enum == CircuitBreakerStateEnum.HALF_OPEN:
+        return (
+            "The breaker is in a trial period (to close or open). "
+            "Note that unlike classic breaker patterns, this is not a state "
+            "where we are throttling the number of requests, it's a state "
+            "similar to CLOSED but with different thresholds."
+        )
+    if enum == CircuitBreakerStateEnum.OPEN:
+        return (
+            "The breaker is tripped (no requests are passing). "
+            "Breaker will enter half-open state after cooldown period."
+        )
+    return None
+
+
 class CircuitBreakerState:
-    # CLOSED state means the breaker is conducting (requests are passing through).
     CLOSED = "closed"
-    # HALF_OPEN state means the breaker is in a trial period (to close or open).
-    # Requests are passing through in that state but the thresholds are different.
     HALF_OPEN = "half_open"
-    # OPEN state means the breaker is tripped (no requests are passing).
     OPEN = "open"
 
     CHOICES = [
@@ -36,7 +52,7 @@ class CircuitBreakerState:
     ]
 
 
-CircuitBreakerStateEnum = to_enum(CircuitBreakerState)
+CircuitBreakerStateEnum = to_enum(CircuitBreakerState, description=breaker_description)
 CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
 
 AppTypeEnum = to_enum(AppType, description=description)
