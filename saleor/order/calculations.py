@@ -38,7 +38,7 @@ from ..tax.utils import (
 )
 from . import ORDER_EDITABLE_STATUS
 from .base_calculations import apply_order_discounts, base_order_line_total
-from .fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
+from .fetch import fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 from .utils import log_address_if_validation_skipped_for_order, order_info_for_logs
@@ -68,21 +68,22 @@ def fetch_order_prices_if_expired(
         return order, lines
 
     # handle price expiration
-    lines_info: list[EditableOrderLineInfo] = []
     if expired_line_ids:
         lines_info = refresh_order_base_prices_and_discounts(
             order, expired_line_ids, lines
         )
+    else:
+        lines_info = fetch_draft_order_lines_info(order, lines)
 
     # handle order promotions
-    if not lines_info:
-        lines_info = fetch_draft_order_lines_info(order, lines)
     create_order_discount_objects_for_order_promotions(
         order, lines_info, database_connection_name=database_connection_name
     )
+    # TODO zedzior: check if it should be lazy or handled directly in mutation?
     update_unit_discount_data_on_order_line(lines_info)
-    lines = [line_info.line for line_info in lines_info]
 
+    # handle prefetched discounts
+    lines = [line_info.line for line_info in lines_info]
     _clear_prefetched_discounts(order, lines)
     with allow_writer():
         # TODO: Load discounts with a dataloader and pass as argument
