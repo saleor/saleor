@@ -128,13 +128,6 @@ class GiftCardUpdate(GiftCardCreate):
 
         cls.call_event(manager.gift_card_updated, instance)
 
-        if metadata_list:
-            cleaned_input["metadata"] = metadata_list
-        if private_metadata_list:
-            cleaned_input["private_metadata"] = private_metadata_list
-
-        cls.post_save_action(info, instance, cleaned_input)
-
         return cls.success_response(instance)
 
     @classmethod
