@@ -1536,6 +1536,10 @@ def test_checkout_delivery_method_update_from_cc_to_external_shipping(
 ):
     # given
     checkout = checkout_with_delivery_method_for_cc
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = False
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
+
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
     response_shipping_name = "Provider - Economy"
@@ -1574,6 +1578,10 @@ def test_checkout_delivery_method_update_from_cc_to_external_shipping(
     assert checkout.shipping_method_id is None
     assert checkout.external_shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.save_billing_address is True
+    # should be reset to the default value as the shipping address is cleared
+    assert checkout.save_shipping_address is True
+
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
 
@@ -1594,6 +1602,9 @@ def test_checkout_delivery_method_update_from_cc_to_none(
 ):
     # given
     checkout = checkout_with_delivery_method_for_cc
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = False
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -1613,6 +1624,10 @@ def test_checkout_delivery_method_update_from_cc_to_none(
     assert checkout.shipping_method_id is None
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_name is None
+    assert checkout.save_billing_address is True
+    # should be reset to the default value as the shipping address is cleared
+    assert checkout.save_shipping_address is True
+
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
 
@@ -1634,6 +1649,9 @@ def test_checkout_delivery_method_update_from_cc_to_built_in_shipping(
 ):
     # given
     checkout = checkout_with_delivery_method_for_cc
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = False
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -1659,6 +1677,9 @@ def test_checkout_delivery_method_update_from_cc_to_built_in_shipping(
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id == shipping_method.id
     assert checkout.shipping_method_name == shipping_method.name
+    assert checkout.save_billing_address is True
+    # should be reset to the default value as the shipping address is cleared
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1681,6 +1702,9 @@ def test_checkout_delivery_method_update_from_cc_to_the_same_cc(
     # given
     checkout = checkout_with_delivery_method_for_cc
     collection_point = checkout.collection_point
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -1708,6 +1732,9 @@ def test_checkout_delivery_method_update_from_cc_to_the_same_cc(
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id is None
     assert checkout.shipping_method_name is None
+    assert checkout.save_billing_address is True
+    # the flag remain unchanged as the address stay the same
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_not_called()
     mocked_call_checkout_info_event.assert_not_called()
@@ -1726,12 +1753,18 @@ def test_checkout_delivery_method_update_from_cc_to_different_cc(
     mocked_call_checkout_info_event,
     checkout_with_items,
     warehouses_for_cc,
+    address_usa,
     api_client,
 ):
     # given
+    warehouses_for_cc[0].address = address_usa
+    warehouses_for_cc[0].save(update_fields=["address"])
+
     checkout = checkout_with_items
     checkout.collection_point = warehouses_for_cc[0]
-    checkout.shipping_address = warehouses_for_cc[0].address.get_copy()
+    checkout.shipping_address = address_usa.get_copy()
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
     checkout.save()
 
     collection_point = warehouses_for_cc[1]
@@ -1762,6 +1795,9 @@ def test_checkout_delivery_method_update_from_cc_to_different_cc(
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id is None
     assert checkout.shipping_method_name is None
+    assert checkout.save_billing_address is True
+    # set the save_shipping_address setting to False for CC
+    assert checkout.save_shipping_address is False
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1780,10 +1816,21 @@ def test_checkout_delivery_method_update_from_external_shipping_to_cc(
     mocked_call_checkout_info_event,
     checkout_with_delivery_method_for_external_shipping,
     warehouses_for_cc,
+    address_usa,
     api_client,
 ):
     # given
     checkout = checkout_with_delivery_method_for_external_shipping
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.shipping_address = address_usa
+    checkout.save(
+        update_fields=[
+            "save_billing_address",
+            "save_shipping_address",
+            "shipping_address",
+        ]
+    )
 
     collection_point = warehouses_for_cc[1]
 
@@ -1813,6 +1860,9 @@ def test_checkout_delivery_method_update_from_external_shipping_to_cc(
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id is None
     assert checkout.shipping_method_name is None
+    assert checkout.save_billing_address is True
+    # set the save_shipping_address setting to False for CC
+    assert checkout.save_shipping_address is False
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1835,6 +1885,9 @@ def test_checkout_delivery_method_update_from_external_shipping_to_built_in_ship
 ):
     # given
     checkout = checkout_with_delivery_method_for_external_shipping
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -1860,6 +1913,8 @@ def test_checkout_delivery_method_update_from_external_shipping_to_built_in_ship
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id == shipping_method.id
     assert checkout.shipping_method_name == shipping_method.name
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1885,6 +1940,9 @@ def test_checkout_delivery_method_update_from_external_shipping_to_different_ext
 ):
     # given
     checkout = checkout_with_delivery_method_for_external_shipping
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "new-abcd"
@@ -1924,6 +1982,8 @@ def test_checkout_delivery_method_update_from_external_shipping_to_different_ext
     assert checkout.shipping_method_id is None
     assert checkout.external_shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -1945,6 +2005,9 @@ def test_checkout_delivery_method_update_from_external_shipping_to_none(
 ):
     # given
     checkout = checkout_with_delivery_method_for_external_shipping
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = False
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -1964,6 +2027,9 @@ def test_checkout_delivery_method_update_from_external_shipping_to_none(
     assert checkout.shipping_method_id is None
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_name is None
+    # the flags should not be changed as shipping address is not reset
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is False
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -2014,6 +2080,8 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
     checkout.external_shipping_method_id = method_id
     checkout.shipping_method_name = response_shipping_name
     checkout.undiscounted_base_shipping_price_amount = Decimal(response_shipping_price)
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
     checkout.save()
 
     # when
@@ -2035,6 +2103,8 @@ def test_checkout_delivery_method_update_from_external_shipping_to_the_same_exte
     assert checkout.shipping_method_id is None
     assert checkout.external_shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_not_called()
     mocked_call_checkout_info_event.assert_not_called()
@@ -2053,10 +2123,21 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_cc(
     mocked_call_checkout_info_event,
     checkout_with_shipping_method,
     warehouses_for_cc,
+    address_usa,
     api_client,
 ):
     # given
     checkout = checkout_with_shipping_method
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.shipping_address = address_usa
+    checkout.save(
+        update_fields=[
+            "save_billing_address",
+            "save_shipping_address",
+            "shipping_address",
+        ]
+    )
 
     collection_point = warehouses_for_cc[1]
 
@@ -2085,6 +2166,9 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_cc(
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id is None
     assert checkout.shipping_method_name is None
+    assert checkout.save_billing_address is True
+    # set the save_shipping_address setting to False for CC
+    assert checkout.save_shipping_address is False
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -2130,6 +2214,9 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_external_ship
     )
 
     checkout = checkout_with_shipping_method
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -2149,6 +2236,8 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_external_ship
     assert checkout.shipping_method_id is None
     assert checkout.external_shipping_method_id == method_id
     assert checkout.shipping_method_name == response_shipping_name
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -2171,6 +2260,9 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_differnt_buil
 ):
     # given
     checkout = checkout_with_shipping_method
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -2195,6 +2287,8 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_differnt_buil
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id == other_shipping_method.id
     assert checkout.shipping_method_name == other_shipping_method.name
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
@@ -2216,6 +2310,8 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_ship
 ):
     # given
     checkout = checkout_with_shipping_method
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = True
     shipping_method = checkout.shipping_method
     price = shipping_method.channel_listings.get().price
     checkout.undiscounted_base_shipping_price_amount = price.amount
@@ -2244,6 +2340,8 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_the_same_ship
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id == shipping_method.id
     assert checkout.shipping_method_name == shipping_method.name
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is True
 
     mocked_invalidate_checkout.assert_not_called()
     mocked_call_checkout_info_event.assert_not_called()
@@ -2265,6 +2363,9 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_none(
 ):
     # given
     checkout = checkout_with_shipping_method
+    checkout.save_billing_address = True
+    checkout.save_shipping_address = False
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
 
     # when
     response = api_client.post_graphql(
@@ -2283,6 +2384,9 @@ def test_checkout_delivery_method_update_from_built_in_shipping_to_none(
     assert checkout.external_shipping_method_id is None
     assert checkout.shipping_method_id is None
     assert checkout.shipping_method_name is None
+    # the flags should not be changed as shipping address is not reset
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is False
 
     mocked_invalidate_checkout.assert_called_once()
     mocked_call_checkout_info_event.assert_called_once()
