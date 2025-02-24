@@ -177,6 +177,7 @@ def checkout_with_shipping_method(checkout_with_shipping_address, shipping_metho
     checkout = checkout_with_shipping_address
 
     checkout.shipping_method = shipping_method
+    checkout.shipping_method_name = shipping_method.name
     checkout.save()
 
     return checkout
@@ -349,6 +350,15 @@ def checkout_with_delivery_method_for_cc(
     checkout.save()
 
     return checkout
+
+
+@pytest.fixture
+def checkout_with_delivery_method_for_external_shipping(checkout_with_item, address):
+    checkout_with_item.shipping_address = address.get_copy()
+    checkout_with_item.external_shipping_method_id = "YXBwOlFYQndPakU9OmFiY2Q="
+    checkout_with_item.shipping_method_name = "Provider - Economy"
+    checkout_with_item.save()
+    return checkout_with_item
 
 
 @pytest.fixture

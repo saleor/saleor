@@ -1,9 +1,12 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
 from django.utils import timezone
+from prices import Money
 
-from .....checkout.utils import set_external_shipping_id
+from .....checkout.utils import assign_external_shipping_to_checkout
+from .....shipping.interface import ShippingMethodData
 from .....webhook.transport.shipping import to_shipping_app_id
 from ....tests.utils import get_graphql_content
 
@@ -158,18 +161,26 @@ def test_user_checkout_details_with_external_shipping_method(
     # given
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     external_id = to_shipping_app_id(app, "abcd")
+    shipping_name = "Provider - Economy"
+    shipping_price = Decimal(10)
+    currency = "USD"
     mock_json_response = [
         {
             "id": external_id,
-            "name": "Provider - Economy",
-            "amount": "10",
-            "currency": "USD",
+            "name": shipping_name,
+            "amount": shipping_price,
+            "currency": currency,
             "maximum_delivery_days": "7",
         }
     ]
+
+    external_shipping_method = ShippingMethodData(
+        id=external_id, name=shipping_name, price=Money(shipping_price, currency)
+    )
+
     checkout = customer_checkout
     checkout.shipping_method = None
-    set_external_shipping_id(checkout, external_id)
+    assign_external_shipping_to_checkout(checkout, external_shipping_method)
     checkout.save()
     mock_send_request.return_value = mock_json_response
     query = """
