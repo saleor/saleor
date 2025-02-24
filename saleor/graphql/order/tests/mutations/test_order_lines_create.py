@@ -1,4 +1,5 @@
 import datetime
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
@@ -6,6 +7,8 @@ import graphene
 import pytest
 from django.db.models import Sum
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 
 from .....core.models import EventDelivery
 from .....core.prices import quantize_price
@@ -1972,3 +1975,194 @@ def test_order_lines_create_specific_product_voucher_existing_variant(
         (order.undiscounted_total_net_amount - new_discount_amount) * tax_rate,
         currency,
     )
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_lines_create_set_price_expiration_time(
+    order_with_lines,
+    variant_with_many_stocks,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_period = order.channel.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+    expected_expire_time = timezone.now() + timedelta(hours=expire_period)
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    new_line = OrderLine.objects.get(variant_id=variant.id)
+    assert new_line.price_expired_at == expected_expire_time
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_lines_create_dont_set_price_expiration_time_when_period_is_none(
+    order_with_lines,
+    variant_with_many_stocks,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # change default draft_order_line_price_freeze_period setting to None
+    channel = order.channel
+    channel.draft_order_line_price_freeze_period = None
+    channel.save(update_fields=["draft_order_line_price_freeze_period"])
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    new_line = OrderLine.objects.get(variant_id=variant.id)
+    assert new_line.price_expired_at is None
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_lines_create_dont_set_price_expiration_time_when_price_overridden(
+    order_with_lines,
+    variant_with_many_stocks,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    variant = variant_with_many_stocks
+    quantity = 1
+    custom_price = Decimal("5")
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "price": custom_price,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_period = order.channel.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    new_line = OrderLine.objects.get(variant_id=variant.id)
+    assert new_line.is_price_overridden is True
+    assert new_line.price_expired_at is None
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_lines_create_with_existing_variant_dont_set_expiration_date(
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    line = order.lines.first()
+    variant = line.variant
+    old_quantity = line.quantity
+    extra_quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": extra_quantity,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_period = order.channel.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+
+    initial_expire_date = timezone.now() + timedelta(hours=expire_period - 1)
+    line.price_expired_at = initial_expire_date
+    line.save(update_fields=["price_expired_at"])
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    line.refresh_from_db()
+    assert line.quantity == old_quantity + extra_quantity
+    assert line.price_expired_at == initial_expire_date
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_date(
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    line = order.lines.first()
+    variant = line.variant
+    old_quantity = line.quantity
+    extra_quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    custom_price = Decimal("5")
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": extra_quantity,
+        "price": custom_price,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_period = order.channel.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+
+    initial_expire_date = timezone.now() + timedelta(hours=expire_period - 1)
+    line.price_expired_at = initial_expire_date
+    line.save(update_fields=["price_expired_at"])
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    line.refresh_from_db()
+    assert line.quantity == old_quantity + extra_quantity
+    assert line.price_expired_at is None
