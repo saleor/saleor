@@ -100,7 +100,7 @@ def test_refresh_order_base_prices_single_line(order_with_lines):
 
 
 def test_refresh_order_base_prices_catalogue_discount(
-    order_with_lines_and_catalogue_promotion, plugins_manager
+    order_with_lines_and_catalogue_promotion,
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
@@ -217,7 +217,7 @@ def test_refresh_order_base_prices_catalogue_discount(
 
 
 def test_refresh_order_base_prices_catalogue_discount_single_line(
-    order_with_lines_and_catalogue_promotion, plugins_manager
+    order_with_lines_and_catalogue_promotion,
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
@@ -333,6 +333,83 @@ def test_refresh_order_base_prices_catalogue_discount_single_line(
     assert discount_2.value == initial_reward_value_2
     assert discount_2.value_type == initial_reward_value_type_2
     assert discount_2.amount.amount == expected_discount_amount_2
+
+
+def test_refresh_order_base_prices_new_catalogue_discount(
+    order_with_lines, catalogue_promotion
+):
+    # given
+    order = order_with_lines
+    channel = order.channel
+    currency = order.currency
+    promotion = catalogue_promotion
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+
+    lines = order.lines.all()
+    line_1, line_2 = lines
+    variant_2 = line_2.variant
+    undiscounted_subtotal = zero_money(currency)
+    for line in lines:
+        undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
+
+    # prepare new catalog promotion rule for variant 2
+    promotion.rules.all().delete()
+    reward_value = Decimal(5)
+    reward_value_type = DiscountValueType.FIXED
+    rule = promotion.rules.create(
+        name="Rule 1",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant_2.id)]
+            }
+        },
+        reward_value_type=reward_value_type,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel)
+
+    listing_2 = variant_2.channel_listings.get(channel=channel)
+    listing_2.discounted_price_amount = listing_2.price_amount - reward_value
+    listing_2.save(update_fields=["discounted_price_amount"])
+    listing_2.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=currency,
+    )
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+    update_discounted_prices_for_promotion(Product.objects.all())
+
+    undiscounted_unit_price_1 = line_1.undiscounted_base_unit_price_amount
+    expected_unit_price_1 = undiscounted_unit_price_1
+    expected_unit_discount_1 = 0
+
+    # line 2 should have catalog discount applied
+    undiscounted_unit_price_2 = line_2.undiscounted_base_unit_price_amount
+    expected_unit_price_2 = undiscounted_unit_price_2 - reward_value
+    expected_unit_discount_2 = reward_value
+    expected_discount_amount_2 = expected_unit_discount_2 * line_2.quantity
+
+    # when
+    refresh_order_base_prices_and_discounts(order)
+
+    # then
+    line_1, line_2 = order.lines.all()
+    assert line_1.undiscounted_base_unit_price_amount == undiscounted_unit_price_1
+    assert line_1.base_unit_price_amount == expected_unit_price_1
+    assert line_1.unit_discount_amount == expected_unit_discount_1
+    assert line_1.unit_discount_reason is None
+
+    assert line_2.undiscounted_base_unit_price_amount == undiscounted_unit_price_2
+    assert line_2.base_unit_price_amount == expected_unit_price_2
+    assert line_2.unit_discount_amount == expected_unit_discount_2
+    assert line_2.unit_discount_reason == f"Promotion: {promotion_id}"
+
+    assert not line_1.discounts.exists()
+
+    discount = line_2.discounts.get()
+    assert discount.value == reward_value
+    assert discount.value_type == reward_value_type
+    assert discount.amount.amount == expected_discount_amount_2
 
 
 def test_refresh_order_base_prices_manual_line_discount(order_with_lines):
