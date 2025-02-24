@@ -354,6 +354,15 @@ LOGGING = {
                 "[PID:%(process)d:%(threadName)s]"
             )
         },
+        "verbose_breaker": {
+            "format": (
+                "%(asctime)s %(levelname)s %(name)s %(message)s "
+                "App name: %(app_name)s, total webhooks %(webhooks_total_count)s, "
+                "errors count %(webhooks_errors_count)s, "
+                "Cooldown is %(webhooks_cooldown_seconds)s seconds. "
+                "[PID:%(process)d:%(threadName)s]"
+            )
+        },
     },
     "handlers": {
         "default": {
@@ -375,6 +384,11 @@ LOGGING = {
             "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "verbose" if DEBUG else "celery_task_json",
+        },
+        "breaker_board": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose_breaker" if DEBUG else "json",
         },
         "null": {
             "class": "logging.NullHandler",
@@ -400,6 +414,11 @@ LOGGING = {
         "saleor": {"level": "DEBUG", "propagate": True},
         "saleor.graphql.errors.handled": {
             "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "breaker_board": {
+            "handlers": ["breaker_board"],
             "level": "INFO",
             "propagate": False,
         },
