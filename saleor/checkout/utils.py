@@ -1010,7 +1010,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
 
-    delete_external_shipping_id(checkout=checkout)
+    remove_external_shipping(checkout=checkout)
     checkout.save(
         update_fields=[
             "shipping_method",
@@ -1089,22 +1089,39 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
         )
 
 
-def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
+def set_external_shipping(
+    checkout: Checkout, external_shipping_method_data: ShippingMethodData
+):
+    checkout.external_shipping_method_id = external_shipping_method_data.id
+    checkout.shipping_method_name = external_shipping_method_data.name
     metadata = get_or_create_checkout_metadata(checkout)
     metadata.store_value_in_private_metadata(
-        {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
+        {PRIVATE_META_APP_SHIPPING_ID: external_shipping_method_data.id}
     )
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
     if type(container) == Checkout:
+        if container.external_shipping_method_id:
+            return container.external_shipping_method_id
         container = get_checkout_metadata(container)
     return container.get_value_from_private_metadata(  # type:ignore
         PRIVATE_META_APP_SHIPPING_ID
     )
 
 
-def delete_external_shipping_id(checkout: Checkout, save: bool = False):
+def remove_external_shipping(checkout: Checkout, save: bool = False):
+    if checkout.external_shipping_method_id:
+        checkout.external_shipping_method_id = None
+        checkout.shipping_method_name = None
+        if save:
+            checkout.save(
+                update_fields=[
+                    "external_shipping_method_id",
+                    "shipping_method_name",
+                    "last_change",
+                ]
+            )
     metadata = get_or_create_checkout_metadata(checkout)
     metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
     if save:
