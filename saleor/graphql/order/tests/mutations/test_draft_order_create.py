@@ -1,10 +1,13 @@
 import datetime
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 from prices import Money
 
 from .....checkout import AddressType
@@ -17,7 +20,7 @@ from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
-from .....order.models import Order, OrderEvent
+from .....order.models import Order, OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
@@ -3730,3 +3733,45 @@ def test_draft_order_create_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_draft_order_create_set_order_line_price_expiration_time(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "channelId": channel_id,
+            "lines": [{"variantId": variant_id, "quantity": 2}],
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+        }
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_period = channel_USD.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+    expected_expire_time = timezone.now() + timedelta(hours=expire_period)
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    new_line = OrderLine.objects.get()
+    assert new_line.price_expire_at == expected_expire_time
