@@ -3,7 +3,6 @@ import time
 import uuid
 
 from django.core.cache import cache
-from django.utils import timezone
 from redis import RedisError
 
 from ...graphql.app.enums import CircuitBreakerState
@@ -12,12 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class Storage:
-    def last_open(self, app_id: int) -> tuple[int, str]:  # type: ignore[empty-body]
+    def set_app_state(self, app_id: int, state: CircuitBreakerState, changed_at: int):
         pass
 
-    def update_open(
-        self, app_id: int, open_time_seconds: int, state: CircuitBreakerState
-    ):
+    def get_app_state(self, app_id: int) -> tuple[str, int]:  # type: ignore[empty-body]
         pass
 
     def get_event_count(self, app_id: int, name: str) -> int:  # type: ignore[empty-body]
@@ -26,17 +23,21 @@ class Storage:
     def register_event(self, app_id: int, name: str, ttl_seconds: int):
         pass
 
-    def register_state_change(self, app_id: int):
-        pass
-
-    def retrieve_last_state_change(self, app_id: int):
-        pass
-
     def clear_state_for_app(self, app_id: int):
         pass
 
     class Meta:
         abstract = True
+
+
+def serialize_breaker_state(state, changed_at) -> str:
+    return f"{state}|{changed_at}"
+
+
+def deserialize_breaker_state(data) -> tuple[str, int]:
+    data = str(data, "utf-8")
+    state, changed_at = data.split("|")
+    return state, int(changed_at)
 
 
 class RedisStorage(Storage):
@@ -55,35 +56,26 @@ class RedisStorage(Storage):
     def get_base_storage_key(self) -> str:
         return self.KEY_PREFIX
 
-    def last_open(self, app_id: int) -> tuple[int, str]:
-        base_key = self.get_base_storage_key()
-        state_key = f"{base_key}-{app_id}-{self.STATE_KEY}"
-        half_open_key = f"{state_key}-{CircuitBreakerState.HALF_OPEN}"
-        open_key = f"{state_key}-{CircuitBreakerState.OPEN}"
-        try:
-            half_open_val, open_val = self._client.mget([half_open_key, open_key])
-            if half_open_val:
-                value = int(str(half_open_val, "utf-8"))
-                return value, CircuitBreakerState.HALF_OPEN
-            if open_val:
-                value = int(str(open_val, "utf-8"))
-                return value, CircuitBreakerState.OPEN
-        except RedisError:
-            pass
-
-        return 0, CircuitBreakerState.CLOSED
-
-    def update_open(
-        self, app_id: int, open_time_seconds: int, state: CircuitBreakerState
-    ):
+    def set_app_state(self, app_id: int, state: CircuitBreakerState, changed_at: int):
         base_key = self.get_base_storage_key()
         try:
             self._client.set(
-                f"{base_key}-{app_id}-{self.STATE_KEY}-{state}",
-                open_time_seconds,
+                f"{base_key}-{app_id}-{self.STATE_KEY}",
+                serialize_breaker_state(state, changed_at),
             )
         except RedisError:
             logger.warning(self.WARNING_MESSAGE, exc_info=True)
+
+    def get_app_state(self, app_id: int) -> tuple[str, int]:
+        base_key = self.get_base_storage_key()
+        state_key = f"{base_key}-{app_id}-{self.STATE_KEY}"
+        try:
+            if data := self._client.get(state_key):
+                return deserialize_breaker_state(data)
+        except RedisError:
+            logger.warning(self.WARNING_MESSAGE, exc_info=True)
+
+        return CircuitBreakerState.CLOSED, 0
 
     def get_event_count(self, app_id: int, name: str) -> int:
         base_key = self.get_base_storage_key()
@@ -91,6 +83,7 @@ class RedisStorage(Storage):
         try:
             return self._client.zcard(key)
         except RedisError:
+            logger.warning(self.WARNING_MESSAGE, exc_info=True)
             return 0
 
     def register_event(self, app_id: int, name: str, ttl_seconds: int):
@@ -115,41 +108,12 @@ class RedisStorage(Storage):
 
             p.execute()
         except RedisError:
-            pass
-
-    def register_state_change(self, app_id: int):
-        base_key = self.get_base_storage_key()
-        state_change_key = "state-change"
-        key = f"{base_key}-{app_id}-{state_change_key}"
-        now = timezone.now()
-        try:
-            self._client.set(key, now.isoformat())
-        except RedisError:
-            pass
-
-    def retrieve_last_state_change(self, app_id: int):
-        base_key = self.get_base_storage_key()
-        state_change_key = "state-change"
-        key = f"{base_key}-{app_id}-{state_change_key}"
-        try:
-            return self._client.get(key)
-        except RedisError:
-            pass
+            logger.warning(self.WARNING_MESSAGE, exc_info=True)
 
     def clear_state_for_app(self, app_id: int):
         base_key = self.get_base_storage_key()
         keys = [f"{base_key}-{app_id}-{name}" for name in self.EVENT_KEYS]
-        keys.append(f"{base_key}-{app_id}")
-        keys.extend(
-            [
-                f"{base_key}-{app_id}-{self.STATE_KEY}-{state}"
-                for state in [
-                    CircuitBreakerState.CLOSED,
-                    CircuitBreakerState.OPEN,
-                    CircuitBreakerState.HALF_OPEN,
-                ]
-            ]
-        )
+        keys.append(f"{base_key}-{app_id}-{self.STATE_KEY}")
         try:
             self._client.delete(*keys)
         except RedisError:

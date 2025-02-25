@@ -619,16 +619,17 @@ class App(ModelObjectType[models.App]):
 
     @staticmethod
     def resolve_breaker_state(root: models.App, _info: ResolveInfo):
-        if not breaker_board:
-            return CircuitBreakerState.CLOSED
-        _, state = breaker_board.storage.last_open(root.id)
-        return state
+        if breaker_board:
+            state, _ = breaker_board.storage.get_app_state(root.id)
+            return state
+        return CircuitBreakerState.CLOSED
 
     @staticmethod
     def resolve_breaker_last_state_change(root: models.App, _info: ResolveInfo):
         if breaker_board:
-            if last_change := breaker_board.storage.retrieve_last_state_change(root.id):
-                return datetime.datetime.fromisoformat(str(last_change, "utf-8"))
+            _, changed_at = breaker_board.storage.get_app_state(root.id)
+            if changed_at:
+                return datetime.datetime.fromtimestamp(changed_at, tz=datetime.UTC)
         return None
 
 

@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import cast
 
 import graphene
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from ....app import models as app_models
 from ....app.error_codes import AppErrorCode
+from ....graphql.app.enums import CircuitBreakerState
 from ....graphql.app.types import App
 from ....graphql.core.descriptions import ADDED_IN_321
 from ....permission.enums import AppPermission
@@ -50,8 +52,8 @@ class AppReenableSyncWebhooks(BaseMutation):
         app = cls.get_node_or_error(
             info, data.get("app_id"), only_type="App", field="appId"
         )
-        app = cast(app_models.App, app)
         if breaker_board:
+            app = cast(app_models.App, app)
             error = breaker_board.storage.clear_state_for_app(app.id)
             if error:
                 raise ValidationError(
@@ -62,7 +64,9 @@ class AppReenableSyncWebhooks(BaseMutation):
                         )
                     }
                 )
-            breaker_board.storage.register_state_change(app.id)
+            breaker_board.storage.set_app_state(
+                app.id, CircuitBreakerState.CLOSED, int(time.time())
+            )
             requestor = get_user_or_app_from_context(info.context)
             logger.info(
                 "[App ID: %r] Circuit breaker manually reset by %r.",

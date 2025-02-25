@@ -10,28 +10,34 @@ NOW = 1726215980
 TTL_SECONDS = 60
 
 
-def test_update_open(breaker_storage):
+def test_get_app_state(breaker_storage):
     # given
-    assert breaker_storage.last_open(APP_ID) == (0, CircuitBreakerState.CLOSED)
+    status, changed_at = breaker_storage.get_app_state(APP_ID)
+    assert status == CircuitBreakerState.CLOSED
 
     # when
-    breaker_storage.update_open(APP_ID, 100, CircuitBreakerState.OPEN)
+    breaker_storage.set_app_state(APP_ID, CircuitBreakerState.OPEN, 100)
 
     # then
-    assert breaker_storage.last_open(APP_ID) == (100, CircuitBreakerState.OPEN)
+    status, changed_at = breaker_storage.get_app_state(APP_ID)
+    assert status == CircuitBreakerState.OPEN
+    assert changed_at == 100
 
 
 def test_manually_clear_state_for_app(breaker_storage):
     # given
-    breaker_storage.update_open(APP_ID, 100, CircuitBreakerState.OPEN)
-    assert breaker_storage.last_open(APP_ID) == (100, CircuitBreakerState.OPEN)
+    breaker_storage.set_app_state(APP_ID, CircuitBreakerState.OPEN, 100)
+    status, _ = breaker_storage.get_app_state(APP_ID)
+    assert status == CircuitBreakerState.OPEN
 
     # when
     error = breaker_storage.clear_state_for_app(APP_ID)
 
     # then
     assert not error
-    assert breaker_storage.last_open(APP_ID) == (0, CircuitBreakerState.CLOSED)
+    status, changed_at = breaker_storage.get_app_state(APP_ID)
+    assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
 
 
 def test_register_event(breaker_storage):
@@ -52,18 +58,18 @@ def test_register_event(breaker_storage):
         assert breaker_storage.get_event_count(APP_ID, NAME) == 2
 
 
-def test_last_open_does_not_crash_on_redis_error(breaker_not_connected_storage):
-    assert breaker_not_connected_storage.last_open(APP_ID) == (
-        0,
-        CircuitBreakerState.CLOSED,
-    )
+def test_get_app_state_does_not_crash_on_redis_error(breaker_not_connected_storage):
+    status, changed_at = breaker_not_connected_storage.get_app_state(APP_ID)
+    assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
 
 
-def test_update_open_does_not_crash_on_redis_error(breaker_not_connected_storage):
-    breaker_not_connected_storage.update_open(APP_ID, 100, CircuitBreakerState.OPEN)
-    assert breaker_not_connected_storage.last_open(APP_ID) == (
-        0,
-        CircuitBreakerState.CLOSED,
+def test_set_app_state_does_not_crash_on_redis_error(breaker_not_connected_storage):
+    assert (
+        breaker_not_connected_storage.set_app_state(
+            APP_ID, CircuitBreakerState.OPEN, 100
+        )
+        is None
     )
 
 
