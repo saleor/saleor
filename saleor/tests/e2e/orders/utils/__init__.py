@@ -2,7 +2,7 @@ from .draft_order_bulk_delete import draft_order_bulk_delete
 from .draft_order_complete import draft_order_complete, raw_draft_order_complete
 from .draft_order_create import draft_order_create
 from .draft_order_delete import draft_order_delete
-from .draft_order_update import draft_order_update
+from .draft_order_update import draft_order_update, raw_draft_order_update
 from .order_by_checkout_id_query import order_by_checkout_id_query
 from .order_cancel import order_cancel
 from .order_create_from_checkout import (
@@ -48,4 +48,5 @@ __all__ = [
     "order_line_delete",
     "order_line_discount_update",
     "raw_order_create_from_checkout",
+    "raw_draft_order_update",
 ]
