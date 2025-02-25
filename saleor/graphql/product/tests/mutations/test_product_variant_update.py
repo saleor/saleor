@@ -2533,3 +2533,117 @@ def test_update_product_variant_can_not_turn_off_preorder(
     assert data["sku"] == sku
     assert data["preorder"]["globalThreshold"] == variant.preorder_global_threshold
     assert data["preorder"]["endDate"] is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_product_variant_with_metadata(
+    product_variant_metadata_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # Given
+    query = """
+        mutation updateVariant (
+            $id: ID!
+            $metadata: [MetadataInput!]
+            ) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        metadata: $metadata,
+                        privateMetadata: $metadata
+                    }) {
+                    productVariant {
+                        id
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    metadata_key = "mk"
+    metadata_value = "mv"
+
+    variables = {
+        "id": variant_id,
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+
+    # When
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["id"] == variant_id
+
+    # Then
+    # - Both variant_updated and variant_metadata_updated should run
+    # - Both should run only once
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_metadata_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_product_variant_with_no_metadata_and_no_event(
+    product_variant_metadata_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # Given
+    query = """
+        mutation updateVariant (
+            $id: ID!
+            $name: String!
+            ) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        name: $name
+                    }) {
+                    productVariant {
+                        id
+                        name
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    new_name = "New Name"
+
+    variables = {"id": variant_id, "name": new_name}
+
+    # When
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["id"] == variant_id
+    assert data["name"] == new_name
+
+    # Then
+    # - product_variant_updated should run - field changed
+    # - product_variant_metadata_updated should not run - metadata not changed,
+    # no empty event emitted
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_metadata_updated_webhook_mock.assert_not_called()
