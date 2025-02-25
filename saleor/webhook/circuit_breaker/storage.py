@@ -29,6 +29,9 @@ class Storage:
     def register_state_change(self, app_id: int):
         pass
 
+    def retrieve_last_state_change(self, app_id: int):
+        pass
+
     def clear_state_for_app(self, app_id: int):
         pass
 

@@ -714,11 +714,11 @@ def test_app_query_breaker_state(
     # given
     now = timezone.now()
     storage_mock = Mock()
-    breaker_board_mock.update_breaker_state.side_effect = lambda app: breaker_state
     breaker_board_mock.storage = storage_mock
     storage_mock.retrieve_last_state_change.return_value = bytes(
         now.isoformat(), "utf-8"
     )
+    storage_mock.last_open.return_value = (int(now.timestamp()), breaker_state)
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
 
@@ -793,6 +793,10 @@ def test_app_query_breaker_last_change(
     board_mock.storage = storage_mock
     storage_mock.retrieve_last_state_change.return_value = bytes(
         now.isoformat(), "utf-8"
+    )
+    storage_mock.last_open.return_value = (
+        int(now.timestamp()),
+        CircuitBreakerState.HALF_OPEN,
     )
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}

@@ -621,7 +621,8 @@ class App(ModelObjectType[models.App]):
     def resolve_breaker_state(root: models.App, _info: ResolveInfo):
         if not breaker_board:
             return CircuitBreakerState.CLOSED
-        return breaker_board.update_breaker_state(root)
+        _, state = breaker_board.storage.last_open(root.id)
+        return state
 
     @staticmethod
     def resolve_breaker_last_state_change(root: models.App, _info: ResolveInfo):
