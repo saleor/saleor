@@ -1,3 +1,4 @@
+import time
 from unittest.mock import Mock, patch
 
 from saleor.webhook.event_types import WebhookEventSyncType
@@ -70,7 +71,7 @@ def test_breaker_board_enter_half_open(settings, breaker_storage, app_with_webho
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
-    breaker_board.storage.update_open(app.id, 0, CircuitBreakerState.OPEN)
+    breaker_board.storage.set_app_state(app.id, CircuitBreakerState.OPEN, 100)
 
     # when
     with patch(
@@ -94,7 +95,7 @@ def test_breaker_board_closes_on_half_open(settings, breaker_storage, app_with_w
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage, success_count_recovery=1)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
-    breaker_board.storage.update_open(app.id, 0, CircuitBreakerState.HALF_OPEN)
+    breaker_board.storage.set_app_state(app.id, CircuitBreakerState.HALF_OPEN, 0)
 
     # when
     with patch(
@@ -120,7 +121,7 @@ def test_breaker_board_closes_stays_half_open_below_threshold(
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage, success_count_recovery=2)
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
-    breaker_board.storage.update_open(app.id, 0, CircuitBreakerState.HALF_OPEN)
+    breaker_board.storage.set_app_state(app.id, CircuitBreakerState.HALF_OPEN, 0)
 
     # when
     with patch(
@@ -149,7 +150,9 @@ def test_breaker_board_reopens_on_half_open(
     )
     transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
     breaker_board.register_error(app.id)
-    breaker_board.storage.update_open(app.id, 0, CircuitBreakerState.HALF_OPEN)
+    breaker_board.storage.set_app_state(
+        app.id, CircuitBreakerState.HALF_OPEN, int(time.time())
+    )
 
     # when
     with patch(

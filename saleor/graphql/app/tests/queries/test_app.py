@@ -1,9 +1,8 @@
-from datetime import datetime
+import datetime
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
-from django.utils import timezone
 from freezegun import freeze_time
 
 from .....app.models import App
@@ -712,13 +711,9 @@ def test_app_query_breaker_state(
     app,
 ):
     # given
-    now = timezone.now()
     storage_mock = Mock()
-    breaker_board_mock.update_breaker_state.side_effect = lambda app: breaker_state
     breaker_board_mock.storage = storage_mock
-    storage_mock.retrieve_last_state_change.return_value = bytes(
-        now.isoformat(), "utf-8"
-    )
+    storage_mock.get_app_state.return_value = breaker_state, 100
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
 
@@ -785,14 +780,15 @@ def test_app_query_breaker_last_change(
     app,
 ):
     # given
-    now = timezone.now()
+    now = datetime.datetime.now(tz=datetime.UTC)
     storage_mock = Mock()
     board_mock.update_breaker_state.side_effect = (
         lambda app: CircuitBreakerState.HALF_OPEN
     )
     board_mock.storage = storage_mock
-    storage_mock.retrieve_last_state_change.return_value = bytes(
-        now.isoformat(), "utf-8"
+    storage_mock.get_app_state.return_value = (
+        CircuitBreakerState.HALF_OPEN,
+        now.timestamp(),
     )
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"id": id}
@@ -806,7 +802,7 @@ def test_app_query_breaker_last_change(
 
     # then
     content = get_graphql_content(response)
-    retrieved_date = datetime.fromisoformat(
+    retrieved_date = datetime.datetime.fromisoformat(
         content["data"]["app"]["breakerLastStateChange"]
     )
     assert retrieved_date == now
