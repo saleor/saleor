@@ -1,6 +1,8 @@
-from saleor.graphql.tests.utils import get_graphql_content
+from ...account.utils.fragments import ADDRESS_FRAGMENT
+from ...utils import get_graphql_content
 
-ORDER_QUERY = """
+ORDER_QUERY = (
+    """
 query OrderDetails($id: ID!) {
   order(id: $id) {
     availableShippingMethods {
@@ -39,17 +41,10 @@ query OrderDetails($id: ID!) {
       id
     }
     shippingAddress {
-      country {
-        code
-      }
-      countryArea
-      firstName
-      cityArea
-      city
-      phone
-      postalCode
-      streetAddress1
-      streetAddress2
+      ...Address
+    }
+    billingAddress {
+      ...Address
     }
     statusDisplay
     status
@@ -67,6 +62,8 @@ query OrderDetails($id: ID!) {
   }
 }
 """
+    + ADDRESS_FRAGMENT
+)
 
 
 def order_query(
