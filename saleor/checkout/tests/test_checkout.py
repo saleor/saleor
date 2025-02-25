@@ -360,6 +360,47 @@ def test_clear_delivery_method(checkout, shipping_method):
     assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
 
 
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_clear_delivery_method_with_external_method(
+    mock_send_request, checkout, shipping_method, settings, shipping_app
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    response_method_id = "abcd"
+    shipping_name = "Provider - Economy"
+    shipping_price = Decimal(10)
+    currency = "USD"
+    mock_json_response = [
+        {
+            "id": response_method_id,
+            "name": shipping_name,
+            "amount": shipping_price,
+            "currency": currency,
+            "maximum_delivery_days": "7",
+        }
+    ]
+    external_shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{response_method_id}"
+    )
+    mock_send_request.return_value = mock_json_response
+
+    checkout.external_shipping_method_id = external_shipping_method_id
+    checkout.shipping_method_name = shipping_name
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+
+    # when
+    clear_delivery_method(checkout_info)
+
+    # then
+    checkout.refresh_from_db()
+    assert not checkout.shipping_method
+    assert not checkout.external_shipping_method_id
+    assert not checkout.shipping_method_name
+
+
 def test_last_change_update(checkout):
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
         assert checkout.last_change != frozen_datetime()
