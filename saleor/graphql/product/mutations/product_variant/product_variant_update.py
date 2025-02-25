@@ -142,6 +142,10 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
 
     @classmethod
     def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields) -> bool:
+        metadata_changed = (
+            "metadata" in changed_fields or "private_metadata" in changed_fields
+        )
+
         refresh_product_search_index = False
         with traced_atomic_transaction():
             if changed_fields:
@@ -168,6 +172,10 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if changed_fields or stocks or attributes:
                 manager = get_plugin_manager_promise(info.context).get()
                 cls.call_event(manager.product_variant_updated, instance)
+
+                if metadata_changed:
+                    cls.call_event(manager.product_variant_metadata_updated, instance)
+
                 return True
 
             return False
