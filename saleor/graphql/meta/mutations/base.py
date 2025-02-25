@@ -18,7 +18,7 @@ from ...core import ResolveInfo
 from ...core.context import BaseContext, SyncWebhookControlContext
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
-from ...payment.utils import metadata_contains_empty_key
+from ...core.utils.metadata_manager import metadata_contains_empty_key
 from ..extra_methods import TYPE_EXTRA_METHODS
 from ..permissions import AccountPermissions
 from ..types import ObjectWithMetadata
