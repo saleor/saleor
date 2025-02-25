@@ -84,7 +84,7 @@ class BreakerBoard:
                 )
 
     def exceeded_error_threshold(
-        self, state: CircuitBreakerState, total_webhook_calls: int, errors: int
+        self, state: str, total_webhook_calls: int, errors: int
     ) -> bool:
         """Check if the error threshold has been exceeded.
 
@@ -109,9 +109,10 @@ class BreakerBoard:
 
     def set_breaker_state(self, app: "App", state: str, total: int, errors: int) -> str:
         self.storage.clear_state_for_app(app.id)
-        self.storage.register_state_change(app.id)
-        open_time = int(time.time()) if state != CircuitBreakerState.CLOSED else 0
-        self.storage.update_open(app.id, open_time, state)
+
+        changed_at = int(time.time())
+        self.storage.set_app_state(app.id, state, changed_at)
+
         logger.info(
             "[App ID: %r] Circuit breaker changed state to %s.",
             app.id,
@@ -126,7 +127,8 @@ class BreakerBoard:
         return state
 
     def update_breaker_state(self, app: "App") -> str:
-        last_open, state = self.storage.last_open(app.id)
+        state, changed_at = self.storage.get_app_state(app.id)
+
         total = self.storage.get_event_count(app.id, "total") or 1
         errors = self.storage.get_event_count(app.id, "error")
         # CLOSED to OPEN
@@ -135,7 +137,7 @@ class BreakerBoard:
         ):
             return self.set_breaker_state(app, CircuitBreakerState.OPEN, total, errors)
         # OPEN TO HALF-OPEN
-        if state == CircuitBreakerState.OPEN and last_open < (
+        if state == CircuitBreakerState.OPEN and changed_at < (
             time.time() - self.cooldown_seconds
         ):
             return self.set_breaker_state(

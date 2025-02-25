@@ -28,9 +28,9 @@ def test_breaker_board_failure(
 
     # then only one call was made due to failure threshold
     assert failed_response_function_mock.call_count == 1
-    last_open, status = breaker_board.storage.last_open(app.id)
-    assert last_open > 0
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
     assert status == CircuitBreakerState.OPEN
+    assert changed_at > 0
 
 
 def test_breaker_board_failure_ignored_webhook_event_type(
@@ -49,9 +49,9 @@ def test_breaker_board_failure_ignored_webhook_event_type(
 
     # then two calls were made despite failure threshold due to webhook event type
     assert failed_response_function_mock.call_count == 2
-    last_open, status = breaker_board.storage.last_open(app.id)
-    assert last_open == 0
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
     assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
 
 
 def test_breaker_board_success(
@@ -75,9 +75,9 @@ def test_breaker_board_success(
 
     # then
     assert success_response_function_mock.call_count == 2
-    last_open, status = breaker_board.storage.last_open(app.id)
-    assert last_open == 0
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
     assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
 
 
 @pytest.mark.parametrize(
@@ -124,7 +124,7 @@ def test_breaker_board_threshold(
     breaker_board.update_breaker_state(app)
 
     # then
-    _, status = breaker_board.storage.last_open(app.id)
+    status, _ = breaker_board.storage.get_app_state(app.id)
     assert status == breaker_status
 
 
@@ -148,16 +148,16 @@ def test_breaker_board_clear_state_for_app(
             WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, False
         )
     breaker_board.update_breaker_state(app)
-    last_open, status = breaker_board.storage.last_open(app.id)
-    assert last_open > 0
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
     assert status == CircuitBreakerState.OPEN
+    assert changed_at > 0
     error = breaker_board.storage.clear_state_for_app(app.id)
 
     # then
     assert not error
-    last_open, status = breaker_board.storage.last_open(app.id)
-    assert last_open == 0
+    status, changed_at = breaker_board.storage.get_app_state(app.id)
     assert status == CircuitBreakerState.CLOSED
+    assert changed_at == 0
 
 
 def test_breaker_board_configuration_invalid_events(settings, breaker_storage):
