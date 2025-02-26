@@ -6,16 +6,18 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ....core.prices import quantize_price
-from ....core.taxes import zero_money
-from ....order import OrderStatus
-from ....product.models import Product
-from ....product.utils.variant_prices import update_discounted_prices_for_promotion
-from ....product.utils.variants import fetch_variants_for_promotion_rules
-from ... import DiscountType, DiscountValueType, RewardValueType, VoucherType
-from ...models import OrderLineDiscount, Promotion, PromotionRule
-from ...utils.order import refresh_order_base_prices_and_discounts
-from ...utils.voucher import create_or_update_voucher_discount_objects_for_order
+from ...core.prices import quantize_price
+from ...core.taxes import zero_money
+from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
+from ...discount.models import OrderLineDiscount, Promotion, PromotionRule
+from ...discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
+from ...product.models import Product
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from ...product.utils.variants import fetch_variants_for_promotion_rules
+from .. import OrderStatus
+from ..calculations import refresh_order_base_prices_and_discounts
 
 
 @freeze_time("2020-03-18 12:00:00")
