@@ -41,7 +41,7 @@ from ..tax.utils import (
     validate_tax_data,
 )
 from . import ORDER_EDITABLE_STATUS, OrderStatus
-from .base_calculations import apply_order_discounts, base_order_line_total
+from .base_calculations import base_order_line_total, calculate_prices
 from .fetch import (
     EditableOrderLineInfo,
     fetch_draft_order_lines_info,
@@ -95,7 +95,7 @@ def fetch_order_prices_if_expired(
 
     # calculate prices
     lines = [line_info.line for line_info in lines_info]
-    _recalculate_prices(
+    calculate_prices(
         order,
         lines,
         database_connection_name=database_connection_name,
@@ -162,20 +162,6 @@ def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> lis
         for line in lines
         if line.draft_base_price_expire_at and line.draft_base_price_expire_at < now
     ]
-
-
-def _recalculate_prices(
-    order: Order,
-    lines: Iterable[OrderLine],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    """Calculate prices after handling order level discounts and taxes."""
-    # calculate untaxed prices including discounts
-    apply_order_discounts(
-        order,
-        lines,
-        database_connection_name=database_connection_name,
-    )
 
 
 def calculate_taxes(

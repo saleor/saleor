@@ -428,7 +428,7 @@ def test_recalculate_with_plugins_order_discounts_and_total_undiscounted_price_c
     assert order.shipping_tax_rate == shipping_tax_rate
 
 
-def test_recalculate_prices_total_shipping_price_changed(
+def test_calculate_prices_total_shipping_price_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
     """Test that discounts are properly updated when shipping price changes."""
@@ -468,7 +468,7 @@ def test_recalculate_prices_total_shipping_price_changed(
     )
 
     # when
-    calculations._recalculate_prices(
+    calculations.calculate_prices(
         order, get_plugins_manager(allow_replica=True), order_lines
     )
 
@@ -480,7 +480,7 @@ def test_recalculate_prices_total_shipping_price_changed(
     assert order_discount.amount == order.undiscounted_total.net
 
 
-def test_recalculate_prices_line_quantity_changed(
+def test_calculate_prices_line_quantity_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
     """Test that discounts are properly updated when line quantities change."""
@@ -502,7 +502,7 @@ def test_recalculate_prices_line_quantity_changed(
     line.save(update_fields=["quantity"])
 
     # when
-    calculations._recalculate_prices(
+    calculations.calculate_prices(
         order, get_plugins_manager(allow_replica=True), order_lines
     )
 
@@ -1279,7 +1279,7 @@ def test_fetch_order_data_calls_inactive_plugin(
 
 
 @pytest.mark.parametrize("tax_app_id", [None, "test.app"])
-def test_recalculate_prices_empty_tax_data_logging_address(
+def test_calculate_prices_empty_tax_data_logging_address(
     tax_app_id, draft_order, order_lines, address, caplog
 ):
     # given
@@ -1312,7 +1312,7 @@ def test_recalculate_prices_empty_tax_data_logging_address(
     manager = Mock(**manager_methods)
 
     # when
-    calculations._recalculate_prices(order, manager, order_lines)
+    calculations.calculate_prices(order, manager, order_lines)
 
     # then
     assert (
