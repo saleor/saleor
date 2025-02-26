@@ -45,13 +45,19 @@ def update_metadata(instance, items):
 
 
 def update_private_metadata(instance, items):
-    updated = instance._meta.model.objects.get(pk=instance.pk).update(
+    updated = instance._meta.model.objects.filter(pk=instance.pk).update(
         private_metadata=PostgresJsonConcatenate(
             F("private_metadata"), Value(items, output_field=JSONField())
         )
     )
     if not updated:
-        msg = "Cannot update metadata for instance. Updating not existing object."
+        msg = (
+            "Cannot update private metadata for instance. Updating not existing object."
+        )
         raise ValidationError(
-            {"private_metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
+            {
+                "private_metadata": ValidationError(
+                    msg, code=MetadataErrorCode.NOT_FOUND.value
+                )
+            }
         )
