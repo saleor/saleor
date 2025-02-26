@@ -17,6 +17,7 @@ from ..account.models import User
 from ..checkout.fetch import update_delivery_method_lists_for_checkout_info
 from ..core.db.connection import allow_writer
 from ..core.exceptions import NonExistingCheckoutLines, ProductNotPublished
+from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -537,7 +538,7 @@ def _get_shipping_voucher_discount_for_checkout(
     if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
         raise NotApplicable(msg)
-    shipping_method = checkout_info.delivery_method_info.delivery_method
+    shipping_method = checkout_info.get_delivery_method_info().delivery_method
     if not shipping_method:
         msg = "Please select a delivery method first."
         raise NotApplicable(msg)
@@ -944,32 +945,35 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
-def get_valid_internal_shipping_methods_for_checkout(
+def get_valid_internal_shipping_methods_for_checkout_info(
     checkout_info: "CheckoutInfo",
-    lines: list["CheckoutLineInfo"],
     subtotal: "Money",
-    shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
-    country_code: str | None = None,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
-    if not is_shipping_required(lines):
+    if not is_shipping_required(checkout_info.lines):
         return []
     if not checkout_info.shipping_address:
         return []
 
+    country_code = (
+        checkout_info.shipping_address.country.code
+        if checkout_info.shipping_address
+        else None
+    )
+
     shipping_methods = ShippingMethod.objects.using(
-        database_connection_name
+        checkout_info.database_connection_name
     ).applicable_shipping_methods_for_instance(
         checkout_info.checkout,
         channel_id=checkout_info.checkout.channel_id,
         price=subtotal,
         shipping_address=checkout_info.shipping_address,
         country_code=country_code,
-        lines=lines,
+        lines=checkout_info.lines,
     )
 
     channel_listings_map = {
-        listing.shipping_method_id: listing for listing in shipping_channel_listings
+        listing.shipping_method_id: listing
+        for listing in checkout_info.shipping_channel_listings
     }
 
     internal_methods: list[ShippingMethodData] = []
@@ -1115,6 +1119,13 @@ def _remove_external_shipping_from_metadata(checkout: Checkout):
         metadata.save(update_fields=["private_metadata"])
 
 
+def _remove_undiscounted_base_shipping_price(checkout: Checkout):
+    if checkout.undiscounted_base_shipping_price_amount:
+        checkout.undiscounted_base_shipping_price_amount = Decimal(0)
+        return ["undiscounted_base_shipping_price_amount"]
+    return []
+
+
 def remove_external_shipping_from_checkout(
     checkout: Checkout, save: bool = False
 ) -> list[str]:
@@ -1158,10 +1169,24 @@ def remove_click_and_collect_from_checkout(checkout: Checkout) -> list[str]:
 
 def remove_delivery_method_from_checkout(checkout: Checkout) -> list[str]:
     fields_to_update = []
+    fields_to_update += _remove_undiscounted_base_shipping_price(checkout)
     fields_to_update += remove_built_in_shipping_from_checkout(checkout)
     fields_to_update += remove_click_and_collect_from_checkout(checkout)
     fields_to_update += remove_external_shipping_from_checkout(checkout)
     return fields_to_update
+
+
+def _assign_undiscounted_base_shipping_price_to_checkout(
+    checkout, shipping_method_data: ShippingMethodData
+):
+    current_shipping_price = quantize_price(
+        checkout.undiscounted_base_shipping_price, checkout.currency
+    )
+    new_shipping_price = quantize_price(shipping_method_data.price, checkout.currency)
+    if current_shipping_price != new_shipping_price:
+        checkout.undiscounted_base_shipping_price_amount = new_shipping_price.amount
+        return ["undiscounted_base_shipping_price_amount"]
+    return []
 
 
 def assign_external_shipping_to_checkout(
@@ -1170,6 +1195,9 @@ def assign_external_shipping_to_checkout(
     fields_to_update = []
     fields_to_update += remove_built_in_shipping_from_checkout(checkout)
     fields_to_update += remove_click_and_collect_from_checkout(checkout)
+    fields_to_update += _assign_undiscounted_base_shipping_price_to_checkout(
+        checkout, external_shipping_method_data
+    )
 
     # make sure that we don't have obsolete data for shipping methods stored in
     # private metadata
@@ -1191,6 +1219,9 @@ def assign_built_in_shipping_to_checkout(
     fields_to_update = []
     fields_to_update += remove_external_shipping_from_checkout(checkout)
     fields_to_update += remove_click_and_collect_from_checkout(checkout)
+    fields_to_update += _assign_undiscounted_base_shipping_price_to_checkout(
+        checkout, shipping_method_data
+    )
 
     if checkout.shipping_method_id != int(shipping_method_data.id):
         checkout.shipping_method_id = shipping_method_data.id
@@ -1205,6 +1236,7 @@ def assign_collection_point_to_checkout(
     checkout, collection_point: Warehouse
 ) -> list[str]:
     fields_to_update = []
+    fields_to_update += _remove_undiscounted_base_shipping_price(checkout)
     fields_to_update += remove_external_shipping_from_checkout(checkout)
     fields_to_update += remove_built_in_shipping_from_checkout(checkout)
     if checkout.collection_point_id != collection_point.id:
@@ -1290,7 +1322,7 @@ def log_address_if_validation_skipped_for_checkout(
 def get_address_for_checkout_taxes(
     checkout_info: "CheckoutInfo",
 ) -> Optional["Address"]:
-    shipping_address = checkout_info.delivery_method_info.shipping_address
+    shipping_address = checkout_info.get_delivery_method_info().shipping_address
     return shipping_address or checkout_info.billing_address
 
 

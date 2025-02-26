@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
 - Fixed `invoiceRequest` no longer throws an error, when only app with webhook `INVOICE_REQUESTED` is installed, without invoice plugin - #17355 by @witoszekdev
 - Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
+- Queries `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to fetch shipping methods (`SHIPPING_LIST_METHODS_FOR_CHECKOUT`) or to filter the available shipping methods (`CHECKOUT_FILTER_SHIPPING_METHODS`) - #17387 by @korycins
 
 ### GraphQL API
 
@@ -37,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
+- `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
 
 ### Webhooks
 

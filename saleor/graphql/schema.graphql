@@ -25194,6 +25194,20 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   expiryDate: Date
 
   """
+  Gift Card public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Gift Card private metadata.
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
   Start date of the gift card in ISO 8601 format. 
   
   DEPRECATED: this field will be removed in Saleor 4.0.
@@ -25287,6 +25301,20 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
 
   """The gift card expiry date."""
   expiryDate: Date
+
+  """
+  Gift Card public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Gift Card private metadata.
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
 
   """
   Start date of the gift card in ISO 8601 format. 

@@ -121,7 +121,7 @@ def update_checkout_shipping_method_if_invalid(
 
     is_valid = clean_delivery_method(
         checkout_info=checkout_info,
-        method=checkout_info.delivery_method_info.delivery_method,
+        method=checkout_info.get_delivery_method_info().delivery_method,
     )
 
     if not is_valid:

@@ -162,7 +162,7 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_lines_data,
             checkout.get_country(),
             channel_slug,
-            checkout_info.delivery_method_info,
+            checkout_info.get_delivery_method_info(),
             lines=lines,
         )
 

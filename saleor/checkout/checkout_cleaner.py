@@ -24,11 +24,13 @@ if TYPE_CHECKING:
 def clean_checkout_shipping(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    error_code: type[CheckoutErrorCode]
-    | type[PaymentErrorCode]
-    | type[OrderCreateFromCheckoutErrorCode],
+    error_code: (
+        type[CheckoutErrorCode]
+        | type[PaymentErrorCode]
+        | type[OrderCreateFromCheckoutErrorCode]
+    ),
 ):
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     if is_shipping_required(lines):
         if not delivery_method_info.delivery_method:
@@ -63,9 +65,11 @@ def clean_checkout_shipping(
 
 def clean_billing_address(
     checkout_info: "CheckoutInfo",
-    error_code: type[CheckoutErrorCode]
-    | type[PaymentErrorCode]
-    | type[OrderCreateFromCheckoutErrorCode],
+    error_code: (
+        type[CheckoutErrorCode]
+        | type[PaymentErrorCode]
+        | type[OrderCreateFromCheckoutErrorCode]
+    ),
 ):
     if not checkout_info.billing_address:
         raise ValidationError(
