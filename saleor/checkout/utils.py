@@ -1163,7 +1163,9 @@ def remove_click_and_collect_from_checkout(checkout: Checkout) -> list[str]:
         fields_to_update.append("collection_point_id")
         if checkout.shipping_address_id:
             checkout.shipping_address = None
-            fields_to_update.append("shipping_address_id")
+            # reset the save_shipping_address flag to the default value
+            checkout.save_shipping_address = True
+            fields_to_update.extend(["shipping_address_id", "save_shipping_address"])
     return fields_to_update
 
 
@@ -1244,7 +1246,8 @@ def assign_collection_point_to_checkout(
         fields_to_update.append("collection_point_id")
     if checkout.shipping_address != collection_point.address:
         checkout.shipping_address = collection_point.address.get_copy()
-        fields_to_update.append("shipping_address_id")
+        checkout.save_shipping_address = False
+        fields_to_update.extend(["shipping_address_id", "save_shipping_address"])
 
     return fields_to_update
 
