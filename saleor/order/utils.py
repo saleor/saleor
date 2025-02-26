@@ -680,7 +680,9 @@ def get_all_shipping_methods_for_order(
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
-    if not order.is_shipping_required():
+    if not order.is_shipping_required(
+        database_connection_name=database_connection_name
+    ):
         return []
 
     shipping_address = order.shipping_address
@@ -697,6 +699,7 @@ def get_all_shipping_methods_for_order(
             price=order.subtotal.gross,
             shipping_address=shipping_address,
             country_code=shipping_address.country.code,
+            database_connection_name=database_connection_name,
         )
         .prefetch_related("channel_listings")
     )

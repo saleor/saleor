@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 
 import graphene
@@ -6,6 +7,7 @@ from django.utils import timezone
 
 from .....checkout.calculations import _fetch_checkout_prices_if_expired
 from .....checkout.fetch import fetch_checkout_lines
+from .....order import OrderStatus
 from .....order.models import FulfillmentStatus
 from .....payment.interface import (
     ListStoredPaymentMethodsRequestData,
@@ -13,6 +15,7 @@ from .....payment.interface import (
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
 )
+from .....tax.calculations.order import update_order_prices_with_flat_rates
 from ....payment.enums import TokenizedPaymentFlowEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -256,6 +259,136 @@ def test_me_query_checkouts_calculate_flat_taxes(
         manager=mock.ANY,
         pregenerated_subscription_payloads=mock.ANY,
     )
+
+
+ME_WITH_ORDERS_QUERY = """
+    query Me {
+        me {
+            id
+            email
+            orders(first: 10) {
+                edges {
+                    node {
+                        id
+                        total {
+                            currency
+                            gross {
+                                amount
+                            }
+                        }
+                    }
+                }
+                totalCount
+            }
+        }
+    }
+"""
+
+ME_WITH_ORDERS_WITH_LINES_TOTAL_PRICE_QUERY = """
+    query Me {
+        me {
+            id
+            email
+            orders(first: 10) {
+                edges {
+                    node {
+                        id
+                        lines{
+                            totalPrice {
+                                currency
+                                gross {
+                                    amount
+                                }
+                            }
+                        }
+                    }
+                }
+                totalCount
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "query", [ME_WITH_ORDERS_QUERY, ME_WITH_ORDERS_WITH_LINES_TOTAL_PRICE_QUERY]
+)
+@mock.patch("saleor.order.calculations._recalculate_prices")
+@mock.patch("saleor.order.calculations.update_order_prices_with_flat_rates")
+def test_me_query_orders_do_not_trigger_sync_tax_webhooks(
+    mocked_update_order_prices_with_flat_rates,
+    mocked__recalculate_prices,
+    query,
+    user_api_client,
+    order_with_lines,
+    tax_configuration_tax_app,
+):
+    # given
+    user = user_api_client.user
+    order_with_lines.user = user
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.should_refresh_prices = True
+    order_with_lines.total_gross_amount = Decimal(0)
+    order_with_lines.save()
+
+    # when
+    response = user_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert data["orders"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_with_lines.pk
+    )
+
+    order_with_lines.refresh_from_db()
+
+    assert order_with_lines.should_refresh_prices
+    assert order_with_lines.total_gross_amount == Decimal(0)
+
+    mocked_update_order_prices_with_flat_rates.assert_not_called()
+    mocked__recalculate_prices.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "query", [ME_WITH_ORDERS_QUERY, ME_WITH_ORDERS_WITH_LINES_TOTAL_PRICE_QUERY]
+)
+@mock.patch(
+    "saleor.order.calculations.update_order_prices_with_flat_rates",
+    wraps=update_order_prices_with_flat_rates,
+)
+def test_me_query_orders_calculate_flat_taxes(
+    mocked_update_order_prices_with_flat_rates,
+    query,
+    user_api_client,
+    order_with_lines,
+    tax_configuration_flat_rates,
+):
+    # given
+    user = user_api_client.user
+    order_with_lines.user = user
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.should_refresh_prices = True
+    order_with_lines.total_gross_amount = Decimal(0)
+    order_with_lines.save()
+
+    # when
+    response = user_api_client.post_graphql(query)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["me"]
+    assert data["orders"]["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_with_lines.pk
+    )
+
+    order_with_lines.refresh_from_db()
+
+    order_with_lines.refresh_from_db()
+    assert not order_with_lines.should_refresh_prices
+    assert order_with_lines.total_gross_amount != Decimal(0)
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once()
 
 
 def test_me_query_checkout_with_inactive_channel(user_api_client, checkout):

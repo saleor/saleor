@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from django.conf import settings
 from prices import TaxedMoney
 
+from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...order import base_calculations
@@ -43,12 +44,18 @@ def update_order_prices_with_flat_rates(
     )
 
     # Calculate order shipping.
-    shipping_method = order.shipping_method
-    shipping_tax_class = getattr(shipping_method, "tax_class", None)
+    with allow_writer():
+        # allow writer as this action directly fetches the shipping method from the
+        # writer. Will be solved by the task:
+        # https://linear.app/saleor/issue/EXT-1990/update-order-prices-with-flat-rates-
+        # makes-db-writer-to-get-shipping
+        shipping_method = order.shipping_method
+        shipping_tax_class = getattr(shipping_method, "tax_class", None)
+
     if shipping_tax_class:
         shipping_tax_rate = get_tax_rate_for_tax_class(
             shipping_tax_class,
-            shipping_tax_class.country_rates.all(),
+            shipping_tax_class.country_rates.using(database_connection_name).all(),
             default_tax_rate,
             country_code,
         )
