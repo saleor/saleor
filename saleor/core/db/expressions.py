@@ -20,7 +20,7 @@ class PostgresJsonConcatenate(Expression):
         if hasattr(arg, "output_field") and not isinstance(arg.output_field, JSONField):
             # force developer to explicitly set value as JSONField
             # e.g. Value({}, output_field=JSONField())
-            raise TypeError("%r is not JSONField", arg)
+            raise TypeError("%r is not a JSONField", arg)
 
     def resolve_expression(
         self, query=None, allow_joins=False, reuse=None, summarize=False, for_save=True
