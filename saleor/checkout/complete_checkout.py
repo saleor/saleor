@@ -232,7 +232,7 @@ def _should_store_shipping_address_in_user_addresses(
     - the delivery method allows storing the address as a user address
     (the delivery method is not a collection point) or the delivery method is not set
     """
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
     address_marked_to_be_saved = checkout_info.checkout.save_shipping_address
     delivery_allows_storing_as_user_address = (
         delivery_method_info.store_as_customer_address
