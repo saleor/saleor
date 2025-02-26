@@ -2007,7 +2007,7 @@ def test_order_lines_create_set_price_expiration_time(
 
     # then
     new_line = OrderLine.objects.get(variant_id=variant.id)
-    assert new_line.price_expire_at == expected_expire_time
+    assert new_line.base_price_expire_at == expected_expire_time
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -2040,7 +2040,7 @@ def test_order_lines_create_dont_set_price_expiration_time_when_period_is_none(
 
     # then
     new_line = OrderLine.objects.get(variant_id=variant.id)
-    assert new_line.price_expire_at is None
+    assert new_line.base_price_expire_at is None
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -2079,7 +2079,7 @@ def test_order_lines_create_dont_set_price_expiration_time_when_price_overridden
     # then
     new_line = OrderLine.objects.get(variant_id=variant.id)
     assert new_line.is_price_overridden is True
-    assert new_line.price_expire_at is None
+    assert new_line.base_price_expire_at is None
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -2112,8 +2112,8 @@ def test_order_lines_create_with_existing_variant_dont_set_expiration_date(
     assert expire_period > 0
 
     initial_expire_date = timezone.now() + timedelta(hours=expire_period - 1)
-    line.price_expire_at = initial_expire_date
-    line.save(update_fields=["price_expire_at"])
+    line.base_price_expire_at = initial_expire_date
+    line.save(update_fields=["base_price_expire_at"])
 
     # when
     staff_api_client.post_graphql(query, variables)
@@ -2121,7 +2121,7 @@ def test_order_lines_create_with_existing_variant_dont_set_expiration_date(
     # then
     line.refresh_from_db()
     assert line.quantity == old_quantity + extra_quantity
-    assert line.price_expire_at == initial_expire_date
+    assert line.base_price_expire_at == initial_expire_date
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -2156,8 +2156,8 @@ def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_d
     assert expire_period > 0
 
     initial_expire_date = timezone.now() + timedelta(hours=expire_period - 1)
-    line.price_expire_at = initial_expire_date
-    line.save(update_fields=["price_expire_at"])
+    line.base_price_expire_at = initial_expire_date
+    line.save(update_fields=["base_price_expire_at"])
 
     # when
     staff_api_client.post_graphql(query, variables)
@@ -2165,4 +2165,4 @@ def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_d
     # then
     line.refresh_from_db()
     assert line.quantity == old_quantity + extra_quantity
-    assert line.price_expire_at is None
+    assert line.base_price_expire_at is None

@@ -291,7 +291,7 @@ def create_order_line(
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
         is_price_overridden=is_price_overridden,
-        price_expire_at=price_expiration_date,
+        base_price_expire_at=price_expiration_date,
         **get_tax_class_kwargs_for_order_line(tax_class),
     )
 
@@ -441,7 +441,7 @@ def update_line_base_unit_prices_with_custom_price(
     line.undiscounted_base_unit_price_amount = price_override
     line.undiscounted_unit_price_gross_amount = price_override
     line.undiscounted_unit_price_net_amount = price_override
-    line.price_expire_at = None
+    line.base_price_expire_at = None
     update_fields.extend(
         [
             "is_price_overridden",
@@ -449,7 +449,7 @@ def update_line_base_unit_prices_with_custom_price(
             "base_unit_price_amount",
             "undiscounted_unit_price_gross_amount",
             "undiscounted_unit_price_net_amount",
-            "price_expire_at",
+            "base_price_expire_at",
         ]
     )
 

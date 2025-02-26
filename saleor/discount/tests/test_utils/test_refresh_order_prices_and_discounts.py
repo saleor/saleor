@@ -64,11 +64,11 @@ def test_refresh_order_base_prices(order_with_lines):
     line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
-    assert line_1.price_expire_at == expected_expire_time
+    assert line_1.base_price_expire_at == expected_expire_time
 
     assert line_2.undiscounted_base_unit_price_amount == new_variant_2_price
     assert line_2.base_unit_price_amount == new_variant_2_price
-    assert line_1.price_expire_at == expected_expire_time
+    assert line_1.base_price_expire_at == expected_expire_time
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -113,11 +113,11 @@ def test_refresh_order_base_prices_single_line(order_with_lines):
     line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
-    assert line_1.price_expire_at == expected_expire_time
+    assert line_1.base_price_expire_at == expected_expire_time
 
     assert line_2.undiscounted_base_unit_price_amount == initial_variant_2_price
     assert line_2.base_unit_price_amount == initial_variant_2_price
-    assert line_2.price_expire_at is None
+    assert line_2.base_price_expire_at is None
 
 
 def test_refresh_order_base_prices_catalogue_discount(
