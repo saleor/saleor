@@ -278,7 +278,7 @@ def create_order_line_discount_objects_for_catalogue_promotions(
 
 def refresh_order_base_prices_and_discounts(
     order: "Order",
-    line_ids_to_refresh: Iterable[UUID] | None = None,
+    line_ids_to_refresh: Iterable[UUID],
     lines: Iterable[OrderLine] | None = None,
 ) -> list["EditableOrderLineInfo"]:
     """Force order to fetch the latest channel listing prices and update discounts."""
@@ -297,14 +297,11 @@ def refresh_order_base_prices_and_discounts(
     if not lines_info:
         return []
 
-    if line_ids_to_refresh:
-        lines_info_to_update = [
-            line_info
-            for line_info in lines_info
-            if line_info.line.id in line_ids_to_refresh
-        ]
-    else:
-        lines_info_to_update = lines_info
+    lines_info_to_update = [
+        line_info
+        for line_info in lines_info
+        if line_info.line.id in line_ids_to_refresh
+    ]
 
     initial_cheapest_line = get_the_cheapest_line(lines_info)
 
@@ -352,6 +349,12 @@ def refresh_order_base_prices_and_discounts(
         ],
     )
     return lines_info
+
+
+def refresh_all_order_base_prices_and_discounts(order):
+    lines = order.lines.all()
+    line_ids_to_refresh = [line.id for line in lines]
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh, lines)
 
 
 def _set_channel_listing_prices(lines_info: list["EditableOrderLineInfo"]):
