@@ -97,6 +97,12 @@ def fetch_order_prices_if_expired(
     lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(
         order,
+        lines,
+        database_connection_name=database_connection_name,
+    )
+    # calculate taxes
+    calculate_taxes(
+        order,
         manager,
         lines,
         database_connection_name=database_connection_name,
@@ -160,11 +166,24 @@ def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> lis
 
 def _recalculate_prices(
     order: Order,
-    manager: PluginsManager,
     lines: Iterable[OrderLine],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Calculate prices after handling order level discounts and taxes."""
+    # calculate untaxed prices including discounts
+    apply_order_discounts(
+        order,
+        lines,
+        database_connection_name=database_connection_name,
+    )
+
+
+def calculate_taxes(
+    order: Order,
+    manager: PluginsManager,
+    lines: Iterable[OrderLine],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
     tax_configuration = order.channel.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -173,15 +192,6 @@ def _recalculate_prices(
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
     order.tax_error = None
-
-    # calculate untaxed prices including discounts
-    apply_order_discounts(
-        order,
-        lines,
-        database_connection_name=database_connection_name,
-    )
-
-    # handle taxes
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
