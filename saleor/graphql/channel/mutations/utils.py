@@ -77,6 +77,11 @@ def clean_input_order_settings(
         instance.include_draft_order_in_voucher_usage
     )
 
+    if "draft_order_line_price_freeze_period" in order_settings:
+        cleaned_input["draft_order_line_price_freeze_period"] = order_settings[
+            "draft_order_line_price_freeze_period"
+        ]
+
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
     input_to_model_fields = {

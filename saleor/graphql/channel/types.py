@@ -23,6 +23,7 @@ from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -34,7 +35,7 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
 )
 from ..core.fields import PermissionsField
-from ..core.scalars import Day, Minute
+from ..core.scalars import Day, Hour, Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..tax.dataloaders import TaxConfigurationByChannelId
@@ -259,6 +260,14 @@ class OrderSettings(ObjectType):
         description=(
             "Determine if voucher applied on draft order should be count toward "
             "voucher usage." + ADDED_IN_318 + PREVIEW_FEATURE
+        ),
+    )
+    draft_order_line_price_freeze_period = Hour(
+        required=False,
+        description=(
+            "Time in hours after which the draft order line price will be refreshed."
+            + ADDED_IN_321
+            + PREVIEW_FEATURE
         ),
     )
 
@@ -557,7 +566,10 @@ class Channel(ModelObjectType):
             include_draft_order_in_voucher_usage=(
                 root.include_draft_order_in_voucher_usage
             ),
-            allow_unpaid_orders=(root.allow_unpaid_orders),
+            allow_unpaid_orders=root.allow_unpaid_orders,
+            draft_order_line_price_freeze_period=(
+                root.draft_order_line_price_freeze_period
+            ),
         )
 
     @staticmethod
