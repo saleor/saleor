@@ -13,10 +13,9 @@ def disable_gc_for_garbage_collection_test():
 
     # Set the garbage collection debugging flag to store all unreachable
     # objects in `gc.garbage`. This is necessary to ensure that the
-    # garbage list is empty after the `DatabaseConnectionWrapper` is
-    # marked as garbage. Otherwise, the test will always pass.
-    # The garbage list isn't automatically populated because it costs
-    # extra CPU cycles
+    # garbage list is empty after execute test code. Otherwise, the test
+    # will always pass. The garbage list isn't automatically populated
+    # because it costs extra CPU cycles
     gc.set_debug(gc.DEBUG_SAVEALL)
 
 
