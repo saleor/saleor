@@ -5199,6 +5199,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   includeDraftOrderInVoucherUsage: Boolean!
+
+  """
+  Time in hours after which the draft order line price will be refreshed.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  draftOrderLinePriceFreezePeriod: Hour
 }
 
 """
@@ -5222,6 +5231,9 @@ enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
 
 """The `Day` scalar type represents number of days by integer value."""
 scalar Day
+
+"""The `Hour` scalar type represents number of hours by integer value."""
+scalar Hour
 
 """Represents the channel-specific checkout settings."""
 type CheckoutSettings {
@@ -27539,6 +27551,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   includeDraftOrderInVoucherUsage: Boolean
+
+  """
+  Time in hours after which the draft order line price will be refreshed. Default value is 24 hours. Enter 0 or null to disable.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  draftOrderLinePriceFreezePeriod: Hour
 }
 
 input CheckoutSettingsInput @doc(category: "Checkout") {
