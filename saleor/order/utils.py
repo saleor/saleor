@@ -1356,7 +1356,7 @@ def clean_order_line_quantities(order_lines, quantities_for_lines):
 
 def get_order_line_price_expiration_date(channel: "Channel") -> datetime | None:
     freeze_period = channel.draft_order_line_price_freeze_period
-    if isinstance(freeze_period, int) and freeze_period > 0:
+    if freeze_period is not None and freeze_period > 0:
         now = timezone.now()
         return now + timedelta(hours=freeze_period)
     return None
