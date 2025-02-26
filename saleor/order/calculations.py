@@ -66,8 +66,8 @@ def fetch_order_prices_if_expired(
     if not force_update and not order.should_refresh_prices and not expired_line_ids:
         return order, lines
 
-    # handle price expiration
     if expired_line_ids:
+        # handle line base price expiration
         lines_info = refresh_order_base_prices_and_discounts(
             order, expired_line_ids, lines
         )
@@ -77,10 +77,10 @@ def fetch_order_prices_if_expired(
     # handle order promotion
     handle_order_promotion(order, lines_info, database_connection_name)
 
-    # TODO zedzior: check if it should be lazy or handled directly in mutation?
+    # update `OrderLine.unit_discount_...` fields
     update_unit_discount_data_on_order_line(lines_info)
 
-    # handle taxes
+    # calculate prices
     lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(
         order,
@@ -161,11 +161,14 @@ def _recalculate_prices(
 
     order.tax_error = None
 
+    # calculate untaxed prices including discounts
     apply_order_discounts(
         order,
         lines,
         database_connection_name=database_connection_name,
     )
+
+    # handle taxes
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
