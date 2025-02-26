@@ -3,10 +3,10 @@ from unittest.mock import patch
 
 from django.utils import timezone
 
-from saleor.graphql.core.utils import to_global_id_or_none
-from saleor.graphql.tests.utils import get_graphql_content
-from saleor.shipping.models import ShippingMethod
-from saleor.webhook.event_types import WebhookEventSyncType
+from ....shipping.models import ShippingMethod
+from ....webhook.event_types import WebhookEventSyncType
+from ...core.utils import to_global_id_or_none
+from ...tests.utils import get_graphql_content
 
 CHECKOUTS_QUERY = """
 query CheckoutsQuery {
