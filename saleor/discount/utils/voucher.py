@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 class VoucherDenormalizedInfo:
     discount_value: Decimal
     discount_value_type: str
-    voucher_type: VoucherType
+    voucher_type: str
     reason: str | None
     name: str | None
     apply_once_per_order: bool
@@ -181,7 +181,7 @@ def get_active_voucher_code(voucher, channel_slug):
     return voucher_code
 
 
-def apply_voucher_to_line(
+def attach_voucher_to_line_info(
     voucher_info: "VoucherInfo",
     lines_info: Sequence["LineInfo"],
 ):
