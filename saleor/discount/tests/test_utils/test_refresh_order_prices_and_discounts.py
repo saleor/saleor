@@ -18,16 +18,11 @@ from ...utils.order import refresh_order_base_prices_and_discounts
 from ...utils.voucher import create_or_update_voucher_discount_objects_for_order
 
 
-@pytest.fixture
-def order_with_lines(order_with_lines):
-    order_with_lines.status = OrderStatus.DRAFT
-    return order_with_lines
-
-
 @freeze_time("2020-03-18 12:00:00")
 def test_refresh_order_base_prices(order_with_lines):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
 
@@ -75,6 +70,7 @@ def test_refresh_order_base_prices(order_with_lines):
 def test_refresh_order_base_prices_single_line(order_with_lines):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
 
@@ -125,6 +121,7 @@ def test_refresh_order_base_prices_catalogue_discount(
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.DRAFT
     channel = order.channel
     currency = order.currency
     promotion = Promotion.objects.get()
@@ -242,6 +239,7 @@ def test_refresh_order_base_prices_catalogue_discount_single_line(
 ):
     # given
     order = order_with_lines_and_catalogue_promotion
+    order.status = OrderStatus.DRAFT
     channel = order.channel
     currency = order.currency
     promotion = Promotion.objects.get()
@@ -361,6 +359,7 @@ def test_refresh_order_base_prices_new_catalogue_discount(
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     channel = order.channel
     currency = order.currency
     promotion = catalogue_promotion
@@ -436,6 +435,7 @@ def test_refresh_order_base_prices_new_catalogue_discount(
 def test_refresh_order_base_prices_manual_line_discount(order_with_lines):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     currency = order.currency
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
@@ -527,6 +527,7 @@ def test_refresh_order_base_prices_manual_line_discount(order_with_lines):
 def test_refresh_order_base_prices_manual_line_discount_single_line(order_with_lines):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     currency = order.currency
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
@@ -626,6 +627,7 @@ def test_refresh_order_base_prices_manual_line_discount_single_line(order_with_l
 def test_refresh_order_base_prices_specific_product_voucher(order_with_lines, voucher):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
 
@@ -730,6 +732,7 @@ def test_refresh_order_base_prices_specific_product_voucher_single_line(
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
 
@@ -836,6 +839,7 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher(
 ):
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     currency = order.currency
     line_1, line_2 = order.lines.all()
     variant_1, variant_2 = line_1.variant, line_2.variant
@@ -940,6 +944,7 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher_single_line_new_
 
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     currency = order.currency
     line_1, line_2 = order.lines.all()
     variant_2 = line_2.variant
@@ -1036,6 +1041,7 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher_single_line_old_
 
     # given
     order = order_with_lines
+    order.status = OrderStatus.DRAFT
     currency = order.currency
     line_1, line_2 = order.lines.all()
     variant_1 = line_1.variant
