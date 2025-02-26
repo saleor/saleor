@@ -36,7 +36,7 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
     validate_tax_data,
 )
-from . import ORDER_EDITABLE_STATUS
+from . import ORDER_EDITABLE_STATUS, OrderStatus
 from .base_calculations import apply_order_discounts, base_order_line_total
 from .fetch import fetch_draft_order_lines_info
 from .interface import OrderTaxedPricesData
@@ -140,6 +140,9 @@ def fetch_order_prices_if_expired(
 
 
 def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> list[UUID]:
+    if order.status != OrderStatus.DRAFT:
+        return []
+
     if lines is None:
         lines = order.lines.all()
     now = timezone.now()
