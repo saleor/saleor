@@ -86,3 +86,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski
 - `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins
 - Use denormalized discount prices during order update - #17160 by @zedzior
+- Use denormalized prices during order update - #17160 by @zedzior

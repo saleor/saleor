@@ -16,11 +16,11 @@ from ..models import (
 )
 from .promotion import (
     _get_rule_discount_amount,
-    _is_discounted_line_by_catalogue_promotion,
     create_discount_objects_for_order_promotions,
     delete_gift_line,
     get_discount_name,
     get_discount_translated_name,
+    is_discounted_line_by_catalogue_promotion,
     prepare_promotion_discount_reason,
     update_promotion_discount,
 )
@@ -134,7 +134,7 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             continue
 
         # check if the line price is discounted by catalogue promotion
-        discounted_line = _is_discounted_line_by_catalogue_promotion(
+        discounted_line = is_discounted_line_by_catalogue_promotion(
             line_info.channel_listing
         )
 
