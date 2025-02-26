@@ -205,13 +205,13 @@ def _validate_checkout(
         return False
 
     shipping_required = is_shipping_required(lines)
-    shipping_address = checkout_info.delivery_method_info.shipping_address
+    shipping_address = checkout_info.get_delivery_method_info().shipping_address
     address = shipping_address or checkout_info.billing_address
     return _validate_address_details(
         shipping_address,
         shipping_required,
         address,
-        checkout_info.delivery_method_info.delivery_method,
+        checkout_info.get_delivery_method_info().delivery_method,
     )
 
 
@@ -350,7 +350,7 @@ def generate_request_data_from_checkout_lines(
             ref1=line_info.variant.sku,
         )
 
-    delivery_method = checkout_info.delivery_method_info.delivery_method
+    delivery_method = checkout_info.get_delivery_method_info().delivery_method
     if delivery_method:
         price = getattr(delivery_method, "price", None)
         is_shipping_discount = (

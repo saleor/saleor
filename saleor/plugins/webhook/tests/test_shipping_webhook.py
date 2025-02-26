@@ -6,6 +6,7 @@ import graphene
 import pytest
 
 from ....core.models import EventDelivery
+from ....graphql.core.utils import to_global_id_or_none
 from ....graphql.tests.utils import get_graphql_content
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....order import OrderStatus
@@ -50,23 +51,19 @@ ORDER_QUERY_SHIPPING_METHOD = """
 """
 
 CHECKOUT_QUERY_SHIPPING_METHOD = """
-    query CheckoutsQuery {
-        checkouts(first: 1) {
-            edges {
-                node {
-                    shippingMethods {
-                        id
-                        name
-                        active
-                    }
-                    availableShippingMethods {
-                        id
-                        name
-                        active
-                    }
-                }
-            }
+    query Checkout($id: ID){
+      checkout(id: $id) {
+        shippingMethods {
+          id
+          name
+          active
         }
+        availableShippingMethods {
+          id
+          name
+          active
+        }
+      }
     }
 """
 
@@ -611,9 +608,12 @@ def test_checkout_shipping_methods(
     ]
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
-    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        CHECKOUT_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(checkout_ready_to_complete)},
+    )
     content = get_graphql_content(response)
-    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+    checkout_data = content["data"]["checkout"]
 
     shipping_methods = checkout_data["shippingMethods"]
     # then
@@ -651,11 +651,12 @@ def test_checkout_available_shipping_methods(
 
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
-    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        CHECKOUT_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(checkout_ready_to_complete)},
+    )
     content = get_graphql_content(response)
-    shipping_methods = content["data"]["checkouts"]["edges"][0]["node"][
-        "availableShippingMethods"
-    ]
+    shipping_methods = content["data"]["checkout"]["availableShippingMethods"]
     # then
     assert len(shipping_methods) == 1
     assert shipping_methods[0]["active"]
@@ -674,9 +675,12 @@ def test_checkout_shipping_methods_webhook_called_once(
     mocked_webhook.side_effect = [[], AssertionError("called twice.")]
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
-    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        CHECKOUT_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(checkout_ready_to_complete)},
+    )
     content = get_graphql_content(response)
-    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+    checkout_data = content["data"]["checkout"]
     # then
     assert len(checkout_data["availableShippingMethods"]) == 2
     assert len(checkout_data["shippingMethods"]) == 2

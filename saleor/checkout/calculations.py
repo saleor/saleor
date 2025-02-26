@@ -32,7 +32,7 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
     validate_tax_data,
 )
-from .fetch import ShippingMethodInfo, find_checkout_line_info
+from .fetch import find_checkout_line_info
 from .models import Checkout
 from .payment_utils import update_checkout_payment_statuses
 
@@ -302,22 +302,7 @@ def checkout_line_undiscounted_total_price(
     return quantize_price(total_price, total_price.currency)
 
 
-def update_undiscounted_prices(
-    checkout_info: "CheckoutInfo", lines: Iterable["CheckoutLineInfo"]
-):
-    delivery_method_info = checkout_info.delivery_method_info
-    if isinstance(delivery_method_info, ShippingMethodInfo):
-        shipping_method_data = delivery_method_info.delivery_method
-        checkout_info.checkout.undiscounted_base_shipping_price_amount = (
-            shipping_method_data.price.amount
-        )
-    else:
-        checkout_info.checkout.undiscounted_base_shipping_price_amount = Decimal(0)
-
-    _update_undiscounted_unit_price_for_lines(lines)
-
-
-def _update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
+def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]):
     """Update line undiscounted unit price amount.
 
     Undiscounted unit price stores the denormalized price of the variant.
@@ -395,7 +380,7 @@ def _fetch_checkout_prices_if_expired(
     )
 
     lines = cast(list, lines)
-    update_undiscounted_prices(checkout_info, lines)
+    update_undiscounted_unit_price_for_lines(lines)
     update_prior_unit_price_for_lines(lines)
 
     create_or_update_discount_objects_from_promotion_for_checkout(

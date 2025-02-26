@@ -117,23 +117,60 @@ class CheckoutInfo:
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
     pregenerated_payloads_for_excluded_shipping_method: dict | None = None
 
-    @cached_property
-    def all_shipping_methods(self) -> list["ShippingMethodData"]:
-        all_methods = get_all_shipping_methods_list(
-            self,
-            self.shipping_address,
-            self.lines,
-            self.shipping_channel_listings,
-            self.manager,
-            self.database_connection_name,
-        )
-        # Filter shipping methods using sync webhooks
-        excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
-            self.checkout,
-            self.channel,
-            all_methods,
-            self.pregenerated_payloads_for_excluded_shipping_method,
-        )
+    allow_sync_webhooks: bool = True
+    _cached_built_in_shipping_methods: list[ShippingMethodData] | None = None
+    _cached_external_shipping_methods: list[ShippingMethodData] | None = None
+
+    def get_all_shipping_methods(
+        self,
+    ) -> list["ShippingMethodData"]:
+        """Return list of all available shipping methods.
+
+        If self.allow_sync_webhooks is set to False, any external calls will be skipped.
+        If self.allow_sync_webhooks is set to True, the external calls like: external
+        shipping methods or exclude shipping methods will be called.
+
+        The fetched values are stored in self object to remove any additional
+        external/DB calls.
+        """
+        if (
+            self._cached_external_shipping_methods is not None
+            and self._cached_built_in_shipping_methods is not None
+        ):
+            return (
+                self._cached_built_in_shipping_methods
+                + self._cached_external_shipping_methods
+            )
+
+        if (
+            not self.allow_sync_webhooks
+            and self._cached_built_in_shipping_methods is not None
+        ):
+            return self._cached_built_in_shipping_methods
+
+        if self._cached_built_in_shipping_methods is None:
+            self._cached_built_in_shipping_methods = (
+                get_available_built_in_shipping_methods_for_checkout_info(self)
+            )
+
+        if not self.allow_sync_webhooks:
+            excluded_methods = []
+            all_methods = self._cached_built_in_shipping_methods
+        else:
+            self._cached_external_shipping_methods = (
+                get_external_shipping_methods_for_checkout_info(self)
+            )
+            all_methods = (
+                self._cached_built_in_shipping_methods
+                + self._cached_external_shipping_methods
+            )
+            # Filter shipping methods using sync webhooks
+            excluded_methods = self.manager.excluded_shipping_methods_for_checkout(
+                self.checkout,
+                self.channel,
+                all_methods,
+                self.pregenerated_payloads_for_excluded_shipping_method,
+            )
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
@@ -147,8 +184,34 @@ class CheckoutInfo:
             )
         )
 
-    @property
-    def delivery_method_info(self) -> "DeliveryMethodBase":
+    def _update_denormalized_shipping_method_fields(
+        self, delivery_method: ShippingMethodData | Warehouse
+    ):
+        checkout = self.checkout
+        fields_to_update = []
+        if isinstance(delivery_method, ShippingMethodData):
+            new_shipping_method_name = delivery_method.name
+            new_shipping_price = delivery_method.price
+        else:
+            new_shipping_method_name = None
+            new_shipping_price = zero_money(checkout.currency)
+
+        if checkout.shipping_method_name != new_shipping_method_name:
+            checkout.shipping_method_name = new_shipping_method_name
+            fields_to_update.append("shipping_method_name")
+        current_shipping_price = quantize_price(
+            checkout.undiscounted_base_shipping_price, checkout.currency
+        )
+        new_shipping_price = quantize_price(new_shipping_price, checkout.currency)
+        if current_shipping_price != new_shipping_price:
+            checkout.undiscounted_base_shipping_price_amount = new_shipping_price.amount
+            fields_to_update.append("undiscounted_base_shipping_price_amount")
+
+        if fields_to_update:
+            with allow_writer():
+                checkout.save(update_fields=fields_to_update)
+
+    def get_delivery_method_info(self) -> "DeliveryMethodBase":
         from ..webhook.transport.shipping import convert_to_app_id_with_identifier
         from .utils import get_external_shipping_id
 
@@ -168,26 +231,38 @@ class CheckoutInfo:
                 )
 
         elif external_shipping_method_id := get_external_shipping_id(self.checkout):
-            methods = {method.id: method for method in self.all_shipping_methods}
-            if method := methods.get(external_shipping_method_id):
-                delivery_method = method
-            else:
-                new_shipping_method_id = convert_to_app_id_with_identifier(
-                    external_shipping_method_id
-                )
-                if new_shipping_method_id is None:
-                    delivery_method = None
+            if self.allow_sync_webhooks:
+                methods = {
+                    method.id: method for method in self.get_all_shipping_methods()
+                }
+                if method := methods.get(external_shipping_method_id):
+                    delivery_method = method
                 else:
-                    delivery_method = methods.get(new_shipping_method_id)
+                    new_shipping_method_id = convert_to_app_id_with_identifier(
+                        external_shipping_method_id
+                    )
+                    if new_shipping_method_id is None:
+                        delivery_method = None
+                    else:
+                        delivery_method = methods.get(new_shipping_method_id)
+            else:
+                delivery_method = ShippingMethodData(
+                    id=get_external_shipping_id(self.checkout),
+                    name=self.checkout.shipping_method_name or "",
+                    price=self.checkout.undiscounted_base_shipping_price,
+                )
 
         else:
             delivery_method = self.collection_point
+
+        if isinstance(delivery_method, ShippingMethodData):
+            self._update_denormalized_shipping_method_fields(delivery_method)
 
         return get_delivery_method_info(delivery_method, self.shipping_address)
 
     @property
     def valid_shipping_methods(self) -> list["ShippingMethodData"]:
-        return [method for method in self.all_shipping_methods if method.active]
+        return [method for method in self.get_all_shipping_methods() if method.active]
 
     @property
     def valid_delivery_methods(
@@ -544,17 +619,13 @@ def fetch_checkout_info(
     return checkout_info
 
 
-def get_valid_internal_shipping_method_list_for_checkout_info(
+def get_available_built_in_shipping_methods_for_checkout_info(
     checkout_info: "CheckoutInfo",
-    shipping_address: Optional["Address"],
-    lines: list[CheckoutLineInfo],
-    shipping_channel_listings: Iterable[ShippingMethodChannelListing],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list["ShippingMethodData"]:
     from . import base_calculations
-    from .utils import get_valid_internal_shipping_methods_for_checkout
+    from .utils import get_valid_internal_shipping_methods_for_checkout_info
 
-    country_code = shipping_address.country.code if shipping_address else None
+    lines = checkout_info.lines
 
     subtotal = base_calculations.base_checkout_subtotal(
         lines,
@@ -577,38 +648,32 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     if not is_shipping_voucher and not is_voucher_for_specific_product:
         subtotal -= checkout_info.checkout.discount
 
-    valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
+    valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout_info(
         checkout_info,
-        lines,
         subtotal,
-        shipping_channel_listings,
-        country_code=country_code,
-        database_connection_name=database_connection_name,
     )
 
     return valid_shipping_methods
 
 
+def get_external_shipping_methods_for_checkout_info(
+    checkout_info,
+) -> list[ShippingMethodData]:
+    manager = checkout_info.manager
+    return manager.list_shipping_methods_for_checkout(
+        checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
+    )
+
+
 def get_all_shipping_methods_list(
     checkout_info,
-    shipping_address,
-    lines,
-    shipping_channel_listings,
-    manager,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     return list(
         itertools.chain(
-            get_valid_internal_shipping_method_list_for_checkout_info(
+            get_available_built_in_shipping_methods_for_checkout_info(
                 checkout_info,
-                shipping_address,
-                lines,
-                shipping_channel_listings,
-                database_connection_name=database_connection_name,
             ),
-            manager.list_shipping_methods_for_checkout(
-                checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
-            ),
+            get_external_shipping_methods_for_checkout_info(checkout_info),
         )
     )
 
@@ -632,7 +697,8 @@ def update_delivery_method_lists_for_checkout_info(
     # Clear cached properties if they were already calculated, so they can be
     # recalculated.
     try:
-        del checkout_info.all_shipping_methods
+        del checkout_info._cached_built_in_shipping_methods
+        del checkout_info._cached_external_shipping_methods
     except AttributeError:
         pass
 
