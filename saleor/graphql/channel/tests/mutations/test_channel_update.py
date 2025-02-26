@@ -1208,14 +1208,15 @@ def test_channel_update_order_settings_voucher_usage_enable(
     disconnect_voucher_codes_from_draft_orders_task_mock.assert_called_once()
 
 
+@pytest.mark.parametrize("new_freeze_period", [10, None, 0])
 def test_channel_update_draft_order_line_price_freeze_period(
+    new_freeze_period,
     permission_manage_orders,
     staff_api_client,
     channel_USD,
 ):
     # given
     assert channel_USD.draft_order_line_price_freeze_period == 24
-    new_freeze_period = 10
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
         "id": channel_id,

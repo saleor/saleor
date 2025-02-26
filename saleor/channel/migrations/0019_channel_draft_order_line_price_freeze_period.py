@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="channel",
             name="draft_order_line_price_freeze_period",
-            field=models.IntegerField(blank=True, default=24, null=True),
+            field=models.PositiveIntegerField(blank=True, default=24, null=True),
         ),
         migrations.RunSQL(
             """

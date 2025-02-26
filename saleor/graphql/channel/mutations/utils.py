@@ -42,19 +42,6 @@ def clean_delete_expired_orders_after(
     return datetime.timedelta(days=delete_expired_orders_after)
 
 
-def clean_draft_order_line_price_freeze_period(freeze_period: int):
-    if freeze_period < 0:
-        raise ValidationError(
-            {
-                "draft_order_line_price_freeze_period": ValidationError(
-                    "Draft order line price freeze period can't be lower than 0.",
-                    code=ChannelErrorCode.INVALID.value,
-                )
-            }
-        )
-    return freeze_period
-
-
 def clean_input_order_settings(
     order_settings: dict, cleaned_input: dict, instance: Channel
 ):
@@ -63,7 +50,6 @@ def clean_input_order_settings(
         "automatically_fulfill_non_shippable_gift_card",
         "allow_unpaid_orders",
         "include_draft_order_in_voucher_usage",
-        "draft_order_line_price_freeze_period",
     ]
 
     for field in channel_settings:
@@ -92,14 +78,9 @@ def clean_input_order_settings(
     )
 
     if "draft_order_line_price_freeze_period" in order_settings:
-        draft_order_line_price_freeze_period = order_settings[
+        cleaned_input["draft_order_line_price_freeze_period"] = order_settings[
             "draft_order_line_price_freeze_period"
         ]
-        cleaned_input["draft_order_line_price_freeze_period"] = (
-            clean_draft_order_line_price_freeze_period(
-                draft_order_line_price_freeze_period
-            )
-        )
 
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):

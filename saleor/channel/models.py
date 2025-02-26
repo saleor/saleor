@@ -48,7 +48,9 @@ class Channel(ModelWithMetadata):
 
     use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
     automatically_complete_fully_paid_checkouts = models.BooleanField(default=False)
-    draft_order_line_price_freeze_period = models.IntegerField(
+
+    # time in hours after which the draft order line price will be refreshed
+    draft_order_line_price_freeze_period = models.PositiveIntegerField(
         default=24, null=True, blank=True
     )
 
