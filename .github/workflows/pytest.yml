@@ -99,7 +99,8 @@ jobs:
             --cov \
             --cov-report= \
             --junitxml=junit/test-results.xml \
-            --django-db-bench=${{ env.BENCH_PATH }}
+            --django-db-bench=${{ env.BENCH_PATH }} \
+            -n logical
 
       - uses: actions/cache@v4
         with:
