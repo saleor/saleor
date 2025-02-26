@@ -179,8 +179,6 @@ def test_update_public_metadata_for_item(api_client, checkout):
     )
 
 
-# FIXME
-@pytest.mark.skip
 @pytest.mark.django_db(transaction=True)
 def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
     # given
@@ -193,7 +191,7 @@ def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkou
 
     # when
     with before_after.before(
-        "saleor.graphql.meta.mutations.update_metadata.save_instance",
+        "saleor.graphql.meta.mutations.update_metadata.update_metadata",
         delete_checkout_object,
     ):
         response = execute_update_public_metadata_for_item(

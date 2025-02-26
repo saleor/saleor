@@ -2,9 +2,7 @@ from django.db.models import JSONField
 from django.db.models.expressions import Expression
 
 
-class JsonCat(Expression):
-    # It's possible to recursevily create that expression to allow to pass
-    # more than 2 arguments. If needed it can be extended in future
+class PostgresJsonConcatenate(Expression):
     template = "%(left)s || %(right)s"
     output_field = JSONField()
 
@@ -37,7 +35,7 @@ class JsonCat(Expression):
         )
         return c
 
-    def as_sql(self, compiler, __connection, template=None):
+    def as_postgresql(self, compiler, __connection, template=None):
         sql_params = []
         sql_left, param = compiler.compile(self.left)
         sql_params.extend(param)

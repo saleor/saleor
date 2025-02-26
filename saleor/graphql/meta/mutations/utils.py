@@ -4,7 +4,7 @@ from django.db.models import F, JSONField, Value
 
 from ....checkout.models import Checkout
 from ....checkout.utils import get_or_create_checkout_metadata
-from ....core.db.expressions import JsonCat
+from ....core.db.expressions import PostgresJsonConcatenate
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
 
@@ -37,6 +37,30 @@ def save_instance(instance, metadata_fields: list):
 
 
 def update_metadata(instance, items):
-    instance._meta.model.objects.filter(pk=instance.pk).update(
-        metadata=JsonCat(F("metadata"), Value(items, output_field=JSONField()))
+    updated = instance._meta.model.objects.filter(pk=instance.pk).update(
+        metadata=PostgresJsonConcatenate(
+            F("metadata"), Value(items, output_field=JSONField())
+        )
     )
+    if not updated:
+        msg = "Cannot update metadata for instance. Updating not existing object."
+        raise ValidationError(
+            {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
+        )
+
+
+def update_private_metadata(instance, items):
+    updated = instance._meta.model.objects.get(pk=instance.pk).update(
+        private_metadata=PostgresJsonConcatenate(
+            F("private_metadata"), Value(items, output_field=JSONField())
+        )
+    )
+    if not updated:
+        msg = "Cannot update metadata for instance. Updating not existing object."
+        raise ValidationError(
+            {
+                "private_metadata": ValidationError(
+                    msg, code=MetadataErrorCode.NOT_FOUND.value
+                )
+            }
+        )
