@@ -5,7 +5,6 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import prefetch_related_objects
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -19,7 +18,7 @@ from ..core.taxes import (
     zero_taxed_money,
 )
 from ..discount.utils.order import (
-    create_order_discount_objects_for_order_promotions,
+    handle_order_promotion,
     refresh_order_base_prices_and_discounts,
     update_unit_discount_data_on_order_line,
 )
@@ -75,21 +74,14 @@ def fetch_order_prices_if_expired(
     else:
         lines_info = fetch_draft_order_lines_info(order, lines)
 
-    # handle order promotions
-    create_order_discount_objects_for_order_promotions(
-        order, lines_info, database_connection_name=database_connection_name
-    )
+    # handle order promotion
+    handle_order_promotion(order, lines_info, database_connection_name)
+
     # TODO zedzior: check if it should be lazy or handled directly in mutation?
     update_unit_discount_data_on_order_line(lines_info)
 
-    # handle prefetched discounts
-    lines = [line_info.line for line_info in lines_info]
-    _clear_prefetched_discounts(order, lines)
-    with allow_writer():
-        # TODO: Load discounts with a dataloader and pass as argument
-        prefetch_related_objects([order], "discounts")
-
     # handle taxes
+    lines = [line_info.line for line_info in lines_info]
     _recalculate_prices(
         order,
         manager,
@@ -151,15 +143,6 @@ def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> lis
         for line in lines
         if line.base_price_expire_at and line.base_price_expire_at < now
     ]
-
-
-def _clear_prefetched_discounts(order, lines):
-    if hasattr(order, "_prefetched_objects_cache"):
-        order._prefetched_objects_cache.pop("discounts", None)
-
-    for line in lines:
-        if hasattr(line, "_prefetched_objects_cache"):
-            line._prefetched_objects_cache.pop("discounts", None)
 
 
 def _recalculate_prices(

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import prefetch_related_objects
 from prices import TaxedMoney
 
 from ...channel.models import Channel
@@ -164,6 +165,21 @@ def update_unit_discount_data_on_order_line(
             line.unit_discount_value = Decimal("0.0")
 
 
+def handle_order_promotion(
+    order: "Order",
+    lines_info,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
+    create_order_discount_objects_for_order_promotions(
+        order, lines_info, database_connection_name=database_connection_name
+    )
+    # order object
+    _clear_prefetched_order_discounts(order)
+    with allow_writer():
+        # TODO: Load discounts with a dataloader and pass as argument
+        prefetch_related_objects([order], "discounts")
+
+
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: list["EditableOrderLineInfo"],
@@ -198,6 +214,11 @@ def create_order_discount_objects_for_order_promotions(
     if not gift_promotion_applied and not discount_object:
         _clear_order_discount(order, lines_info)
         return
+
+
+def _clear_prefetched_order_discounts(order):
+    if hasattr(order, "_prefetched_objects_cache"):
+        order._prefetched_objects_cache.pop("discounts", None)
 
 
 def _set_order_base_prices(order: Order, lines_info: list["EditableOrderLineInfo"]):
@@ -336,6 +357,8 @@ def refresh_order_base_prices_and_discounts(
             line_info.line.draft_base_price_expire_at = expiration_time
 
     lines = [line_info.line for line_info in lines_info]
+    # cleanup after potential outdated prefetched line discounts
+    _clear_prefetched_order_line_discounts(lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -499,3 +522,9 @@ def refresh_manual_line_discount_object(lines_info):
 
     if discount_to_update:
         OrderLineDiscount.objects.bulk_update(discount_to_update, ["amount_value"])
+
+
+def _clear_prefetched_order_line_discounts(lines):
+    for line in lines:
+        if hasattr(line, "_prefetched_objects_cache"):
+            line._prefetched_objects_cache.pop("discounts", None)
