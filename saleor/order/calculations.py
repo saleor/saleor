@@ -147,7 +147,9 @@ def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> lis
         lines = order.lines.all()
     now = timezone.now()
     return [
-        line.pk for line in lines if line.price_expire_at and line.price_expire_at < now
+        line.pk
+        for line in lines
+        if line.base_price_expire_at and line.base_price_expire_at < now
     ]
 
 
