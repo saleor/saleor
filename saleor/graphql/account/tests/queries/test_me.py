@@ -278,7 +278,6 @@ ME_WITH_ORDERS_QUERY = """
                         }
                     }
                 }
-                totalCount
             }
         }
     }
@@ -303,7 +302,6 @@ ME_WITH_ORDERS_WITH_LINES_TOTAL_PRICE_QUERY = """
                         }
                     }
                 }
-                totalCount
             }
         }
     }
