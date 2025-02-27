@@ -11,6 +11,7 @@ from ....payment.models import Payment, TransactionItem
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.mutations import (
     ModelDeleteWithRestrictedChannelAccessMutation,
     ModelWithExtRefMutation,
@@ -85,3 +86,8 @@ class DraftOrderDelete(
             if voucher_code := VoucherCode.objects.filter(code=code).first():
                 voucher = voucher_code.voucher
                 release_voucher_code_usage(voucher_code, voucher, None)
+
+    @classmethod
+    def success_response(cls, order):
+        """Return a success response."""
+        return cls(order=SyncWebhookControlContext(order), errors=[])

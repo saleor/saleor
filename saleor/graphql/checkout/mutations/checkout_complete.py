@@ -21,6 +21,7 @@ from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.fields import JSONString
@@ -267,7 +268,9 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 # checkoutComplete response. Order is anonymized for not logged in
                 # user
                 return CheckoutComplete(
-                    order=order, confirmation_needed=False, confirmation_data={}
+                    order=SyncWebhookControlContext(order),
+                    confirmation_needed=False,
+                    confirmation_data={},
                 )
             raise e
         if metadata is not None:
@@ -334,7 +337,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(
-            order=order,
+            order=SyncWebhookControlContext(order) if order else None,
             confirmation_needed=action_required,
             confirmation_data=action_data,
         )

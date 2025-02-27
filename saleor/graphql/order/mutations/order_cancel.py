@@ -9,6 +9,7 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -60,4 +61,4 @@ class OrderCancel(BaseMutation):
                 manager=manager,
             )
             deactivate_order_gift_cards(order.id, user, app)
-        return OrderCancel(order=order)
+        return OrderCancel(order=SyncWebhookControlContext(order))
