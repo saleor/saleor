@@ -468,9 +468,7 @@ def test_calculate_prices_total_shipping_price_changed(
     )
 
     # when
-    calculations.calculate_prices(
-        order, get_plugins_manager(allow_replica=True), order_lines
-    )
+    calculations.calculate_prices(order, order_lines)
 
     # then
     order_discount.refresh_from_db()
@@ -502,9 +500,7 @@ def test_calculate_prices_line_quantity_changed(
     line.save(update_fields=["quantity"])
 
     # when
-    calculations.calculate_prices(
-        order, get_plugins_manager(allow_replica=True), order_lines
-    )
+    calculations.calculate_prices(order, order_lines)
 
     # then
     order_discount.refresh_from_db()
@@ -1279,7 +1275,7 @@ def test_fetch_order_data_calls_inactive_plugin(
 
 
 @pytest.mark.parametrize("tax_app_id", [None, "test.app"])
-def test_calculate_prices_empty_tax_data_logging_address(
+def test_calculate_taxes_empty_tax_data_logging_address(
     tax_app_id, draft_order, order_lines, address, caplog
 ):
     # given
@@ -1312,7 +1308,7 @@ def test_calculate_prices_empty_tax_data_logging_address(
     manager = Mock(**manager_methods)
 
     # when
-    calculations.calculate_prices(order, manager, order_lines)
+    calculations.calculate_taxes(order, manager, order_lines)
 
     # then
     assert (
