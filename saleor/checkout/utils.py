@@ -999,6 +999,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout.collection_point = None
     checkout.shipping_method = None
+    checkout.shipping_method_name = None
     checkout_info.shipping_method = None
 
     update_delivery_method_lists_for_checkout_info(
@@ -1016,6 +1017,8 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "shipping_method",
             "collection_point",
             "last_change",
+            "shipping_method_name",
+            "external_shipping_method_id",
         ]
     )
     get_checkout_metadata(checkout).save()
