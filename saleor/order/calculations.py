@@ -87,20 +87,20 @@ def fetch_order_prices_if_expired(
     else:
         lines_info = fetch_draft_order_lines_info(order, lines)
 
-    # handle order promotion
+    # order promotion is qualified based on the most actual prices, therefor need to be assessed
+    # on the every recalculation
     handle_order_promotion(order, lines_info, database_connection_name)
 
     # update `OrderLine.unit_discount_...` fields
     update_unit_discount_data_on_order_line(lines_info)
 
-    # calculate prices
     lines = [line_info.line for line_info in lines_info]
     calculate_prices(
         order,
         lines,
         database_connection_name=database_connection_name,
     )
-    # calculate taxes
+
     calculate_taxes(
         order,
         manager,
