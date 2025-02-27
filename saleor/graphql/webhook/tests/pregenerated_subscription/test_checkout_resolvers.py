@@ -685,7 +685,38 @@ CHECKOUTS_QUERY = """
 @mock.patch(
     "saleor.graphql.checkout.types.PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader"
 )
-def test_pregegenerated_payload_is_skipped_for_bulk_queries(
+def test_pregegenerated_tax_payload_is_skipped_for_bulk_queries(
+    mocked_pregenerated_payload,
+    checkout_with_shipping_address,
+    staff_api_client,
+    permission_manage_checkouts,
+):
+    # given
+    checkout = checkout_with_shipping_address
+    checkout.price_expiration = timezone.now() - datetime.timedelta(days=1)
+    checkout.save()
+    checkout_global_id = to_global_id_or_none(checkout)
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUTS_QUERY,
+        permissions=[permission_manage_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["checkouts"]["edges"]) == 1
+    checkout = content["data"]["checkouts"]["edges"][0]["node"]
+    assert checkout["id"] == checkout_global_id
+
+    mocked_pregenerated_payload.assert_not_called()
+
+
+@mock.patch(
+    "saleor.graphql.checkout.types."
+    "PregeneratedCheckoutFilterShippingMethodPayloadsByCheckoutTokenLoader"
+)
+def test_pregegenerated_exclude_shipping_payload_is_skipped_for_bulk_queries(
     mocked_pregenerated_payload,
     checkout_with_shipping_address,
     staff_api_client,
