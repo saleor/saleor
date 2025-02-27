@@ -2,10 +2,9 @@ import pytest
 
 from ....account.models import User
 from ....graphql.core.utils import to_global_id_or_none
-from ..account.utils import account_register
+from ..account.utils import account_register, customer_update, get_user
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
-from ..users.utils import customer_update, get_user
 from ..utils import assign_permissions
 from .utils import (
     checkout_complete,

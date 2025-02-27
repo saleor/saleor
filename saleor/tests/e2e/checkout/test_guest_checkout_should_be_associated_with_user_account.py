@@ -1,8 +1,8 @@
 import pytest
 
+from ..account.utils import create_customer, get_user
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
-from ..users.utils import create_customer, get_user
 from ..utils import assign_permissions
 from .utils import (
     checkout_complete,
