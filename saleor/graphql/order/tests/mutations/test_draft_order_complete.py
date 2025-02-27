@@ -1479,7 +1479,7 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
 def test_draft_order_complete_with_invalid_address(
     staff_api_client,
     permission_group_manage_orders,
-    staff_user,
+    customer_user,
     draft_order,
     address,
 ):
@@ -1496,7 +1496,11 @@ def test_draft_order_complete_with_invalid_address(
 
     order.shipping_address = address.get_copy()
     order.billing_address = address.get_copy()
-    order.save(update_fields=["shipping_address", "billing_address"])
+    order.user = customer_user
+    order.save(update_fields=["shipping_address", "billing_address", "user"])
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1513,6 +1517,65 @@ def test_draft_order_complete_with_invalid_address(
     assert data["origin"] == OrderOrigin.DRAFT.upper()
     assert order.shipping_address.postal_code == wrong_postal_code
     assert order.billing_address.postal_code == wrong_postal_code
+    assert customer_user.addresses.count() == user_address_count
+
+
+def test_draft_order_complete_with_invalid_address_save_addresses_on(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    address,
+    customer_user,
+):
+    """Check if draft order can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    wrong_postal_code = "wrong postal code"
+    address.postal_code = wrong_postal_code
+
+    order.shipping_address = address.get_copy()
+    order.billing_address = address.get_copy()
+    order.draft_save_shipping_address = True
+    order.draft_save_billing_address = True
+    order.user = customer_user
+    order.save(
+        update_fields=[
+            "shipping_address",
+            "billing_address",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "user",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.shipping_address.postal_code == wrong_postal_code
+    assert order.billing_address.postal_code == wrong_postal_code
+    assert customer_user.addresses.count() == user_address_count + 1
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+    assert customer_user.addresses.first().id != order.shipping_address.id
+    assert customer_user.addresses.first().id != order.billing_address.id
 
 
 @patch(
