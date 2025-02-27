@@ -721,6 +721,7 @@ def get_valid_shipping_methods_for_order(
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> list[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic."""
     valid_methods = get_all_shipping_methods_for_order(
@@ -729,7 +730,7 @@ def get_valid_shipping_methods_for_order(
     if not valid_methods:
         return []
 
-    if order.status in ORDER_EDITABLE_STATUS:
+    if order.status in ORDER_EDITABLE_STATUS and allow_sync_webhooks:
         excluded_methods = manager.excluded_shipping_methods_for_order(
             order, valid_methods
         )

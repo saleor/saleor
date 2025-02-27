@@ -8,6 +8,7 @@ from .....order.events import (
     order_added_products_event,
 )
 from .....order.models import Order
+from .....plugins.manager import PluginsManager
 from .....tax.calculations.order import update_order_prices_with_flat_rates
 from ....tests.utils import assert_no_permission, get_graphql_content
 from .shared_query_fragments import ORDER_FRAGMENT_WITH_WEBHOOK_RELATED_FIELDS
@@ -339,3 +340,35 @@ def test_query_orders_for_order_with_events_when_tax_app_active(
 
     mocked_update_order_prices_with_flat_rates.assert_not_called()
     mocked__recalculate_prices.assert_not_called()
+
+
+@patch.object(PluginsManager, "excluded_shipping_methods_for_order")
+def test_query_draft_orders_with_active_filter_shipping_methods_webhook(
+    mocked_webhook_handler,
+    settings,
+    order_with_lines,
+    tax_configuration_flat_rates,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    # given
+    order_with_lines.status = OrderStatus.DRAFT
+    order_with_lines.should_refresh_prices = True
+    order_with_lines.total_gross_amount = Decimal(0)
+    order_with_lines.save()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_DRAFT_ORDERS_WITH_WEBHOOK_RELATED_FIELDS
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["draftOrders"]["edges"]) == 1
+    order_with_lines.refresh_from_db()
+    assert not order_with_lines.should_refresh_prices
+    assert order_with_lines.total_gross_amount != Decimal(0)
+    mocked_webhook_handler.assert_not_called()
