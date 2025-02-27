@@ -3,6 +3,28 @@ from django.db.models.expressions import Expression
 
 
 class PostgresJsonConcatenate(Expression):
+    """Implementation of PostgreSQL concatenation for JSON fields.
+
+    Inserts or updates specific keys provided in the database for `jsonb` field type.
+    If a specified keys exists, they will be updated, otherwise they will be inserted.
+    Accepts only expressions representing the `django.db.models.JSONField`.
+
+    If updated jsonb in databse is NULL, the update will have no result.
+    Saying it differently, behaviour of PostgresJsonConcatenate
+    is similar to this postgreqsl statement;
+    `SELECT NULL || {'a': 1}` will result in `NULL`.
+
+    Examples
+        Updating exising json field with new_dict.
+
+        Model.objects.update(
+            json_field=PostgresJsonConcatenate(
+                F('json_field'), Value(new_dict, output_field=JSONField())
+            )
+        )
+
+    """
+
     template = "%(left)s || %(right)s"
     output_field = JSONField()
 
