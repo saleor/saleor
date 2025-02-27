@@ -28,43 +28,39 @@ from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...base_plugin import ExcludedShippingMethod
 
 ORDER_QUERY_SHIPPING_METHOD = """
-    query OrdersQuery {
-        orders(first: 1) {
-            edges {
-                node {
-                    shippingMethods {
-                        id
-                        name
-                        active
-                        message
-                    }
-                    availableShippingMethods {
-                        id
-                        name
-                        active
-                        message
-                    }
-                }
-            }
-        }
+query OrderQuery($id: ID) {
+  order(id: $id) {
+    shippingMethods {
+      id
+      name
+      active
+      message
     }
+    availableShippingMethods {
+      id
+      name
+      active
+      message
+    }
+  }
+}
 """
 
 CHECKOUT_QUERY_SHIPPING_METHOD = """
-    query Checkout($id: ID){
-      checkout(id: $id) {
-        shippingMethods {
-          id
-          name
-          active
-        }
-        availableShippingMethods {
-          id
-          name
-          active
-        }
-      }
+query Checkout($id: ID){
+  checkout(id: $id) {
+    shippingMethods {
+      id
+      name
+      active
     }
+    availableShippingMethods {
+      id
+      name
+      active
+    }
+  }
+}
 """
 
 
@@ -451,9 +447,12 @@ def test_order_shipping_methods(
     ]
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     # when
-    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     shipping_methods = order_data["shippingMethods"]
     # then
@@ -482,26 +481,14 @@ def test_draft_order_shipping_methods(
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    query = """
-      query DraftOrdersQuery {
-       draftOrders(first: 1) {
-         edges {
-           node {
-             shippingMethods {
-               id
-               name
-               active
-               message
-             }
-           }
-         }
-       }
-      }
-    """
+
     # when
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["draftOrders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     shipping_methods = order_data["shippingMethods"]
     # then
@@ -541,9 +528,12 @@ def test_order_shipping_methods_skips_sync_webhook_for_non_editable_statuses(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     shipping_methods = order_data["shippingMethods"]
 
@@ -581,9 +571,12 @@ def test_order_available_shipping_methods(
     mocked_webhook.side_effect = respond
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     # when
-    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     # then
     assert len(order_data["availableShippingMethods"]) == expected_count

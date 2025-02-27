@@ -13,6 +13,15 @@ fragment order on Order {
   shippingMethods {
     id
   }
+  availableShippingMethods{
+    id
+  }
+  errors {
+    field
+    orderLines
+    code
+  }
+  canFinalize
   deliveryMethod {
     ... on ShippingMethod {
       id

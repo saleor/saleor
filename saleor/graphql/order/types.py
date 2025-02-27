@@ -2352,6 +2352,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                         country=country,
                         manager=manager,
                         database_connection_name=database_connection_name,
+                        allow_sync_webhooks=root.allow_sync_webhooks,
                     )
                 except ValidationError:
                     return False
@@ -2498,6 +2499,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     channel_listings,
                     manager,
                     database_connection_name=database_connection_name,
+                    allow_sync_webhooks=root.allow_sync_webhooks,
                 )
 
             return (
@@ -2615,6 +2617,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                         country=country,
                         manager=manager,
                         database_connection_name=database_connection_name,
+                        allow_sync_webhooks=root.allow_sync_webhooks,
                     )
                 except ValidationError as e:
                     return validation_error_to_error_type(e, OrderError)
