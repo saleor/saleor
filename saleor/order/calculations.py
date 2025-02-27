@@ -154,7 +154,7 @@ def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> lis
     return [
         line.pk
         for line in lines
-        if line.base_price_expire_at and line.base_price_expire_at < now
+        if line.draft_base_price_expire_at and line.draft_base_price_expire_at < now
     ]
 
 
@@ -566,7 +566,7 @@ def refresh_order_base_prices_and_discounts(
     # set price expiration time
     expiration_time = get_order_line_price_expiration_date(order)
     for line_info in lines_info_to_update:
-        line_info.line.base_price_expire_at = expiration_time
+        line_info.line.draft_base_price_expire_at = expiration_time
 
     lines = [line_info.line for line_info in lines_info]
     # cleanup after potential outdated prefetched line discounts
@@ -580,7 +580,7 @@ def refresh_order_base_prices_and_discounts(
             "unit_discount_value",
             "base_unit_price_amount",
             "undiscounted_base_unit_price_amount",
-            "base_price_expire_at",
+            "draft_base_price_expire_at",
         ],
     )
     return lines_info

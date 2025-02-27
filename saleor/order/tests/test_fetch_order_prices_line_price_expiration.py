@@ -40,9 +40,9 @@ def test_fetch_order_prices_lines_expired_base_prices(
 
     # expire order lines
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    OrderLine.objects.bulk_update([line_1, line_2], ["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    OrderLine.objects.bulk_update([line_1, line_2], ["draft_base_price_expire_at"])
 
     # change variant 1 pricing
     channel_listing_1 = variant_1.channel_listings.get()
@@ -130,8 +130,8 @@ def test_fetch_order_prices_single_line_expired_base_prices(
 
     # expire line 1
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_1.save(update_fields=["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_1.save(update_fields=["draft_base_price_expire_at"])
 
     # change variant 1 pricing
     channel_listing_1 = variant_1.channel_listings.get()
@@ -234,9 +234,9 @@ def test_fetch_order_prices_lines_expired_catalogue_discount(
 
     # expire order lines
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    OrderLine.objects.bulk_update([line_1, line_2], ["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    OrderLine.objects.bulk_update([line_1, line_2], ["draft_base_price_expire_at"])
 
     # prepare new catalog promotion rule for variant 2
     initial_reward_value_2 = Decimal(5)
@@ -406,8 +406,8 @@ def test_fetch_order_prices_single_line_expired_catalogue_discount(
 
     # expire line 1
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_1.save(update_fields=["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_1.save(update_fields=["draft_base_price_expire_at"])
 
     # prepare new catalog promotion rule for variant 2
     initial_reward_value_2 = Decimal(5)
@@ -594,9 +594,9 @@ def test_fetch_order_prices_lines_expired_new_catalogue_discount(
 
     # expire order lines
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    OrderLine.objects.bulk_update([line_1, line_2], ["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    OrderLine.objects.bulk_update([line_1, line_2], ["draft_base_price_expire_at"])
 
     undiscounted_unit_price_1 = line_1.undiscounted_base_unit_price_amount
     expected_unit_price_1 = undiscounted_unit_price_1
@@ -727,9 +727,9 @@ def test_fetch_order_prices_lines_expired_manual_line_discount(
 
     # expire order lines
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    OrderLine.objects.bulk_update([line_1, line_2], ["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    OrderLine.objects.bulk_update([line_1, line_2], ["draft_base_price_expire_at"])
 
     # change variant 1 pricing
     channel_listing_1 = variant_1.channel_listings.get()
@@ -883,8 +883,8 @@ def test_fetch_order_prices_single_line_expired_manual_line_discount(
 
     # expire line 2
     now = timezone.now()
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    line_2.save(update_fields=["base_price_expire_at"])
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.save(update_fields=["draft_base_price_expire_at"])
 
     # change variant 1 pricing
     channel_listing_1 = variant_1.channel_listings.get()
@@ -1041,9 +1041,9 @@ def test_fetch_order_prices_lines_expired_specific_product_voucher(
 
     # expire order lines
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    OrderLine.objects.bulk_update([line_1, line_2], ["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    OrderLine.objects.bulk_update([line_1, line_2], ["draft_base_price_expire_at"])
 
     # change variant 1 pricing
     channel_listing_1 = variant_1.channel_listings.get()
@@ -1201,8 +1201,8 @@ def test_fetch_order_prices_single_line_expired_specific_product_voucher(
 
     # expire line 1
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_1.save(update_fields=["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_1.save(update_fields=["draft_base_price_expire_at"])
 
     # change variant 1 pricing
     channel_listing_1 = variant_1.channel_listings.get()
@@ -1356,9 +1356,9 @@ def test_fetch_order_prices_lines_expired_apply_once_per_order_voucher(
 
     # expire order lines
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    OrderLine.objects.bulk_update([line_1, line_2], ["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    OrderLine.objects.bulk_update([line_1, line_2], ["draft_base_price_expire_at"])
 
     # change variant 1 pricing to be higher than variant 2
     channel_listing_1 = variant_1.channel_listings.get()
@@ -1512,8 +1512,8 @@ def test_fetch_order_prices_single_line_expired_apply_once_per_order_voucher_new
 
     # expire line 2
     now = timezone.now()
-    line_2.base_price_expire_at = now - timedelta(hours=1)
-    line_2.save(update_fields=["base_price_expire_at"])
+    line_2.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_2.save(update_fields=["draft_base_price_expire_at"])
 
     # change variant 2 pricing to be lower than variant 1
     channel_listing_2 = variant_2.channel_listings.get()
@@ -1667,8 +1667,8 @@ def test_fetch_order_prices_single_line_expired_apply_once_per_order_voucher_old
 
     # expire line 1
     now = timezone.now()
-    line_1.base_price_expire_at = now - timedelta(hours=1)
-    line_1.save(update_fields=["base_price_expire_at"])
+    line_1.draft_base_price_expire_at = now - timedelta(hours=1)
+    line_1.save(update_fields=["draft_base_price_expire_at"])
 
     # change voucher reward value and type
     new_voucher_unit_discount = Decimal(25)

@@ -61,11 +61,11 @@ def test_refresh_all_order_base_prices(order_with_lines):
     line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
-    assert line_1.base_price_expire_at == expected_expire_time
+    assert line_1.draft_base_price_expire_at == expected_expire_time
 
     assert line_2.undiscounted_base_unit_price_amount == new_variant_2_price
     assert line_2.base_unit_price_amount == new_variant_2_price
-    assert line_1.base_price_expire_at == expected_expire_time
+    assert line_1.draft_base_price_expire_at == expected_expire_time
 
 
 def test_refresh_all_order_base_prices_catalogue_discount(
