@@ -2535,6 +2535,26 @@ def test_update_product_variant_can_not_turn_off_preorder(
     assert data["preorder"]["endDate"] is None
 
 
+# Query used to check how Product Variant metadata updates behaves
+# and which events are emitted
+UPDATE_METADATA_QUERY = """
+        mutation updateVariant (
+            $id: ID!,
+            $input: ProductVariantInput!
+            ) {
+                productVariantUpdate(
+                     id: $id,
+                     input: $input
+                    ) {
+                    productVariant {
+                        id
+                        name
+                    }
+                }
+            }
+    """
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
 def test_update_product_variant_with_metadata(
@@ -2546,23 +2566,7 @@ def test_update_product_variant_with_metadata(
 ):
     # Given
     # - Variant metadata is empty
-    query = """
-        mutation updateVariant (
-            $id: ID!
-            $metadata: [MetadataInput!]
-            ) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        metadata: $metadata,
-                        privateMetadata: $metadata
-                    }) {
-                    productVariant {
-                        id
-                    }
-                }
-            }
-    """
+
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -2579,11 +2583,13 @@ def test_update_product_variant_with_metadata(
 
     variables = {
         "id": variant_id,
-        "metadata": [{"key": metadata_key, "value": metadata_value}],
+        "input": {
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+        },
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        UPDATE_METADATA_QUERY, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
@@ -2613,23 +2619,6 @@ def test_update_product_variant_with_no_metadata_and_no_event(
 ):
     # Given
     # - Metadata in variant is empty
-    query = """
-        mutation updateVariant (
-            $id: ID!
-            $name: String!
-            ) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        name: $name
-                    }) {
-                    productVariant {
-                        id
-                        name
-                    }
-                }
-            }
-    """
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -2640,10 +2629,10 @@ def test_update_product_variant_with_no_metadata_and_no_event(
     # - Variant attribute is being updated
     # - Metadata is NOT being updated
     new_name = "New Name"
-    variables = {"id": variant_id, "name": new_name}
+    variables = {"id": variant_id, "input": {"name": new_name}}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        UPDATE_METADATA_QUERY, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
@@ -2674,23 +2663,7 @@ def test_update_product_variant_with_existing_metadata_and_no_event(
     # Given
     # - Metadata in variant is already existing
     # - mutation doesn't provide metadata
-    query = """
-        mutation updateVariant (
-            $id: ID!
-            $name: String!
-            ) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        name: $name
-                    }) {
-                    productVariant {
-                        id
-                        name
-                    }
-                }
-            }
-    """
+
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -2710,10 +2683,10 @@ def test_update_product_variant_with_existing_metadata_and_no_event(
     # - Variant attribute is being updated
     # - Metadata is NOT being updated
     new_name = "New Name"
-    variables = {"id": variant_id, "name": new_name}
+    variables = {"id": variant_id, "input": {"name": new_name}}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        UPDATE_METADATA_QUERY, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
@@ -2744,24 +2717,7 @@ def test_update_product_variant_with_existing_metadata_and_no_event_when_write_t
     # Given
     # - Metadata in variant is already existing
     # - mutation writes the same metadata key and value
-    query = """
-        mutation updateVariant (
-            $id: ID!,
-            $metadata: [MetadataInput!]
-            ) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        metadata: $metadata,
-                        privateMetadata: $metadata
-                    }) {
-                    productVariant {
-                        id
-                        name
-                    }
-                }
-            }
-    """
+
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -2784,12 +2740,14 @@ def test_update_product_variant_with_existing_metadata_and_no_event_when_write_t
     # - Metadata is updated with the same values
     variables = {
         "id": variant_id,
-        "metadata": [{"key": metadata_key, "value": metadata_value}],
-        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+        "input": {
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+            "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+        },
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        UPDATE_METADATA_QUERY, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
@@ -2817,24 +2775,7 @@ def test_update_product_variant_with_existing_metadata_and_event_when_write_diff
     # Given
     # - Metadata in variant is already existing
     # - mutation writes the same metadata key but different value
-    query = """
-        mutation updateVariant (
-            $id: ID!,
-            $metadata: [MetadataInput!]
-            ) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        metadata: $metadata,
-                        privateMetadata: $metadata
-                    }) {
-                    productVariant {
-                        id
-                        name
-                    }
-                }
-            }
-    """
+
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
@@ -2852,12 +2793,14 @@ def test_update_product_variant_with_existing_metadata_and_event_when_write_diff
     # - Metadata is updated with the same values
     variables = {
         "id": variant_id,
-        "metadata": [{"key": metadata_key, "value": "new value"}],
-        "privateMetadata": [{"key": metadata_key, "value": "new value"}],
+        "input": {
+            "metadata": [{"key": metadata_key, "value": "new value"}],
+            "privateMetadata": [{"key": metadata_key, "value": "new value"}],
+        },
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        UPDATE_METADATA_QUERY, variables, permissions=[permission_manage_products]
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
