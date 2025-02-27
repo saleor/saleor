@@ -712,7 +712,7 @@ class OrderLine(ModelWithMetadata):
 
     # The date time when the line should refresh its prices.
     # It depends on channel.draft_order_line_price_freeze_period setting.
-    base_price_expire_at = models.DateTimeField(blank=True, null=True)
+    draft_base_price_expire_at = models.DateTimeField(blank=True, null=True)
 
     objects = OrderLineManager()
 

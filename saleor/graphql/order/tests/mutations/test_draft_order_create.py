@@ -3774,4 +3774,4 @@ def test_draft_order_create_set_order_line_price_expiration_time(
 
     # then
     new_line = OrderLine.objects.get()
-    assert new_line.base_price_expire_at == expected_expire_time
+    assert new_line.draft_base_price_expire_at == expected_expire_time

@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="orderline",
-            name="base_price_expire_at",
+            name="draft_base_price_expire_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

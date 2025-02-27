@@ -1613,7 +1613,7 @@ def test_draft_order_complete_triggers_webhooks(
     assert wrapped_call_order_event.called
 
 
-def test_draft_order_complete_clear_line_base_price_expire_at_field(
+def test_draft_order_complete_clear_line_draft_base_price_expire_at_field(
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1625,8 +1625,8 @@ def test_draft_order_complete_clear_line_base_price_expire_at_field(
     expire_time = timezone.now() + datetime.timedelta(hours=24)
     lines = order.lines.all()
     for line in lines:
-        line.base_price_expire_at = expire_time
-    OrderLine.objects.bulk_update(lines, ["base_price_expire_at"])
+        line.draft_base_price_expire_at = expire_time
+    OrderLine.objects.bulk_update(lines, ["draft_base_price_expire_at"])
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1639,4 +1639,4 @@ def test_draft_order_complete_clear_line_base_price_expire_at_field(
     assert not content["data"]["draftOrderComplete"]["errors"]
 
     for line in order.lines.all():
-        assert line.base_price_expire_at is None
+        assert line.draft_base_price_expire_at is None

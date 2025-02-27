@@ -347,7 +347,7 @@ def refresh_order_base_prices_and_discounts(
     expiration_time = get_order_line_price_expiration_date(order.channel)
     for line_info in lines_info_to_update:
         if not line_info.line.is_price_overridden:
-            line_info.line.base_price_expire_at = expiration_time
+            line_info.line.draft_base_price_expire_at = expiration_time
 
     lines = [line_info.line for line_info in lines_info]
     OrderLine.objects.bulk_update(
@@ -359,7 +359,7 @@ def refresh_order_base_prices_and_discounts(
             "unit_discount_value",
             "base_unit_price_amount",
             "undiscounted_base_unit_price_amount",
-            "base_price_expire_at",
+            "draft_base_price_expire_at",
         ],
     )
 

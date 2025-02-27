@@ -170,9 +170,9 @@ class DraftOrderComplete(BaseMutation):
                         errors = prepare_insufficient_stock_order_validation_errors(e)
                         raise ValidationError({"lines": errors}) from e
 
-                # clear base price expiration time
-                line.base_price_expire_at = None
-                OrderLine.objects.bulk_update(lines, ["base_price_expire_at"])
+                # clear draft base price expiration time
+                line.draft_base_price_expire_at = None
+                OrderLine.objects.bulk_update(lines, ["draft_base_price_expire_at"])
 
             order_info = OrderInfo(
                 order=order,
