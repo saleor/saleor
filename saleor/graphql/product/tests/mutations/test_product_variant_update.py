@@ -2545,6 +2545,7 @@ def test_update_product_variant_with_metadata(
     permission_manage_products,
 ):
     # Given
+    # - Variant metadata is empty
     query = """
         mutation updateVariant (
             $id: ID!
@@ -2565,15 +2566,22 @@ def test_update_product_variant_with_metadata(
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
+    assert variant.metadata == {}
+    assert variant.private_metadata == {}
+
+    # When
+    # - Metadata is updated
+    # - No other attribute is updated
     metadata_key = "mk"
     metadata_value = "mv"
+
+    variant.name = "Name"
 
     variables = {
         "id": variant_id,
         "metadata": [{"key": metadata_key, "value": metadata_value}],
     }
 
-    # When
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -2604,6 +2612,7 @@ def test_update_product_variant_with_no_metadata_and_no_event(
     permission_manage_products,
 ):
     # Given
+    # - Metadata in variant is empty
     query = """
         mutation updateVariant (
             $id: ID!
@@ -2624,11 +2633,15 @@ def test_update_product_variant_with_no_metadata_and_no_event(
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
-    new_name = "New Name"
-
-    variables = {"id": variant_id, "name": new_name}
+    assert variant.metadata == {}
+    assert variant.private_metadata == {}
 
     # When
+    # - Variant attribute is being updated
+    # - Metadata is NOT being updated
+    new_name = "New Name"
+    variables = {"id": variant_id, "name": new_name}
+
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -2647,3 +2660,214 @@ def test_update_product_variant_with_no_metadata_and_no_event(
         product.variants.last()
     )
     product_variant_metadata_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_product_variant_with_existing_metadata_and_no_event(
+    product_variant_metadata_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # Given
+    # - Metadata in variant is already existing
+    # - mutation doesn't provide metadata
+    query = """
+        mutation updateVariant (
+            $id: ID!
+            $name: String!
+            ) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        name: $name
+                    }) {
+                    productVariant {
+                        id
+                        name
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variant.name = "Name"
+
+    variant.metadata = {
+        "Foo": "Bar",
+    }
+
+    variant.private_metadata = {
+        "Foo": "Bar",
+    }
+
+    variant.save()
+
+    # When
+    # - Variant attribute is being updated
+    # - Metadata is NOT being updated
+    new_name = "New Name"
+    variables = {"id": variant_id, "name": new_name}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["id"] == variant_id
+    assert data["name"] == new_name
+
+    # Then
+    # - product_variant_updated should run - field changed
+    # - product_variant_metadata_updated should not run - metadata not changed,
+    # no empty event emitted
+    product_variant_updated_webhook_mock.assert_called_once_with(
+        product.variants.last()
+    )
+    product_variant_metadata_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_product_variant_with_existing_metadata_and_no_event_when_write_the_same(
+    product_variant_metadata_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # Given
+    # - Metadata in variant is already existing
+    # - mutation writes the same metadata key and value
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $metadata: [MetadataInput!]
+            ) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        metadata: $metadata,
+                        privateMetadata: $metadata
+                    }) {
+                    productVariant {
+                        id
+                        name
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    metadata_key = "mk"
+    metadata_value = "mv"
+
+    variant.name = "Name"
+
+    variant.metadata = {metadata_key: metadata_value}
+
+    variant.private_metadata = {metadata_key: metadata_value}
+
+    variant.save()
+
+    assert variant.metadata == {metadata_key: metadata_value}
+
+    assert variant.private_metadata == {metadata_key: metadata_value}
+
+    # When
+    # - Metadata is updated with the same values
+    variables = {
+        "id": variant_id,
+        "metadata": [{"key": metadata_key, "value": metadata_value}],
+        "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["id"] == variant_id
+
+    # Then
+    # - product_variant_updated should not run - nothing changed
+    # - product_variant_metadata_updated should not run - metadata not changed, values the same,
+    # no empty event emitted
+    product_variant_updated_webhook_mock.assert_not_called()
+    product_variant_metadata_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_metadata_updated")
+def test_update_product_variant_with_existing_metadata_and_event_when_write_different_value(
+    product_variant_metadata_updated_webhook_mock,
+    product_variant_updated_webhook_mock,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # Given
+    # - Metadata in variant is already existing
+    # - mutation writes the same metadata key but different value
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $metadata: [MetadataInput!]
+            ) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        metadata: $metadata,
+                        privateMetadata: $metadata
+                    }) {
+                    productVariant {
+                        id
+                        name
+                    }
+                }
+            }
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    metadata_key = "mk"
+    metadata_value = "mv"
+
+    variant.name = "Name"
+    variant.metadata = {"key": metadata_key, "value": metadata_value}
+
+    variant.private_metadata = {"key": metadata_key, "value": metadata_value}
+
+    variant.save()
+
+    # When
+    # - Metadata is updated with the same values
+    variables = {
+        "id": variant_id,
+        "metadata": [{"key": metadata_key, "value": "new value"}],
+        "privateMetadata": [{"key": metadata_key, "value": "new value"}],
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+
+    assert data["id"] == variant_id
+
+    # Then
+    # - product_variant_updated should run - metadata value changed
+    # - product_variant_metadata_updated should  run - metadata value changed
+    # no empty event emitted
+    product_variant_updated_webhook_mock.assert_called_once()
+    product_variant_metadata_updated_webhook_mock.assert_called_once()

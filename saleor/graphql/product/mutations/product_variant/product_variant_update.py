@@ -216,13 +216,15 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
 
-        instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
-        cls.clean_instance(info, instance)
-        new_instance_data = instance.serialize_for_comparison()
+        new_instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(
+            new_instance, metadata_list, private_metadata_list
+        )
+        cls.clean_instance(info, new_instance)
+        new_instance_data = new_instance.serialize_for_comparison()
 
         changed_fields = cls.diff_instance_data_fields(
-            instance.comparison_fields,
+            new_instance.comparison_fields,
             old_instance_data,
             new_instance_data,
         )
