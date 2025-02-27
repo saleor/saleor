@@ -4,7 +4,7 @@ from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
 from ..users.utils import create_customer
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     draft_order_complete,
     draft_order_create,
@@ -107,9 +107,9 @@ def test_unable_to_update_save_settings_after_order_complete_CORE_0255(
     assert order_line["productVariantId"] == product_variant_id
     assert order["order"]["status"] == "UNFULFILLED"
     order_billing_address = order["order"]["billingAddress"]
-    assert order_billing_address["streetAddress1"] == billing_address["streetAddress1"]
     order_shipping_address = order["order"]["shippingAddress"]
-    assert order_shipping_address["streetAddress1"] == DEFAULT_ADDRESS["streetAddress1"]
+    assert_address_data(order_billing_address, billing_address)
+    assert_address_data(order_shipping_address, DEFAULT_ADDRESS)
     assert order["order"]["user"]["id"] == user_id
     assert order["order"]["userEmail"] == user_email
 

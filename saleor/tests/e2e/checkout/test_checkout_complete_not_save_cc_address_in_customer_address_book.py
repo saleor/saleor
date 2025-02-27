@@ -4,7 +4,7 @@ from .. import ADDRESS_DE
 from ..account.utils import get_own_data
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from ..warehouse.utils import update_warehouse
 from .utils import (
     checkout_complete,
@@ -86,7 +86,6 @@ def test_checkout_complete_not_save_cc_address_in_customer_address_book_CORE_013
     assert checkout_data["email"] == expected_email
     assert checkout_data["user"]["email"] == expected_email
     assert checkout_data["isShippingRequired"] is True
-    checkout_billing_address = checkout_data["billingAddress"]
     checkout_shipping_address = checkout_data["shippingAddress"]
 
     collection_point = checkout_data["availableCollectionPoints"][0]
@@ -134,12 +133,13 @@ def test_checkout_complete_not_save_cc_address_in_customer_address_book_CORE_013
     assert order_data["deliveryMethod"]["id"] == warehouse_id
     assert order_data["shippingAddress"]
     assert order_data["billingAddress"]
+    assert_address_data(order_data["billingAddress"], billing_address)
 
     # Step 5 - Verify the user address book
     me = get_own_data(e2e_logged_api_client)
 
     assert len(me["addresses"]) == 1
     address = me["addresses"][0]
-    assert address["streetAddress1"] == checkout_billing_address["streetAddress1"]
+    assert_address_data(address, billing_address)
     assert address["id"] != order_data["billingAddress"]["id"]
     assert address["id"] != order_data["shippingAddress"]["id"]

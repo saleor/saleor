@@ -4,7 +4,7 @@ from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..account.utils import get_own_data
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     checkout_complete,
     checkout_create,
@@ -126,11 +126,8 @@ def test_updating_the_address_without_the_save_flag_esnures_that_the_address_is_
     assert order_billing_address
     order_shipping_address = order_data["shippingAddress"]
     assert order_shipping_address
-    assert (
-        order_shipping_address["streetAddress1"]
-        == new_shipping_address["streetAddress1"]
-    )
-    assert order_billing_address["streetAddress1"] == billing_address["streetAddress1"]
+    assert_address_data(order_shipping_address, new_shipping_address)
+    assert_address_data(order_billing_address, billing_address)
     assert order_data["userEmail"] == user.email
 
     # Step 6 - Verify the user address book
@@ -138,6 +135,6 @@ def test_updating_the_address_without_the_save_flag_esnures_that_the_address_is_
 
     assert len(user["addresses"]) == 1
     address = user["addresses"][0]
-    assert address["streetAddress1"] == new_shipping_address["streetAddress1"]
+    assert_address_data(address, new_shipping_address)
     assert address["id"] != order_billing_address["id"]
     assert address["id"] != order_shipping_address["id"]

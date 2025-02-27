@@ -5,7 +5,7 @@ from ..account.utils import account_address_delete, get_user
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
 from ..users.utils import create_customer
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     draft_order_complete,
     draft_order_create,
@@ -108,9 +108,9 @@ def test_order_keep_address_information_CORE_0256(
     assert order_line["productVariantId"] == product_variant_id
     assert order["order"]["status"] == "UNFULFILLED"
     order_billing_address = order["order"]["billingAddress"]
-    assert order_billing_address["streetAddress1"] == billing_address["streetAddress1"]
     order_shipping_address = order["order"]["shippingAddress"]
-    assert order_shipping_address["streetAddress1"] == DEFAULT_ADDRESS["streetAddress1"]
+    assert_address_data(order_billing_address, billing_address)
+    assert_address_data(order_shipping_address, DEFAULT_ADDRESS)
     assert order["order"]["user"]["id"] == user_id
     assert order["order"]["userEmail"] == user_email
 
@@ -128,11 +128,5 @@ def test_order_keep_address_information_CORE_0256(
     order_data = order_query(e2e_staff_api_client, order_id)
     assert order_data["shippingAddress"]
     assert order_data["billingAddress"]
-    assert (
-        order_data["shippingAddress"]["streetAddress1"]
-        == DEFAULT_ADDRESS["streetAddress1"]
-    )
-    assert (
-        order_data["billingAddress"]["streetAddress1"]
-        == billing_address["streetAddress1"]
-    )
+    assert_address_data(order_data["shippingAddress"], DEFAULT_ADDRESS)
+    assert_address_data(order_data["billingAddress"], billing_address)

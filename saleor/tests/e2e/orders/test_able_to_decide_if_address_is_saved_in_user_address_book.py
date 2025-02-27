@@ -5,7 +5,7 @@ from ..account.utils import get_user
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
 from ..users.utils import create_customer
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     draft_order_complete,
     draft_order_create,
@@ -107,9 +107,9 @@ def test_allow_save_shipping_and_not_save_billing_in_user_address_book_CORE_0253
     assert order_line["productVariantId"] == product_variant_id
     assert order["order"]["status"] == "UNFULFILLED"
     order_billing_address = order["order"]["billingAddress"]
-    assert order_billing_address["streetAddress1"] == billing_address["streetAddress1"]
     order_shipping_address = order["order"]["shippingAddress"]
-    assert order_shipping_address["streetAddress1"] == DEFAULT_ADDRESS["streetAddress1"]
+    assert_address_data(order_billing_address, billing_address)
+    assert_address_data(order_shipping_address, DEFAULT_ADDRESS)
     assert order["order"]["user"]["id"] == user_id
     assert order["order"]["userEmail"] == user_email
 
@@ -118,7 +118,8 @@ def test_allow_save_shipping_and_not_save_billing_in_user_address_book_CORE_0253
 
     assert len(user["addresses"]) == 1
     address = user["addresses"][0]
-    assert address["streetAddress1"] == order_shipping_address["streetAddress1"]
+    order_shipping_address["country"] = order_shipping_address["country"]["code"]
+    assert_address_data(address, order_shipping_address)
     assert address["id"] != order_billing_address["id"]
     assert address["id"] != order_shipping_address["id"]
 
@@ -218,9 +219,9 @@ def test_allow_not_save_shipping_and_save_billing_in_user_address_book_CORE_0254
     assert order_line["productVariantId"] == product_variant_id
     assert order["order"]["status"] == "UNFULFILLED"
     order_billing_address = order["order"]["billingAddress"]
-    assert order_billing_address["streetAddress1"] == billing_address["streetAddress1"]
     order_shipping_address = order["order"]["shippingAddress"]
-    assert order_shipping_address["streetAddress1"] == DEFAULT_ADDRESS["streetAddress1"]
+    assert_address_data(order_billing_address, billing_address)
+    assert_address_data(order_shipping_address, DEFAULT_ADDRESS)
     assert order["order"]["user"]["id"] == user_id
     assert order["order"]["userEmail"] == user_email
 
@@ -229,6 +230,7 @@ def test_allow_not_save_shipping_and_save_billing_in_user_address_book_CORE_0254
 
     assert len(user["addresses"]) == 1
     address = user["addresses"][0]
-    assert address["streetAddress1"] == order_billing_address["streetAddress1"]
+    order_billing_address["country"] = order_billing_address["country"]["code"]
+    assert_address_data(address, order_billing_address)
     assert address["id"] != order_billing_address["id"]
     assert address["id"] != order_shipping_address["id"]
