@@ -11,7 +11,7 @@ from .....product.models import ProductChannelListing, ProductVariantChannelList
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from .test_utils import assert_address_data
+from ..utils import assert_address_data
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
