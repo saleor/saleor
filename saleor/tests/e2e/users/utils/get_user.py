@@ -1,25 +1,41 @@
+from ...account.utils.fragments import ADDRESS_FRAGMENT
 from ...utils import get_graphql_content
 
-USER_QUERY = """
-query CustomerDetails($id:ID!){
-  user(id: $id) {
-    id
-    email
-    isConfirmed
-    isActive
-    orders(first: 10){
-      edges {
-        node {
-          id
-          number
-          paymentStatus
-          created
+USER_QUERY = (
+    """
+    query User($id: ID!) {
+        user(id: $id) {
+            id
+            email
+            firstName
+            lastName
+            isStaff
+            isActive
+            isConfirmed
+            addresses {
+                ...Address
+            }
+            checkoutIds
+            orders(first: 10) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                    }
+                }
+            }
+            defaultShippingAddress {
+                ...Address
+            }
+            defaultBillingAddress {
+                ...Address
+            }
         }
-      }
     }
-  }
-}
 """
+    + ADDRESS_FRAGMENT
+)
 
 
 def get_user(

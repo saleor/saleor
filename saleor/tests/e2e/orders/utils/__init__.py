@@ -20,6 +20,7 @@ from .order_line_update import order_line_update
 from .order_lines_create import order_lines_create
 from .order_mark_as_paid import mark_order_paid
 from .order_query import order_query
+from .order_update import order_update
 from .order_update_shipping import order_update_shipping
 from .order_void import order_void, raw_order_void
 
@@ -49,4 +50,5 @@ __all__ = [
     "order_line_discount_update",
     "raw_order_create_from_checkout",
     "raw_draft_order_update",
+    "order_update",
 ]
