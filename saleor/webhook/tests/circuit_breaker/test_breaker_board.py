@@ -1,9 +1,8 @@
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 
-from saleor.webhook.event_types import WebhookEventSyncType
-
 from ....graphql.app.enums import CircuitBreakerState
+from ....webhook.event_types import WebhookEventSyncType
 from .utils import create_breaker_board
 
 

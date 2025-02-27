@@ -6,9 +6,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.module_loading import import_string
 
-from saleor.webhook.event_types import WebhookEventSyncType
-
 from ...graphql.app.enums import CircuitBreakerState
+from ...webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
     from ...app.models import App
