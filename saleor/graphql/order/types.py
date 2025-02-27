@@ -1170,6 +1170,7 @@ class OrderLine(
                 manager,
                 lines,
                 database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1201,6 +1202,7 @@ class OrderLine(
                 manager,
                 lines,
                 database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1219,7 +1221,11 @@ class OrderLine(
         def _resolve_unit_discount_type(data):
             order, lines, manager = data
             return calculations.order_line_unit_discount_type(
-                order, order_line, manager, lines
+                order,
+                order_line,
+                manager,
+                lines,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1236,7 +1242,11 @@ class OrderLine(
         def _resolve_unit_discount_value(data):
             order, lines, manager = data
             return calculations.order_line_unit_discount_value(
-                order, order_line, manager, lines
+                order,
+                order_line,
+                manager,
+                lines,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1251,7 +1261,11 @@ class OrderLine(
         def _resolve_unit_discount(data):
             order, lines, manager = data
             return calculations.order_line_unit_discount(
-                order, order_line, manager, lines
+                order,
+                order_line,
+                manager,
+                lines,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1274,6 +1288,7 @@ class OrderLine(
                 manager,
                 lines,
                 database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1297,6 +1312,7 @@ class OrderLine(
                 manager,
                 lines,
                 database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1322,6 +1338,7 @@ class OrderLine(
                 manager,
                 lines,
                 database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(order_line.order_id)
@@ -1803,7 +1820,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         @allow_writer_in_context(info.context)
         def with_manager(manager):
             order = root.node
-            fetch_order_prices_if_expired(order, manager)
+            fetch_order_prices_if_expired(
+                order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+            )
             return OrderDiscountsByOrderIDLoader(info.context).load(order.id)
 
         return get_plugin_manager_promise(info.context).then(with_manager)
@@ -1938,7 +1957,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             lines, manager = data
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_undiscounted_shipping(
-                order, manager, lines, database_connection_name=database_connection_name
+                order,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
@@ -1956,7 +1979,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             lines, manager = data
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_shipping(
-                order, manager, lines, database_connection_name=database_connection_name
+                order,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
@@ -1974,7 +2001,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             lines, manager = data
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_shipping_tax_rate(
-                order, manager, lines, database_connection_name=database_connection_name
+                order,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             ) or Decimal(0)
 
         lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
@@ -2016,6 +2047,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 manager,
                 order_lines,
                 database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         order_lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
@@ -2034,7 +2066,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         def _resolve_total(lines):
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_total(
-                order, manager, lines, database_connection_name=database_connection_name
+                order,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         return (
@@ -2052,7 +2088,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             lines, manager = lines_and_manager
             database_connection_name = get_database_connection_name(info.context)
             return calculations.order_undiscounted_total(
-                order, manager, lines, database_connection_name=database_connection_name
+                order,
+                manager,
+                lines,
+                database_connection_name=database_connection_name,
+                allow_sync_webhooks=root.allow_sync_webhooks,
             )
 
         lines = OrderLinesByOrderIdLoader(info.context).load(order.id)
@@ -2146,7 +2186,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                     fulfillments,
                 )
             return [
-                SyncWebhookControlContext(node=fulfillment)
+                SyncWebhookControlContext(
+                    node=fulfillment, allow_sync_webhooks=root.allow_sync_webhooks
+                )
                 for fulfillment in fulfillments_to_return
             ]
 

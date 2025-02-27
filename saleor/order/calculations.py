@@ -46,6 +46,7 @@ def fetch_order_prices_if_expired(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> tuple[Order, Iterable[OrderLine] | None]:
     """Fetch order prices with taxes.
 
@@ -58,6 +59,10 @@ def fetch_order_prices_if_expired(
         return order, lines
 
     if not force_update and not order.should_refresh_prices:
+        return order, lines
+
+    tax_strategy = get_tax_calculation_strategy_for_order(order)
+    if tax_strategy == TaxCalculationStrategy.TAX_APP and not allow_sync_webhooks:
         return order, lines
 
     # handle promotions
@@ -77,6 +82,7 @@ def fetch_order_prices_if_expired(
         order,
         manager,
         lines,
+        tax_calculation_strategy=tax_strategy,
         database_connection_name=database_connection_name,
     )
 
@@ -135,11 +141,11 @@ def _recalculate_prices(
     order: Order,
     manager: PluginsManager,
     lines: Iterable[OrderLine],
+    tax_calculation_strategy: str,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     """Calculate prices after handling order level discounts and taxes."""
     tax_configuration = order.channel.tax_configuration
-    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_order(order)
     should_charge_tax = charge_taxes and not order.tax_exemption
@@ -493,6 +499,7 @@ def order_line_unit(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> OrderTaxedPricesData:
     """Return the unit price of provided line, taxes included.
 
@@ -507,6 +514,7 @@ def order_line_unit(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     order_line = _find_order_line(lines, order_line)
     return OrderTaxedPricesData(
@@ -522,6 +530,7 @@ def order_line_total(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> OrderTaxedPricesData:
     """Return the total price of provided line, taxes included.
 
@@ -536,6 +545,7 @@ def order_line_total(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     order_line = _find_order_line(lines, order_line)
     return OrderTaxedPricesData(
@@ -553,6 +563,7 @@ def order_line_tax_rate(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> Decimal | None:
     """Return the tax rate of provided line.
 
@@ -566,6 +577,7 @@ def order_line_tax_rate(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     order_line = _find_order_line(lines, order_line)
     return order_line.tax_rate
@@ -577,6 +589,7 @@ def order_line_unit_discount(
     manager: PluginsManager,
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
+    allow_sync_webhooks: bool = True,
 ) -> Decimal:
     """Return the line unit discount.
 
@@ -589,7 +602,9 @@ def order_line_unit_discount(
     - voucher applied on the line (`SPECIFIC_PRODUCT`, `apply_once_per_order` )
     - manual line discounts
     """
-    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    _, lines = fetch_order_prices_if_expired(
+        order, manager, lines, force_update, allow_sync_webhooks=allow_sync_webhooks
+    )
     order_line = _find_order_line(lines, order_line)
     return order_line.unit_discount
 
@@ -600,6 +615,7 @@ def order_line_unit_discount_value(
     manager: PluginsManager,
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
+    allow_sync_webhooks: bool = True,
 ) -> Decimal:
     """Return the line unit discount value.
 
@@ -607,7 +623,9 @@ def order_line_unit_discount_value(
     If the prices are expired, call all order price calculation methods
     and save them in the model directly.
     """
-    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    _, lines = fetch_order_prices_if_expired(
+        order, manager, lines, force_update, allow_sync_webhooks=allow_sync_webhooks
+    )
     order_line = _find_order_line(lines, order_line)
     return order_line.unit_discount_value
 
@@ -618,6 +636,7 @@ def order_line_unit_discount_type(
     manager: PluginsManager,
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
+    allow_sync_webhooks: bool = True,
 ) -> str | None:
     """Return the line unit discount type.
 
@@ -625,7 +644,9 @@ def order_line_unit_discount_type(
     If the prices are expired, call all order price calculation methods
     and save them in the model directly.
     """
-    _, lines = fetch_order_prices_if_expired(order, manager, lines, force_update)
+    _, lines = fetch_order_prices_if_expired(
+        order, manager, lines, force_update, allow_sync_webhooks=allow_sync_webhooks
+    )
     order_line = _find_order_line(lines, order_line)
     return order_line.unit_discount_type
 
@@ -636,6 +657,7 @@ def order_undiscounted_shipping(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> TaxedMoney:
     """Return the undiscounted shipping price of the order.
 
@@ -650,6 +672,7 @@ def order_undiscounted_shipping(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     return quantize_price(order.undiscounted_base_shipping_price, currency)
 
@@ -660,6 +683,7 @@ def order_shipping(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> TaxedMoney:
     """Return the shipping price of the order.
 
@@ -674,6 +698,7 @@ def order_shipping(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     return quantize_price(order.shipping_price, currency)
 
@@ -684,6 +709,7 @@ def order_shipping_tax_rate(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> Decimal | None:
     """Return the shipping tax rate of the order.
 
@@ -697,6 +723,7 @@ def order_shipping_tax_rate(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     return order.shipping_tax_rate
 
@@ -707,6 +734,7 @@ def order_subtotal(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ):
     """Return the total price of the order.
 
@@ -721,6 +749,7 @@ def order_subtotal(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     # Lines aren't returned only if
     # we don't pass them to `fetch_order_prices_if_expired`.
@@ -733,6 +762,7 @@ def order_total(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> TaxedMoney:
     """Return the total price of the order.
 
@@ -747,6 +777,7 @@ def order_total(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     return quantize_price(order.total, currency)
 
@@ -757,6 +788,7 @@ def order_undiscounted_total(
     lines: Iterable[OrderLine] | None = None,
     force_update: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> TaxedMoney:
     """Return the undiscounted total price of the order.
 
@@ -771,5 +803,6 @@ def order_undiscounted_total(
         lines,
         force_update,
         database_connection_name=database_connection_name,
+        allow_sync_webhooks=allow_sync_webhooks,
     )
     return quantize_price(order.undiscounted_total, currency)
