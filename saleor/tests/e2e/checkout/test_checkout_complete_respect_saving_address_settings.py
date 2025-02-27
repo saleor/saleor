@@ -1,5 +1,6 @@
 import pytest
 
+from .. import ADDRESS_DE
 from ..account.utils import get_own_data
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
@@ -46,18 +47,7 @@ def test_respect_saving_address_setting_in_checkout_process_CORE_0132(
 
     # Step 1 - Create checkout.
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     shipping_address = {
         "firstName": "John",
         "lastName": "Muller",

@@ -1,6 +1,6 @@
 import pytest
 
-from .. import DEFAULT_ADDRESS
+from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..account.utils import get_user
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
@@ -62,18 +62,7 @@ def test_allow_save_shipping_and_not_save_billing_in_user_address_book_CORE_0253
 
     # Step 1 - Create draft order
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
 
     draft_order_input = {
         "channelId": channel_id,
@@ -182,18 +171,7 @@ def test_allow_not_save_shipping_and_save_billing_in_user_address_book_CORE_0254
 
     # Step 1 - Create draft order
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
 
     draft_order_input = {
         "channelId": channel_id,

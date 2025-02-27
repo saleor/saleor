@@ -1,6 +1,6 @@
 import pytest
 
-from .. import DEFAULT_ADDRESS
+from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
 from ..users.utils import create_customer
@@ -62,18 +62,7 @@ def test_unable_to_update_save_settings_after_order_complete_CORE_0255(
 
     # Step 1 - Create draft order
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
 
     draft_order_input = {
         "channelId": channel_id,

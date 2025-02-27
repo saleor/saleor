@@ -1,6 +1,6 @@
 import pytest
 
-from .. import DEFAULT_ADDRESS
+from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..account.utils import get_own_data
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
@@ -48,18 +48,7 @@ def test_updating_the_address_without_the_save_flag_esnures_that_the_address_is_
 
     # Step 1 - Create checkout.
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]

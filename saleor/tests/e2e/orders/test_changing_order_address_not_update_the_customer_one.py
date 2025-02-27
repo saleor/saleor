@@ -1,6 +1,6 @@
 import pytest
 
-from .. import DEFAULT_ADDRESS
+from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..account.utils import get_own_data
 from ..checkout.utils import (
     checkout_create,
@@ -82,18 +82,7 @@ def test_changing_order_address_do_not_influence_customer_address_CORE_0257(
 
     # Step 1 - Create checkout.
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]

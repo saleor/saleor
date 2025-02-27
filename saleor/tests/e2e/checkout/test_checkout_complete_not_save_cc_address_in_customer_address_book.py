@@ -1,5 +1,6 @@
 import pytest
 
+from .. import ADDRESS_DE
 from ..account.utils import get_own_data
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
@@ -56,18 +57,7 @@ def test_checkout_complete_not_save_cc_address_in_customer_address_book_CORE_013
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     shipping_address = {
         "firstName": "John",
         "lastName": "Muller",
