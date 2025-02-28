@@ -1,6 +1,6 @@
 import pytest
 
-from .. import DEFAULT_ADDRESS
+from .. import ADDRESS_DE, DEFAULT_ADDRESS
 from ..account.utils import get_own_data
 from ..checkout.utils import (
     checkout_create,
@@ -10,7 +10,7 @@ from ..checkout.utils import (
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
 from ..users.utils import get_user
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     order_update,
 )
@@ -82,18 +82,7 @@ def test_changing_order_address_do_not_influence_customer_address_CORE_0257(
 
     # Step 1 - Create checkout.
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
@@ -113,14 +102,8 @@ def test_changing_order_address_do_not_influence_customer_address_CORE_0257(
     assert checkout_data["shippingMethod"] is None
     assert checkout_data["shippingAddress"]
     assert checkout_data["billingAddress"]
-    assert (
-        checkout_data["shippingAddress"]["streetAddress1"]
-        == DEFAULT_ADDRESS["streetAddress1"]
-    )
-    assert (
-        checkout_data["billingAddress"]["streetAddress1"]
-        == billing_address["streetAddress1"]
-    )
+    assert_address_data(checkout_data["shippingAddress"], DEFAULT_ADDRESS)
+    assert_address_data(checkout_data["billingAddress"], billing_address)
 
     # Step 2 - Set shipping address and DeliveryMethod for checkout
     checkout_data = checkout_delivery_method_update(
@@ -154,7 +137,8 @@ def test_changing_order_address_do_not_influence_customer_address_CORE_0257(
 
     assert len(user["addresses"]) == 1
     address = user["addresses"][0]
-    assert address["streetAddress1"] == order_billing_address["streetAddress1"]
+    order_billing_address["country"] = order_billing_address["country"]["code"]
+    assert_address_data(address, order_billing_address)
     assert address["id"] != order_billing_address["id"]
     user_id = user["id"]
 
@@ -175,4 +159,4 @@ def test_changing_order_address_do_not_influence_customer_address_CORE_0257(
     user = get_user(e2e_staff_api_client, user_id)
     assert len(user["addresses"]) == 1
     address = user["addresses"][0]
-    assert address["streetAddress1"] == order_billing_address["streetAddress1"]
+    assert_address_data(address, order_billing_address)

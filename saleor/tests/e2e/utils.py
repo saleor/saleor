@@ -40,3 +40,15 @@ def request_matcher(r1, r2):
             return False
 
     return True
+
+
+def assert_address_data(address_data, address):
+    assert address_data["firstName"] == address["firstName"]
+    assert address_data["lastName"] == address["lastName"]
+    assert address_data["companyName"] == address["companyName"]
+    assert address_data["streetAddress1"] == address["streetAddress1"]
+    assert address_data["postalCode"] == address["postalCode"]
+    assert address_data["country"]["code"] == address["country"]
+    assert address_data["city"] == address["city"].upper()
+    assert address_data["countryArea"] == address["countryArea"]
+    assert address_data["phone"] == address["phone"]

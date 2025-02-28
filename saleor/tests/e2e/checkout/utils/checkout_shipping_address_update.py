@@ -1,5 +1,5 @@
 from ... import DEFAULT_ADDRESS
-from ...utils import get_graphql_content
+from ...utils import assert_address_data, get_graphql_content
 
 CHECKOUT_SHIPPING_ADDRESS_UPDATE_MUTATION = """
 mutation CheckoutShippingAddressUpdate(
@@ -66,14 +66,6 @@ def checkout_shipping_address_update(
     assert response["errors"] == []
 
     data = response["checkout"]
-    assert data["shippingAddress"]["firstName"] == address["firstName"]
-    assert data["shippingAddress"]["lastName"] == address["lastName"]
-    assert data["shippingAddress"]["companyName"] == address["companyName"]
-    assert data["shippingAddress"]["streetAddress1"] == address["streetAddress1"]
-    assert data["shippingAddress"]["postalCode"] == address["postalCode"]
-    assert data["shippingAddress"]["country"]["code"] == address["country"]
-    assert data["shippingAddress"]["city"] == address["city"].upper()
-    assert data["shippingAddress"]["countryArea"] == address["countryArea"]
-    assert data["shippingAddress"]["phone"] == address["phone"]
+    assert_address_data(data["shippingAddress"], address)
 
     return data

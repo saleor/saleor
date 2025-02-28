@@ -1,8 +1,9 @@
 import pytest
 
+from .. import ADDRESS_DE
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     checkout_complete,
     checkout_create,
@@ -55,18 +56,7 @@ def test_guest_user_can_complete_checkout_without_saving_addresses_CORE_0129(
         {"variantId": product_variant_id, "quantity": 1},
     ]
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     email = "test0129@example.com"
     checkout_data = checkout_create(
         e2e_not_logged_api_client,
@@ -112,11 +102,7 @@ def test_guest_user_can_complete_checkout_without_saving_addresses_CORE_0129(
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
     assert order_data["shippingAddress"]
     assert order_data["billingAddress"]
-    assert (
-        order_data["shippingAddress"]["streetAddress1"]
-        == checkout_shipping_address["streetAddress1"]
-    )
-    assert (
-        order_data["billingAddress"]["streetAddress1"]
-        == checkout_billing_address["streetAddress1"]
-    )
+    checkout_billing_address["country"] = checkout_billing_address["country"]["code"]
+    checkout_shipping_address["country"] = checkout_shipping_address["country"]["code"]
+    assert_address_data(order_data["shippingAddress"], checkout_shipping_address)
+    assert_address_data(order_data["billingAddress"], checkout_billing_address)

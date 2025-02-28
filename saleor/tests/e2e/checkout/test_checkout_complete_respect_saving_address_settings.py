@@ -1,9 +1,10 @@
 import pytest
 
+from .. import ADDRESS_DE
 from ..account.utils import get_own_data
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
-from ..utils import assign_permissions
+from ..utils import assert_address_data, assign_permissions
 from .utils import (
     checkout_complete,
     checkout_create,
@@ -46,18 +47,7 @@ def test_respect_saving_address_setting_in_checkout_process_CORE_0132(
 
     # Step 1 - Create checkout.
     # use different address for shipping and billing
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     shipping_address = {
         "firstName": "John",
         "lastName": "Muller",
@@ -128,10 +118,8 @@ def test_respect_saving_address_setting_in_checkout_process_CORE_0132(
     assert order_billing_address
     order_shipping_address = order_data["shippingAddress"]
     assert order_shipping_address
-    assert (
-        order_shipping_address["streetAddress1"] == shipping_address["streetAddress1"]
-    )
-    assert order_billing_address["streetAddress1"] == billing_address["streetAddress1"]
+    assert_address_data(order_shipping_address, shipping_address)
+    assert_address_data(order_billing_address, billing_address)
     assert order_data["userEmail"] == user.email
 
     # Step 5 - Verify the user address book
@@ -139,6 +127,6 @@ def test_respect_saving_address_setting_in_checkout_process_CORE_0132(
 
     assert len(user["addresses"]) == 1
     address = user["addresses"][0]
-    assert address["streetAddress1"] == shipping_address["streetAddress1"]
+    assert_address_data(address, shipping_address)
     assert address["id"] != order_billing_address["id"]
     assert address["id"] != order_shipping_address["id"]
