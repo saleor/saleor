@@ -5,6 +5,7 @@ from unittest.mock import call, patch
 import graphene
 from django.db.models import Sum
 from django.test import override_settings
+from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
@@ -26,7 +27,7 @@ from .....order.actions import (
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
-from .....order.models import OrderEvent
+from .....order.models import OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.base_plugin import ExcludedShippingMethod
@@ -1610,3 +1611,32 @@ def test_draft_order_complete_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+def test_draft_order_complete_clear_line_draft_base_price_expire_at_field(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+):
+    # given
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_time = timezone.now() + datetime.timedelta(hours=24)
+    lines = order.lines.all()
+    for line in lines:
+        line.draft_base_price_expire_at = expire_time
+    OrderLine.objects.bulk_update(lines, ["draft_base_price_expire_at"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderComplete"]["errors"]
+
+    for line in order.lines.all():
+        assert line.draft_base_price_expire_at is None

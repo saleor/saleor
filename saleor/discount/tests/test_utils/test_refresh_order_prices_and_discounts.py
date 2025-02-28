@@ -1,7 +1,10 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import graphene
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 
 from ....core.prices import quantize_price
 from ....core.taxes import zero_money
@@ -21,6 +24,7 @@ def order_with_lines(order_with_lines):
     return order_with_lines
 
 
+@freeze_time("2020-03-18 12:00:00")
 def test_refresh_order_base_prices(order_with_lines):
     # given
     order = order_with_lines
@@ -48,6 +52,11 @@ def test_refresh_order_base_prices(order_with_lines):
     channel_listing_2.discounted_price_amount = new_variant_2_price
     channel_listing_2.save(update_fields=["price_amount", "discounted_price_amount"])
 
+    expire_period = order.channel.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+    expected_expire_time = timezone.now() + timedelta(hours=expire_period)
+
     # when
     refresh_order_base_prices_and_discounts(order)
 
@@ -55,10 +64,14 @@ def test_refresh_order_base_prices(order_with_lines):
     line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
+    assert line_1.draft_base_price_expire_at == expected_expire_time
+
     assert line_2.undiscounted_base_unit_price_amount == new_variant_2_price
     assert line_2.base_unit_price_amount == new_variant_2_price
+    assert line_1.draft_base_price_expire_at == expected_expire_time
 
 
+@freeze_time("2020-03-18 12:00:00")
 def test_refresh_order_base_prices_single_line(order_with_lines):
     # given
     order = order_with_lines
@@ -86,6 +99,11 @@ def test_refresh_order_base_prices_single_line(order_with_lines):
     channel_listing_2.discounted_price_amount = new_variant_2_price
     channel_listing_2.save(update_fields=["price_amount", "discounted_price_amount"])
 
+    expire_period = order.channel.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+    expected_expire_time = timezone.now() + timedelta(hours=expire_period)
+
     line_ids_to_refresh = [line_1.id]
 
     # when
@@ -95,8 +113,11 @@ def test_refresh_order_base_prices_single_line(order_with_lines):
     line_1, line_2 = order.lines.all()
     assert line_1.undiscounted_base_unit_price_amount == new_variant_1_price
     assert line_1.base_unit_price_amount == new_variant_1_price
+    assert line_1.draft_base_price_expire_at == expected_expire_time
+
     assert line_2.undiscounted_base_unit_price_amount == initial_variant_2_price
     assert line_2.base_unit_price_amount == initial_variant_2_price
+    assert line_2.draft_base_price_expire_at is None
 
 
 def test_refresh_order_base_prices_catalogue_discount(

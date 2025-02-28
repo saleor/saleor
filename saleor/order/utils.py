@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Iterable
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
@@ -225,6 +226,7 @@ def create_order_line(
     variant = line_data.variant
     quantity = line_data.quantity
     price_override = line_data.price_override
+    is_price_overridden = price_override is not None
     rules_info = line_data.rules_info
 
     product = variant.product
@@ -263,6 +265,13 @@ def create_order_line(
         translated_product_name = ""
     if translated_variant_name == variant_name:
         translated_variant_name = ""
+
+    price_expiration_date = (
+        get_order_line_price_expiration_date(channel)
+        if is_price_overridden is False
+        else None
+    )
+
     # TODO zedzior: this trigger multiple db calls for multiple lines
     line = order.lines.create(
         product_name=product_name,
@@ -281,7 +290,8 @@ def create_order_line(
         total_price=total_price,
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
-        is_price_overridden=price_override is not None,
+        is_price_overridden=is_price_overridden,
+        draft_base_price_expire_at=price_expiration_date,
         **get_tax_class_kwargs_for_order_line(tax_class),
     )
 
@@ -431,6 +441,7 @@ def update_line_base_unit_prices_with_custom_price(
     line.undiscounted_base_unit_price_amount = price_override
     line.undiscounted_unit_price_gross_amount = price_override
     line.undiscounted_unit_price_net_amount = price_override
+    line.draft_base_price_expire_at = None
     update_fields.extend(
         [
             "is_price_overridden",
@@ -438,6 +449,7 @@ def update_line_base_unit_prices_with_custom_price(
             "base_unit_price_amount",
             "undiscounted_unit_price_gross_amount",
             "undiscounted_unit_price_net_amount",
+            "draft_base_price_expire_at",
         ]
     )
 
@@ -1340,3 +1352,11 @@ def clean_order_line_quantities(order_lines, quantities_for_lines):
                     )
                 }
             )
+
+
+def get_order_line_price_expiration_date(channel: "Channel") -> datetime | None:
+    freeze_period = channel.draft_order_line_price_freeze_period
+    if freeze_period is not None and freeze_period > 0:
+        now = timezone.now()
+        return now + timedelta(hours=freeze_period)
+    return None

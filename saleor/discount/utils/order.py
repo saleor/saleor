@@ -290,18 +290,20 @@ def create_order_line_discount_objects_for_catalogue_promotions(
 def refresh_order_base_prices_and_discounts(
     order: "Order",
     line_ids_to_refresh: list[UUID] | None = None,
+    lines: Iterable[OrderLine] | None = None,
 ):
     """Force order to fetch the latest channel listing prices and update discounts."""
     from ...order.fetch import (
         fetch_draft_order_lines_info,
         reattach_apply_once_per_order_voucher_info,
     )
+    from ...order.utils import get_order_line_price_expiration_date
 
     if order.status not in ORDER_EDITABLE_STATUS:
         return
 
     lines_info = fetch_draft_order_lines_info(
-        order, lines=None, fetch_actual_prices=True
+        order, lines=lines, fetch_actual_prices=True
     )
     if not lines_info:
         return
@@ -341,6 +343,12 @@ def refresh_order_base_prices_and_discounts(
     # update unit discount fields based on updated discounts
     update_unit_discount_data_on_order_line(lines_info)
 
+    # set price expiration time
+    expiration_time = get_order_line_price_expiration_date(order.channel)
+    for line_info in lines_info_to_update:
+        if not line_info.line.is_price_overridden:
+            line_info.line.draft_base_price_expire_at = expiration_time
+
     lines = [line_info.line for line_info in lines_info]
     OrderLine.objects.bulk_update(
         lines,
@@ -351,6 +359,7 @@ def refresh_order_base_prices_and_discounts(
             "unit_discount_value",
             "base_unit_price_amount",
             "undiscounted_base_unit_price_amount",
+            "draft_base_price_expire_at",
         ],
     )
 
