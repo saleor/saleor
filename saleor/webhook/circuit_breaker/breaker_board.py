@@ -163,8 +163,8 @@ class BreakerBoard:
 
     def __call__(self, func):
         def inner(*args, **kwargs):
-            event_type: str = args[0]
-            webhook: Webhook = args[2]
+            event_type: str = kwargs.get("event_type") or args[0]
+            webhook: Webhook = kwargs.get("webhook") or args[2]
 
             if event_type not in settings.BREAKER_BOARD_SYNC_EVENTS:
                 # Execute webhook without affecting breaker state
