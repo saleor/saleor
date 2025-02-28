@@ -22,10 +22,10 @@ def in_memory_span_exporter():
 
 @pytest.fixture
 def get_test_spans(in_memory_span_exporter):
-    # Clear buffer before test
+    # Clear any existing spans from the buffer before test execution
     in_memory_span_exporter.clear()
     yield in_memory_span_exporter.get_finished_spans
-    # Clear buffer after test
+    # Clean up by clearing the buffer after test completion
     in_memory_span_exporter.clear()
 
 
