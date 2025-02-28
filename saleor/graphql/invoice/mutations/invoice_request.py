@@ -9,6 +9,7 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.mutations import ModelMutation
 from ...core.types import InvoiceError
 from ...core.utils import WebhookEventInfo
@@ -114,4 +115,4 @@ class InvoiceRequest(ModelMutation):
             order=order,
             number=number,
         )
-        return InvoiceRequest(invoice=invoice, order=order)
+        return InvoiceRequest(invoice=invoice, order=SyncWebhookControlContext(order))

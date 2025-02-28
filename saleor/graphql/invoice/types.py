@@ -1,6 +1,7 @@
 import graphene
 
 from ...invoice import models
+from ..core.context import SyncWebhookControlContext
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.scalars import DateTime
 from ..core.types import Job, ModelObjectType
@@ -38,4 +39,11 @@ class Invoice(ModelObjectType[models.Invoice]):
 
     @staticmethod
     def resolve_order(root: models.Invoice, info):
-        return OrderByIdLoader(info.context).load(root.order_id)
+        def _wrap_with_sync_webhook_control_context(order):
+            return SyncWebhookControlContext(node=order)
+
+        return (
+            OrderByIdLoader(info.context)
+            .load(root.order_id)
+            .then(_wrap_with_sync_webhook_control_context)
+        )

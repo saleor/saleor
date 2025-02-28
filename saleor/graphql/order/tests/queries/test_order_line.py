@@ -11,6 +11,7 @@ from .....order.interface import OrderTaxedPricesData
 from .....thumbnail.models import Thumbnail
 from .....warehouse.models import Stock
 from ....core.enums import ThumbnailFormatEnum
+from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
 
@@ -648,24 +649,20 @@ def test_order_line_tax_class_query_by_app(
 
 
 UNDISCOUNTED_PRICE_QUERY = """
-        query OrdersQuery {
-            orders(first: 1) {
-                edges {
-                    node {
-                        lines {
-                            undiscountedUnitPrice {
-                                net {
-                                    amount
-                                }
-                                gross {
-                                    amount
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+query OrderQuery($id: ID) {
+  order(id: $id) {
+    lines {
+      undiscountedUnitPrice {
+        net {
+          amount
         }
+        gross {
+          amount
+        }
+      }
+    }
+  }
+}
 """
 
 
@@ -704,12 +701,14 @@ def test_order_query_undiscounted_prices_taxed(
     line.save(update_fields=["undiscounted_unit_price_gross_amount"])
 
     # when
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        query, variables={"id": to_global_id_or_none(order)}
+    )
 
     # then
 
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
     first_order_data_line_price = order_data["lines"][0]["undiscountedUnitPrice"]
     assert first_order_data_line_price["net"]["amount"] == line.unit_price.net.amount
 
@@ -751,11 +750,13 @@ def test_order_query_undiscounted_prices_no_tax(
 
     permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
     # when
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        query, variables={"id": to_global_id_or_none(order)}
+    )
 
     # then
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
     first_order_data_line_price = order_data["lines"][0]["undiscountedUnitPrice"]
     assert first_order_data_line_price["net"]["amount"] == line.unit_price.net.amount
     assert first_order_data_line_price["gross"]["amount"] == line.unit_price.net.amount

@@ -9,6 +9,7 @@ from ....payment import models as payment_models
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
@@ -98,4 +99,4 @@ class OrderCapture(BaseMutation):
                 manager,
                 site.settings,
             )
-        return OrderCapture(order=order)
+        return OrderCapture(order=SyncWebhookControlContext(order))

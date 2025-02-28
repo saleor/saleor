@@ -440,8 +440,13 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def get_subtotal(self):
         return get_subtotal(self.lines.all(), self.currency)
 
-    def is_shipping_required(self):
-        return any(line.is_shipping_required for line in self.lines.all())
+    def is_shipping_required(
+        self, database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
+    ):
+        return any(
+            line.is_shipping_required
+            for line in self.lines.using(database_connection_name).all()
+        )
 
     def get_total_quantity(self):
         return sum([line.quantity for line in self.lines.all()])

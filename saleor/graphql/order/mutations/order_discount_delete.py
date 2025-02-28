@@ -9,6 +9,7 @@ from ....order.utils import invalidate_order_prices, remove_order_discount_from_
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...discount.types import OrderDiscount
@@ -69,4 +70,4 @@ class OrderDiscountDelete(OrderDiscountCommon):
             order.save(
                 update_fields=["should_refresh_prices", "search_vector", "updated_at"]
             )
-        return OrderDiscountDelete(order=order)
+        return OrderDiscountDelete(order=SyncWebhookControlContext(order))

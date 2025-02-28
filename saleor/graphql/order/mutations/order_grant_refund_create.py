@@ -9,10 +9,8 @@ from ....order import models
 from ....order.utils import update_order_charge_data
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_320,
-    PREVIEW_FEATURE,
-)
+from ...core.context import SyncWebhookControlContext
+from ...core.descriptions import ADDED_IN_320, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -294,4 +292,7 @@ class OrderGrantRefundCreate(BaseMutation):
                 models.OrderGrantedRefundLine.objects.bulk_create(cleaned_input_lines)
             update_order_charge_data(order)
 
-        return cls(order=order, granted_refund=granted_refund)
+        return cls(
+            order=SyncWebhookControlContext(order),
+            granted_refund=SyncWebhookControlContext(node=granted_refund),
+        )

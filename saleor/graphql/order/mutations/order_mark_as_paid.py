@@ -19,6 +19,7 @@ from ....payment import PaymentError
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -130,4 +131,4 @@ class OrderMarkAsPaid(BaseMutation):
 
         update_order_search_vector(order)
 
-        return OrderMarkAsPaid(order=order)
+        return OrderMarkAsPaid(order=SyncWebhookControlContext(order))
