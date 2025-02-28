@@ -1,7 +1,7 @@
 import pytest
 
-from ..utils import assign_permissions
-from .utils import create_staff, update_staff
+from ...utils import assign_permissions
+from ..utils import create_staff, update_staff
 
 
 @pytest.mark.e2e

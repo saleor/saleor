@@ -1,18 +1,18 @@
 import pytest
 
-from ....account.models import User
-from ....graphql.core.utils import to_global_id_or_none
-from ..shop.utils import prepare_shop
-from ..utils import assign_permissions
-from .utils import account_register, token_create
+from .....account.models import User
+from .....graphql.core.utils import to_global_id_or_none
+from ...shop.utils import prepare_shop
+from ...utils import assign_permissions
+from ..utils import account_register, token_create
 
 
 @pytest.mark.e2e
-def test_should_login_before_email_confirmation_core_1510(
+def test_should_create_account_without_email_confirmation_core_1502(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    permission_manage_product_types_and_attributes,
     shop_permissions,
+    permission_manage_product_types_and_attributes,
 ):
     # Before
     permissions = [
@@ -33,17 +33,16 @@ def test_should_login_before_email_confirmation_core_1510(
                     },
                 ],
                 "order_settings": {},
-            },
+            }
         ],
         shop_settings={
-            "enableAccountConfirmationByEmail": True,
-            "allowLoginWithoutConfirmation": True,
+            "enableAccountConfirmationByEmail": False,
         },
     )
-    channel_slug = shop_data[0]["slug"]
 
-    test_email = "user@saleor.io"
-    test_password = "Password!"
+    channel_slug = shop_data[0]["slug"]
+    test_email = "new-user@saleor.io"
+    test_password = "password!"
     redirect_url = "https://www.example.com"
 
     # Step 1 - Create account for the new customer
@@ -54,17 +53,13 @@ def test_should_login_before_email_confirmation_core_1510(
         channel_slug,
         redirect_url,
     )
-
     user = User.objects.last()
     assert user
     user_id = to_global_id_or_none(user)
     assert user_account["user"]["isActive"] is True
-    assert user_account["requiresConfirmation"] is True
 
-    # Step 2 - Login
-
+    # Step 2 - Authenticate as new created user
     login_data = token_create(e2e_not_logged_api_client, test_email, test_password)
 
     assert login_data["user"]["id"] == user_id
-    assert login_data["user"]["isActive"] is True
-    assert login_data["user"]["isConfirmed"] is False
+    assert login_data["user"]["email"] == test_email
