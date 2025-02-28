@@ -1422,3 +1422,4 @@ def calculate_draft_order_line_price_expiration_date(
     if freeze_period is not None and freeze_period > 0:
         now = timezone.now()
         return now + timedelta(hours=freeze_period)
+    return None

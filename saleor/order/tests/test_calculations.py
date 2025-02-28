@@ -666,7 +666,6 @@ def test_calculate_prices_total_shipping_price_changed(
             "shipping_method_name",
         ]
     )
-    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
     calculations.calculate_prices(order, order_lines)
@@ -699,7 +698,6 @@ def test_calculate_prices_line_quantity_changed(
     line = order_lines.first()
     line.quantity += 1
     line.save(update_fields=["quantity"])
-    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
     calculations.calculate_prices(order, order_lines)
@@ -1604,7 +1602,7 @@ def test_calculate_taxes_empty_tax_data_logging_address(
     tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
-    calculations.calculate_taxes(order, manager, order_lines)
+    calculations.calculate_taxes(order, manager, order_lines, tax_calculation_strategy)
 
     # then
     assert (
