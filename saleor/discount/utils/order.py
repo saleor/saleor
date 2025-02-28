@@ -5,13 +5,13 @@ from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import prefetch_related_objects
 from prices import TaxedMoney
 
 from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...order import ORDER_EDITABLE_STATUS
 from ...order.base_calculations import base_order_subtotal
 from ...order.models import Order, OrderLine
 from .. import DiscountType
@@ -32,24 +32,9 @@ from .promotion import (
     update_promotion_discount,
 )
 from .shared import update_line_info_cached_discounts
-from .voucher import (
-    create_or_update_line_discount_objects_from_voucher,
-    get_the_cheapest_line,
-)
 
 if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
-
-
-def create_or_update_discount_objects_for_order(
-    order: "Order",
-    lines_info: list["EditableOrderLineInfo"],
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    create_order_discount_objects_for_order_promotions(
-        order, lines_info, database_connection_name=database_connection_name
-    )
-    update_unit_discount_data_on_order_line(lines_info)
 
 
 def create_order_line_discount_objects(
@@ -175,6 +160,21 @@ def update_unit_discount_data_on_order_line(
             line.unit_discount_value = Decimal("0.0")
 
 
+def handle_order_promotion(
+    order: "Order",
+    lines_info,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+):
+    create_order_discount_objects_for_order_promotions(
+        order, lines_info, database_connection_name=database_connection_name
+    )
+    # order object
+    _clear_prefetched_order_discounts(order)
+    with allow_writer():
+        # TODO: Load discounts with a dataloader and pass as argument
+        prefetch_related_objects([order], "discounts")
+
+
 def create_order_discount_objects_for_order_promotions(
     order: "Order",
     lines_info: list["EditableOrderLineInfo"],
@@ -209,6 +209,11 @@ def create_order_discount_objects_for_order_promotions(
     if not gift_promotion_applied and not discount_object:
         _clear_order_discount(order, lines_info)
         return
+
+
+def _clear_prefetched_order_discounts(order):
+    if hasattr(order, "_prefetched_objects_cache"):
+        order._prefetched_objects_cache.pop("discounts", None)
 
 
 def _set_order_base_prices(order: Order, lines_info: list["EditableOrderLineInfo"]):
@@ -285,93 +290,6 @@ def create_order_line_discount_objects_for_catalogue_promotions(
                     new_line_discounts, ignore_conflicts=True
                 )
     return []
-
-
-def refresh_order_base_prices_and_discounts(
-    order: "Order",
-    line_ids_to_refresh: list[UUID] | None = None,
-    lines: Iterable[OrderLine] | None = None,
-):
-    """Force order to fetch the latest channel listing prices and update discounts."""
-    from ...order.fetch import (
-        fetch_draft_order_lines_info,
-        reattach_apply_once_per_order_voucher_info,
-    )
-    from ...order.utils import get_order_line_price_expiration_date
-
-    if order.status not in ORDER_EDITABLE_STATUS:
-        return
-
-    lines_info = fetch_draft_order_lines_info(
-        order, lines=lines, fetch_actual_prices=True
-    )
-    if not lines_info:
-        return
-
-    if line_ids_to_refresh:
-        lines_info_to_update = [
-            line_info
-            for line_info in lines_info
-            if line_info.line.id in line_ids_to_refresh
-        ]
-    else:
-        lines_info_to_update = lines_info
-
-    initial_cheapest_line = get_the_cheapest_line(lines_info)
-
-    # update prices based on the latest channel listing prices
-    _set_channel_listing_prices(lines_info_to_update)
-    # update prices based on the latest catalogue promotions
-    refresh_order_line_discount_objects_for_catalogue_promotions(lines_info_to_update)
-    # update manual line discount object amount based on the new listing prices
-    refresh_manual_line_discount_object(lines_info_to_update)
-
-    # update prices based on the associated voucher
-    is_apply_once_per_order_voucher = (
-        order.voucher and order.voucher.apply_once_per_order
-    )
-    if is_apply_once_per_order_voucher:
-        # voucher of type apply once per order can impact other order line, if the
-        # cheapest line has changed
-        reattach_apply_once_per_order_voucher_info(
-            lines_info, initial_cheapest_line, order
-        )
-        create_or_update_line_discount_objects_from_voucher(lines_info)
-    else:
-        create_or_update_line_discount_objects_from_voucher(lines_info_to_update)
-
-    # update unit discount fields based on updated discounts
-    update_unit_discount_data_on_order_line(lines_info)
-
-    # set price expiration time
-    expiration_time = get_order_line_price_expiration_date(order.channel)
-    for line_info in lines_info_to_update:
-        if not line_info.line.is_price_overridden:
-            line_info.line.draft_base_price_expire_at = expiration_time
-
-    lines = [line_info.line for line_info in lines_info]
-    OrderLine.objects.bulk_update(
-        lines,
-        [
-            "unit_discount_amount",
-            "unit_discount_reason",
-            "unit_discount_type",
-            "unit_discount_value",
-            "base_unit_price_amount",
-            "undiscounted_base_unit_price_amount",
-            "draft_base_price_expire_at",
-        ],
-    )
-
-
-def _set_channel_listing_prices(lines_info: list["EditableOrderLineInfo"]):
-    for line_info in lines_info:
-        line = line_info.line
-        channel_listing = line_info.channel_listing
-        # TODO zedzior: should we do anything if the listing is not available anymore
-        if channel_listing and channel_listing.price_amount:
-            line.undiscounted_base_unit_price_amount = channel_listing.price_amount
-            line.base_unit_price_amount = channel_listing.price_amount
 
 
 def refresh_order_line_discount_objects_for_catalogue_promotions(

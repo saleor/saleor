@@ -293,7 +293,7 @@ def create_order_line(
         translated_variant_name = ""
 
     price_expiration_date = (
-        get_order_line_price_expiration_date(channel)
+        calculate_draft_order_line_price_expiration_date(channel, order.status)
         if is_price_overridden is False
         else None
     )
@@ -1412,9 +1412,13 @@ def store_user_addresses_from_draft_order(order, manager):
     )
 
 
-def get_order_line_price_expiration_date(channel: "Channel") -> datetime | None:
+def calculate_draft_order_line_price_expiration_date(
+    channel: "Channel", order_status: str
+) -> datetime | None:
+    """Calculate datetime, when order line base prices should be refreshed."""
+    if order_status != OrderStatus.DRAFT:
+        return None
     freeze_period = channel.draft_order_line_price_freeze_period
     if freeze_period is not None and freeze_period > 0:
         now = timezone.now()
         return now + timedelta(hours=freeze_period)
-    return None
