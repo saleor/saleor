@@ -88,7 +88,7 @@ class Meter:
         unit: Unit,
         scope: Scope = Scope.CORE,
         description: str = "",
-    ) -> None:
+    ) -> str:
         """Create a new metric with specified parameters.
 
         Args:
@@ -98,6 +98,9 @@ class Meter:
             scope: The scope of the metric, defaults to Scope.CORE
             description: Optional description of the metric
 
+        Returns:
+            str: The name of the created metric
+
         """
         meter = self._service_tracer if scope.is_service else self._core_tracer
         with self._lock:
@@ -105,6 +108,7 @@ class Meter:
                 raise DuplicateMetricError(name)
             instrument = self._create_instrument(meter, name, type, unit, description)
             self._instruments[name] = unit, instrument
+        return name
 
     def record(
         self,
@@ -171,7 +175,7 @@ class MeterProxy(Meter):
         unit: Unit,
         scope: Scope = Scope.CORE,
         description: str = "",
-    ) -> None:
+    ) -> str:
         kwargs = {
             "type": type,
             "unit": unit,
@@ -179,18 +183,18 @@ class MeterProxy(Meter):
             "description": description,
         }
         if self._meter:
-            self._meter.create_metric(
+            return self._meter.create_metric(
                 name,
                 type=type,
                 unit=unit,
                 scope=scope,
                 description=description,
             )
-        else:
-            with self._lock:
-                if name in self._metrics:
-                    raise DuplicateMetricError(name)
-                self._metrics[name] = kwargs
+        with self._lock:
+            if name in self._metrics:
+                raise DuplicateMetricError(name)
+            self._metrics[name] = kwargs
+        return name
 
     def record(
         self,
