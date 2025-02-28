@@ -41,6 +41,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 - `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
+- Add `metadata` and `privateMetadata` to `Stock` entities. Now `productVariantStockUpdate` and `productVariantStockCreate` will accept metadata in inputs.
 
 ### Webhooks
 

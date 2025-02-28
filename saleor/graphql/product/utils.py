@@ -88,6 +88,9 @@ def create_stocks(
                     product_variant=variant,
                     warehouse=warehouse,
                     quantity=stock_data["quantity"],
+                    # What is the metadata format anyway?
+                    metadata=stock_data["metadata"],
+                    private_metadata=stock_data["privateMetadata"],
                 )
                 for stock_data, warehouse in zip(stocks_data, warehouses, strict=False)
             ]

@@ -123,6 +123,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 )
 
             stock.quantity = stock_data["quantity"]
+            # TODO : Update stock metadata, first map fields
             stocks.append(stock)
         cls.call_event(
             manager.product_variant_stocks_updated,
