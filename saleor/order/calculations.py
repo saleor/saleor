@@ -50,7 +50,7 @@ from .fetch import (
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 from .utils import (
-    get_order_line_price_expiration_date,
+    calculate_draft_order_line_price_expiration_date,
     log_address_if_validation_skipped_for_order,
     order_info_for_logs,
 )
@@ -564,7 +564,9 @@ def refresh_order_base_prices_and_discounts(
     update_unit_discount_data_on_order_line(lines_info)
 
     # set price expiration time
-    expiration_time = get_order_line_price_expiration_date(order)
+    expiration_time = calculate_draft_order_line_price_expiration_date(
+        order.channel, order.status
+    )
     for line_info in lines_info_to_update:
         line_info.line.draft_base_price_expire_at = expiration_time
 
