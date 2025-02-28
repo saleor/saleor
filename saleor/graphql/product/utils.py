@@ -6,10 +6,11 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
-from django.db.utils import IntegrityError
 from graphql import GraphQLError
+from django.db.utils import IntegrityError
 
 from ...core.tracing import traced_atomic_transaction
+
 from ...order import OrderStatus
 from ...order import models as order_models
 from ...warehouse.models import Stock
