@@ -41,7 +41,7 @@ from ..tax.utils import (
     validate_tax_data,
 )
 from . import ORDER_EDITABLE_STATUS, OrderStatus
-from .base_calculations import apply_order_discounts, base_order_line_total
+from .base_calculations import base_order_line_total, calculate_prices
 from .fetch import (
     EditableOrderLineInfo,
     fetch_draft_order_lines_info,
@@ -92,15 +92,21 @@ def fetch_order_prices_if_expired(
     else:
         lines_info = fetch_draft_order_lines_info(order, lines)
 
-    # handle order promotion
+    # order promotion is qualified based on the most actual prices, therefor need to be assessed
+    # on the every recalculation
     handle_order_promotion(order, lines_info, database_connection_name)
 
     # update `OrderLine.unit_discount_...` fields
     update_unit_discount_data_on_order_line(lines_info)
 
-    # calculate prices
     lines = [line_info.line for line_info in lines_info]
-    _recalculate_prices(
+    calculate_prices(
+        order,
+        lines,
+        database_connection_name=database_connection_name,
+    )
+
+    calculate_taxes(
         order,
         manager,
         lines,
@@ -164,14 +170,13 @@ def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> lis
     ]
 
 
-def _recalculate_prices(
+def calculate_taxes(
     order: Order,
     manager: PluginsManager,
     lines: Iterable[OrderLine],
     tax_calculation_strategy: str,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    """Calculate prices after handling order level discounts and taxes."""
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_order(order)
@@ -179,15 +184,6 @@ def _recalculate_prices(
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
     order.tax_error = None
-
-    # calculate untaxed prices including discounts
-    apply_order_discounts(
-        order,
-        lines,
-        database_connection_name=database_connection_name,
-    )
-
-    # handle taxes
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
