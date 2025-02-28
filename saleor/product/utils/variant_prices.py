@@ -55,9 +55,11 @@ def update_discounted_prices_for_promotion(
     changed_variant_listing_promotion_rule_to_create = []
     changed_variant_listing_promotion_rule_to_update = []
 
-    product_channel_listings = ProductChannelListing.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(Exists(products.filter(id=OuterRef("product_id"))))
+    product_channel_listings = (
+        ProductChannelListing.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(products.filter(id=OuterRef("product_id"))))
+        .prefetch_related("channel")
+    )
     if only_dirty_products:
         product_channel_listings.filter(discounted_price_dirty=True)
 

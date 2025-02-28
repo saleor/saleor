@@ -5,6 +5,7 @@ USER_QUERY = (
     """
     query User($id: ID!) {
         user(id: $id) {
+            id
             email
             firstName
             lastName

@@ -4,9 +4,9 @@ import pytest
 
 from saleor.account.throttling import get_cache_key_blocked_ip
 
-from ..shop.utils import prepare_shop
-from ..utils import assign_permissions
-from .utils import account_register, raw_token_create
+from ...shop.utils import prepare_shop
+from ...utils import assign_permissions
+from ..utils import account_register, raw_token_create
 
 
 @pytest.mark.e2e

@@ -1,9 +1,9 @@
 import pytest
 
 from .. import ADDRESS_DE, DEFAULT_ADDRESS
+from ..account.utils import create_customer
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_default_shop
-from ..users.utils import create_customer
 from ..utils import assert_address_data, assign_permissions
 from .utils import (
     draft_order_complete,

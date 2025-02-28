@@ -1,7 +1,7 @@
 import pytest
 
 from .. import ADDRESS_DE, DEFAULT_ADDRESS
-from ..account.utils import get_own_data
+from ..account.utils import get_own_data, get_user
 from ..checkout.utils import (
     checkout_create,
     checkout_delivery_method_update,
@@ -9,7 +9,6 @@ from ..checkout.utils import (
 )
 from ..product.utils.preparing_product import prepare_product
 from ..shop.utils.preparing_shop import prepare_shop
-from ..users.utils import get_user
 from ..utils import assert_address_data, assign_permissions
 from .utils import (
     order_update,

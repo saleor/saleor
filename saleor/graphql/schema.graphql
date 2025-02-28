@@ -2794,6 +2794,20 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
 
   """App's brand data."""
   brand: AppBrand
+
+  """
+  Circuit breaker state, if open, sync webhooks operation is disrupted.
+  
+  Added in Saleor 3.21.
+  """
+  breakerState: CircuitBreakerStateEnum!
+
+  """
+  Circuit breaker last state change date.
+  
+  Added in Saleor 3.21.
+  """
+  breakerLastStateChange: DateTime
 }
 
 interface ObjectWithMetadata {
@@ -3000,6 +3014,22 @@ type AppBrandLogo @doc(category: "Apps") {
 enum IconThumbnailFormatEnum {
   ORIGINAL
   WEBP
+}
+
+"""Enum determining the state of a circuit breaker."""
+enum CircuitBreakerStateEnum @doc(category: "Apps") {
+  """The breaker is conducting (requests are passing through)."""
+  CLOSED
+
+  """
+  The breaker is in a trial period (to close or open). Note that unlike classic breaker patterns, this is not a state where we are throttling the number of requests, it's a state similar to CLOSED but with different thresholds.
+  """
+  HALF_OPEN
+
+  """
+  The breaker is tripped (no requests are passing). Breaker will enter half-open state after cooldown period.
+  """
+  OPEN
 }
 
 type EventDeliveryCountableConnection {
@@ -18166,6 +18196,18 @@ type Mutation {
     id: ID!
   ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
+  """
+  Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
+  
+  Added in Saleor 3.21. 
+  
+  Requires one of the following permissions: MANAGE_APPS.
+  """
+  appReenableSyncWebhooks(
+    """The app ID to re-enable sync webhooks for."""
+    appId: ID!
+  ): AppReenableSyncWebhooks @doc(category: "Apps")
+
   """Create JWT token."""
   tokenCreate(
     """
@@ -28599,6 +28641,20 @@ type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_S
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
+}
+
+"""
+Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
+
+Added in Saleor 3.21. 
+
+Requires one of the following permissions: MANAGE_APPS.
+"""
+type AppReenableSyncWebhooks @doc(category: "Apps") {
+  """App for which sync webhooks were re-enabled."""
+  app: App
+  appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [AppError!]!
 }
 
 """Create JWT token."""
