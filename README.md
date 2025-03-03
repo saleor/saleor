@@ -1,7 +1,5 @@
 <div align="center" width="100px">
 
-
-
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/76e3079f-696a-4fcd-8658-89739647090b">
    <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/8477d643-a905-4c63-8ed3-03d0976f6fc3">
@@ -26,8 +24,6 @@
   <span> | </span>
   <a href="https://twitter.com/getsaleor">Twitter</a>
   <span> | </span>
-  <a href="https://github.com/saleor/saleor/discussions">GitHub Discussions</a>
-  <span> | </span>
   <a href="https://saleor.io/discord">Discord</a>
 </div>
 
@@ -38,6 +34,12 @@
 </div>
 
 <br>
+
+<div align="center">
+  
+[![Discord Badge](https://dcbadge.vercel.app/api/server/unUfh24R6d)](https://saleor.io/discord)
+
+</div>
 
 <div align="center">
   <a href="https://codecov.io/gh/saleor/saleor" >
