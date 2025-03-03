@@ -65,7 +65,7 @@ def enrich_with_global_attributes(attributes: Attributes) -> Attributes:
 
 
 @dataclass(frozen=True)
-class TelemetryContext:
+class TelemetryTaskContext:
     """Carries telemetry context when propagated to Celery tasks."""
 
     # TODO add TraceState support
@@ -91,7 +91,7 @@ class TelemetryContext:
         }
 
     @classmethod
-    def from_dict(cls, data: dict | None) -> "TelemetryContext":
+    def from_dict(cls, data: dict | None) -> "TelemetryTaskContext":
         if not data:
             return cls(global_attributes={})
         try:
@@ -113,24 +113,27 @@ class TelemetryContext:
 
 
 def task_with_telemetry_context(func: Callable) -> Callable:
-    """Propagate telemetry context to Celery tasks.
+    """Handle telemetry context injection for Celery tasks.
 
-    Sets global attributes within task context. Wrapped function must accept span_links kwarg.
-    Task must be invoked with telemetry_context kwarg.
+    This decorator deserializes the telemetry context and sets the global attributes for the task execution.
+    The decorated function must accept a 'telemetry_context: TelemetryTaskContext' kwarg and it is
+    recommended to invoke the task with 'telemetry_context=get_task_context().to_dict()'.
     """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        context = TelemetryContext(global_attributes={})
+        context = TelemetryTaskContext(global_attributes={})
         if "telemetry_context" not in kwargs:
             logger.warning("No telemetry_context provided for the task")
         else:
             try:
-                context = TelemetryContext.from_dict(kwargs.pop("telemetry_context"))
+                context = TelemetryTaskContext.from_dict(
+                    kwargs.pop("telemetry_context")
+                )
             except ValueError:
                 logger.exception("Failed to parse telemetry context")
 
         with set_global_attributes(context.global_attributes):
-            return func(*args, span_links=context.links, **kwargs)
+            return func(*args, telemetry_context=context, **kwargs)
 
     return wrapper

@@ -9,7 +9,7 @@ from .metric import Meter, MeterProxy, MetricType
 from .trace import Link, SpanKind, Tracer, TracerProxy
 from .utils import (
     Scope,
-    TelemetryContext,
+    TelemetryTaskContext,
     Unit,
     set_global_attributes,
     task_with_telemetry_context,
@@ -45,9 +45,9 @@ def initialize_telemetry() -> None:
     meter.initialize(meter_cls, saleor_version)
 
 
-def get_current_context(link_attributes: Attributes = None) -> TelemetryContext:
+def get_task_context(link_attributes: Attributes = None) -> TelemetryTaskContext:
     link = Link(tracer.get_current_span().get_span_context(), link_attributes)
-    return TelemetryContext(links=[link])
+    return TelemetryTaskContext(links=[link])
 
 
 __all__ = [
@@ -62,7 +62,7 @@ __all__ = [
     "AttributeValue",
     "Scope",
     "Link",
-    "TelemetryContext",
+    "TelemetryTaskContext",
     "task_with_telemetry_context",
-    "get_current_context",
+    "get_task_context",
 ]

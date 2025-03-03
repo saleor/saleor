@@ -8,7 +8,7 @@ from graphene.utils.str_converters import to_camel_case
 from ....app.models import App
 from ....core import EventDeliveryStatus
 from ....core import models as core_models
-from ....core.telemetry import get_current_context
+from ....core.telemetry import get_task_context
 from ....core.utils.events import get_is_deferred_payload
 from ....discount import models as discount_models
 from ....graphql.utils import get_user_or_app_from_context
@@ -181,7 +181,7 @@ class WebhookTrigger(BaseMutation):
                     kwargs={
                         "event_delivery_ids": [delivery.pk],
                         "deferred_payload_data": asdict(deferred_payload_data),
-                        "telemetry_context": get_current_context().to_dict(),
+                        "telemetry_context": get_task_context().to_dict(),
                     },
                     bind=True,
                 )
@@ -194,7 +194,7 @@ class WebhookTrigger(BaseMutation):
                     try:
                         send_webhook_request_async(
                             delivery.id,
-                            telemetry_context=get_current_context().to_dict(),
+                            telemetry_context=get_task_context().to_dict(),
                         )
                         return WebhookTrigger(delivery=delivery)
                     except Retry:
