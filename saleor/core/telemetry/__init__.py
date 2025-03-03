@@ -46,6 +46,7 @@ def initialize_telemetry() -> None:
 
 
 def get_task_context(link_attributes: Attributes = None) -> TelemetryTaskContext:
+    """Create telemetry task context with a link to the current span."""
     link = Link(tracer.get_current_span().get_span_context(), link_attributes)
     return TelemetryTaskContext(links=[link])
 
