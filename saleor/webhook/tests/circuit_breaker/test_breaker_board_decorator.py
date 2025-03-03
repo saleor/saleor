@@ -30,7 +30,10 @@ def test_breaker_board(
         new=Mock(return_value=expected_data),
     ):
         response_data = transport.trigger_webhook_sync(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
+            event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            payload="",
+            webhook=webhook,
+            allow_replica=True,
         )
     state = breaker_board.update_breaker_state(webhook.app)
 
