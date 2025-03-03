@@ -2449,6 +2449,156 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     assert wrapped_call_order_event.called
 
 
+def test_draft_order_update_address_reset_save_address_flag_to_default_value(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    graphql_address_data,
+):
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # given draft order billing and billing address set both save billing flags
+    # different than default value - set to True
+    order.draft_save_billing_address = True
+    order.draft_save_shipping_address = True
+    order.save(
+        update_fields=["draft_save_billing_address", "draft_save_shipping_address"]
+    )
+
+    # when addresses are updated without providing save address flags
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "input": {
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
+        },
+    }
+
+    response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then the addresses are set and save address flags are set to default value
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert data["order"]
+
+    order.refresh_from_db()
+    assert order.shipping_address
+    assert order.billing_address
+    assert order.draft_save_billing_address is False
+    assert order.draft_save_shipping_address is False
+
+
+@pytest.mark.parametrize(
+    ("save_shipping_address", "save_billing_address"),
+    [(True, True), (True, False), (False, True), (False, False)],
+)
+def test_draft_order_update_address_save_addresses_setting_provided(
+    save_shipping_address,
+    save_billing_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    graphql_address_data,
+):
+    # given
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when addresses are updated with providing save address flags
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "input": {
+            "shippingAddress": graphql_address_data,
+            "billingAddress": graphql_address_data,
+            "saveShippingAddress": save_shipping_address,
+            "saveBillingAddress": save_billing_address,
+        },
+    }
+    response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then the addresses with save settings are set
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert data["order"]
+
+    order.refresh_from_db()
+    assert order.shipping_address
+    assert order.billing_address
+    assert order.draft_save_billing_address == save_billing_address
+    assert order.draft_save_shipping_address == save_shipping_address
+
+
+@pytest.mark.parametrize(
+    "save_shipping_address",
+    [True, False],
+)
+def test_draft_order_update_no_shipping_address_save_addresses_raising_error(
+    save_shipping_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+):
+    # given
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    #  when only save address flag is provided
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "input": {
+            "saveShippingAddress": save_shipping_address,
+        },
+    }
+    response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then the error is raised
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["order"]
+    errors = data["errors"]
+    assert len(errors) == 1
+
+    error = errors[0]
+    assert error["field"] == "saveShippingAddress"
+    assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
+
+
+@pytest.mark.parametrize(
+    "save_billing_address",
+    [True, False],
+)
+def test_draft_order_update_no_billing_address_save_addresses_raising_error(
+    save_billing_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+):
+    # given
+    order = draft_order
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when only save address flag is provided
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.id),
+        "input": {
+            "saveBillingAddress": save_billing_address,
+        },
+    }
+    response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then the error is raised
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["order"]
+    errors = data["errors"]
+    assert len(errors) == 1
+
+    error = errors[0]
+    assert error["field"] == "saveBillingAddress"
+    assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
+
+
 def test_draft_order_update_with_metadata(
     app_api_client, permission_manage_orders, draft_order, channel_PLN
 ):

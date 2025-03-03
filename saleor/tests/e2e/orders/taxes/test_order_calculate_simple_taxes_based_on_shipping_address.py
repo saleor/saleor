@@ -1,5 +1,6 @@
 import pytest
 
+from ... import ADDRESS_DE
 from ...product.utils.preparing_product import prepare_product
 from ...shop.utils.preparing_shop import prepare_shop
 from ...taxes.utils import update_country_tax_rates
@@ -119,18 +120,7 @@ def test_order_calculate_simple_tax_based_on_shipping_address_CORE_2002(
     assert order_data["total"]["gross"]["amount"] == product_variant_price
 
     # Step 3 - Add shipping and billing addresses
-    shipping_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    shipping_address = ADDRESS_DE
     billing_address = {
         "firstName": "John",
         "lastName": "Muller",

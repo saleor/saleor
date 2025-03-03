@@ -607,3 +607,56 @@ def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_wa
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
     assert checkout.tax_error is None
+
+
+def test_checkout_complete_existing_user_address_save_address_options_off(
+    user_api_client,
+    checkout_with_item_total_0,
+    customer_user,
+):
+    # given the checkout with the billing address that is currently in user address book
+    # and the save_address option set to False
+    checkout = checkout_with_item_total_0
+
+    address = customer_user.addresses.first()
+    user_address_count = customer_user.addresses.count()
+
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.save(
+        update_fields=[
+            "billing_address",
+            "shipping_address",
+            "save_shipping_address",
+            "save_billing_address",
+        ]
+    )
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when checkout is completed
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then the addresses are not saved or removed from the user address book
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+    assert order.billing_address
+    assert order.shipping_address
+    assert customer_user.addresses.count() == user_address_count
+
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None

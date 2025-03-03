@@ -1,5 +1,6 @@
 import pytest
 
+from ... import ADDRESS_DE
 from ...product.utils.preparing_product import prepare_digital_product
 from ...shop.utils.preparing_shop import prepare_shop
 from ...taxes.utils import update_country_tax_rates
@@ -77,18 +78,7 @@ def test_digital_order_calculate_simple_tax_based_on_billing_country_CORE_2008(
     )
 
     # Step 1 - Create a draft order
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     input = {
         "channelId": channel_id,
         "billingAddress": billing_address,

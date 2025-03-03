@@ -1,7 +1,9 @@
 from ... import DEFAULT_ADDRESS
+from ...account.utils.fragments import ADDRESS_FRAGMENT
 from ...utils import get_graphql_content
 
-CHECKOUT_CREATE_MUTATION = """
+CHECKOUT_CREATE_MUTATION = (
+    """
 mutation CreateCheckout($input: CheckoutCreateInput!) {
   checkoutCreate(input: $input) {
     errors {
@@ -47,14 +49,10 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       created
       isShippingRequired
       billingAddress {
-        country {
-          code
-        }
+        ...Address
       }
       shippingAddress {
-        country {
-          code
-        }
+        ...Address
       }
       shippingMethods {
         id
@@ -117,6 +115,8 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
   }
 }
 """
+    + ADDRESS_FRAGMENT
+)
 
 
 def raw_checkout_create(
@@ -126,6 +126,8 @@ def raw_checkout_create(
     email=None,
     billing_address=DEFAULT_ADDRESS,
     shipping_address=DEFAULT_ADDRESS,
+    save_billing_address=None,
+    save_shipping_address=None,
 ):
     variables = {
         "input": {
@@ -140,6 +142,12 @@ def raw_checkout_create(
 
     if shipping_address:
         variables["input"]["shippingAddress"] = shipping_address
+
+    if save_billing_address is not None:
+        variables["input"]["saveBillingAddress"] = save_billing_address
+
+    if save_shipping_address is not None:
+        variables["input"]["saveShippingAddress"] = save_shipping_address
 
     response = api_client.post_graphql(
         CHECKOUT_CREATE_MUTATION,
@@ -159,6 +167,8 @@ def checkout_create(
     email=None,
     billing_address=DEFAULT_ADDRESS,
     shipping_address=DEFAULT_ADDRESS,
+    save_billing_address=None,
+    save_shipping_address=None,
 ):
     checkout_response = raw_checkout_create(
         api_client,
@@ -167,6 +177,8 @@ def checkout_create(
         email,
         billing_address,
         shipping_address,
+        save_billing_address,
+        save_shipping_address,
     )
     assert checkout_response["errors"] == []
 

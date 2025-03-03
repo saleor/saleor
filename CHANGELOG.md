@@ -5,6 +5,17 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.21.0 [Unreleased]
 
 ### Highlights
+- Introduced a configurable customer address strategy, allowing control over whether shipping or billing addresses are saved in the customer’s address book - #17364 by @IKarbowiak
+	- Applies when a checkout or draft order is completed for a logged-in user.
+	- Default behavior remains unchanged: addresses are saved for checkouts but not for draft orders.
+	- The new save address setting is available in:
+      - `checkoutCreate`
+      - `checkoutShippingAddressUpdate`
+      - `checkoutBillingAddressUpdate`
+      - `draftOrderCreate`
+      - `draftOrderUpdate`
+	- The flag must be provided as part of an address; otherwise, an error is raised.
+	- Does not apply to Click & Collect delivery methods — shipping address is not saved in such case.
 
 ### Breaking changes
 

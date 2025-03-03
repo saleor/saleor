@@ -108,10 +108,16 @@ def prepare_checkout_for_test(
     transaction_events_generator,
     voucher=None,
     user=None,
+    save_shipping_address=None,
+    save_billing_address=None,
 ):
     checkout.shipping_address = shipping_address
     checkout.shipping_method = shipping_method
     checkout.billing_address = billing_address
+    if save_shipping_address is not None:
+        checkout.save_shipping_address = save_shipping_address
+    if save_billing_address is not None:
+        checkout.save_billing_address = save_billing_address
     checkout.user = user
     checkout.save()
 
@@ -1259,19 +1265,22 @@ def test_checkout_complete(
     checkout_with_gift_card,
     gift_card,
     address,
+    address_usa,
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
     caplog,
+    customer_user,
 ):
     # given
     checkout = prepare_checkout_for_test(
         checkout_with_gift_card,
         address,
-        address,
+        address_usa,
         shipping_method,
         transaction_item_generator,
         transaction_events_generator,
+        user=customer_user,
     )
 
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
@@ -1281,6 +1290,9 @@ def test_checkout_complete(
     checkout.tax_exemption = True
     checkout.save()
     checkout.metadata_storage.save()
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -1340,7 +1352,10 @@ def test_checkout_complete(
     assert order_line.tax_class_metadata == line_tax_class.metadata
     assert order_line.tax_class_private_metadata == line_tax_class.private_metadata
 
+    assert order.billing_address.id == address_usa.id
     assert order.shipping_address == address
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
     assert order.shipping_method == checkout.shipping_method
     assert order.shipping_tax_rate is not None
     assert order.shipping_tax_class_name == shipping_tax_class.name
@@ -1374,6 +1389,16 @@ def test_checkout_complete(
     assert total.gross.amount == Decimal(
         caplog.records[0].total_after_gift_card_compensation
     )
+
+    assert customer_user.addresses.count() == user_address_count + 2
+    # ensure the the customer addresses are not the same instances as the order addresses
+    customer_address_ids = list(customer_user.addresses.values_list("pk", flat=True))
+    assert not (
+        set(customer_address_ids)
+        & {order.billing_address.pk, order.shipping_address.pk}
+    )
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
 
 
 @pytest.mark.integration
@@ -3471,15 +3496,19 @@ def test_checkout_complete_with_digital(
     api_client,
     checkout_with_digital_item,
     address,
+    address_usa,
     transaction_events_generator,
     transaction_item_generator,
     customer_user,
 ):
     # given
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
     checkout = prepare_checkout_for_test(
         checkout_with_digital_item,
         address,
-        address,
+        address_usa,
         None,
         transaction_item_generator,
         transaction_events_generator,
@@ -3502,9 +3531,12 @@ def test_checkout_complete_with_digital(
     # Ensure the order was actually created
     assert order, "The order should have been created"
 
-    # FIXME: fix together with ext-1684
-    assert not order.shipping_address
+    assert order.shipping_address
     assert order.billing_address
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+
+    assert customer_user.addresses.count() == user_address_count + 2
 
 
 def test_checkout_complete_with_digital_no_shipping_address_set(
@@ -3543,6 +3575,55 @@ def test_checkout_complete_with_digital_no_shipping_address_set(
     assert order, "The order should have been created"
     assert not order.shipping_address
     assert order.billing_address
+
+
+def test_checkout_complete_with_digital_saving_addresses_off(
+    api_client,
+    checkout_with_digital_item,
+    address,
+    address_usa,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    checkout = prepare_checkout_for_test(
+        checkout_with_digital_item,
+        address,
+        address_usa,
+        None,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+        save_billing_address=False,
+        save_shipping_address=False,
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)["data"]["checkoutComplete"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+
+    assert order.shipping_address
+    assert order.billing_address
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+
+    assert customer_user.addresses.count() == user_address_count
 
 
 def test_complete_checkout_for_local_click_and_collect(
@@ -4542,9 +4623,9 @@ def test_checkout_complete_line_deleted_in_the_meantime(
 def test_checkout_complete_with_invalid_address(
     user_api_client,
     checkout_with_item,
-    transaction_item_generator,
     address,
     shipping_method,
+    customer_user,
 ):
     """Check if checkout can be completed with invalid address.
 
@@ -4563,7 +4644,11 @@ def test_checkout_complete_with_invalid_address(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.tax_exemption = True
+    checkout.user = customer_user
     checkout.save()
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
 
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -4598,6 +4683,11 @@ def test_checkout_complete_with_invalid_address(
     assert not data["errors"]
     assert order.shipping_address.postal_code == invalid_postal_code
     assert order.billing_address.postal_code == invalid_postal_code
+    assert customer_user.addresses.count() == user_address_count + 1
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+    assert customer_user.addresses.first().id != order.shipping_address.id
+    assert customer_user.addresses.first().id != order.billing_address.id
 
 
 @patch("saleor.checkout.complete_checkout._get_unit_discount_reason")
@@ -4862,3 +4952,101 @@ def test_checkout_complete_with_external_shipping_method(
         order.private_metadata[PRIVATE_META_APP_SHIPPING_ID]
         == graphql_externa_method_id
     )
+
+
+def test_checkout_complete_saving_addresses_off(
+    user_api_client,
+    checkout_with_item_and_voucher_specific_products,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_item_and_voucher_specific_products,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+        save_billing_address=False,
+        save_shipping_address=False,
+    )
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.billing_address
+    assert order.shipping_address
+    assert customer_user.addresses.count() == user_address_count
+
+
+def test_checkout_complete_saving_addresses_on(
+    user_api_client,
+    checkout_with_item_and_voucher_specific_products,
+    address,
+    address_usa,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_with_item_and_voucher_specific_products,
+        address,
+        address_usa,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+        save_billing_address=True,
+        save_shipping_address=True,
+    )
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.billing_address
+    assert order.shipping_address
+    assert customer_user.addresses.count() == user_address_count + 2
+    # ensure the the customer addresses are not the same instances as the order addresses
+    customer_address_ids = list(customer_user.addresses.values_list("pk", flat=True))
+    assert not (
+        set(customer_address_ids)
+        & {order.billing_address.pk, order.shipping_address.pk}
+    )
+
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None

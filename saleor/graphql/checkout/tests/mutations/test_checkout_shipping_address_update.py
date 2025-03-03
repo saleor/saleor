@@ -24,17 +24,20 @@ from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.utils import update_checkout_shipping_method_if_invalid
+from ..utils import assert_address_data
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
             $id: ID,
             $shippingAddress: AddressInput!,
             $validationRules: CheckoutAddressValidationRules
+            $saveAddress: Boolean
         ) {
         checkoutShippingAddressUpdate(
                 id: $id,
                 shippingAddress: $shippingAddress,
                 validationRules: $validationRules
+                saveAddress: $saveAddress
         ) {
             checkout {
                 token
@@ -126,27 +129,14 @@ def test_checkout_shipping_address_with_metadata_update(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.shipping_address.metadata == {"public": "public_value"}
-
-    assert checkout.shipping_address is not None
-    assert checkout.shipping_address.first_name == shipping_address["firstName"]
-    assert checkout.shipping_address.last_name == shipping_address["lastName"]
-    assert (
-        checkout.shipping_address.street_address_1 == shipping_address["streetAddress1"]
-    )
-    assert (
-        checkout.shipping_address.street_address_2 == shipping_address["streetAddress2"]
-    )
-    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
-    assert checkout.shipping_address.country == shipping_address["country"]
-    assert checkout.shipping_address.city == shipping_address["city"].upper()
-    assert checkout.shipping_address.validation_skipped is False
+    assert_address_data(checkout.shipping_address, shipping_address)
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.save_shipping_address is True
 
 
 @pytest.mark.parametrize(
@@ -202,27 +192,14 @@ def test_checkout_shipping_address_when_variant_without_listing(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.shipping_address.metadata == {"public": "public_value"}
-
-    assert checkout.shipping_address is not None
-    assert checkout.shipping_address.first_name == shipping_address["firstName"]
-    assert checkout.shipping_address.last_name == shipping_address["lastName"]
-    assert (
-        checkout.shipping_address.street_address_1 == shipping_address["streetAddress1"]
-    )
-    assert (
-        checkout.shipping_address.street_address_2 == shipping_address["streetAddress2"]
-    )
-    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
-    assert checkout.shipping_address.country == shipping_address["country"]
-    assert checkout.shipping_address.city == shipping_address["city"].upper()
-    assert checkout.shipping_address.validation_skipped is False
+    assert_address_data(checkout.shipping_address, shipping_address)
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.save_shipping_address is True
 
 
 @mock.patch(
@@ -264,24 +241,14 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.shipping_address is not None
-    assert checkout.shipping_address.first_name == shipping_address["firstName"]
-    assert checkout.shipping_address.last_name == shipping_address["lastName"]
-    assert (
-        checkout.shipping_address.street_address_1 == shipping_address["streetAddress1"]
-    )
-    assert (
-        checkout.shipping_address.street_address_2 == shipping_address["streetAddress2"]
-    )
-    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]
-    assert checkout.shipping_address.country == shipping_address["country"]
-    assert checkout.shipping_address.city == shipping_address["city"].upper()
+    assert_address_data(checkout.shipping_address, shipping_address)
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.country == shipping_address["country"]
     assert checkout.last_change != previous_last_change
+    assert checkout.save_shipping_address is True
 
 
 @mock.patch(
@@ -1004,6 +971,7 @@ def test_checkout_update_shipping_address_with_digital(
     # Ensure the address was set
     checkout.refresh_from_db(fields=["shipping_address"])
     assert checkout.shipping_address
+    assert_address_data(checkout.shipping_address, graphql_address_data)
 
 
 def test_checkout_shipping_address_update_with_not_applicable_voucher(
@@ -1091,6 +1059,7 @@ def test_checkout_shipping_address_update_with_collection_point_already_set(
     variables = {
         "id": to_global_id_or_none(checkout),
         "shippingAddress": shipping_address,
+        "saveAddress": False,
     }
 
     response = user_api_client.post_graphql(
@@ -1244,3 +1213,113 @@ def test_checkout_shipping_address_update_triggers_webhooks(
 
     tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+def test_checkout_shipping_address_update_reset_the_save_address_flag_to_default_value(
+    checkout_with_items,
+    user_api_client,
+    graphql_address_data,
+    address,
+):
+    checkout = checkout_with_items
+    # given checkout shipping and billing address set both save shipping flags different
+    # than default value - set to False
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.save(
+        update_fields=[
+            "shipping_address",
+            "billing_address",
+            "save_shipping_address",
+            "save_billing_address",
+        ]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": graphql_address_data,
+    }
+
+    # when the checkout shipping address is updated without providing saveAddress flag
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then the checkout shipping address is updated, and `save_shipping_address` is
+    # reset to the default True value; the `save_billing_address` is not changed
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+
+    checkout.refresh_from_db()
+    assert_address_data(checkout.shipping_address, graphql_address_data)
+    assert checkout.save_shipping_address is True
+    assert checkout.save_billing_address is False
+
+
+def test_checkout_shipping_address_update_with_save_address_to_false(
+    checkout_with_items,
+    user_api_client,
+    graphql_address_data,
+):
+    # given checkout with default saving address values
+    checkout = checkout_with_items
+
+    save_address = False
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": graphql_address_data,
+        "saveAddress": save_address,
+    }
+
+    # when update shipping address with saveAddress flag set to False
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then the address should be saved and the save_shipping_address should be False
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert_address_data(checkout.shipping_address, graphql_address_data)
+    assert checkout.save_shipping_address is save_address
+    assert checkout.save_billing_address is True
+
+
+def test_checkout_shipping_address_update_change_save_address_option_to_true(
+    checkout_with_items,
+    user_api_client,
+    graphql_address_data,
+):
+    # given checkout with save addresses settings to False
+    checkout = checkout_with_items
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.save(update_fields=["save_shipping_address", "save_billing_address"])
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": graphql_address_data,
+        "saveAddress": True,
+    }
+
+    # when the shipping address is updated with saveAddress flag set to True
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then the address should be saved and the save_shipping_address should be True
+    # the save_billing_address should not be changed
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert_address_data(checkout.shipping_address, graphql_address_data)
+    assert checkout.save_shipping_address is True
+    assert checkout.save_billing_address is False

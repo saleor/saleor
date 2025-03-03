@@ -15,7 +15,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
-from ..account.models import User
+from ..account.models import Address, User
 from ..account.utils import retrieve_user_by_email, store_user_address
 from ..channel import MarkAsPaidStrategy
 from ..checkout import CheckoutAuthorizeStatus, calculations
@@ -181,15 +181,23 @@ def _process_shipping_data_for_order(
     delivery_method_info = checkout_info.get_delivery_method_info()
     shipping_address = delivery_method_info.shipping_address
 
-    if (
-        delivery_method_info.store_as_customer_address
-        and checkout_info.user
-        and shipping_address
+    # allow saving shipping address in case the delivery method is not provided,
+    # but the shipping address is set
+    if not delivery_method_info.delivery_method:
+        shipping_address = checkout_info.shipping_address
+
+    if _should_store_shipping_address_in_user_addresses(
+        checkout_info, shipping_address
     ):
+        user = cast(User, checkout_info.user)
+        shipping_address = cast(Address, shipping_address)
         store_user_address(
-            checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
+            user,
+            shipping_address,
+            AddressType.SHIPPING,
+            manager=manager,
         )
-        if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
+        if user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
     if shipping_address and delivery_method_info.warehouse_pk:
@@ -212,11 +220,38 @@ def _process_shipping_data_for_order(
     return result
 
 
+def _should_store_shipping_address_in_user_addresses(
+    checkout_info: "CheckoutInfo", shipping_address: Optional["Address"]
+) -> bool:
+    """Determine whether the shipping address should be stored in the user's addresses.
+
+    The address should be stored if:
+    - the user is authenticated
+    - the shipping address is set
+    - the address is marked to be saved
+    - the delivery method allows storing the address as a user address
+    (the delivery method is not a collection point) or the delivery method is not set
+    """
+    delivery_method_info = checkout_info.get_delivery_method_info()
+    address_marked_to_be_saved = checkout_info.checkout.save_shipping_address
+    delivery_allows_storing_as_user_address = (
+        delivery_method_info.store_as_customer_address
+    )
+    delivery_method_not_set = not delivery_method_info.is_delivery_method_set()
+
+    save_shipping_address = address_marked_to_be_saved and (
+        delivery_allows_storing_as_user_address or delivery_method_not_set
+    )
+
+    return bool(save_shipping_address and checkout_info.user and shipping_address)
+
+
 def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
     """Fetch, process and return shipping data from checkout."""
     billing_address = checkout_info.billing_address
+    save_billing_address = checkout_info.checkout.save_billing_address
 
-    if checkout_info.user and billing_address:
+    if checkout_info.user and billing_address and save_billing_address:
         store_user_address(
             checkout_info.user, billing_address, AddressType.BILLING, manager=manager
         )

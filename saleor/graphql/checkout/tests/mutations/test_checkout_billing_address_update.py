@@ -11,12 +11,14 @@ from .....product.models import ProductChannelListing, ProductVariantChannelList
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ..utils import assert_address_data
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
             $checkoutId: ID,
             $id: ID,
             $billingAddress: AddressInput!
+            $saveAddress: Boolean
             $validationRules: CheckoutAddressValidationRules
         ) {
         checkoutBillingAddressUpdate(
@@ -24,6 +26,7 @@ MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
                 checkoutId: $checkoutId,
                 billingAddress: $billingAddress
                 validationRules: $validationRules
+                saveAddress: $saveAddress
         ){
             checkout {
                 token,
@@ -58,19 +61,8 @@ def test_checkout_billing_address_update_by_id(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.billing_address is not None
-    assert checkout.billing_address.first_name == billing_address["firstName"]
-    assert checkout.billing_address.last_name == billing_address["lastName"]
-    assert (
-        checkout.billing_address.street_address_1 == billing_address["streetAddress1"]
-    )
-    assert (
-        checkout.billing_address.street_address_2 == billing_address["streetAddress2"]
-    )
-    assert checkout.billing_address.postal_code == billing_address["postalCode"]
-    assert checkout.billing_address.country == billing_address["country"]
-    assert checkout.billing_address.city == billing_address["city"].upper()
-    assert checkout.billing_address.validation_skipped is False
+    assert_address_data(checkout.billing_address, billing_address)
+    assert checkout.save_billing_address is True
 
 
 @pytest.mark.parametrize(
@@ -110,19 +102,8 @@ def test_checkout_billing_address_update_when_line_without_listing(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.billing_address is not None
-    assert checkout.billing_address.first_name == billing_address["firstName"]
-    assert checkout.billing_address.last_name == billing_address["lastName"]
-    assert (
-        checkout.billing_address.street_address_1 == billing_address["streetAddress1"]
-    )
-    assert (
-        checkout.billing_address.street_address_2 == billing_address["streetAddress2"]
-    )
-    assert checkout.billing_address.postal_code == billing_address["postalCode"]
-    assert checkout.billing_address.country == billing_address["country"]
-    assert checkout.billing_address.city == billing_address["city"].upper()
-    assert checkout.billing_address.validation_skipped is False
+    assert_address_data(checkout.billing_address, billing_address)
+    assert checkout.save_billing_address is True
 
 
 def test_checkout_billing_address_update_by_id_without_required_fields(
@@ -184,20 +165,8 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.billing_address is not None
-    assert checkout.billing_address.first_name == billing_address["firstName"]
-    assert checkout.billing_address.last_name == billing_address["lastName"]
-    assert (
-        checkout.billing_address.street_address_1 == billing_address["streetAddress1"]
-    )
-    assert (
-        checkout.billing_address.street_address_2
-        == billing_address["streetAddress2"]
-        == ""
-    )
-    assert checkout.billing_address.postal_code == billing_address["postalCode"]
-    assert checkout.billing_address.country == billing_address["country"]
-    assert checkout.billing_address.city == billing_address["city"].upper()
+    assert_address_data(checkout.billing_address, billing_address)
+    assert checkout.save_billing_address is True
 
 
 @mock.patch(
@@ -242,21 +211,10 @@ def test_checkout_billing_address_update(
     data = content["data"]["checkoutBillingAddressUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
-    assert checkout.billing_address.metadata == {"public": "public_value"}
-    assert checkout.billing_address is not None
-    assert checkout.billing_address.first_name == billing_address["firstName"]
-    assert checkout.billing_address.last_name == billing_address["lastName"]
-    assert (
-        checkout.billing_address.street_address_1 == billing_address["streetAddress1"]
-    )
-    assert (
-        checkout.billing_address.street_address_2 == billing_address["streetAddress2"]
-    )
-    assert checkout.billing_address.postal_code == billing_address["postalCode"]
-    assert checkout.billing_address.country == billing_address["country"]
-    assert checkout.billing_address.city == billing_address["city"].upper()
+    assert_address_data(checkout.billing_address, billing_address)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.save_billing_address is True
 
 
 @pytest.mark.parametrize(
@@ -791,3 +749,113 @@ def test_checkout_billing_address_triggers_webhooks(
 
     tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+def test_checkout_billing_address_update_reset_the_save_address_flag_to_default_value(
+    checkout_with_items,
+    user_api_client,
+    graphql_address_data,
+    address,
+):
+    checkout = checkout_with_items
+    # given checkout billing and billing address set both save billing flags different
+    # than default value - set to False
+    checkout.billing_address = address
+    checkout.billing_address = address
+    checkout.save_billing_address = False
+    checkout.save_shipping_address = False
+    checkout.save(
+        update_fields=[
+            "billing_address",
+            "billing_address",
+            "save_billing_address",
+            "save_shipping_address",
+        ]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": graphql_address_data,
+    }
+
+    # when the checkout billing address is updated without providing saveAddress flag
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then the checkout billing address is updated, and `save_billing_address` is
+    # reset to the default True value; the `save_billing_address` is not changed
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+
+    checkout.refresh_from_db()
+    assert_address_data(checkout.billing_address, graphql_address_data)
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is False
+
+
+def test_checkout_billing_address_update_with_save_address_to_false(
+    checkout_with_items,
+    user_api_client,
+    graphql_address_data,
+):
+    # given checkout with default saving address values
+    checkout = checkout_with_items
+
+    save_address = False
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": graphql_address_data,
+        "saveAddress": save_address,
+    }
+
+    # when update billing address with saveAddress flag set to False
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then the address should be saved and the save_billing_address should be False
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert_address_data(checkout.billing_address, graphql_address_data)
+    assert checkout.save_billing_address is save_address
+    assert checkout.save_shipping_address is True
+
+
+def test_checkout_billing_address_update_change_save_address_option_to_true(
+    checkout_with_items,
+    user_api_client,
+    graphql_address_data,
+):
+    # given checkout with save addresses settings to False
+    checkout = checkout_with_items
+    checkout.save_billing_address = False
+    checkout.save_shipping_address = False
+    checkout.save(update_fields=["save_billing_address", "save_shipping_address"])
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": graphql_address_data,
+        "saveAddress": True,
+    }
+
+    # when the billing address is updated with saveAddress flag set to True
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then the address should be saved and the save_billing_address should be True
+    # the save_billing_address should not be changed
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert_address_data(checkout.billing_address, graphql_address_data)
+    assert checkout.save_billing_address is True
+    assert checkout.save_shipping_address is False
