@@ -121,20 +121,26 @@ def test_order_from_checkout(
     checkout_with_gift_card,
     gift_card,
     address,
+    address_usa,
     shipping_method,
+    customer_user,
 ):
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
-    checkout.billing_address = address
+    checkout.billing_address = address_usa
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
     )
+    checkout.user = customer_user
     checkout.save()
     checkout.metadata_storage.save()
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
 
     checkout_line = checkout.lines.first()
 
@@ -214,6 +220,8 @@ def test_order_from_checkout(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
     )
 
+    assert customer_user.addresses.count() == user_address_count + 2
+
     order_confirmed_mock.assert_called_once_with(order, webhooks=set())
     recalculate_with_plugins_mock.assert_not_called()
 
@@ -259,6 +267,60 @@ def test_order_from_checkout_with_transaction(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
+
+
+def test_order_from_checkout_saving_addresses_off(
+    app_api_client,
+    site_settings,
+    checkout_with_item_and_transaction_item,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+    customer_user,
+):
+    # given
+    checkout = checkout_with_item_and_transaction_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.user = customer_user
+    checkout.save()
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+    assert order.billing_address
+    assert order.shipping_address
+    assert customer_user.addresses.count() == user_address_count
 
 
 @pytest.mark.parametrize(
@@ -1727,6 +1789,7 @@ def test_order_from_checkout_with_digital(
     permission_handle_checkouts,
     checkout_with_digital_item,
     address,
+    customer_user,
 ):
     """Ensure it is possible to complete a digital checkout without shipping."""
 
@@ -1735,7 +1798,8 @@ def test_order_from_checkout_with_digital(
 
     # Set a billing address
     checkout.billing_address = address
-    checkout.save(update_fields=["billing_address"])
+    checkout.user = customer_user
+    checkout.save(update_fields=["billing_address", "user"])
 
     # Send the creation request
     response = app_api_client.post_graphql(
@@ -1759,16 +1823,17 @@ def test_order_from_checkout_with_digital_and_shipping_address(
     permission_handle_checkouts,
     checkout_with_digital_item,
     address,
+    customer_user,
 ):
     """Ensure it is possible to complete a digital checkout without shipping."""
-
     checkout = checkout_with_digital_item
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
     checkout.billing_address = address
     checkout.shipping_address = address
-    checkout.save(update_fields=["billing_address", "shipping_address"])
+    checkout.user = customer_user
+    checkout.save(update_fields=["billing_address", "shipping_address", "user"])
 
     # Send the creation request
     response = app_api_client.post_graphql(
@@ -1783,9 +1848,62 @@ def test_order_from_checkout_with_digital_and_shipping_address(
     # Ensure the order was actually created
     assert order, "The order should have been created"
 
-    # FIXME: fix together with ext-1684
-    assert not order.shipping_address
+    assert order.shipping_address
     assert order.billing_address
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+
+
+def test_order_from_checkout_with_digital_saving_addresses_off(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_digital_item,
+    address,
+    customer_user,
+):
+    # given
+    checkout = checkout_with_digital_item
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # Set a billing address
+    checkout.billing_address = address
+    checkout.shipping_address = address
+    checkout.user = customer_user
+    checkout.save_shipping_address = False
+    checkout.save_billing_address = False
+    checkout.save(
+        update_fields=[
+            "billing_address",
+            "shipping_address",
+            "user",
+            "save_shipping_address",
+            "save_billing_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["orderCreateFromCheckout"]
+    assert not content["errors"]
+
+    order = Order.objects.first()
+    # Ensure the order was actually created
+    assert order, "The order should have been created"
+
+    assert order.shipping_address
+    assert order.billing_address
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+    assert customer_user.addresses.count() == user_address_count
 
 
 @pytest.mark.integration
@@ -2040,7 +2158,7 @@ def test_order_from_checkout_raises_invalid_shipping_method_when_warehouse_disab
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     assert not checkout_info.valid_pick_up_points
-    assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
+    assert not checkout_info.get_delivery_method_info().is_method_in_valid_methods(
         checkout_info
     )
 
@@ -2170,7 +2288,7 @@ def test_order_from_draft_create_click_collect_preorder_fails_for_disabled_wareh
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     assert not checkout_info.valid_pick_up_points
-    assert not checkout_info.delivery_method_info.is_method_in_valid_methods(
+    assert not checkout_info.get_delivery_method_info().is_method_in_valid_methods(
         checkout_info
     )
 

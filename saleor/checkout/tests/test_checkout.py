@@ -31,6 +31,7 @@ from ...plugins.manager import get_plugins_manager
 from ...product.models import VariantChannelListingPromotionRule
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingZone
+from ...webhook.event_types import WebhookEventSyncType
 from .. import base_calculations, calculations
 from ..fetch import (
     CheckoutInfo,
@@ -48,16 +49,13 @@ from ..utils import (
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clear_delivery_method,
-    delete_external_shipping_id_if_present,
     get_checkout_metadata,
-    get_external_shipping_id,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     get_voucher_for_checkout_info,
     is_fully_paid,
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
-    set_external_shipping_id,
 )
 
 
@@ -68,14 +66,14 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
     # no shipping method assigned
     assert not delivery_method_info.is_valid_delivery_method()
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_valid_delivery_method()
 
@@ -83,7 +81,7 @@ def test_is_valid_delivery_method(checkout_with_item, address, shipping_zone):
     shipping_method.shipping_zone = zone
     shipping_method.save()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -120,7 +118,7 @@ def test_is_valid_delivery_method_external_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -165,12 +163,140 @@ def test_is_valid_delivery_method_external_method_with_metadata_and_description(
 
     # when
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     # then
     assert delivery_method_info.delivery_method.metadata == metadata
     assert delivery_method_info.delivery_method.description == description
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_delivery_method_external_method_with_not_allowed_webhooks(
+    mocked_request, checkout_with_item, shipping_app, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    shipping_method_id = "abcd"
+    shipping_method_name = "Default shipping"
+    graphql_shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{shipping_method_id}"
+    )
+
+    checkout = checkout_with_item
+    shipping_price = Money(Decimal(10), currency=checkout.currency)
+
+    checkout.external_shipping_method_id = graphql_shipping_method_id
+    checkout.undiscounted_base_shipping_price = shipping_price
+    checkout.shipping_method_name = shipping_method_name
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    delivery_method_info = checkout_info.get_delivery_method_info()
+
+    # then
+    delivery_method = delivery_method_info.delivery_method
+    assert isinstance(delivery_method, ShippingMethodData)
+    assert delivery_method.name == shipping_method_name
+    assert delivery_method.price == shipping_price
+    assert delivery_method.id == graphql_shipping_method_id
+    mocked_request.assert_not_called()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_delivery_method_exclude_shipping_methods_with_not_allowed_webhooks(
+    mocked_request, checkout_with_item, shipping_app, settings
+):
+    # given
+    webhook = shipping_app.webhooks.get()
+    webhook.events.create(
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    shipping_method_id = "abcd"
+    shipping_method_name = "Default shipping"
+    graphql_shipping_method_id = graphene.Node.to_global_id(
+        "app", f"{shipping_app.id}:{shipping_method_id}"
+    )
+
+    checkout = checkout_with_item
+    shipping_price = Money(Decimal(10), currency=checkout.currency)
+
+    checkout.external_shipping_method_id = graphql_shipping_method_id
+    checkout.undiscounted_base_shipping_price = shipping_price
+    checkout.shipping_method_name = shipping_method_name
+    checkout.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    delivery_method_info = checkout_info.get_delivery_method_info()
+
+    # then
+    delivery_method = delivery_method_info.delivery_method
+    assert isinstance(delivery_method, ShippingMethodData)
+    assert delivery_method.name == shipping_method_name
+    assert delivery_method.price == shipping_price
+    assert delivery_method.id == graphql_shipping_method_id
+    mocked_request.assert_not_called()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_get_all_shipping_methods_with_external_methods_and_not_allowed_webhooks(
+    mocked_request, checkout_with_shipping_method, shipping_app, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    checkout = checkout_with_shipping_method
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    shipping_methods = checkout_info.get_all_shipping_methods()
+
+    # then
+    assert all(not shipping_method.is_external for shipping_method in shipping_methods)
+    mocked_request.assert_not_called()
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_get_all_shipping_methods_with_exclude_shipping_methods_with_not_allowed_webhooks(
+    mocked_request, checkout_with_shipping_method, shipping_app, settings
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    webhook = shipping_app.webhooks.get()
+    webhook.events.create(
+        event_type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
+    )
+
+    checkout = checkout_with_shipping_method
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout_info.allow_sync_webhooks = False
+
+    # when
+    shipping_methods = checkout_info.get_all_shipping_methods()
+
+    # then
+    assert all(shipping_method.active for shipping_method in shipping_methods)
+    mocked_request.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -227,7 +353,7 @@ def test_is_valid_delivery_method_external_method_with_invalid_metadata(
 
     # when
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     # then
     assert delivery_method_info.delivery_method.metadata == {}
@@ -270,7 +396,7 @@ def test_is_valid_delivery_method_external_method_shipping_app_id_with_identifie
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -310,7 +436,7 @@ def test_is_valid_delivery_method_external_method_old_shipping_app_id(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info)
 
@@ -343,7 +469,7 @@ def test_is_valid_delivery_method_external_method_no_longer_available(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert delivery_method_info.is_method_in_valid_methods(checkout_info) is False
 
@@ -356,7 +482,7 @@ def test_clear_delivery_method(checkout, shipping_method):
     clear_delivery_method(checkout_info)
     checkout.refresh_from_db()
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
 
 
 @patch.object(CheckoutMetadata, "save")
@@ -376,7 +502,7 @@ def test_clear_delivery_method_do_not_update_metadata_when_no_external_shipping(
     checkout.refresh_from_db()
     assert not mocked_metadata_save.called
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
 
 
 @patch.object(CheckoutMetadata, "save")
@@ -399,7 +525,7 @@ def test_clear_delivery_method_update_metadata_when_external_shipping(
     checkout.metadata_storage.refresh_from_db()
     assert mocked_metadata_save.called
     assert not checkout.shipping_method
-    assert isinstance(checkout_info.delivery_method_info, DeliveryMethodBase)
+    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
     assert (
         PRIVATE_META_APP_SHIPPING_ID not in checkout.metadata_storage.private_metadata
     )
@@ -1290,6 +1416,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         shipping_method = None
         shipping_channel_listings = []
 
+    meta_storage_mock = Mock()
+    meta_storage_mock.get_value_from_private_metadata.return_value = None
     checkout = Mock(
         is_shipping_required=Mock(return_value=is_shipping_required),
         shipping_method=shipping_method,
@@ -1297,7 +1425,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         quantity=total_quantity,
         spec=Checkout,
         channel=channel_USD,
-        metadata_storage=Mock(get_value_from_private_metadata=Mock(return_value=None)),
+        metadata_storage=meta_storage_mock,
+        external_shipping_method_id=None,
     )
 
     voucher = Voucher.objects.create(
@@ -1821,27 +1950,35 @@ def test_change_address_in_checkout(checkout, address):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
+    store_shipping_address_in_user_addresses = False
+    store_billing_address_in_user_addresses = False
 
     shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info,
         address,
+        store_shipping_address_in_user_addresses,
         lines,
-        manager,
         checkout.channel.shipping_method_listings.all(),
     )
-    billing_updated_fields = change_billing_address_in_checkout(checkout, address)
+    billing_updated_fields = change_billing_address_in_checkout(
+        checkout, address, store_billing_address_in_user_addresses
+    )
     checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address == address
     assert checkout.billing_address == address
     assert checkout_info.shipping_address == address
+    assert checkout.save_shipping_address == store_shipping_address_in_user_addresses
+    assert checkout.save_billing_address == store_billing_address_in_user_addresses
 
 
 def test_change_address_in_checkout_to_none(checkout, address):
     checkout.shipping_address = address
     checkout.billing_address = address.get_copy()
     checkout.save()
+    store_shipping_address_in_user_addresses = False
+    store_billing_address_in_user_addresses = True
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -1849,17 +1986,21 @@ def test_change_address_in_checkout_to_none(checkout, address):
     shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info,
         None,
+        store_shipping_address_in_user_addresses,
         lines,
-        manager,
         checkout.channel.shipping_method_listings.all(),
     )
-    billing_updated_fields = change_billing_address_in_checkout(checkout, None)
+    billing_updated_fields = change_billing_address_in_checkout(
+        checkout, None, store_billing_address_in_user_addresses
+    )
     checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address is None
     assert checkout.billing_address is None
     assert checkout_info.shipping_address is None
+    assert checkout.save_shipping_address == store_shipping_address_in_user_addresses
+    assert checkout.save_billing_address == store_billing_address_in_user_addresses
 
 
 def test_change_address_in_checkout_to_same(checkout, address):
@@ -1868,6 +2009,8 @@ def test_change_address_in_checkout_to_same(checkout, address):
     checkout.save(update_fields=["shipping_address", "billing_address"])
     shipping_address_id = checkout.shipping_address.id
     billing_address_id = checkout.billing_address.id
+    store_shipping_address_in_user_addresses = True
+    store_billing_address_in_user_addresses = False
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -1875,17 +2018,21 @@ def test_change_address_in_checkout_to_same(checkout, address):
     shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info,
         address,
+        store_shipping_address_in_user_addresses,
         lines,
-        manager,
         checkout.channel.shipping_method_listings.all(),
     )
-    billing_updated_fields = change_billing_address_in_checkout(checkout, address)
+    billing_updated_fields = change_billing_address_in_checkout(
+        checkout, address, store_billing_address_in_user_addresses
+    )
     checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
     assert checkout.shipping_address.id == shipping_address_id
     assert checkout.billing_address.id == billing_address_id
     assert checkout_info.shipping_address == address
+    assert checkout.save_shipping_address == store_shipping_address_in_user_addresses
+    assert checkout.save_billing_address == store_billing_address_in_user_addresses
 
 
 def test_change_address_in_checkout_to_other(checkout, address):
@@ -1894,6 +2041,8 @@ def test_change_address_in_checkout_to_other(checkout, address):
     checkout.billing_address = address.get_copy()
     checkout.save(update_fields=["shipping_address", "billing_address"])
     other_address = Address.objects.create(country=Country("DE"))
+    store_shipping_address_in_user_addresses = True
+    store_billing_address_in_user_addresses = True
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -1901,11 +2050,13 @@ def test_change_address_in_checkout_to_other(checkout, address):
     shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info,
         other_address,
+        store_shipping_address_in_user_addresses,
         lines,
-        manager,
         checkout.channel.shipping_method_listings.all(),
     )
-    billing_updated_fields = change_billing_address_in_checkout(checkout, other_address)
+    billing_updated_fields = change_billing_address_in_checkout(
+        checkout, other_address, store_billing_address_in_user_addresses
+    )
     checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
@@ -1913,6 +2064,8 @@ def test_change_address_in_checkout_to_other(checkout, address):
     assert checkout.billing_address == other_address
     assert not Address.objects.filter(id=address_id).exists()
     assert checkout_info.shipping_address == other_address
+    assert checkout.save_shipping_address == store_shipping_address_in_user_addresses
+    assert checkout.save_billing_address == store_billing_address_in_user_addresses
 
 
 def test_change_address_in_checkout_from_user_address_to_other(
@@ -1924,6 +2077,8 @@ def test_change_address_in_checkout_from_user_address_to_other(
     checkout.billing_address = address.get_copy()
     checkout.save(update_fields=["shipping_address", "billing_address"])
     other_address = Address.objects.create(country=Country("DE"))
+    store_shipping_address_in_user_addresses = False
+    store_billing_address_in_user_addresses = True
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -1931,11 +2086,13 @@ def test_change_address_in_checkout_from_user_address_to_other(
     shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info,
         other_address,
+        store_shipping_address_in_user_addresses,
         lines,
-        manager,
         checkout.channel.shipping_method_listings.all(),
     )
-    billing_updated_fields = change_billing_address_in_checkout(checkout, other_address)
+    billing_updated_fields = change_billing_address_in_checkout(
+        checkout, other_address, store_billing_address_in_user_addresses
+    )
     checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
 
     checkout.refresh_from_db()
@@ -1943,6 +2100,8 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert checkout.billing_address == other_address
     assert Address.objects.filter(id=address_id).exists()
     assert checkout_info.shipping_address == other_address
+    assert checkout.save_shipping_address == store_shipping_address_in_user_addresses
+    assert checkout.save_billing_address == store_billing_address_in_user_addresses
 
 
 def test_change_address_in_checkout_invalidates_shipping_methods(
@@ -1950,6 +2109,7 @@ def test_change_address_in_checkout_invalidates_shipping_methods(
 ):
     # given
     checkout = checkout_with_items
+    store_address_in_user_addresses = True
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -1960,18 +2120,20 @@ def test_change_address_in_checkout_invalidates_shipping_methods(
         shipping_channel_listings=shipping_method.channel_listings.all(),
     )
 
-    all_shipping_methods = checkout_info.all_shipping_methods
+    all_shipping_methods = checkout_info.get_all_shipping_methods()
     assert all_shipping_methods == []
 
     # when
     shipping_updated_fields = change_shipping_address_in_checkout(
         checkout_info,
         address,
+        store_address_in_user_addresses,
         lines,
-        manager,
         checkout.channel.shipping_method_listings.all(),
     )
-    billing_updated_fields = change_billing_address_in_checkout(checkout, address)
+    billing_updated_fields = change_billing_address_in_checkout(
+        checkout, address, store_address_in_user_addresses
+    )
     checkout.save(update_fields=shipping_updated_fields + billing_updated_fields)
     checkout.refresh_from_db()
 
@@ -1979,7 +2141,7 @@ def test_change_address_in_checkout_invalidates_shipping_methods(
     assert checkout.shipping_address == address
     assert checkout.billing_address == address
     assert checkout_info.shipping_address == address
-    assert checkout_info.all_shipping_methods
+    assert checkout_info.get_all_shipping_methods()
 
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
@@ -2225,69 +2387,12 @@ def test_checkout_without_delivery_method_creates_empty_delivery_method(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert isinstance(delivery_method_info, DeliveryMethodBase)
     assert not delivery_method_info.is_valid_delivery_method()
     assert not delivery_method_info.is_local_collection_point
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
-
-
-def test_set_external_shipping_id(checkout):
-    # given
-    app_shipping_id = "abcd"
-    initial_private_metadata = {"test": 123}
-    checkout.metadata_storage.private_metadata = initial_private_metadata
-    checkout.metadata_storage.save()
-
-    # when
-    set_external_shipping_id(checkout, app_shipping_id)
-
-    # then
-    assert PRIVATE_META_APP_SHIPPING_ID in checkout.metadata_storage.private_metadata
-
-
-def test_get_external_shipping_id(checkout):
-    # given
-    app_shipping_id = "abcd"
-    initial_private_metadata = {"test": 123}
-    checkout.metadata_storage.private_metadata = initial_private_metadata
-    checkout.metadata_storage.save()
-    set_external_shipping_id(checkout, app_shipping_id)
-
-    # when
-    shipping_id = get_external_shipping_id(checkout)
-
-    # then
-    assert shipping_id == app_shipping_id
-
-
-def test_delete_external_shipping_id(checkout):
-    # given
-    app_shipping_id = "abcd"
-    initial_private_metadata = {"test": 123}
-    checkout.metadata_storage.private_metadata = initial_private_metadata
-    checkout.metadata_storage.save()
-    set_external_shipping_id(checkout, app_shipping_id)
-
-    # when
-    delete_external_shipping_id_if_present(checkout)
-
-    # then
-    assert checkout.metadata_storage.private_metadata == initial_private_metadata
-
-
-def test_delete_external_shipping_id_when_external_shipping_missing(checkout):
-    # given
-    initial_private_metadata = {"test": 123}
-    checkout.metadata_storage.private_metadata = initial_private_metadata
-    checkout.metadata_storage.save()
-
-    # when
-    delete_external_shipping_id_if_present(checkout)
-
-    # then
-    assert checkout.metadata_storage.private_metadata == initial_private_metadata
 
 
 def test_checkout_total_setter():

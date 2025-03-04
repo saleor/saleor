@@ -100,7 +100,7 @@ def test_unlogged_customer_is_unable_to_buy_unpublished_product_core_0109(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
+        shipping_address=None,
     )
 
     errors = checkout_data["errors"]

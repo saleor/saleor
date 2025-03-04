@@ -1,18 +1,17 @@
 import pytest
 
-from ....account.models import User
-from ....graphql.core.utils import to_global_id_or_none
-from ..shop.utils import prepare_shop
-from ..utils import assign_permissions
-from .utils import account_register, token_create
+from .....account.models import User
+from ...shop.utils import prepare_shop
+from ...utils import assign_permissions
+from ..utils import account_register, raw_account_register
 
 
 @pytest.mark.e2e
-def test_should_create_account_without_email_confirmation_core_1502(
+def test_should_not_be_able_to_create_account_with_existing_email_core_1503(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
-    shop_permissions,
     permission_manage_product_types_and_attributes,
+    shop_permissions,
 ):
     # Before
     permissions = [
@@ -39,27 +38,27 @@ def test_should_create_account_without_email_confirmation_core_1502(
             "enableAccountConfirmationByEmail": False,
         },
     )
-
     channel_slug = shop_data[0]["slug"]
-    test_email = "new-user@saleor.io"
-    test_password = "password!"
-    redirect_url = "https://www.example.com"
+    user_email = "user@saleor.io"
+    user_password = "Test1234!"
 
     # Step 1 - Create account for the new customer
     user_account = account_register(
         e2e_not_logged_api_client,
-        test_email,
-        test_password,
+        user_email,
+        user_password,
         channel_slug,
-        redirect_url,
     )
-    user = User.objects.last()
-    assert user
-    user_id = to_global_id_or_none(user)
     assert user_account["user"]["isActive"] is True
 
-    # Step 2 - Authenticate as new created user
-    login_data = token_create(e2e_not_logged_api_client, test_email, test_password)
-
-    assert login_data["user"]["id"] == user_id
-    assert login_data["user"]["email"] == test_email
+    # Step 2 - Create a new account with the same email address
+    new_password = "Password1!"
+    new_user_account = raw_account_register(
+        e2e_not_logged_api_client,
+        user_email,
+        new_password,
+        channel_slug,
+    )
+    # we do not return errors in case email exists
+    assert not new_user_account["data"]["accountRegister"]["errors"]
+    assert User.objects.filter(email__iexact=user_email).count() == 1

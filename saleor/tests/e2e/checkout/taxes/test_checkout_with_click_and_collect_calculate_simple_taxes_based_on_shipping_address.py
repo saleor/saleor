@@ -1,5 +1,6 @@
 import pytest
 
+from ... import ADDRESS_DE
 from ...product.utils.preparing_product import prepare_product
 from ...shop.utils import prepare_shop
 from ...taxes.utils import update_country_tax_rates
@@ -113,7 +114,7 @@ def test_calculate_simple_taxes_order_with_click_and_collect_with_prices_entered
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_shipping_address=True,
+        billing_address=None,
     )
     checkout_id = checkout_data["id"]
 
@@ -122,18 +123,7 @@ def test_calculate_simple_taxes_order_with_click_and_collect_with_prices_entered
     assert len(checkout_data["shippingMethods"]) == 1
 
     # Step 2 - Set billing address for checkout
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     checkout_billing_address_update(e2e_staff_api_client, checkout_id, billing_address)
 
     # Step 3 - Get checkout and verify taxes
@@ -283,7 +273,7 @@ def test_calculate_simple_taxes_order_with_click_and_collect_with_prices_entered
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_shipping_address=True,
+        billing_address=None,
     )
     checkout_id = checkout_data["id"]
 
@@ -292,18 +282,7 @@ def test_calculate_simple_taxes_order_with_click_and_collect_with_prices_entered
     assert len(checkout_data["shippingMethods"]) == 1
 
     # Step 2 - Set billing address for checkout
-    billing_address = {
-        "firstName": "John",
-        "lastName": "Muller",
-        "companyName": "Saleor Commerce DE",
-        "streetAddress1": "Potsdamer Platz 47",
-        "streetAddress2": "",
-        "postalCode": "85131",
-        "country": "DE",
-        "city": "Pollenfeld",
-        "phone": "+498421499469",
-        "countryArea": "",
-    }
+    billing_address = ADDRESS_DE
     checkout_billing_address_update(e2e_staff_api_client, checkout_id, billing_address)
 
     # Step 3 - Get checkout and verify taxes

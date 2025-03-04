@@ -19,7 +19,10 @@ from .checkout_payment_create import (
     raw_checkout_dummy_payment_create,
 )
 from .checkout_remove_promo_code import checkout_remove_promo_code
-from .checkout_shipping_address_update import checkout_shipping_address_update
+from .checkout_shipping_address_update import (
+    checkout_shipping_address_update,
+    raw_checkout_shipping_address_update,
+)
 from .query_checkout import get_checkout
 
 __all__ = [
@@ -32,6 +35,7 @@ __all__ = [
     "checkout_delivery_method_update",
     "checkout_dummy_payment_create",
     "checkout_shipping_address_update",
+    "raw_checkout_shipping_address_update",
     "raw_checkout_dummy_payment_create",
     "checkout_lines_update",
     "draft_order_create",

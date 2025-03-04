@@ -75,6 +75,9 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
 
 
 @patch(
+    "saleor.graphql.order.mutations.draft_order_complete.store_user_addresses_from_draft_order",
+)
+@patch(
     "saleor.graphql.order.mutations.draft_order_complete.order_created",
     wraps=order_created,
 )
@@ -82,6 +85,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
 def test_draft_order_complete(
     product_variant_out_of_stock_webhook_mock,
     order_created_mock,
+    store_user_addresses_from_draft_order_mock,
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
@@ -133,6 +137,7 @@ def test_draft_order_complete(
         Stock.objects.last()
     )
     assert order_created_mock.called
+    store_user_addresses_from_draft_order_mock.assert_called_once()
 
 
 def test_draft_order_complete_no_automatically_confirm_all_new_orders(
@@ -1474,7 +1479,7 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
 def test_draft_order_complete_with_invalid_address(
     staff_api_client,
     permission_group_manage_orders,
-    staff_user,
+    customer_user,
     draft_order,
     address,
 ):
@@ -1491,7 +1496,11 @@ def test_draft_order_complete_with_invalid_address(
 
     order.shipping_address = address.get_copy()
     order.billing_address = address.get_copy()
-    order.save(update_fields=["shipping_address", "billing_address"])
+    order.user = customer_user
+    order.save(update_fields=["shipping_address", "billing_address", "user"])
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1508,6 +1517,65 @@ def test_draft_order_complete_with_invalid_address(
     assert data["origin"] == OrderOrigin.DRAFT.upper()
     assert order.shipping_address.postal_code == wrong_postal_code
     assert order.billing_address.postal_code == wrong_postal_code
+    assert customer_user.addresses.count() == user_address_count
+
+
+def test_draft_order_complete_with_invalid_address_save_addresses_on(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    address,
+    customer_user,
+):
+    """Check if draft order can be completed with invalid address.
+
+    After introducing `AddressInput.skip_validation`, Saleor may have invalid address
+    stored in database.
+    """
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    wrong_postal_code = "wrong postal code"
+    address.postal_code = wrong_postal_code
+
+    order.shipping_address = address.get_copy()
+    order.billing_address = address.get_copy()
+    order.draft_save_shipping_address = True
+    order.draft_save_billing_address = True
+    order.user = customer_user
+    order.save(
+        update_fields=[
+            "shipping_address",
+            "billing_address",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "user",
+        ]
+    )
+
+    customer_user.addresses.clear()
+    user_address_count = customer_user.addresses.count()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+    assert order.shipping_address.postal_code == wrong_postal_code
+    assert order.billing_address.postal_code == wrong_postal_code
+    assert customer_user.addresses.count() == user_address_count + 1
+    assert order.draft_save_billing_address is None
+    assert order.draft_save_shipping_address is None
+    assert customer_user.addresses.first().id != order.shipping_address.id
+    assert customer_user.addresses.first().id != order.billing_address.id
 
 
 @patch(
@@ -1610,3 +1678,119 @@ def test_draft_order_complete_triggers_webhooks(
     )
 
     assert wrapped_call_order_event.called
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_complete.order_created",
+)
+def test_draft_order_complete_save_user_addresses_in_customer_book(
+    order_created_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    customer_user,
+    address_usa,
+):
+    # given the order with user set
+    # and draft_save_shipping_address and draft_save_billing_address set to True
+    order = draft_order
+    order.user = customer_user
+    order.shipping_address = address_usa
+    order.draft_save_shipping_address = True
+    order.draft_save_billing_address = True
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "shipping_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when the draft order is completed
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then the addresses are saved in the customer book
+    # the flags are cleared
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+
+    order_created_mock.assert_called_once()
+
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 2
+    # ensure that the addresses are not the same instances are addresses assigned to order
+    customer_address_ids = set(customer_user.addresses.values_list("id", flat=True))
+    order_address_ids = {order.billing_address_id, order.shipping_address_id}
+    assert not (customer_address_ids & order_address_ids)
+
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_complete.order_created",
+)
+def test_draft_order_complete_do_not_save_user_addresses_in_customer_book(
+    order_created_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    customer_user,
+    address_usa,
+):
+    # given the order with user set
+    # and draft_save_shipping_address and draft_save_billing_address set to False
+    order = draft_order
+    order.user = customer_user
+    order.shipping_address = address_usa
+    order.draft_save_shipping_address = False
+    order.draft_save_billing_address = False
+    order.save(
+        update_fields=[
+            "user",
+            "draft_save_shipping_address",
+            "draft_save_billing_address",
+            "shipping_address",
+        ]
+    )
+
+    customer_user.addresses.clear()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when the draft order is completed
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then the addresses are not saved in the customer book
+    # the flags are cleared
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderComplete"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["origin"] == OrderOrigin.DRAFT.upper()
+
+    order_created_mock.assert_called_once()
+
+    customer_user.refresh_from_db()
+    assert customer_user.addresses.count() == 0
+    # ensure that the addresses are not the same instances are addresses assigned to order
+    customer_address_ids = set(customer_user.addresses.values_list("id", flat=True))
+    order_address_ids = {order.billing_address_id, order.shipping_address_id}
+    assert not (customer_address_ids & order_address_ids)
+
+    assert order.draft_save_shipping_address is None
+    assert order.draft_save_billing_address is None

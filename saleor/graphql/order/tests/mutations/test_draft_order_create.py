@@ -171,7 +171,6 @@ def test_draft_order_create_with_voucher_entire_order(
     channel_listing_1 = variant_1.channel_listings.get(channel=channel_USD)
 
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": variant_0_qty},
@@ -190,7 +189,6 @@ def test_draft_order_create_with_voucher_entire_order(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
@@ -324,7 +322,6 @@ def test_draft_order_create_with_voucher_and_voucher_code(
     variant_1.save()
 
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": variant_0_qty},
@@ -340,7 +337,6 @@ def test_draft_order_create_with_voucher_and_voucher_code(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
@@ -397,7 +393,6 @@ def test_draft_order_create_with_voucher_code_in_voucher_input(
     variant_1.save()
 
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": variant_0_qty},
@@ -415,7 +410,6 @@ def test_draft_order_create_with_voucher_code_in_voucher_input(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
@@ -473,7 +467,6 @@ def test_draft_order_create_with_voucher_code(
     channel_listing_1 = variant_1.channel_listings.get(channel=channel_USD)
 
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": variant_0_qty},
@@ -491,7 +484,6 @@ def test_draft_order_create_with_voucher_code(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
@@ -1476,7 +1468,6 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
 
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_id, "quantity": 2},
@@ -1491,7 +1482,6 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
@@ -1585,7 +1575,6 @@ def test_draft_order_create_with_inactive_channel(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -1598,7 +1587,6 @@ def test_draft_order_create_with_inactive_channel(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
@@ -1662,7 +1650,6 @@ def test_draft_order_create_without_sku(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -1677,7 +1664,6 @@ def test_draft_order_create_without_sku(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": shipping_address,
             "shippingAddress": shipping_address,
@@ -1710,6 +1696,8 @@ def test_draft_order_create_without_sku(
     assert order.shipping_method == shipping_method
     assert order.billing_address
     assert order.shipping_address
+    assert order.draft_save_billing_address is False
+    assert order.draft_save_shipping_address is False
     shipping_total = shipping_method.channel_listings.get(
         channel_id=order.channel_id
     ).get_total()
@@ -1825,7 +1813,6 @@ def test_draft_order_create_tax_error(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -1837,7 +1824,6 @@ def test_draft_order_create_tax_error(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
@@ -1876,7 +1862,6 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_id, "quantity": 2},
@@ -1889,7 +1874,6 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
@@ -1918,7 +1902,6 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_id, "quantity": 2},
@@ -1931,7 +1914,6 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
@@ -1961,7 +1943,6 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_id, "quantity": 2},
@@ -1973,7 +1954,6 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "shippingAddress": shipping_address,
             "shippingMethod": shipping_id,
@@ -2098,7 +2078,6 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -2111,7 +2090,6 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "channelId": channel_id,
             "lines": variant_list,
             "shippingAddress": shipping_address,
@@ -2159,7 +2137,6 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -2172,7 +2149,6 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "channelId": channel_id,
             "lines": variant_list,
             "shippingAddress": shipping_address,
@@ -2217,7 +2193,6 @@ def test_draft_order_create_with_channel(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -2230,7 +2205,6 @@ def test_draft_order_create_with_channel(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "channelId": channel_id,
             "lines": variant_list,
             "shippingAddress": shipping_address,
@@ -2292,7 +2266,6 @@ def test_draft_order_create_product_without_shipping(
     variant.quantity = 2
     variant.save()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_id, "quantity": 1},
@@ -2304,7 +2277,6 @@ def test_draft_order_create_product_without_shipping(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "channelId": channel_id,
             "lines": variant_list,
             "shippingAddress": shipping_address,
@@ -2368,7 +2340,6 @@ def test_draft_order_create_invalid_billing_address(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -2384,7 +2355,6 @@ def test_draft_order_create_invalid_billing_address(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": billing_address,
             "shippingAddress": graphql_address_data,
@@ -2429,7 +2399,6 @@ def test_draft_order_create_invalid_shipping_address(
     variant_1.quantity = 2
     variant_1.save()
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
-    discount = "10"
     customer_note = "Test note"
     variant_list = [
         {"variantId": variant_0_id, "quantity": 2},
@@ -2445,7 +2414,6 @@ def test_draft_order_create_invalid_shipping_address(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": variant_list,
             "billingAddress": graphql_address_data,
             "shippingAddress": shipping_address,
@@ -2540,7 +2508,6 @@ def test_draft_order_create_price_recalculation(
     mock_fetch_order_prices_if_expired.side_effect = fetch_prices_response
     query = DRAFT_ORDER_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
-    discount = "10"
     variant_1 = product_available_in_many_channels.variants.first()
     variant_2 = product_variant_list[2]
     variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
@@ -2563,7 +2530,6 @@ def test_draft_order_create_price_recalculation(
     variables = {
         "input": {
             "user": user_id,
-            "discount": discount,
             "lines": lines,
             "billingAddress": address,
             "shippingAddress": address,
@@ -3791,3 +3757,168 @@ def test_draft_order_create_with_metadata(
 
     assert private_metadata_result_list[0]["key"] == private_metadata_key
     assert private_metadata_result_list[0]["value"] == private_metadata_value
+
+
+@pytest.mark.parametrize(
+    ("save_shipping_address", "save_billing_address"),
+    [(True, True), (True, False), (False, True), (False, False)],
+)
+def test_draft_order_create_with_save_address_option_provided(
+    save_shipping_address,
+    save_billing_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given input with provided shipping, billing addresses with save settings
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "saveShippingAddress": save_shipping_address,
+            "saveBillingAddress": save_billing_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when draft order is created
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then the addresses with save settings are set
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert (
+        data["billingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+    assert (
+        data["shippingAddress"]["streetAddress1"]
+        == graphql_address_data["streetAddress1"]
+    )
+
+    order = Order.objects.first()
+    assert order.user == customer_user
+    assert order.shipping_method == shipping_method
+    assert order.billing_address
+    assert order.shipping_address
+    assert order.draft_save_billing_address == save_billing_address
+    assert order.draft_save_shipping_address == save_shipping_address
+
+
+@pytest.mark.parametrize("save_shipping_address", [True, False])
+def test_draft_order_create_no_shipping_address_provided_save_address_raising_error(
+    save_shipping_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given input with save shipping address and shipping method not provided
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    billing_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": billing_address,
+            "saveShippingAddress": save_shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+
+    error = data["errors"][0]
+    assert error["field"] == "saveShippingAddress"
+    assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
+
+
+@pytest.mark.parametrize("save_billing_address", [True, False])
+def test_draft_order_create_no_billing_address_provided_save_address_raising_error(
+    save_billing_address,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given input with save shipping address and shipping method not provided
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "saveBillingAddress": save_billing_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderCreate"]
+    assert not data["order"]
+    assert len(data["errors"]) == 1
+
+    error = data["errors"][0]
+    assert error["field"] == "saveBillingAddress"
+    assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name

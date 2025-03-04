@@ -14,6 +14,7 @@ from ...payment.interface import (
     TransactionSessionData,
     TransactionSessionResult,
 )
+from ...shipping.interface import ShippingMethodData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -122,7 +123,7 @@ class PluginSample(BasePlugin):
         previous_value: TaxedMoney,
     ):
         # See if delivery method doesn't trigger infinite recursion
-        bool(checkout_info.delivery_method_info.delivery_method)
+        bool(checkout_info.get_delivery_method_info().delivery_method)
 
         price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
@@ -365,6 +366,24 @@ class PluginSample(BasePlugin):
 
     def payment_method_process_tokenization(self, request_data, previous_value):
         return previous_value
+
+    def get_shipping_methods_for_checkout(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> list["ShippingMethodData"]:
+        different_currency = "EUR"
+        assert checkout.currency != different_currency
+        return [
+            ShippingMethodData(
+                id="123",
+                price=Money(Decimal(10), currency=different_currency),
+                name="EUR shipping",
+            ),
+            ShippingMethodData(
+                id="123",
+                price=Money(Decimal(10), currency=checkout.currency),
+                name="Default shipping",
+            ),
+        ]
 
 
 class ChannelPluginSample(PluginSample):

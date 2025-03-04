@@ -58,6 +58,7 @@ class Checkout(models.Model):
         related_name="checkouts",
         on_delete=models.PROTECT,
     )
+    save_billing_address = models.BooleanField(default=True)
     billing_address = models.ForeignKey(
         "account.Address",
         related_name="+",
@@ -65,6 +66,8 @@ class Checkout(models.Model):
         null=True,
         on_delete=models.SET_NULL,
     )
+    # do not apply on checkouts with collection point
+    save_shipping_address = models.BooleanField(default=True)
     shipping_address = models.ForeignKey(
         "account.Address",
         related_name="+",
@@ -79,6 +82,14 @@ class Checkout(models.Model):
         related_name="checkouts",
         on_delete=models.SET_NULL,
     )
+
+    shipping_method_name = models.CharField(
+        max_length=255, null=True, default=None, blank=True, editable=False
+    )
+    external_shipping_method_id = models.CharField(
+        max_length=512, null=True, default=None, blank=True, editable=False
+    )
+
     collection_point = models.ForeignKey(
         "warehouse.Warehouse",
         blank=True,
@@ -155,6 +166,17 @@ class Checkout(models.Model):
     )
     shipping_tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
+    )
+
+    undiscounted_base_shipping_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    # Shipping price before applying any discounts
+    undiscounted_base_shipping_price = MoneyField(
+        amount_field="undiscounted_base_shipping_price_amount",
+        currency_field="currency",
     )
 
     authorize_status = models.CharField(

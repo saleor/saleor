@@ -85,8 +85,6 @@ def test_should_be_able_to_create_partially_paid_order_core_0112(
         lines,
         channel_slug,
         email="testEmail@saleor.io",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = checkout_data["id"]
 

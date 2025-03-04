@@ -103,8 +103,6 @@ def test_promotion_applied_on_checkout_with_specific_subtotal_CORE_2133(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
     checkout_id = data["id"]
     checkout_db = Checkout.objects.first()

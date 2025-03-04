@@ -35,6 +35,7 @@ from ..complete_checkout import (
     _increase_checkout_voucher_usage,
     _prepare_order_data,
     _process_shipping_data_for_order,
+    _process_user_data_for_order,
     _release_checkout_voucher_usage,
     complete_checkout,
 )
@@ -1878,8 +1879,51 @@ def test_process_shipping_data_for_order_store_customer_shipping_address(
     assert customer_user.addresses.filter(**new_address_data).exists()
 
 
+def test_process_shipping_data_for_order_not_store_customer_shipping_address_saving_addresses_off(
+    checkout_with_item, customer_user, address_usa, shipping_method
+):
+    # given
+    checkout = checkout_with_item
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = address_usa
+    checkout.shipping_method = shipping_method
+    checkout.save_shipping_address = False
+    checkout.save()
+
+    user_address_count = customer_user.addresses.count()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    shipping_price = zero_taxed_money(checkout.currency)
+    base_shipping_price = zero_money(checkout.currency)
+
+    # when
+    _ = _process_shipping_data_for_order(
+        checkout_info,
+        base_shipping_price,
+        base_shipping_price,
+        shipping_price,
+        manager,
+        lines,
+    )
+
+    # then
+    new_user_address_count = customer_user.addresses.count()
+    new_address_data = address_usa.as_data()
+    assert new_user_address_count == user_address_count
+    assert not customer_user.addresses.filter(**new_address_data).exists()
+
+
+@pytest.mark.parametrize("save_shipping_address", [True, False])
 def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_address(
-    checkout_with_item_for_cc, customer_user, address_usa, warehouse_for_cc
+    save_shipping_address,
+    checkout_with_item_for_cc,
+    customer_user,
+    address_usa,
+    warehouse_for_cc,
 ):
     # given
     checkout = checkout_with_item_for_cc
@@ -1891,6 +1935,7 @@ def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_a
     checkout.billing_address = customer_user.default_billing_address
     checkout.shipping_address = None
     checkout.collection_point = warehouse_for_cc
+    checkout.save_shipping_address = save_shipping_address
     checkout.save()
 
     user_address_count = customer_user.addresses.count()
@@ -1914,6 +1959,57 @@ def test_process_shipping_data_for_order_dont_store_customer_click_and_collect_a
     # then
     new_user_address_count = customer_user.addresses.count()
     new_address_data = warehouse_for_cc.address.as_data()
+    assert new_user_address_count == user_address_count
+    assert not customer_user.addresses.filter(**new_address_data).exists()
+
+
+def test_process_user_data_for_order_store_customer_address(
+    checkout_with_item, address_usa, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    user_address_count = customer_user.addresses.count()
+
+    checkout.user = customer_user
+    checkout.billing_address = address_usa
+    checkout.save(update_fields=["user", "billing_address"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    _process_user_data_for_order(checkout_info, manager)
+
+    # then
+    new_user_address_count = customer_user.addresses.count()
+    new_address_data = address_usa.as_data()
+    assert new_user_address_count == user_address_count + 1
+    assert customer_user.addresses.filter(**new_address_data).exists()
+
+
+def test_process_user_data_for_order_do_not_store_customer_address_saving_addresses_off(
+    checkout_with_item, address_usa, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    user_address_count = customer_user.addresses.count()
+
+    checkout.user = customer_user
+    checkout.billing_address = address_usa
+    checkout.save_billing_address = False
+    checkout.save(update_fields=["user", "billing_address", "save_billing_address"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    _process_user_data_for_order(checkout_info, manager)
+
+    # then
+    new_user_address_count = customer_user.addresses.count()
+    new_address_data = address_usa.as_data()
     assert new_user_address_count == user_address_count
     assert not customer_user.addresses.filter(**new_address_data).exists()
 

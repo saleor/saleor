@@ -11,6 +11,7 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, OrderError
@@ -112,8 +113,12 @@ class FulfillmentCancel(BaseMutation):
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         if fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
-            fulfillment = cancel_waiting_fulfillment(fulfillment, user, app, manager)
+            cancel_waiting_fulfillment(fulfillment, user, app, manager)
+            fulfillment_response = None
         else:
             fulfillment = cancel_fulfillment(fulfillment, user, app, warehouse, manager)
+            fulfillment_response = SyncWebhookControlContext(node=fulfillment)
         order.refresh_from_db(fields=["status"])
-        return FulfillmentCancel(fulfillment=fulfillment, order=order)
+        return FulfillmentCancel(
+            fulfillment=fulfillment_response, order=SyncWebhookControlContext(order)
+        )

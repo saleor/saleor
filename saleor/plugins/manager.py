@@ -2583,7 +2583,12 @@ class PluginsManager(PaymentInterface):
                 # https://github.com/python/mypy/issues/9975
                 getattr(plugin, "get_shipping_methods_for_checkout")(checkout, None)
             )
-        return shipping_methods
+        return list(
+            filter(
+                lambda method: method.price.currency == checkout.currency,
+                shipping_methods,
+            )
+        )
 
     def get_shipping_method(
         self,

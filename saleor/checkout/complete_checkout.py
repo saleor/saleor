@@ -15,7 +15,7 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
-from ..account.models import User
+from ..account.models import Address, User
 from ..account.utils import retrieve_user_by_email, store_user_address
 from ..channel import MarkAsPaidStrategy
 from ..checkout import CheckoutAuthorizeStatus, calculations
@@ -81,6 +81,7 @@ from .fetch import (
 )
 from .models import Checkout
 from .utils import (
+    PRIVATE_META_APP_SHIPPING_ID,
     calculate_checkout_weight,
     delete_checkouts,
     get_checkout_metadata,
@@ -177,18 +178,26 @@ def _process_shipping_data_for_order(
     lines: list["CheckoutLineInfo"],
 ) -> dict[str, Any]:
     """Fetch, process and return shipping data from checkout."""
-    delivery_method_info = checkout_info.delivery_method_info
+    delivery_method_info = checkout_info.get_delivery_method_info()
     shipping_address = delivery_method_info.shipping_address
 
-    if (
-        delivery_method_info.store_as_customer_address
-        and checkout_info.user
-        and shipping_address
+    # allow saving shipping address in case the delivery method is not provided,
+    # but the shipping address is set
+    if not delivery_method_info.delivery_method:
+        shipping_address = checkout_info.shipping_address
+
+    if _should_store_shipping_address_in_user_addresses(
+        checkout_info, shipping_address
     ):
+        user = cast(User, checkout_info.user)
+        shipping_address = cast(Address, shipping_address)
         store_user_address(
-            checkout_info.user, shipping_address, AddressType.SHIPPING, manager=manager
+            user,
+            shipping_address,
+            AddressType.SHIPPING,
+            manager=manager,
         )
-        if checkout_info.user.addresses.filter(pk=shipping_address.pk).exists():
+        if user.addresses.filter(pk=shipping_address.pk).exists():
             shipping_address = shipping_address.get_copy()
 
     if shipping_address and delivery_method_info.warehouse_pk:
@@ -211,11 +220,38 @@ def _process_shipping_data_for_order(
     return result
 
 
+def _should_store_shipping_address_in_user_addresses(
+    checkout_info: "CheckoutInfo", shipping_address: Optional["Address"]
+) -> bool:
+    """Determine whether the shipping address should be stored in the user's addresses.
+
+    The address should be stored if:
+    - the user is authenticated
+    - the shipping address is set
+    - the address is marked to be saved
+    - the delivery method allows storing the address as a user address
+    (the delivery method is not a collection point) or the delivery method is not set
+    """
+    delivery_method_info = checkout_info.get_delivery_method_info()
+    address_marked_to_be_saved = checkout_info.checkout.save_shipping_address
+    delivery_allows_storing_as_user_address = (
+        delivery_method_info.store_as_customer_address
+    )
+    delivery_method_not_set = not delivery_method_info.is_delivery_method_set()
+
+    save_shipping_address = address_marked_to_be_saved and (
+        delivery_allows_storing_as_user_address or delivery_method_not_set
+    )
+
+    return bool(save_shipping_address and checkout_info.user and shipping_address)
+
+
 def _process_user_data_for_order(checkout_info: "CheckoutInfo", manager):
     """Fetch, process and return shipping data from checkout."""
     billing_address = checkout_info.billing_address
+    save_billing_address = checkout_info.checkout.save_billing_address
 
-    if checkout_info.user and billing_address:
+    if checkout_info.user and billing_address and save_billing_address:
         store_user_address(
             checkout_info.user, billing_address, AddressType.BILLING, manager=manager
         )
@@ -386,7 +422,7 @@ def _create_line_for_order(
         is_digital=is_digital,
         variant=variant,
         digital_content=variant.digital_content if is_digital and variant else None,
-        warehouse_pk=checkout_info.delivery_method_info.warehouse_pk,
+        warehouse_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         line_discounts=line_discounts,
     )
 
@@ -468,7 +504,7 @@ def _create_lines_for_order(
     }
 
     additional_warehouse_lookup = (
-        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+        checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     check_stock_and_preorder_quantity_bulk(
         variants,
@@ -476,7 +512,7 @@ def _create_lines_for_order(
         quantities,
         checkout_info.channel.slug,
         global_quantity_limit=None,
-        delivery_method_info=checkout_info.delivery_method_info,
+        delivery_method_info=checkout_info.get_delivery_method_info(),
         additional_filter_lookup=additional_warehouse_lookup,
         existing_lines=lines,
         replace=True,
@@ -687,14 +723,14 @@ def _create_order(
 
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
-        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+        checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     allocate_stocks(
         order_lines_info,
         country_code,
         checkout_info.channel,
         manager,
-        checkout_info.delivery_method_info.warehouse_pk,
+        checkout_info.get_delivery_method_info().warehouse_pk,
         additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
@@ -728,6 +764,15 @@ def _create_order(
     if private_metadata_list:
         order.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
+        )
+
+    if checkout_info.checkout.external_shipping_method_id:
+        # Add external shipping method to metadata, as order still uses private
+        # metadata for external shipping id.
+        order.store_value_in_private_metadata(
+            {
+                PRIVATE_META_APP_SHIPPING_ID: checkout_info.checkout.external_shipping_method_id
+            }
         )
 
     update_order_charge_data(order, with_save=False)
@@ -1129,14 +1174,14 @@ def _handle_allocations_of_order_lines(
 ):
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
-        checkout_info.delivery_method_info.get_warehouse_filter_lookup()
+        checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     allocate_stocks(
         order_lines_info,
         country_code,
         checkout_info.channel,
         manager,
-        checkout_info.delivery_method_info.warehouse_pk,
+        checkout_info.get_delivery_method_info().warehouse_pk,
         additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
@@ -1298,6 +1343,16 @@ def _create_order_from_checkout(
     if private_metadata_list:
         checkout_metadata.store_value_in_private_metadata(
             {data.key: data.value for data in private_metadata_list}
+        )
+
+    if checkout_info.checkout.external_shipping_method_id:
+        # Add external shipping method to metadata, as order still uses private
+        # metadata for external shipping id. The metadata will be transfered to the
+        # order.
+        checkout_metadata.store_value_in_private_metadata(
+            {
+                PRIVATE_META_APP_SHIPPING_ID: checkout_info.checkout.external_shipping_method_id
+            }
         )
 
     # order

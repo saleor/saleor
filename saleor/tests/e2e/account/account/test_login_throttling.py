@@ -5,17 +5,17 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from ....account.error_codes import AccountErrorCode
-from ....account.models import User
-from ....account.throttling import (
+from .....account.error_codes import AccountErrorCode
+from .....account.models import User
+from .....account.throttling import (
     get_cache_key_blocked_ip,
     get_cache_key_failed_ip,
     get_cache_key_failed_ip_with_user,
     get_delay_time,
 )
-from ..shop.utils import prepare_shop
-from ..utils import assign_permissions
-from .utils import account_register, raw_token_create
+from ...shop.utils import prepare_shop
+from ...utils import assign_permissions
+from ..utils import account_register, raw_token_create
 
 
 @pytest.mark.e2e

@@ -13,6 +13,8 @@ from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..account.models import User
+from ..account.utils import store_user_address
+from ..checkout import AddressType
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
@@ -680,7 +682,9 @@ def get_all_shipping_methods_for_order(
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> list[ShippingMethodData]:
-    if not order.is_shipping_required():
+    if not order.is_shipping_required(
+        database_connection_name=database_connection_name
+    ):
         return []
 
     shipping_address = order.shipping_address
@@ -697,6 +701,7 @@ def get_all_shipping_methods_for_order(
             price=order.subtotal.gross,
             shipping_address=shipping_address,
             country_code=shipping_address.country.code,
+            database_connection_name=database_connection_name,
         )
         .prefetch_related("channel_listings")
     )
@@ -718,6 +723,7 @@ def get_valid_shipping_methods_for_order(
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
     manager: "PluginsManager",
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    allow_sync_webhooks: bool = True,
 ) -> list[ShippingMethodData]:
     """Return a list of shipping methods according to Saleor's own business logic."""
     valid_methods = get_all_shipping_methods_for_order(
@@ -726,7 +732,7 @@ def get_valid_shipping_methods_for_order(
     if not valid_methods:
         return []
 
-    if order.status in ORDER_EDITABLE_STATUS:
+    if order.status in ORDER_EDITABLE_STATUS and allow_sync_webhooks:
         excluded_methods = manager.excluded_shipping_methods_for_order(
             order, valid_methods
         )
@@ -1343,3 +1349,31 @@ def clean_order_line_quantities(order_lines, quantities_for_lines):
                     )
                 }
             )
+
+
+def store_user_addresses_from_draft_order(order, manager):
+    """Save the user's billing and shipping addresses after draft order completion.
+
+    This function stores the billing and shipping addresses in the customer's
+    address book if the order has an assigned user and the respective flags
+    (`draft_save_billing_address` or `draft_save_shipping_address`) are set to `True`.
+
+    Once the addresses are stored, the flags are reset to `None`, as they are only
+    applicable during the draft order stage.
+    """
+    if order.user:
+        if order.draft_save_billing_address is True and order.billing_address:
+            store_user_address(
+                order.user, order.billing_address, AddressType.BILLING, manager
+            )
+
+        if order.draft_save_shipping_address is True and order.shipping_address:
+            store_user_address(
+                order.user, order.shipping_address, AddressType.SHIPPING, manager
+            )
+
+    order.draft_save_billing_address = None
+    order.draft_save_shipping_address = None
+    order.save(
+        update_fields=["draft_save_billing_address", "draft_save_shipping_address"]
+    )

@@ -34,7 +34,7 @@ django_stubs_ext.monkeypatch()
 
 
 def get_list(text):
-    return [item.strip() for item in text.split(",")]
+    return [item.strip() for item in text.split(",") if item]
 
 
 def get_bool_from_env(name, default_value):
@@ -353,6 +353,15 @@ LOGGING = {
                 "[PID:%(process)d:%(threadName)s]"
             )
         },
+        "verbose_breaker": {
+            "format": (
+                "%(asctime)s %(levelname)s %(name)s %(message)s "
+                "App name: %(app_name)s, total webhooks %(webhooks_total_count)s, "
+                "errors count %(webhooks_errors_count)s, "
+                "Cooldown is %(webhooks_cooldown_seconds)s seconds. "
+                "[PID:%(process)d:%(threadName)s]"
+            )
+        },
     },
     "handlers": {
         "default": {
@@ -374,6 +383,11 @@ LOGGING = {
             "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "verbose" if DEBUG else "celery_task_json",
+        },
+        "breaker_board": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose_breaker" if DEBUG else "json",
         },
         "null": {
             "class": "logging.NullHandler",
@@ -399,6 +413,11 @@ LOGGING = {
         "saleor": {"level": "DEBUG", "propagate": True},
         "saleor.graphql.errors.handled": {
             "handlers": ["default"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "breaker_board": {
+            "handlers": ["breaker_board"],
             "level": "INFO",
             "propagate": False,
         },
@@ -812,8 +831,11 @@ RESERVE_DURATION = 45
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get("REDIS_URL")
-if REDIS_URL:
-    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+CACHE_URL = (
+    os.environ.setdefault("CACHE_URL", REDIS_URL)
+    if REDIS_URL
+    else os.environ.get("CACHE_URL")
+)
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
@@ -966,6 +988,26 @@ TRANSACTION_ITEMS_LIMIT = 100
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# Breaker board configuration
+BREAKER_BOARD_ENABLED = get_bool_from_env("BREAKER_BOARD_ENABLED", False)
+# Storage class string for the breaker board, for example:
+# "saleor.webhook.circuit_breaker.storage.RedisStorage"
+BREAKER_BOARD_STORAGE_CLASS = "saleor.webhook.circuit_breaker.storage.RedisStorage"
+if BREAKER_BOARD_ENABLED and (CACHE_URL is None or not CACHE_URL.startswith("redis")):
+    raise ImproperlyConfigured(
+        "Redis storage cannot be used when Redis cache is not configured."
+    )
+# List of lowercase sync webhook events that should be monitored by the breaker board, for ex:
+# "checkout_calculate_taxes, shipping_list_methods_for_checkout".
+BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS", ""))
+
+# Subset of BREAKER_BOARD_SYNC_EVENTS that should be monitored by the breaker board,
+# but should not be disabled in case of exceeding failure thresholds
+BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
+    os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
+)
 
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"

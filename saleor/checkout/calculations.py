@@ -454,6 +454,7 @@ def _fetch_checkout_prices_if_expired(
         "subtotal_gross_amount",
         "shipping_price_net_amount",
         "shipping_price_gross_amount",
+        "undiscounted_base_shipping_price_amount",
         "shipping_tax_rate",
         "translated_discount_name",
         "discount_amount",

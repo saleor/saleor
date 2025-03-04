@@ -102,7 +102,7 @@ def test_checkout_voucher_should_not_cause_negative_variant_price_CORE_0911(
         lines,
         channel_slug,
         email="testEmail@example.com",
-        set_default_billing_address=True,
+        shipping_address=None,
     )
     checkout_id = checkout["id"]
     checkout_lines = checkout["lines"][0]

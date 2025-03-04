@@ -17,12 +17,17 @@ from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
-from ....order.utils import get_order_country, update_order_display_gross_prices
+from ....order.utils import (
+    get_order_country,
+    store_user_addresses_from_draft_order,
+    update_order_display_gross_prices,
+)
 from ....permission.enums import OrderPermissions
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
@@ -177,6 +182,12 @@ class DraftOrderComplete(BaseMutation):
             )
             app = get_app_promise(info.context).get()
             transaction.on_commit(
+                lambda: store_user_addresses_from_draft_order(
+                    order=order,
+                    manager=manager,
+                )
+            )
+            transaction.on_commit(
                 lambda: order_created(
                     order_info=order_info,
                     user=user,
@@ -185,4 +196,4 @@ class DraftOrderComplete(BaseMutation):
                     from_draft=True,
                 )
             )
-        return DraftOrderComplete(order=order)
+        return DraftOrderComplete(order=SyncWebhookControlContext(node=order))

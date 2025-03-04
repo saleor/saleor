@@ -1,7 +1,7 @@
 import pytest
 
-from ..utils import assign_permissions
-from .utils import create_customer, customer_bulk_update
+from ...utils import assign_permissions
+from ..utils import create_customer, customer_bulk_update
 
 
 @pytest.mark.e2e

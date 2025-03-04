@@ -5,6 +5,17 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.21.0 [Unreleased]
 
 ### Highlights
+- Introduced a configurable customer address strategy, allowing control over whether shipping or billing addresses are saved in the customer’s address book - #17364 by @IKarbowiak
+	- Applies when a checkout or draft order is completed for a logged-in user.
+	- Default behavior remains unchanged: addresses are saved for checkouts but not for draft orders.
+	- The new save address setting is available in:
+      - `checkoutCreate`
+      - `checkoutShippingAddressUpdate`
+      - `checkoutBillingAddressUpdate`
+      - `draftOrderCreate`
+      - `draftOrderUpdate`
+	- The flag must be provided as part of an address; otherwise, an error is raised.
+	- Does not apply to Click & Collect delivery methods — shipping address is not saved in such case.
 
 ### Breaking changes
 
@@ -21,7 +32,11 @@ All notable, unreleased changes to this project will be documented in this file.
   - The `updateMetadata` for `Order` and `OrderLine` types requires the `MANAGE_ORDERS` permission
 - Fix updating `metadata` and `privateMetadata` in `transactionUpdate` - #17261 by @IKarbowiak
   - The provided data in the input field are merged with the existing one (previously the existing data was overridden by the new one).
- -Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
+- Fixed `invoiceRequest` no longer throws an error, when only app with webhook `INVOICE_REQUESTED` is installed, without invoice plugin - #17355 by @witoszekdev
+- Queries: `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to calculate taxes: the `CHECKOUT_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17268 by @korycins
+- Queries `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to fetch shipping methods (`SHIPPING_LIST_METHODS_FOR_CHECKOUT`) or to filter the available shipping methods (`CHECKOUT_FILTER_SHIPPING_METHODS`) - #17387 by @korycins
+- Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to calculate taxes: the `ORDER_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17421 by @korycins
+- Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to filter the available shipping methods (`ORDER_FILTER_SHIPPING_METHODS`) - #17425 by @korycins
 
 ### GraphQL API
 
@@ -34,13 +49,19 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add prior price fields to `VariantPricingInfo`, `ProductPricingInfo` and `CheckoutLine` - #17202 by @delemeator
 - Fix undiscounted price taxation inside an order calculations when the Avatax plugin is used - #17253 by @zedzior
 - The `checkoutShippingAddressUpdate` mutation anymore does not raise an error when a shipping address is updated for a checkout that does not require shipping - #17341 by @IKarbowiak
+- Add `appReenableSyncWebhooks` mutation - #16658 by @tomaszszymanski129
+- Add `breakerState` and `breakerLastStateChange` to the `App` type - #16658 by @tomaszszymanski129
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
+- Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
+- `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
 
 ### Webhooks
 
 - Fixed webhookTrigger payload type for events related to ProductVariant - #16956 by @delemeator
 - Truncate lenghty responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
 - Webhooks `CHECKOUT_FILTER_SHIPPING_METHODS` & `ORDER_FILTER_SHIPPING_METHODS` are no longer executed when not needed (no available shipping methods, e.g. due to lack of shipping address) - #17328 by @lkostrowski
+- New feature: sync webhooks circuit breaker - #16658 by @tomaszszymanski129
+- Fixed webhook `PRODUCT_VARIANT_METADATA_UPDATED` not being sent when `productVariantUpdate` mutation was called. Now, when `metadata` or `privateMetadata` is included in `ProductVariantUpdateInput`, both `PRODUCT_VARIANT_METADATA_UPDATED` and `PRODUCT_VARIANT_UPDATED` will be emitted (if subscribed) - #17406 by @lkostrowski
 
 ### Other changes
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
@@ -61,5 +82,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix checkout funds releasing task - #17198 by @IKarbowiak
 - Fixed 'healthcheck' middleware (`/health/` endpoint) not forwarding incoming traffic whenever the protocol wasn't HTTP (such as WebSocket or Lifespan) - #17248 by @NyanKiyoshi
 - Added support for the AWS_S3_URL_PROTOCOL environment variable - #17305 by @p-febis
-- Fixed pycurl dependency and required system libraries to fix Celery worker issues when using SQS by @mariobrgomes
+- Fixed Celery worker issues when using SQS by using celery[sqs] extras instead of direct pycurl dependency - by @mariobrgomes
 - Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski
+- `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins

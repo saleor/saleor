@@ -6,6 +6,7 @@ import graphene
 import pytest
 
 from ....core.models import EventDelivery
+from ....graphql.core.utils import to_global_id_or_none
 from ....graphql.tests.utils import get_graphql_content
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....order import OrderStatus
@@ -27,47 +28,39 @@ from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...base_plugin import ExcludedShippingMethod
 
 ORDER_QUERY_SHIPPING_METHOD = """
-    query OrdersQuery {
-        orders(first: 1) {
-            edges {
-                node {
-                    shippingMethods {
-                        id
-                        name
-                        active
-                        message
-                    }
-                    availableShippingMethods {
-                        id
-                        name
-                        active
-                        message
-                    }
-                }
-            }
-        }
+query OrderQuery($id: ID) {
+  order(id: $id) {
+    shippingMethods {
+      id
+      name
+      active
+      message
     }
+    availableShippingMethods {
+      id
+      name
+      active
+      message
+    }
+  }
+}
 """
 
 CHECKOUT_QUERY_SHIPPING_METHOD = """
-    query CheckoutsQuery {
-        checkouts(first: 1) {
-            edges {
-                node {
-                    shippingMethods {
-                        id
-                        name
-                        active
-                    }
-                    availableShippingMethods {
-                        id
-                        name
-                        active
-                    }
-                }
-            }
-        }
+query Checkout($id: ID){
+  checkout(id: $id) {
+    shippingMethods {
+      id
+      name
+      active
     }
+    availableShippingMethods {
+      id
+      name
+      active
+    }
+  }
+}
 """
 
 
@@ -454,9 +447,12 @@ def test_order_shipping_methods(
     ]
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     # when
-    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     shipping_methods = order_data["shippingMethods"]
     # then
@@ -485,26 +481,14 @@ def test_draft_order_shipping_methods(
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    query = """
-      query DraftOrdersQuery {
-       draftOrders(first: 1) {
-         edges {
-           node {
-             shippingMethods {
-               id
-               name
-               active
-               message
-             }
-           }
-         }
-       }
-      }
-    """
+
     # when
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["draftOrders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     shipping_methods = order_data["shippingMethods"]
     # then
@@ -544,9 +528,12 @@ def test_order_shipping_methods_skips_sync_webhook_for_non_editable_statuses(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     shipping_methods = order_data["shippingMethods"]
 
@@ -584,9 +571,12 @@ def test_order_available_shipping_methods(
     mocked_webhook.side_effect = respond
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     # when
-    response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        ORDER_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
     content = get_graphql_content(response)
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["order"]
 
     # then
     assert len(order_data["availableShippingMethods"]) == expected_count
@@ -611,9 +601,12 @@ def test_checkout_shipping_methods(
     ]
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
-    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        CHECKOUT_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(checkout_ready_to_complete)},
+    )
     content = get_graphql_content(response)
-    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+    checkout_data = content["data"]["checkout"]
 
     shipping_methods = checkout_data["shippingMethods"]
     # then
@@ -651,11 +644,12 @@ def test_checkout_available_shipping_methods(
 
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
-    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        CHECKOUT_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(checkout_ready_to_complete)},
+    )
     content = get_graphql_content(response)
-    shipping_methods = content["data"]["checkouts"]["edges"][0]["node"][
-        "availableShippingMethods"
-    ]
+    shipping_methods = content["data"]["checkout"]["availableShippingMethods"]
     # then
     assert len(shipping_methods) == 1
     assert shipping_methods[0]["active"]
@@ -674,9 +668,12 @@ def test_checkout_shipping_methods_webhook_called_once(
     mocked_webhook.side_effect = [[], AssertionError("called twice.")]
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     # when
-    response = staff_api_client.post_graphql(CHECKOUT_QUERY_SHIPPING_METHOD)
+    response = staff_api_client.post_graphql(
+        CHECKOUT_QUERY_SHIPPING_METHOD,
+        variables={"id": to_global_id_or_none(checkout_ready_to_complete)},
+    )
     content = get_graphql_content(response)
-    checkout_data = content["data"]["checkouts"]["edges"][0]["node"]
+    checkout_data = content["data"]["checkout"]
     # then
     assert len(checkout_data["availableShippingMethods"]) == 2
     assert len(checkout_data["shippingMethods"]) == 2

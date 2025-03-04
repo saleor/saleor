@@ -1,5 +1,5 @@
 from ... import DEFAULT_ADDRESS
-from ...utils import get_graphql_content
+from ...utils import assert_address_data, get_graphql_content
 
 CHECKOUT_BILLING_ADDRESS_UPDATE_MUTATION = """
 mutation CheckoutBillingAddressUpdate(
@@ -45,14 +45,6 @@ def checkout_billing_address_update(api_client, checkout_id, address=DEFAULT_ADD
     assert content["data"]["checkoutBillingAddressUpdate"]["errors"] == []
 
     data = content["data"]["checkoutBillingAddressUpdate"]["checkout"]
-    assert data["billingAddress"]["firstName"] == address["firstName"]
-    assert data["billingAddress"]["lastName"] == address["lastName"]
-    assert data["billingAddress"]["companyName"] == address["companyName"]
-    assert data["billingAddress"]["streetAddress1"] == address["streetAddress1"]
-    assert data["billingAddress"]["postalCode"] == address["postalCode"]
-    assert data["billingAddress"]["country"]["code"] == address["country"]
-    assert data["billingAddress"]["city"] == address["city"].upper()
-    assert data["billingAddress"]["countryArea"] == address["countryArea"]
-    assert data["billingAddress"]["phone"] == address["phone"]
+    assert_address_data(data["billingAddress"], address)
 
     return data

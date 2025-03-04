@@ -58,7 +58,7 @@ def update_checkout_prices_with_flat_rates(
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
     # Calculate shipping price.
-    shipping_method = checkout_info.delivery_method_info.delivery_method
+    shipping_method = checkout_info.get_delivery_method_info().delivery_method
     tax_class = getattr(shipping_method, "tax_class", None)
     shipping_tax_rate = get_tax_rate_for_tax_class(
         tax_class,

@@ -110,8 +110,6 @@ def test_unlogged_customer_cannot_buy_product_in_quantity_grater_than_stock_core
         lines,
         channel_slug,
         email="jon.doe@saleor.io",
-        set_default_billing_address=True,
-        set_default_shipping_address=True,
     )
 
     errors = checkout_data["errors"]
