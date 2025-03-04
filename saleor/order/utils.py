@@ -298,7 +298,6 @@ def create_order_line(
         else None
     )
 
-    # TODO zedzior: this trigger multiple db calls for multiple lines
     line = order.lines.create(
         product_name=product_name,
         variant_name=variant_name,
@@ -324,7 +323,6 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
         if rules_info:
-            # TODO zedzior: this trigger multiple db calls for multiple lines
             line_discounts = (
                 create_order_line_discount_objects_for_catalogue_promotions(
                     line, rules_info, channel
@@ -861,7 +859,6 @@ def create_order_discount_for_order(
     current_total: TaxedMoney = order.undiscounted_total
     currency = order.currency
 
-    # TODO zedzior: why gross price is taken?
     gross_total = apply_discount_to_value(
         value, value_type, currency, current_total.gross
     )
@@ -1007,7 +1004,6 @@ def _update_manual_order_line_discount_object(
 
 def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
-    # TODO zedzior: calculations should be lazy
     order_line.unit_price = TaxedMoney(
         net=order_line.undiscounted_base_unit_price,
         gross=order_line.undiscounted_base_unit_price,

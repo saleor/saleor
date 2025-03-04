@@ -515,7 +515,6 @@ def prepare_line_discount_objects_for_voucher(
             continue
 
         if use_denormalized_data:
-            # TODO zedzior test when voucher deleted
             if not line_info.voucher_denormalized_info:
                 if discount_to_update:
                     line_discounts_to_remove.append(discount_to_update)
@@ -534,7 +533,6 @@ def prepare_line_discount_objects_for_voucher(
             discount_amount = calculate_line_discount_amount_from_voucher(
                 line_info, total_price
             )
-            # TODO zedzior: optimize fetching the discount value and discount amount
             voucher_listing = voucher.channel_listings.get(channel=line_info.channel)
             discount_name = f"{voucher.name}"
             discount_value = voucher_listing.discount_value

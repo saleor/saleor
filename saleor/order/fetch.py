@@ -131,7 +131,6 @@ def fetch_draft_order_lines_info(
         "variant__product__product_type",
     ]
     if fetch_actual_prices:
-        # TODO zedzior: optimize the prefetch to get channel relevant data only
         prefetch_related_fields.extend(
             [
                 "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",

@@ -594,7 +594,6 @@ def _set_channel_listing_prices(lines_info: list[EditableOrderLineInfo]):
     for line_info in lines_info:
         line = line_info.line
         channel_listing = line_info.channel_listing
-        # TODO zedzior: should we do anything if the listing is not available anymore
         if channel_listing and channel_listing.price_amount:
             line.undiscounted_base_unit_price_amount = channel_listing.price_amount
             line.base_unit_price_amount = channel_listing.price_amount
