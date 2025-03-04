@@ -16,6 +16,7 @@ from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
+from ....order.models import OrderLine
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import (
     get_order_country,
@@ -141,7 +142,8 @@ class DraftOrderComplete(BaseMutation):
 
             cls.setup_voucher_customer(order, channel)
             order_lines_info = []
-            for line in order.lines.all():
+            lines = order.lines.all()
+            for line in lines:
                 if not line.variant:
                     # we only care about stock for variants that still exist
                     continue
@@ -172,6 +174,10 @@ class DraftOrderComplete(BaseMutation):
                     except InsufficientStock as e:
                         errors = prepare_insufficient_stock_order_validation_errors(e)
                         raise ValidationError({"lines": errors}) from e
+
+                # clear draft base price expiration time
+                line.draft_base_price_expire_at = None
+                OrderLine.objects.bulk_update(lines, ["draft_base_price_expire_at"])
 
             order_info = OrderInfo(
                 order=order,

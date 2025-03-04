@@ -3,7 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from ...core.prices import Money, quantize_price
+from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType, VoucherType
 from ...discount.models import (
@@ -11,22 +11,23 @@ from ...discount.models import (
     OrderLineDiscount,
     PromotionRule,
 )
+from ...discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
+)
+from ...product.models import Product
+from ...product.utils.variant_prices import update_discounted_prices_for_promotion
+from ...product.utils.variants import fetch_variants_for_promotion_rules
 from ...tests import race_condition
 from ...tests.utils import round_down, round_up
 from .. import OrderStatus, calculations
 
 
-@pytest.mark.parametrize("create_new_discounts", [True, False])
 def test_fetch_order_prices_catalogue_discount_flat_rates(
     order_with_lines_and_catalogue_promotion,
     plugins_manager,
-    create_new_discounts,
     tax_configuration_flat_rates,
 ):
     # given
-    if create_new_discounts:
-        OrderLineDiscount.objects.all().delete()
-
     order = order_with_lines_and_catalogue_promotion
     order.status = OrderStatus.UNCONFIRMED
     channel = order.channel
@@ -840,6 +841,7 @@ def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
     plugins_manager,
     tax_configuration_flat_rates,
 ):
+    """Manual order discount do not combine with order promotions."""
     # given
     order = order_with_lines_and_order_promotion
     order.status = OrderStatus.UNCONFIRMED
@@ -976,6 +978,7 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
     plugins_manager,
     tax_configuration_flat_rates,
 ):
+    """Manual order discount do not combine with order promotions."""
     # given
     order = order_with_lines_and_gift_promotion
     order.status = OrderStatus.UNCONFIRMED
@@ -1283,549 +1286,6 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     )
 
 
-def test_fetch_order_prices_manual_line_discount_and_catalogue_discount_flat_rates(
-    order_with_lines_and_catalogue_promotion,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines_and_catalogue_promotion
-    order.status = OrderStatus.UNCONFIRMED
-
-    line_1 = order.lines.get(quantity=3)
-    variant_1 = line_1.variant
-    variant_1_listing = variant_1.channel_listings.get(channel=order.channel)
-
-    manual_discount_value = Decimal("5")
-    manual_discount_value_type = DiscountValueType.FIXED
-    manual_discount_reason = "Manual line discount"
-    manual_discount = line_1.discounts.create(
-        value_type=manual_discount_value_type,
-        value=manual_discount_value,
-        name="Manual order line discount",
-        type=DiscountType.MANUAL,
-        reason=manual_discount_reason,
-    )
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    assert OrderLineDiscount.objects.count() == 1
-    assert not OrderDiscount.objects.exists()
-    manual_discount.refresh_from_db()
-
-    line_1 = [line for line in lines if line.quantity == 3][0]
-
-    assert (
-        line_1.base_unit_price_amount
-        == variant_1_listing.price_amount - manual_discount_value
-    )
-    assert manual_discount.line == line_1
-    assert manual_discount.value == manual_discount_value
-    assert manual_discount.value_type == manual_discount_value_type
-    assert manual_discount.type == DiscountType.MANUAL
-    assert manual_discount.reason == manual_discount_reason
-
-    line_1_total_net_amount = quantize_price(
-        (variant_1_listing.price_amount - manual_discount_value) * line_1.quantity,
-        order.currency,
-    )
-    assert line_1.total_price_net_amount == line_1_total_net_amount
-
-
-def test_fetch_order_prices_voucher_specific_product_fixed(
-    order_with_lines,
-    voucher_specific_product_type,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    voucher = voucher_specific_product_type
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    unit_discount_amount = Decimal("5")
-    voucher_listing.discount_value = unit_discount_amount
-    voucher_listing.save(update_fields=["discount_value"])
-    voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["discount_value_type"])
-
-    lines = order.lines.all()
-    discounted_line, line_1 = lines
-    voucher.variants.add(discounted_line.variant)
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line, line_1 = lines
-    discount_amount = unit_discount_amount * discounted_line.quantity
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.base_unit_price_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-    line_discount = discounted_line.discounts.first()
-    assert line_discount.amount_value == discount_amount
-    assert line_discount.value_type == DiscountValueType.FIXED
-    assert line_discount.type == DiscountType.VOUCHER
-    assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
-
-
-def test_fetch_order_prices_voucher_specific_product_discount_line_object_updated(
-    order_with_lines,
-    voucher_specific_product_type,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    voucher = voucher_specific_product_type
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    unit_discount_amount = Decimal("5")
-    voucher_listing.discount_value = unit_discount_amount
-    voucher_listing.save(update_fields=["discount_value"])
-    voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["discount_value_type"])
-
-    lines = order.lines.all()
-    discounted_line, line_1 = lines
-    voucher.variants.add(discounted_line.variant)
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    line_discount = discounted_line.discounts.create(
-        value_type=DiscountValueType.FIXED,
-        value=Decimal("0"),
-        name="Manual line discount",
-        type=DiscountType.VOUCHER,
-    )
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line, line_1 = lines
-    discount_amount = unit_discount_amount * discounted_line.quantity
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.base_unit_price_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-    line_discount.refresh_from_db()
-    assert line_discount.amount_value == discount_amount
-    assert line_discount.value_type == DiscountValueType.FIXED
-    assert line_discount.type == DiscountType.VOUCHER
-    assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
-
-
-def test_fetch_order_prices_voucher_specific_product_percentage(
-    order_with_lines,
-    voucher_specific_product_type,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    voucher = voucher_specific_product_type
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("10")
-    voucher_listing.discount_value = discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-    voucher.discount_value_type = DiscountValueType.PERCENTAGE
-    voucher.save(update_fields=["discount_value_type"])
-
-    lines = order.lines.all()
-    discounted_line, line_1 = lines
-    voucher.variants.add(discounted_line.variant)
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line, line_1 = lines
-    discount_amount = (
-        discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * discount_value
-        / 100
-    )
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    unit_discount_amount = discount_amount / discounted_line.quantity
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.base_unit_price_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-    line_discount = discounted_line.discounts.first()
-    assert line_discount.amount_value == discount_amount
-    # TODO: should be from voucher probably
-    assert line_discount.value_type == DiscountValueType.FIXED
-    assert line_discount.type == DiscountType.VOUCHER
-    assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
-
-
-def test_fetch_order_prices_voucher_apply_once_per_order_fixed(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("5")
-    voucher_listing.discount_value = discount_amount
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.apply_once_per_order = True
-    voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["discount_value_type", "apply_once_per_order"])
-
-    lines = order.lines.all()
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line, line_1 = lines
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    unit_discount_amount = discount_amount / discounted_line.quantity
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.base_unit_price_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-    line_discount = discounted_line.discounts.first()
-    assert line_discount.amount_value == discount_amount
-    assert line_discount.value_type == DiscountValueType.FIXED
-    assert line_discount.type == DiscountType.VOUCHER
-    assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
-
-
-def test_fetch_order_prices_voucher_apply_once_per_order_percentage(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("10")
-    voucher_listing.discount_value = discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.apply_once_per_order = True
-    voucher.discount_value_type = DiscountValueType.PERCENTAGE
-    voucher.save(update_fields=["discount_value_type", "apply_once_per_order"])
-
-    lines = order.lines.all()
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line, line_1 = lines
-    discount_amount = (
-        discounted_line.undiscounted_base_unit_price_amount * discount_value / 100
-    )
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    unit_discount_amount = discount_amount / discounted_line.quantity
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount - unit_discount_amount
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.base_unit_price_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-    line_discount = discounted_line.discounts.first()
-    assert line_discount.amount_value == discount_amount
-    assert line_discount.value_type == DiscountValueType.FIXED
-    assert line_discount.type == DiscountType.VOUCHER
-    assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == discount_amount
-
-
 def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     order_with_lines,
     voucher_specific_product_type,
@@ -1851,6 +1311,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     voucher.variants.add(discounted_line.variant)
     order.voucher = voucher
     order.voucher_code = voucher.codes.first().code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     # create manual order discount
     order_discount_amount = Decimal("10")
@@ -1941,7 +1402,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     assert line_discount.value_type == DiscountValueType.FIXED
     assert line_discount.type == DiscountType.VOUCHER
     assert line_discount.reason == f"Voucher code: {order.voucher_code}"
-    assert line_discount.value == voucher_discount_amount
+    assert line_discount.value == unit_discount_amount
 
 
 def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_order(
@@ -1968,6 +1429,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     order.voucher = voucher
     order.voucher_code = voucher.codes.first().code
     order.save(update_fields=["voucher", "voucher_code"])
+    create_or_update_voucher_discount_objects_for_order(order)
 
     # create manual order discount
     order_discount_amount = Decimal("8")
@@ -1980,9 +1442,9 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
 
     shipping_price = order.shipping_price.net
     currency = order.currency
-    subtotal = zero_money(currency)
+    undiscounted_subtotal = zero_money(currency)
     for line in lines:
-        subtotal += line.base_unit_price * line.quantity
+        undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
 
     # when
     order, lines = calculations.fetch_order_prices_if_expired(
@@ -1995,7 +1457,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     order.refresh_from_db()
     assert order.total_net_amount == quantize_price(
         (
-            subtotal.amount
+            undiscounted_subtotal.amount
             + shipping_price.amount
             - voucher_discount_amount
             - order_discount_amount
@@ -2008,7 +1470,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
         + order.shipping_price_gross_amount
     )
     assert order.undiscounted_total_gross == quantize_price(
-        (subtotal + shipping_price) * tax_rate, currency
+        (undiscounted_subtotal + shipping_price) * tax_rate, currency
     )
     shipping_discount = shipping_price - order.shipping_price_net
     assert order.shipping_price_gross == quantize_price(
@@ -2064,764 +1526,28 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     assert line_discount.value == voucher_discount_amount
 
 
-def test_fetch_order_prices_manual_line_discount_voucher_specific_product(
-    order_with_lines,
-    voucher_specific_product_type,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    """Manual line discount should not stack with other line discounts."""
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    voucher = voucher_specific_product_type
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_value = Decimal("2")
-    voucher_listing.discount_value = voucher_discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["discount_value_type"])
-
-    lines = order.lines.all()
-    discounted_line, line_1 = lines
-    voucher.variants.add(discounted_line.variant)
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    # create manual order line discount
-    manual_line_discount_value = Decimal("3")
-    manual_line_discount = discounted_line.discounts.create(
-        value_type=DiscountValueType.FIXED,
-        value=manual_line_discount_value,
-        name="Manual line discount",
-        type=DiscountType.MANUAL,
-        reason="Manual line discount",
-    )
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line.refresh_from_db()
-    line_1.refresh_from_db()
-
-    manual_discount_amount = manual_line_discount_value * discounted_line.quantity
-    assert (
-        order.total_net_amount
-        == subtotal.amount + shipping_price.amount - manual_discount_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (subtotal.amount + shipping_price.amount - manual_discount_amount) * tax_rate
-    )
-    assert order.subtotal_net_amount == subtotal.amount - manual_discount_amount
-    assert (
-        order.subtotal_gross_amount
-        == (subtotal.amount - manual_discount_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.base_shipping_price == shipping_price
-
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        - manual_line_discount_value
-    )
-    assert (
-        discounted_line.total_price_net_amount
-        == discounted_line.unit_price_net_amount * discounted_line.quantity
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.unit_price_net_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_net_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == manual_line_discount_value
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == manual_line_discount.reason
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_net_amount
-        == order.subtotal_net_amount - discounted_line.total_price_net_amount
-    )
-    assert (
-        line_1.total_price_gross_amount
-        == (order.subtotal_net_amount - discounted_line.total_price_net_amount)
-        * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_net_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-
-    manual_line_discount.refresh_from_db()
-    assert manual_line_discount.amount_value == manual_discount_amount
-    assert manual_line_discount.type == DiscountType.MANUAL
-
-
-def test_fetch_order_prices_manual_line_discount_and_voucher_apply_once_per_order(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    """Manual line discount should not stack with other line discounts."""
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_value = Decimal("3")
-    voucher_listing.discount_value = voucher_discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.apply_once_per_order = True
-    voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["discount_value_type", "apply_once_per_order"])
-
-    lines = order.lines.all()
-    discounted_line, line_1 = lines
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-
-    # create manual order line discount
-    manual_line_discount_value = Decimal("3")
-    manual_line_discount = discounted_line.discounts.create(
-        value_type=DiscountValueType.FIXED,
-        value=manual_line_discount_value,
-        name="Manual line discount",
-        type=DiscountType.MANUAL,
-        reason="Manual line discount",
-    )
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    discounted_line.refresh_from_db()
-    line_1.refresh_from_db()
-
-    manual_discount_amount = manual_line_discount_value * discounted_line.quantity
-    assert (
-        order.total_net_amount
-        == subtotal.amount + shipping_price.amount - manual_discount_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (subtotal.amount + shipping_price.amount - manual_discount_amount) * tax_rate
-    )
-    assert order.subtotal_net_amount == subtotal.amount - manual_discount_amount
-    assert (
-        order.subtotal_gross_amount
-        == (subtotal.amount - manual_discount_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.base_shipping_price == shipping_price
-
-    assert (
-        discounted_line.base_unit_price_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        - manual_line_discount_value
-    )
-    assert (
-        discounted_line.total_price_net_amount
-        == discounted_line.unit_price_net_amount * discounted_line.quantity
-    )
-    assert (
-        discounted_line.total_price_gross_amount
-        == discounted_line.unit_price_net_amount * discounted_line.quantity * tax_rate
-    )
-    assert (
-        discounted_line.undiscounted_total_price_net_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-    )
-    assert (
-        discounted_line.undiscounted_total_price_gross_amount
-        == discounted_line.undiscounted_base_unit_price_amount
-        * discounted_line.quantity
-        * tax_rate
-    )
-    assert discounted_line.unit_discount_amount == manual_line_discount_value
-    assert discounted_line.unit_discount_type == DiscountValueType.FIXED
-    assert discounted_line.unit_discount_reason == manual_line_discount.reason
-
-    assert line_1.base_unit_price_amount == line_1.undiscounted_base_unit_price_amount
-    assert (
-        line_1.total_price_net_amount
-        == order.subtotal_net_amount - discounted_line.total_price_net_amount
-    )
-    assert (
-        line_1.total_price_gross_amount
-        == (order.subtotal_net_amount - discounted_line.total_price_net_amount)
-        * tax_rate
-    )
-    assert (
-        line_1.undiscounted_total_price_net_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity
-    )
-    assert (
-        line_1.undiscounted_total_price_gross_amount
-        == line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate
-    )
-    assert line_1.unit_discount_amount == 0
-    assert line_1.unit_discount_type is None
-    assert line_1.unit_discount_reason is None
-
-    assert discounted_line.discounts.count() == 1
-
-    manual_line_discount.refresh_from_db()
-    assert manual_line_discount.amount_value == manual_discount_amount
-    assert manual_line_discount.type == DiscountType.MANUAL
-
-
-def test_fetch_order_prices_catalogue_discount_race_condition(
-    order_with_lines_and_catalogue_promotion,
+def test_fetch_order_prices_order_promotion_discount_race_condition(
+    order_with_lines_and_order_promotion,
     plugins_manager,
     tax_configuration_flat_rates,
 ):
     # given
-    order = order_with_lines_and_catalogue_promotion
+    order = order_with_lines_and_order_promotion
     order.status = OrderStatus.UNCONFIRMED
-    OrderLineDiscount.objects.all().delete()
+    OrderDiscount.objects.all().delete()
 
     # when
-    def call_before_creating_catalogue_line_discount(*args, **kwargs):
+    def call_before_creating_order_promotion_line_discount(*args, **kwargs):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     with race_condition.RunBefore(
-        "saleor.discount.utils.promotion."
-        "prepare_line_discount_objects_for_catalogue_promotions",
-        call_before_creating_catalogue_line_discount,
+        "saleor.discount.utils.promotion._handle_order_promotion",
+        call_before_creating_order_promotion_line_discount,
     ):
         calculations.fetch_order_prices_if_expired(order, plugins_manager, None, True)
 
     # then
-    assert OrderLineDiscount.objects.count() == 1
-
-
-def test_fetch_order_prices_voucher_entire_order_fixed(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    assert voucher.type == VoucherType.ENTIRE_ORDER
-    assert voucher.discount_value_type == DiscountValueType.FIXED
-
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("35")
-    voucher_listing.discount_value = discount_amount
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher name"
-    voucher.save(update_fields=["name"])
-
-    order.voucher = voucher
-    code = voucher.codes.first().code
-    order.voucher_code = code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    lines = order.lines.all()
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
     assert OrderDiscount.objects.count() == 1
-    discount = order.discounts.first()
-    assert discount.voucher == voucher
-    assert discount.value_type == voucher.discount_value_type
-    assert discount.value == discount_amount
-    assert discount.amount_value == discount_amount
-    assert discount.currency == currency
-    assert discount.reason == f"Voucher code: {code}"
-    assert discount.name == voucher.name
-    assert discount.type == DiscountType.VOUCHER
-    assert discount.voucher_code == code
-    # TODO (SHOPX-914): set translated voucher name
-    assert discount.translated_name == ""
-
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    lines = order.lines.all()
-    line_1 = [line for line in lines if line.quantity == 3][0]
-    line_2 = [line for line in lines if line.quantity == 2][0]
-
-    line_1_base_total = line_1.quantity * line_1.base_unit_price_amount
-    line_2_base_total = line_2.quantity * line_2.base_unit_price_amount
-    base_total = line_1_base_total + line_2_base_total
-    line_1_order_discount_portion = discount_amount * line_1_base_total / base_total
-    line_2_order_discount_portion = discount_amount - line_1_order_discount_portion
-
-    variant_1 = line_1.variant
-    variant_1_listing = variant_1.channel_listings.get(channel=order.channel)
-    variant_1_undiscounted_unit_price = variant_1_listing.price_amount
-    line_1_total_net_amount = quantize_price(
-        line_1.undiscounted_total_price_net_amount - line_1_order_discount_portion,
-        currency,
-    )
-    assert (
-        line_1.undiscounted_total_price_net_amount
-        == variant_1_undiscounted_unit_price * line_1.quantity
-    )
-    assert (
-        line_1.undiscounted_unit_price_net_amount == variant_1_undiscounted_unit_price
-    )
-    assert line_1.total_price_net_amount == line_1_total_net_amount
-    assert line_1.base_unit_price_amount == variant_1_undiscounted_unit_price
-    assert line_1.unit_price_net_amount == line_1_total_net_amount / line_1.quantity
-
-    variant_2 = line_2.variant
-    variant_2_listing = variant_2.channel_listings.get(channel=order.channel)
-    variant_2_undiscounted_unit_price = variant_2_listing.price_amount
-    line_2_total_net_amount = quantize_price(
-        line_2.undiscounted_total_price_net_amount - line_2_order_discount_portion,
-        currency,
-    )
-    assert (
-        line_2.undiscounted_total_price_net_amount
-        == variant_2_undiscounted_unit_price * line_2.quantity
-    )
-    assert (
-        line_2.undiscounted_unit_price_net_amount == variant_2_undiscounted_unit_price
-    )
-    assert line_2.total_price_net_amount == line_2_total_net_amount
-    assert line_2.base_unit_price_amount == variant_2_undiscounted_unit_price
-    assert line_2.unit_price_net_amount == line_2_total_net_amount / line_2.quantity
-
-
-def test_fetch_order_prices_voucher_entire_order_multiple_lines(
-    order,
-    voucher,
-    plugins_manager,
-    order_lines_generator,
-    product_list,
-    tax_configuration_flat_rates,
-):
-    # given
-    assert voucher.type == VoucherType.ENTIRE_ORDER
-    assert voucher.discount_value_type == DiscountValueType.FIXED
-
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("3")
-    voucher_listing.discount_value = discount_amount
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher name"
-    voucher.save(update_fields=["name"])
-
-    code = voucher.codes.first().code
-    order.voucher = voucher
-    order.voucher_code = code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-
-    variant_list = [product.variants.first() for product in product_list[:3]]
-    unit_prices = [7, 33, 25]
-    quantities = [1, 1, 1]
-    lines = order_lines_generator(order, variant_list, unit_prices, quantities)
-
-    subtotal = Money(sum(unit_prices), currency)
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    assert OrderDiscount.objects.count() == 1
-    discount = order.discounts.first()
-    assert discount.voucher == voucher
-    assert discount.value_type == voucher.discount_value_type
-    assert discount.value == discount_amount
-    assert discount.amount_value == discount_amount
-    assert discount.currency == currency
-    assert discount.reason == f"Voucher code: {code}"
-    assert discount.name == voucher.name
-    assert discount.type == DiscountType.VOUCHER
-    assert discount.voucher_code == code
-    # TODO (SHOPX-914): set translated voucher name
-    assert discount.translated_name == ""
-
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount - discount_amount
-    assert order.subtotal_gross_amount == (subtotal.amount - discount_amount) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    remaining_discount = discount_amount
-    for idx, line in enumerate(lines):
-        line.refresh_from_db()
-        idx = variant_list.index(line.variant)
-        base_price = unit_prices[idx]
-        line_base_total = base_price
-        if idx < len(lines) - 1:
-            line_order_discount_portion = quantize_price(
-                discount_amount * line_base_total / subtotal.amount, currency
-            )
-            remaining_discount -= line_order_discount_portion
-        else:
-            line_order_discount_portion = remaining_discount
-
-        line_total_net_amount = (
-            line.undiscounted_total_price_net_amount - line_order_discount_portion
-        )
-        assert line.undiscounted_total_price_net_amount == base_price
-        assert line.undiscounted_unit_price_net_amount == base_price
-        assert line.total_price_net_amount == line_total_net_amount
-        assert line.base_unit_price_amount == base_price
-        assert line.unit_price_net_amount == line_total_net_amount
-
-
-def test_fetch_order_prices_voucher_entire_order_percentage(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    assert voucher.type == VoucherType.ENTIRE_ORDER
-    voucher.discount_value_type = DiscountValueType.PERCENTAGE
-    voucher.save(update_fields=["discount_value_type"])
-
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("50")
-    voucher_listing.discount_value = discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher name"
-    voucher.save(update_fields=["name"])
-
-    order.voucher = voucher
-    code = voucher.codes.first().code
-    order.voucher_code = code
-
-    shipping_price = order.shipping_price.net
-    currency = order.currency
-    subtotal = zero_money(currency)
-    lines = order.lines.all()
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    assert OrderDiscount.objects.count() == 1
-    discount = order.discounts.first()
-    assert discount.voucher == voucher
-    assert discount.value_type == voucher.discount_value_type
-    assert discount.value == discount_value
-    assert discount.amount_value == Decimal(subtotal.amount / 2)
-    assert discount.currency == currency
-    assert discount.reason == f"Voucher code: {code}"
-    assert discount.name == voucher.name
-    assert discount.type == DiscountType.VOUCHER
-    assert discount.voucher_code == code
-    # TODO (SHOPX-914): set translated voucher name
-    assert discount.translated_name == ""
-
-    assert order.base_shipping_price == shipping_price
-    assert order.shipping_price_net == shipping_price
-    assert order.shipping_price_gross == shipping_price * tax_rate
-    assert order.subtotal_net_amount == Decimal(subtotal.amount / 2)
-    assert order.subtotal_gross_amount == Decimal(subtotal.amount / 2) * tax_rate
-    assert (
-        order.total_net_amount
-        == order.subtotal_net_amount + order.base_shipping_price_amount
-    )
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + order.base_shipping_price_amount) * tax_rate
-    )
-    assert order.undiscounted_total_net == subtotal + shipping_price
-    assert order.undiscounted_total_gross == (subtotal + shipping_price) * tax_rate
-
-    lines = order.lines.all()
-    line_1 = [line for line in lines if line.quantity == 3][0]
-    line_2 = [line for line in lines if line.quantity == 2][0]
-
-    variant_1 = line_1.variant
-    variant_1_listing = variant_1.channel_listings.get(channel=order.channel)
-    variant_1_undiscounted_unit_price = variant_1_listing.price_amount
-    line_1_total_net_amount = quantize_price(
-        line_1.undiscounted_total_price_net_amount / 2,
-        currency,
-    )
-    assert (
-        line_1.undiscounted_total_price_net_amount
-        == variant_1_undiscounted_unit_price * line_1.quantity
-    )
-    assert (
-        line_1.undiscounted_unit_price_net_amount == variant_1_undiscounted_unit_price
-    )
-    assert line_1.total_price_net_amount == line_1_total_net_amount
-    assert line_1.base_unit_price_amount == variant_1_undiscounted_unit_price
-    assert line_1.unit_price_net_amount == line_1_total_net_amount / line_1.quantity
-
-    variant_2 = line_2.variant
-    variant_2_listing = variant_2.channel_listings.get(channel=order.channel)
-    variant_2_undiscounted_unit_price = variant_2_listing.price_amount
-    line_2_total_net_amount = quantize_price(
-        line_2.undiscounted_total_price_net_amount / 2,
-        currency,
-    )
-    assert (
-        line_2.undiscounted_total_price_net_amount
-        == variant_2_undiscounted_unit_price * line_2.quantity
-    )
-    assert (
-        line_2.undiscounted_unit_price_net_amount == variant_2_undiscounted_unit_price
-    )
-    assert line_2.total_price_net_amount == line_2_total_net_amount
-    assert line_2.base_unit_price_amount == variant_2_undiscounted_unit_price
-    assert line_2.unit_price_net_amount == line_2_total_net_amount / line_2.quantity
-
-
-def test_fetch_order_prices_voucher_shipping_fixed(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    voucher.type = VoucherType.SHIPPING
-    voucher.discount_value_type = DiscountValueType.FIXED
-    voucher.save(update_fields=["type", "discount_value_type"])
-
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("5")
-    voucher_listing.discount_value = discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher shipping"
-    voucher.save(update_fields=["name"])
-
-    order.voucher = voucher
-    code = voucher.codes.first().code
-    order.voucher_code = code
-
-    undiscounted_shipping_price = order.shipping_price.net.amount
-    expected_shipping_price = Decimal(undiscounted_shipping_price - discount_value)
-    currency = order.currency
-    subtotal = zero_money(currency)
-    lines = order.lines.all()
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    assert OrderDiscount.objects.count() == 1
-    discount = order.discounts.first()
-    assert discount.voucher == voucher
-    assert discount.value_type == voucher.discount_value_type
-    assert discount.value == discount_value
-    assert (
-        discount.amount_value == undiscounted_shipping_price - expected_shipping_price
-    )
-    assert discount.reason == f"Voucher code: {code}"
-    assert discount.name == voucher.name
-    assert discount.type == DiscountType.VOUCHER
-    assert discount.voucher_code == code
-    # TODO (SHOPX-914): set translated voucher name
-    assert discount.translated_name == ""
-
-    assert order.undiscounted_base_shipping_price_amount == undiscounted_shipping_price
-    assert order.base_shipping_price_amount == expected_shipping_price
-    assert order.shipping_price_net_amount == expected_shipping_price
-    assert order.shipping_price_gross.amount == expected_shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount
-    assert order.subtotal_gross_amount == subtotal.amount * tax_rate
-    assert order.total_net_amount == order.subtotal_net_amount + expected_shipping_price
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + expected_shipping_price) * tax_rate
-    )
-    assert (
-        order.undiscounted_total_net_amount
-        == subtotal.amount + undiscounted_shipping_price
-    )
-    assert (
-        order.undiscounted_total_gross_amount
-        == (subtotal.amount + undiscounted_shipping_price) * tax_rate
-    )
-
-
-def test_fetch_order_prices_voucher_shipping_percentage(
-    order_with_lines,
-    voucher,
-    plugins_manager,
-    tax_configuration_flat_rates,
-):
-    # given
-    voucher.type = VoucherType.SHIPPING
-    voucher.discount_value_type = DiscountValueType.PERCENTAGE
-    voucher.save(update_fields=["type", "discount_value_type"])
-
-    order = order_with_lines
-    order.status = OrderStatus.UNCONFIRMED
-    tax_rate = Decimal("1.23")
-
-    voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("50")
-    voucher_listing.discount_value = discount_value
-    voucher_listing.save(update_fields=["discount_value"])
-
-    voucher.name = "Voucher shipping"
-    voucher.save(update_fields=["name"])
-
-    order.voucher = voucher
-    code = voucher.codes.first().code
-    order.voucher_code = code
-
-    undiscounted_shipping_price = order.shipping_price.net.amount
-    expected_shipping_price = Decimal(undiscounted_shipping_price / 2)
-    currency = order.currency
-    subtotal = zero_money(currency)
-    lines = order.lines.all()
-    for line in lines:
-        subtotal += line.base_unit_price * line.quantity
-
-    # when
-    order, lines = calculations.fetch_order_prices_if_expired(
-        order, plugins_manager, None, True
-    )
-
-    # then
-    assert OrderDiscount.objects.count() == 1
-    discount = order.discounts.first()
-    assert discount.voucher == voucher
-    assert discount.value_type == voucher.discount_value_type
-    assert discount.value == discount_value
-    assert (
-        discount.amount_value == undiscounted_shipping_price - expected_shipping_price
-    )
-    assert discount.reason == f"Voucher code: {code}"
-    assert discount.name == voucher.name
-    assert discount.type == DiscountType.VOUCHER
-    assert discount.voucher_code == code
-    # TODO (SHOPX-914): set translated voucher name
-    assert discount.translated_name == ""
-
-    assert order.undiscounted_base_shipping_price.amount == undiscounted_shipping_price
-    assert order.base_shipping_price.amount == expected_shipping_price
-    assert order.shipping_price_net_amount == expected_shipping_price
-    assert order.shipping_price_gross.amount == expected_shipping_price * tax_rate
-    assert order.subtotal_net_amount == subtotal.amount
-    assert order.subtotal_gross_amount == subtotal.amount * tax_rate
-    assert order.total_net_amount == order.subtotal_net_amount + expected_shipping_price
-    assert (
-        order.total_gross_amount
-        == (order.subtotal_net_amount + expected_shipping_price) * tax_rate
-    )
-    assert (
-        order.undiscounted_total_net_amount
-        == subtotal.amount + undiscounted_shipping_price
-    )
-    assert (
-        order.undiscounted_total_gross_amount
-        == (subtotal.amount + undiscounted_shipping_price) * tax_rate
-    )
 
 
 def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
@@ -2847,6 +1573,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
     order.voucher = voucher
     code = voucher.codes.first().code
     order.voucher_code = code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     undiscounted_shipping_price = order.shipping_price.net.amount
     base_shipping_price = Decimal(undiscounted_shipping_price - voucher_discount_amount)
@@ -2938,6 +1665,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
     order.voucher = voucher
     code = voucher.codes.first().code
     order.voucher_code = code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     undiscounted_shipping_price = order.shipping_price.net.amount
     base_shipping_price = Decimal(undiscounted_shipping_price - voucher_discount_amount)
@@ -3032,6 +1760,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
     order.voucher = voucher
     code = voucher.codes.first().code
     order.voucher_code = code
+    create_or_update_voucher_discount_objects_for_order(order)
 
     undiscounted_shipping_price = order.shipping_price.net.amount
     base_shipping_price = Decimal(undiscounted_shipping_price - voucher_discount_amount)
@@ -3225,3 +1954,102 @@ def test_fetch_order_prices_catalogue_discount_prices_entered_with_tax_tax_exemp
     assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
     assert line_1.unit_discount_type == DiscountValueType.FIXED
     assert line_1.unit_discount_value == reward_value
+
+
+def test_fetch_order_prices_removing_catalogue_promotion_doesnt_remove_discount(
+    order_with_lines_and_catalogue_promotion,
+    plugins_manager,
+    tax_configuration_flat_rates,
+):
+    # given
+    order = order_with_lines_and_catalogue_promotion
+    currency = order.currency
+    order.status = OrderStatus.UNCONFIRMED
+    channel = order.channel
+    line_1, line_2 = order.lines.all()
+    catalogue_discount = line_1.discounts.get()
+    assert catalogue_discount.type == DiscountType.PROMOTION
+
+    rule = catalogue_discount.promotion_rule
+    promotion = rule.promotion
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    catalogue_reward_value = rule.reward_value
+    catalogue_reward_value_type = rule.reward_value_type
+    catalogue_unit_discount_amount = catalogue_reward_value
+
+    tax_rate = Decimal("1.23")
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+    variant_1 = line_1.variant
+    variant_1_listing = variant_1.channel_listings.get(channel=channel)
+    variant_1_undiscounted_unit_price = variant_1_listing.price_amount
+    line_1_base_unit_price = (
+        variant_1_undiscounted_unit_price - catalogue_unit_discount_amount
+    )
+    line_1 = lines[0]
+    assert line_1.base_unit_price_amount == line_1_base_unit_price
+
+    # when
+    promotion.delete()
+    fetch_variants_for_promotion_rules(PromotionRule.objects.all())
+    update_discounted_prices_for_promotion(Product.objects.all())
+    order, lines = calculations.fetch_order_prices_if_expired(
+        order, plugins_manager, None, True
+    )
+
+    # then
+    variant_1_listing.refresh_from_db()
+    assert (
+        variant_1_listing.discounted_price_amount == variant_1_undiscounted_unit_price
+    )
+    assert OrderLineDiscount.objects.count() == 1
+    assert not OrderDiscount.objects.exists()
+
+    line_1, line_2 = lines
+    catalogue_discount.refresh_from_db()
+    catalogue_discount_amount = catalogue_unit_discount_amount * line_1.quantity
+    assert catalogue_discount.amount_value == catalogue_discount_amount
+    assert catalogue_discount.value == catalogue_reward_value
+    assert catalogue_discount.value_type == catalogue_reward_value_type
+    assert catalogue_discount.type == DiscountType.PROMOTION
+    assert catalogue_discount.reason == f"Promotion: {promotion_id}"
+    assert catalogue_discount.promotion_rule_id is None
+
+    variant_1 = line_1.variant
+    variant_1_listing = variant_1.channel_listings.get(channel=channel)
+    variant_1_undiscounted_unit_price = variant_1_listing.price_amount
+    assert (
+        line_1.undiscounted_base_unit_price_amount == variant_1_undiscounted_unit_price
+    )
+
+    assert (
+        line_1.undiscounted_total_price_net_amount
+        == variant_1_undiscounted_unit_price * line_1.quantity
+    )
+    assert (
+        line_1.undiscounted_total_price_gross_amount
+        == line_1.undiscounted_total_price_net_amount * tax_rate
+    )
+    assert (
+        line_1.undiscounted_unit_price_net_amount == variant_1_undiscounted_unit_price
+    )
+    assert (
+        line_1.undiscounted_unit_price_gross_amount
+        == variant_1_undiscounted_unit_price * tax_rate
+    )
+
+    line_1_base_unit_price = (
+        variant_1_undiscounted_unit_price - catalogue_unit_discount_amount
+    )
+    assert line_1.base_unit_price_amount == line_1_base_unit_price
+    assert line_1.unit_price_net_amount == line_1_base_unit_price
+    assert line_1.unit_price_gross_amount == quantize_price(
+        line_1_base_unit_price * tax_rate, currency
+    )
+    assert (
+        line_1.total_price_net_amount == line_1.unit_price_net_amount * line_1.quantity
+    )
+    assert line_1.total_price_gross_amount == quantize_price(
+        line_1.total_price_net_amount * tax_rate, currency
+    )

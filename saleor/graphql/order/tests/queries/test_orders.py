@@ -58,11 +58,11 @@ def test_query_orders_when_flat_rates_active(
     mocked_update_order_prices_with_flat_rates.assert_called_once()
 
 
-@patch("saleor.order.calculations._recalculate_prices")
+@patch("saleor.order.calculations.calculate_prices")
 @patch("saleor.order.calculations.update_order_prices_with_flat_rates")
 def test_query_orders_for_order_with_lines_when_tax_app_active(
     mocked_update_order_prices_with_flat_rates,
-    mocked__recalculate_prices,
+    mocked_calculate_prices,
     order_with_lines,
     tax_configuration_tax_app,
     staff_api_client,
@@ -87,14 +87,14 @@ def test_query_orders_for_order_with_lines_when_tax_app_active(
     assert order_with_lines.total_gross_amount == Decimal(0)
 
     mocked_update_order_prices_with_flat_rates.assert_not_called()
-    mocked__recalculate_prices.assert_not_called()
+    mocked_calculate_prices.assert_not_called()
 
 
-@patch("saleor.order.calculations._recalculate_prices")
+@patch("saleor.order.calculations.calculate_prices")
 @patch("saleor.order.calculations.update_order_prices_with_flat_rates")
 def test_query_orders_for_order_with_granted_refunds_when_tax_app_active(
     mocked_update_order_prices_with_flat_rates,
-    mocked__recalculate_prices,
+    mocked_calculate_prices,
     order_with_lines,
     tax_configuration_tax_app,
     staff_api_client,
@@ -133,14 +133,14 @@ def test_query_orders_for_order_with_granted_refunds_when_tax_app_active(
     assert order.total_gross_amount == Decimal(0)
 
     mocked_update_order_prices_with_flat_rates.assert_not_called()
-    mocked__recalculate_prices.assert_not_called()
+    mocked_calculate_prices.assert_not_called()
 
 
-@patch("saleor.order.calculations._recalculate_prices")
+@patch("saleor.order.calculations.calculate_prices")
 @patch("saleor.order.calculations.update_order_prices_with_flat_rates")
 def test_query_orders_for_order_with_fulfillments_when_tax_app_active(
     mocked_update_order_prices_with_flat_rates,
-    mocked__recalculate_prices,
+    mocked_calculate_prices,
     order_with_lines,
     tax_configuration_tax_app,
     staff_api_client,
@@ -169,14 +169,14 @@ def test_query_orders_for_order_with_fulfillments_when_tax_app_active(
     assert order.total_gross_amount == Decimal(0)
 
     mocked_update_order_prices_with_flat_rates.assert_not_called()
-    mocked__recalculate_prices.assert_not_called()
+    mocked_calculate_prices.assert_not_called()
 
 
-@patch("saleor.order.calculations._recalculate_prices")
+@patch("saleor.order.calculations.calculate_prices")
 @patch("saleor.order.calculations.update_order_prices_with_flat_rates")
 def test_query_orders_for_order_with_events_when_tax_app_active(
     mocked_update_order_prices_with_flat_rates,
-    mocked__recalculate_prices,
+    mocked_calculate_prices,
     order_with_lines,
     tax_configuration_tax_app,
     staff_api_client,
@@ -222,7 +222,7 @@ def test_query_orders_for_order_with_events_when_tax_app_active(
     assert order.total_gross_amount == Decimal(0)
 
     mocked_update_order_prices_with_flat_rates.assert_not_called()
-    mocked__recalculate_prices.assert_not_called()
+    mocked_calculate_prices.assert_not_called()
 
 
 @patch.object(PluginsManager, "excluded_shipping_methods_for_order")

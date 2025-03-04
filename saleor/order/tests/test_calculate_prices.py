@@ -7,13 +7,13 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType
 from ...order.base_calculations import (
-    apply_order_discounts,
     apply_subtotal_discount_to_order_lines,
+    calculate_prices,
 )
 from ..models import OrderLine
 
 
-def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
+def test_calculate_prices_voucher_entire_order(order_with_lines, voucher):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -36,7 +36,7 @@ def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == shipping_price
@@ -53,7 +53,7 @@ def test_apply_order_discounts_voucher_entire_order(order_with_lines, voucher):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_voucher_entire_order_exceed_subtotal(
+def test_calculate_prices_voucher_entire_order_exceed_subtotal(
     order_with_lines, voucher
 ):
     # given
@@ -80,7 +80,7 @@ def test_apply_order_discounts_voucher_entire_order_exceed_subtotal(
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == shipping_price
@@ -95,7 +95,7 @@ def test_apply_order_discounts_voucher_entire_order_exceed_subtotal(
     assert order_discount.amount_value == subtotal.amount
 
 
-def test_apply_order_discounts_voucher_entire_order_percentage(
+def test_calculate_prices_voucher_entire_order_percentage(
     order_with_lines, voucher_percentage
 ):
     # given
@@ -120,7 +120,7 @@ def test_apply_order_discounts_voucher_entire_order_percentage(
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == shipping_price
@@ -135,7 +135,7 @@ def test_apply_order_discounts_voucher_entire_order_percentage(
     assert order_discount.amount_value == quantize_price(subtotal.amount / 2, currency)
 
 
-def test_apply_order_discounts_manual_discount(order_with_lines):
+def test_calculate_prices_manual_discount(order_with_lines):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -160,7 +160,7 @@ def test_apply_order_discounts_manual_discount(order_with_lines):
     subtotal_share = 1 - shipping_share
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == shipping_price - shipping_share * Money(
@@ -179,9 +179,7 @@ def test_apply_order_discounts_manual_discount(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_shipping_voucher(
-    order_with_lines, voucher_free_shipping
-):
+def test_calculate_prices_shipping_voucher(order_with_lines, voucher_free_shipping):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -204,14 +202,14 @@ def test_apply_order_discounts_shipping_voucher(
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == shipping_price
     assert discounted_subtotal == subtotal
 
 
-def test_apply_order_discounts_zero_discount(order_with_lines):
+def test_calculate_prices_zero_discount(order_with_lines):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -232,13 +230,13 @@ def test_apply_order_discounts_zero_discount(order_with_lines):
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_subtotal + discounted_shipping_price == undiscounted_total
 
 
-def test_apply_order_discounts_subtotal_zero(order_with_lines):
+def test_calculate_prices_subtotal_zero(order_with_lines):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -257,13 +255,13 @@ def test_apply_order_discounts_subtotal_zero(order_with_lines):
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_subtotal + discounted_shipping_price == zero_money(currency)
 
 
-def test_apply_order_discounts_manual_discount_no_lines(order):
+def test_calculate_prices_manual_discount_no_lines(order):
     # given
     lines = order.lines.all()
     assert not lines
@@ -279,13 +277,13 @@ def test_apply_order_discounts_manual_discount_no_lines(order):
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_subtotal + discounted_shipping_price == zero_money(currency)
 
 
-def test_apply_order_discounts_manual_discount_exceed_total(order_with_lines):
+def test_calculate_prices_manual_discount_exceed_total(order_with_lines):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -309,7 +307,7 @@ def test_apply_order_discounts_manual_discount_exceed_total(order_with_lines):
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == zero_money(currency)
@@ -324,7 +322,7 @@ def test_apply_order_discounts_manual_discount_exceed_total(order_with_lines):
     assert order_discount.amount_value == undiscounted_total.amount
 
 
-def test_apply_order_discounts_manual_discount_percentage(order_with_lines):
+def test_calculate_prices_manual_discount_percentage(order_with_lines):
     # given
     order = order_with_lines
     lines = order.lines.all()
@@ -347,7 +345,7 @@ def test_apply_order_discounts_manual_discount_percentage(order_with_lines):
     )
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     discounted_total = discounted_subtotal + discounted_shipping_price
@@ -363,7 +361,7 @@ def test_apply_order_discounts_manual_discount_percentage(order_with_lines):
     assert order_discount.amount_value == discount_amount
 
 
-def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
+def test_calculate_prices_voucher_entire_order_and_manual_discount_fixed(
     order_with_lines, voucher
 ):
     # given
@@ -410,7 +408,7 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
     expected_shipping -= Money(shipping_discount, currency)
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == expected_shipping
@@ -432,7 +430,7 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_fixed(
     assert manual_order_discount.amount_value == manual_discount_amount
 
 
-def test_apply_order_discounts_manual_discount_fixed_and_voucher_entire_order(
+def test_calculate_prices_manual_discount_fixed_and_voucher_entire_order(
     order_with_lines, voucher
 ):
     # given
@@ -479,7 +477,7 @@ def test_apply_order_discounts_manual_discount_fixed_and_voucher_entire_order(
     expected_subtotal -= Money(voucher_discount_amount, currency)
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == expected_shipping
@@ -496,7 +494,7 @@ def test_apply_order_discounts_manual_discount_fixed_and_voucher_entire_order(
     assert manual_order_discount.amount_value == manual_discount_amount
 
 
-def test_apply_order_discounts_voucher_entire_order_and_manual_discount_percentage(
+def test_calculate_prices_voucher_entire_order_and_manual_discount_percentage(
     order_with_lines,
     voucher_percentage,
 ):
@@ -545,7 +543,7 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_percenta
     manual_discount = manual_discount_subtotal + manual_discount_shipping
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == expected_shipping
@@ -562,7 +560,7 @@ def test_apply_order_discounts_voucher_entire_order_and_manual_discount_percenta
     assert manual_order_discount.amount_value == manual_discount.amount
 
 
-def test_apply_order_discounts_manual_discount_percentage_and_voucher_entire_order(
+def test_calculate_prices_manual_discount_percentage_and_voucher_entire_order(
     order_with_lines,
     voucher_percentage,
 ):
@@ -611,7 +609,7 @@ def test_apply_order_discounts_manual_discount_percentage_and_voucher_entire_ord
     expected_subtotal -= voucher_discount
 
     # when
-    discounted_subtotal, discounted_shipping_price = apply_order_discounts(order, lines)
+    discounted_subtotal, discounted_shipping_price = calculate_prices(order, lines)
 
     # then
     assert discounted_shipping_price == expected_shipping

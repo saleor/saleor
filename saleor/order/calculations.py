@@ -1,10 +1,11 @@
 import logging
 from collections.abc import Iterable
 from decimal import Decimal
+from uuid import UUID
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import prefetch_related_objects
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
 from ..core.db.connection import allow_writer
@@ -16,7 +17,16 @@ from ..core.taxes import (
     TaxError,
     zero_taxed_money,
 )
-from ..discount.utils.order import create_or_update_discount_objects_for_order
+from ..discount.utils.order import (
+    handle_order_promotion,
+    refresh_manual_line_discount_object,
+    refresh_order_line_discount_objects_for_catalogue_promotions,
+    update_unit_discount_data_on_order_line,
+)
+from ..discount.utils.voucher import (
+    create_or_update_line_discount_objects_from_voucher,
+    get_the_cheapest_line,
+)
 from ..payment.model_helpers import get_subtotal
 from ..plugins import PLUGIN_IDENTIFIER_PREFIX
 from ..plugins.manager import PluginsManager
@@ -30,12 +40,20 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
     validate_tax_data,
 )
-from . import ORDER_EDITABLE_STATUS
-from .base_calculations import apply_order_discounts, base_order_line_total
-from .fetch import EditableOrderLineInfo, fetch_draft_order_lines_info
+from . import ORDER_EDITABLE_STATUS, OrderStatus
+from .base_calculations import base_order_line_total, calculate_prices
+from .fetch import (
+    EditableOrderLineInfo,
+    fetch_draft_order_lines_info,
+    reattach_apply_once_per_order_voucher_info,
+)
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
-from .utils import log_address_if_validation_skipped_for_order, order_info_for_logs
+from .utils import (
+    calculate_draft_order_line_price_expiration_date,
+    log_address_if_validation_skipped_for_order,
+    order_info_for_logs,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,27 +76,37 @@ def fetch_order_prices_if_expired(
     if order.status not in ORDER_EDITABLE_STATUS:
         return order, lines
 
-    if not force_update and not order.should_refresh_prices:
+    expired_line_ids = get_expired_line_ids(order, lines)
+    if not force_update and not order.should_refresh_prices and not expired_line_ids:
         return order, lines
 
     tax_strategy = get_tax_calculation_strategy_for_order(order)
     if tax_strategy == TaxCalculationStrategy.TAX_APP and not allow_sync_webhooks:
         return order, lines
 
-    # handle promotions
-    lines_info: list[EditableOrderLineInfo] = fetch_draft_order_lines_info(order, lines)
-    create_or_update_discount_objects_for_order(
-        order, lines_info, database_connection_name
-    )
+    if expired_line_ids:
+        # handle line base price expiration
+        lines_info = refresh_order_base_prices_and_discounts(
+            order, expired_line_ids, lines
+        )
+    else:
+        lines_info = fetch_draft_order_lines_info(order, lines)
+
+    # order promotion is qualified based on the most actual prices, therefor need to be assessed
+    # on the every recalculation
+    handle_order_promotion(order, lines_info, database_connection_name)
+
+    # update `OrderLine.unit_discount_...` fields
+    update_unit_discount_data_on_order_line(lines_info)
+
     lines = [line_info.line for line_info in lines_info]
+    calculate_prices(
+        order,
+        lines,
+        database_connection_name=database_connection_name,
+    )
 
-    _clear_prefetched_discounts(order, lines)
-    with allow_writer():
-        # TODO: Load discounts with a dataloader and pass as argument
-        prefetch_related_objects([order], "discounts")
-
-    # handle taxes
-    _recalculate_prices(
+    calculate_taxes(
         order,
         manager,
         lines,
@@ -128,23 +156,27 @@ def fetch_order_prices_if_expired(
         return order, lines
 
 
-def _clear_prefetched_discounts(order, lines):
-    if hasattr(order, "_prefetched_objects_cache"):
-        order._prefetched_objects_cache.pop("discounts", None)
+def get_expired_line_ids(order: Order, lines: Iterable[OrderLine] | None) -> list[UUID]:
+    if order.status != OrderStatus.DRAFT:
+        return []
 
-    for line in lines:
-        if hasattr(line, "_prefetched_objects_cache"):
-            line._prefetched_objects_cache.pop("discounts", None)
+    if lines is None:
+        lines = order.lines.all()
+    now = timezone.now()
+    return [
+        line.pk
+        for line in lines
+        if line.draft_base_price_expire_at and line.draft_base_price_expire_at < now
+    ]
 
 
-def _recalculate_prices(
+def calculate_taxes(
     order: Order,
     manager: PluginsManager,
     lines: Iterable[OrderLine],
     tax_calculation_strategy: str,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    """Calculate prices after handling order level discounts and taxes."""
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_order(order)
@@ -152,12 +184,6 @@ def _recalculate_prices(
     tax_app_identifier = get_tax_app_identifier_for_order(order)
 
     order.tax_error = None
-
-    apply_order_discounts(
-        order,
-        lines,
-        database_connection_name=database_connection_name,
-    )
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to
         # display the tax rate to the user.
@@ -490,6 +516,99 @@ def _find_order_line(
     return next(
         (line for line in (lines or []) if line.pk == order_line.pk), order_line
     )
+
+
+def refresh_order_base_prices_and_discounts(
+    order: "Order",
+    line_ids_to_refresh: Iterable[UUID],
+    lines: Iterable[OrderLine] | None = None,
+) -> list[EditableOrderLineInfo]:
+    """Force order to fetch the latest channel listing prices and update discounts."""
+    if order.status != OrderStatus.DRAFT:
+        return []
+
+    lines_info = fetch_draft_order_lines_info(
+        order, lines=lines, fetch_actual_prices=True
+    )
+    if not lines_info:
+        return []
+
+    lines_info_to_update = [
+        line_info
+        for line_info in lines_info
+        if line_info.line.id in line_ids_to_refresh
+    ]
+
+    initial_cheapest_line = get_the_cheapest_line(lines_info)
+
+    # update prices based on the latest channel listing prices
+    _set_channel_listing_prices(lines_info_to_update)
+    # update prices based on the latest catalogue promotions
+    refresh_order_line_discount_objects_for_catalogue_promotions(lines_info_to_update)
+    # update manual line discount object amount based on the new listing prices
+    refresh_manual_line_discount_object(lines_info_to_update)
+
+    # update prices based on the associated voucher
+    is_apply_once_per_order_voucher = (
+        order.voucher and order.voucher.apply_once_per_order
+    )
+    if is_apply_once_per_order_voucher:
+        # voucher of type apply once per order can impact other order line, if the
+        # cheapest line has changed
+        reattach_apply_once_per_order_voucher_info(
+            lines_info, initial_cheapest_line, order
+        )
+        create_or_update_line_discount_objects_from_voucher(lines_info)
+    else:
+        create_or_update_line_discount_objects_from_voucher(lines_info_to_update)
+
+    # update unit discount fields based on updated discounts
+    update_unit_discount_data_on_order_line(lines_info)
+
+    # set price expiration time
+    expiration_time = calculate_draft_order_line_price_expiration_date(
+        order.channel, order.status
+    )
+    for line_info in lines_info_to_update:
+        line_info.line.draft_base_price_expire_at = expiration_time
+
+    lines = [line_info.line for line_info in lines_info]
+    # cleanup after potential outdated prefetched line discounts
+    _clear_prefetched_order_line_discounts(lines)
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_discount_amount",
+            "unit_discount_reason",
+            "unit_discount_type",
+            "unit_discount_value",
+            "base_unit_price_amount",
+            "undiscounted_base_unit_price_amount",
+            "draft_base_price_expire_at",
+        ],
+    )
+    return lines_info
+
+
+def _set_channel_listing_prices(lines_info: list[EditableOrderLineInfo]):
+    for line_info in lines_info:
+        line = line_info.line
+        channel_listing = line_info.channel_listing
+        if channel_listing and channel_listing.price_amount:
+            line.undiscounted_base_unit_price_amount = channel_listing.price_amount
+            line.base_unit_price_amount = channel_listing.price_amount
+
+
+def _clear_prefetched_order_line_discounts(lines):
+    for line in lines:
+        if hasattr(line, "_prefetched_objects_cache"):
+            line._prefetched_objects_cache.pop("discounts", None)
+
+
+def refresh_all_order_base_prices_and_discounts(order):
+    lines = order.lines.all()
+    line_ids_to_refresh = [line.id for line in lines]
+    refresh_order_base_prices_and_discounts(order, line_ids_to_refresh, lines)
 
 
 def order_line_unit(

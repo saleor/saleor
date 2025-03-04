@@ -88,6 +88,7 @@ class OrderLineUpdate(
                 variant=instance.variant,
                 warehouse_pk=warehouse_pk,
             )
+            order = instance.order
             try:
                 change_order_line_quantity(
                     info.context.user,
@@ -95,7 +96,7 @@ class OrderLineUpdate(
                     line_info,
                     instance.old_quantity,
                     instance.quantity,
-                    instance.order.channel,
+                    order,
                     manager,
                 )
             except InsufficientStock as e:
@@ -103,11 +104,11 @@ class OrderLineUpdate(
                     "Cannot set new quantity because of insufficient stock.",
                     code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 ) from e
-            invalidate_order_prices(instance.order)
-            recalculate_order_weight(instance.order)
-            instance.order.save(update_fields=["should_refresh_prices", "weight"])
+            invalidate_order_prices(order)
+            recalculate_order_weight(order)
+            order.save(update_fields=["should_refresh_prices", "weight"])
 
-            call_event_by_order_status(instance.order, manager)
+            call_event_by_order_status(order, manager)
 
     @classmethod
     def success_response(cls, instance):

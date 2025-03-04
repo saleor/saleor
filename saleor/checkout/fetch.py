@@ -14,7 +14,11 @@ from ..core.prices import quantize_price
 from ..core.pricing.interface import LineInfo
 from ..core.taxes import zero_money
 from ..discount import VoucherType
-from ..discount.interface import fetch_variant_rules_info, fetch_voucher_info
+from ..discount.interface import (
+    VariantPromotionRuleInfo,
+    fetch_variant_rules_info,
+    fetch_voucher_info,
+)
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
@@ -53,6 +57,9 @@ class CheckoutLineInfo(LineInfo):
     product: "Product"
     product_type: "ProductType"
     discounts: list["CheckoutLineDiscount"]
+    rules_info: list["VariantPromotionRuleInfo"]
+    channel_listing: Optional["ProductVariantChannelListing"]
+
     tax_class: Optional["TaxClass"] = None
 
     @cached_property
@@ -417,7 +424,7 @@ def fetch_checkout_lines(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[list[CheckoutLineInfo], list[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
-    from ..discount.utils.voucher import apply_voucher_to_line
+    from ..discount.utils.voucher import attach_voucher_to_line_info
     from .utils import get_voucher_for_checkout
 
     select_related_fields = ["variant__product__product_type__tax_class"]
@@ -516,7 +523,7 @@ def fetch_checkout_lines(
             return lines_info, unavailable_variant_pks
         if voucher.type == VoucherType.SPECIFIC_PRODUCT or voucher.apply_once_per_order:
             voucher_info = fetch_voucher_info(voucher, checkout.voucher_code)
-            apply_voucher_to_line(voucher_info, lines_info)
+            attach_voucher_to_line_info(voucher_info, lines_info)
     return lines_info, unavailable_variant_pks
 
 

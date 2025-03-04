@@ -11,6 +11,7 @@ from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -22,7 +23,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_PRODUCTS,
 )
 from ...core.mutations import ModelMutation
-from ...core.scalars import Day, Minute
+from ...core.scalars import Day, Hour, Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
@@ -138,6 +139,14 @@ class OrderSettingsInput(BaseInputObjectType):
             "the vouchers will be disconnected from all draft orders."
             + ADDED_IN_318
             + PREVIEW_FEATURE
+        ),
+    )
+    draft_order_line_price_freeze_period = Hour(
+        required=False,
+        description=(
+            "Time in hours after which the draft order line price will be refreshed. "
+            "Default value is 24 hours. "
+            "Enter 0 or null to disable." + ADDED_IN_321 + PREVIEW_FEATURE
         ),
     )
 

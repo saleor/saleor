@@ -121,7 +121,7 @@ def variant_on_promotion(
     variant_channel_listing = product_variant.channel_listings.get(channel=channel_USD)
 
     variant_channel_listing.discounted_price_amount = (
-        variant_channel_listing.price_amount - reward_value
+        variant_channel_listing.price_amount - discount_amount
     )
     variant_channel_listing.save(update_fields=["discounted_price_amount"])
 

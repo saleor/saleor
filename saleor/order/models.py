@@ -719,6 +719,10 @@ class OrderLine(ModelWithMetadata):
     # Fulfilled when sale was applied to product in the line
     sale_id = models.CharField(max_length=255, null=True, blank=True)
 
+    # The date time when the line should refresh its prices.
+    # It depends on channel.draft_order_line_price_freeze_period setting.
+    draft_base_price_expire_at = models.DateTimeField(blank=True, null=True)
+
     objects = OrderLineManager()
 
     class Meta(ModelWithMetadata.Meta):

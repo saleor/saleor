@@ -10,6 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
 from ....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
     get_active_voucher_code,
     get_voucher_code_instance,
     increase_voucher_usage,
@@ -26,7 +27,6 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -613,12 +613,12 @@ class DraftOrderCreate(
                     shipping_channel_listing = cls.validate_shipping_channel_listing(
                         method, instance
                     )
-                    shipping_method_data = convert_to_shipping_method_data(
-                        method,
-                        shipping_channel_listing,
-                    )
-                    cls.update_shipping_method(instance, method, shipping_method_data)
-                    cls._update_shipping_price(instance, shipping_channel_listing)
+                    cls.update_shipping_method(instance, method)
+                    cls.assign_shipping_price(instance, shipping_channel_listing)
+                    # for new instance the shipping discount is created later
+                    if not is_new_instance:
+                        cls.update_shipping_discount(instance)
+
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:
@@ -672,14 +672,30 @@ class DraftOrderCreate(
 
     @classmethod
     def handle_order_voucher(
-        cls, cleaned_input, instance, is_new_instance, old_voucher, old_voucher_code
+        cls,
+        cleaned_input,
+        instance: models.Order,
+        is_new_instance: bool,
+        old_voucher: Voucher | None,
+        old_voucher_code: str | None,
     ):
-        user_email = instance.user_email or instance.user and instance.user.email
+        voucher = cleaned_input["voucher"]
+        if voucher is None and old_voucher is None:
+            return
+
+        # create or update voucher discount object
+        create_or_update_voucher_discount_objects_for_order(instance)
+
+        # handle voucher usage
+        user_email = instance.user_email
+        if not user_email and instance.user:
+            user_email = instance.user.email
+
         channel = instance.channel
         if not channel.include_draft_order_in_voucher_usage:
             return
 
-        if voucher := cleaned_input["voucher"]:
+        if voucher:
             code_instance = cleaned_input.pop("voucher_code_instance", None)
             increase_voucher_usage(
                 voucher,

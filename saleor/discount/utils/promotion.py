@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator
 from decimal import Decimal
 from itertools import chain
-from typing import TYPE_CHECKING, NamedTuple, Union, overload
+from typing import TYPE_CHECKING, NamedTuple, Union
 from uuid import UUID
 
 import graphene
@@ -47,6 +47,7 @@ from ..models import (
 from .shared import update_discount
 
 if TYPE_CHECKING:
+    from ...checkout.fetch import CheckoutLineInfo
     from ...order.fetch import EditableOrderLineInfo
     from ...order.models import OrderLine
     from ...product.managers import ProductVariantQueryset
@@ -56,8 +57,10 @@ CatalogueInfo = defaultdict[str, set[int | str]]
 CATALOGUE_FIELDS = ["categories", "collections", "products", "variants"]
 
 
-def prepare_promotion_discount_reason(promotion: "Promotion", sale_id: str):
-    return f"{'Sale' if promotion.old_sale_id else 'Promotion'}: {sale_id}"
+def prepare_promotion_discount_reason(promotion: Promotion):
+    if promotion.old_sale_id:
+        return f"Sale: {graphene.Node.to_global_id('Sale', promotion.old_sale_id)}"
+    return f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}"
 
 
 def get_sale_id(promotion: "Promotion"):
@@ -154,113 +157,7 @@ def get_product_discount_on_promotion(
     raise NotApplicable("Promotion rule not applicable for this product")
 
 
-@overload
-def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: list["CheckoutLineInfo"],
-) -> tuple[
-    list[dict], list["CheckoutLineDiscount"], list["CheckoutLineDiscount"], list[str]
-]: ...
-
-
-@overload
-def prepare_line_discount_objects_for_catalogue_promotions(
-    lines_info: list["EditableOrderLineInfo"],
-) -> tuple[
-    list[dict], list["OrderLineDiscount"], list["OrderLineDiscount"], list[str]
-]: ...
-
-
-def prepare_line_discount_objects_for_catalogue_promotions(lines_info):
-    line_discounts_to_create_inputs: list[dict] = []
-    line_discounts_to_update: list[CheckoutLineDiscount | OrderLineDiscount] = []
-    line_discounts_to_remove: list[CheckoutLineDiscount | OrderLineDiscount] = []
-    updated_fields: list[str] = []
-
-    if not lines_info:
-        return None
-
-    for line_info in lines_info:
-        line = line_info.line
-
-        # if channel_listing is not present, we can't close the checkout. User needs to
-        # remove the line for the checkout first. Until that moment, we return the same
-        # price as we did when listing was present - including line discount.
-        if isinstance(line_info, CheckoutLineInfo) and not line_info.channel_listing:
-            continue
-
-        # get the existing catalogue discount for the line
-        discount_to_update = None
-        if discounts_to_update := line_info.get_catalogue_discounts():
-            discount_to_update = discounts_to_update[0]
-            # Line should never have multiple catalogue discounts associated. Before
-            # introducing unique_type on discount models, there was such a possibility.
-            line_discounts_to_remove.extend(discounts_to_update[1:])
-
-        # manual line discount do not stack with other line discounts
-        if [
-            discount
-            for discount in line_info.discounts
-            if discount.type == DiscountType.MANUAL
-        ]:
-            line_discounts_to_remove.extend(discounts_to_update)
-            continue
-
-        # check if the line price is discounted by catalogue promotion
-        discounted_line = _is_discounted_line_by_catalogue_promotion(
-            line_info.channel_listing
-        )
-
-        # delete all existing discounts if the line is not discounted or it is a gift
-        if not discounted_line or line.is_gift:
-            line_discounts_to_remove.extend(discounts_to_update)
-            continue
-
-        if line_info.rules_info:
-            rule_info = line_info.rules_info[0]
-            rule = rule_info.rule
-            rule_discount_amount = _get_rule_discount_amount(
-                line, rule_info, line_info.channel
-            )
-            discount_name = get_discount_name(rule, rule_info.promotion)
-            translated_name = get_discount_translated_name(rule_info)
-            reason = _get_discount_reason(rule)
-            if not discount_to_update:
-                line_discount_input = {
-                    "line": line,
-                    "type": DiscountType.PROMOTION,
-                    "value_type": rule.reward_value_type,
-                    "value": rule.reward_value,
-                    "amount_value": rule_discount_amount,
-                    "currency": line.currency,
-                    "name": discount_name,
-                    "translated_name": translated_name,
-                    "reason": reason,
-                    "promotion_rule": rule,
-                    "unique_type": DiscountType.PROMOTION,
-                }
-                line_discounts_to_create_inputs.append(line_discount_input)
-            else:
-                _update_promotion_discount(
-                    rule,
-                    rule_info,
-                    rule_discount_amount,
-                    discount_to_update,
-                    updated_fields,
-                )
-                line_discounts_to_update.append(discount_to_update)
-        else:
-            # Fallback for unlike mismatch between discount_amount and rules_info
-            line_discounts_to_remove.extend(discounts_to_update)
-
-    return (
-        line_discounts_to_create_inputs,
-        line_discounts_to_update,
-        line_discounts_to_remove,
-        updated_fields,
-    )
-
-
-def _is_discounted_line_by_catalogue_promotion(
+def is_discounted_line_by_catalogue_promotion(
     variant_channel_listing: "ProductVariantChannelListing",
 ) -> bool:
     """Return True when the price is discounted by catalogue promotion."""
@@ -318,13 +215,6 @@ def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
     return rule.name or promotion.name
 
 
-def _get_discount_reason(rule: PromotionRule):
-    promotion = rule.promotion
-    if promotion.old_sale_id:
-        return f"Sale: {graphene.Node.to_global_id('Sale', promotion.old_sale_id)}"
-    return f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}"
-
-
 def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     promotion_translation = rule_info.promotion_translation
     rule_translation = rule_info.rule_translation
@@ -337,7 +227,7 @@ def get_discount_translated_name(rule_info: "VariantPromotionRuleInfo"):
     return None
 
 
-def _update_promotion_discount(
+def update_promotion_discount(
     rule: PromotionRule,
     rule_info: VariantPromotionRuleInfo,
     rule_discount_amount: Decimal,
@@ -348,9 +238,7 @@ def _update_promotion_discount(
 ):
     discount_name = get_discount_name(rule, rule_info.promotion)
     translated_name = get_discount_translated_name(rule_info)
-    reason = prepare_promotion_discount_reason(
-        rule_info.promotion, get_sale_id(rule_info.promotion)
-    )
+    reason = prepare_promotion_discount_reason(rule_info.promotion)
     # gift rule has empty reward_value_type
     value_type = rule.reward_value_type or RewardValueType.FIXED
     # gift rule has empty reward_value
@@ -829,7 +717,7 @@ def create_discount_objects_for_order_promotions(
         "currency": currency,
         "name": get_discount_name(best_rule, promotion),
         "translated_name": get_discount_translated_name(rule_info),
-        "reason": prepare_promotion_discount_reason(promotion, get_sale_id(promotion)),
+        "reason": prepare_promotion_discount_reason(rule_info.promotion),
     }
     if gift_listing:
         _handle_gift_reward(
@@ -866,7 +754,7 @@ def _handle_order_promotion(
 
     if not created:
         fields_to_update: list[str] = []
-        _update_promotion_discount(
+        update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_amount,
@@ -910,7 +798,7 @@ def _handle_gift_reward(
         if line_discount.line_id != line.id:
             line_discount.line = line
             fields_to_update.append("line_id")
-        _update_promotion_discount(
+        update_promotion_discount(
             discount_object_defaults["promotion_rule"],
             rule_info,
             discount_object_defaults["amount_value"],
@@ -928,17 +816,18 @@ def _handle_gift_reward(
             "product": variant.product,
             "product_type": variant.product.product_type,
             "collections": [],
-            "channel_listing": gift_listing,
             "discounts": [line_discount],
-            "rules_info": [rule_info],
             "channel": channel,
             "voucher": None,
             "voucher_code": None,
         }
         gift_line_info: CheckoutLineInfo | EditableOrderLineInfo
         if isinstance(order_or_checkout, Checkout):
+            init_values["channel_listing"] = gift_listing
+            init_values["rules_info"] = [rule_info]
             gift_line_info = CheckoutLineInfo(**init_values)
         else:
+            init_values["voucher_denormalized_info"] = None
             gift_line_info = EditableOrderLineInfo(**init_values)
         lines_info.append(gift_line_info)  # type: ignore[arg-type]
     else:

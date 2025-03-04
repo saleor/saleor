@@ -311,11 +311,11 @@ ME_WITH_ORDERS_WITH_LINES_TOTAL_PRICE_QUERY = """
 @pytest.mark.parametrize(
     "query", [ME_WITH_ORDERS_QUERY, ME_WITH_ORDERS_WITH_LINES_TOTAL_PRICE_QUERY]
 )
-@mock.patch("saleor.order.calculations._recalculate_prices")
+@mock.patch("saleor.order.calculations.calculate_prices")
 @mock.patch("saleor.order.calculations.update_order_prices_with_flat_rates")
 def test_me_query_orders_do_not_trigger_sync_tax_webhooks(
     mocked_update_order_prices_with_flat_rates,
-    mocked__recalculate_prices,
+    mocked_calculate_prices,
     query,
     user_api_client,
     order_with_lines,
@@ -345,7 +345,7 @@ def test_me_query_orders_do_not_trigger_sync_tax_webhooks(
     assert order_with_lines.total_gross_amount == Decimal(0)
 
     mocked_update_order_prices_with_flat_rates.assert_not_called()
-    mocked__recalculate_prices.assert_not_called()
+    mocked_calculate_prices.assert_not_called()
 
 
 @pytest.mark.parametrize(
