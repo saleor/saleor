@@ -473,7 +473,7 @@ class StockQuerySet(models.QuerySet["Stock"]):
 StockManager = models.Manager.from_queryset(StockQuerySet)
 
 
-class Stock(models.Model):
+class Stock(ModelWithMetadata):
     warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.CASCADE)
     product_variant = models.ForeignKey(
         ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"

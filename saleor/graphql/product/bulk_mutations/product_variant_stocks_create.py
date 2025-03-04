@@ -57,6 +57,7 @@ class ProductVariantStocksCreate(BaseMutation):
             warehouses = cls.clean_stocks_input(variant, stocks, errors)
             if errors:
                 raise ValidationError(errors)
+            # TODO: First map metadata from input to some data class and then pass it to create_stocks
             new_stocks = create_stocks(variant, stocks, warehouses)
 
             webhooks = get_webhooks_for_event(
