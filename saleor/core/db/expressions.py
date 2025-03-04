@@ -1,4 +1,4 @@
-from django.db.models import JSONField
+from django.db.models import Case, F, JSONField, Value, When
 from django.db.models.expressions import Expression
 
 
@@ -9,10 +9,9 @@ class PostgresJsonConcatenate(Expression):
     If a specified keys exists, they will be updated, otherwise they will be inserted.
     Accepts only expressions representing the `django.db.models.JSONField`.
 
-    If updated jsonb in databse is NULL, the update will have no result.
-    Saying it differently, behaviour of PostgresJsonConcatenate
-    is similar to this postgreqsl statement;
-    `SELECT NULL || {'a': 1}` will result in `NULL`.
+    None values will be transformed to empty `JSON`.
+    Similarily if updated jsonb in databse is NULL it will be treated as
+    empty `JSON`.
 
     Examples
         Updating exising json field with new_dict.
@@ -48,14 +47,31 @@ class PostgresJsonConcatenate(Expression):
         self, query=None, allow_joins=False, reuse=None, summarize=False, for_save=True
     ):
         c = self.copy()
+        c.left = self.__handle_null_value(self.left)
+        c.right = self.__handle_null_value(self.right)
         c.is_summary = summarize
-        c.left = self.left.resolve_expression(
+        c.left = c.left.resolve_expression(
             query, allow_joins, reuse, summarize, for_save
         )
-        c.right = self.right.resolve_expression(
+        c.right = c.right.resolve_expression(
             query, allow_joins, reuse, summarize, for_save
         )
         return c
+
+    def __add_case_when(self, arg):
+        is_null = {f"{arg.name}__isnull": True}
+        c = Case(When(**is_null, then=Value({}, output_field=JSONField())), default=arg)
+        return c
+
+    def __handle_null_value(self, arg):
+        if isinstance(arg, F):
+            return self.__add_case_when(arg)
+        if isinstance(arg, Value):
+            c = arg.copy()
+            if arg.value is None:
+                c.value = {}
+            return c
+        return arg
 
     def as_postgresql(self, compiler, __connection, template=None):
         sql_params = []
