@@ -8,7 +8,7 @@ from ...core.types import MetadataError, NonNullList
 from ..inputs import MetadataInput
 from ..permissions import PUBLIC_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import get_valid_metadata_instance, save_instance
+from .utils import get_valid_metadata_instance, update_metadata
 
 
 class UpdateMetadata(BaseMetadataMutation):
@@ -42,6 +42,6 @@ class UpdateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(input)
             items = {data.key: data.value for data in input}
             meta_instance.store_value_in_metadata(items=items)
-            save_instance(meta_instance, ["metadata"])
+            update_metadata(meta_instance, items)
 
         return cls.success_response(instance)
