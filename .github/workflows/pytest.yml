@@ -121,18 +121,6 @@ jobs:
           upload_secret_key: ${{ secrets.QUERIES_UPLOAD_SECRET }}
         if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
-      # Do not continue linters if tests failed earlier
-      - name: Cancel workflow on failure
-        if: failure()
-        uses: vishnudxb/cancel-workflow@c3c77eb4383ba7d023e6614a07d94fe990501ac6 # 1.2
-        with:
-          repo: ${{ github.repository }}
-          workflow_id: ${{ github.run_id }}
-          access_token: ${{ github.token }}
-
-
-
-
   linters:
     runs-on: ubuntu-latest
     container: python:3.12
@@ -183,13 +171,3 @@ jobs:
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pre-commit-
-
-
-      # Do not continue tests if linters failed earlier
-      - name: Cancel workflow on failure
-        if: failure()
-        uses: vishnudxb/cancel-workflow@c3c77eb4383ba7d023e6614a07d94fe990501ac6 # 1.2
-        with:
-          repo: ${{ github.repository }}
-          workflow_id: ${{ github.run_id }}
-          access_token: ${{ github.token }}
