@@ -376,7 +376,12 @@ class User(ModelObjectType[models.User]):
     )
     checkouts = ConnectionField(
         CheckoutCountableConnection,
-        description="Returns checkouts assigned to this user.",
+        description=(
+            "Returns checkouts assigned to this user. The query will not initiate any "
+            "external requests, including fetching external shipping methods, "
+            "filtering available shipping methods, or performing external tax "
+            "calculations."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -393,7 +398,10 @@ class User(ModelObjectType[models.User]):
     orders = ConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
         description=(
-            "List of user's orders. Requires one of the following permissions: "
+            "List of user's orders. The query will not initiate any external requests, "
+            "including filtering available shipping methods, or performing external "
+            "tax calculations. Requires one of the following"
+            " permissions: "
             f"{AccountPermissions.MANAGE_STAFF.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),

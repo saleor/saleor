@@ -77,12 +77,20 @@ class CheckoutQueries(graphene.ObjectType):
             CheckoutPermissions.MANAGE_CHECKOUTS,
             PaymentPermissions.HANDLE_PAYMENTS,
         ],
-        description="List of checkouts.",
+        description=(
+            "List of checkouts. The query will not initiate any external requests, "
+            "including fetching external shipping methods, filtering available "
+            "shipping methods, or performing external tax calculations."
+        ),
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_lines = ConnectionField(
         CheckoutLineCountableConnection,
-        description="List of checkout lines.",
+        description=(
+            "List of checkout lines. The query will not initiate any external "
+            "requests, including fetching external shipping methods, filtering "
+            "available shipping methods, or performing external tax calculations."
+        ),
         permissions=[
             CheckoutPermissions.MANAGE_CHECKOUTS,
         ],
