@@ -249,7 +249,7 @@ def test_order_capture_triggers_webhooks(
     mocked_send_webhook_request_async.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id},
+                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
                 queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
                 bind=True,
                 retry_backoff=10,

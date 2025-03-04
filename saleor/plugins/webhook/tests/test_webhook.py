@@ -1920,7 +1920,9 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     manager.event_delivery_retry(event_delivery)
 
     # then
-    mocked_webhook_send.assert_called_once_with(event_delivery.pk)
+    mocked_webhook_send.assert_called_once_with(
+        event_delivery.pk, telemetry_context=ANY
+    )
 
 
 @mock.patch(

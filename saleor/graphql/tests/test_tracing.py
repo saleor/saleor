@@ -3,10 +3,9 @@ import hashlib
 import graphene
 import pytest
 from opentelemetry import trace as trace_api
-from opentelemetry.sdk.trace import TracerProvider, export
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
-    InMemorySpanExporter,
-)
+from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
 from ...core.telemetry import initialize_telemetry
 
@@ -14,9 +13,8 @@ from ...core.telemetry import initialize_telemetry
 @pytest.fixture(scope="session", autouse=True)
 def in_memory_span_exporter():
     span_exporter = InMemorySpanExporter()
-    exporter_processor = export.SimpleSpanProcessor(span_exporter)
     provider = TracerProvider()
-    provider.add_span_processor(exporter_processor)
+    provider.add_span_processor(SimpleSpanProcessor(span_exporter))
     trace_api.set_tracer_provider(provider)
     initialize_telemetry()
     return span_exporter
@@ -24,22 +22,21 @@ def in_memory_span_exporter():
 
 @pytest.fixture
 def get_test_spans(in_memory_span_exporter):
+    # Clear any existing spans from the buffer before test execution
+    in_memory_span_exporter.clear()
+    yield in_memory_span_exporter.get_finished_spans
+    # Clean up by clearing the buffer after test completion
     in_memory_span_exporter.clear()
 
-    def get_and_clear_spans():
-        spans = in_memory_span_exporter.get_finished_spans()
-        in_memory_span_exporter.clear()
-        return spans
 
-    return get_and_clear_spans
+def get_spans_by_name(spans, name) -> tuple[ReadableSpan, ...]:
+    return tuple(span for span in spans if span.name == name)
 
 
-def _get_graphql_span(spans):
-    return next(_get_graphql_spans(spans))
-
-
-def _get_graphql_spans(spans):
-    return filter(lambda item: item.attributes.get("graphql.query_fingerprint"), spans)
+def get_span_by_name(spans, name) -> ReadableSpan:
+    filtered = get_spans_by_name(spans, name)
+    assert len(filtered) == 1, f"Multiple '{name}' spans"
+    return filtered[0]
 
 
 def test_tracing_query_hashing(
@@ -64,10 +61,9 @@ def test_tracing_query_hashing(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
     assert span.attributes["graphql.query_fingerprint"] == f"query:test:{hash}"
 
@@ -100,10 +96,9 @@ def test_tracing_query_hashing_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
     assert span.attributes["graphql.query_fingerprint"] == f"query:test:{hash}"
 
@@ -136,7 +131,7 @@ def test_tracing_query_hashing_different_vars_same_checksum(
     # then
     fingerprints = [
         span.attributes["graphql.query_fingerprint"]
-        for span in _get_graphql_spans(get_test_spans())
+        for span in get_spans_by_name(get_test_spans(), "graphql_query")
     ]
     assert len(fingerprints) == QUERIES
     assert len(set(fingerprints)) == 1
@@ -164,10 +159,9 @@ def test_tracing_query_hashing_unnamed_query(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
     assert span.attributes["graphql.query_fingerprint"] == f"query:{hash}"
 
@@ -194,10 +188,9 @@ def test_tracing_query_hashing_unnamed_query_no_query_spec(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
     assert span.attributes["graphql.query_fingerprint"] == f"query:{hash}"
 
@@ -228,12 +221,14 @@ def test_tracing_mutation_hashing(
 
     # when
     staff_api_client.post_graphql(
-        mutation, variables, permissions=[permission_manage_orders]
+        mutation,
+        variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
     )
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     hash = hashlib.md5(span.attributes["graphql.query"].encode("utf-8")).hexdigest()
     assert (
         span.attributes["graphql.query_fingerprint"] == f"mutation:cancelOrder:{hash}"
@@ -271,10 +266,9 @@ def test_tracing_query_identifier_for_query(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["graphql.query_identifier"] == "me, products"
 
 
@@ -305,10 +299,9 @@ def test_tracing_query_identifier_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["graphql.query_identifier"] == "products"
 
 
@@ -327,10 +320,9 @@ def test_tracing_query_identifier_for_unnamed_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["graphql.query_identifier"] == "tokenCreate"
 
 
@@ -349,10 +341,9 @@ def test_tracing_query_identifier_for_named_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["graphql.query_identifier"] == "tokenCreate"
 
 
@@ -378,10 +369,9 @@ def test_tracing_query_identifier_for_many_mutations(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["graphql.query_identifier"] == "deleteWarehouse, tokenCreate"
 
 
@@ -400,10 +390,9 @@ def test_tracing_query_identifier_undefined(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["graphql.query_identifier"] == "undefined"
 
 
@@ -429,10 +418,9 @@ def test_tracing_dont_have_app_data_staff_as_requestor(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert "app.name" not in span.attributes
     assert "app.id" not in span.attributes
 
@@ -460,10 +448,9 @@ def test_tracing_have_app_data_app_as_requestor(
 
     # when
     app_api_client.post_graphql(query)
-    span = _get_graphql_span(get_test_spans())
+    span = get_span_by_name(get_test_spans(), "graphql_query")
 
     # then
-    assert span
     assert span.attributes["app.name"] == app.name
     assert span.attributes["app.id"] == app.id
 
@@ -509,9 +496,5 @@ def test_tracing_have_source_service_name_set(
     app_api_client.post_graphql(query, headers={"source-service-name": header_source})
 
     # then
-    spans = list(
-        filter(lambda s: s.attributes.get("source.service.name"), get_test_spans())
-    )
-    assert len(spans) == 1
-    span = spans[0]
+    span = get_span_by_name(get_test_spans(), "graphql_query")
     assert span.attributes["source.service.name"] == expected_result

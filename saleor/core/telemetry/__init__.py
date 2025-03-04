@@ -3,11 +3,17 @@ from typing import Any
 
 from django.conf import settings
 from opentelemetry.semconv.trace import SpanAttributes
-from opentelemetry.util.types import AttributeValue
+from opentelemetry.util.types import Attributes, AttributeValue
 
 from .metric import Meter, MeterProxy, MetricType
-from .trace import SpanKind, Tracer, TracerProxy
-from .utils import Scope, Unit, set_global_attributes
+from .trace import Link, SpanKind, Tracer, TracerProxy
+from .utils import (
+    Scope,
+    TelemetryTaskContext,
+    Unit,
+    set_global_attributes,
+    task_with_telemetry_context,
+)
 
 tracer = TracerProxy()
 meter = MeterProxy()
@@ -39,6 +45,12 @@ def initialize_telemetry() -> None:
     meter.initialize(meter_cls, saleor_version)
 
 
+def get_task_context(link_attributes: Attributes = None) -> TelemetryTaskContext:
+    """Create telemetry task context with a link to the current span."""
+    link = Link(tracer.get_current_span().get_span_context(), link_attributes)
+    return TelemetryTaskContext(links=[link])
+
+
 __all__ = [
     "tracer",
     "meter",
@@ -50,4 +62,8 @@ __all__ = [
     "SpanAttributes",
     "AttributeValue",
     "Scope",
+    "Link",
+    "TelemetryTaskContext",
+    "task_with_telemetry_context",
+    "get_task_context",
 ]

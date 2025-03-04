@@ -171,20 +171,14 @@ class GraphQLView(View):
                 SpanAttributes.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
             )
-            accepted_encoding = request.META.get("HTTP_ACCEPT_ENCODING", "")
+            accepted_encoding = request.headers.get("accept-encoding", "")
             span.set_attribute(
                 "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
             )
             span.set_attribute(
-                SpanAttributes.HTTP_USER_AGENT, request.META.get("HTTP_USER_AGENT", "")
+                SpanAttributes.HTTP_USER_AGENT, request.headers.get("user-agent", "")
             )
             span.set_attribute("span.type", "web")
-
-            source_service_name = get_source_service_name_value(
-                request.headers.get("source-service-name")
-            )
-            if source_service_name:
-                span.set_attribute("source.service.name", source_service_name)
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
