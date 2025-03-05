@@ -7,7 +7,7 @@ on:
       - "**.py"
       - Dockerfile
       - "saleor/**"
-      - ".github/workflows/pytest.yml"
+      - "tests-and-linters.yml"
       - pyproject.toml
       - poetry.lock
   push:
@@ -18,7 +18,7 @@ on:
       - "**.py"
       - Dockerfile
       - "saleor/**"
-      - ".github/workflows/pytest.yml"
+      - "tests-and-linters.yml"
       - pyproject.toml
       - poetry.lock
 
