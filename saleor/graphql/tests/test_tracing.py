@@ -2,22 +2,7 @@ import hashlib
 
 import graphene
 import pytest
-from opentelemetry import trace as trace_api
-from opentelemetry.sdk.trace import ReadableSpan, TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
-
-from ...core.telemetry import initialize_telemetry
-
-
-@pytest.fixture(scope="session", autouse=True)
-def in_memory_span_exporter():
-    span_exporter = InMemorySpanExporter()
-    provider = TracerProvider()
-    provider.add_span_processor(SimpleSpanProcessor(span_exporter))
-    trace_api.set_tracer_provider(provider)
-    initialize_telemetry()
-    return span_exporter
+from opentelemetry.sdk.trace import ReadableSpan
 
 
 @pytest.fixture
