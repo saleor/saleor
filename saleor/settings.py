@@ -25,6 +25,7 @@ from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
+from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScrubber
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .core.languages import LANGUAGES as CORE_LANGUAGES
@@ -764,7 +765,28 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     Will only be called if SENTRY_DSN is not None, during core start, can be
     overriden in separate settings file.
     """
-    sentry_sdk.init(dsn, release=__version__, **sentry_opts)
+
+    SALEOR_DENYLIST = DEFAULT_DENYLIST + ["private_metadata"]
+    SALEOR_PII_DENYLIST = DEFAULT_PII_DENYLIST + [
+        "first_name",
+        "last_name",
+        "email",
+        "company_name",
+        "street_address",
+        "street_address_1",
+        "street_address_2",
+        "user_email",
+    ]
+
+    sentry_sdk.init(
+        dsn,
+        release=__version__,
+        send_default_pii=False,
+        event_scrubber=EventScrubber(
+            denylist=SALEOR_DENYLIST, pii_denylist=SALEOR_PII_DENYLIST
+        ),
+        **sentry_opts,
+    )
     ignore_logger("graphql.execution.utils")
     ignore_logger("graphql.execution.executor")
 
