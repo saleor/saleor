@@ -220,7 +220,7 @@ def test_update_private_metadata_for_item_on_deleted_instance(
             Checkout.objects.filter(pk=checkout.pk).delete()
 
     # when
-    with race_condition.RunBefore(
+    with before_after.before(
         "saleor.graphql.meta.mutations.update_private_metadata.update_private_metadata",
         delete_checkout_object,
     ):
