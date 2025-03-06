@@ -5,7 +5,7 @@ from ...core.types import MetadataError, NonNullList
 from ..inputs import MetadataInput
 from ..permissions import PRIVATE_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import get_valid_metadata_instance, save_instance
+from .utils import get_valid_metadata_instance, update_private_metadata
 
 
 class UpdatePrivateMetadata(BaseMetadataMutation):
@@ -38,5 +38,5 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             cls.validate_metadata_keys(metadata_list)
             items = {data.key: data.value for data in metadata_list}
             meta_instance.store_value_in_private_metadata(items=items)
-            save_instance(meta_instance, ["private_metadata"])
+            update_private_metadata(meta_instance, items)
         return cls.success_response(instance)
