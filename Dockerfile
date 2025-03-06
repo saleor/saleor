@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.9 as build-python
+FROM python:3.9 AS build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -10,7 +10,7 @@ RUN apt-get -y update \
 # Install Python dependencies
 COPY requirements_dev.txt /app/
 WORKDIR /app
-RUN pip install -r requirements_dev.txt
+RUN pip install --upgrade pip setuptools && pip install -r requirements_dev.txt
 
 ### Final image
 FROM python:3.9-slim
@@ -47,11 +47,11 @@ COPY . /app
 WORKDIR /app
 
 ARG STATIC_URL
-ENV STATIC_URL ${STATIC_URL:-/static/}
+ENV STATIC_URL=${STATIC_URL:-/static/}
 RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --no-input
 
 EXPOSE 8000
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 LABEL org.opencontainers.image.title="saleor/saleor"                                  \
       org.opencontainers.image.description="\
