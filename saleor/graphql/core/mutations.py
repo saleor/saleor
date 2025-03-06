@@ -5,6 +5,7 @@ from enum import Enum
 from itertools import chain
 from typing import Any, TypeVar, cast, overload
 from uuid import UUID
+from warnings import deprecated
 
 import graphene
 from django.core.exceptions import (
@@ -633,7 +634,13 @@ def is_upload_field(field) -> bool:
     return field.type == Upload
 
 
+@deprecated("Use BaseMutation instead")
 class ModelMutation(BaseMutation):
+    """Deprecated.
+
+    To avoid inheriting too much behavior, we should inhertit from BaseMutation instead
+    """
+
     class Meta:
         abstract = True
 
