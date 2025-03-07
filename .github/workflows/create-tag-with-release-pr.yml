@@ -46,7 +46,7 @@ jobs:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
           IS_LATEST: ${{ steps.check-latest.outputs.IS_LATEST }}
         run: |
-          gh release create "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag
+          gh release create -d "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag
 
   publish:
     needs:
