@@ -35,7 +35,11 @@ from ....graphql.webhook.subscription_payload import (
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...metrics import record_first_delivery_attempt_delay
+from ...metrics import (
+    record_async_webhooks_count,
+    record_async_webhooks_error_count,
+    record_first_delivery_attempt_delay,
+)
 from ...observability import WebhookData
 from ..utils import (
     DeferredPayloadData,
@@ -604,6 +608,8 @@ def send_webhook_request_async(
         data = data if isinstance(data, bytes) else data.encode("utf-8")
         # Count payload size in bytes.
         payload_size = len(data)
+
+        record_async_webhooks_count(delivery)
         if self.request.retries == 0:
             record_first_delivery_attempt_delay(delivery)
         with webhooks_otel_trace(
@@ -626,6 +632,7 @@ def send_webhook_request_async(
             attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
             delivery_update(delivery, EventDeliveryStatus.FAILED)
+            record_async_webhooks_error_count(delivery)
         elif response.status == EventDeliveryStatus.SUCCESS:
             task_logger.info(
                 "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
