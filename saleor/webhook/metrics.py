@@ -20,14 +20,6 @@ METRIC_ASYNC_WEBHOOK_CALLS = meter.create_metric(
     description="Number of async webhook calls.",
 )
 
-METRICS_ASYNC_WEBHOOK_ERROR = meter.create_metric(
-    "saleor.webhooks.async.errors",
-    scope=Scope.CORE,
-    type=MetricType.COUNTER,
-    unit=Unit.REQUEST,
-    description="Number of async webhook errors.",
-)
-
 
 def record_first_delivery_attempt_delay(event_delivery: EventDelivery) -> None:
     delay = (datetime.now(UTC) - event_delivery.created_at).total_seconds()
@@ -43,17 +35,11 @@ def record_first_delivery_attempt_delay(event_delivery: EventDelivery) -> None:
     )
 
 
-def record_async_webhooks_count(event_delivery: EventDelivery, amount: int = 1) -> None:
-    attributes = {
-        "app.name": event_delivery.webhook.app.name,
-    }
-    meter.record(METRICS_ASYNC_WEBHOOK_ERROR, amount, attributes=attributes)
-
-
-def record_async_webhooks_error_count(
-    event_delivery: EventDelivery, amount: int = 1
+def record_async_webhooks_count(
+    event_delivery: EventDelivery, response_status: str, amount: int = 1
 ) -> None:
     attributes = {
         "app.name": event_delivery.webhook.app.name,
+        "response_status": response_status,
     }
-    meter.record(METRICS_ASYNC_WEBHOOK_ERROR, amount, attributes=attributes)
+    meter.record(METRIC_ASYNC_WEBHOOK_CALLS, amount, attributes=attributes)
