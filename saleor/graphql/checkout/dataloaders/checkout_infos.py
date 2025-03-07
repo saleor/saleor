@@ -6,7 +6,7 @@ from promise import Promise
 from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....core.db.connection import allow_writer_in_context
 from ....discount import VoucherType
-from ....discount.utils.voucher import apply_voucher_to_line
+from ....discount.utils.voucher import attach_voucher_to_line_info
 from ...account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ...channel.dataloaders import ChannelByIdLoader
 from ...core.dataloaders import DataLoader
@@ -322,7 +322,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(
                         voucher.type == VoucherType.SPECIFIC_PRODUCT
                         or voucher.apply_once_per_order
                     ):
-                        apply_voucher_to_line(
+                        attach_voucher_to_line_info(
                             voucher_info=voucher_info,
                             lines_info=lines_info_map[checkout.pk],
                         )
