@@ -772,7 +772,7 @@ type Query {
   ): Order @doc(category: "Orders")
 
   """
-  List of orders.
+  List of orders. The query will not initiate any external requests, including filtering available shipping methods, or performing external tax calculations.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -804,7 +804,7 @@ type Query {
   ): OrderCountableConnection @doc(category: "Orders")
 
   """
-  List of draft orders.
+  List of draft orders. The query will not initiate any external requests, including filtering available shipping methods, or performing external tax calculations.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -1254,7 +1254,7 @@ type Query {
   ): Checkout @doc(category: "Checkout")
 
   """
-  List of checkouts.
+  List of checkouts. The query will not initiate any external requests, including fetching external shipping methods, filtering available shipping methods, or performing external tax calculations.
   
   Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   """
@@ -1286,7 +1286,7 @@ type Query {
   ): CheckoutCountableConnection @doc(category: "Checkout")
 
   """
-  List of checkout lines.
+  List of checkout lines. The query will not initiate any external requests, including fetching external shipping methods, filtering available shipping methods, or performing external tax calculations.
   
   Requires one of the following permissions: MANAGE_CHECKOUTS.
   """
@@ -9817,7 +9817,9 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     channel: String
   ): [ID!]
 
-  """Returns checkouts assigned to this user."""
+  """
+  Returns checkouts assigned to this user. The query will not initiate any external requests, including fetching external shipping methods, filtering available shipping methods, or performing external tax calculations.
+  """
   checkouts(
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -9866,7 +9868,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   note: String
 
   """
-  List of user's orders. Requires one of the following permissions: MANAGE_STAFF, OWNER.
+  List of user's orders. The query will not initiate any external requests, including filtering available shipping methods, or performing external tax calculations. Requires one of the following permissions: MANAGE_STAFF, OWNER.
   """
   orders(
     """Return the elements in the list that come before the specified cursor."""
