@@ -9,7 +9,7 @@ from ....core.taxes import zero_money, zero_taxed_money
 from ....discount import VoucherType
 from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ....discount.utils.manual_discount import apply_discount_to_value
-from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
+from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
@@ -235,3 +235,14 @@ def get_variant_rule_info_map(
         ] = VariantData(variant=variant, rules_info=rules_info)
 
     return variant_id_to_variant_and_rules_info_map
+
+
+def save_addresses(instance: models.Order, cleaned_input: dict):
+    shipping_address = cleaned_input.get("shipping_address")
+    if shipping_address:
+        shipping_address.save()
+        instance.shipping_address = shipping_address.get_copy()
+    billing_address = cleaned_input.get("billing_address")
+    if billing_address:
+        billing_address.save()
+        instance.billing_address = billing_address.get_copy()
