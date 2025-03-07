@@ -625,7 +625,6 @@ def send_webhook_request_async(
         # Count payload size in bytes.
         payload_size = len(data)
 
-        record_async_webhooks_count(delivery)
         if self.request.retries == 0:
             record_first_delivery_attempt_delay(delivery)
         with webhooks_otel_trace(
