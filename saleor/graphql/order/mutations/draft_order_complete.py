@@ -51,14 +51,16 @@ class DraftOrderComplete(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def update_user_fields(cls, order):
+    def update_user_fields(cls, order: models.Order, update_fields: list[str]):
         if order.user:
             order.user_email = order.user.email
+            update_fields.append("user_email")
         elif order.user_email:
             try:
                 order.user = User.objects.get(email=order.user_email)
             except User.DoesNotExist:
                 order.user = None
+            update_fields.append("user_id")
 
     @classmethod
     def validate_order(cls, order):
@@ -113,7 +115,13 @@ class DraftOrderComplete(BaseMutation):
         country = get_order_country(order)
         validate_draft_order(order, order.lines.all(), country, manager)
         with traced_atomic_transaction():
-            cls.update_user_fields(order)
+            update_fields = [
+                "status",
+                "search_vector",
+                "display_gross_prices",
+                "updated_at",
+            ]
+            cls.update_user_fields(order, update_fields)
             channel = order.channel
             order.status = (
                 OrderStatus.UNFULFILLED
@@ -127,12 +135,20 @@ class DraftOrderComplete(BaseMutation):
                 if order.shipping_address:
                     order.shipping_address.delete()
                     order.shipping_address = None
+                update_fields.extend(
+                    [
+                        "shipping_method_name",
+                        "shipping_price_net_amount",
+                        "shipping_price_gross_amount",
+                        "shipping_address_id",
+                    ]
+                )
 
             order.search_vector = FlatConcatSearchVector(
                 *prepare_order_search_vector_value(order)
             )
             update_order_display_gross_prices(order)
-            order.save()
+            order.save(update_fields=update_fields)
 
             cls.setup_voucher_customer(order, channel)
             order_lines_info = []
