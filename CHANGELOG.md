@@ -85,3 +85,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed Celery worker issues when using SQS by using celery[sqs] extras instead of direct pycurl dependency - by @mariobrgomes
 - Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski
 - `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins
+- Use denormalized base prices during order update - #17160 by @zedzior
+  - `UNCONFIRMED` orders will never refresh its base prices
+  - `DRAFT` orders will refresh its base prices after default 24 hours

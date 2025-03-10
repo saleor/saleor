@@ -5,7 +5,7 @@ import graphene
 from ....order.fetch import fetch_draft_order_lines_info
 from ... import DiscountType, DiscountValueType
 from ...models import PromotionRule
-from ...utils.order import _copy_unit_discount_data_to_order_line
+from ...utils.order import update_unit_discount_data_on_order_line
 
 
 def test_copy_unit_discount_data_to_order_line_multiple_discounts(
@@ -38,7 +38,7 @@ def test_copy_unit_discount_data_to_order_line_multiple_discounts(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    _copy_unit_discount_data_to_order_line(lines_info)
+    update_unit_discount_data_on_order_line(lines_info)
 
     # then
     line = lines_info[0].line
@@ -68,7 +68,7 @@ def test_copy_unit_discount_data_to_order_line_single_discount(
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    _copy_unit_discount_data_to_order_line(lines_info)
+    update_unit_discount_data_on_order_line(lines_info)
 
     # then
     line = lines_info[0].line
@@ -86,7 +86,7 @@ def test_copy_unit_discount_data_to_order_line_no_discount(order_with_lines):
     lines_info = fetch_draft_order_lines_info(order)
 
     # when
-    _copy_unit_discount_data_to_order_line(lines_info)
+    update_unit_discount_data_on_order_line(lines_info)
 
     # then
     line = lines_info[0].line

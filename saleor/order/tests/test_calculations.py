@@ -628,7 +628,7 @@ def test_recalculate_with_plugin_prices_entered_with_taxes(
         assert tax_rate == line.tax_rate
 
 
-def test_recalculate_prices_total_shipping_price_changed(
+def test_calculate_prices_total_shipping_price_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
     """Test that discounts are properly updated when shipping price changes."""
@@ -666,15 +666,9 @@ def test_recalculate_prices_total_shipping_price_changed(
             "shipping_method_name",
         ]
     )
-    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
-    calculations._recalculate_prices(
-        order,
-        get_plugins_manager(allow_replica=True),
-        order_lines,
-        tax_calculation_strategy=tax_calculation_strategy,
-    )
+    calculations.calculate_prices(order, order_lines)
 
     # then
     order_discount.refresh_from_db()
@@ -684,7 +678,7 @@ def test_recalculate_prices_total_shipping_price_changed(
     assert order_discount.amount == order.undiscounted_total.net
 
 
-def test_recalculate_prices_line_quantity_changed(
+def test_calculate_prices_line_quantity_changed(
     draft_order, order_lines, shipping_method_weight_based
 ):
     """Test that discounts are properly updated when line quantities change."""
@@ -704,15 +698,9 @@ def test_recalculate_prices_line_quantity_changed(
     line = order_lines.first()
     line.quantity += 1
     line.save(update_fields=["quantity"])
-    tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
-    calculations._recalculate_prices(
-        order,
-        get_plugins_manager(allow_replica=True),
-        order_lines,
-        tax_calculation_strategy=tax_calculation_strategy,
-    )
+    calculations.calculate_prices(order, order_lines)
 
     # then
     order_discount.refresh_from_db()
@@ -1580,7 +1568,7 @@ def test_fetch_order_data_calls_inactive_plugin(
 
 
 @pytest.mark.parametrize("tax_app_id", [None, "test.app"])
-def test_recalculate_prices_empty_tax_data_logging_address(
+def test_calculate_taxes_empty_tax_data_logging_address(
     tax_app_id, draft_order, order_lines, address, caplog
 ):
     # given
@@ -1614,9 +1602,7 @@ def test_recalculate_prices_empty_tax_data_logging_address(
     tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
 
     # when
-    calculations._recalculate_prices(
-        order, manager, order_lines, tax_calculation_strategy=tax_calculation_strategy
-    )
+    calculations.calculate_taxes(order, manager, order_lines, tax_calculation_strategy)
 
     # then
     assert (

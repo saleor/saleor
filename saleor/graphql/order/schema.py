@@ -125,7 +125,11 @@ class OrderQueries(graphene.ObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="List of orders.",
+        description=(
+            "List of orders. The query will not initiate any external requests, "
+            "including filtering available shipping methods, or performing external "
+            "tax calculations."
+        ),
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
@@ -135,7 +139,11 @@ class OrderQueries(graphene.ObjectType):
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
-        description="List of draft orders.",
+        description=(
+            "List of draft orders. The query will not initiate any external requests, "
+            "including filtering available shipping methods, or performing external "
+            "tax calculations."
+        ),
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],

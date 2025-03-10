@@ -1,10 +1,13 @@
 import datetime
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 from prices import Money
 
 from .....checkout import AddressType
@@ -17,7 +20,7 @@ from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
-from .....order.models import Order, OrderEvent
+from .....order.models import Order, OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....product.models import ProductVariant
 from .....tax import TaxCalculationStrategy
@@ -815,7 +818,9 @@ def test_draft_order_create_with_voucher_specific_product(
         discounted_line_data["unitDiscount"]["amount"]
         == discount_amount / variant_0_qty
     )
-    assert discounted_line_data["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert (
+        discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
+    )
     assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
 
     assert line_1_data["productVariantId"] == variant_1_id
@@ -835,8 +840,8 @@ def test_draft_order_create_with_voucher_specific_product(
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
     assert order_line_discount.type == DiscountType.VOUCHER
-    assert order_line_discount.value_type == DiscountValueType.FIXED
-    assert order_line_discount.value == discount_amount
+    assert order_line_discount.value_type == voucher.discount_value_type
+    assert order_line_discount.value == discount_value
     assert order_line_discount.amount_value == discount_amount
 
 
@@ -957,7 +962,9 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
         discounted_line_data["unitDiscount"]["amount"]
         == discount_amount / variant_0_qty
     )
-    assert discounted_line_data["unitDiscountType"] == DiscountValueType.FIXED.upper()
+    assert (
+        discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
+    )
     assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
 
     assert line_1_data["productVariantId"] == variant_1_id
@@ -977,8 +984,8 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     order_line_discount = discounted_line.discounts.first()
     assert order_line_discount.voucher == voucher
     assert order_line_discount.type == DiscountType.VOUCHER
-    assert order_line_discount.value_type == DiscountValueType.FIXED
-    assert order_line_discount.value == discount_amount
+    assert order_line_discount.value_type == voucher.discount_value_type
+    assert order_line_discount.value == discount_value
     assert order_line_discount.amount_value == discount_amount
 
 
@@ -2837,6 +2844,9 @@ def test_draft_order_create_product_catalogue_promotion(
 
     reward_value = Decimal("1.0")
     rule = promotion.rules.first()
+    rule.reward_value = reward_value
+    rule.save(update_fields=["reward_value"])
+
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
 
     variant_channel_listing.discounted_price_amount = (
@@ -2968,6 +2978,8 @@ def test_draft_order_create_product_catalogue_promotion_flat_taxes(
 
     reward_value = Decimal("1.0")
     rule = promotion.rules.first()
+    rule.reward_value = reward_value
+    rule.save(update_fields=["reward_value"])
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
 
     variant_channel_listing.discounted_price_amount = (
@@ -3919,3 +3931,45 @@ def test_draft_order_create_no_billing_address_provided_save_address_raising_err
     error = data["errors"][0]
     assert error["field"] == "saveBillingAddress"
     assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_draft_order_create_set_order_line_price_expiration_time(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    shipping_method,
+    variant,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "channelId": channel_id,
+            "lines": [{"variantId": variant_id, "quantity": 2}],
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+        }
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    expire_period = channel_USD.draft_order_line_price_freeze_period
+    assert expire_period is not None
+    assert expire_period > 0
+    expected_expire_time = timezone.now() + timedelta(hours=expire_period)
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    # then
+    new_line = OrderLine.objects.get()
+    assert new_line.draft_base_price_expire_at == expected_expire_time

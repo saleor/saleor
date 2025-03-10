@@ -10,6 +10,7 @@ from prices import Money, TaxedMoney
 
 from ....checkout.utils import get_prices_of_discounted_specific_product
 from ....core import JobStatus
+from ....core.prices import quantize_price
 from ....core.taxes import zero_money
 from ....discount import DiscountType, RewardType, RewardValueType, VoucherType
 from ....discount.models import NotApplicable, Voucher
@@ -517,6 +518,7 @@ def order_with_lines_and_catalogue_promotion(
     order_with_lines, channel_USD, catalogue_promotion_without_rules
 ):
     order = order_with_lines
+    currency = order.currency
     promotion = catalogue_promotion_without_rules
     line = order.lines.get(quantity=3)
     variant = line.variant
@@ -525,7 +527,7 @@ def order_with_lines_and_catalogue_promotion(
         name="Catalogue rule fixed",
         catalogue_predicate={
             "variantPredicate": {
-                "ids": [graphene.Node.to_global_id("ProductVariant", variant)]
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
             }
         },
         reward_value_type=RewardValueType.FIXED,
@@ -539,7 +541,7 @@ def order_with_lines_and_catalogue_promotion(
     listing.variantlistingpromotionrule.create(
         promotion_rule=rule,
         discount_amount=reward_value,
-        currency=order.currency,
+        currency=currency,
     )
 
     line.discounts.create(
@@ -547,8 +549,23 @@ def order_with_lines_and_catalogue_promotion(
         value_type=RewardValueType.FIXED,
         value=reward_value,
         amount_value=reward_value * line.quantity,
-        currency=order.currency,
+        currency=currency,
         promotion_rule=rule,
+        reason=f"Promotion: {graphene.Node.to_global_id('Promotion', promotion.id)}",
+    )
+
+    line.base_unit_price_amount = (
+        line.undiscounted_base_unit_price_amount - reward_value
+    )
+    total = quantize_price(line.base_unit_price_amount * line.quantity, currency)
+    line.total_price_net_amount = total
+    line.total_price_gross_amount = quantize_price(total * Decimal("1.23"), currency)
+    line.save(
+        update_fields=[
+            "base_unit_price_amount",
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ]
     )
     return order
 
