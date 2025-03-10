@@ -12,7 +12,7 @@ from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.fields import JSONString
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AttributeError, BaseInputObjectType, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -104,7 +104,7 @@ class AttributeCreateInput(BaseInputObjectType):
         )
 
 
-class AttributeCreate(AttributeMixin, ModelMutation):
+class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "values"

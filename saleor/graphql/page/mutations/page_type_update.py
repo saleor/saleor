@@ -8,7 +8,7 @@ from ....page.error_codes import PageErrorCode
 from ....permission.enums import PageTypePermissions
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_PAGES
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import NonNullList, PageError
 from ...core.validators import validate_slug_and_generate_if_needed
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -27,7 +27,7 @@ class PageTypeUpdateInput(PageTypeCreateInput):
         doc_category = DOC_CATEGORY_PAGES
 
 
-class PageTypeUpdate(PageTypeMixin, ModelMutation):
+class PageTypeUpdate(PageTypeMixin, DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of the page type to update.")
         input = PageTypeUpdateInput(

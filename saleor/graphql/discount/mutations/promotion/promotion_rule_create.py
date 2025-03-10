@@ -10,7 +10,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -48,7 +48,7 @@ class PromotionRuleCreateError(Error):
     )
 
 
-class PromotionRuleCreate(ModelMutation):
+class PromotionRuleCreate(DeprecatedModelMutation):
     class Arguments:
         input = PromotionRuleCreateInput(
             description="Fields required to create a promotion rule.", required=True

@@ -35,7 +35,7 @@ from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import UUID, DateTime, PositiveDecimal
 from ....core.types import NonNullList
 from ....core.types import common as common_types
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
     from .....plugins.manager import PluginsManager
 
 
-class TransactionEventReport(ModelMutation):
+class TransactionEventReport(DeprecatedModelMutation):
     already_processed = graphene.Boolean(
         description="Defines if the reported event hasn't been processed earlier."
     )

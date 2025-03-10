@@ -9,7 +9,7 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, InvoiceError, NonNullList
 from ...meta.inputs import MetadataInput
 from ...order.types import Order
@@ -34,7 +34,7 @@ class InvoiceCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class InvoiceCreate(ModelMutation):
+class InvoiceCreate(DeprecatedModelMutation):
     class Arguments:
         order_id = graphene.ID(
             required=True, description="ID of the order related to invoice."

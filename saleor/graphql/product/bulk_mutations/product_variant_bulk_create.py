@@ -28,7 +28,7 @@ from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
 from ...core.mutations import (
     BaseMutation,
-    ModelMutation,
+    DeprecatedModelMutation,
     validation_error_to_error_type,
 )
 from ...core.scalars import Date, DateTime
@@ -703,7 +703,7 @@ class ProductVariantBulkCreate(BaseMutation):
         index,
         errors,
     ):
-        cleaned_input = ModelMutation.clean_input(
+        cleaned_input = DeprecatedModelMutation.clean_input(
             info, None, variant_data, input_cls=ProductVariantBulkCreateInput
         )
 

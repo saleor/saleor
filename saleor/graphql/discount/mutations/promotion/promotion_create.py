@@ -18,7 +18,7 @@ from ....channel.types import Channel
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import JSON, DateTime
 from ....core.types import BaseInputObjectType, Error, NonNullList
 from ....core.utils import WebhookEventInfo
@@ -91,7 +91,7 @@ class PromotionCreateInput(PromotionInput):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class PromotionCreate(ModelMutation):
+class PromotionCreate(DeprecatedModelMutation):
     class Arguments:
         input = PromotionCreateInput(
             description="Fields requires to create a promotion.", required=True

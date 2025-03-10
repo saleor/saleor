@@ -8,7 +8,7 @@ from ....permission.enums import AppPermission
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import can_manage_app
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -16,7 +16,7 @@ from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import App
 
 
-class AppDelete(ModelMutation):
+class AppDelete(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of an app to delete.", required=True)
 

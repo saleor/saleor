@@ -9,7 +9,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import (
     BaseInputObjectType,
     NonNullList,
@@ -46,7 +46,7 @@ class CategoryInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class CategoryCreate(ModelMutation):
+class CategoryCreate(DeprecatedModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description="Fields required to create a category."

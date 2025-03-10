@@ -17,7 +17,7 @@ from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
@@ -112,7 +112,7 @@ class ProductVariantCreateInput(ProductVariantInput):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class ProductVariantCreate(ModelMutation):
+class ProductVariantCreate(DeprecatedModelMutation):
     class Arguments:
         input = ProductVariantCreateInput(
             required=True, description="Fields required to create a product variant."

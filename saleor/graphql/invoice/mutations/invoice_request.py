@@ -10,7 +10,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import InvoiceError
 from ...core.utils import WebhookEventInfo
 from ...order.types import Order
@@ -18,7 +18,7 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Invoice
 
 
-class InvoiceRequest(ModelMutation):
+class InvoiceRequest(DeprecatedModelMutation):
     order = graphene.Field(Order, description="Order related to an invoice.")
 
     class Meta:

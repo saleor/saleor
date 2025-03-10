@@ -7,7 +7,7 @@ from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import can_manage_app
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -17,7 +17,7 @@ from ..utils import ensure_can_manage_permissions
 from .app_create import AppInput
 
 
-class AppUpdate(ModelMutation):
+class AppUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of an app to update.", required=True)
         input = AppInput(

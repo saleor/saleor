@@ -9,7 +9,7 @@ from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_TAXES
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import get_duplicates_items
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -117,7 +117,7 @@ class TaxConfigurationUpdateError(Error):
         doc_category = DOC_CATEGORY_TAXES
 
 
-class TaxConfigurationUpdate(ModelMutation):
+class TaxConfigurationUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of the tax configuration.", required=True)
         input = TaxConfigurationUpdateInput(

@@ -7,7 +7,7 @@ from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...channel import ChannelContext
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import MenuError, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_slug_and_generate_if_needed
@@ -27,7 +27,7 @@ class MenuCreateInput(graphene.InputObjectType):
     items = NonNullList(MenuItemInput, description="List of menu items.")
 
 
-class MenuCreate(ModelMutation):
+class MenuCreate(DeprecatedModelMutation):
     class Arguments:
         input = MenuCreateInput(
             required=True, description="Fields required to create a menu."

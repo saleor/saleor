@@ -19,7 +19,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -250,7 +250,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 BILLING_ADDRESS_FIELD, None
             )
 
-            customer_input["input"] = ModelMutation.clean_input(
+            customer_input["input"] = DeprecatedModelMutation.clean_input(
                 info, None, customer_input["input"], input_cls=CustomerInput
             )
 

@@ -19,7 +19,7 @@ from ....account.types import User
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import NonNullList, StaffError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -48,7 +48,7 @@ class StaffCreateInput(StaffInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class StaffCreate(ModelMutation):
+class StaffCreate(DeprecatedModelMutation):
     class Arguments:
         input = StaffCreateInput(
             description="Fields required to create a staff user.", required=True

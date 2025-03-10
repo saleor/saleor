@@ -17,7 +17,7 @@ from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import BaseInputObjectType, NonNullList, PermissionGroupError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -57,7 +57,7 @@ class PermissionGroupCreateInput(PermissionGroupInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class PermissionGroupCreate(ModelMutation):
+class PermissionGroupCreate(DeprecatedModelMutation):
     class Arguments:
         input = PermissionGroupCreateInput(
             description="Input fields to create permission group.", required=True
