@@ -22,14 +22,14 @@ from ....webhook.utils import get_webhooks_for_multiple_events
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order
 
 
-class OrderConfirm(ModelMutation):
+class OrderConfirm(DeprecatedModelMutation):
     order = graphene.Field(Order, description="Order which has been confirmed.")
 
     class Arguments:

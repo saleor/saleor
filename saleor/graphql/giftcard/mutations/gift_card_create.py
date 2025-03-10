@@ -17,7 +17,7 @@ from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import Date
 from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
 from ...core.utils import WebhookEventInfo
@@ -90,7 +90,7 @@ class GiftCardCreateInput(GiftCardInput):
         doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
-class GiftCardCreate(ModelMutation):
+class GiftCardCreate(DeprecatedModelMutation):
     class Arguments:
         input = GiftCardCreateInput(
             required=True, description="Fields required to create a gift card."

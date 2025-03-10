@@ -10,13 +10,13 @@ from ....warehouse.error_codes import WarehouseErrorCode
 from ....warehouse.validation import validate_warehouse_count
 from ...account.i18n import I18nMixin
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import NonNullList, WarehouseError
 from ...shipping.types import ShippingZone
 from ..types import Warehouse
 
 
-class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
+class WarehouseShippingZoneAssign(DeprecatedModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
         object_type = Warehouse

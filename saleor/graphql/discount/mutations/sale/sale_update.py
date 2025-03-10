@@ -16,7 +16,7 @@ from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import DiscountError
 from ....core.utils import (
     WebhookEventInfo,
@@ -36,7 +36,7 @@ from ..utils import update_variants_for_promotion
 from .sale_create import SaleInput
 
 
-class SaleUpdate(ModelMutation):
+class SaleUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to update.")
         input = SaleInput(

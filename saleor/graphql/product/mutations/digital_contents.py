@@ -10,7 +10,7 @@ from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
 from ...meta.inputs import MetadataInput
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
@@ -285,7 +285,7 @@ class DigitalContentUrlCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class DigitalContentUrlCreate(ModelMutation):
+class DigitalContentUrlCreate(DeprecatedModelMutation):
     class Arguments:
         input = DigitalContentUrlCreateInput(
             required=True, description="Fields required to create a new url."

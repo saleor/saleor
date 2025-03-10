@@ -13,7 +13,7 @@ from ...core import ResolveInfo
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.fields import JSONString
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import DateTime
 from ...core.types import BaseInputObjectType, NonNullList, PageError, SeoInput
 from ...core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
@@ -51,7 +51,7 @@ class PageCreateInput(PageInput):
         doc_category = DOC_CATEGORY_PAGES
 
 
-class PageCreate(ModelMutation):
+class PageCreate(DeprecatedModelMutation):
     class Arguments:
         input = PageCreateInput(
             required=True, description="Fields required to create a page."

@@ -3,14 +3,16 @@ from ....warehouse import models
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import WarehouseError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Warehouse, WarehouseCreateInput
 from .base import WarehouseMixin
 
 
-class WarehouseCreate(AddressMetadataMixin, WarehouseMixin, ModelMutation, I18nMixin):
+class WarehouseCreate(
+    AddressMetadataMixin, WarehouseMixin, DeprecatedModelMutation, I18nMixin
+):
     class Arguments:
         input = WarehouseCreateInput(
             required=True, description="Fields required to create warehouse."

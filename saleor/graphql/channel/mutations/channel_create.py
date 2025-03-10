@@ -21,7 +21,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
 )
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import Day, Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...core.types import common as common_types
@@ -228,7 +228,7 @@ class ChannelCreateInput(ChannelInput):
         doc_category = DOC_CATEGORY_CHANNELS
 
 
-class ChannelCreate(ModelMutation):
+class ChannelCreate(DeprecatedModelMutation):
     class Arguments:
         input = ChannelCreateInput(
             required=True, description="Fields required to create channel."

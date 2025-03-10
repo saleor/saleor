@@ -30,7 +30,7 @@ from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.scalars import DateTime, WeightScalar
 from ...core.types import (
     BaseInputObjectType,
@@ -545,7 +545,7 @@ class ProductBulkCreate(BaseMutation):
         base_fields_errors_count = 0
 
         try:
-            cleaned_input = ModelMutation.clean_input(
+            cleaned_input = DeprecatedModelMutation.clean_input(
                 info, None, data, input_cls=ProductBulkCreateInput
             )
         except ValidationError as exc:

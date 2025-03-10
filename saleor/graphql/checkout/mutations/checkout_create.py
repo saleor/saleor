@@ -22,7 +22,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
 from ...core.utils import WebhookEventInfo
@@ -182,7 +182,7 @@ class CheckoutCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_CHECKOUT
 
 
-class CheckoutCreate(ModelMutation, I18nMixin):
+class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
     created = graphene.Field(
         graphene.Boolean,
         description=(

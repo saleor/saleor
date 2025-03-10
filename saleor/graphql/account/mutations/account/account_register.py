@@ -13,7 +13,7 @@ from ....channel.utils import clean_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import LanguageCodeEnum
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
@@ -54,7 +54,7 @@ class AccountRegisterInput(AccountBaseInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class AccountRegister(ModelMutation):
+class AccountRegister(DeprecatedModelMutation):
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True

@@ -12,14 +12,14 @@ from ....account.mixins import AddressMetadataMixin
 from ....account.types import Address, AddressInput, User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...i18n import I18nMixin
 
 
-class AddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
+class AddressCreate(AddressMetadataMixin, DeprecatedModelMutation, I18nMixin):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )

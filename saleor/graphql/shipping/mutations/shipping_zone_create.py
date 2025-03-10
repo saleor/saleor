@@ -5,7 +5,7 @@ from ....shipping import models
 from ...channel.types import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ShippingError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ShippingZone
@@ -39,7 +39,7 @@ class ShippingZoneCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_SHIPPING
 
 
-class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
+class ShippingZoneCreate(ShippingZoneMixin, DeprecatedModelMutation):
     class Arguments:
         input = ShippingZoneCreateInput(
             description="Fields required to create a shipping zone.", required=True

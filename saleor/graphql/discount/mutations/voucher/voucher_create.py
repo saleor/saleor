@@ -15,7 +15,7 @@ from ....core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
 from ....core.utils import WebhookEventInfo, get_duplicated_values
@@ -99,7 +99,7 @@ class VoucherInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class VoucherCreate(ModelMutation):
+class VoucherCreate(DeprecatedModelMutation):
     class Arguments:
         input = VoucherInput(
             required=True, description="Fields required to create a voucher."

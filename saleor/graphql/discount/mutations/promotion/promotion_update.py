@@ -12,7 +12,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
@@ -36,7 +36,7 @@ class PromotionUpdateInput(PromotionInput):
     name = graphene.String(description="Promotion name.")
 
 
-class PromotionUpdate(ModelMutation):
+class PromotionUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of the promotion to update.")
         input = PromotionUpdateInput(

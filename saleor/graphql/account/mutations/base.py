@@ -28,7 +28,7 @@ from ...core.descriptions import (
 )
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import DeprecatedModelMutation, ModelDeleteMutation
 from ...core.types import BaseInputObjectType, NonNullList
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -63,7 +63,7 @@ def check_can_edit_address(context, address):
     )
 
 
-class BaseAddressUpdate(ModelMutation, I18nMixin):
+class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
@@ -246,7 +246,7 @@ class UserCreateInput(CustomerInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class BaseCustomerCreate(ModelMutation, I18nMixin):
+class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
     """Base mutation for customer create used by staff and account."""
 
     class Arguments:

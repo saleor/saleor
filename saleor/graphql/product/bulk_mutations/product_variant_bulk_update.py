@@ -19,7 +19,7 @@ from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
@@ -392,7 +392,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
         index,
     ):
-        cleaned_input = ModelMutation.clean_input(
+        cleaned_input = DeprecatedModelMutation.clean_input(
             info, None, variant_data, input_cls=ProductVariantBulkUpdateInput
         )
 

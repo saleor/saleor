@@ -16,7 +16,7 @@ from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import AttributeBulkCreateError, BaseObjectType, NonNullList
 from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -350,7 +350,7 @@ class AttributeBulkCreate(BaseMutation):
         index_error_map: dict[int, list[AttributeBulkCreateError]],
     ):
         values = attribute_data.pop("values", None)
-        cleaned_input = ModelMutation.clean_input(
+        cleaned_input = DeprecatedModelMutation.clean_input(
             info, None, attribute_data, input_cls=AttributeCreateInput
         )
 

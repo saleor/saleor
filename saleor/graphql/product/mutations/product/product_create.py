@@ -17,7 +17,7 @@ from ....core.descriptions import (
 )
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
@@ -118,7 +118,7 @@ class ProductCreateInput(ProductInput):
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class ProductCreate(ModelMutation):
+class ProductCreate(DeprecatedModelMutation):
     class Arguments:
         input = ProductCreateInput(
             required=True, description="Fields required to create a product."

@@ -21,7 +21,7 @@ from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_MAP
 from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
 from ...core.fields import JSONString
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.utils import from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import types as translation_types
@@ -97,7 +97,7 @@ def validate_slug_already_exists(
             )
 
 
-class BaseTranslateMutation(ModelMutation):
+class BaseTranslateMutation(DeprecatedModelMutation):
     class Meta:
         abstract = True
 

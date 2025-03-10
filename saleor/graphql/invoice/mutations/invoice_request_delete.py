@@ -6,14 +6,14 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import InvoiceError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Invoice
 
 
-class InvoiceRequestDelete(ModelMutation):
+class InvoiceRequestDelete(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of an invoice to request the deletion."

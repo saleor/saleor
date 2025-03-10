@@ -9,7 +9,7 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, InvoiceError, NonNullList
 from ...meta.inputs import MetadataInput
 from ..types import Invoice
@@ -33,7 +33,7 @@ class UpdateInvoiceInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class InvoiceUpdate(ModelMutation):
+class InvoiceUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
         input = UpdateInvoiceInput(
