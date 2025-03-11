@@ -21,9 +21,9 @@ from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
 from ...core.db.connection import allow_writer
-from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
+from ...core.utils.metadata_item import MetadataItemCollection, MetadataType
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
@@ -37,7 +37,6 @@ from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.inputs import MetadataInput
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
-from ..payment.utils import metadata_contains_empty_key
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
@@ -547,40 +546,16 @@ class BaseMutation(graphene.Mutation):
         return call_event(func_obj, *func_args, **kwargs)
 
     @classmethod
-    def update_metadata(
-        cls, instance, meta_data_list: list[MetadataInput], is_private: bool = False
-    ):
-        if is_private:
-            instance.store_value_in_private_metadata(
-                {data.key: data.value for data in meta_data_list}
-            )
-        else:
-            instance.store_value_in_metadata(
-                {data.key: data.value for data in meta_data_list}
-            )
-
-    @classmethod
-    def validate_metadata_keys(cls, metadata_list: list[dict]):
-        if metadata_contains_empty_key(metadata_list):
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Metadata key cannot be empty.",
-                        code=MetadataErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-
-    @classmethod
     def validate_and_update_metadata(
-        cls, instance, metadata_list, private_metadata_list
+        cls,
+        instance,
+        metadata_list: MetadataItemCollection,
+        private_metadata_list: MetadataItemCollection,
     ):
         if cls._meta.support_meta_field and metadata_list is not None:
-            cls.validate_metadata_keys(metadata_list)
-            cls.update_metadata(instance, metadata_list)
+            metadata_list.write_on_instance(instance, MetadataType.PUBLIC)
         if cls._meta.support_private_meta_field and private_metadata_list is not None:
-            cls.validate_metadata_keys(private_metadata_list)
-            cls.update_metadata(instance, private_metadata_list, is_private=True)
+            metadata_list.write_on_instance(instance, MetadataType.PRIVATE)
 
     @classmethod
     def check_metadata_permissions(cls, info: ResolveInfo, object_id, private=False):
@@ -799,13 +774,24 @@ class DeprecatedModelMutation(BaseMutation):
         instance = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
         )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         instance = cls.construct_instance(instance, cleaned_input)
 
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
@@ -876,7 +862,16 @@ class ModelWithRestrictedChannelAccessMutation(DeprecatedModelMutation):
         )
         instance = cls.construct_instance(instance, cleaned_input)
 
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
