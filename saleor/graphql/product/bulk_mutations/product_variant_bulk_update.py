@@ -8,6 +8,7 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.metadata_manager import MetadataItemCollection
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -23,6 +24,7 @@ from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ...webhook.subscription_payload import generate_pre_save_payloads
@@ -567,12 +569,24 @@ class ProductVariantBulkUpdate(BaseMutation):
                 )
                 continue
             try:
-                metadata_list = cleaned_input.pop("metadata", None)
-                private_metadata_list = cleaned_input.pop("private_metadata", None)
+                metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+                private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                    "private_metadata", None
+                )
+
+                metadata_collection = MetadataItemCollection.create_from_graphql_input(
+                    metadata_list
+                )
+                private_metadata_collection = (
+                    MetadataItemCollection.create_from_graphql_input(
+                        private_metadata_list
+                    )
+                )
+
                 instance = cleaned_input.pop("id")
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.validate_and_update_metadata(
-                    instance, metadata_list, private_metadata_list
+                    instance, metadata_collection, private_metadata_collection
                 )
                 cls.clean_instance(info, instance)
                 instances_data_and_errors_list.append(

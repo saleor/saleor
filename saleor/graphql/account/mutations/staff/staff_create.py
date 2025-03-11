@@ -12,6 +12,7 @@ from .....account.notifications import send_set_password_notification
 from .....account.search import USER_SEARCH_FIELDS, prepare_user_search_document_value
 from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.metadata_manager import MetadataItemCollection
 from .....core.utils.url import prepare_url, validate_storefront_url
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
@@ -231,9 +232,19 @@ class StaffCreate(DeprecatedModelMutation):
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
         )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         instance = cls.construct_instance(instance, cleaned_input)
 
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input, send_notification)
         cls._save_m2m(info, instance, cleaned_input)

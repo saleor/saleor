@@ -28,6 +28,7 @@ from ...core.types import (
 )
 from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...meta.inputs import MetadataInput
 from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
 from ..i18n import I18nMixin
@@ -383,8 +384,10 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             data = cleaned_input["input"]
             shipping_address_input = data.pop(SHIPPING_ADDRESS_FIELD, None)
             billing_address_input = data.pop(BILLING_ADDRESS_FIELD, None)
-            metadata_list = data.pop("metadata", None)
-            private_metadata_list = data.pop("private_metadata", None)
+            metadata_list: list[MetadataInput] = data.pop("metadata", None)
+            private_metadata_list: list[MetadataInput] = data.pop(
+                "private_metadata", None
+            )
 
             filtered_customers = list(
                 filter(
@@ -417,6 +420,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         )
 
                     if metadata_list is not None:
+                        # TODO: Update changes for this method, unify
                         cls.update_metadata(new_instance, metadata_list)
 
                     if private_metadata_list is not None:

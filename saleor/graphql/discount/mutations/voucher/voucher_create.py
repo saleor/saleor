@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from .....core.utils.metadata_manager import MetadataItemCollection
 from .....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
@@ -23,6 +24,7 @@ from ....core.validators import (
     validate_end_is_after_start,
     validate_one_of_args_is_in_mutation,
 )
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
@@ -279,8 +281,18 @@ class VoucherCreate(DeprecatedModelMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, voucher_instance, data)
 
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         codes_data = cleaned_input.pop("add_codes", None)
         code = cleaned_input.pop("code", None)
 
@@ -290,7 +302,7 @@ class VoucherCreate(DeprecatedModelMutation):
         )
 
         cls.validate_and_update_metadata(
-            voucher_instance, metadata_list, private_metadata_list
+            voucher_instance, metadata_collection, private_metadata_collection
         )
 
         cls.clean_voucher_instance(info, voucher_instance)

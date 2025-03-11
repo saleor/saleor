@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core import JobStatus
+from ....core.utils.metadata_manager import MetadataItemCollection
 from ....invoice import models
 from ....invoice.error_codes import InvoiceErrorCode
 from ....order import events as order_events
@@ -79,9 +80,21 @@ class InvoiceUpdate(DeprecatedModelMutation):
         instance = cls.get_instance(info, id=id)
         cls.check_channel_permissions(info, [instance.order.channel_id])
         cleaned_input = cls.clean_input(info, instance, input)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         instance.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )

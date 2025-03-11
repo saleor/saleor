@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....core.db.connection import allow_writer
 from ....core.exceptions import PermissionDenied
+from ....core.utils.metadata_manager import MetadataItemCollection
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
@@ -134,11 +135,20 @@ class DigitalContentCreate(BaseMutation):
         digital_content.automatic_fulfillment = clean_input.get(
             "automatic_fulfillment", False
         )
-        metadata_list = clean_input.pop("metadata", None)
-        private_metadata_list = clean_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = clean_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = clean_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
 
         cls.validate_and_update_metadata(
-            digital_content, metadata_list, private_metadata_list
+            digital_content, metadata_collection, private_metadata_collection
         )
 
         variant.digital_content = digital_content
@@ -263,8 +273,15 @@ class DigitalContentUpdate(BaseMutation):
         metadata_list = clean_input.pop("metadata", None)
         private_metadata_list = clean_input.pop("private_metadata", None)
 
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         cls.validate_and_update_metadata(
-            digital_content, metadata_list, private_metadata_list
+            digital_content, metadata_collection, private_metadata_collection
         )
 
         variant.digital_content = digital_content

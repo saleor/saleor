@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.metadata_manager import MetadataItemCollection
 from ....giftcard import events, models
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....permission.enums import GiftcardPermissions
@@ -109,8 +110,18 @@ class GiftCardUpdate(GiftCardCreate):
             "private_metadata", None
         )
 
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)

@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.error_codes import ShopErrorCode
+from ....core.utils.metadata_manager import MetadataItemCollection
 from ....core.utils.url import validate_storefront_url
 from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
@@ -192,11 +193,21 @@ class ShopSettingsUpdate(BaseMutation):
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
         )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         old_metadata = dict(instance.metadata)
         old_private_metadata = dict(instance.private_metadata)
 
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         cls.clean_instance(info, instance)
         instance.save()
 

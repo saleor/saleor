@@ -22,6 +22,7 @@ from ....channel.models import Channel
 from ....core import JobStatus
 from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.metadata_manager import MetadataItemCollection
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....discount.models import OrderDiscount, VoucherCode
@@ -1015,12 +1016,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         billing_address: Address | None = None
         billing_address_input = order_input["billing_address"]
-        metadata_list = billing_address_input.pop("metadata", None)
-        private_metadata_list = billing_address_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = billing_address_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = billing_address_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            metadata_list
+        )
+        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
+            private_metadata_list
+        )
+
         try:
             billing_address = cls.validate_address(billing_address_input, info=info)
             cls.validate_and_update_metadata(
-                billing_address, metadata_list, private_metadata_list
+                billing_address, metadata_collection, private_metadata_collection
             )
         except Exception:
             order_data.errors.append(
@@ -1036,12 +1047,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if shipping_address_input := order_input.get("shipping_address"):
             metadata_list = shipping_address_input.pop("metadata", None)
             private_metadata_list = shipping_address_input.pop("private_metadata", None)
+
+            metadata_collection = MetadataItemCollection.create_from_graphql_input(
+                metadata_list
+            )
+            private_metadata_collection = (
+                MetadataItemCollection.create_from_graphql_input(private_metadata_list)
+            )
+
             try:
                 shipping_address = cls.validate_address(
                     shipping_address_input, info=info
                 )
                 cls.validate_and_update_metadata(
-                    shipping_address, metadata_list, private_metadata_list
+                    shipping_address, metadata_collection, private_metadata_collection
                 )
             except Exception:
                 order_data.errors.append(
