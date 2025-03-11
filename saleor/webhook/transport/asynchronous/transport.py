@@ -35,6 +35,10 @@ from ....graphql.webhook.subscription_payload import (
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...metrics import (
+    record_async_webhooks_count,
+    record_first_delivery_attempt_delay,
+)
 from ...observability import WebhookData
 from ..utils import (
     DeferredPayloadData,
@@ -603,6 +607,9 @@ def send_webhook_request_async(
         data = data if isinstance(data, bytes) else data.encode("utf-8")
         # Count payload size in bytes.
         payload_size = len(data)
+
+        if self.request.retries == 0:
+            record_first_delivery_attempt_delay(delivery)
         with webhooks_otel_trace(
             delivery.event_type,
             domain,
@@ -619,6 +626,7 @@ def send_webhook_request_async(
                 webhook.custom_headers,
             )
 
+        record_async_webhooks_count(delivery, response.status)
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
