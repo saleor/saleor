@@ -166,6 +166,7 @@ def _calculate_quantity_including_returns(order):
     quantity_fulfilled = sum([line.quantity_fulfilled for line in lines])
     quantity_returned = 0
     quantity_replaced = 0
+    quantity_awaiting_approval = 0
     for fulfillment in order.fulfillments.all():
         # count returned quantity for order
         if fulfillment.status in [
@@ -176,12 +177,19 @@ def _calculate_quantity_including_returns(order):
         # count replaced quantity for order
         elif fulfillment.status == FulfillmentStatus.REPLACED:
             quantity_replaced += fulfillment.get_total_quantity()
+        elif fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL:
+            quantity_awaiting_approval += fulfillment.get_total_quantity()
 
     # Subtract the replace quantity as it shouldn't be taken into consideration for
     # calculating the order status
     total_quantity -= quantity_replaced
     quantity_fulfilled -= quantity_replaced
-    return total_quantity, quantity_fulfilled, quantity_returned
+    return (
+        total_quantity,
+        quantity_fulfilled,
+        quantity_returned,
+        quantity_awaiting_approval,
+    )
 
 
 def update_order_status(order: Order):
@@ -195,19 +203,15 @@ def update_order_status(order: Order):
             total_quantity,
             quantity_fulfilled,
             quantity_returned,
+            quantity_awaiting_approval,
         ) = _calculate_quantity_including_returns(locked_order)
-
-        # check if order contains any fulfillments that awaiting approval
-        awaiting_approval = locked_order.fulfillments.filter(
-            status=FulfillmentStatus.WAITING_FOR_APPROVAL
-        ).exists()
 
         status = determine_order_status(
             order,
             total_quantity,
             quantity_fulfilled,
             quantity_returned,
-            awaiting_approval,
+            quantity_awaiting_approval,
         )
 
         # we would like to update the status for the order provided as the argument
@@ -222,19 +226,19 @@ def determine_order_status(
     total_quantity: int,
     quantity_fulfilled: int,
     quantity_returned: int,
-    awaiting_approval: bool,
+    quantity_awaiting_approval: int,
 ):
     # total_quantity == 0 means that all products have been replaced, we don't change
     # the order status in that case
     if total_quantity == 0:
         status = order.status
-    elif quantity_fulfilled <= 0:
+    elif quantity_fulfilled - quantity_awaiting_approval <= 0:
         status = OrderStatus.UNFULFILLED
     elif 0 < quantity_returned < total_quantity:
         status = OrderStatus.PARTIALLY_RETURNED
     elif quantity_returned == total_quantity:
         status = OrderStatus.RETURNED
-    elif quantity_fulfilled < total_quantity or awaiting_approval:
+    elif quantity_fulfilled - quantity_awaiting_approval < total_quantity:
         status = OrderStatus.PARTIALLY_FULFILLED
     else:
         status = OrderStatus.FULFILLED
