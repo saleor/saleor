@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from sympy.testing.pytest import raises
 
 from saleor.core.models import ModelWithMetadata
-from saleor.core.utils.metadata_item import MetadataItem, MetadataItemCollection
+from saleor.core.utils.metadata_manager import MetadataItemCollection, MetadataType
 from saleor.graphql.meta.inputs import MetadataInput
 
 valid_metadata_item = MetadataInput()
@@ -33,7 +33,7 @@ def test_create_collection():
     assert collection.items[0].value == valid_list[0].value
 
 
-def test_write_on_model():
+def test_write_on_model_public():
     class TestInstance(ModelWithMetadata):
         pass
 
@@ -41,14 +41,24 @@ def test_write_on_model():
 
     collection = MetadataItemCollection.create_from_graphql_input(valid_list)
 
-    collection.write_on_instance(instance)
+    collection.write_on_instance(instance, MetadataType.PUBLIC)
 
     assert instance.metadata.get(valid_list[0].key) == valid_list[0].value
+
+
+def test_write_on_model_private():
+    class TestInstance(ModelWithMetadata):
+        pass
+
+    instance = TestInstance()
+
+    collection = MetadataItemCollection.create_from_graphql_input(valid_list)
+
+    collection.write_on_instance(instance, MetadataType.PRIVATE)
+
+    assert instance.private_metadata.get(valid_list[0].key) == valid_list[0].value
 
 
 def test_throw_on_empty_key():
     with raises(ValidationError):
         MetadataItemCollection.create_from_graphql_input(invalid_list)
-
-    with raises(ValidationError):
-        MetadataItem("", "value")

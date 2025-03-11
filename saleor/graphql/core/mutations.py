@@ -23,7 +23,7 @@ from graphql.error import GraphQLError
 from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
-from ...core.utils.metadata_item import MetadataItemCollection, MetadataType
+from ...core.utils.metadata_manager import MetadataItemCollection, MetadataType
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
