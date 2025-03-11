@@ -9,6 +9,7 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .draft_order_create import DraftOrderCreate, DraftOrderInput
@@ -89,8 +90,10 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         data = data.get("input")
 
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
 
         instance = cls.construct_instance(instance, cleaned_input)
 

@@ -188,8 +188,10 @@ class ShopSettingsUpdate(BaseMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
         old_metadata = dict(instance.metadata)
         old_private_metadata = dict(instance.private_metadata)
 

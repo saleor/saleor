@@ -161,8 +161,10 @@ class AccountRegister(DeprecatedModelMutation):
         instance = models.User()
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
 
         instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)

@@ -35,6 +35,7 @@ from ..account.utils import get_user_accessible_channels
 from ..app.dataloaders import get_app_promise
 from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.validators import validate_one_of_args_is_in_mutation
+from ..meta.inputs import MetadataInput
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
 from ..utils import get_nodes, resolve_global_ids_to_primary_keys
@@ -546,7 +547,9 @@ class BaseMutation(graphene.Mutation):
         return call_event(func_obj, *func_args, **kwargs)
 
     @classmethod
-    def update_metadata(cls, instance, meta_data_list: list, is_private: bool = False):
+    def update_metadata(
+        cls, instance, meta_data_list: list[MetadataInput], is_private: bool = False
+    ):
         if is_private:
             instance.store_value_in_private_metadata(
                 {data.key: data.value for data in meta_data_list}
@@ -796,8 +799,10 @@ class DeprecatedModelMutation(BaseMutation):
         instance = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
         instance = cls.construct_instance(instance, cleaned_input)
 
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
@@ -865,8 +870,10 @@ class ModelWithRestrictedChannelAccessMutation(DeprecatedModelMutation):
         cls.check_channel_permissions(info, [channel_id])
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
         instance = cls.construct_instance(instance, cleaned_input)
 
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)

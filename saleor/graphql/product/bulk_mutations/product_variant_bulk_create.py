@@ -41,6 +41,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shop.utils import get_track_inventory_by_default
 from ..mutations.channels import ProductVariantChannelListingAddInput
@@ -604,8 +605,10 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
                 continue
             try:
-                metadata_list = cleaned_input.pop("metadata", None)
-                private_metadata_list = cleaned_input.pop("private_metadata", None)
+                metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+                private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                    "private_metadata", None
+                )
                 instance = models.ProductVariant()
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)

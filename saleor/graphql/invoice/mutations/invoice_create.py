@@ -98,8 +98,10 @@ class InvoiceCreate(DeprecatedModelMutation):
         cls.clean_order(info, order)
         cleaned_input = cls.clean_input(info, order, input)
 
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
 
         invoice = models.Invoice(**cleaned_input)
         invoice.order = order

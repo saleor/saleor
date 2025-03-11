@@ -643,8 +643,10 @@ class ProductBulkCreate(BaseMutation):
                 )
                 continue
             try:
-                metadata_list = cleaned_input.pop("metadata", None)
-                private_metadata_list = cleaned_input.pop("private_metadata", None)
+                metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+                private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                    "private_metadata", None
+                )
 
                 instance = models.Product()
                 instance = cls.construct_instance(instance, cleaned_input)

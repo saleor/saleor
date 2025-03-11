@@ -22,6 +22,7 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import NonNullList, StaffError
 from ....core.utils import WebhookEventInfo
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_groups_which_user_can_manage
 from ..base import UserInput
@@ -226,8 +227,10 @@ class StaffCreate(DeprecatedModelMutation):
         instance, send_notification = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
         instance = cls.construct_instance(instance, cleaned_input)
 
         cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
