@@ -40,32 +40,33 @@ class MetadataItemCollection:
 
     items: list[MetadataItem]
 
-    # TODO: Maciek suggests this and write_on_instance should be functions outside of class.
-    # Lets establish that
-    @staticmethod
-    def create_from_graphql_input(items: list[MetadataInput] | None):
-        if items is None:
-            return None
 
-        return MetadataItemCollection(
-            [
-                MetadataItemCollection.MetadataItem(item.key, item.value)
-                for item in items
-            ]
-        )
+def write_on_instance(
+    metadata_collection: MetadataItemCollection,
+    instance: ModelWithMetadata,
+    target: MetadataType,
+):
+    match target:
+        case MetadataType.PUBLIC:
+            instance.store_value_in_metadata(
+                {item.key: item.value for item in metadata_collection.items}
+            )
+        case MetadataType.PRIVATE:
+            instance.store_value_in_private_metadata(
+                {item.key: item.value for item in metadata_collection.items}
+            )
+        case _:
+            raise ValueError(
+                "Unknown argument, provide MetadataType.PRIVATE or MetadataType.PUBLIC"
+            )
 
-    # Merges collection into dict. Duplicated keys will be overwritten
-    def write_on_instance(self, instance: ModelWithMetadata, target: MetadataType):
-        match target:
-            case MetadataType.PUBLIC:
-                instance.store_value_in_metadata(
-                    {item.key: item.value for item in self.items}
-                )
-            case MetadataType.PRIVATE:
-                instance.store_value_in_private_metadata(
-                    {item.key: item.value for item in self.items}
-                )
-            case _:
-                raise ValueError(
-                    "Unknown argument, provide MetadataType.PRIVATE or MetadataType.PUBLIC"
-                )
+
+def create_from_graphql_input(
+    items: list[MetadataInput] | None,
+) -> MetadataItemCollection | None:
+    if items is None:
+        return None
+
+    return MetadataItemCollection(
+        [MetadataItemCollection.MetadataItem(item.key, item.value) for item in items]
+    )
