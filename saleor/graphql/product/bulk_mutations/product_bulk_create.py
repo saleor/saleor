@@ -13,7 +13,9 @@ from ....core.http_client import HTTPClient
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
-from ....core.utils.metadata_manager import MetadataItemCollection
+from ....core.utils.metadata_manager import (
+    create_from_graphql_input,
+)
 from ....core.utils.validators import get_oembed_data
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
@@ -649,13 +651,9 @@ class ProductBulkCreate(BaseMutation):
                     "private_metadata", None
                 )
 
-                metadata_collection = MetadataItemCollection.create_from_graphql_input(
-                    metadata_list
-                )
-                private_metadata_collection = (
-                    MetadataItemCollection.create_from_graphql_input(
-                        private_metadata_list
-                    )
+                metadata_collection = create_from_graphql_input(metadata_list)
+                private_metadata_collection = create_from_graphql_input(
+                    private_metadata_list
                 )
 
                 instance = models.Product()
@@ -720,13 +718,9 @@ class ProductBulkCreate(BaseMutation):
                         "private_metadata", None
                     )
 
-                    metadata_collection = (
-                        MetadataItemCollection.create_from_graphql_input(metadata_list)
-                    )
-                    private_metadata_collection = (
-                        MetadataItemCollection.create_from_graphql_input(
-                            private_metadata_list
-                        )
+                    metadata_collection = create_from_graphql_input(metadata_list)
+                    private_metadata_collection = create_from_graphql_input(
+                        private_metadata_list
                     )
 
                     variant = models.ProductVariant()

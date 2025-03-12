@@ -42,10 +42,14 @@ class MetadataItemCollection:
 
 
 def write_on_instance(
-    metadata_collection: MetadataItemCollection,
+    metadata_collection: MetadataItemCollection | None,
     instance: ModelWithMetadata,
     target: MetadataType,
 ):
+    # Accept None for the compatibility, but eventually should check against existence before calling this
+    if metadata_collection is None:
+        return
+
     match target:
         case MetadataType.PUBLIC:
             instance.store_value_in_metadata(
@@ -64,6 +68,7 @@ def write_on_instance(
 def create_from_graphql_input(
     items: list[MetadataInput] | None,
 ) -> MetadataItemCollection | None:
+    """:rtype: object"""
     if items is None:
         return None
 

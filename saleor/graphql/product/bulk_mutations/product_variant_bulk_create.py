@@ -9,7 +9,9 @@ from graphene.utils.str_converters import to_camel_case
 
 from ....attribute import AttributeType
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.metadata_manager import MetadataItemCollection
+from ....core.utils.metadata_manager import (
+    create_from_graphql_input,
+)
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -611,13 +613,9 @@ class ProductVariantBulkCreate(BaseMutation):
                     "private_metadata", None
                 )
 
-                metadata_collection = MetadataItemCollection.create_from_graphql_input(
-                    metadata_list
-                )
-                private_metadata_collection = (
-                    MetadataItemCollection.create_from_graphql_input(
-                        private_metadata_list
-                    )
+                metadata_collection = create_from_graphql_input(metadata_list)
+                private_metadata_collection = create_from_graphql_input(
+                    private_metadata_list
                 )
 
                 instance = models.ProductVariant()

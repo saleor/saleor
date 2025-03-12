@@ -2,7 +2,9 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....core.utils.metadata_manager import MetadataItemCollection
+from .....core.utils.metadata_manager import (
+    create_from_graphql_input,
+)
 from .....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
@@ -286,12 +288,8 @@ class VoucherCreate(DeprecatedModelMutation):
             "private_metadata", None
         )
 
-        metadata_collection = MetadataItemCollection.create_from_graphql_input(
-            metadata_list
-        )
-        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
-            private_metadata_list
-        )
+        metadata_collection = create_from_graphql_input(metadata_list)
+        private_metadata_collection = create_from_graphql_input(private_metadata_list)
 
         codes_data = cleaned_input.pop("add_codes", None)
         code = cleaned_input.pop("code", None)

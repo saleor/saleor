@@ -12,6 +12,11 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.metadata_manager import (
+    MetadataType,
+    create_from_graphql_input,
+    write_on_instance,
+)
 from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
 from ....giftcard.utils import get_user_gift_cards
@@ -92,7 +97,11 @@ class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
         )
-        cls.update_metadata(instance, cleaned_input.pop("metadata", []))
+
+        metadata = cleaned_input.pop("metadata", [])
+        metadata_collection = create_from_graphql_input(metadata)
+        write_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
+
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
@@ -264,25 +273,49 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
-            address_metadata = shipping_address_data.pop("metadata", [])
+            shipping_address_metadata: list[MetadataInput] = shipping_address_data.pop(
+                "metadata", []
+            )
+            shipping_address_metadata_collection = create_from_graphql_input(
+                shipping_address_metadata
+            )
+
             shipping_address = cls.validate_address(
                 shipping_address_data,
                 address_type=AddressType.SHIPPING,
                 instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
                 info=info,
             )
-            cls.update_metadata(shipping_address, address_metadata)
+
+            write_on_instance(
+                shipping_address_metadata_collection,
+                shipping_address,
+                MetadataType.PUBLIC,
+            )
+
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_data:
-            address_metadata = billing_address_data.pop("metadata", [])
+            billing_address_metadata: list[MetadataInput] = billing_address_data.pop(
+                "metadata", []
+            )
+            billing_address_metadata_collection = create_from_graphql_input(
+                billing_address_metadata
+            )
+
             billing_address = cls.validate_address(
                 billing_address_data,
                 address_type=AddressType.BILLING,
                 instance=getattr(instance, BILLING_ADDRESS_FIELD),
                 info=info,
             )
-            cls.update_metadata(billing_address, address_metadata)
+
+            write_on_instance(
+                billing_address_metadata_collection,
+                billing_address,
+                MetadataType.PUBLIC,
+            )
+
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 
         if cleaned_input.get("redirect_url"):

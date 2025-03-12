@@ -10,6 +10,11 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
+from ....core.utils.metadata_manager import (
+    MetadataType,
+    create_from_graphql_input,
+    write_on_instance,
+)
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
@@ -311,23 +316,40 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
         save_shipping_address = data.get("save_shipping_address")
-        shipping_address_metadata = (
+        shipping_address_metadata: list[MetadataInput] | None = (
             data.get("shipping_address", {}).pop("metadata", [])
             if data.get("shipping_address")
             else None
         )
         save_billing_address = data.get("save_billing_address")
-        billing_address_metadata = (
+        billing_address_metadata: list[MetadataInput] | None = (
             data.get("billing_address", {}).pop("metadata", [])
             if data.get("billing_address")
             else None
         )
+
+        shipping_address_metadata_collection = create_from_graphql_input(
+            shipping_address_metadata
+        )
+        billing_address_metadata_collection = create_from_graphql_input(
+            billing_address_metadata
+        )
+
         shipping_address = cls.retrieve_shipping_address(user, data, info)
         billing_address = cls.retrieve_billing_address(user, data, info)
         if shipping_address:
-            cls.update_metadata(shipping_address, shipping_address_metadata)
+            write_on_instance(
+                shipping_address_metadata_collection,
+                shipping_address,
+                MetadataType.PUBLIC,
+            )
+
         if billing_address:
-            cls.update_metadata(billing_address, billing_address_metadata)
+            write_on_instance(
+                billing_address_metadata_collection,
+                billing_address,
+                MetadataType.PUBLIC,
+            )
 
         if save_shipping_address is not None and not shipping_address:
             raise ValidationError(

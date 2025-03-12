@@ -11,6 +11,11 @@ from ....account.events import CustomerEvents
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.metadata_manager import (
+    MetadataType,
+    create_from_graphql_input,
+    write_on_instance,
+)
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
@@ -361,8 +366,12 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     @classmethod
     def update_address(cls, info, instance, data, field):
         address = getattr(instance, field) or models.Address()
-        address_metadata = data.pop("metadata", [])
-        cls.update_metadata(address, address_metadata)
+        address_metadata: list[MetadataInput] = data.pop("metadata", [])
+
+        metadata_collection = create_from_graphql_input(address_metadata)
+
+        write_on_instance(metadata_collection, address, MetadataType.PUBLIC)
+
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
         return address
@@ -420,12 +429,21 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         )
 
                     if metadata_list is not None:
-                        # TODO: Update changes for this method, unify
-                        cls.update_metadata(new_instance, metadata_list)
+                        metadata_collection = create_from_graphql_input(metadata_list)
+
+                        write_on_instance(
+                            metadata_collection, new_instance, MetadataType.PUBLIC
+                        )
 
                     if private_metadata_list is not None:
-                        cls.update_metadata(
-                            new_instance, private_metadata_list, is_private=True
+                        private_metadata_collection = create_from_graphql_input(
+                            metadata_list
+                        )
+
+                        write_on_instance(
+                            private_metadata_collection,
+                            new_instance,
+                            MetadataType.PRIVATE,
                         )
 
                     instances_data_and_errors_list.append(

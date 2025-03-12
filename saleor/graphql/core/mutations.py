@@ -23,7 +23,12 @@ from graphql.error import GraphQLError
 from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
-from ...core.utils.metadata_manager import MetadataItemCollection, MetadataType
+from ...core.utils.metadata_manager import (
+    MetadataItemCollection,
+    MetadataType,
+    create_from_graphql_input,
+    write_on_instance,
+)
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
@@ -549,13 +554,13 @@ class BaseMutation(graphene.Mutation):
     def validate_and_update_metadata(
         cls,
         instance,
-        metadata_list: MetadataItemCollection,
-        private_metadata_list: MetadataItemCollection,
+        metadata_list: MetadataItemCollection | None,
+        private_metadata_list: MetadataItemCollection | None,
     ):
         if cls._meta.support_meta_field and metadata_list is not None:
-            metadata_list.write_on_instance(instance, MetadataType.PUBLIC)
+            write_on_instance(metadata_list, instance, MetadataType.PUBLIC)
         if cls._meta.support_private_meta_field and private_metadata_list is not None:
-            metadata_list.write_on_instance(instance, MetadataType.PRIVATE)
+            write_on_instance(metadata_list, instance, MetadataType.PRIVATE)
 
     @classmethod
     def check_metadata_permissions(cls, info: ResolveInfo, object_id, private=False):
@@ -780,12 +785,8 @@ class DeprecatedModelMutation(BaseMutation):
             "private_metadata", None
         )
 
-        metadata_collection = MetadataItemCollection.create_from_graphql_input(
-            metadata_list
-        )
-        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
-            private_metadata_list
-        )
+        metadata_collection = create_from_graphql_input(metadata_list)
+        private_metadata_collection = create_from_graphql_input(private_metadata_list)
 
         instance = cls.construct_instance(instance, cleaned_input)
 
@@ -862,12 +863,8 @@ class ModelWithRestrictedChannelAccessMutation(DeprecatedModelMutation):
         )
         instance = cls.construct_instance(instance, cleaned_input)
 
-        metadata_collection = MetadataItemCollection.create_from_graphql_input(
-            metadata_list
-        )
-        private_metadata_collection = MetadataItemCollection.create_from_graphql_input(
-            private_metadata_list
-        )
+        metadata_collection = create_from_graphql_input(metadata_list)
+        private_metadata_collection = create_from_graphql_input(private_metadata_list)
 
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection
