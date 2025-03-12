@@ -6,7 +6,7 @@ from saleor.core.utils.metadata_manager import (
     MetadataItemCollection,
     MetadataType,
     create_from_graphql_input,
-    write_on_instance,
+    store_on_instance,
 )
 from saleor.graphql.meta.inputs import MetadataInput
 
@@ -60,7 +60,7 @@ def test_write_on_model_public():
 
     collection = create_from_graphql_input(valid_list)
 
-    write_on_instance(collection, instance, MetadataType.PUBLIC)
+    store_on_instance(collection, instance, MetadataType.PUBLIC)
 
     assert instance.metadata.get(valid_list[0].key) == valid_list[0].value
 
@@ -73,7 +73,7 @@ def test_write_on_model_private():
 
     collection = create_from_graphql_input(valid_list)
 
-    write_on_instance(collection, instance, MetadataType.PRIVATE)
+    store_on_instance(collection, instance, MetadataType.PRIVATE)
 
     assert instance.private_metadata.get(valid_list[0].key) == valid_list[0].value
 

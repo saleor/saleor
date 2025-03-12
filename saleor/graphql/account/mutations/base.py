@@ -15,7 +15,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.metadata_manager import (
     MetadataType,
     create_from_graphql_input,
-    write_on_instance,
+    store_on_instance,
 )
 from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
@@ -100,7 +100,7 @@ class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
 
         metadata = cleaned_input.pop("metadata", [])
         metadata_collection = create_from_graphql_input(metadata)
-        write_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
+        store_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
 
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
@@ -287,7 +287,7 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
                 info=info,
             )
 
-            write_on_instance(
+            store_on_instance(
                 shipping_address_metadata_collection,
                 shipping_address,
                 MetadataType.PUBLIC,
@@ -310,7 +310,7 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
                 info=info,
             )
 
-            write_on_instance(
+            store_on_instance(
                 billing_address_metadata_collection,
                 billing_address,
                 MetadataType.PUBLIC,

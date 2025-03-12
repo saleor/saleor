@@ -13,7 +13,7 @@ from ....core.utils.country import get_active_country
 from ....core.utils.metadata_manager import (
     MetadataType,
     create_from_graphql_input,
-    write_on_instance,
+    store_on_instance,
 )
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
@@ -338,14 +338,14 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         shipping_address = cls.retrieve_shipping_address(user, data, info)
         billing_address = cls.retrieve_billing_address(user, data, info)
         if shipping_address:
-            write_on_instance(
+            store_on_instance(
                 shipping_address_metadata_collection,
                 shipping_address,
                 MetadataType.PUBLIC,
             )
 
         if billing_address:
-            write_on_instance(
+            store_on_instance(
                 billing_address_metadata_collection,
                 billing_address,
                 MetadataType.PUBLIC,

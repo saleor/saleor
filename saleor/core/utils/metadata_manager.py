@@ -41,13 +41,12 @@ class MetadataItemCollection:
     items: list[MetadataItem]
 
 
-def write_on_instance(
-    metadata_collection: MetadataItemCollection | None,
+def store_on_instance(
+    metadata_collection: MetadataItemCollection,
     instance: ModelWithMetadata,
     target: MetadataType,
 ):
-    # Accept None for the compatibility, but eventually should check against existence before calling this
-    if metadata_collection is None:
+    if not metadata_collection.items:
         return
 
     match target:
@@ -67,10 +66,9 @@ def write_on_instance(
 
 def create_from_graphql_input(
     items: list[MetadataInput] | None,
-) -> MetadataItemCollection | None:
-    """:rtype: object"""
-    if items is None:
-        return None
+) -> MetadataItemCollection:
+    if not items:
+        return MetadataItemCollection([])
 
     return MetadataItemCollection(
         [MetadataItemCollection.MetadataItem(item.key, item.value) for item in items]

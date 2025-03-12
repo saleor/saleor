@@ -5,7 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.utils.metadata_manager import (
     MetadataType,
     create_from_graphql_input,
-    write_on_instance,
+    store_on_instance,
 )
 from ...permission.enums import AccountPermissions
 from ..core.utils import raise_validation_error
@@ -20,7 +20,7 @@ class AddressMetadataMixin:
 
         metadata_collection = create_from_graphql_input(metadata)
 
-        write_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
+        store_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
 
         return super().construct_instance(instance, cleaned_data)  # type: ignore[misc] # noqa: E501
 

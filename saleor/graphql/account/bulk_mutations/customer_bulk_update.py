@@ -14,7 +14,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.metadata_manager import (
     MetadataType,
     create_from_graphql_input,
-    write_on_instance,
+    store_on_instance,
 )
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
@@ -370,7 +370,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
 
         metadata_collection = create_from_graphql_input(address_metadata)
 
-        write_on_instance(metadata_collection, address, MetadataType.PUBLIC)
+        store_on_instance(metadata_collection, address, MetadataType.PUBLIC)
 
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
@@ -431,7 +431,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     if metadata_list is not None:
                         metadata_collection = create_from_graphql_input(metadata_list)
 
-                        write_on_instance(
+                        store_on_instance(
                             metadata_collection, new_instance, MetadataType.PUBLIC
                         )
 
@@ -440,7 +440,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                             metadata_list
                         )
 
-                        write_on_instance(
+                        store_on_instance(
                             private_metadata_collection,
                             new_instance,
                             MetadataType.PRIVATE,
