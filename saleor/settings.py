@@ -28,6 +28,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
 from . import PatchedSubscriberExecutionContext, __version__
+from .account.i18n_rules_override import i18n_rules_override
 from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
@@ -1018,6 +1019,11 @@ ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION = get_bool_from_env(
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
+
+
+# Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
+# Patch `i18n` module to allows to override the default address rules.
+i18n_rules_override()
 
 
 # Patch Promise to remove all references that could result in reference cycles, allowing memory to be freed
