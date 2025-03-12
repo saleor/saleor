@@ -28,6 +28,7 @@ from sentry_sdk.integrations.logging import ignore_logger
 from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScrubber
 
 from . import PatchedSubscriberExecutionContext, __version__
+from .account.i18n_rules_override import i18n_rules_override
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
@@ -1055,3 +1056,7 @@ BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS",
 BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
     os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
 )
+
+# Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
+# Patch `i18n` module to allows to override the default address rules.
+i18n_rules_override()
