@@ -559,10 +559,10 @@ class BaseMutation(graphene.Mutation):
         metadata_list: MetadataItemCollection,
         private_metadata_list: MetadataItemCollection,
     ):
-        if cls._meta.support_meta_field and metadata_list is not None:
+        if cls._meta.support_meta_field and metadata_list.items:
             store_on_instance(metadata_list, instance, MetadataType.PUBLIC)
-        if cls._meta.support_private_meta_field and private_metadata_list is not None:
-            store_on_instance(metadata_list, instance, MetadataType.PRIVATE)
+        if cls._meta.support_private_meta_field and private_metadata_list.items:
+            store_on_instance(private_metadata_list, instance, MetadataType.PRIVATE)
 
     @classmethod
     def check_metadata_permissions(cls, info: ResolveInfo, object_id, private=False):
