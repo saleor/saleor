@@ -84,6 +84,8 @@ jobs:
         if: ${{ always() }}
 
       - name: Run unit tests
+        env:
+          COVERAGE_CORE: sysmon
         run: |
           pytest \
             -m "not e2e" \
