@@ -7,9 +7,6 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....core.utils.metadata_manager import (
-    create_from_graphql_input,
-)
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.utils.variants import generate_and_set_variant_name
@@ -222,8 +219,12 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         new_instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(

@@ -3,9 +3,6 @@ from django.core.exceptions import ValidationError
 
 from ....core.db.connection import allow_writer
 from ....core.exceptions import PermissionDenied
-from ....core.utils.metadata_manager import (
-    create_from_graphql_input,
-)
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
@@ -142,8 +139,12 @@ class DigitalContentCreate(BaseMutation):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         cls.validate_and_update_metadata(
             digital_content, metadata_collection, private_metadata_collection
@@ -271,8 +272,12 @@ class DigitalContentUpdate(BaseMutation):
         metadata_list = clean_input.pop("metadata", None)
         private_metadata_list = clean_input.pop("private_metadata", None)
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         cls.validate_and_update_metadata(
             digital_content, metadata_collection, private_metadata_collection

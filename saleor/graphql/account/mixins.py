@@ -4,7 +4,6 @@ from ...app.models import App
 from ...core.exceptions import PermissionDenied
 from ...core.utils.metadata_manager import (
     MetadataType,
-    create_from_graphql_input,
     store_on_instance,
 )
 from ...permission.enums import AccountPermissions
@@ -18,7 +17,9 @@ class AddressMetadataMixin:
     def construct_instance(cls, instance, cleaned_data):
         metadata: list[MetadataInput] = cleaned_data.pop("metadata", [])
 
-        metadata_collection = create_from_graphql_input(metadata)
+        metadata_collection = super().create_metadata_from_graphql_input(  # type: ignore[misc] # noqa: E501
+            metadata, error_field_name="metadata"
+        )
 
         store_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
 

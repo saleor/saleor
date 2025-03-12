@@ -5,9 +5,6 @@ from django.db.models import QuerySet
 
 from .....account import events as account_events
 from .....account import models
-from .....core.utils.metadata_manager import (
-    create_from_graphql_input,
-)
 from .....giftcard.search import mark_gift_cards_search_index_as_dirty
 from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
@@ -134,8 +131,12 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
         cls.validate_and_update_metadata(

@@ -13,7 +13,6 @@ from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.metadata_manager import (
     MetadataType,
-    create_from_graphql_input,
     store_on_instance,
 )
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
@@ -368,7 +367,9 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         address = getattr(instance, field) or models.Address()
         address_metadata: list[MetadataInput] = data.pop("metadata", [])
 
-        metadata_collection = create_from_graphql_input(address_metadata)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            address_metadata, error_field_name="metadata"
+        )
 
         store_on_instance(metadata_collection, address, MetadataType.PUBLIC)
 
@@ -429,15 +430,19 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         )
 
                     if metadata_list is not None:
-                        metadata_collection = create_from_graphql_input(metadata_list)
+                        metadata_collection = cls.create_metadata_from_graphql_input(
+                            metadata_list, error_field_name="metadata"
+                        )
 
                         store_on_instance(
                             metadata_collection, new_instance, MetadataType.PUBLIC
                         )
 
                     if private_metadata_list is not None:
-                        private_metadata_collection = create_from_graphql_input(
-                            metadata_list
+                        private_metadata_collection = (
+                            cls.create_metadata_from_graphql_input(
+                                metadata_list, error_field_name="private_metadata"
+                            )
                         )
 
                         store_on_instance(

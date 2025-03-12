@@ -1,16 +1,17 @@
 from dataclasses import dataclass
 from enum import Enum
 
-from django.core.exceptions import ValidationError
-
-from saleor.core.error_codes import MetadataErrorCode
-from saleor.core.models import ModelWithMetadata
-from saleor.graphql.meta.inputs import MetadataInput
+from ...graphql.meta.inputs import MetadataInput
+from ..models import ModelWithMetadata
 
 
 class MetadataType(Enum):
     PUBLIC = "PUBLIC"
     PRIVATE = "PRIVATE"
+
+
+class MetadataEmptyKeyError(Exception):
+    pass
 
 
 @dataclass
@@ -21,19 +22,8 @@ class MetadataItemCollection:
         value: str
 
         def __init__(self, key: str, value: str):
-            # Ensures it can't be created with invalid shape
-            # TODO Probably either inject error from the outside
-            # or allow to overwrite
-            # or raise custom error that will be re-thrown
             if not key:
-                raise ValidationError(
-                    {
-                        "input": ValidationError(
-                            "Metadata key cannot be empty.",
-                            code=MetadataErrorCode.REQUIRED.value,
-                        )
-                    }
-                )
+                raise MetadataEmptyKeyError()
 
             self.key = key
             self.value = value
@@ -67,6 +57,13 @@ def store_on_instance(
 def create_from_graphql_input(
     items: list[MetadataInput] | None,
 ) -> MetadataItemCollection:
+    """Use with care.
+
+    This method is eventually returning custom error, so if it's used directly
+    in mutation, error will not be handled.
+
+    Use BaseMutation.create_metadata_from_graphql_input to include error translation.
+    """
     if not items:
         return MetadataItemCollection([])
 

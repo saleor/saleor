@@ -14,7 +14,6 @@ from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.metadata_manager import (
     MetadataType,
-    create_from_graphql_input,
     store_on_instance,
 )
 from ....core.utils.url import prepare_url, validate_storefront_url
@@ -99,7 +98,9 @@ class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
         )
 
         metadata = cleaned_input.pop("metadata", [])
-        metadata_collection = create_from_graphql_input(metadata)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata, error_field_name="metadata"
+        )
         store_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
 
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
@@ -276,8 +277,11 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
             shipping_address_metadata: list[MetadataInput] = shipping_address_data.pop(
                 "metadata", []
             )
-            shipping_address_metadata_collection = create_from_graphql_input(
-                shipping_address_metadata
+            shipping_address_metadata_collection = (
+                cls.create_metadata_from_graphql_input(
+                    shipping_address_metadata,
+                    error_field_name="metadata",
+                )
             )
 
             shipping_address = cls.validate_address(
@@ -299,8 +303,11 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
             billing_address_metadata: list[MetadataInput] = billing_address_data.pop(
                 "metadata", []
             )
-            billing_address_metadata_collection = create_from_graphql_input(
-                billing_address_metadata
+            billing_address_metadata_collection = (
+                cls.create_metadata_from_graphql_input(
+                    billing_address_metadata,
+                    error_field_name="metadata",
+                )
             )
 
             billing_address = cls.validate_address(

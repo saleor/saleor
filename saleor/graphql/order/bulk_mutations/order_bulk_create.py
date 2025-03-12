@@ -22,7 +22,6 @@ from ....channel.models import Channel
 from ....core import JobStatus
 from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.metadata_manager import create_from_graphql_input
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....discount.models import OrderDiscount, VoucherCode
@@ -1021,8 +1020,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         try:
             billing_address = cls.validate_address(billing_address_input, info=info)
@@ -1044,9 +1047,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             metadata_list = shipping_address_input.pop("metadata", None)
             private_metadata_list = shipping_address_input.pop("private_metadata", None)
 
-            metadata_collection = create_from_graphql_input(metadata_list)
-            private_metadata_collection = create_from_graphql_input(
-                private_metadata_list
+            metadata_collection = cls.create_metadata_from_graphql_input(
+                metadata_list, error_field_name="metadata"
+            )
+            private_metadata_collection = cls.create_metadata_from_graphql_input(
+                private_metadata_list,
+                error_field_name="private_metadata",
             )
 
             try:

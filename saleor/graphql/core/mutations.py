@@ -24,6 +24,7 @@ from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
 from ...core.utils.metadata_manager import (
+    MetadataEmptyKeyError,
     MetadataItemCollection,
     MetadataType,
     create_from_graphql_input,
@@ -46,6 +47,7 @@ from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
 from .descriptions import DEPRECATED_IN_3X_FIELD
+from .enums import MetadataErrorCode
 from .types import (
     TYPES_WITH_DOUBLE_ID_AVAILABLE,
     File,
@@ -592,6 +594,29 @@ class BaseMutation(graphene.Mutation):
                 message="You don't have access to some objects' channel."
             )
 
+    @classmethod
+    def create_metadata_from_graphql_input(
+        cls, metadata_list: list[MetadataInput] | None, *, error_field_name: str
+    ) -> MetadataItemCollection:
+        """Wrap the creation of metadata and map the error to graphql error.
+
+        In case of metadata - we need to pass field name, because it can be nested in the other path than "metadata" or "privateMetadata"
+        Error code is hardcoded here - only empty key is validated. If we add more validation rules, this must be refactored
+        To inject / resolve errors matching validator
+
+        """
+        try:
+            return create_from_graphql_input(metadata_list)
+        except MetadataEmptyKeyError:
+            raise ValidationError(
+                {
+                    error_field_name: ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            ) from None
+
 
 def is_list_of_ids(field) -> bool:
     if isinstance(field.type, graphene.List):
@@ -785,8 +810,12 @@ class DeprecatedModelMutation(BaseMutation):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         instance = cls.construct_instance(instance, cleaned_input)
 
@@ -863,8 +892,12 @@ class ModelWithRestrictedChannelAccessMutation(DeprecatedModelMutation):
         )
         instance = cls.construct_instance(instance, cleaned_input)
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection

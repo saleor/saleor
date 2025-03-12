@@ -10,9 +10,6 @@ from .....core.exceptions import PermissionDenied
 from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.events import call_event
-from .....core.utils.metadata_manager import (
-    create_from_graphql_input,
-)
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.fetch import fetch_order_info
@@ -345,9 +342,12 @@ class TransactionEventReport(DeprecatedModelMutation):
             transaction_event, transaction_event_data
         )
 
-        metadata_collection = create_from_graphql_input(transaction_metadata)
-        private_metadata_collection = create_from_graphql_input(
-            transaction_private_metadata
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            transaction_metadata, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            transaction_private_metadata,
+            error_field_name="private_metadata",
         )
 
         cls.validate_and_update_metadata(

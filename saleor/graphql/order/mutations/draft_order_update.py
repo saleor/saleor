@@ -1,9 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.utils.metadata_manager import (
-    create_from_graphql_input,
-)
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
@@ -98,8 +95,12 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         instance = cls.construct_instance(instance, cleaned_input)
 

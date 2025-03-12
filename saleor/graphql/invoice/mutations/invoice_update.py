@@ -2,9 +2,6 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core import JobStatus
-from ....core.utils.metadata_manager import (
-    create_from_graphql_input,
-)
 from ....invoice import models
 from ....invoice.error_codes import InvoiceErrorCode
 from ....order import events as order_events
@@ -87,8 +84,12 @@ class InvoiceUpdate(DeprecatedModelMutation):
             "private_metadata", None
         )
 
-        metadata_collection = create_from_graphql_input(metadata_list)
-        private_metadata_collection = create_from_graphql_input(private_metadata_list)
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection

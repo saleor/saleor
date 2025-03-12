@@ -12,7 +12,6 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
 from ....core.utils.metadata_manager import (
     MetadataType,
-    create_from_graphql_input,
     store_on_instance,
 )
 from ....product import models as product_models
@@ -328,11 +327,11 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             else None
         )
 
-        shipping_address_metadata_collection = create_from_graphql_input(
-            shipping_address_metadata
+        shipping_address_metadata_collection = cls.create_metadata_from_graphql_input(
+            shipping_address_metadata, error_field_name="metadata"
         )
-        billing_address_metadata_collection = create_from_graphql_input(
-            billing_address_metadata
+        billing_address_metadata_collection = cls.create_metadata_from_graphql_input(
+            billing_address_metadata, error_field_name="metadata"
         )
 
         shipping_address = cls.retrieve_shipping_address(user, data, info)
