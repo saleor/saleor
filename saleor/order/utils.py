@@ -192,7 +192,7 @@ def _calculate_quantity_including_returns(order):
     )
 
 
-def update_order_status(order: Order):
+def update_order_status(order: Order, confirm: bool = False):
     """Update order status depending on fulfillments."""
     with transaction.atomic():
         # Add a transaction block to ensure that the order status won't be overridden by
@@ -212,6 +212,7 @@ def update_order_status(order: Order):
             quantity_fulfilled,
             quantity_returned,
             quantity_awaiting_approval,
+            confirm,
         )
 
         # we would like to update the status for the order provided as the argument
@@ -227,10 +228,14 @@ def determine_order_status(
     quantity_fulfilled: int,
     quantity_returned: int,
     quantity_awaiting_approval: int,
+    confirm: bool = False,
 ):
+    # if order is unconfirmed, we don't change the status unless requested
+    if not confirm and order.is_unconfirmed():
+        status = OrderStatus.UNCONFIRMED
     # total_quantity == 0 means that all products have been replaced, we don't change
     # the order status in that case
-    if total_quantity == 0:
+    elif total_quantity == 0:
         status = order.status
     elif quantity_fulfilled - quantity_awaiting_approval <= 0:
         status = OrderStatus.UNFULFILLED
