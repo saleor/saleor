@@ -115,3 +115,17 @@ def test_store_multiple_keys():
 
     # Check if the key with the same value was overwritten
     assert instance.metadata.get(metadata_list[0].key) == overwritten_value
+
+
+def test_throws_for_invalid_metadata_target():
+    class TestInstance(ModelWithMetadata):
+        pass
+
+    with raises(ValueError):
+        store_on_instance(
+            MetadataItemCollection(
+                items=[MetadataItemCollection.MetadataItem(key="a", value="b")]
+            ),
+            TestInstance(),
+            "invalid_target",
+        )

@@ -32,7 +32,7 @@ from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import StorePaymentMethodEnum
 from ...types import Payment
-from ...utils import metadata_contains_empty_key
+from ...utils import deprecated_metadata_contains_empty_key
 
 
 class PaymentInput(BaseInputObjectType):
@@ -178,7 +178,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     # TODO This should be unified with metadata_manager and MetadataItemCollection
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):
-        if metadata_contains_empty_key(metadata_list):
+        if deprecated_metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
                     "input": ValidationError(

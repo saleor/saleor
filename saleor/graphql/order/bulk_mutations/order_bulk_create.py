@@ -65,7 +65,7 @@ from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
 )
-from ...payment.utils import metadata_contains_empty_key
+from ...payment.utils import deprecated_metadata_contains_empty_key
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import (
@@ -921,7 +921,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         path: str,
         field: Any,
     ):
-        if metadata_contains_empty_key(metadata):
+        if deprecated_metadata_contains_empty_key(metadata):
             errors.append(
                 OrderBulkError(
                     message="Metadata key cannot be empty.",
