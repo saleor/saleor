@@ -621,6 +621,14 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     assert data["order"]["shippingMethod"] is None
 
 
+@pytest.mark.parametrize(
+    ("order_status", "expected_webhook"),
+    [
+        (OrderStatus.UNCONFIRMED, WebhookEventAsyncType.ORDER_UPDATED),
+        # TODO This suite fails on sync webhooks, why?
+        (OrderStatus.DRAFT, WebhookEventAsyncType.DRAFT_ORDER_UPDATED),
+    ],
+)
 @patch(
     "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
     wraps=call_order_event,
@@ -634,6 +642,8 @@ def test_order_update_shipping_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
+    order_status,
+    expected_webhook,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -647,12 +657,12 @@ def test_order_update_shipping_triggers_webhooks(
         tax_webhook,
         shipping_filter_webhook,
         order_webhook,
-    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
+    ) = setup_order_webhooks(expected_webhook)
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.base_shipping_price = zero_money(order.currency)
-    order.status = OrderStatus.UNCONFIRMED
+    order.status = order_status
     order.save()
 
     query = ORDER_UPDATE_SHIPPING_QUERY
@@ -669,6 +679,7 @@ def test_order_update_shipping_triggers_webhooks(
 
     # confirm that event delivery was generated for each async webhook.
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={"event_delivery_id": order_delivery.id},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
