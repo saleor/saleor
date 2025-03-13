@@ -1,8 +1,8 @@
-from django.core.exceptions import ValidationError
 from sympy.testing.pytest import raises
 
 from saleor.core.models import ModelWithMetadata
 from saleor.core.utils.metadata_manager import (
+    MetadataEmptyKeyError,
     MetadataItemCollection,
     MetadataType,
     create_from_graphql_input,
@@ -79,5 +79,39 @@ def test_write_on_model_private():
 
 
 def test_throw_on_empty_key():
-    with raises(ValidationError):
+    with raises(MetadataEmptyKeyError):
         create_from_graphql_input(invalid_list)
+
+
+def test_throw_on_empty_key_with_whitespaces():
+    item = MetadataInput()
+    item.key = "  "
+    item.value = "ok"
+
+    with raises(MetadataEmptyKeyError):
+        create_from_graphql_input([item])
+
+
+def test_store_multiple_keys():
+    overwritten_value = "value1-overwrite"
+
+    metadata_list = [
+        MetadataItemCollection.MetadataItem(key="key1", value="value1"),
+        MetadataItemCollection.MetadataItem(key="key2", value="value2"),
+        # Test key with the same value to be overwritten
+        MetadataItemCollection.MetadataItem(key="key1", value=overwritten_value),
+    ]
+
+    class TestInstance(ModelWithMetadata):
+        pass
+
+    instance = TestInstance()
+
+    collection = MetadataItemCollection(items=metadata_list)
+
+    store_on_instance(collection, instance, MetadataType.PUBLIC)
+
+    assert instance.metadata.get(metadata_list[1].key) == metadata_list[1].value
+
+    # Check if the key with the same value was overwritten
+    assert instance.metadata.get(metadata_list[0].key) == overwritten_value

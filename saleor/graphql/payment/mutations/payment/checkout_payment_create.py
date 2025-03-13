@@ -175,6 +175,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 {"redirect_url": e}, code=PaymentErrorCode.INVALID.value
             ) from e
 
+    # TODO This should be unified with metadata_manager and MetadataItemCollection
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):
         if metadata_contains_empty_key(metadata_list):

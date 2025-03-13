@@ -22,7 +22,7 @@ class MetadataItemCollection:
         value: str
 
         def __init__(self, key: str, value: str):
-            if not key:
+            if not key.strip():
                 raise MetadataEmptyKeyError()
 
             self.key = key

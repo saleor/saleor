@@ -441,7 +441,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     if private_metadata_list is not None:
                         private_metadata_collection = (
                             cls.create_metadata_from_graphql_input(
-                                metadata_list, error_field_name="private_metadata"
+                                private_metadata_list,
+                                error_field_name="private_metadata",
                             )
                         )
 
