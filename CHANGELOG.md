@@ -62,6 +62,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Webhooks `CHECKOUT_FILTER_SHIPPING_METHODS` & `ORDER_FILTER_SHIPPING_METHODS` are no longer executed when not needed (no available shipping methods, e.g. due to lack of shipping address) - #17328 by @lkostrowski
 - New feature: sync webhooks circuit breaker - #16658 by @tomaszszymanski129
 - Fixed webhook `PRODUCT_VARIANT_METADATA_UPDATED` not being sent when `productVariantUpdate` mutation was called. Now, when `metadata` or `privateMetadata` is included in `ProductVariantUpdateInput`, both `PRODUCT_VARIANT_METADATA_UPDATED` and `PRODUCT_VARIANT_UPDATED` will be emitted (if subscribed) - #17406 by @lkostrowski
+- Update Draft Order shipping via `orderUpdateShipping` will emit `DRAFT_ORDER_UPDATED` webhook. Previously it was `ORDER_UPDATED` - #17480 by @lkostrowski
 
 ### Other changes
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
