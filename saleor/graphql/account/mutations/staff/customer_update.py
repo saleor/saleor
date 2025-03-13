@@ -17,6 +17,7 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import CustomerInput
 from .customer_create import CustomerCreate
@@ -125,12 +126,21 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         # Clean the input and generate a new instance from the new data
         cleaned_input = cls.clean_input(info, original_instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
         cls.validate_and_update_metadata(
-            new_instance, metadata_list, private_metadata_list
+            new_instance, metadata_collection, private_metadata_collection
         )
 
         # Save the new instance data

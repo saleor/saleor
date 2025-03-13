@@ -416,7 +416,7 @@ def test_customer_create_empty_metadata_key(
     content = get_graphql_content(response)
     errors = content["data"]["customerCreate"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "input"
+    assert errors[0]["field"] == "metadata"
     assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
 
 

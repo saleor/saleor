@@ -23,6 +23,7 @@ from ....core.validators import (
     validate_end_is_after_start,
     validate_one_of_args_is_in_mutation,
 )
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
@@ -279,8 +280,18 @@ class VoucherCreate(DeprecatedModelMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, voucher_instance, data)
 
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
         codes_data = cleaned_input.pop("add_codes", None)
         code = cleaned_input.pop("code", None)
 
@@ -290,7 +301,7 @@ class VoucherCreate(DeprecatedModelMutation):
         )
 
         cls.validate_and_update_metadata(
-            voucher_instance, metadata_list, private_metadata_list
+            voucher_instance, metadata_collection, private_metadata_collection
         )
 
         cls.clean_voucher_instance(info, voucher_instance)

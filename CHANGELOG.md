@@ -54,6 +54,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 - `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
+- Improved error handling when trying to set invalid metadata. Now, invalid metadata should properly return `error.field` containing `metadata` or `privateMetadata`, instead generic `input` - #17470 by @lkostrowski
 
 ### Webhooks
 

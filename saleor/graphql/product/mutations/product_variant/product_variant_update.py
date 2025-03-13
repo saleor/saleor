@@ -16,6 +16,7 @@ from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 from ...utils import get_used_attribute_values_for_variant
@@ -213,12 +214,21 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
         old_instance_data = instance.serialize_for_comparison()  # type: ignore[union-attr]
         cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         new_instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(
-            new_instance, metadata_list, private_metadata_list
+            new_instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, new_instance)
         new_instance_data = new_instance.serialize_for_comparison()

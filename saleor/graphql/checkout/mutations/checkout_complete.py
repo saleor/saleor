@@ -278,7 +278,9 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 info,
                 id or checkout_id or graphene.Node.to_global_id("Checkout", token),
             )
-            cls.validate_metadata_keys(metadata)
+            cls.create_metadata_from_graphql_input(
+                metadata, error_field_name="metadata"
+            )
 
         validate_checkout_email(checkout)
 

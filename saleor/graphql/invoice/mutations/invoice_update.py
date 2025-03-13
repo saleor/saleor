@@ -79,9 +79,21 @@ class InvoiceUpdate(DeprecatedModelMutation):
         instance = cls.get_instance(info, id=id)
         cls.check_channel_permissions(info, [instance.order.channel_id])
         cleaned_input = cls.clean_input(info, instance, input)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         instance.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )

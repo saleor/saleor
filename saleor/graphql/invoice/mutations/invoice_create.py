@@ -98,13 +98,24 @@ class InvoiceCreate(DeprecatedModelMutation):
         cls.clean_order(info, order)
         cleaned_input = cls.clean_input(info, order, input)
 
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         invoice = models.Invoice(**cleaned_input)
         invoice.order = order
         invoice.status = JobStatus.SUCCESS
-        cls.validate_and_update_metadata(invoice, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            invoice, metadata_collection, private_metadata_collection
+        )
         invoice.save()
 
         app = get_app_promise(info.context).get()
