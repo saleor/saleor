@@ -472,7 +472,25 @@ def test_update_order_status_partially_returned(fulfilled_order):
 
 
 def test_update_order_status_waiting_for_approval(fulfilled_order):
-    fulfilled_order.fulfillments.create(status=FulfillmentStatus.WAITING_FOR_APPROVAL)
+    for fulfillment in fulfilled_order.fulfillments.all():
+        fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+        fulfillment.save()
+    fulfilled_order.status = OrderStatus.FULFILLED
+    fulfilled_order.save()
+
+    update_order_status(fulfilled_order)
+
+    assert fulfilled_order.status == OrderStatus.UNFULFILLED
+
+
+def test_update_order_status_partially_waiting_for_approval(fulfilled_order):
+    first_fulfillment = fulfilled_order.fulfillments.first()
+    second_fulfillment = fulfilled_order.fulfillments.create(
+        status=FulfillmentStatus.WAITING_FOR_APPROVAL
+    )
+    first_line = first_fulfillment.lines.first()
+    first_line.fulfillment = second_fulfillment
+    first_line.save()
     fulfilled_order.status = OrderStatus.FULFILLED
     fulfilled_order.save()
 

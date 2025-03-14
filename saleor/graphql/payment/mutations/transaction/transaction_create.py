@@ -321,7 +321,7 @@ class TransactionCreate(BaseMutation):
             order.channel.automatically_confirm_all_new_orders
             and order.status == OrderStatus.UNCONFIRMED
         ):
-            update_order_status(order)
+            update_order_status(order, confirm=True)
 
         if update_search_vector:
             update_order_search_vector(order, save=False)
