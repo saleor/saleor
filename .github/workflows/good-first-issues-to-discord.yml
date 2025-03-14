@@ -21,7 +21,4 @@ jobs:
             - Number: #${{ github.event.issue.number }}
             - URL: ${{ github.event.issue.html_url }}
 
-            **Description:**
-            ${{ github.event.issue.body }}
-
             Please take a look and help if you can! 🙏
