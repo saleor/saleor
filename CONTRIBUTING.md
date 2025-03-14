@@ -7,7 +7,6 @@ We welcome all contributions to Saleor, including issues, new features, docs, di
 ## Table of Contents
 
 - [Issues](#issues)
-- [New features](#new-features)
 - [Running Saleor locally](#running-saleor-locally)
 - [Managing dependencies](#managing-dependencies)
 - [File structure](#file-structure)
@@ -20,12 +19,7 @@ We welcome all contributions to Saleor, including issues, new features, docs, di
 
 ## Issues
 
-Use [Github Issues](https://github.com/saleor/saleor/issues) to report a bug or a problem that you found in Saleor. Use the "Bug report" issue template to provide information that will help us confirm the bug, such as steps to reproduce, expected behavior, Saleor version, and any additional context. When our team confirms a bug, it will be added to the internal backlog and picked up as soon as possible. When willing to fix a bug, let us know in the issue comment, and we will try to assist you on the way.
-
-## New features
-When willing to propose or add a new feature, we encourage you first to open a [discussion](https://github.com/saleor/saleor/discussions) or an [issue](https://github.com/saleor/saleor/issues) (using "Feature request" template) to discuss it with the core team. This process helps us decide if a feature is suitable for Saleor or design it before any implementation starts.
-
-Before merging, any new pull requests submitted to Saleor have to be reviewed and approved by the core team. We review pull requests daily, but if a pull request requires more time or feedback from the team, it will be marked as "queued for review".
+For creating new issues (bug reports or feature requests) in the repository, please follow the general [Contributing Guide](http://docs.saleor.io/developer/community/contributing#contributing-issues).
 
 ## Running Saleor locally
 
@@ -35,7 +29,7 @@ The easiest way of running Saleor for local development is to use [development c
 
 Editor instructions:
 
-- [Visual studio code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container)
+- [Visual Studio Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container)
 
 - [PyCharm](https://www.jetbrains.com/help/pycharm/connect-to-devcontainer.html)
 
@@ -660,7 +654,7 @@ For more information and tips on how to write good commit messages, see the GitH
 
 Remember to add a meaningful title and a good description when you open a pull request.
 Please describe what is changing, the reason for doing that, or what problem it fixes.
-If it resolves a GitHub issue, please link it. Wait for all actions to be performed, and if all is green, request the `saleor/core` group for review.
+All Pull Requests should be linked to their corresponding GitHub issues. 
 
 ## Changelog
 
