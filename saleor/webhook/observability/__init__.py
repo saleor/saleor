@@ -1,7 +1,7 @@
 from .buffers import get_buffer
 from .exceptions import ObservabilityError
 from .payloads import concatenate_json_events, dump_payload
-from .tracing import opentracing_trace
+from .tracing import otel_trace
 from .utils import (
     WebhookData,
     get_buffer_name,
@@ -27,6 +27,6 @@ __all__ = [
     "report_event_delivery_attempt",
     "task_next_retry_date",
     "report_view",
-    "opentracing_trace",
+    "otel_trace",
     "concatenate_json_events",
 ]

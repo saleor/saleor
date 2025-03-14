@@ -11,12 +11,17 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from freezegun import freeze_time
+from opentelemetry import trace as trace_api
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
 from ..core import JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
+from ..core.telemetry import initialize_telemetry
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import PromotionEvents
@@ -92,6 +97,16 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
     else:
         msg += " (add -v option to show queries)"
     pytest.fail(msg)
+
+
+@pytest.fixture(scope="session")
+def in_memory_span_exporter():
+    span_exporter = InMemorySpanExporter()
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(span_exporter))
+    trace_api.set_tracer_provider(provider)
+    initialize_telemetry()
+    return span_exporter
 
 
 @pytest.fixture
