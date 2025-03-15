@@ -107,13 +107,19 @@ DATABASES = {
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
-    DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
-        # TODO: We need to add read only user to saleor platform,
-        # and we need to update docs.
-        # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
-        conn_max_age=DB_CONN_MAX_AGE,
-        test_options={"MIRROR": DATABASE_CONNECTION_DEFAULT_NAME},
+    DATABASE_CONNECTION_REPLICA_NAME: (
+        dj_database_url.config(
+            env="DATABASE_URL_REPLICA",
+            default="postgres://saleor:saleor@localhost:5432/saleor",
+            conn_max_age=DB_CONN_MAX_AGE,
+            test_options={"MIRROR": DATABASE_CONNECTION_DEFAULT_NAME},
+        )
+        if os.environ.get("DATABASE_URL_REPLICA")
+        else dj_database_url.config(
+            default="postgres://saleor:saleor@localhost:5432/saleor",
+            conn_max_age=DB_CONN_MAX_AGE,
+            test_options={"MIRROR": DATABASE_CONNECTION_DEFAULT_NAME},
+        )
     ),
 }
 
