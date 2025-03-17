@@ -76,7 +76,7 @@ class SaleBaseCatalogueMutation(BaseMutation):
             ).values_list("channel_id", flat=True)
             cls.call_event(
                 mark_products_in_channels_as_dirty,
-                {channel_id: product_ids for channel_id in channel_ids},
+                dict.fromkeys(channel_ids, product_ids),
             )
 
     @classmethod
