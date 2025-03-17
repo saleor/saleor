@@ -1,7 +1,6 @@
 name: Feature request
 description: Suggest an idea for this project
 labels: ["Feature request", "triage"]
-assignees: []
 
 body:
   - type: textarea
