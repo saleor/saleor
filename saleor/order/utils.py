@@ -212,12 +212,10 @@ def update_order_status(order: Order, update_unconfirmed: bool = False):
             return
 
         status = determine_order_status(
-            order,
             total_quantity,
             quantity_fulfilled,
             quantity_returned,
             quantity_awaiting_approval,
-            update_unconfirmed,
         )
 
         # we would like to update the status for the order provided as the argument
@@ -228,21 +226,12 @@ def update_order_status(order: Order, update_unconfirmed: bool = False):
 
 
 def determine_order_status(
-    order: Order,
     total_quantity: int,
     quantity_fulfilled: int,
     quantity_returned: int,
     quantity_awaiting_approval: int,
-    confirm: bool = False,
 ):
-    # if order is unconfirmed, we don't change the status unless requested
-    if not confirm and order.is_unconfirmed():
-        status = OrderStatus.UNCONFIRMED
-    # total_quantity == 0 means that all products have been replaced, we don't change
-    # the order status in that case
-    elif total_quantity == 0:
-        status = order.status
-    elif quantity_fulfilled - quantity_awaiting_approval <= 0:
+    if quantity_fulfilled - quantity_awaiting_approval <= 0:
         status = OrderStatus.UNFULFILLED
     elif 0 < quantity_returned < total_quantity:
         status = OrderStatus.PARTIALLY_RETURNED
