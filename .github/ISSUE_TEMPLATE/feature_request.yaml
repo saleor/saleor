@@ -14,8 +14,9 @@ body:
   - type: input
     id: discord-discussion
     attributes:
-      label: Discord Discussion
-      description: Each feature request must be discussed in the [Discord](https://saleor.io/discord) "#ideas" channel. Read more about the process in the [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing#contributing-issues).
+      label: Discord Discussion Link
+      description: Link to a corresponding thread in the [Discord](https://saleor.io/discord)'s "#ideas" channel. Read more about the process in the [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing#contributing-issues).
+    placeholder: https://discord.com/channels/8640668198...
     validations:
       required: true
 
