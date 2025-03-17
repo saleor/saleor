@@ -31,6 +31,8 @@
    <a href="https://saleor.io/blog">Blog</a>
   <span> | </span>
   <a href="https://saleor.typeform.com/to/JTJK0Nou">Subscribe to newsletter</a>
+  <span> | </span>
+  <a href="http://docs.saleor.io/developer/community/contributing">Contributing</a>
 </div>
 
 <br>
@@ -177,7 +179,7 @@ For the dashboard, go to the [saleor-dashboard](https://github.com/saleor/saleor
 
 We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Good first issue`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22+) and [`Help wanted`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-If nothing grabs your attention, check [our roadmap](https://saleor.io/roadmap) or [start a Discord discussion](https://saleor.io/discord) about a feature you'd like to see. Make sure to read our [Contribution Guidelines](./CONTRIBUTING.md) before opening a PR or issue.
+If nothing grabs your attention, check [our roadmap](https://saleor.io/roadmap) or [start a Discord discussion](https://saleor.io/discord) about a feature you'd like to see. Make sure to read our [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing) before opening a PR or issue.
 
 Get more details (e.g., how to run Saleor on your local machine) in our [Contributing Guide](./CONTRIBUTING.md).
 
