@@ -2,11 +2,12 @@
 title: Contributing
 ---
 
-We welcome all contributions to Saleor, including issues, new features, docs, discussions, and more. Read the following document to learn more about the process of contributing.
+> [!IMPORTANT]
+> We welcome all contributions to Saleor, including issues, new features, docs, community support, and more.
+> Our contribution process is described in the [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing).
 
 ## Table of Contents
 
-- [Issues](#issues)
 - [Running Saleor locally](#running-saleor-locally)
 - [Managing dependencies](#managing-dependencies)
 - [File structure](#file-structure)
@@ -16,10 +17,6 @@ We welcome all contributions to Saleor, including issues, new features, docs, di
 - [Git commit messages](#git-commit-messages)
 - [Pull requests](#pull-requests)
 - [Changelog](#changelog)
-
-## Issues
-
-For creating new issues (bug reports or feature requests) in the repository, please follow the general [Contributing Guide](http://docs.saleor.io/developer/community/contributing#contributing-issues).
 
 ## Running Saleor locally
 
@@ -34,7 +31,6 @@ Editor instructions:
 - [PyCharm](https://www.jetbrains.com/help/pycharm/connect-to-devcontainer.html)
 
 - [Codespaces](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers)
-
 
 Development container only creates container, you still need to start the server. See [common-commands](#common-commands) section to learn more.
 
@@ -171,8 +167,6 @@ We recommend using at least version `2.0.1` as it contains many fixes and featur
 
 > [!TIP]
 > We recommend using this workflow and keeping `pyproject.toml` and `poetry.lock` under version control to ensure that all computers and environments run the same code.
-
-
 
 ## File structure
 
@@ -329,7 +323,6 @@ in every file.
 We recommend using `given`, `when`, `then` to distinguish between different test parts.
 It significantly improves test readability and clarifies what you are testing.
 
-
 ## Coding style
 
 Saleor uses various tools to maintain a common coding style and help with development.
@@ -423,7 +416,6 @@ You can find it in this PR [#9344](https://github.com/saleor/saleor/pull/9344).
 > The search vector update task is triggered by [celery beat scheduler](https://docs.saleor.io/developer/running-saleor/task-queue#periodic-tasks).
 > This feature will not work without task queue configuration.
 
-
 ### API
 
 - Use `id` for mutation inputs instead of `model_name_id`.
@@ -516,6 +508,7 @@ class AppSortingInput(SortInputObjectType):
 > [!TIP]
 > Sometimes you would like to sort the data by some field that should be calculated, which isn't the model field. There is an option for that; you need to create a method whose name starts with `qs_with` followed by a sort field name in lowercase.
 > The method should annotate the queryset to contain the new value. Look at the example:
+>
 > ```python
 > class CollectionSortField(graphene.Enum):
 >     NAME = ["name", "slug"]
@@ -533,7 +526,6 @@ class AppSortingInput(SortInputObjectType):
 >         return queryset.annotate(product_count=Count("collectionproduct__id"))
 >
 > ```
-
 
 A similar behavior can be found in filtering: you need to create `FilterInputObjectType`
 and Django `FilterSet` in a dedicated `filters.py` file.
@@ -649,12 +641,11 @@ To speed up the review process and to keep the logs tidy, we recommend the follo
 
 For more information and tips on how to write good commit messages, see the GitHub [guide](https://github.com/erlang/otp/wiki/writing-good-commit-messages).
 
-
 ## Pull requests
 
 Remember to add a meaningful title and a good description when you open a pull request.
 Please describe what is changing, the reason for doing that, or what problem it fixes.
-All Pull Requests should be linked to their corresponding GitHub issues. 
+All Pull Requests should be linked to their corresponding GitHub issues.
 
 ## Changelog
 
