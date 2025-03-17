@@ -2,8 +2,7 @@
 title: Contributing
 ---
 
-> [!IMPORTANT]
-> We welcome contributions that adhere to the process described in our [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing). This includes issues, new features, documentation improvements, community support, and more.
+> We value your contributions to Saleor and want to ensure they meet our project's needs. To help us maintain quality and consistency, we ask that you follow the process described in our [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing). We welcome issues, new features, documentation improvements, community support, and more.
 
 ## Table of Contents
 
