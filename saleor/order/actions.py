@@ -18,7 +18,7 @@ from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.events import (
     call_event,
     call_event_including_protected_events,
-    webhook_async_event_requires_sync_webhooks_to_trigger,
+    validate_async_event,
 )
 from ..giftcard import GiftCardLineData
 from ..order.utils import order_lines_qs_select_for_update
@@ -206,29 +206,12 @@ def call_order_events(
             [*event_names, *WebhookEventSyncType.ORDER_EVENTS]
         )
 
-    any_event_requires_sync_webhooks = any(
-        webhook_async_event_requires_sync_webhooks_to_trigger(
+    for event_name in event_names:
+        validate_async_event(
             event_name,
             webhook_event_map,
             possible_sync_events=WebhookEventSyncType.ORDER_EVENTS,
         )
-        for event_name in event_names
-    )
-
-    should_trigger_sync = (
-        any_event_requires_sync_webhooks
-        and order.status in ORDER_EDITABLE_STATUS
-        and WebhookEventAsyncType.DRAFT_ORDER_DELETED not in event_names
-    )
-    if should_trigger_sync:
-        _trigger_order_sync_webhooks(
-            manager,
-            order,
-            database_connection_name=database_connection_name,
-            webhook_event_map=webhook_event_map,
-        )
-
-    for event_name in event_names:
         plugin_manager_method_name = ORDER_WEBHOOK_EVENT_MAP[event_name]
         webhooks = webhook_event_map.get(event_name, set())
         event_func = getattr(manager, plugin_manager_method_name)
@@ -262,21 +245,12 @@ def call_order_event(
         call_event_including_protected_events(event_func, order, webhooks=webhooks)
         return
 
-    if not webhook_async_event_requires_sync_webhooks_to_trigger(
-        event_name, webhook_event_map, WebhookEventSyncType.ORDER_EVENTS
-    ):
-        call_event_including_protected_events(event_func, order, webhooks=webhooks)
-        return
-
-    _trigger_order_sync_webhooks(
-        manager,
-        order,
-        database_connection_name=database_connection_name,
-        webhook_event_map=webhook_event_map,
+    validate_async_event(
+        event_name,
+        webhook_event_map,
+        possible_sync_events=WebhookEventSyncType.ORDER_EVENTS,
     )
-
     call_event_including_protected_events(event_func, order, webhooks=webhooks)
-    return
 
 
 def order_created(
