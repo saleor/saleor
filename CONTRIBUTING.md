@@ -173,7 +173,7 @@ To guarantee repeatable installations, all project dependencies are managed usin
 Running `poetry lock` generates `poetry.lock` which has all versions pinned.
 
 You can install Poetry by following the official installation [guide](https://python-poetry.org/docs/#installation).
-We recommend using at least version `2.0.1` as it contains many fixes and features that Saleor relies on.
+We recommend using at least version `2.1.1` as it contains many fixes and features that Saleor relies on.
 
 > [!TIP]
 > We recommend using this workflow and keeping `pyproject.toml` and `poetry.lock` under version control to ensure that all computers and environments run the same code.
