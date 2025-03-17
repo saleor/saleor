@@ -3,8 +3,7 @@ title: Contributing
 ---
 
 > [!IMPORTANT]
-> We welcome all contributions to Saleor, including issues, new features, docs, community support, and more.
-> Our contribution process is described in the [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing).
+> We welcome contributions that adhere to the process described in our [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing). This includes issues, new features, documentation improvements, community support, and more.
 
 ## Table of Contents
 
@@ -58,7 +57,7 @@ cd .devcontainer
 docker compose up db dashboard redis mailpit
 ```
 
-If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
+If you didn't set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
 
 ```shell
 pyenv local 3.12
@@ -159,7 +158,7 @@ poe shell
 
 ### Poetry
 
-To guarantee repeatable installations, all project dependencies are managed using [Poetry](https://python-poetry.org). The project’s direct dependencies are listed in `pyproject.toml`.
+To guarantee repeatable installations, all project dependencies are managed using [Poetry](https://python-poetry.org). The project's direct dependencies are listed in `pyproject.toml`.
 Running `poetry lock` generates `poetry.lock` which has all versions pinned.
 
 You can install Poetry by following the official installation [guide](https://python-poetry.org/docs/#installation).
@@ -357,7 +356,7 @@ Use [ruff](https://github.com/astral-sh/ruff) to check and format your code.
 
 [EditorConfig](http://editorconfig.org/) is a standard configuration file that aims to ensure consistent style across multiple programming environments.
 
-Saleor’s repository contains [an `.editorconfig` file](.editorconfig) describing our formatting requirements.
+Saleor's repository contains [an `.editorconfig` file](.editorconfig) describing our formatting requirements.
 
 Most editors and IDEs support this file either directly or via plugins. See the [list of supported editors and IDEs](http://editorconfig.org/#download) for detailed instructions.
 
@@ -663,7 +662,7 @@ The changelog entry should consist of the name of the PR, the PR number, and the
 Here is a complete list of changes that we consider breaking:
 
 - deleting a field from the GraphQL schema / renaming the field name
-- deleting the field from the webhook payload / changing the name of the returned field
+- deleting the field from the webhook payload / changing the name of the returned field
 - changing signatures of plugins functions (PluginsManager) - breaking only for existing plugins
 - adding new validation in a mutation logic - it may break storefronts and apps
 - changing of the API behavior even if the schema doesn't change - e.g., the type of field hasn't changed, but the requirements for value has
