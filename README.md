@@ -31,8 +31,6 @@
    <a href="https://saleor.io/blog">Blog</a>
   <span> | </span>
   <a href="https://saleor.typeform.com/to/JTJK0Nou">Subscribe to newsletter</a>
-  <span> | </span>
-  <a href="http://docs.saleor.io/developer/community/contributing">Contributing</a>
 </div>
 
 <br>
