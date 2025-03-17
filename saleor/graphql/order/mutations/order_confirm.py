@@ -73,7 +73,7 @@ class OrderConfirm(DeprecatedModelMutation):
         user = cast(User, user)
         order = cls.get_instance(info, **data)
         cls.check_channel_permissions(info, [order.channel_id])
-        update_order_status(order, confirm=True)
+        update_order_status(order, update_unconfirmed=True)
         update_order_display_gross_prices(order)
         order.save(update_fields=["updated_at", "display_gross_prices"])
         order_info = fetch_order_info(order)

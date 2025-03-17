@@ -192,7 +192,7 @@ def _calculate_quantity_including_returns(order):
     )
 
 
-def update_order_status(order: Order, confirm: bool = False):
+def update_order_status(order: Order, update_unconfirmed: bool = False):
     """Update order status depending on fulfillments."""
     with transaction.atomic():
         # Add a transaction block to ensure that the order status won't be overridden by
@@ -206,13 +206,18 @@ def update_order_status(order: Order, confirm: bool = False):
             quantity_awaiting_approval,
         ) = _calculate_quantity_including_returns(locked_order)
 
+        all_products_replaced = total_quantity == 0
+        skip_update_for_unconfirmed = not update_unconfirmed and order.is_unconfirmed()
+        if skip_update_for_unconfirmed or all_products_replaced:
+            return
+
         status = determine_order_status(
             order,
             total_quantity,
             quantity_fulfilled,
             quantity_returned,
             quantity_awaiting_approval,
-            confirm,
+            update_unconfirmed,
         )
 
         # we would like to update the status for the order provided as the argument
