@@ -162,7 +162,7 @@ jobs:
       - name: Run Linters and Checks
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pre-commit run --all
+          pre-commit run --all --show-diff-on-failure
         if: ${{ always() }}
 
       - uses: actions/cache@v4
