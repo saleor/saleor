@@ -11,7 +11,7 @@ body:
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: discord-discussion
     attributes:
       label: Discord Discussion
