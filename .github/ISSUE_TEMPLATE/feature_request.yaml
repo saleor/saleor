@@ -1,7 +1,7 @@
 name: Feature request
 description: Suggest an idea for this project
 title: ""
-labels: ["Feature request"]
+labels: ["Feature request", "triage"]
 assignees: []
 
 body:
@@ -10,6 +10,14 @@ body:
     attributes:
       label: Problem
       description: Describe what you are trying to achieve. You can include proposed solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: discord-discussion
+    attributes:
+      label: Discord Discussion
+      description: Each feature request must be discussed in the [Discord](https://saleor.io/discord) "#ideas" channel. Read more about the process in the [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing#contributing-issues).
     validations:
       required: true
 
@@ -36,7 +44,7 @@ body:
     attributes:
       label: API Changes
       description: |
-        Describe the GraphQL API changes needed for this feature.
+        Propose the GraphQL API changes needed for this feature.
 
         Include:
         - New mutations
@@ -57,7 +65,7 @@ body:
         }
         ```
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: database-changes
@@ -65,7 +73,7 @@ body:
       label: Database Changes
       description: Describe any new models or changes to existing models that will be needed.
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: uml-diagrams
@@ -92,7 +100,7 @@ body:
         - [ ] Task 1
         - [ ] Task 2
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: testing
@@ -108,4 +116,4 @@ body:
         - [ ] Test case 1
         - [ ] Test case 2
     validations:
-      required: true
+      required: false
