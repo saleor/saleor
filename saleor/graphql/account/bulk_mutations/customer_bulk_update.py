@@ -470,9 +470,6 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             old_instances.append(customer_data["old_instance"])
 
             if shipping_address := customer_data[SHIPPING_ADDRESS_FIELD]:
-                shipping_address = manager.change_user_address(
-                    shipping_address, "shipping", customer, save=False
-                )
                 if customer.default_shipping_address:
                     addresses_to_update.append(shipping_address)
                 else:
@@ -483,10 +480,6 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     )
 
             if billing_address := customer_data[BILLING_ADDRESS_FIELD]:
-                billing_address = manager.change_user_address(
-                    billing_address, "billing", customer, save=False
-                )
-
                 if customer.default_billing_address:
                     addresses_to_update.append(billing_address)
                 else:
