@@ -178,7 +178,7 @@ class PromotionRuleUpdate(DeprecatedModelMutation):
             if product_ids:
                 cls.call_event(
                     mark_products_in_channels_as_dirty,
-                    {channel_id: product_ids for channel_id in channel_ids_to_update},
+                    dict.fromkeys(channel_ids_to_update, product_ids),
                 )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()

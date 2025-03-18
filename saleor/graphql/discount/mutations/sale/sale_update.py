@@ -200,7 +200,7 @@ class SaleUpdate(DeprecatedModelMutation):
                 product_ids_to_update = product_ids | previous_product_ids
                 cls.call_event(
                     mark_products_in_channels_as_dirty,
-                    {channel_id: product_ids_to_update for channel_id in channel_ids},
+                    dict.fromkeys(channel_ids, product_ids_to_update),
                 )
 
     @classmethod

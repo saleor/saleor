@@ -20,7 +20,7 @@ RUN apt-get update \
 RUN pipx ensurepath
 
 WORKDIR /app
-RUN pipx install poetry==2.0.1
+RUN pipx install poetry==2.1.1
 RUN poetry config virtualenvs.create false
 COPY poetry.lock pyproject.toml /app/
 RUN poetry sync
