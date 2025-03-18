@@ -214,12 +214,16 @@ def get_variant_rule_info_map(
     return variant_id_to_variant_and_rules_info_map
 
 
-def save_addresses(instance: models.Order, cleaned_input: dict):
+def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
+    update_fields = []
     shipping_address = cleaned_input.get("shipping_address")
     if shipping_address:
         shipping_address.save()
         instance.shipping_address = shipping_address.get_copy()
+        update_fields.append("shipping_address")
     billing_address = cleaned_input.get("billing_address")
     if billing_address:
         billing_address.save()
         instance.billing_address = billing_address.get_copy()
+    update_fields.append("billing_address")
+    return update_fields

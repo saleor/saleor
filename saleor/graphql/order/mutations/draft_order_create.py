@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import Optional
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -8,13 +7,8 @@ from ....account.models import User
 from ....checkout import AddressType
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.url import validate_storefront_url
-from ....discount.models import Voucher, VoucherCode
 from ....discount.utils.voucher import (
-    get_active_voucher_code,
-    get_voucher_code_instance,
     increase_voucher_usage,
-    release_voucher_code_usage,
 )
 from ....order import OrderOrigin, OrderStatus, events, models
 from ....order.actions import call_order_event
@@ -33,7 +27,6 @@ from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
-from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_36,
@@ -57,6 +50,7 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
+from .draft_order_cleaner import DraftOrderCleaner
 from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
@@ -195,8 +189,6 @@ class DraftOrderCreate(
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
-        channel_id = data.pop("channel_id", None)
-        manager = get_plugin_manager_promise(info.context).get()
         shipping_method_input = {}
         if "shipping_method" in data:
             shipping_method_input["shipping_method"] = get_shipping_model_by_object_id(
@@ -213,15 +205,13 @@ class DraftOrderCreate(
 
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         cleaned_input.update(shipping_method_input)
-        channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
-        voucher = cleaned_input.get("voucher", None)
-        voucher_code = cleaned_input.get("voucher_code", None)
-        cls.clean_voucher_and_voucher_code(voucher, voucher_code)
-        if "voucher" in cleaned_input:
-            cls.clean_voucher(voucher, channel, cleaned_input)
-        elif "voucher_code" in cleaned_input:
-            cls.clean_voucher_code(voucher_code, channel, cleaned_input)
+        # channel ID is required for draft order creation
+        # if not provided get_instance_channel_id will raise a validation error
+        channel = cleaned_input.pop("channel_id")
+        cleaned_input["channel"] = channel
+
+        DraftOrderCleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
 
         if channel:
             cleaned_input["currency"] = channel.currency_code
@@ -232,138 +222,38 @@ class DraftOrderCreate(
         cleaned_input["origin"] = OrderOrigin.DRAFT
 
         cls.clean_addresses(
-            info, instance, cleaned_input, shipping_address, billing_address, manager
+            info, instance, cleaned_input, shipping_address, billing_address
         )
 
-        if redirect_url:
-            cls.clean_redirect_url(redirect_url)
-            cleaned_input["redirect_url"] = redirect_url
+        DraftOrderCleaner.clean_redirect_url(redirect_url, cleaned_input)
 
         return cleaned_input
 
     @classmethod
-    def clean_channel_id(cls, info: ResolveInfo, instance, cleaned_input, channel_id):
-        if channel_id:
-            if hasattr(instance, "channel"):
-                raise ValidationError(
-                    {
-                        "channel_id": ValidationError(
-                            "Can't update existing order channel id.",
-                            code=OrderErrorCode.NOT_EDITABLE.value,
-                        )
-                    }
-                )
-            else:
-                channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
-                cleaned_input["channel"] = channel
-                return channel
-
-        else:
-            return instance.channel if hasattr(instance, "channel") else None
-
-    @classmethod
-    def clean_voucher_and_voucher_code(cls, voucher, voucher_code):
-        if voucher and voucher_code:
-            raise ValidationError(
-                {
-                    "voucher": ValidationError(
-                        "You cannot use both a voucher and a voucher code for the same "
-                        "order. Please choose one.",
-                        code=OrderErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def clean_voucher(cls, voucher, channel, cleaned_input):
-        # We need to clean voucher_code as well
-        if voucher is None:
-            cleaned_input["voucher_code"] = None
-            return
-
-        if isinstance(voucher, VoucherCode):
-            raise ValidationError(
-                {
-                    "voucher": ValidationError(
-                        "You cannot use voucherCode in the voucher input. "
-                        "Please use voucherCode input instead with a valid voucher code.",
-                        code=OrderErrorCode.INVALID_VOUCHER.value,
-                    )
-                }
-            )
-
-        code_instance = None
-        if channel.include_draft_order_in_voucher_usage:
-            # Validate voucher when it's included in voucher usage calculation
-            try:
-                code_instance = get_active_voucher_code(voucher, channel.slug)
-            except ValidationError:
-                raise ValidationError(
-                    {
-                        "voucher": ValidationError(
-                            "Voucher is invalid.",
-                            code=OrderErrorCode.INVALID_VOUCHER.value,
-                        )
-                    }
-                )
-        else:
-            cls.clean_voucher_listing(voucher, channel, "voucher")
-        if not code_instance:
-            code_instance = voucher.codes.first()
-        if code_instance:
-            cleaned_input["voucher_code"] = code_instance.code
-            cleaned_input["voucher_code_instance"] = code_instance
-
-    @classmethod
-    def clean_voucher_code(
-        cls, voucher_code: Optional[str], channel: Channel, cleaned_input: dict
+    def clean_addresses(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        shipping_address,
+        billing_address,
     ):
-        # We need to clean voucher instance as well
-        if voucher_code is None:
-            cleaned_input["voucher"] = None
-            return
-        if channel.include_draft_order_in_voucher_usage:
-            # Validate voucher when it's included in voucher usage calculation
-            try:
-                code_instance = get_voucher_code_instance(voucher_code, channel.slug)
-            except ValidationError:
-                raise ValidationError(
-                    {
-                        "voucher_code": ValidationError(
-                            "Voucher code is invalid.",
-                            code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
-                        )
-                    }
-                )
-            voucher = code_instance.voucher
-        else:
-            code_instance = VoucherCode.objects.filter(code=voucher_code).first()
-            if not code_instance:
-                raise ValidationError(
-                    {
-                        "voucher": ValidationError(
-                            "Invalid voucher code.",
-                            code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
-                        )
-                    }
-                )
-            voucher = code_instance.voucher
-            cls.clean_voucher_listing(voucher, channel, "voucher_code")
-        cleaned_input["voucher"] = voucher
-        cleaned_input["voucher_code"] = voucher_code
-        cleaned_input["voucher_code_instance"] = code_instance
-
-    @classmethod
-    def clean_voucher_listing(cls, voucher: "Voucher", channel: "Channel", field: str):
-        if not voucher.channel_listings.filter(channel=channel).exists():
-            raise ValidationError(
-                {
-                    field: ValidationError(
-                        "Voucher not available for this order.",
-                        code=OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
-                    )
-                }
+        if shipping_address:
+            shipping_address = cls.validate_address(
+                shipping_address,
+                address_type=AddressType.SHIPPING,
+                instance=instance.shipping_address,
+                info=info,
             )
+            cleaned_input["shipping_address"] = shipping_address
+        if billing_address:
+            billing_address = cls.validate_address(
+                billing_address,
+                address_type=AddressType.BILLING,
+                instance=instance.billing_address,
+                info=info,
+            )
+            cleaned_input["billing_address"] = billing_address
 
     @classmethod
     def clean_lines(cls, cleaned_input, lines, channel):
@@ -416,47 +306,6 @@ class DraftOrderCreate(
 
         grouped_lines_data += list(lines_data_map.values())
         cleaned_input["lines_data"] = grouped_lines_data
-
-    @classmethod
-    def clean_addresses(
-        cls,
-        info: ResolveInfo,
-        instance,
-        cleaned_input,
-        shipping_address,
-        billing_address,
-        manager,
-    ):
-        if shipping_address:
-            shipping_address = cls.validate_address(
-                shipping_address,
-                address_type=AddressType.SHIPPING,
-                instance=instance.shipping_address,
-                info=info,
-            )
-            shipping_address = manager.change_user_address(
-                shipping_address, "shipping", user=instance
-            )
-            cleaned_input["shipping_address"] = shipping_address
-        if billing_address:
-            billing_address = cls.validate_address(
-                billing_address,
-                address_type=AddressType.BILLING,
-                instance=instance.billing_address,
-                info=info,
-            )
-            billing_address = manager.change_user_address(
-                billing_address, "billing", user=instance
-            )
-            cleaned_input["billing_address"] = billing_address
-
-    @classmethod
-    def clean_redirect_url(cls, redirect_url):
-        try:
-            validate_storefront_url(redirect_url)
-        except ValidationError as error:
-            error.code = OrderErrorCode.INVALID.value
-            raise ValidationError({"redirect_url": error})
 
     @staticmethod
     def _save_addresses(instance: models.Order, cleaned_input):
@@ -575,9 +424,6 @@ class DraftOrderCreate(
                 cls.handle_order_voucher(
                     cleaned_input,
                     instance,
-                    is_new_instance,
-                    old_voucher,
-                    old_voucher_code,
                 )
 
             # Save any changes create/update the draft
@@ -601,23 +447,14 @@ class DraftOrderCreate(
             update_order_search_vector(instance, save=False)
 
             instance.save(update_fields=updated_fields)
-            if is_new_instance:
-                call_order_event(
-                    manager,
-                    WebhookEventAsyncType.DRAFT_ORDER_CREATED,
-                    instance,
-                )
-            else:
-                call_order_event(
-                    manager,
-                    WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
-                    instance,
-                )
+            call_order_event(
+                manager,
+                WebhookEventAsyncType.DRAFT_ORDER_CREATED,
+                instance,
+            )
 
     @classmethod
-    def handle_order_voucher(
-        cls, cleaned_input, instance, is_new_instance, old_voucher, old_voucher_code
-    ):
+    def handle_order_voucher(cls, cleaned_input, instance):
         user_email = instance.user_email or instance.user and instance.user.email
         channel = instance.channel
         if not channel.include_draft_order_in_voucher_usage:
@@ -631,7 +468,3 @@ class DraftOrderCreate(
                 user_email,
                 increase_voucher_customer_usage=False,
             )
-        elif not is_new_instance and old_voucher:
-            # handle removing voucher
-            voucher_code = VoucherCode.objects.filter(code=old_voucher_code).first()
-            release_voucher_code_usage(voucher_code, old_voucher, user_email)
