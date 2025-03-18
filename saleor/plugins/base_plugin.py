@@ -521,10 +521,6 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     channel_metadata_updated: Callable[["Channel", None], None]
 
-    change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
-    ]
-
     # Retrieves the balance remaining on a shopper's gift card
     check_payment_balance: Callable[[dict, str], dict]
 

@@ -434,9 +434,6 @@ class DraftOrderCreate(
                 instance=instance.shipping_address,
                 info=info,
             )
-            shipping_address = manager.change_user_address(
-                shipping_address, "shipping", user=instance
-            )
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
@@ -444,9 +441,6 @@ class DraftOrderCreate(
                 address_type=AddressType.BILLING,
                 instance=instance.billing_address,
                 info=info,
-            )
-            billing_address = manager.change_user_address(
-                billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
 
