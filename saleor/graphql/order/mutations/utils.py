@@ -18,6 +18,7 @@ from ....plugins.manager import PluginsManager
 from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethodChannelListing
+from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
@@ -58,9 +59,6 @@ class EditableOrderValidationMixin:
 
 
 class ShippingMethodUpdateMixin:
-    class Meta:
-        abstract = True
-
     @classmethod
     def clear_shipping_method_from_order(cls, order):
         order.shipping_method = None
@@ -76,7 +74,7 @@ class ShippingMethodUpdateMixin:
         invalidate_order_prices(order)
 
     @classmethod
-    def update_shipping_method(cls, order, method, shipping_method_data):
+    def _update_shipping_method(cls, order, method, shipping_method_data):
         order.shipping_method = method
         order.shipping_method_name = method.name
 
@@ -89,7 +87,7 @@ class ShippingMethodUpdateMixin:
         invalidate_order_prices(order)
 
     @classmethod
-    def validate_shipping_channel_listing(cls, method, order):
+    def _validate_shipping_channel_listing(cls, method, order):
         shipping_channel_listing = ShippingMethodChannelListing.objects.filter(
             shipping_method=method, channel=order.channel
         ).first()
@@ -125,6 +123,19 @@ class ShippingMethodUpdateMixin:
         else:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
+
+    @classmethod
+    def process_shipping_method(cls, order, method, manager):
+        shipping_channel_listing = cls._validate_shipping_channel_listing(method, order)
+        shipping_method_data = convert_to_shipping_method_data(
+            method,
+            shipping_channel_listing,
+        )
+        if order.status != OrderStatus.DRAFT:
+            clean_order_update_shipping(order, shipping_method_data, manager)
+
+        cls._update_shipping_method(order, method, shipping_method_data)
+        cls._update_shipping_price(order, shipping_channel_listing)
 
 
 def clean_order_update_shipping(

@@ -18,7 +18,6 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -46,7 +45,6 @@ from .utils import (
 class DraftOrderUpdate(
     AddressMetadataMixin,
     ModelWithRestrictedChannelAccessMutation,
-    ShippingMethodUpdateMixin,
     ModelWithExtRefMutation,
     I18nMixin,
 ):
@@ -191,7 +189,6 @@ class DraftOrderUpdate(
         updated_fields = changed_fields
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
-            shipping_channel_listing = None
             # Process addresses
             address_fields = save_addresses(instance, cleaned_input)
             updated_fields.extend(address_fields)
@@ -199,17 +196,11 @@ class DraftOrderUpdate(
             if "shipping_method" in cleaned_input:
                 method = cleaned_input["shipping_method"]
                 if method is None:
-                    cls.clear_shipping_method_from_order(instance)
+                    ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
                 else:
-                    shipping_channel_listing = cls.validate_shipping_channel_listing(
-                        method, instance
+                    ShippingMethodUpdateMixin.process_shipping_method(
+                        instance, method, manager
                     )
-                    shipping_method_data = convert_to_shipping_method_data(
-                        method,
-                        shipping_channel_listing,
-                    )
-                    cls.update_shipping_method(instance, method, shipping_method_data)
-                    cls._update_shipping_price(instance, shipping_channel_listing)
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:

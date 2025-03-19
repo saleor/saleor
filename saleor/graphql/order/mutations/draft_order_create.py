@@ -21,7 +21,6 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -148,7 +147,6 @@ class DraftOrderCreateInput(DraftOrderInput):
 class DraftOrderCreate(
     AddressMetadataMixin,
     ModelWithRestrictedChannelAccessMutation,
-    ShippingMethodUpdateMixin,
     I18nMixin,
 ):
     class Arguments:
@@ -334,7 +332,6 @@ class DraftOrderCreate(
         app = get_app_promise(info.context).get()
 
         with traced_atomic_transaction():
-            shipping_channel_listing = None
             # Process addresses
             save_addresses(instance, cleaned_input)
 
@@ -352,17 +349,11 @@ class DraftOrderCreate(
             if "shipping_method" in cleaned_input:
                 method = cleaned_input["shipping_method"]
                 if method is None:
-                    cls.clear_shipping_method_from_order(instance)
+                    ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
                 else:
-                    shipping_channel_listing = cls.validate_shipping_channel_listing(
-                        method, instance
+                    ShippingMethodUpdateMixin.process_shipping_method(
+                        instance, method, manager
                     )
-                    shipping_method_data = convert_to_shipping_method_data(
-                        method,
-                        shipping_channel_listing,
-                    )
-                    cls.update_shipping_method(instance, method, shipping_method_data)
-                    cls._update_shipping_price(instance, shipping_channel_listing)
 
             if instance.undiscounted_base_shipping_price_amount is None:
                 instance.undiscounted_base_shipping_price_amount = (
