@@ -11,6 +11,7 @@ from ....graphql.tests.utils import get_graphql_content
 from ...email_common import (
     DEFAULT_EMAIL_CONFIG_STRUCTURE,
     DEFAULT_EMAIL_VALUE,
+    EmailConfig,
     get_email_template,
 )
 from ...manager import get_plugins_manager
@@ -323,4 +324,61 @@ def test_plugin_dont_change_default_help_text_config_value():
     assert (
         AdminEmailPlugin.CONFIG_STRUCTURE["use_ssl"]["help_text"]
         != DEFAULT_EMAIL_CONFIG_STRUCTURE["use_ssl"]["help_text"]
+    )
+
+
+def test_default_plugin_configuration(
+    default_admin_email_plugin,
+):
+    default_email_from = "default@email.from"
+    plugin = default_admin_email_plugin(
+        default_email_from,
+        email_url="smtp://some-user:secret-password@smtp.sendgrid.net:587/?tls=True",
+    )
+    assert plugin.active
+    assert plugin.config.host == "smtp.sendgrid.net"
+    assert plugin.config.port == "587"
+    assert plugin.config.username == "some-user"
+    assert plugin.config.password == "secret-password"
+    assert plugin.config.sender_name == ""
+    assert plugin.config.sender_address == default_email_from
+    assert plugin.config.use_tls
+    assert not plugin.config.use_ssl
+
+
+@patch("saleor.plugins.email_common.validate_email_config")
+def test_override_default_config(
+    mocked_validate_email_config,
+    default_admin_email_plugin,
+):
+    plugin = default_admin_email_plugin(
+        default_email_from="default@email.from",
+        email_url="smtp://some-user:secret-password@smtp.sendgrid.net:587/?tls=True",
+    )
+    plugin_configuration = PluginConfiguration.objects.create(
+        identifier=plugin.PLUGIN_ID,
+        active=plugin.DEFAULT_ACTIVE,
+        channel=None,
+        configuration=plugin.configuration,
+    )
+    data_to_save = {
+        "configuration": [
+            {"name": "host", "value": "localhost"},
+            {"name": "port", "value": "1025"},
+            {"name": "sender_address", "value": "noreply@exmaple.com"},
+        ]
+    }
+
+    plugin.save_plugin_configuration(plugin_configuration, data_to_save)
+    mocked_validate_email_config.assert_called_once_with(
+        EmailConfig(
+            host="localhost",
+            port="1025",
+            sender_name="",
+            sender_address="noreply@exmaple.com",
+            username="",
+            password="",
+            use_tls=False,
+            use_ssl=False,
+        )
     )
