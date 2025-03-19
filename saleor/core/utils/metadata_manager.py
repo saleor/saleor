@@ -58,9 +58,11 @@ def store_on_instance(
 def create_from_graphql_input(
     items: list[MetadataInput] | None,
 ) -> MetadataItemCollection:
-    """Use with care.
+    """Create MetadataItemCollection from graphQL input.
 
-    This method is eventually returning custom error, so if it's used directly
+    Use with care.
+
+    This method is eventually raising MetadataEmptyKeyError, so if it's used directly
     in mutation, error will not be handled.
 
     Use BaseMutation.create_metadata_from_graphql_input to include error translation.

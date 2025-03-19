@@ -9,11 +9,8 @@ from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils import metadata_manager
 from ....core.utils.country import get_active_country
-from ....core.utils.metadata_manager import (
-    MetadataType,
-    store_on_instance,
-)
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
@@ -337,17 +334,17 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         shipping_address = cls.retrieve_shipping_address(user, data, info)
         billing_address = cls.retrieve_billing_address(user, data, info)
         if shipping_address:
-            store_on_instance(
+            metadata_manager.store_on_instance(
                 shipping_address_metadata_collection,
                 shipping_address,
-                MetadataType.PUBLIC,
+                metadata_manager.MetadataType.PUBLIC,
             )
 
         if billing_address:
-            store_on_instance(
+            metadata_manager.store_on_instance(
                 billing_address_metadata_collection,
                 billing_address,
-                MetadataType.PUBLIC,
+                metadata_manager.MetadataType.PUBLIC,
             )
 
         if save_shipping_address is not None and not shipping_address:

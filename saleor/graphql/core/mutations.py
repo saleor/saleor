@@ -22,14 +22,8 @@ from graphql.error import GraphQLError
 
 from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
+from ...core.utils import metadata_manager
 from ...core.utils.events import call_event
-from ...core.utils.metadata_manager import (
-    MetadataEmptyKeyError,
-    MetadataItemCollection,
-    MetadataType,
-    create_from_graphql_input,
-    store_on_instance,
-)
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
@@ -556,13 +550,17 @@ class BaseMutation(graphene.Mutation):
     def validate_and_update_metadata(
         cls,
         instance,
-        metadata_list: MetadataItemCollection,
-        private_metadata_list: MetadataItemCollection,
+        metadata_list: metadata_manager.MetadataItemCollection,
+        private_metadata_list: metadata_manager.MetadataItemCollection,
     ):
         if cls._meta.support_meta_field and metadata_list.items:
-            store_on_instance(metadata_list, instance, MetadataType.PUBLIC)
+            metadata_manager.store_on_instance(
+                metadata_list, instance, metadata_manager.MetadataType.PUBLIC
+            )
         if cls._meta.support_private_meta_field and private_metadata_list.items:
-            store_on_instance(private_metadata_list, instance, MetadataType.PRIVATE)
+            metadata_manager.store_on_instance(
+                private_metadata_list, instance, metadata_manager.MetadataType.PRIVATE
+            )
 
     @classmethod
     def check_metadata_permissions(cls, info: ResolveInfo, object_id, private=False):
@@ -597,17 +595,19 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def create_metadata_from_graphql_input(
         cls, metadata_list: list[MetadataInput] | None, *, error_field_name: str
-    ) -> MetadataItemCollection:
-        """Wrap the creation of metadata and map the error to graphql error.
+    ) -> metadata_manager.MetadataItemCollection:
+        """Wrap the creation of metadata and raises ValidationError.
 
-        In case of metadata - we need to pass field name, because it can be nested in the other path than "metadata" or "privateMetadata"
+        It maps inner error to proper layer.
+
+        In case of metadata - we need to pass error_field_name, because it can be nested in the other path than "metadata" or "privateMetadata"
         Error code is hardcoded here - only empty key is validated. If we add more validation rules, this must be refactored
         To inject / resolve errors matching validator
 
         """
         try:
-            return create_from_graphql_input(metadata_list)
-        except MetadataEmptyKeyError:
+            return metadata_manager.create_from_graphql_input(metadata_list)
+        except metadata_manager.MetadataEmptyKeyError:
             raise ValidationError(
                 {
                     error_field_name: ValidationError(

@@ -2,10 +2,7 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...core.utils.metadata_manager import (
-    MetadataType,
-    store_on_instance,
-)
+from ...core.utils import metadata_manager
 from ...permission.enums import AccountPermissions
 from ..core.utils import raise_validation_error
 from ..meta.inputs import MetadataInput
@@ -21,7 +18,9 @@ class AddressMetadataMixin:
             metadata, error_field_name="metadata"
         )
 
-        store_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
+        metadata_manager.store_on_instance(
+            metadata_collection, instance, metadata_manager.MetadataType.PUBLIC
+        )
 
         return super().construct_instance(instance, cleaned_data)  # type: ignore[misc] # noqa: E501
 

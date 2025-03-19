@@ -11,10 +11,7 @@ from ....account.events import CustomerEvents
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.metadata_manager import (
-    MetadataType,
-    store_on_instance,
-)
+from ....core.utils import metadata_manager
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
@@ -371,7 +368,9 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             address_metadata, error_field_name="metadata"
         )
 
-        store_on_instance(metadata_collection, address, MetadataType.PUBLIC)
+        metadata_manager.store_on_instance(
+            metadata_collection, address, metadata_manager.MetadataType.PUBLIC
+        )
 
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
@@ -434,8 +433,10 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                             metadata_list, error_field_name="metadata"
                         )
 
-                        store_on_instance(
-                            metadata_collection, new_instance, MetadataType.PUBLIC
+                        metadata_manager.store_on_instance(
+                            metadata_collection,
+                            new_instance,
+                            metadata_manager.MetadataType.PUBLIC,
                         )
 
                     if private_metadata_list is not None:
@@ -446,10 +447,10 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                             )
                         )
 
-                        store_on_instance(
+                        metadata_manager.store_on_instance(
                             private_metadata_collection,
                             new_instance,
-                            MetadataType.PRIVATE,
+                            metadata_manager.MetadataType.PRIVATE,
                         )
 
                     instances_data_and_errors_list.append(

@@ -12,10 +12,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.metadata_manager import (
-    MetadataType,
-    store_on_instance,
-)
+from ....core.utils import metadata_manager
 from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
 from ....giftcard.utils import get_user_gift_cards
@@ -101,7 +98,9 @@ class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
         metadata_collection = cls.create_metadata_from_graphql_input(
             metadata, error_field_name="metadata"
         )
-        store_on_instance(metadata_collection, instance, MetadataType.PUBLIC)
+        metadata_manager.store_on_instance(
+            metadata_collection, instance, metadata_manager.MetadataType.PUBLIC
+        )
 
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
@@ -291,10 +290,10 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
                 info=info,
             )
 
-            store_on_instance(
+            metadata_manager.store_on_instance(
                 shipping_address_metadata_collection,
                 shipping_address,
-                MetadataType.PUBLIC,
+                metadata_manager.MetadataType.PUBLIC,
             )
 
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
@@ -317,10 +316,10 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
                 info=info,
             )
 
-            store_on_instance(
+            metadata_manager.store_on_instance(
                 billing_address_metadata_collection,
                 billing_address,
-                MetadataType.PUBLIC,
+                metadata_manager.MetadataType.PUBLIC,
             )
 
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
