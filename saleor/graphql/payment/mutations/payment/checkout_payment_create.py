@@ -176,6 +176,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             ) from e
 
     # TODO This should be unified with metadata_manager and MetadataItemCollection
+    # EXT-2054
     @classmethod
     def validate_metadata_keys(cls, metadata_list: list[dict]):
         if deprecated_metadata_contains_empty_key(metadata_list):
