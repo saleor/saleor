@@ -1,9 +1,11 @@
 import pytest
 
+from ....account.models import Address
 from ....order import OrderStatus
 from ....order.models import Order
 from ....order.utils import invalidate_order_prices
 from ..filters import filter_by_checkout_tokens
+from ..mutations.utils import save_addresses
 
 
 @pytest.mark.parametrize(
@@ -66,3 +68,62 @@ def test_filter_by_checkout_tokens_no_values(orders_from_checkout, order):
     orders = filter_by_checkout_tokens(Order.objects.all(), "checkout_token", [])
     # then
     assert orders.count() == Order.objects.count()
+
+
+def test_save_addresses_both_addresses(order):
+    # given
+    address_count = Address.objects.count()
+    cleaned_input = {
+        "billing_address": Address(first_name="Billing", last_name="Test"),
+        "shipping_address": Address(first_name="Shipping", last_name="Test"),
+    }
+
+    # when
+    update_fields = save_addresses(order, cleaned_input)
+
+    # then
+    assert set(update_fields) == {"billing_address", "shipping_address"}
+    assert Address.objects.count() == address_count + 2
+
+
+def test_save_addresses_only_billing_address(order):
+    # given
+    address_count = Address.objects.count()
+    cleaned_input = {
+        "billing_address": Address(first_name="Billing", last_name="Test"),
+    }
+
+    # when
+    update_fields = save_addresses(order, cleaned_input)
+
+    # then
+    assert set(update_fields) == {"billing_address"}
+    assert Address.objects.count() == address_count + 1
+
+
+def test_save_addresses_only_shipping_address(order):
+    # given
+    address_count = Address.objects.count()
+    cleaned_input = {
+        "shipping_address": Address(first_name="Shipping", last_name="Test"),
+    }
+
+    # when
+    update_fields = save_addresses(order, cleaned_input)
+
+    # then
+    assert set(update_fields) == {"shipping_address"}
+    assert Address.objects.count() == address_count + 1
+
+
+def test_save_addresses_empty(order):
+    # given
+    address_count = Address.objects.count()
+    cleaned_input = {}
+
+    # when
+    update_fields = save_addresses(order, cleaned_input)
+
+    # then
+    assert update_fields == []
+    assert Address.objects.count() == address_count
