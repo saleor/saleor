@@ -219,11 +219,11 @@ def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
     shipping_address = cleaned_input.get("shipping_address")
     if shipping_address:
         shipping_address.save()
-        instance.shipping_address = shipping_address.get_copy()
+        instance.shipping_address = shipping_address
         update_fields.append("shipping_address")
     billing_address = cleaned_input.get("billing_address")
     if billing_address:
         billing_address.save()
-        instance.billing_address = billing_address.get_copy()
-    update_fields.append("billing_address")
+        instance.billing_address = billing_address
+        update_fields.append("billing_address")
     return update_fields

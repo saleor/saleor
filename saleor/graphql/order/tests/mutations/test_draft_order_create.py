@@ -8,6 +8,7 @@ import pytz
 from django.test import override_settings
 from prices import Money
 
+from .....account.models import Address
 from .....checkout import AddressType
 from .....core.models import EventDelivery
 from .....core.prices import quantize_price
@@ -170,6 +171,8 @@ def test_draft_order_create_with_voucher_entire_order(
         {"variantId": variant_0_id, "quantity": variant_0_qty},
         {"variantId": variant_1_id, "quantity": variant_1_qty},
     ]
+
+    address_count = Address.objects.count()
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
@@ -287,6 +290,9 @@ def test_draft_order_create_with_voucher_entire_order(
 
     for line in order_lines:
         assert line.is_price_overridden is False
+
+    # ensure shipping and billing address instances were created
+    assert Address.objects.count() == address_count + 2
 
 
 def test_draft_order_create_with_voucher_and_voucher_code(

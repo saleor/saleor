@@ -55,6 +55,7 @@ from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
     get_variant_rule_info_map,
+    save_addresses,
 )
 
 
@@ -166,9 +167,6 @@ class DraftOrderCreate(
 
     @classmethod
     def get_instance_channel_id(cls, instance, **data):
-        if channel_id := instance.channel_id:
-            return channel_id
-
         channel_id = data["input"].get("channel_id")
         if not channel_id:
             raise ValidationError(
@@ -312,17 +310,6 @@ class DraftOrderCreate(
         cleaned_input["lines_data"] = grouped_lines_data
 
     @staticmethod
-    def _save_addresses(instance: models.Order, cleaned_input):
-        shipping_address = cleaned_input.get("shipping_address")
-        if shipping_address:
-            shipping_address.save()
-            instance.shipping_address = shipping_address.get_copy()
-        billing_address = cleaned_input.get("billing_address")
-        if billing_address:
-            billing_address.save()
-            instance.billing_address = billing_address.get_copy()
-
-    @staticmethod
     def _save_lines(info, instance, lines_data, app, manager):
         if lines_data:
             lines = []
@@ -355,6 +342,7 @@ class DraftOrderCreate(
             )
 
     @classmethod
+    # TODO: to remove
     def should_invalidate_prices(cls, cleaned_input, is_new_instance) -> bool:
         # Force price recalculation for all new instances
         return is_new_instance
@@ -382,14 +370,12 @@ class DraftOrderCreate(
         is_new_instance,
         app,
         manager,
-        old_voucher=None,
-        old_voucher_code=None,
     ):
         updated_fields = []
         with traced_atomic_transaction():
             shipping_channel_listing = None
             # Process addresses
-            cls._save_addresses(instance, cleaned_input)
+            save_addresses(instance, cleaned_input)
 
             try:
                 # Process any lines to add
