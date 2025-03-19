@@ -597,6 +597,7 @@ BEAT_PRICE_RECALCULATION_SCHEDULE = parse(
 )
 BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC = BEAT_PRICE_RECALCULATION_SCHEDULE
 
+
 # Defines the Celery beat scheduler entries.
 #
 # Note: if a Celery task triggered by a Celery beat entry has an expiration
@@ -678,6 +679,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.product.tasks.recalculate_discounted_price_for_products_task",
         "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+    },
+    "process-async-webhooks": {
+        "task": "saleor.webhook.tasks.process_async_webhooks_task",
+        "schedule": datetime.timedelta(seconds=30),
     },
 }
 
