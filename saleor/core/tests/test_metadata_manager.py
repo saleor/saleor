@@ -11,24 +11,37 @@ from ..utils.metadata_manager import (
     store_on_instance,
 )
 
-valid_metadata_item = MetadataInput()
 
-# Graphene doesn't accept params in constructor
-valid_metadata_item.key = "key"
-valid_metadata_item.value = "value"
+def get_valid_metadata_input() -> MetadataInput:
+    valid_metadata_item = MetadataInput()
 
-invalid_metadata_item = MetadataInput()
+    # Graphene doesn't accept params in constructor
+    valid_metadata_item.key = "key"
+    valid_metadata_item.value = "value"
 
-# Key can't be empty
-invalid_metadata_item.key = ""
-invalid_metadata_item.value = "value"
+    return valid_metadata_item
 
-valid_list = [valid_metadata_item]
-invalid_list = [invalid_metadata_item]
-invalid_list_with_one_valid = [
-    valid_metadata_item,
-    invalid_metadata_item,
-]
+
+def get_invalid_metadata_input() -> MetadataInput:
+    invalid_metadata_item = MetadataInput()
+
+    # Key can't be empty
+    invalid_metadata_item.key = ""
+    invalid_metadata_item.value = "value"
+
+    return invalid_metadata_item
+
+
+def get_valid_list() -> list[MetadataInput]:
+    return [get_valid_metadata_input()]
+
+
+def get_invalid_list() -> list[MetadataInput]:
+    return [get_invalid_metadata_input()]
+
+
+def get_invalid_list_with_one_valid() -> list[MetadataInput]:
+    return [get_valid_metadata_input(), get_invalid_metadata_input()]
 
 
 class TestModelWithMetadata(ModelWithMetadata):
@@ -42,6 +55,8 @@ def test_create_collection_empty():
 
 
 def test_create_collection_valid():
+    valid_list = get_valid_list()
+
     collection = MetadataItemCollection(
         [MetadataItem(valid_list[0].key, valid_list[0].value)]
     )
@@ -51,6 +66,8 @@ def test_create_collection_valid():
 
 
 def test_create_collection():
+    valid_list = get_valid_list()
+
     collection = create_from_graphql_input(valid_list)
 
     assert collection.items[0].key == valid_list[0].key
@@ -58,6 +75,8 @@ def test_create_collection():
 
 
 def test_write_on_model_public():
+    valid_list = get_valid_list()
+
     instance = TestModelWithMetadata()
 
     collection = create_from_graphql_input(valid_list)
@@ -68,6 +87,8 @@ def test_write_on_model_public():
 
 
 def test_write_on_model_private():
+    valid_list = get_valid_list()
+
     instance = TestModelWithMetadata()
 
     collection = create_from_graphql_input(valid_list)
@@ -78,6 +99,8 @@ def test_write_on_model_private():
 
 
 def test_throw_on_empty_key():
+    invalid_list = get_invalid_list()
+
     with pytest.raises(MetadataEmptyKeyError):
         create_from_graphql_input(invalid_list)
 
