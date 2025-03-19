@@ -1,14 +1,14 @@
-from sympy.testing.pytest import raises
+import pytest
 
-from saleor.core.models import ModelWithMetadata
-from saleor.core.utils.metadata_manager import (
+from ...graphql.meta.inputs import MetadataInput
+from ..models import ModelWithMetadata
+from ..utils.metadata_manager import (
     MetadataEmptyKeyError,
     MetadataItemCollection,
     MetadataType,
     create_from_graphql_input,
     store_on_instance,
 )
-from saleor.graphql.meta.inputs import MetadataInput
 
 valid_metadata_item = MetadataInput()
 
@@ -28,6 +28,10 @@ invalid_list_with_one_valid = [
     valid_metadata_item,
     invalid_metadata_item,
 ]
+
+
+class TestModelWithMetadata(ModelWithMetadata):
+    pass
 
 
 def test_create_collection_empty():
@@ -53,10 +57,7 @@ def test_create_collection():
 
 
 def test_write_on_model_public():
-    class TestInstance(ModelWithMetadata):
-        pass
-
-    instance = TestInstance()
+    instance = TestModelWithMetadata()
 
     collection = create_from_graphql_input(valid_list)
 
@@ -66,10 +67,7 @@ def test_write_on_model_public():
 
 
 def test_write_on_model_private():
-    class TestInstance(ModelWithMetadata):
-        pass
-
-    instance = TestInstance()
+    instance = TestModelWithMetadata()
 
     collection = create_from_graphql_input(valid_list)
 
@@ -79,7 +77,7 @@ def test_write_on_model_private():
 
 
 def test_throw_on_empty_key():
-    with raises(MetadataEmptyKeyError):
+    with pytest.raises(MetadataEmptyKeyError):
         create_from_graphql_input(invalid_list)
 
 
@@ -88,7 +86,7 @@ def test_throw_on_empty_key_with_whitespaces():
     item.key = "  "
     item.value = "ok"
 
-    with raises(MetadataEmptyKeyError):
+    with pytest.raises(MetadataEmptyKeyError):
         create_from_graphql_input([item])
 
 
@@ -102,10 +100,7 @@ def test_store_multiple_keys():
         MetadataItemCollection.MetadataItem(key="key1", value=overwritten_value),
     ]
 
-    class TestInstance(ModelWithMetadata):
-        pass
-
-    instance = TestInstance()
+    instance = TestModelWithMetadata()
 
     collection = MetadataItemCollection(items=metadata_list)
 
@@ -118,14 +113,14 @@ def test_store_multiple_keys():
 
 
 def test_throws_for_invalid_metadata_target():
-    class TestInstance(ModelWithMetadata):
-        pass
-
-    with raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match="Unknown argument, provide MetadataType.PRIVATE or MetadataType.PUBLIC",
+    ):
         store_on_instance(
             MetadataItemCollection(
                 items=[MetadataItemCollection.MetadataItem(key="a", value="b")]
             ),
-            TestInstance(),
+            TestModelWithMetadata(),
             "invalid_target",
         )
