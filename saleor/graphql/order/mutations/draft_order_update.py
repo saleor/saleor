@@ -102,6 +102,7 @@ class DraftOrderUpdate(
         cls, info: ResolveInfo, instance: models.Order, data: dict, **kwargs
     ):
         cls.clean_channel_id(instance, data)
+        manager = get_plugin_manager_promise(info.context).get()
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
@@ -128,7 +129,7 @@ class DraftOrderUpdate(
         DraftOrderCleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
 
         cls.clean_addresses(
-            info, instance, cleaned_input, shipping_address, billing_address
+            info, instance, cleaned_input, shipping_address, billing_address, manager
         )
 
         DraftOrderCleaner.clean_redirect_url(redirect_url, cleaned_input)
@@ -156,6 +157,7 @@ class DraftOrderUpdate(
         cleaned_input,
         shipping_address,
         billing_address,
+        manager,
     ):
         if shipping_address:
             shipping_address = cls.validate_address(
@@ -164,6 +166,7 @@ class DraftOrderUpdate(
                 instance=instance.shipping_address,
                 info=info,
             )
+            manager.change_user_address(shipping_address, "shipping", user=instance)
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
@@ -172,6 +175,7 @@ class DraftOrderUpdate(
                 instance=instance.billing_address,
                 info=info,
             )
+            manager.change_user_address(billing_address, "billing", user=instance)
             cleaned_input["billing_address"] = billing_address
 
     @classmethod

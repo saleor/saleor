@@ -190,6 +190,7 @@ class DraftOrderCreate(
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
         shipping_method_input = {}
+        manager = get_plugin_manager_promise(info.context).get()
         if "shipping_method" in data:
             shipping_method_input["shipping_method"] = get_shipping_model_by_object_id(
                 object_id=data.pop("shipping_method", None),
@@ -222,7 +223,7 @@ class DraftOrderCreate(
         cleaned_input["origin"] = OrderOrigin.DRAFT
 
         cls.clean_addresses(
-            info, instance, cleaned_input, shipping_address, billing_address
+            info, instance, cleaned_input, shipping_address, billing_address, manager
         )
 
         DraftOrderCleaner.clean_redirect_url(redirect_url, cleaned_input)
@@ -237,6 +238,7 @@ class DraftOrderCreate(
         cleaned_input,
         shipping_address,
         billing_address,
+        manager,
     ):
         if shipping_address:
             shipping_address = cls.validate_address(
@@ -245,6 +247,7 @@ class DraftOrderCreate(
                 instance=instance.shipping_address,
                 info=info,
             )
+            manager.change_user_address(shipping_address, "shipping", user=instance)
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
@@ -253,6 +256,7 @@ class DraftOrderCreate(
                 instance=instance.billing_address,
                 info=info,
             )
+            manager.change_user_address(billing_address, "billing", user=instance)
             cleaned_input["billing_address"] = billing_address
 
     @classmethod
