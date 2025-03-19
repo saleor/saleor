@@ -15,19 +15,20 @@ class MetadataEmptyKeyError(Exception):
 
 
 @dataclass
+class MetadataItem:
+    key: str
+    value: str
+
+    def __init__(self, key: str, value: str):
+        if not key.strip():
+            raise MetadataEmptyKeyError()
+
+        self.key = key
+        self.value = value
+
+
+@dataclass
 class MetadataItemCollection:
-    @dataclass
-    class MetadataItem:
-        key: str
-        value: str
-
-        def __init__(self, key: str, value: str):
-            if not key.strip():
-                raise MetadataEmptyKeyError()
-
-            self.key = key
-            self.value = value
-
     items: list[MetadataItem]
 
 
@@ -68,5 +69,5 @@ def create_from_graphql_input(
         return MetadataItemCollection([])
 
     return MetadataItemCollection(
-        [MetadataItemCollection.MetadataItem(item.key, item.value) for item in items]
+        [MetadataItem(item.key, item.value) for item in items]
     )

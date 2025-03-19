@@ -4,6 +4,7 @@ from ...graphql.meta.inputs import MetadataInput
 from ..models import ModelWithMetadata
 from ..utils.metadata_manager import (
     MetadataEmptyKeyError,
+    MetadataItem,
     MetadataItemCollection,
     MetadataType,
     create_from_graphql_input,
@@ -42,7 +43,7 @@ def test_create_collection_empty():
 
 def test_create_collection_valid():
     collection = MetadataItemCollection(
-        [MetadataItemCollection.MetadataItem(valid_list[0].key, valid_list[0].value)]
+        [MetadataItem(valid_list[0].key, valid_list[0].value)]
     )
 
     assert collection.items[0].key == valid_list[0].key
@@ -94,10 +95,10 @@ def test_store_multiple_keys():
     overwritten_value = "value1-overwrite"
 
     metadata_list = [
-        MetadataItemCollection.MetadataItem(key="key1", value="value1"),
-        MetadataItemCollection.MetadataItem(key="key2", value="value2"),
+        MetadataItem(key="key1", value="value1"),
+        MetadataItem(key="key2", value="value2"),
         # Test key with the same value to be overwritten
-        MetadataItemCollection.MetadataItem(key="key1", value=overwritten_value),
+        MetadataItem(key="key1", value=overwritten_value),
     ]
 
     instance = TestModelWithMetadata()
@@ -118,9 +119,7 @@ def test_throws_for_invalid_metadata_target():
         match="Unknown argument, provide MetadataType.PRIVATE or MetadataType.PUBLIC",
     ):
         store_on_instance(
-            MetadataItemCollection(
-                items=[MetadataItemCollection.MetadataItem(key="a", value="b")]
-            ),
+            MetadataItemCollection(items=[MetadataItem(key="a", value="b")]),
             TestModelWithMetadata(),
             "invalid_target",
         )
