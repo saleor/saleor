@@ -52,7 +52,6 @@ from ..utils import (
 )
 from .draft_order_cleaner import DraftOrderCleaner
 from .utils import (
-    SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
     get_variant_rule_info_map,
     save_addresses,
@@ -330,48 +329,10 @@ class DraftOrderCreate(
             )
 
     @classmethod
-    def _commit_changes(
-        cls, info: ResolveInfo, instance, cleaned_input, is_new_instance, app
-    ):
-        super().save(info, instance, cleaned_input)
-
-        # Create draft created event if the instance is from scratch
-        if is_new_instance:
-            events.draft_order_created_event(
-                order=instance, user=info.context.user, app=app
-            )
-
-    @classmethod
-    # TODO: to remove
-    def should_invalidate_prices(cls, cleaned_input, is_new_instance) -> bool:
-        # Force price recalculation for all new instances
-        return is_new_instance
-
-    @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
-        return cls._save_draft_order(
-            info,
-            instance,
-            cleaned_input,
-            is_new_instance=True,
-            app=app,
-            manager=manager,
-        )
 
-    @classmethod
-    def _save_draft_order(
-        cls,
-        info: ResolveInfo,
-        instance,
-        cleaned_input,
-        *,
-        is_new_instance,
-        app,
-        manager,
-    ):
-        updated_fields = []
         with traced_atomic_transaction():
             shipping_channel_listing = None
             # Process addresses
@@ -402,13 +363,11 @@ class DraftOrderCreate(
                     )
                     cls.update_shipping_method(instance, method, shipping_method_data)
                     cls._update_shipping_price(instance, shipping_channel_listing)
-                updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:
                 instance.undiscounted_base_shipping_price_amount = (
                     instance.base_shipping_price_amount
                 )
-                updated_fields.append("undiscounted_base_shipping_price_amount")
 
             if "voucher" in cleaned_input:
                 cls.handle_order_voucher(
@@ -416,27 +375,16 @@ class DraftOrderCreate(
                     instance,
                 )
 
-            # Save any changes create/update the draft
-            cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
-
             update_order_display_gross_prices(instance)
-
-            # Post-process the results
-            updated_fields.extend(
-                [
-                    "weight",
-                    "search_vector",
-                    "updated_at",
-                    "display_gross_prices",
-                ]
-            )
-            if cls.should_invalidate_prices(cleaned_input, is_new_instance):
-                invalidate_order_prices(instance)
-                updated_fields.extend(["should_refresh_prices"])
+            invalidate_order_prices(instance)
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
 
-            instance.save(update_fields=updated_fields)
+            instance.save()
+
+            events.draft_order_created_event(
+                order=instance, user=info.context.user, app=app
+            )
             call_order_event(
                 manager,
                 WebhookEventAsyncType.DRAFT_ORDER_CREATED,
