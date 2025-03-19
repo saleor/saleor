@@ -44,10 +44,6 @@ def get_invalid_list_with_one_valid() -> list[MetadataInput]:
     return [get_valid_metadata_input(), get_invalid_metadata_input()]
 
 
-class TestModelWithMetadata(ModelWithMetadata):
-    pass
-
-
 def test_create_collection_empty():
     collection = MetadataItemCollection([])
 
@@ -77,6 +73,9 @@ def test_create_collection():
 def test_write_on_model_public():
     valid_list = get_valid_list()
 
+    class TestModelWithMetadata(ModelWithMetadata):
+        pass
+
     instance = TestModelWithMetadata()
 
     collection = create_from_graphql_input(valid_list)
@@ -88,6 +87,9 @@ def test_write_on_model_public():
 
 def test_write_on_model_private():
     valid_list = get_valid_list()
+
+    class TestModelWithMetadata(ModelWithMetadata):
+        pass
 
     instance = TestModelWithMetadata()
 
@@ -124,6 +126,9 @@ def test_store_multiple_keys():
         MetadataItem(key="key1", value=overwritten_value),
     ]
 
+    class TestModelWithMetadata(ModelWithMetadata):
+        pass
+
     instance = TestModelWithMetadata()
 
     collection = MetadataItemCollection(items=metadata_list)
@@ -137,6 +142,9 @@ def test_store_multiple_keys():
 
 
 def test_throws_for_invalid_metadata_target():
+    class TestModelWithMetadata(ModelWithMetadata):
+        pass
+
     with pytest.raises(
         ValueError,
         match="Unknown argument, provide MetadataType.PRIVATE or MetadataType.PUBLIC",
