@@ -392,7 +392,7 @@ def handle_fully_paid_order(
         )
 
     if not order.is_draft() and order.channel.automatically_confirm_all_new_orders:
-        update_order_status(order, update_unconfirmed=True)
+        update_order_status(order)
 
     call_order_events(
         manager,
@@ -833,7 +833,6 @@ def cancel_waiting_fulfillment(
         OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
         fulfillment.delete()
-        update_order_status(fulfillment.order)
         call_event(manager.fulfillment_canceled, fulfillment)
         call_order_event(
             manager,
