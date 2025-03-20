@@ -26861,6 +26861,20 @@ input CheckoutCreateInput @doc(category: "Checkout") {
 
   """The checkout validation rules that can be changed."""
   validationRules: CheckoutValidationRules
+
+  """
+  Checkout public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Checkout private metadata. Requires one of the following permissions:MANAGE_CHECKOUTS, HANDLE_CHECKOUTS
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 input CheckoutLineInput @doc(category: "Checkout") {
