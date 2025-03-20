@@ -12,7 +12,7 @@ from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
+    DEFAULT_DEPRECATION_REASON,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import LanguageCodeEnum, ReportingPeriod
@@ -346,7 +346,7 @@ class ProductQueries(graphene.ObjectType):
             ProductPermissions.MANAGE_PRODUCTS,
         ],
         doc_category=DOC_CATEGORY_PRODUCTS,
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
 
     @staticmethod

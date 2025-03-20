@@ -11,7 +11,7 @@ from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import (
     ADDED_IN_318,
-    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -37,7 +37,7 @@ class VoucherInput(BaseInputObjectType):
     code = graphene.String(
         required=False,
         description="Code to use the voucher. "
-        + DEPRECATED_IN_3X_FIELD
+        + DEPRECATED_IN_3X_INPUT
         + " Use `addCodes` instead.",
     )
     add_codes = NonNullList(

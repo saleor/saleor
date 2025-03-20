@@ -22,7 +22,7 @@ from ...attribute.types import (
 )
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -129,7 +129,7 @@ class BulkAttributeValueInput(BaseInputObjectType):
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
-            + DEPRECATED_IN_3X_FIELD
+            + DEPRECATED_IN_3X_INPUT
         ),
     )
     dropdown = AttributeValueSelectableTypeInput(
@@ -218,7 +218,7 @@ class ProductVariantBulkCreate(BaseMutation):
         ProductVariant,
         required=True,
         default_value=[],
-        description="List of the created variants." + DEPRECATED_IN_3X_FIELD,
+        description="List of the created variants." + DEPRECATED_IN_3X_INPUT,
     )
 
     results = NonNullList(

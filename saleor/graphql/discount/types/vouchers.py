@@ -9,7 +9,7 @@ from ...channel.types import Channel, ChannelContext, ChannelContextType
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
 from ...core.context import get_database_connection_name
-from ...core.descriptions import ADDED_IN_318, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_318, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
@@ -85,7 +85,7 @@ class Voucher(ChannelContextType[models.Voucher]):
         description="List of codes available for this voucher." + ADDED_IN_318,
     )
     code = graphene.String(
-        description="The code of the voucher." + DEPRECATED_IN_3X_FIELD
+        description="The code of the voucher." + DEPRECATED_IN_3X_INPUT
     )
     usage_limit = graphene.Int(description="The number of times a voucher can be used.")
     used = graphene.Int(

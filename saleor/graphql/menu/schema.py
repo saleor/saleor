@@ -4,7 +4,6 @@ from ..channel import ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import MenuItemTranslate
@@ -48,10 +47,7 @@ class MenuQueries(graphene.ObjectType):
         ),
         sort_by=MenuSortingInput(description="Sort menus."),
         filter=MenuFilterInput(
-            description=(
-                "Filtering options for menus. "
-                f"\n\n`slug`: {DEPRECATED_IN_3X_FIELD} Use `slugs` instead."
-            )
+            description=("Filtering options for menus.\n\n`slug`: Use `slugs` instead.")
         ),
         description="List of the storefront's menus.",
     )
