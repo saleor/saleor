@@ -183,8 +183,8 @@ class TransactionEventReport(DeprecatedModelMutation):
         transaction_event: payment_models.TransactionEvent,
         available_actions: list[str] | None = None,
         app: Optional["App"] = None,
-        metadata: list[dict] | None = None,
-        private_metadata: list[dict] | None = None,
+        metadata: list[MetadataInput] | None = None,
+        private_metadata: list[MetadataInput] | None = None,
     ):
         fields_to_update = [
             "authorized_value",
@@ -286,8 +286,8 @@ class TransactionEventReport(DeprecatedModelMutation):
         external_url=None,
         message=None,
         available_actions=None,
-        transaction_metadata: list[dict] | None = None,
-        transaction_private_metadata: list[dict] | None = None,
+        transaction_metadata: list[MetadataInput] | None = None,
+        transaction_private_metadata: list[MetadataInput] | None = None,
     ):
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
@@ -342,8 +342,16 @@ class TransactionEventReport(DeprecatedModelMutation):
             transaction_event, transaction_event_data
         )
 
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            transaction_metadata, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            transaction_private_metadata,
+            error_field_name="private_metadata",
+        )
+
         cls.validate_and_update_metadata(
-            transaction, transaction_metadata, transaction_private_metadata
+            transaction, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, transaction_event)
 
