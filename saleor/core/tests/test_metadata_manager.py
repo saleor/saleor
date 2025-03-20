@@ -12,7 +12,8 @@ from ..utils.metadata_manager import (
 )
 
 
-def get_valid_metadata_input() -> MetadataInput:
+@pytest.fixture
+def valid_metadata_input() -> MetadataInput:
     valid_metadata_item = MetadataInput()
 
     # Graphene doesn't accept params in constructor
@@ -22,7 +23,8 @@ def get_valid_metadata_input() -> MetadataInput:
     return valid_metadata_item
 
 
-def get_invalid_metadata_input() -> MetadataInput:
+@pytest.fixture
+def invalid_metadata_input() -> MetadataInput:
     invalid_metadata_item = MetadataInput()
 
     # Key can't be empty
@@ -32,16 +34,21 @@ def get_invalid_metadata_input() -> MetadataInput:
     return invalid_metadata_item
 
 
-def get_valid_list() -> list[MetadataInput]:
-    return [get_valid_metadata_input()]
+@pytest.fixture
+def valid_metadata_input_list(valid_metadata_input) -> list[MetadataInput]:
+    return [valid_metadata_input]
 
 
-def get_invalid_list() -> list[MetadataInput]:
-    return [get_invalid_metadata_input()]
+@pytest.fixture
+def invalid_metadata_input_list(invalid_metadata_input) -> list[MetadataInput]:
+    return [invalid_metadata_input]
 
 
-def get_invalid_list_with_one_valid() -> list[MetadataInput]:
-    return [get_valid_metadata_input(), get_invalid_metadata_input()]
+@pytest.fixture
+def invalid_metadata_input_list_with_one_valid(
+    valid_metadata_input, invalid_metadata_input
+) -> list[MetadataInput]:
+    return [valid_metadata_input, invalid_metadata_input]
 
 
 def test_create_collection_empty():
@@ -50,61 +57,61 @@ def test_create_collection_empty():
     assert collection.items == []
 
 
-def test_create_collection_valid():
-    valid_list = get_valid_list()
-
+def test_create_collection_valid(valid_metadata_input_list):
     collection = MetadataItemCollection(
-        [MetadataItem(valid_list[0].key, valid_list[0].value)]
+        [
+            MetadataItem(
+                valid_metadata_input_list[0].key, valid_metadata_input_list[0].value
+            )
+        ]
     )
 
-    assert collection.items[0].key == valid_list[0].key
-    assert collection.items[0].value == valid_list[0].value
+    assert collection.items[0].key == valid_metadata_input_list[0].key
+    assert collection.items[0].value == valid_metadata_input_list[0].value
 
 
-def test_create_collection():
-    valid_list = get_valid_list()
+def test_create_collection(valid_metadata_input_list):
+    collection = create_from_graphql_input(valid_metadata_input_list)
 
-    collection = create_from_graphql_input(valid_list)
-
-    assert collection.items[0].key == valid_list[0].key
-    assert collection.items[0].value == valid_list[0].value
+    assert collection.items[0].key == valid_metadata_input_list[0].key
+    assert collection.items[0].value == valid_metadata_input_list[0].value
 
 
-def test_write_on_model_public():
-    valid_list = get_valid_list()
-
+def test_write_on_model_public(valid_metadata_input_list):
     class TestModelWithMetadata(ModelWithMetadata):
         pass
 
     instance = TestModelWithMetadata()
 
-    collection = create_from_graphql_input(valid_list)
+    collection = create_from_graphql_input(valid_metadata_input_list)
 
     store_on_instance(collection, instance, MetadataType.PUBLIC)
 
-    assert instance.metadata.get(valid_list[0].key) == valid_list[0].value
+    assert (
+        instance.metadata.get(valid_metadata_input_list[0].key)
+        == valid_metadata_input_list[0].value
+    )
 
 
-def test_write_on_model_private():
-    valid_list = get_valid_list()
-
+def test_write_on_model_private(valid_metadata_input_list):
     class TestModelWithMetadata(ModelWithMetadata):
         pass
 
     instance = TestModelWithMetadata()
 
-    collection = create_from_graphql_input(valid_list)
+    collection = create_from_graphql_input(valid_metadata_input_list)
 
     store_on_instance(collection, instance, MetadataType.PRIVATE)
 
-    assert instance.private_metadata.get(valid_list[0].key) == valid_list[0].value
+    assert (
+        instance.private_metadata.get(valid_metadata_input_list[0].key)
+        == valid_metadata_input_list[0].value
+    )
 
 
-def test_throw_on_empty_key():
-    invalid_list = get_invalid_list()
-
+def test_throw_on_empty_key(invalid_metadata_input_list):
     with pytest.raises(MetadataEmptyKeyError):
-        create_from_graphql_input(invalid_list)
+        create_from_graphql_input(invalid_metadata_input_list)
 
 
 def test_throw_on_empty_key_with_whitespaces():
