@@ -762,3 +762,115 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
     )
 
     assert wrapped_call_order_event.called
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_shipping_method(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        _tax_webhook,
+        _shipping_filter_webhook,
+        order_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.base_shipping_price = zero_money(order.currency)
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"order": order_id, "shippingMethod": None}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+
+    assert order_delivery.event_type == WebhookEventAsyncType.DRAFT_ORDER_UPDATED
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": order_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
+    assert wrapped_call_order_event.called
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null_shipping_method(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    # Only digital-lines order is affected, because orders with physical items
+    # must have shopping method. In such scenario validation will raise without webhook
+    order_with_digital_line,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        _tax_webhook,
+        _shipping_filter_webhook,
+        order_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_digital_line
+    order.base_shipping_price = zero_money(order.currency)
+    order.status = OrderStatus.UNCONFIRMED
+    order.save()
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"order": order_id, "shippingMethod": None}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+
+    assert order_delivery.event_type == WebhookEventAsyncType.ORDER_UPDATED
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": order_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
+    assert wrapped_call_order_event.called

@@ -85,6 +85,14 @@ class OrderUpdateShipping(
 
         is_draft_order = order.is_draft()
 
+        event_to_emit = (
+            WebhookEventAsyncType.DRAFT_ORDER_UPDATED
+            if is_draft_order
+            else WebhookEventType.ORDER_UPDATED
+        )
+
+        manager = get_plugin_manager_promise(info.context).get()
+
         if "shipping_method" not in input:
             raise ValidationError(
                 {
@@ -119,6 +127,9 @@ class OrderUpdateShipping(
 
             cls.clear_shipping_method_from_order(order)
             order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
+
+            call_order_event(manager, event_to_emit, order)
+
             return OrderUpdateShipping(order=SyncWebhookControlContext(order))
 
         method_id: str = input["shipping_method"]
@@ -137,7 +148,7 @@ class OrderUpdateShipping(
             method,
             shipping_channel_listing,
         )
-        manager = get_plugin_manager_promise(info.context).get()
+
         if order.status != OrderStatus.DRAFT:
             clean_order_update_shipping(order, shipping_method_data, manager)
         cls.update_shipping_method(order, method)
@@ -145,12 +156,6 @@ class OrderUpdateShipping(
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
-
-        event_to_emit = (
-            WebhookEventAsyncType.DRAFT_ORDER_UPDATED
-            if is_draft_order
-            else WebhookEventType.ORDER_UPDATED
-        )
 
         call_order_event(manager, event_to_emit, order)
 
