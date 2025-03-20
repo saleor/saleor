@@ -621,14 +621,6 @@ def test_order_shipping_update_mutation_properly_recalculate_total(
     assert data["order"]["shippingMethod"] is None
 
 
-@pytest.mark.parametrize(
-    ("order_status", "expected_webhook"),
-    [
-        (OrderStatus.UNCONFIRMED, WebhookEventAsyncType.ORDER_UPDATED),
-        # TODO This suite fails on sync webhooks, why?
-        (OrderStatus.DRAFT, WebhookEventAsyncType.DRAFT_ORDER_UPDATED),
-    ],
-)
 @patch(
     "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
     wraps=call_order_event,
@@ -642,8 +634,6 @@ def test_order_update_shipping_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
-    order_status,
-    expected_webhook,
     setup_order_webhooks,
     staff_api_client,
     permission_group_manage_orders,
@@ -657,12 +647,12 @@ def test_order_update_shipping_triggers_webhooks(
         tax_webhook,
         shipping_filter_webhook,
         order_webhook,
-    ) = setup_order_webhooks(expected_webhook)
+    ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.base_shipping_price = zero_money(order.currency)
-    order.status = order_status
+    order.status = OrderStatus.UNCONFIRMED
     order.save()
 
     query = ORDER_UPDATE_SHIPPING_QUERY
@@ -687,7 +677,6 @@ def test_order_update_shipping_triggers_webhooks(
         retry_backoff=10,
         retry_kwargs={"max_retries": 5},
     )
-
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 3
     assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
@@ -714,5 +703,62 @@ def test_order_update_shipping_triggers_webhooks(
             == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
         )
         assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    assert wrapped_call_order_event.called
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update_shipping.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_update_shipping_triggers_proper_updated_webhook(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    shipping_method,
+    settings,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        _tax_webhook,
+        _shipping_filter_webhook,
+        order_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.base_shipping_price = zero_money(order.currency)
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+
+    # when
+    staff_api_client.post_graphql(query, variables)
+
+    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+
+    assert order_delivery.event_type == WebhookEventAsyncType.DRAFT_ORDER_UPDATED
+
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": order_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
     assert wrapped_call_order_event.called

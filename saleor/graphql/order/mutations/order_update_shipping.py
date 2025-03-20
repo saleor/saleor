@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -67,7 +69,7 @@ class OrderUpdateShipping(
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, input
     ):
-        order = cls.get_node_or_error(
+        _untyped_order = cls.get_node_or_error(
             info,
             id,
             only_type=Order,
@@ -76,9 +78,7 @@ class OrderUpdateShipping(
             ),
         )
 
-        # Below this Order is properly typed Order, instead of Model
-        if not isinstance(order, models.Order):
-            raise Exception("Received node is not Order")
+        order = cast(models.Order, _untyped_order)
 
         cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(order)
