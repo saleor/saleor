@@ -7,9 +7,7 @@ from django.core.exceptions import ValidationError
 from ....checkout import AddressType, models
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
-from ....checkout.models import CheckoutMetadata
 from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
-from ....core.db.connection import allow_writer
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import metadata_manager
@@ -518,7 +516,6 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             input["channel"] = channel
 
         instance = cls.get_instance(info, **input)
-        # data = input.get("input")
         cleaned_input = cls.clean_input(info, instance, input)
 
         instance = cls.construct_instance(instance, cleaned_input)
@@ -539,37 +536,3 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         return CheckoutCreate(
             checkout=SyncWebhookControlContext(node=checkout), created=True
         )
-
-    @classmethod
-    def post_save_action(
-        cls, info: ResolveInfo, instance: models.Checkout, cleaned_input
-    ):
-        # Write metadata in post-save action because in "save" metadata doesn't exist in
-        # cleaned_input.
-
-        metadata = cleaned_input.get("metadata", [])
-        private_metadata = cleaned_input.get("private_metadata", [])
-
-        if (not metadata) and (not private_metadata):
-            return
-
-        metadata_collection = cls.create_metadata_from_graphql_input(
-            metadata, error_field_name="metadata"
-        )
-        private_metadata_collection = cls.create_metadata_from_graphql_input(
-            private_metadata, error_field_name="private_metadata"
-        )
-
-        checkout_metadata = CheckoutMetadata.objects.get(checkout=instance)
-
-        metadata_manager.store_on_instance(
-            metadata_collection, checkout_metadata, metadata_manager.MetadataType.PUBLIC
-        )
-        metadata_manager.store_on_instance(
-            private_metadata_collection,
-            checkout_metadata,
-            metadata_manager.MetadataType.PRIVATE,
-        )
-
-        with allow_writer():
-            checkout_metadata.save()
