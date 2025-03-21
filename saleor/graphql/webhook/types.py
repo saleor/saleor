@@ -11,7 +11,6 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterConnectionField, JSONString
 from ..core.scalars import DateTime
 from ..core.types import ModelObjectType, NonNullList
@@ -159,9 +158,7 @@ class Webhook(ModelObjectType[models.Webhook]):
     events = NonNullList(
         WebhookEvent,
         description="List of webhook events.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `asyncEvents` or `syncEvents` instead."
-        ),
+        deprecation_reason="Use `asyncEvents` or `syncEvents` instead.",
         required=True,
     )
     sync_events = NonNullList(
@@ -191,10 +188,7 @@ class Webhook(ModelObjectType[models.Webhook]):
     )
     secret_key = graphene.String(
         description="Used to create a hash signature for each payload.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} As of Saleor 3.5, webhook payloads default to "
-            "signing using a verifiable JWS."
-        ),
+        deprecation_reason="As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.",
     )
     subscription_query = graphene.String(
         description="Used to define payloads for specific events."

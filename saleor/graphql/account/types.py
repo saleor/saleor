@@ -35,7 +35,7 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_319, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -354,10 +354,7 @@ class User(ModelObjectType[models.User]):
     checkout = graphene.Field(
         Checkout,
         description="Returns the last open checkout of this user.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `checkoutTokens` field to fetch the user checkouts."
-        ),
+        deprecation_reason="Use the `checkoutTokens` field to fetch the user checkouts.",
     )
     checkout_tokens = NonNullList(
         UUID,
@@ -365,7 +362,7 @@ class User(ModelObjectType[models.User]):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `checkoutIds` instead."),
+        deprecation_reason="Use `checkoutIds` instead.",
     )
     checkout_ids = NonNullList(
         graphene.ID,

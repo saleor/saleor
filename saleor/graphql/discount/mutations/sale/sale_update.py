@@ -14,7 +14,6 @@ from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import DiscountError
@@ -44,11 +43,7 @@ class SaleUpdate(DeprecatedModelMutation):
         )
 
     class Meta:
-        description = (
-            "Updates a sale."
-            + DEPRECATED_IN_3X_MUTATION
-            + " Use `promotionUpdate` mutation instead."
-        )
+        description = "Updates a sale."
         model = models.Promotion
         object_type = Sale
         return_field_name = "sale"

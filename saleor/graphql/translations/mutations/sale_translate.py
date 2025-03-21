@@ -6,7 +6,6 @@ from ....discount.error_codes import DiscountErrorCode
 from ....permission.enums import SitePermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...core.utils import from_global_id_or_error, raise_validation_error
@@ -28,11 +27,7 @@ class SaleTranslate(BaseTranslateMutation):
         )
 
     class Meta:
-        description = (
-            "Creates/updates translations for a sale."
-            + DEPRECATED_IN_3X_MUTATION
-            + " Use `PromotionTranslate` mutation instead."
-        )
+        description = "Creates/updates translations for a sale."
         model = discount_models.Promotion
         object_type = Sale
         return_field_name = "sale"

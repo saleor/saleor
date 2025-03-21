@@ -6,7 +6,7 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, DEPRECATED_IN_3X_MUTATION
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import BaseInputObjectType, Error, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -83,7 +83,7 @@ class OrderAddNote(OrderNoteAdd):
         )
 
     class Meta:
-        description = "Adds note to the order." + DEPRECATED_IN_3X_MUTATION
+        description = "Adds note to the order."
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError

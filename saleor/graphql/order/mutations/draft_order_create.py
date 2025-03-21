@@ -38,7 +38,6 @@ from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -135,7 +134,7 @@ class DraftOrderInput(BaseInputObjectType):
     voucher = graphene.ID(
         description="ID of the voucher associated with the order.",
         name="voucher",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `voucherCode` instead.",
+        deprecation_reason="Use `voucherCode` instead.",
     )
     voucher_code = graphene.String(
         description="A code of the voucher associated with the order." + ADDED_IN_318,

@@ -27,11 +27,7 @@ from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
-from ..core.descriptions import (
-    ADDED_IN_319,
-    ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
-)
+from ..core.descriptions import ADDED_IN_319, ADDED_IN_321
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.scalars import DateTime
@@ -391,7 +387,7 @@ class Manifest(BaseObjectType):
     app_url = graphene.String(description="App website rendered in the dashboard.")
     configuration_url = graphene.String(
         description="URL to iframe with the configuration for the app.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `appUrl` instead.",
+        deprecation_reason="Use `appUrl` instead.",
     )
     token_target_url = graphene.String(
         description=(
@@ -401,7 +397,7 @@ class Manifest(BaseObjectType):
     )
     data_privacy = graphene.String(
         description="Description of the data privacy defined for this app.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `dataPrivacyUrl` instead.",
+        deprecation_reason="Use `dataPrivacyUrl` instead.",
     )
     data_privacy_url = graphene.String(description="URL to the full privacy policy.")
     homepage_url = graphene.String(description="External URL to the app homepage.")
@@ -509,7 +505,7 @@ class App(ModelObjectType[models.App]):
 
     data_privacy = graphene.String(
         description="Description of the data privacy defined for this app.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `dataPrivacyUrl` instead.",
+        deprecation_reason="Use `dataPrivacyUrl` instead.",
     )
     data_privacy_url = graphene.String(
         description="URL to details about the privacy policy on the app owner page."
@@ -518,7 +514,7 @@ class App(ModelObjectType[models.App]):
     support_url = graphene.String(description="Support page for the app.")
     configuration_url = graphene.String(
         description="URL to iframe with the configuration for the app.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `appUrl` instead.",
+        deprecation_reason="Use `appUrl` instead.",
     )
     app_url = graphene.String(description="URL to iframe with the app.")
     manifest_url = graphene.String(

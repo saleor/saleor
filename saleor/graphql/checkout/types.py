@@ -44,7 +44,6 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
@@ -616,7 +615,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     )
     last_change = DateTime(
         required=True,
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `updatedAt` instead."),
+        deprecation_reason="Use `updatedAt` instead.",
     )
     user = graphene.Field(
         "saleor.graphql.account.types.User",
@@ -647,7 +646,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     note = graphene.String(
         required=True,
         description="The note for the checkout.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `customerNote` instead.",
+        deprecation_reason="Use `customerNote` instead.",
     )
     discount = graphene.Field(
         Money,
@@ -679,7 +678,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         NonNullList(ShippingMethod),
         required=True,
         description="Shipping methods that can be used with this checkout.",
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `shippingMethods` instead."),
+        deprecation_reason="Use `shippingMethods` instead.",
         webhook_events_info=[
             WebhookEventInfo(
                 type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
@@ -775,7 +774,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     shipping_method = BaseField(
         ShippingMethod,
         description="The shipping method related with checkout.",
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+        deprecation_reason="Use `deliveryMethod` instead.",
         webhook_events_info=[
             WebhookEventInfo(
                 type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,

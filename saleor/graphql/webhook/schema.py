@@ -4,7 +4,6 @@ from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ..core.fields import BaseField, JSONString, PermissionsField
 from ..core.types import NonNullList
@@ -36,10 +35,7 @@ class WebhookQueries(graphene.ObjectType):
     webhook_events = PermissionsField(
         NonNullList(WebhookEvent),
         description="List of all available webhook events.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `WebhookEventTypeAsyncEnum` and "
-            "`WebhookEventTypeSyncEnum` to get available event types."
-        ),
+        deprecation_reason="Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.",
         permissions=[AppPermission.MANAGE_APPS],
         doc_category=DOC_CATEGORY_WEBHOOKS,
     )

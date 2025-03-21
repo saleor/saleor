@@ -14,7 +14,7 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel, ChannelContext, ChannelContextType
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.context import get_database_connection_name
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.descriptions import DEFAULT_DEPRECATION_REASON, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -347,7 +347,7 @@ class ShippingMethod(BaseObjectType):
     )
     type = ShippingMethodTypeEnum(
         description="Type of the shipping method.",
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     name = graphene.String(required=True, description="Shipping method name.")
     description = JSONString(description="Shipping method description." + RICH_CONTENT)
@@ -360,12 +360,12 @@ class ShippingMethod(BaseObjectType):
     maximum_order_weight = graphene.Field(
         Weight,
         description="Maximum order weight for this shipping method.",
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     minimum_order_weight = graphene.Field(
         Weight,
         description="Minimum order weight for this shipping method.",
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     translation = TranslationField(
         ShippingMethodTranslation,

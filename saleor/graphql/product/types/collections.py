@@ -22,7 +22,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import get_database_connection_name
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -61,9 +61,7 @@ class Collection(ChannelContextType[models.Collection]):
     )
     description_json = JSONString(
         description="Description of the collection." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     products = FilterConnectionField(
         ProductCountableConnection,

@@ -23,7 +23,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -129,7 +129,7 @@ class CheckoutSettings(ObjectType):
             "Some of the `problems` can block the finalizing checkout process. "
             "The legacy flow will be removed in Saleor 4.0. "
             "The flow with `checkout.problems` will be the default one."
-            + DEPRECATED_IN_3X_FIELD
+            + DEPRECATED_IN_3X_INPUT
         ),
     )
     automatically_complete_fully_paid_checkouts = graphene.Boolean(

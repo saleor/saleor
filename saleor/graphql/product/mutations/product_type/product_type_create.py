@@ -50,7 +50,7 @@ class ProductTypeInput(BaseInputObjectType):
     weight = WeightScalar(description="Weight of the ProductType items.")
     tax_code = graphene.String(
         description=(
-            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT}. "
+            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT} "
             "Use tax classes to control the tax calculation for a product type. "
             "If taxCode is provided, Saleor will try to find a tax class with given "
             "code (codes are stored in metadata) and assign it. If no tax class is "

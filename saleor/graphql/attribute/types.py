@@ -18,7 +18,8 @@ from ..core.connection import (
 )
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    DEPRECATED_IN_3X_FIELD,
+    DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
@@ -200,7 +201,7 @@ class Attribute(ModelObjectType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     filterable_in_dashboard = graphene.Boolean(
         description=(
@@ -221,7 +222,7 @@ class Attribute(ModelObjectType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     storefront_search_position = graphene.Int(
         description=(
@@ -232,7 +233,7 @@ class Attribute(ModelObjectType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     translation = TranslationField(AttributeTranslation, type_name="attribute")
     with_choices = graphene.Boolean(
@@ -447,7 +448,7 @@ class AttributeValueInput(BaseInputObjectType):
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created. "
-            + DEPRECATED_IN_3X_FIELD
+            + DEPRECATED_IN_3X_INPUT
         ),
     )
     dropdown = AttributeValueSelectableTypeInput(

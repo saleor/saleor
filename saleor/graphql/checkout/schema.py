@@ -10,7 +10,7 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
     filter_connection_queryset,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.fields import BaseField, ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
@@ -130,9 +130,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_customer_note_update = CheckoutCustomerNoteUpdate.Field()
     checkout_email_update = CheckoutEmailUpdate.Field()
     checkout_line_delete = CheckoutLineDelete.Field(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `checkoutLinesDelete` instead."
-        )
+        deprecation_reason="Use `checkoutLinesDelete` instead."
     )
     checkout_lines_delete = CheckoutLinesDelete.Field()
     checkout_lines_add = CheckoutLinesAdd.Field()
@@ -141,9 +139,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `checkoutDeliveryMethodUpdate` instead."
-        )
+        deprecation_reason="Use `checkoutDeliveryMethodUpdate` instead."
     )
     checkout_delivery_method_update = CheckoutDeliveryMethodUpdate.Field()
     checkout_language_code_update = CheckoutLanguageCodeUpdate.Field()

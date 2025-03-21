@@ -18,7 +18,7 @@ from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_319,
-    DEPRECATED_IN_3X_FIELD,
+    DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import (
@@ -319,7 +319,7 @@ class Shop(graphene.ObjectType):
         LimitInfo,
         required=True,
         description="Resource limitations and current usage if any set for a shop",
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD}"),
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
     version = PermissionsField(
@@ -353,28 +353,19 @@ class Shop(graphene.ObjectType):
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
         description="Include taxes in prices.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use "
-            "`Channel.taxConfiguration.pricesEnteredWithTax` to determine whether "
-            "prices are entered with tax."
-        ),
+        deprecation_reason="Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.",
         required=True,
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
-            "whether to display gross or net prices."
-        ),
+        deprecation_reason="Use `Channel.taxConfiguration` to determine whether to display gross or net prices.",
         required=True,
     )
     charge_taxes_on_shipping = graphene.Boolean(
         description="Charge taxes on shipping.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `ShippingMethodType.taxClass` to determine "
-            "whether taxes are calculated for shipping methods; if a tax class is set, "
-            "the taxes will be calculated, otherwise no tax rate will be applied."
-        ),
+        deprecation_reason="Use `ShippingMethodType.taxClass` to determine "
+        "whether taxes are calculated for shipping methods; if a tax class is set, "
+        "the taxes will be calculated, otherwise no tax rate will be applied.",
         required=True,
     )
 

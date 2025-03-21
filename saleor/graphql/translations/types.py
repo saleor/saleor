@@ -24,7 +24,6 @@ from ..channel import ChannelContext
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_TYPE,
     RICH_CONTENT,
 )
@@ -162,9 +161,7 @@ class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
     attribute = graphene.Field(
         "saleor.graphql.attribute.types.Attribute",
         description="Custom attribute of a product.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
 
     class Meta:
@@ -206,9 +203,7 @@ class AttributeValueTranslatableContent(
     attribute_value = graphene.Field(
         "saleor.graphql.attribute.types.AttributeValue",
         description="Represents a value of an attribute.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
     attribute = graphene.Field(
         AttributeTranslatableContent,
@@ -281,9 +276,7 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
         description=(
             "Represents a version of a product such as different size or color."
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
     attribute_values = NonNullList(
         AttributeValueTranslatableContent,
@@ -329,9 +322,7 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
     )
     description_json = JSONString(
         description="Translated description of the product." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ProductTranslatableContent",
@@ -370,17 +361,13 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
     )
     description_json = JSONString(
         description="Description of the product." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
         description="Represents an individual item for sale in the storefront.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
     attribute_values = NonNullList(
         AttributeValueTranslatableContent,
@@ -442,9 +429,7 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     )
     description_json = JSONString(
         description="Translated description of the collection." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CollectionTranslatableContent",
@@ -482,17 +467,13 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     )
     description_json = JSONString(
         description="Description of the collection." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
         "saleor.graphql.product.types.collections.Collection",
         description="Represents a collection of products.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
 
     class Meta:
@@ -540,9 +521,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     )
     description_json = JSONString(
         description="Translated description of the category." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CategoryTranslatableContent",
@@ -583,17 +562,13 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     )
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
         "saleor.graphql.product.types.categories.Category",
         description="Represents a single category of products.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
 
     class Meta:
@@ -626,7 +601,7 @@ class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
     content = JSONString(description="Translated content of the page." + RICH_CONTENT)
     content_json = JSONString(
         description="Translated description of the page." + RICH_CONTENT,
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
+        deprecation_reason="Use the `content` field instead.",
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.PageTranslatableContent",
@@ -660,7 +635,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     content = JSONString(description="Content of the page to translate." + RICH_CONTENT)
     content_json = JSONString(
         description="Content of the page." + RICH_CONTENT,
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
+        deprecation_reason="Use the `content` field instead.",
     )
     translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(
@@ -669,9 +644,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
             "A static page that can be manually added by a shop operator "
             "through the dashboard."
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
     attribute_values = NonNullList(
         AttributeValueTranslatableContent,
@@ -760,9 +733,7 @@ class VoucherTranslatableContent(ModelObjectType[discount_models.Voucher]):
             "collections or specific products. They can be used during checkout by "
             "providing valid voucher codes."
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
 
@@ -818,9 +789,7 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
             "Sales allow creating discounts for categories, collections "
             "or products and are visible to all the customers."
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
 
@@ -894,9 +863,7 @@ class MenuItemTranslatableContent(ModelObjectType[menu_models.MenuItem]):
             "Represents a single item of the related menu. Can store categories, "
             "collection or pages."
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
     )
 
     class Meta:
@@ -967,9 +934,7 @@ class ShippingMethodTranslatableContent(
             "Shipping method are the methods you'll use to get customer's orders "
             " to them. They are directly exposed to the customers."
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Get model fields from the root level queries."
-        ),
+        deprecation_reason="Get model fields from the root level queries.",
         permissions=[
             ShippingPermissions.MANAGE_SHIPPING,
         ],
