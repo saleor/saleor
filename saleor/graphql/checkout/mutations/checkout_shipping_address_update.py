@@ -196,8 +196,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 checkout_info.delivery_method_info,
             )
 
-        update_checkout_shipping_method_if_invalid(checkout_info, lines)
-
         shipping_address_updated_fields = []
         with traced_atomic_transaction():
             shipping_address_instance.save()
@@ -208,12 +206,18 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 manager,
                 shipping_channel_listings,
             )
+
+        shipping_update_fields = update_checkout_shipping_method_if_invalid(
+            checkout_info, lines, save=False
+        )
+
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
         checkout.save(
             update_fields=shipping_address_updated_fields
             + invalidate_prices_updated_fields
+            + shipping_update_fields
         )
 
         call_checkout_info_event(

@@ -10,3 +10,17 @@ DEFAULT_ADDRESS = {
     "countryArea": "CA",
     "phone": "+12025550163",
 }
+
+
+DEFAULT_WAREHOUSE_ADDRESS = {
+    "firstName": "Saleor",
+    "lastName": "Mirumee",
+    "companyName": "Mirumee Software",
+    "streetAddress1": "2137 Cantebury Drive",
+    "streetAddress2": "",
+    "postalCode": "10013",
+    "country": "US",
+    "city": "New York",
+    "countryArea": "NY",
+    "phone": "+19179920814",
+}

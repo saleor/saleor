@@ -995,7 +995,9 @@ def get_valid_collection_points_for_checkout(
     )
 
 
-def clear_delivery_method(checkout_info: "CheckoutInfo"):
+def clear_delivery_method(
+    checkout_info: "CheckoutInfo", save: bool = True
+) -> list[str]:
     checkout = checkout_info.checkout
     checkout.collection_point = None
     checkout.shipping_method = None
@@ -1012,16 +1014,17 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
     )
 
     remove_external_shipping(checkout=checkout)
-    checkout.save(
-        update_fields=[
-            "shipping_method",
-            "collection_point",
-            "last_change",
-            "shipping_method_name",
-            "external_shipping_method_id",
-        ]
-    )
+    update_fields = [
+        "shipping_method",
+        "collection_point",
+        "last_change",
+        "shipping_method_name",
+        "external_shipping_method_id",
+    ]
+    if save:
+        checkout.save(update_fields=update_fields)
     get_checkout_metadata(checkout).save()
+    return update_fields
 
 
 def is_fully_paid(
