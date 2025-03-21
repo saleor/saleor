@@ -520,6 +520,9 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         metadata = cleaned_input.get("metadata", [])
         private_metadata = cleaned_input.get("private_metadata", [])
 
+        if (not metadata) and (not private_metadata):
+            return
+
         metadata_collection = cls.create_metadata_from_graphql_input(
             metadata, error_field_name="metadata"
         )
