@@ -23990,6 +23990,20 @@ input OrderUpdateInput @doc(category: "Orders") {
 
   """External ID of this order."""
   externalReference: String
+
+  """
+  Order public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Order private metadata.
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
