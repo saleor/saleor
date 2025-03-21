@@ -18,6 +18,7 @@ from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
+from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, OrderError
@@ -153,3 +154,8 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         return cls.success_response(instance)
+
+    @classmethod
+    def success_response(cls, order):
+        """Return a success response."""
+        return OrderUpdate(order=SyncWebhookControlContext(order))
