@@ -133,7 +133,9 @@ def test_checkout_shipping_address_with_metadata_update(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, save=False
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_shipping_address is True
@@ -196,7 +198,9 @@ def test_checkout_shipping_address_when_variant_without_listing(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, save=False
+    )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_shipping_address is True
@@ -245,7 +249,9 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
+    mocked_update_shipping_method.assert_called_once_with(
+        checkout_info, lines, save=False
+    )
     assert checkout.country == shipping_address["country"]
     assert checkout.last_change != previous_last_change
     assert checkout.save_shipping_address is True
@@ -1323,3 +1329,43 @@ def test_checkout_shipping_address_update_change_save_address_option_to_true(
     assert_address_data(checkout.shipping_address, graphql_address_data)
     assert checkout.save_shipping_address is True
     assert checkout.save_billing_address is False
+
+
+def test_checkout_shipping_address_update_when_switching_from_cc(
+    checkout_with_items,
+    app_api_client,
+    graphql_address_data_skipped_validation,
+    permission_handle_checkouts,
+    shipping_method,
+    address,
+):
+    # given
+    checkout = checkout_with_items
+    address_data = graphql_address_data_skipped_validation
+    # after switching for cc to standard shipping method - the shipping method is set
+    # and the shipping address is cleared
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.shipping_address = None
+    checkout.save(
+        update_fields=["shipping_method", "billing_address", "shipping_address"]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address

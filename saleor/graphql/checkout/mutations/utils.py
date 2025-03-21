@@ -111,13 +111,14 @@ def update_checkout_external_shipping_method_if_invalid(
 
 
 def update_checkout_shipping_method_if_invalid(
-    checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo]
+    checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo], save: bool = True
 ):
     quantity = calculate_checkout_quantity(lines)
+    update_fields = []
 
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        clear_delivery_method(checkout_info)
+        update_fields = clear_delivery_method(checkout_info, save)
 
     is_valid = clean_delivery_method(
         checkout_info=checkout_info,
@@ -125,7 +126,9 @@ def update_checkout_shipping_method_if_invalid(
     )
 
     if not is_valid:
-        clear_delivery_method(checkout_info)
+        update_fields = clear_delivery_method(checkout_info, save)
+
+    return update_fields
 
 
 def get_variants_and_total_quantities(

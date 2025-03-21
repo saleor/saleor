@@ -1015,7 +1015,9 @@ def get_valid_collection_points_for_checkout(
     )
 
 
-def clear_delivery_method(checkout_info: "CheckoutInfo"):
+def clear_delivery_method(
+    checkout_info: "CheckoutInfo", save: bool = True
+) -> list[str]:
     checkout = checkout_info.checkout
     updated_fields = remove_delivery_method_from_checkout(checkout_info.checkout)
 
@@ -1031,12 +1033,11 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
     if updated_fields:
-        checkout.save(
-            update_fields=updated_fields
-            + [
-                "last_change",
-            ]
-        )
+        updated_fields.append("last_change")
+
+    if save:
+        checkout.save(update_fields=updated_fields)
+    return updated_fields
 
 
 def is_fully_paid(
