@@ -20,10 +20,10 @@
         padding: 0;
       }
       body {
-        background: #ebf1f6;
+        background: hsla(120, 11%, 98%, 1);
       }
       a {
-        color: #056dff;
+        color: hsla(234, 96%, 56%, 1);
         text-decoration: none;
       }
       h1,
@@ -46,14 +46,16 @@
       }
 
       .btn {
-        border: none;
+        border: 1px solid hsla(210, 15%, 87%, 1);
         border-radius: 16px;
         box-shadow: 0 0 0 0 rgba(40, 35, 74, 0.1);
         cursor: pointer;
         transition: 200ms;
+        background: hsla(0, 0%, 100%, 1);
       }
       .btn:hover {
         box-shadow: 0 0 20px 7px rgba(40, 35, 74, 0.1);
+        color: #000;
       }
 
       .container {
@@ -130,7 +132,11 @@
         transition: 200ms;
       }
       .tile:hover .tile__label {
-        color: #056dff;
+        color: #000;
+      }
+
+      .footer {
+        line-height: 1.5;
       }
 
       @media (max-width: 1720px) {
@@ -179,7 +185,8 @@
                   <span class="tile__label" href="#">Dashboard</span>
                 </button>
               </a>
-              {% endif %} {% if storefront_url %}
+              {% endif %}
+              {% if storefront_url %}
               <a href="{{storefront_url}}" target="_blank">
                 <button class="btn tile">
                   {% include "home/images/storefront.svg" %}
@@ -197,7 +204,7 @@
             </div>
 
             {% if not storefront_url and not dashboard_url %}
-            <p>
+            <p class="footer">
               It looks like you're only running the Saleor core. If you're
               looking for an easy way to run all services locally, check out
               <a
