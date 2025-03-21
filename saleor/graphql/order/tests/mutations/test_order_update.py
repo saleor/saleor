@@ -13,7 +13,7 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_UPDATE_MUTATION = """
     mutation orderUpdate(
-        $id: ID!, $email: String, $address: AddressInput, $externalReference: String
+        $id: ID!, $email: String, $address: AddressInput, $externalReference: String, $privateMetadata: [MetadataInput!], $metadata: [MetadataInput!]
     ) {
         orderUpdate(
             id: $id,
@@ -21,7 +21,9 @@ ORDER_UPDATE_MUTATION = """
                 userEmail: $email,
                 externalReference: $externalReference,
                 shippingAddress: $address,
-                billingAddress: $address
+                billingAddress: $address,
+                metadata: $metadata,
+                privateMetadata: $privateMetadata,
                 }
             ) {
             errors {
@@ -31,6 +33,8 @@ ORDER_UPDATE_MUTATION = """
             order {
                 userEmail
                 externalReference
+                metadata {key, value}
+                privateMetadata {key, value}
             }
         }
     }
@@ -606,20 +610,14 @@ def test_order_update_only_metadata(
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
-    order.user = None
+    order_with_lines.metadata = {}
     order.save()
-    email = "not_default@example.com"
-    assert not order.user_email == email
-    assert not order.shipping_address.first_name == graphql_address_data["firstName"]
-    assert not order.billing_address.last_name == graphql_address_data["lastName"]
+
     order_id = graphene.Node.to_global_id("Order", order.id)
-    external_reference = "test-ext-ref"
 
     variables = {
         "id": order_id,
-        "email": email,
-        "address": graphql_address_data,
-        "externalReference": external_reference,
+        "metadata": [{"key": "meta key", "value": "meta value"}],
     }
 
     # when
@@ -629,20 +627,9 @@ def test_order_update_only_metadata(
     # then
     assert not content["data"]["orderUpdate"]["errors"]
     data = content["data"]["orderUpdate"]["order"]
-    assert data["userEmail"] == email
-    assert data["externalReference"] == external_reference
 
     order.refresh_from_db()
-    order.shipping_address.refresh_from_db()
-    order.billing_address.refresh_from_db()
-    assert order.shipping_address.first_name == graphql_address_data["firstName"]
-    assert order.billing_address.last_name == graphql_address_data["lastName"]
-    assert order.shipping_address.validation_skipped is False
-    assert order.billing_address.validation_skipped is False
-    assert order.draft_save_billing_address is None
-    assert order.draft_save_shipping_address is None
-    assert order.user_email == email
-    assert order.user is None
-    assert order.status == OrderStatus.UNFULFILLED
-    assert order.external_reference == external_reference
+
+    assert order.metadata == {"meta key": "meta value"}
+
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
