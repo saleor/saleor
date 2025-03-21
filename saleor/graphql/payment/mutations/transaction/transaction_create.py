@@ -32,7 +32,7 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
 from ...types import TransactionItem
@@ -57,12 +57,14 @@ class TransactionCreateInput(BaseInputObjectType):
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="Payment public metadata.",
+        description="Payment public metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="Payment private metadata.",
+        description="Payment private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
     external_url = graphene.String(

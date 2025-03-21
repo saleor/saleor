@@ -7288,7 +7288,11 @@ input AddressInput {
   """
   phone: String
 
-  """Address public metadata."""
+  """
+  Address public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
   """
@@ -15398,10 +15402,20 @@ type Mutation {
     """The token of the transaction. One of field id or token is required."""
     token: UUID
 
-    """Fields required to update the transaction metadata."""
+    """
+    Fields required to update the transaction metadata. Can be accessed without permissions.
+    
+    Warning: never store sensitive information, including financial data such as credit card details.
+    """
     transactionMetadata: [MetadataInput!]
 
-    """Fields required to update the transaction private metadata."""
+    """
+    Fields required to update the transaction private metadata.
+    
+    Requires staff or app authorization to the object to modify and access.
+    
+    Warning: never store sensitive information, including financial data such as credit card details.
+    """
     transactionPrivateMetadata: [MetadataInput!]
 
     """Current status of the event to report."""
@@ -16199,7 +16213,9 @@ type Mutation {
   ): DeletePrivateMetadata
 
   """
-  Updates metadata of an object. To use it, you need to have access to the modified object.
+  Updates metadata of an object.Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   updateMetadata(
     """ID or token (for Order and Checkout) of an object to update."""
@@ -16210,7 +16226,9 @@ type Mutation {
   ): UpdateMetadata
 
   """
-  Updates private metadata of an object. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
+  Updates private metadata of an object. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   updatePrivateMetadata(
     """ID or token (for Order and Checkout) of an object to update."""
@@ -17153,7 +17171,11 @@ type Mutation {
     """The checkout's ID."""
     id: ID
 
-    """Fields required to update the checkout metadata."""
+    """
+    Fields required to update the checkout metadata. Can be accessed without permissions.
+    
+    Warning: never store sensitive information, including financial data such as credit card details.
+    """
     metadata: [MetadataInput!]
 
     """Client-side generated data required to finalize the payment."""
@@ -17496,10 +17518,18 @@ type Mutation {
     """ID of a checkout that will be converted to an order."""
     id: ID!
 
-    """Fields required to update the checkout metadata."""
+    """
+    Fields required to update the checkout metadata. Can be accessed without permissions.
+    
+    Warning: never store sensitive information, including financial data such as credit card details.
+    """
     metadata: [MetadataInput!]
 
-    """Fields required to update the checkout private metadata."""
+    """
+    Fields required to update the checkout private metadata. Requires staff or app authorization to the object to modify and access.
+    
+    Warning: never store sensitive information, including financial data such as credit card details.
+    """
     privateMetadata: [MetadataInput!]
 
     """
@@ -19503,10 +19533,18 @@ input ShopSettingsInput {
   """Enable possibility to login without account confirmation."""
   allowLoginWithoutConfirmation: Boolean
 
-  """Shop public metadata."""
+  """
+  Shop public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Shop private metadata."""
+  """
+  Shop private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """Include taxes in prices."""
@@ -20121,10 +20159,18 @@ input CategoryInput @doc(category: "Products") {
   """Alt text for a product media."""
   backgroundImageAlt: String
 
-  """Fields required to update the category metadata."""
+  """
+  Fields required to update the category metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the category private metadata."""
+  """
+  Fields required to update the category private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 }
 
@@ -20278,10 +20324,18 @@ input CollectionCreateInput @doc(category: "Products") {
   """Publication date. ISO 8601 standard."""
   publicationDate: Date @deprecated
 
-  """Fields required to update the collection metadata."""
+  """
+  Fields required to update the collection metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the collection private metadata."""
+  """
+  Fields required to update the collection private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """List of products to be added to the collection."""
@@ -20385,10 +20439,18 @@ input CollectionInput @doc(category: "Products") {
   """Publication date. ISO 8601 standard."""
   publicationDate: Date @deprecated
 
-  """Fields required to update the collection metadata."""
+  """
+  Fields required to update the collection metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the collection private metadata."""
+  """
+  Fields required to update the collection private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 }
 
@@ -20513,10 +20575,18 @@ input ProductCreateInput @doc(category: "Products") {
   """Defines the product rating value."""
   rating: Float
 
-  """Fields required to update the product metadata."""
+  """
+  Fields required to update the product metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product private metadata."""
+  """
+  Fields required to update the product private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product."""
@@ -20714,10 +20784,18 @@ input ProductBulkCreateInput @doc(category: "Products") {
   """Defines the product rating value."""
   rating: Float
 
-  """Fields required to update the product metadata."""
+  """
+  Fields required to update the product metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product private metadata."""
+  """
+  Fields required to update the product private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product."""
@@ -20799,10 +20877,18 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   """
   quantityLimitPerCustomer: Int
 
-  """Fields required to update the product variant metadata."""
+  """
+  Fields required to update the product variant metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product variant private metadata."""
+  """
+  Fields required to update the product variant private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product variant."""
@@ -20969,10 +21055,18 @@ input ProductInput @doc(category: "Products") {
   """Defines the product rating value."""
   rating: Float
 
-  """Fields required to update the product metadata."""
+  """
+  Fields required to update the product metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product private metadata."""
+  """
+  Fields required to update the product private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product."""
@@ -21374,10 +21468,18 @@ input DigitalContentUploadInput @doc(category: "Products") {
   """Overwrite default automatic_fulfillment setting for variant."""
   automaticFulfillment: Boolean
 
-  """Fields required to update the digital content metadata."""
+  """
+  Fields required to update the digital content metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the digital content private metadata."""
+  """
+  Fields required to update the digital content private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """Represents an file in a multipart request."""
@@ -21424,10 +21526,18 @@ input DigitalContentInput @doc(category: "Products") {
   """Overwrite default automatic_fulfillment setting for variant."""
   automaticFulfillment: Boolean
 
-  """Fields required to update the digital content metadata."""
+  """
+  Fields required to update the digital content metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the digital content private metadata."""
+  """
+  Fields required to update the digital content private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 }
 
@@ -21484,10 +21594,18 @@ input ProductVariantCreateInput @doc(category: "Products") {
   """
   quantityLimitPerCustomer: Int
 
-  """Fields required to update the product variant metadata."""
+  """
+  Fields required to update the product variant metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product variant private metadata."""
+  """
+  Fields required to update the product variant private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product variant."""
@@ -21658,10 +21776,18 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   """
   quantityLimitPerCustomer: Int
 
-  """Fields required to update the product variant metadata."""
+  """
+  Fields required to update the product variant metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product variant private metadata."""
+  """
+  Fields required to update the product variant private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product variant."""
@@ -21853,10 +21979,18 @@ input ProductVariantInput @doc(category: "Products") {
   """
   quantityLimitPerCustomer: Int
 
-  """Fields required to update the product variant metadata."""
+  """
+  Fields required to update the product variant metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the product variant private metadata."""
+  """
+  Fields required to update the product variant private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """External ID of this product variant."""
@@ -22203,10 +22337,18 @@ input TransactionCreateInput @doc(category: "Payments") {
   """Amount canceled by this transaction."""
   amountCanceled: MoneyInput
 
-  """Payment public metadata."""
+  """
+  Payment public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Payment private metadata."""
+  """
+  Payment private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """
@@ -22280,10 +22422,18 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """Amount canceled by this transaction."""
   amountCanceled: MoneyInput
 
-  """Payment public metadata."""
+  """
+  Payment public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Payment private metadata."""
+  """
+  Payment private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """
@@ -23114,16 +23264,20 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   externalReference: String
 
   """
-  Order public metadata.
+  Order public metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   metadata: [MetadataInput!]
 
   """
-  Order private metadata.
+  Order private metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
 
@@ -23253,16 +23407,20 @@ input DraftOrderInput @doc(category: "Orders") {
   externalReference: String
 
   """
-  Order public metadata.
+  Order public metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   metadata: [MetadataInput!]
 
   """
-  Order private metadata.
+  Order private metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
 }
@@ -24116,10 +24274,18 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """Currency code."""
   currency: String!
 
-  """Metadata of the order."""
+  """
+  Metadata of the order. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Private metadata of the order."""
+  """
+  Private metadata of the order. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """Note about customer."""
@@ -24273,10 +24439,18 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!
 
-  """Metadata of the order line."""
+  """
+  Metadata of the order line. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Private metadata of the order line."""
+  """
+  Private metadata of the order line. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """Tax rate of the order line."""
@@ -24288,10 +24462,18 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The name of the tax class."""
   taxClassName: String
 
-  """Metadata of the tax class."""
+  """
+  Metadata of the tax class. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   taxClassMetadata: [MetadataInput!]
 
-  """Private metadata of the tax class."""
+  """
+  Private metadata of the tax class. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   taxClassPrivateMetadata: [MetadataInput!]
 }
 
@@ -24328,10 +24510,18 @@ input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
   """The name of the tax class."""
   shippingTaxClassName: String
 
-  """Metadata of the tax class."""
+  """
+  Metadata of the tax class. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   shippingTaxClassMetadata: [MetadataInput!]
 
-  """Private metadata of the tax class."""
+  """
+  Private metadata of the tax class. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   shippingTaxClassPrivateMetadata: [MetadataInput!]
 }
 
@@ -24373,10 +24563,18 @@ input OrderBulkCreateInvoiceInput @doc(category: "Orders") {
   """URL of the invoice to download."""
   url: String
 
-  """Metadata of the invoice."""
+  """
+  Metadata of the invoice. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Private metadata of the invoice."""
+  """
+  Private metadata of the invoice. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 }
 
@@ -24433,7 +24631,9 @@ type DeletePrivateMetadata {
 }
 
 """
-Updates metadata of an object. To use it, you need to have access to the modified object.
+Updates metadata of an object.Requires staff or app authorization to the object to modify and access.
+
+Warning: never store sensitive information, including financial data such as credit card details.
 """
 type UpdateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -24442,7 +24642,9 @@ type UpdateMetadata {
 }
 
 """
-Updates private metadata of an object. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
+Updates private metadata of an object. Requires staff or app authorization to the object to modify and access.
+
+Warning: never store sensitive information, including financial data such as credit card details.
 """
 type UpdatePrivateMetadata {
   metadataErrors: [MetadataError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -24779,10 +24981,18 @@ input InvoiceCreateInput @doc(category: "Orders") {
   """URL of an invoice to download."""
   url: String!
 
-  """Fields required to update the invoice metadata."""
+  """
+  Fields required to update the invoice metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the invoice private metadata."""
+  """
+  Fields required to update the invoice private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 }
 
@@ -24815,10 +25025,18 @@ input UpdateInvoiceInput @doc(category: "Orders") {
   """URL of an invoice to download."""
   url: String
 
-  """Fields required to update the invoice metadata."""
+  """
+  Fields required to update the invoice metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the invoice private metadata."""
+  """
+  Fields required to update the invoice private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 }
 
@@ -24902,16 +25120,20 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   expiryDate: Date
 
   """
-  Gift Card public metadata.
+  Gift Card public metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   metadata: [MetadataInput!]
 
   """
-  Gift Card private metadata.
+  Gift Card private metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
 
@@ -24999,16 +25221,20 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
   expiryDate: Date
 
   """
-  Gift Card public metadata.
+  Gift Card public metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   metadata: [MetadataInput!]
 
   """
-  Gift Card private metadata.
+  Gift Card private metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
 
@@ -26654,7 +26880,11 @@ input CheckoutLineInput @doc(category: "Checkout") {
   """
   forceNewLine: Boolean = false
 
-  """Fields required to update the object's metadata."""
+  """
+  Fields required to update the object's metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 }
 
@@ -26897,7 +27127,11 @@ input PaymentInput @doc(category: "Payments") {
   """Payment store type."""
   storePaymentMethod: StorePaymentMethodEnum = NONE
 
-  """User public metadata."""
+  """
+  User public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 }
 
@@ -27088,10 +27322,18 @@ input ChannelCreateInput @doc(category: "Channels") {
   """The channel order settings"""
   orderSettings: OrderSettingsInput
 
-  """Channel public metadata."""
+  """
+  Channel public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Channel private metadata."""
+  """
+  Channel private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """The channel checkout settings"""
@@ -27231,10 +27473,18 @@ input ChannelUpdateInput @doc(category: "Channels") {
   """The channel order settings"""
   orderSettings: OrderSettingsInput
 
-  """Channel public metadata."""
+  """
+  Channel public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Channel private metadata."""
+  """
+  Channel private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """The channel checkout settings"""
@@ -28664,7 +28914,11 @@ input AccountRegisterInput @doc(category: "Users") {
   """
   redirectUrl: String
 
-  """User public metadata."""
+  """
+  User public metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
   """
@@ -28705,7 +28959,11 @@ input AccountInput @doc(category: "Users") {
   """Shipping address of the customer."""
   defaultShippingAddress: AddressInput
 
-  """Fields required to update the user metadata."""
+  """
+  Fields required to update the user metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 }
 
@@ -28839,10 +29097,18 @@ input UserCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """Fields required to update the user metadata."""
+  """
+  Fields required to update the user metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the user private metadata."""
+  """
+  Fields required to update the user private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """User language code."""
@@ -28902,10 +29168,18 @@ input CustomerInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """Fields required to update the user metadata."""
+  """
+  Fields required to update the user metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the user private metadata."""
+  """
+  Fields required to update the user private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """User language code."""
@@ -29066,10 +29340,18 @@ input StaffCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """Fields required to update the user metadata."""
+  """
+  Fields required to update the user metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the user private metadata."""
+  """
+  Fields required to update the user private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """List of permission group IDs to which user should be assigned."""
@@ -29112,10 +29394,18 @@ input StaffUpdateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """Fields required to update the user metadata."""
+  """
+  Fields required to update the user metadata. Can be accessed without permissions.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   metadata: [MetadataInput!]
 
-  """Fields required to update the user private metadata."""
+  """
+  Fields required to update the user private metadata. Requires staff or app authorization to the object to modify and access.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
   privateMetadata: [MetadataInput!]
 
   """List of permission group IDs to which user should be assigned."""

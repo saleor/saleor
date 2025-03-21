@@ -10,7 +10,7 @@ from promise import Promise
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...graphql.meta.inputs import MetadataInput
+from ...graphql.meta.inputs import MetadataInput, MetadataInputDescription
 from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
@@ -92,7 +92,9 @@ class AddressInput(BaseInputObjectType):
     )
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="Address public metadata.",
+        description=(
+            f"Address public metadata. {MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     skip_validation = graphene.Boolean(
