@@ -64,8 +64,8 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
-        support_meta_field = (True,)
-        support_private_meta_field = (True,)
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -77,6 +77,8 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             "shipping_address",
             "user_email",
             "external_reference",
+            "metadata",
+            "private_metadata",
         ]
         cleaned_input = {}
         for key in draft_order_cleaned_input:

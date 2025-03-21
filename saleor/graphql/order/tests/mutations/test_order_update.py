@@ -611,6 +611,7 @@ def test_order_update_only_metadata(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
     order.save()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -626,10 +627,83 @@ def test_order_update_only_metadata(
 
     # then
     assert not content["data"]["orderUpdate"]["errors"]
-    data = content["data"]["orderUpdate"]["order"]
 
     order.refresh_from_db()
 
     assert order.metadata == {"meta key": "meta value"}
+
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_only_private_metadata(
+    order_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
+    order.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "privateMetadata": [{"key": "meta key", "value": "meta value"}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    order.refresh_from_db()
+
+    assert order.private_metadata == {"meta key": "meta value"}
+
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_public_and_private_metadata(
+    order_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
+    order.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "privateMetadata": [{"key": "meta key", "value": "meta value"}],
+        "metadata": [{"key": "meta key", "value": "meta value"}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    order.refresh_from_db()
+
+    assert order.metadata == {"meta key": "meta value"}
+    assert order.private_metadata == {"meta key": "meta value"}
 
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
