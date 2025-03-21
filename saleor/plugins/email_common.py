@@ -120,6 +120,8 @@ DEFAULT_EMAIL_CONFIG_STRUCTURE = {
     },
 }
 
+REQUIRED_EMAIL_CONFIG_FIELDS = ("host", "port", "sender_address")
+
 
 def format_address(this, address, include_phone=True, inline=False, latin=False):
     address["name"] = f"{address.get('first_name', '')} {address.get('last_name', '')}"
@@ -297,7 +299,7 @@ def validate_default_email_configuration(
     )
 
     errors = {}
-    for field in ("host", "port", "sender_address"):
+    for field in REQUIRED_EMAIL_CONFIG_FIELDS:
         if not getattr(config, field):
             errors[field] = ValidationError(
                 f"Missing {field.replace('_', ' ')} value.",
