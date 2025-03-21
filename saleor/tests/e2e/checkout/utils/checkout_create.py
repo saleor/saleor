@@ -1,7 +1,9 @@
 from ... import DEFAULT_ADDRESS
+from ...account.utils.fragments import ADDRESS_FRAGMENT
 from ...utils import get_graphql_content
 
-CHECKOUT_CREATE_MUTATION = """
+CHECKOUT_CREATE_MUTATION = (
+    """
 mutation CreateCheckout($input: CheckoutCreateInput!) {
   checkoutCreate(input: $input) {
     errors {
@@ -47,14 +49,10 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       created
       isShippingRequired
       billingAddress {
-        country {
-          code
-        }
+        ...Address
       }
       shippingAddress {
-        country {
-          code
-        }
+        ...Address
       }
       shippingMethods {
         id
@@ -116,6 +114,8 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
   }
 }
 """
+    + ADDRESS_FRAGMENT
+)
 
 
 def raw_checkout_create(
