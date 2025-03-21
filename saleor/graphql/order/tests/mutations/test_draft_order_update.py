@@ -109,6 +109,10 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         }
                     }
                     discounts {
+                        total {
+                            amount
+                            currency
+                        }
                         amount {
                             amount
                             currency
@@ -141,6 +145,17 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         unitDiscountType
                         unitDiscountValue
                         isGift
+                        discounts{
+                            valueType
+                            value
+                            reason
+                            unit{
+                                amount
+                            }
+                            total{
+                                amount
+                            }
+                        }
                     }
                     shippingPrice {
                         gross {
@@ -264,11 +279,12 @@ def test_draft_order_update_with_voucher_entire_order(
     )
 
     assert len(data["order"]["discounts"]) == 1
-    assert (
-        data["order"]["discounts"][0]["amount"]["amount"]
-        == voucher_listing.discount_value
-    )
-    assert data["order"]["discounts"][0]["amount"]["currency"] == currency
+    discount = data["order"]["discounts"][0]
+    assert discount["amount"]["amount"] == voucher_listing.discount_value
+    assert discount["amount"]["currency"] == currency
+
+    assert discount["total"]["amount"] == voucher_listing.discount_value
+    assert discount["total"]["currency"] == currency
 
     assert not data["errors"]
     order.refresh_from_db()
@@ -355,6 +371,10 @@ def test_draft_order_update_with_voucher_specific_product(
     )
     lines_data = data["order"]["lines"]
     discounted_line_data, line_1_data = lines_data
+
+    expected_discount_reason = f"Voucher code: {code}"
+    expected_unit_discount = discount_amount / discounted_line.quantity
+    expected_total_discount = discount_amount
     assert (
         discounted_line_data["unitPrice"]["net"]["amount"]
         == discounted_variant_total / discounted_line.quantity
@@ -362,14 +382,20 @@ def test_draft_order_update_with_voucher_specific_product(
     assert (
         discounted_line_data["totalPrice"]["net"]["amount"] == discounted_variant_total
     )
-    assert (
-        discounted_line_data["unitDiscount"]["amount"]
-        == discount_amount / discounted_line.quantity
-    )
+    assert discounted_line_data["unitDiscount"]["amount"] == expected_unit_discount
     assert (
         discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
     )
-    assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
+    assert discounted_line_data["unitDiscountReason"] == expected_discount_reason
+
+    assigned_discount_objects = discounted_line_data["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == voucher.discount_value_type.upper()
+    assert assigned_discount["unit"]["amount"] == expected_unit_discount
+    assert assigned_discount["total"]["amount"] == expected_total_discount
+    assert assigned_discount["value"] == voucher.channel_listings.get().discount_value
 
     line_1_total = line_1.undiscounted_base_unit_price_amount * line_1.quantity
     assert line_1_data["unitPrice"]["net"]["amount"] == line_1_total / line_1.quantity
@@ -377,6 +403,7 @@ def test_draft_order_update_with_voucher_specific_product(
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
     assert line_1_data["unitDiscountReason"] is None
+    assert len(line_1_data["discounts"]) == 0
 
     order.refresh_from_db()
     assert order.voucher_code == voucher.code
@@ -451,19 +478,41 @@ def test_draft_order_update_with_voucher_apply_once_per_order(
     )
     lines_data = data["order"]["lines"]
     discounted_line_data, line_1_data = lines_data
+
+    expected_discount_reason = f"Voucher code: {code}"
+    expected_total_discount = discount_amount
+    expected_unit_discount = quantize_price(
+        Decimal(discount_amount / discounted_line.quantity), order.currency
+    )
+
     assert discounted_line_data["unitPrice"]["net"]["amount"] == float(
         round(discounted_variant_total / discounted_line.quantity, 2)
     )
     assert (
         discounted_line_data["totalPrice"]["net"]["amount"] == discounted_variant_total
     )
-    assert discounted_line_data["unitDiscount"]["amount"] == float(
-        round(discount_amount / discounted_line.quantity, 2)
+    assert (
+        quantize_price(
+            Decimal(discounted_line_data["unitDiscount"]["amount"]), order.currency
+        )
+        == expected_unit_discount
     )
     assert (
         discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
     )
-    assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
+    assert discounted_line_data["unitDiscountReason"] == expected_discount_reason
+
+    assigned_discount_objects = discounted_line_data["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == voucher.discount_value_type.upper()
+    assert (
+        quantize_price(Decimal(assigned_discount["unit"]["amount"]), order.currency)
+        == expected_unit_discount
+    )
+    assert assigned_discount["total"]["amount"] == expected_total_discount
+    assert assigned_discount["value"] == voucher.channel_listings.get().discount_value
 
     line_1_total = line_1.undiscounted_base_unit_price_amount * line_1.quantity
     assert line_1_data["unitPrice"]["net"]["amount"] == line_1_total / line_1.quantity
@@ -471,6 +520,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order(
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
     assert line_1_data["unitDiscountReason"] is None
+    assert len(line_1_data["discounts"]) == 0
 
     order.refresh_from_db()
     assert order.voucher_code == voucher.code
@@ -1993,10 +2043,12 @@ def test_draft_order_update_order_promotion(
     order = content["data"]["draftOrderUpdate"]["order"]
     assert len(order["discounts"]) == 1
     discount_amount = reward_value / 100 * (undiscounted_total - shipping_price)
-    assert order["discounts"][0]["amount"]["amount"] == discount_amount
-    assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
-    assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()
-    assert order["discounts"][0]["valueType"] == RewardValueType.PERCENTAGE.upper()
+    discount = order["discounts"][0]
+    assert discount["amount"]["amount"] == discount_amount
+    assert discount["total"]["amount"] == discount_amount
+    assert discount["reason"] == f"Promotion: {promotion_id}"
+    assert discount["type"] == DiscountType.ORDER_PROMOTION.upper()
+    assert discount["valueType"] == RewardValueType.PERCENTAGE.upper()
 
     assert (
         order["subtotal"]["net"]["amount"]
@@ -2048,11 +2100,22 @@ def test_draft_order_update_gift_promotion(
     assert len(lines) == 3
     gift_line = [line for line in lines if line["isGift"]][0]
 
+    expected_discount_reason = f"Promotion: {promotion_id}"
+
     assert gift_line["totalPrice"]["net"]["amount"] == 0.00
     assert gift_line["unitDiscount"]["amount"] == gift_price
-    assert gift_line["unitDiscountReason"] == f"Promotion: {promotion_id}"
+    assert gift_line["unitDiscountReason"] == expected_discount_reason
     assert gift_line["unitDiscountType"] == RewardValueType.FIXED.upper()
     assert gift_line["unitDiscountValue"] == gift_price
+
+    assigned_discount_objects = gift_line["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == RewardValueType.FIXED.upper()
+    assert assigned_discount["total"]["amount"] == gift_price
+    assert assigned_discount["unit"]["amount"] == gift_price
+    assert assigned_discount["value"] == gift_price
 
     assert (
         order["subtotal"]["net"]["amount"]
