@@ -12,7 +12,7 @@ from ...core.context import disallow_replica_in_context
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
 
@@ -40,12 +40,14 @@ class DigitalContentInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the digital content metadata."),
+        description="Fields required to update the digital content metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the digital content private metadata."),
+        description="Fields required to update the digital content private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 

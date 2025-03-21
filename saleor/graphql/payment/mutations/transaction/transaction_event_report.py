@@ -41,7 +41,7 @@ from ....core.types import NonNullList
 from ....core.types import common as common_types
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_one_of_args_is_in_mutation
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 from ...types import TransactionEvent, TransactionItem
@@ -122,12 +122,14 @@ class TransactionEventReport(DeprecatedModelMutation):
         )
         transaction_metadata = NonNullList(
             MetadataInput,
-            description=("Fields required to update the transaction metadata."),
+            description="Fields required to update the transaction metadata. "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
             required=False,
         )
         transaction_private_metadata = NonNullList(
             MetadataInput,
-            description=("Fields required to update the transaction private metadata."),
+            description="Fields required to update the transaction private metadata."
+            f"\n\n{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
             required=False,
         )
 

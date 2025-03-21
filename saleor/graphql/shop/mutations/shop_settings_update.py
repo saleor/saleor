@@ -14,7 +14,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Shop
@@ -81,12 +81,14 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description="Shop public metadata.",
+        description="Shop public metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description="Shop private metadata.",
+        description="Shop private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
     # deprecated

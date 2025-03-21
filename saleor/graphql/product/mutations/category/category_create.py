@@ -19,7 +19,7 @@ from ....core.types import (
 )
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 
@@ -33,12 +33,14 @@ class CategoryInput(BaseInputObjectType):
     background_image_alt = graphene.String(description="Alt text for a product media.")
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the category metadata."),
+        description="Fields required to update the category metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the category private metadata."),
+        description="Fields required to update the category private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 

@@ -43,7 +43,7 @@ from ...core.types import (
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
 from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
@@ -137,12 +137,14 @@ class ProductBulkCreateInput(ProductCreateInput):
     rating = graphene.Float(description="Defines the product rating value.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the product metadata.",
+        description="Fields required to update the product metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the product private metadata."),
+        description="Fields required to update the product private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
     external_reference = graphene.String(

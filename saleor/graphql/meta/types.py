@@ -46,31 +46,6 @@ def _get_metadata_instance(
     return root
 
 
-class MetadataDescription:
-    PRIVATE_METADATA = (
-        "List of private metadata items. Requires staff permissions to access."
-    )
-    PRIVATE_METAFIELD = (
-        "A single key from private metadata. "
-        "Requires staff permissions to access.\n\n"
-        "Tip: Use GraphQL aliases to fetch multiple keys."
-    )
-    PRIVATE_METAFIELDS = (
-        "Private metadata. Requires staff permissions to access. "
-        "Use `keys` to control which fields you want to include. "
-        "The default is to include everything."
-    )
-    METADATA = "List of public metadata items. Can be accessed without permissions."
-    METAFIELD = (
-        "A single key from public metadata.\n\n"
-        "Tip: Use GraphQL aliases to fetch multiple keys."
-    )
-    METAFIELDS = (
-        "Public metadata. Use `keys` to control which fields you want to include. "
-        "The default is to include everything."
-    )
-
-
 class ObjectWithMetadata(graphene.Interface):
     private_metadata = NonNullList(
         MetadataItem,
