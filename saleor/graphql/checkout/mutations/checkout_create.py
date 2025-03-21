@@ -538,7 +538,5 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             metadata_manager.MetadataType.PRIVATE,
         )
 
-        checkout_metadata.save()
-
         with allow_writer():
             checkout_metadata.save()
