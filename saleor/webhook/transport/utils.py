@@ -18,6 +18,7 @@ from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db.models import Count
 from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests import RequestException
@@ -62,6 +63,12 @@ class WebhookSchemes(str, Enum):
     HTTPS = "https"
     AWS_SQS = "awssqs"
     GOOGLE_CLOUD_PUBSUB = "gcpubsub"
+
+
+@dataclass
+class EventDeliveryWithAttemptCount:
+    delivery: "EventDelivery"
+    count: int
 
 
 @dataclass
@@ -408,6 +415,27 @@ def get_delivery_for_webhook(
     if not delivery and event_delivery_id not in inactive_delivery_ids:
         not_found = True
     return delivery, not_found
+
+
+def get_deliveries_for_app(
+    app_id, batch_size=settings.WEBHOOK_ASYNC_BATCH_SIZE
+) -> dict[int, "EventDeliveryWithAttemptCount"]:
+    deliveries = (
+        EventDelivery.objects.select_related("payload", "webhook__app")
+        .filter(webhook__app_id=app_id, status=EventDeliveryStatus.PENDING)
+        .order_by("created_at")
+        .annotate(
+            attempts_count=Count("attempts", distinct=True),
+        )[:batch_size]
+    )
+
+    return {
+        delivery.pk: EventDeliveryWithAttemptCount(
+            delivery=delivery,
+            count=delivery.attempts_count,  # type: ignore  # noqa: PGH003
+        )
+        for delivery in deliveries
+    }
 
 
 def get_multiple_deliveries_for_webhooks(

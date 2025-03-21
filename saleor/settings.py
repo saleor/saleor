@@ -1011,3 +1011,6 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
 
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
+
+# number of webhooks to be processed in a single batch per app
+WEBHOOK_ASYNC_BATCH_SIZE = 5
