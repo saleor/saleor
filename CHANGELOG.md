@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Queries `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to fetch shipping methods (`SHIPPING_LIST_METHODS_FOR_CHECKOUT`) or to filter the available shipping methods (`CHECKOUT_FILTER_SHIPPING_METHODS`) - #17387 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to calculate taxes: the `ORDER_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17421 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to filter the available shipping methods (`ORDER_FILTER_SHIPPING_METHODS`) - #17425 by @korycins
+- Drop `change_user_address` method from plugin manager - #17495 by @IKarbowiak
 
 ### GraphQL API
 
