@@ -290,12 +290,6 @@ def _create_line_for_order(
     translated_product_name = products_translation.get(product.id, "")
     translated_variant_name = variants_translation.get(variant.id, "")
 
-    if translated_product_name == product_name:
-        translated_product_name = ""
-
-    if translated_variant_name == variant_name:
-        translated_variant_name = ""
-
     # the price with sale and discounts applied - base price that is used for
     # total price calculation
     base_unit_price = calculate_base_line_unit_price(line_info=checkout_line_info)
