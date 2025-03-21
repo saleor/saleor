@@ -334,6 +334,10 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
     def clean_input(cls, info: ResolveInfo, instance: models.Checkout, data, **kwargs):
         user = info.context.user
         channel = data.pop("channel")
+
+        metadata_list: list[MetadataInput] = data.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = data.pop("private_metadata", None)
+
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         can_set_private_metadata = cls.check_permissions(
@@ -344,12 +348,21 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             ],
         )
 
-        trying_to_set_private_metadata = cleaned_input.get("private_metadata")
+        trying_to_set_private_metadata = private_metadata_list is not None
 
         if trying_to_set_private_metadata and (not can_set_private_metadata):
             raise PermissionDenied(
                 "You need MANAGE_CHECKOUTS or HANDLE_CHECKOUTS permission to set privateMetadata"
             )
+
+        cleaned_input["metadata_collection"] = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        cleaned_input["private_metadata_collection"] = (
+            cls.create_metadata_from_graphql_input(
+                private_metadata_list, error_field_name="private_metadata"
+            )
+        )
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
@@ -479,7 +492,11 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
                 instance.billing_address = billing_address.get_copy()
 
             instance.save()
-            create_checkout_metadata(instance)
+            create_checkout_metadata(
+                instance,
+                metadata=cleaned_input.get("metadata_collection"),
+                private_metadata=cleaned_input.get("private_metadata_collection"),
+            )
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
@@ -499,21 +516,34 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         )
         if channel:
             input["channel"] = channel
-        response = super().perform_mutation(_root, info, input=input)
-        checkout = response.checkout
-        apply_gift_reward_if_applicable_on_checkout_creation(response.checkout)
+
+        instance = cls.get_instance(info, **input)
+        # data = input.get("input")
+        cleaned_input = cls.clean_input(info, instance, input)
+
+        instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+
+        checkout = instance
+        apply_gift_reward_if_applicable_on_checkout_creation(checkout)
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_CREATED,
             checkout=checkout,
         )
+
         return CheckoutCreate(
             checkout=SyncWebhookControlContext(node=checkout), created=True
         )
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+    def post_save_action(
+        cls, info: ResolveInfo, instance: models.Checkout, cleaned_input
+    ):
         # Write metadata in post-save action because in "save" metadata doesn't exist in
         # cleaned_input.
 
@@ -530,7 +560,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             private_metadata, error_field_name="private_metadata"
         )
 
-        checkout_metadata = CheckoutMetadata(checkout=instance)
+        checkout_metadata = CheckoutMetadata.objects.get(checkout=instance)
 
         metadata_manager.store_on_instance(
             metadata_collection, checkout_metadata, metadata_manager.MetadataType.PUBLIC

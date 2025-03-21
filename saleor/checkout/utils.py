@@ -19,6 +19,11 @@ from ..core.db.connection import allow_writer
 from ..core.exceptions import NonExistingCheckoutLines, ProductNotPublished
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
+from ..core.utils.metadata_manager import (
+    MetadataItemCollection,
+    MetadataType,
+    store_on_instance,
+)
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -1272,8 +1277,23 @@ def _get_external_shipping_id_from_meta(container: Union["Checkout", "Order"]):
 
 
 @allow_writer()
-def create_checkout_metadata(checkout: "Checkout"):
-    return CheckoutMetadata.objects.create(checkout=checkout)
+def create_checkout_metadata(
+    checkout: "Checkout",
+    *,
+    metadata: MetadataItemCollection | None,
+    private_metadata: MetadataItemCollection | None,
+) -> CheckoutMetadata:
+    checkout_metadata = CheckoutMetadata(checkout=checkout)
+
+    if metadata:
+        store_on_instance(metadata, checkout_metadata, MetadataType.PUBLIC)
+
+    if private_metadata:
+        store_on_instance(private_metadata, checkout_metadata, MetadataType.PRIVATE)
+
+    checkout_metadata.save()
+
+    return checkout_metadata
 
 
 @allow_writer()

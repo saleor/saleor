@@ -3019,12 +3019,16 @@ def test_checkout_create_with_private_metadata(
     assert not Checkout.objects.exists()
 
     # When
-    staff_api_client.post_graphql(
+    response = staff_api_client.post_graphql(
         MUTATION_CHECKOUT_CREATE, variables, permissions=[permission_manage_checkouts]
     )
 
     # Then
     new_checkout = Checkout.objects.first()
+
+    content = get_graphql_content(response)
+
+    assert not content["data"]["checkoutCreate"]["errors"]
 
     assert new_checkout is not None
 
@@ -3067,6 +3071,45 @@ def test_checkout_create_with_private_metadata_without_permission_is_denied(
         variables,
         # Do not set permissions
         permissions=[],
+    )
+
+    # Then
+    new_checkout = Checkout.objects.first()
+
+    assert new_checkout is None
+
+    assert_no_permission(response)
+
+
+def test_checkout_create_with_private_metadata_customer_is_denied(
+    # Act as staff user
+    user_api_client,
+    graphql_address_data,
+    channel_USD,
+):
+    # Given
+    test_email = "test@example.com"
+
+    metadata_key = "metadata_key"
+    metadata_value = "metadata_value"
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [],
+            "email": test_email,
+            "privateMetadata": [
+                {"key": metadata_key, "value": metadata_value},
+            ],
+        }
+    }
+
+    assert not Checkout.objects.exists()
+
+    # When
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE,
+        variables,
     )
 
     # Then
