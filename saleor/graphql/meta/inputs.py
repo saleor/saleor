@@ -7,11 +7,13 @@ class MetadataInputDescription:
         "credit card details."
     )
     PRIVATE_METADATA_INPUT = (
-        "Requires staff or app authorization to the object to modify and access.\n\n"
+        "Requires permissions to modify and to read the metadata of the object "
+        "it's attached to.\n\n"
         f"{DATA_SECURITY_WARNING}"
     )
     PUBLIC_METADATA_INPUT = (
-        f"Can be accessed without permissions.\n\n{DATA_SECURITY_WARNING}"
+        f"Can be read by any API client authorized to read the object it's attached to."
+        f"\n\n{DATA_SECURITY_WARNING}"
     )
 
 
