@@ -3,7 +3,7 @@ import graphene
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
     ADDED_IN_318,
-    DEPRECATED_IN_3X_ENUM_VALUE,
+    DEFAULT_DEPRECATION_REASON,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ..core.types import BaseEnum
@@ -90,13 +90,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.MENU_ITEM_CREATED: "A new menu item created.",
     WebhookEventAsyncType.MENU_ITEM_UPDATED: "A menu item is updated.",
     WebhookEventAsyncType.MENU_ITEM_DELETED: "A menu item is deleted.",
-    WebhookEventAsyncType.NOTIFY_USER: (
-        "User notification triggered."
-        + DEPRECATED_IN_3X_ENUM_VALUE
-        + " See the docs for more details about migrating from NOTIFY_USER to other "
-        "events: "
-        + "https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation"
-    ),
+    WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
     WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
     WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,
     WebhookEventAsyncType.ORDER_PAID: (
@@ -201,7 +195,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
         "A voucher code export is completed." + ADDED_IN_318
     ),
-    WebhookEventAsyncType.ANY: "All the events." + DEPRECATED_IN_3X_ENUM_VALUE,
+    WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created.",
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: "Shop metadata is updated.",
@@ -245,6 +239,17 @@ def description(enum):
     return "Enum determining type of webhook."
 
 
+def deprecation_reason(enum):
+    if enum.value == WebhookEventAsyncType.NOTIFY_USER:
+        return (
+            "See the docs for more details about migrating from NOTIFY_USER to other events: "
+            "https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation"
+        )
+    if enum.value == WebhookEventAsyncType.ANY:
+        return DEFAULT_DEPRECATION_REASON
+    return None
+
+
 WebhookEventTypeEnum = graphene.Enum(
     "WebhookEventTypeEnum",
     [
@@ -252,6 +257,7 @@ WebhookEventTypeEnum = graphene.Enum(
         for e_type in (WebhookEventAsyncType.CHOICES + WebhookEventSyncType.CHOICES)
     ],
     description=description,
+    deprecation_reason=deprecation_reason,
 )
 WebhookEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
@@ -260,6 +266,7 @@ WebhookEventTypeAsyncEnum = graphene.Enum(
     "WebhookEventTypeAsyncEnum",
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventAsyncType.CHOICES],
     description=description,
+    deprecation_reason=deprecation_reason,
 )
 WebhookEventTypeAsyncEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
@@ -267,6 +274,7 @@ WebhookEventTypeSyncEnum = graphene.Enum(
     "WebhookEventTypeSyncEnum",
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventSyncType.CHOICES],
     description=description,
+    deprecation_reason=deprecation_reason,
 )
 WebhookEventTypeSyncEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 

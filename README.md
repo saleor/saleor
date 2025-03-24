@@ -80,28 +80,29 @@
 
 - **Native-multichannel** - Per [channel](https://docs.saleor.io/docs/3.x/developer/channels) control of pricing, currencies, stock, product, and more.
 
-
 ## Why API-only Architecture?
 
 Saleor's API-first extensibility provides powerful tools for developers to extend backend using [webhooks](https://docs.saleor.io/docs/3.x/developer/extending/webhooks/overview), attributes, [metadata](https://docs.saleor.io/docs/3.x/api-usage/metadata), [apps](https://docs.saleor.io/docs/3.x/developer/extending/apps/overview), [subscription queries](https://docs.saleor.io/docs/3.x/developer/extending/webhooks/subscription-webhook-payloads), [API extensions](https://docs.saleor.io/docs/3.x/developer/extending/webhooks/synchronous-events/overview), [dashboard iframes](https://docs.saleor.io/docs/3.x/developer/extending/apps/overview).
 
 Compared to traditional plugin architectures (monoliths) it provides the following benefits:
 
-* There is less downtime as apps are deployed independently.
-* Reliability and performance - custom logic is separated from the core.
-* Simplified upgrade paths - eliminates incompatibility conflicts between extensions.
-* Technology-agnostic - works with any technology, stack, or language.
-* Parallel development - easier to collaborate than with a monolithic core.
-* Simplified debugging - easier to narrow down bugs in independent services.
-* Scalability - extensions and apps can be scaled independently.
+- There is less downtime as apps are deployed independently.
+- Reliability and performance - custom logic is separated from the core.
+- Simplified upgrade paths - eliminates incompatibility conflicts between extensions.
+- Technology-agnostic - works with any technology, stack, or language.
+- Parallel development - easier to collaborate than with a monolithic core.
+- Simplified debugging - easier to narrow down bugs in independent services.
+- Scalability - extensions and apps can be scaled independently.
 
 ### What are the tradeoffs?
+
 If you are a single developer working with a small business that doesn't have high traffic or a critical need for 24/7 availability, using a service-oriented approach might feel more complex compared to the traditional WordPress or Magento approach that provides a language-specific framework, runtime, database schema, aspect-oriented programming, and other tools to a quick start.
 
 However, if you deploy on a daily basis, reliability and uptime is critical,
 you need to collaborate with other developers, or you have non-trivial requirements you might be in the right place.
 
 ## Features
+
 - **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands
 - **Dashboard**: User-friendly, fast, and productive. (Decoupled project [repo](https://github.com/saleor/saleor-dashboard) )
 - **Global by design** Multi-currency, multi-language, multi-warehouse, tutti multi!
@@ -117,7 +118,6 @@ you need to collaborate with other developers, or you have non-trivial requireme
 - **SEO**: Unlimited SEO freedom with headless architecture.
 - **Apps**: Extend dashboard via iframe with any web stack.
 
-
 ![Saleor Dashboard - Modern UI for managing your e-commerce](https://user-images.githubusercontent.com/9268745/224249510-d3c7658e-6d5c-42c5-b4fb-93eaf65a5335.png)
 
 ## Installation
@@ -129,11 +129,12 @@ The `main` branch is the development version of Saleor and it may be unstable. T
 
 The current production-ready version is 3.x and you should use this version for all three components:
 
-- Saleor: https://github.com/saleor/saleor/releases/
-- Dashboard: https://github.com/saleor/saleor-dashboard/releases/
-- Storefront: https://github.com/saleor/react-storefront/releases/
+- Saleor: <https://github.com/saleor/saleor/releases/>
+- Dashboard: <https://github.com/saleor/saleor-dashboard/releases/>
+- Storefront: <https://github.com/saleor/react-storefront/releases/>
 
 ### Saleor Cloud
+
 The fastest way to develop with Saleor is by using developer accounts in [Saleor Cloud](https://cloud.saleor.io).
 
 Register [here](https://cloud.saleor.io/register) or install our [CLI tool](https://github.com/saleor/saleor-cli):
@@ -174,11 +175,11 @@ For the dashboard, go to the [saleor-dashboard](https://github.com/saleor/saleor
 
 ## Contributing
 
-We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Good first issue`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22+)
+We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Good first issue`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22+) and [`Help wanted`](https://github.com/saleor/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-If nothing grabs your attention, check [our roadmap](https://saleor.notion.site/roadmap) or come up with your feature. Just drop us a line or [open an issue](https://github.com/saleor/saleor/issues/new) and we’ll work out how to handle it.
+If nothing grabs your attention, check [our roadmap](https://saleor.io/roadmap) or [start a Discord discussion](https://saleor.io/discord) about a feature you'd like to see. Make sure to read our [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing) before opening a PR or issue.
 
-Get more details (e.g how to run Saleor on your local machine) in our [Contributing Guide](./CONTRIBUTING.md).
+Get more details (e.g., how to run Saleor on your local machine) in our [Contributing Guide](./CONTRIBUTING.md).
 
 ## License
 
@@ -186,4 +187,4 @@ Disclaimer: Everything you see here is open and free to use as long as you compl
 
 #### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 
-hello@saleor.io
+<hello@saleor.io>

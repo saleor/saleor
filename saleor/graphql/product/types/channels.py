@@ -21,7 +21,7 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -56,10 +56,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         required=True, description="The ID of the product channel listing."
     )
     publication_date = Date(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `publishedAt` field to fetch the publication date."
-        ),
+        deprecation_reason="Use the `publishedAt` field to fetch the publication date.",
     )
     published_at = DateTime(description="The product publication date time.")
     is_published = graphene.Boolean(
@@ -76,11 +73,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         description="Indicates product visibility in the channel listings.",
     )
     available_for_purchase = Date(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `availableForPurchaseAt` field to fetch "
-            "the available for purchase date."
-        ),
+        deprecation_reason="Use the `availableForPurchaseAt` field to fetch the available for purchase date.",
     )
     available_for_purchase_at = DateTime(
         description="The product available for purchase date time."
@@ -394,10 +387,7 @@ class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing])
         required=True, description="The ID of the collection channel listing."
     )
     publication_date = Date(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `publishedAt` field to fetch the publication date."
-        ),
+        deprecation_reason="Use the `publishedAt` field to fetch the publication date."
     )
     published_at = DateTime(description="The collection publication date.")
     is_published = graphene.Boolean(

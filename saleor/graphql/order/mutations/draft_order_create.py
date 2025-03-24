@@ -38,7 +38,6 @@ from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -135,7 +134,7 @@ class DraftOrderInput(BaseInputObjectType):
     voucher = graphene.ID(
         description="ID of the voucher associated with the order.",
         name="voucher",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `voucherCode` instead.",
+        deprecation_reason="Use `voucherCode` instead.",
     )
     voucher_code = graphene.String(
         description="A code of the voucher associated with the order." + ADDED_IN_318,
@@ -466,9 +465,6 @@ class DraftOrderCreate(
                 instance=instance.shipping_address,
                 info=info,
             )
-            shipping_address = manager.change_user_address(
-                shipping_address, "shipping", user=instance
-            )
             cleaned_input["shipping_address"] = shipping_address
             cleaned_input["draft_save_shipping_address"] = (
                 save_shipping_address or False
@@ -489,9 +485,6 @@ class DraftOrderCreate(
                 address_type=AddressType.BILLING,
                 instance=instance.billing_address,
                 info=info,
-            )
-            billing_address = manager.change_user_address(
-                billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
             cleaned_input["draft_save_billing_address"] = save_billing_address or False

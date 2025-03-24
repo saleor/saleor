@@ -643,13 +643,23 @@ class ProductBulkCreate(BaseMutation):
                 )
                 continue
             try:
-                metadata_list = cleaned_input.pop("metadata", None)
-                private_metadata_list = cleaned_input.pop("private_metadata", None)
+                metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+                private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                    "private_metadata", None
+                )
+
+                metadata_collection = cls.create_metadata_from_graphql_input(
+                    metadata_list, error_field_name="metadata"
+                )
+                private_metadata_collection = cls.create_metadata_from_graphql_input(
+                    private_metadata_list,
+                    error_field_name="private_metadata",
+                )
 
                 instance = models.Product()
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.validate_and_update_metadata(
-                    instance, metadata_list, private_metadata_list
+                    instance, metadata_collection, private_metadata_collection
                 )
                 cls.clean_instance(info, instance)
                 instance.search_index_dirty = True
@@ -701,13 +711,28 @@ class ProductBulkCreate(BaseMutation):
         for variant_data in variants_inputs:
             if variant_data:
                 try:
-                    metadata_list = variant_data.pop("metadata", None)
-                    private_metadata_list = variant_data.pop("private_metadata", None)
+                    metadata_list: list[MetadataInput] = variant_data.pop(
+                        "metadata", None
+                    )
+                    private_metadata_list: list[MetadataInput] = variant_data.pop(
+                        "private_metadata", None
+                    )
+
+                    metadata_collection = cls.create_metadata_from_graphql_input(
+                        metadata_list, error_field_name="metadata"
+                    )
+                    private_metadata_collection = (
+                        cls.create_metadata_from_graphql_input(
+                            private_metadata_list,
+                            error_field_name="private_metadata",
+                        )
+                    )
+
                     variant = models.ProductVariant()
                     variant.product = product
                     variant = cls.construct_instance(variant, variant_data)
                     cls.validate_and_update_metadata(
-                        variant, metadata_list, private_metadata_list
+                        variant, metadata_collection, private_metadata_collection
                     )
                     variant.full_clean(exclude=["product"])
 

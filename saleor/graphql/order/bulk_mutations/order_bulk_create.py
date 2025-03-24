@@ -65,7 +65,7 @@ from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
 )
-from ...payment.utils import metadata_contains_empty_key
+from ...payment.utils import deprecated_metadata_contains_empty_key
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import (
@@ -921,7 +921,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         path: str,
         field: Any,
     ):
-        if metadata_contains_empty_key(metadata):
+        if deprecated_metadata_contains_empty_key(metadata):
             errors.append(
                 OrderBulkError(
                     message="Metadata key cannot be empty.",
@@ -1015,12 +1015,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         billing_address: Address | None = None
         billing_address_input = order_input["billing_address"]
-        metadata_list = billing_address_input.pop("metadata", None)
-        private_metadata_list = billing_address_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = billing_address_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = billing_address_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
         try:
             billing_address = cls.validate_address(billing_address_input, info=info)
             cls.validate_and_update_metadata(
-                billing_address, metadata_list, private_metadata_list
+                billing_address, metadata_collection, private_metadata_collection
             )
         except Exception:
             order_data.errors.append(
@@ -1036,12 +1046,21 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if shipping_address_input := order_input.get("shipping_address"):
             metadata_list = shipping_address_input.pop("metadata", None)
             private_metadata_list = shipping_address_input.pop("private_metadata", None)
+
+            metadata_collection = cls.create_metadata_from_graphql_input(
+                metadata_list, error_field_name="metadata"
+            )
+            private_metadata_collection = cls.create_metadata_from_graphql_input(
+                private_metadata_list,
+                error_field_name="private_metadata",
+            )
+
             try:
                 shipping_address = cls.validate_address(
                     shipping_address_input, info=info
                 )
                 cls.validate_and_update_metadata(
-                    shipping_address, metadata_list, private_metadata_list
+                    shipping_address, metadata_collection, private_metadata_collection
                 )
             except Exception:
                 order_data.errors.append(

@@ -20,7 +20,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date, DateTime
@@ -268,7 +268,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who used a gift card.",
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     created_by_email = graphene.String(
         required=False,
@@ -282,7 +282,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     used_by_email = graphene.String(
         required=False,
         description="Email address of the customer who used a gift card.",
-        deprecation_reason=DEPRECATED_IN_3X_FIELD,
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
     last_used_on = DateTime(description="Date and time when gift card was last used.")
     expiry_date = Date(description="Expiry date of the gift card.")
@@ -329,15 +329,15 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     user = graphene.Field(
         "saleor.graphql.account.types.User",
         description="The customer who bought a gift card.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `createdBy` field instead.",
+        deprecation_reason="Use `createdBy` field instead.",
     )
     end_date = DateTime(
         description="End date of gift card.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `expiryDate` field instead.",
+        deprecation_reason="Use `expiryDate` field instead.",
     )
     start_date = DateTime(
         description="Start date of gift card.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD}",
+        deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
 
     class Meta:

@@ -1,10 +1,10 @@
 import graphene
 
-from ..core.descriptions import DEPRECATED_IN_3X_MUTATION
+from ..core.descriptions import DEFAULT_DEPRECATION_REASON
 from .mutations.external_notification_trigger import ExternalNotificationTrigger
 
 
 class ExternalNotificationMutations(graphene.ObjectType):
     external_notification_trigger = ExternalNotificationTrigger.Field(
-        deprecation_reason=DEPRECATED_IN_3X_MUTATION
+        deprecation_reason=DEFAULT_DEPRECATION_REASON
     )

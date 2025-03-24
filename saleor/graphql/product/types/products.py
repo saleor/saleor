@@ -55,12 +55,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import get_database_connection_name
-from ...core.descriptions import (
-    ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
-    DEPRECATED_IN_3X_INPUT,
-    RICH_CONTENT,
-)
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
@@ -180,7 +175,7 @@ class BasePricingInfo(BaseObjectType):
     discount_local_currency = graphene.Field(
         TaxedMoney,
         description="The discount amount in the local currency.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
+        deprecation_reason="Always returns `null`.",
     )
 
     class Meta:
@@ -203,12 +198,12 @@ class VariantPricingInfo(BasePricingInfo):
     discount_local_currency = graphene.Field(
         TaxedMoney,
         description="The discount amount in the local currency.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
+        deprecation_reason="Always returns `null`.",
     )
     price_local_currency = graphene.Field(
         TaxedMoney,
         description="The discounted price in the local currency.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
+        deprecation_reason="Always returns `null`.",
     )
 
     class Meta:
@@ -240,7 +235,7 @@ class ProductPricingInfo(BasePricingInfo):
         description=(
             "The discounted price range of the product variants in the local currency."
         ),
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
+        deprecation_reason="Always returns `null`.",
     )
 
     class Meta:
@@ -352,7 +347,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     images = NonNullList(
         lambda: ProductImage,
         description="List of images for the product variant.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
+        deprecation_reason="Use the `media` field instead.",
     )
     media = NonNullList(
         lambda: ProductMedia,
@@ -873,10 +868,7 @@ class Product(ChannelContextType[models.Product]):
     )
     charge_taxes = graphene.Boolean(
         required=True,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` field to "
-            "determine whether tax collection is enabled."
-        ),
+        deprecation_reason="Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.",
     )
     weight = graphene.Field(Weight, description="Weight of the product.")
     default_variant = graphene.Field(
@@ -891,9 +883,7 @@ class Product(ChannelContextType[models.Product]):
     )
     description_json = JSONString(
         description="Description of the product." + RICH_CONTENT,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `description` field instead."
-        ),
+        deprecation_reason="Use the `description` field instead.",
     )
     thumbnail = ThumbnailField(description="Thumbnail of the product.")
     pricing = graphene.Field(
@@ -914,7 +904,7 @@ class Product(ChannelContextType[models.Product]):
     tax_type = graphene.Field(
         TaxType,
         description="A type of tax. Assigned by enabled tax gateway",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
+        deprecation_reason="Use `taxClass` field instead.",
     )
     attribute = graphene.Field(
         SelectedAttribute,
@@ -944,16 +934,14 @@ class Product(ChannelContextType[models.Product]):
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
         description="Get a single product image by ID.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `mediaById` field instead."
-        ),
+        deprecation_reason="Use the `mediaById` field instead.",
     )
     variant = graphene.Field(
         ProductVariant,
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
         description="Get a single variant by SKU or ID.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use top-level `variant` query.",
+        deprecation_reason="Use top-level `variant` query.",
     )
     variants = NonNullList(
         ProductVariant,
@@ -962,7 +950,7 @@ class Product(ChannelContextType[models.Product]):
             "include the unpublished items: "
             f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `productVariants` field instead.",
+        deprecation_reason="Use `productVariants` field instead.",
     )
     product_variants = FilterConnectionField(
         ProductVariantCountableConnection,
@@ -985,7 +973,7 @@ class Product(ChannelContextType[models.Product]):
     images = NonNullList(
         lambda: ProductImage,
         description="List of images for the product.",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `media` field instead.",
+        deprecation_reason="Use the `media` field instead.",
     )
     collections = NonNullList(
         "saleor.graphql.product.types.collections.Collection",
@@ -1002,11 +990,7 @@ class Product(ChannelContextType[models.Product]):
     )
     available_for_purchase = Date(
         description="Date when product is available for purchase.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `availableForPurchaseAt` field to fetch "
-            "the available for purchase date."
-        ),
+        deprecation_reason="Use the `availableForPurchaseAt` field to fetch the available for purchase date.",
     )
     available_for_purchase_at = DateTime(
         description="Date when product is available for purchase."
@@ -1702,15 +1686,12 @@ class ProductType(ModelObjectType[models.ProductType]):
             description="Slug of a channel for which the data should be returned."
         ),
         description="List of products of this type.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the top-level `products` query with the `productTypes` filter."
-        ),
+        deprecation_reason="Use the top-level `products` query with the `productTypes` filter.",
     )
     tax_type = graphene.Field(
         TaxType,
         description="A type of tax. Assigned by enabled tax gateway",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `taxClass` field instead.",
+        deprecation_reason="Use `taxClass` field instead.",
     )
     tax_class = PermissionsField(
         TaxClass,
@@ -1731,9 +1712,7 @@ class ProductType(ModelObjectType[models.ProductType]):
             VariantAttributeScope,
             description="Define scope of returned attributes.",
         ),
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `assignedVariantAttributes` instead."
-        ),
+        deprecation_reason="Use `assignedVariantAttributes` instead.",
     )
     assigned_variant_attributes = NonNullList(
         AssignedVariantAttribute,

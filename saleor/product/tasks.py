@@ -89,7 +89,7 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).get(pk=product_type_pk)
     except ObjectDoesNotExist:
-        logging.warning("Cannot find product type with id: %s.", product_type_pk)
+        logger.warning("Cannot find product type with id: %s.", product_type_pk)
         return
     saved_attributes = Attribute.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME

@@ -17,7 +17,6 @@ from .....product.utils.product import mark_products_in_channels_as_dirty
 from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
-from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -68,11 +67,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         )
 
     class Meta:
-        description = (
-            "Manage sale's availability in channels."
-            + DEPRECATED_IN_3X_MUTATION
-            + " Use `promotionRuleCreate` or `promotionRuleUpdate` mutations instead."
-        )
+        description = "Manage sale's availability in channels."
         doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError

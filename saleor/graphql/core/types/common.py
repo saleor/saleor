@@ -26,10 +26,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_WEBHOOKS,
 )
 from ...core.scalars import DateTime, Decimal
-from ..descriptions import (
-    ADDED_IN_318,
-    DEPRECATED_IN_3X_FIELD,
-)
+from ..descriptions import ADDED_IN_318
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -136,10 +133,7 @@ class CountryDisplay(graphene.ObjectType):
     vat = graphene.Field(
         VAT,
         description="Country tax.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Always returns `null`. Use `TaxClassCountryRate`"
-            " type to manage tax rates per country."
-        ),
+        deprecation_reason="Always returns `null`. Use `TaxClassCountryRate` type to manage tax rates per country.",
     )
 
 

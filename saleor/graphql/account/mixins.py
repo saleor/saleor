@@ -2,15 +2,26 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
+from ...core.utils import metadata_manager
 from ...permission.enums import AccountPermissions
 from ..core.utils import raise_validation_error
+from ..meta.inputs import MetadataInput
 from ..utils import get_user_or_app_from_context
 
 
 class AddressMetadataMixin:
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
-        cls.update_metadata(instance, cleaned_data.pop("metadata", []))  # type: ignore[attr-defined] # noqa: E501
+        metadata: list[MetadataInput] = cleaned_data.pop("metadata", [])
+
+        metadata_collection = super().create_metadata_from_graphql_input(  # type: ignore[misc] # noqa: E501
+            metadata, error_field_name="metadata"
+        )
+
+        metadata_manager.store_on_instance(
+            metadata_collection, instance, metadata_manager.MetadataType.PUBLIC
+        )
+
         return super().construct_instance(instance, cleaned_data)  # type: ignore[misc] # noqa: E501
 
 

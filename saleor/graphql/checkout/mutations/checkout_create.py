@@ -9,6 +9,7 @@ from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout, create_checkout_metadata
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils import metadata_manager
 from ....core.utils.country import get_active_country
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
@@ -19,7 +20,7 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -190,7 +191,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             "Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart "
             "with an active checkout."
         ),
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `true`.",
+        deprecation_reason="Always returns `true`.",
     )
 
     class Arguments:
@@ -311,23 +312,40 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
         save_shipping_address = data.get("save_shipping_address")
-        shipping_address_metadata = (
+        shipping_address_metadata: list[MetadataInput] | None = (
             data.get("shipping_address", {}).pop("metadata", [])
             if data.get("shipping_address")
             else None
         )
         save_billing_address = data.get("save_billing_address")
-        billing_address_metadata = (
+        billing_address_metadata: list[MetadataInput] | None = (
             data.get("billing_address", {}).pop("metadata", [])
             if data.get("billing_address")
             else None
         )
+
+        shipping_address_metadata_collection = cls.create_metadata_from_graphql_input(
+            shipping_address_metadata, error_field_name="metadata"
+        )
+        billing_address_metadata_collection = cls.create_metadata_from_graphql_input(
+            billing_address_metadata, error_field_name="metadata"
+        )
+
         shipping_address = cls.retrieve_shipping_address(user, data, info)
         billing_address = cls.retrieve_billing_address(user, data, info)
         if shipping_address:
-            cls.update_metadata(shipping_address, shipping_address_metadata)
+            metadata_manager.store_on_instance(
+                shipping_address_metadata_collection,
+                shipping_address,
+                metadata_manager.MetadataType.PUBLIC,
+            )
+
         if billing_address:
-            cls.update_metadata(billing_address, billing_address_metadata)
+            metadata_manager.store_on_instance(
+                billing_address_metadata_collection,
+                billing_address,
+                metadata_manager.MetadataType.PUBLIC,
+            )
 
         if save_shipping_address is not None and not shipping_address:
             raise ValidationError(

@@ -12,7 +12,6 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, PositiveDecimal
@@ -64,11 +63,7 @@ class SaleCreate(DeprecatedModelMutation):
         )
 
     class Meta:
-        description = (
-            "Creates a new sale."
-            + DEPRECATED_IN_3X_MUTATION
-            + " Use `promotionCreate` mutation instead."
-        )
+        description = "Creates a new sale."
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         model = models.Promotion
         object_type = Sale

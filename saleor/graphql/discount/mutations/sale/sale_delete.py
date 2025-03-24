@@ -10,7 +10,6 @@ from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import DEPRECATED_IN_3X_MUTATION
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import DiscountError
 from ....core.utils import (
@@ -31,11 +30,7 @@ class SaleDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of a sale to delete.")
 
     class Meta:
-        description = (
-            "Deletes a sale."
-            + DEPRECATED_IN_3X_MUTATION
-            + " Use `promotionDelete` mutation instead."
-        )
+        description = "Deletes a sale."
         model = models.Promotion
         object_type = Sale
         return_field_name = "sale"
@@ -80,7 +75,7 @@ class SaleDelete(ModelDeleteMutation):
             cls.call_event(manager.sale_deleted, promotion, previous_catalogue)
             cls.call_event(
                 mark_products_in_channels_as_dirty,
-                {channel_id: product_ids for channel_id in channel_ids},
+                dict.fromkeys(channel_ids, product_ids),
             )
         return response
 
