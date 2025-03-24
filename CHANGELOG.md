@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Queries `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to fetch shipping methods (`SHIPPING_LIST_METHODS_FOR_CHECKOUT`) or to filter the available shipping methods (`CHECKOUT_FILTER_SHIPPING_METHODS`) - #17387 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to calculate taxes: the `ORDER_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17421 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to filter the available shipping methods (`ORDER_FILTER_SHIPPING_METHODS`) - #17425 by @korycins
+- Drop `change_user_address` method from plugin manager - #17495 by @IKarbowiak
 
 ### GraphQL API
 
@@ -63,6 +64,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Webhooks `CHECKOUT_FILTER_SHIPPING_METHODS` & `ORDER_FILTER_SHIPPING_METHODS` are no longer executed when not needed (no available shipping methods, e.g. due to lack of shipping address) - #17328 by @lkostrowski
 - New feature: sync webhooks circuit breaker - #16658 by @tomaszszymanski129
 - Fixed webhook `PRODUCT_VARIANT_METADATA_UPDATED` not being sent when `productVariantUpdate` mutation was called. Now, when `metadata` or `privateMetadata` is included in `ProductVariantUpdateInput`, both `PRODUCT_VARIANT_METADATA_UPDATED` and `PRODUCT_VARIANT_UPDATED` will be emitted (if subscribed) - #17406 by @lkostrowski
+- Update Draft Order shipping via `orderUpdateShipping` will emit `DRAFT_ORDER_UPDATED` webhook. Previously it was `ORDER_UPDATED` - #17480 by @lkostrowski
+- Update editable Order shipping via `orderUpdateShipping` will emit `ORDER_UPDATED` webhook when `shippingMethod` will be cleared (by passing `null` to graphQL input). - #17480 by @lkostrowski
 
 ### Other changes
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
@@ -92,3 +95,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added a warning to metadata input fields in GraphQL schema informing to never store sensitive data.
   This ensures user awareness of potential security policy violations and compliance risks of storing
   certain types of data. - #17506 by @NyanKiyoshi
+- Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator

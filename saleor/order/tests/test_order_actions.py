@@ -37,6 +37,7 @@ from ..actions import (
     call_order_events,
     cancel_fulfillment,
     cancel_order,
+    cancel_waiting_fulfillment,
     clean_mark_order_as_paid,
     fulfill_order_lines,
     handle_fully_paid_order,
@@ -570,7 +571,24 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     assert line_2.order_line.quantity_fulfilled == 0
 
 
-def test_cancel_fulfillment_variant_witout_inventory_tracking(
+def test_cancel_waiting_fulfillment_for_unconfirmed_order(fulfilled_order):
+    for fulfillment in fulfilled_order.fulfillments.all():
+        fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
+        fulfillment.save()
+    fulfilled_order.status = OrderStatus.UNCONFIRMED
+    fulfilled_order.save()
+
+    cancel_waiting_fulfillment(
+        fulfilled_order.fulfillments.first(),
+        None,
+        None,
+        get_plugins_manager(allow_replica=False),
+    )
+
+    assert fulfilled_order.status == OrderStatus.UNCONFIRMED
+
+
+def test_cancel_fulfillment_variant_without_inventory_tracking(
     fulfilled_order_without_inventory_tracking, warehouse
 ):
     fulfillment = fulfilled_order_without_inventory_tracking.fulfillments.first()
