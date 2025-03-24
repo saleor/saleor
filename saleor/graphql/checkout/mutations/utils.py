@@ -111,14 +111,18 @@ def update_checkout_external_shipping_method_if_invalid(
 
 
 def update_checkout_shipping_method_if_invalid(
-    checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo], save: bool = True
-):
+    checkout_info: "CheckoutInfo", lines: list[CheckoutLineInfo]
+) -> list[str]:
+    """Check if current shipping method is valid and clean it if not.
+
+    The method is not saving the applied changes on checkout.
+    """
     quantity = calculate_checkout_quantity(lines)
     update_fields = []
 
     # remove shipping method when empty checkout
     if quantity == 0 or not is_shipping_required(lines):
-        update_fields = clear_delivery_method(checkout_info, save)
+        update_fields = clear_delivery_method(checkout_info)
 
     is_valid = clean_delivery_method(
         checkout_info=checkout_info,
@@ -126,7 +130,7 @@ def update_checkout_shipping_method_if_invalid(
     )
 
     if not is_valid:
-        update_fields = clear_delivery_method(checkout_info, save)
+        update_fields = clear_delivery_method(checkout_info)
 
     return update_fields
 

@@ -207,7 +207,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             )
 
         shipping_update_fields = update_checkout_shipping_method_if_invalid(
-            checkout_info, lines, save=False
+            checkout_info, lines
         )
 
         invalidate_prices_updated_fields = invalidate_checkout(
