@@ -1,5 +1,6 @@
 import pytest
 
+from ...account.models import Address
 from ...graphql.meta.inputs import MetadataInput
 from ..models import ModelWithMetadata
 from ..utils.metadata_manager import (
@@ -77,11 +78,17 @@ def test_create_collection(valid_metadata_input_list):
     assert collection.items[0].value == valid_metadata_input_list[0].value
 
 
-def test_write_on_model_public(valid_metadata_input_list):
-    class TestModelWithMetadata(ModelWithMetadata):
-        pass
+def test_testing_model_is_inheriting_metadata():
+    # Tests below requires model that inherits from ModelWithMetadata
+    # This test checks if tested Model actually inherits from it.
+    # If the inheritance chain is broken, this tests will fail
+    # In such case other tests must be updated to use other model
 
-    instance = TestModelWithMetadata()
+    assert issubclass(Address, ModelWithMetadata)
+
+
+def test_write_on_model_public(valid_metadata_input_list):
+    instance = Address()
 
     collection = create_from_graphql_input(valid_metadata_input_list)
 
@@ -94,10 +101,7 @@ def test_write_on_model_public(valid_metadata_input_list):
 
 
 def test_write_on_model_private(valid_metadata_input_list):
-    class TestModelWithMetadata(ModelWithMetadata):
-        pass
-
-    instance = TestModelWithMetadata()
+    instance = Address()
 
     collection = create_from_graphql_input(valid_metadata_input_list)
 
@@ -133,10 +137,7 @@ def test_store_multiple_keys():
         MetadataItem(key="key1", value=overwritten_value),
     ]
 
-    class TestModelWithMetadata(ModelWithMetadata):
-        pass
-
-    instance = TestModelWithMetadata()
+    instance = Address()
 
     collection = MetadataItemCollection(items=metadata_list)
 
@@ -149,15 +150,12 @@ def test_store_multiple_keys():
 
 
 def test_throws_for_invalid_metadata_target():
-    class TestModelWithMetadata(ModelWithMetadata):
-        pass
-
     with pytest.raises(
         ValueError,
         match="Unknown argument, provide MetadataType.PRIVATE or MetadataType.PUBLIC",
     ):
         store_on_instance(
             MetadataItemCollection(items=[MetadataItem(key="a", value="b")]),
-            TestModelWithMetadata(),
+            Address(),
             "invalid_target",
         )

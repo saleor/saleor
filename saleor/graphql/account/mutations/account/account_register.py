@@ -16,7 +16,7 @@ from ....core.enums import LanguageCodeEnum
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....site.dataloaders import get_site_promise
 from ...types import User
 from .base import AccountBaseInput
@@ -39,7 +39,9 @@ class AccountRegisterInput(AccountBaseInput):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="User public metadata.",
+        description=(
+            f"User public metadata. {MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     channel = graphene.String(

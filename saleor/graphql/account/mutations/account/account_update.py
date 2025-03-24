@@ -11,7 +11,7 @@ from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ...mixins import AppImpersonateMixin
 from ...types import AddressInput, User
 from ..base import BaseCustomerCreate
@@ -27,7 +27,10 @@ class AccountInput(AccountBaseInput):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user metadata.",
+        description=(
+            "Fields required to update the user metadata. "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
 

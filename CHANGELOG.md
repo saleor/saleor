@@ -93,4 +93,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `UNCONFIRMED` orders will never refresh its base prices
   - `DRAFT` orders will refresh its base prices after default 24 hours
 - Fix bug which, in some cases, caused product name translations to be empty in order lines - #17504 by @delemeator
+- Added a warning to metadata input fields in GraphQL schema informing to never store sensitive data.
+  This ensures user awareness of potential security policy violations and compliance risks of storing
+  certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
