@@ -141,9 +141,7 @@ def test_checkout_shipping_address_with_metadata_update(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, save=False
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -219,9 +217,7 @@ def test_checkout_shipping_address_when_variant_without_listing(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, save=False
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
 
@@ -280,9 +276,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    mocked_update_shipping_method.assert_called_once_with(
-        checkout_info, lines, save=False
-    )
+    mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.country == shipping_address["country"]
     assert checkout.last_change != previous_last_change
 
