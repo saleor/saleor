@@ -88,3 +88,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use denormalized base prices during order update - #17160 by @zedzior
   - `UNCONFIRMED` orders will never refresh its base prices
   - `DRAFT` orders will refresh its base prices after default 24 hours
+- Fix bug which, in some cases, caused product name translations to be empty in order lines - #17504 by @delemeator
