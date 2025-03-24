@@ -348,9 +348,9 @@ def test_default_plugin_configuration(
 
 @patch("saleor.plugins.email_common.validate_email_config")
 def test_override_default_config(
-    mocked_validate_email_config,
-    default_admin_email_plugin,
+    mocked_validate_email_config, default_admin_email_plugin
 ):
+    """Assert that user-provided email config is not mixed with defaults."""
     plugin = default_admin_email_plugin(
         default_email_from="default@email.from",
         email_url="smtp://some-user:secret-password@smtp.sendgrid.net:587/?tls=True",
@@ -368,17 +368,28 @@ def test_override_default_config(
             {"name": "sender_address", "value": "noreply@exmaple.com"},
         ]
     }
+    expected_config = EmailConfig(
+        host="localhost",
+        port="1025",
+        sender_name="",
+        sender_address="noreply@exmaple.com",
+        username="",  # empty as there's no username in data_to_save
+        password="",  # empty as there's no password in data_to_save
+        use_tls=False,
+        use_ssl=False,
+    )
 
     plugin.save_plugin_configuration(plugin_configuration, data_to_save)
-    mocked_validate_email_config.assert_called_once_with(
-        EmailConfig(
-            host="localhost",
-            port="1025",
-            sender_name="",
-            sender_address="noreply@exmaple.com",
-            username="",
-            password="",
-            use_tls=False,
-            use_ssl=False,
-        )
+    mocked_validate_email_config.assert_called_once_with(expected_config)
+
+    # Assert that Django's EmailBackend does not override empty username and password
+    email_backed = EmailBackend(
+        host=expected_config.host,
+        port=expected_config.port,
+        username=expected_config.username,
+        password=expected_config.password,
+        use_ssl=expected_config.use_ssl,
+        use_tls=expected_config.use_tls,
     )
+    assert not email_backed.username
+    assert not email_backed.password
