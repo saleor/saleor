@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from ....account.models import Address
     from .utils import CheckoutLineData
 
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 
 
 class CheckoutAddressValidationRules(BaseInputObjectType):
@@ -118,7 +118,8 @@ class CheckoutLineInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the object's metadata."),
+        description="Fields required to update the object's metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
 

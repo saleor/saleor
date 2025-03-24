@@ -31,7 +31,7 @@ from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation, ModelDeleteMutation
 from ...core.types import BaseInputObjectType, NonNullList
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..utils import (
     get_not_manageable_permissions_when_deactivate_or_remove_users,
@@ -187,12 +187,18 @@ class UserInput(BaseInputObjectType):
     note = graphene.String(description="A note about the user.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user metadata.",
+        description=(
+            "Fields required to update the user metadata. "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user private metadata.",
+        description=(
+            "Fields required to update the user private metadata. "
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
+        ),
         required=False,
     )
 

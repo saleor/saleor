@@ -92,4 +92,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use denormalized base prices during order update - #17160 by @zedzior
   - `UNCONFIRMED` orders will never refresh its base prices
   - `DRAFT` orders will refresh its base prices after default 24 hours
+- Added a warning to metadata input fields in GraphQL schema informing to never store sensitive data.
+  This ensures user awareness of potential security policy violations and compliance risks of storing
+  certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator

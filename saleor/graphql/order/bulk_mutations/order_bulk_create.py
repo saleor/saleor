@@ -60,7 +60,7 @@ from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
 from ...discount.enums import DiscountValueTypeEnum
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
@@ -365,9 +365,15 @@ class OrderBulkCreateInvoiceInput(BaseInputObjectType):
     )
     number = graphene.String(description="Invoice number.")
     url = graphene.String(description="URL of the invoice to download.")
-    metadata = NonNullList(MetadataInput, description="Metadata of the invoice.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Metadata of the invoice. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
+    )
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the invoice."
+        MetadataInput,
+        description="Private metadata of the invoice. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
     class Meta:
@@ -388,10 +394,14 @@ class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
     shipping_tax_class_metadata = NonNullList(
-        MetadataInput, description="Metadata of the tax class."
+        MetadataInput,
+        description="Metadata of the tax class. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
     )
     shipping_tax_class_private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
+        MetadataInput,
+        description="Private metadata of the tax class. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
     class Meta:
@@ -505,18 +515,28 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
         required=True,
         description="The ID of the warehouse, where the line will be allocated.",
     )
-    metadata = NonNullList(MetadataInput, description="Metadata of the order line.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Metadata of the order line. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
+    )
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the order line."
+        MetadataInput,
+        description="Private metadata of the order line. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
     tax_class_metadata = NonNullList(
-        MetadataInput, description="Metadata of the tax class."
+        MetadataInput,
+        description="Metadata of the tax class. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
     )
     tax_class_private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
+        MetadataInput,
+        description="Private metadata of the tax class. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
     class Meta:
@@ -545,9 +565,15 @@ class OrderBulkCreateInput(BaseInputObjectType):
         AddressInput, description="Shipping address of the customer."
     )
     currency = graphene.String(required=True, description="Currency code.")
-    metadata = NonNullList(MetadataInput, description="Metadata of the order.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Metadata of the order. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
+    )
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the order."
+        MetadataInput,
+        description="Private metadata of the order. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
     customer_note = graphene.String(description="Note about customer.")
     notes = NonNullList(
