@@ -33,7 +33,7 @@ from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
-from .draft_order_cleaner import DraftOrderCleaner
+from . import draft_order_cleaner
 from .draft_order_create import DraftOrderInput
 from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
@@ -124,13 +124,13 @@ class DraftOrderUpdate(
         cleaned_input.update(shipping_method_input)
 
         channel = instance.channel or cleaned_input.get("channel_id")
-        DraftOrderCleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
+        draft_order_cleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address, manager
         )
 
-        DraftOrderCleaner.clean_redirect_url(redirect_url, cleaned_input)
+        draft_order_cleaner.clean_redirect_url(redirect_url, cleaned_input)
 
         return cleaned_input
 
@@ -227,20 +227,24 @@ class DraftOrderUpdate(
                 update_order_display_gross_prices(instance)
                 updated_fields.append("display_gross_prices")
 
-            update_order_search_vector(instance, save=False)
-            # Post-process the results
-            updated_fields.extend(
-                [
-                    "search_vector",
-                    "updated_at",
-                ]
-            )
+            if updated_fields:
+                update_order_search_vector(instance, save=False)
+                # Post-process the results
+                updated_fields.extend(
+                    [
+                        "search_vector",
+                        "updated_at",
+                    ]
+                )
 
-            if cls.should_invalidate_prices(cleaned_input):
-                invalidate_order_prices(instance)
-                updated_fields.extend(["should_refresh_prices"])
+                if cls.should_invalidate_prices(cleaned_input):
+                    invalidate_order_prices(instance)
+                    updated_fields.extend(["should_refresh_prices"])
 
-            instance.save(update_fields=updated_fields)
+                instance.save(update_fields=updated_fields)
+
+            # The event is fired to not introduce the breaking change in 3.20.
+            # Won't be triggered in the next minor version in case nothing changed.
             call_order_event(
                 manager,
                 WebhookEventAsyncType.DRAFT_ORDER_UPDATED,

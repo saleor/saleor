@@ -49,7 +49,7 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
-from .draft_order_cleaner import DraftOrderCleaner
+from . import draft_order_cleaner
 from .utils import (
     ShippingMethodUpdateMixin,
     get_variant_rule_info_map,
@@ -207,7 +207,7 @@ class DraftOrderCreate(
         channel = cleaned_input.pop("channel_id")
         cleaned_input["channel"] = channel
 
-        DraftOrderCleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
+        draft_order_cleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
 
         if channel:
             cleaned_input["currency"] = channel.currency_code
@@ -221,7 +221,7 @@ class DraftOrderCreate(
             info, instance, cleaned_input, shipping_address, billing_address, manager
         )
 
-        DraftOrderCleaner.clean_redirect_url(redirect_url, cleaned_input)
+        draft_order_cleaner.clean_redirect_url(redirect_url, cleaned_input)
 
         return cleaned_input
 
