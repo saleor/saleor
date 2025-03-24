@@ -2767,10 +2767,10 @@ def test_order_from_checkout_with_translation_equal_name(
     checkout_line_product.save()
     checkout_line_variant.name = "Variant name"
     checkout_line_variant.save()
-    checkout_line_product.translations.create(
+    product_translation = checkout_line_product.translations.create(
         language_code=checkout.language_code, name=checkout_line_product.name
     )
-    checkout_line_variant.translations.create(
+    variant_translation = checkout_line_variant.translations.create(
         language_code=checkout.language_code, name=checkout_line_variant.name
     )
 
@@ -2792,8 +2792,8 @@ def test_order_from_checkout_with_translation_equal_name(
 
     order = Order.objects.first()
     order_line = order.lines.first()
-    assert order_line.translated_product_name != ""
-    assert order_line.translated_variant_name != ""
+    assert order_line.translated_product_name == product_translation.name
+    assert order_line.translated_variant_name == variant_translation.name
 
 
 def test_order_from_checkout_order_status_changed_after_creation(
