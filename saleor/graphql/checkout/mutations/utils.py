@@ -465,6 +465,9 @@ def group_lines_input_data_on_update(
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
 
+        if "metadata" in line:
+            line_data.metadata_list = line["metadata"]
+
     grouped_checkout_lines_data += list(checkout_lines_data_map.values())
     return grouped_checkout_lines_data
 
