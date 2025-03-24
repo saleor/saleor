@@ -112,7 +112,6 @@ class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
             user.search_document = prepare_user_search_document_value(user)
             user.save(update_fields=["search_document", "updated_at"])
         manager = get_plugin_manager_promise(info.context).get()
-        address = manager.change_user_address(address, None, user)
         cls.call_event(manager.address_updated, address)
 
         success_response = cls.success_response(address)
@@ -349,16 +348,10 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
         if default_shipping_address:
-            default_shipping_address = manager.change_user_address(
-                default_shipping_address, "shipping", instance
-            )
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
-            default_billing_address = manager.change_user_address(
-                default_billing_address, "billing", instance
-            )
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
 

@@ -465,9 +465,6 @@ class DraftOrderCreate(
                 instance=instance.shipping_address,
                 info=info,
             )
-            shipping_address = manager.change_user_address(
-                shipping_address, "shipping", user=instance
-            )
             cleaned_input["shipping_address"] = shipping_address
             cleaned_input["draft_save_shipping_address"] = (
                 save_shipping_address or False
@@ -488,9 +485,6 @@ class DraftOrderCreate(
                 address_type=AddressType.BILLING,
                 instance=instance.billing_address,
                 info=info,
-            )
-            billing_address = manager.change_user_address(
-                billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
             cleaned_input["draft_save_billing_address"] = save_billing_address or False
