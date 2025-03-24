@@ -2350,7 +2350,7 @@ def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
     wraps=call_order_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -2445,7 +2445,7 @@ def test_draft_order_update_triggers_webhooks(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
     wraps=call_order_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")

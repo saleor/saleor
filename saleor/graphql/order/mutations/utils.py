@@ -9,7 +9,7 @@ from ....core.taxes import zero_money, zero_taxed_money
 from ....discount import VoucherType
 from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ....discount.utils.manual_discount import apply_discount_to_value
-from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
+from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
@@ -18,7 +18,7 @@ from ....payment import models as payment_models
 from ....plugins.manager import PluginsManager
 from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
-from ....shipping.models import ShippingMethodChannelListing
+from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
@@ -59,9 +59,6 @@ class EditableOrderValidationMixin:
 
 
 class ShippingMethodUpdateMixin:
-    class Meta:
-        abstract = True
-
     @classmethod
     def clear_shipping_method_from_order(cls, order):
         order.shipping_method = None
@@ -77,7 +74,7 @@ class ShippingMethodUpdateMixin:
         invalidate_order_prices(order)
 
     @classmethod
-    def update_shipping_method(cls, order, method):
+    def update_shipping_method(cls, order: models.Order, method: ShippingMethod):
         order.shipping_method = method
         order.shipping_method_name = method.name
 
@@ -131,7 +128,7 @@ class ShippingMethodUpdateMixin:
             order.undiscounted_base_shipping_price = zero_money(order.currency)
 
     @classmethod
-    def update_shipping_discount(cls, order):
+    def update_shipping_discount(cls, order: models.Order):
         if shipping_discount := order.discounts.filter(
             voucher__type=VoucherType.SHIPPING
         ).first():
@@ -147,6 +144,17 @@ class ShippingMethodUpdateMixin:
             if shipping_discount.amount != shipping_discount_amount:
                 shipping_discount.amount = shipping_discount_amount
                 shipping_discount.save(update_fields=["amount_value"])
+
+    @classmethod
+    def process_shipping_method(
+        cls, order: models.Order, method: ShippingMethod, update_shipping_discount: bool
+    ):
+        shipping_channel_listing = cls.validate_shipping_channel_listing(method, order)
+        cls.update_shipping_method(order, method)
+        cls.assign_shipping_price(order, shipping_channel_listing)
+        # for new instance the shipping discount is created later
+        if update_shipping_discount:
+            cls.update_shipping_discount(order)
 
 
 def clean_order_update_shipping(
@@ -235,3 +243,18 @@ def get_variant_rule_info_map(
         ] = VariantData(variant=variant, rules_info=rules_info)
 
     return variant_id_to_variant_and_rules_info_map
+
+
+def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
+    update_fields = []
+    shipping_address = cleaned_input.get("shipping_address")
+    if shipping_address:
+        shipping_address.save()
+        instance.shipping_address = shipping_address
+        update_fields.append("shipping_address")
+    billing_address = cleaned_input.get("billing_address")
+    if billing_address:
+        billing_address.save()
+        instance.billing_address = billing_address
+        update_fields.append("billing_address")
+    return update_fields

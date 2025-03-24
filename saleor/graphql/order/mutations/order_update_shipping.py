@@ -38,9 +38,7 @@ class OrderUpdateShippingInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class OrderUpdateShipping(
-    EditableOrderValidationMixin, ShippingMethodUpdateMixin, BaseMutation
-):
+class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
     class Arguments:
@@ -125,7 +123,7 @@ class OrderUpdateShipping(
                     }
                 )
 
-            cls.clear_shipping_method_from_order(order)
+            ShippingMethodUpdateMixin.clear_shipping_method_from_order(order)
             order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
 
             call_order_event(manager, event_to_emit, order)
@@ -142,7 +140,10 @@ class OrderUpdateShipping(
                 "postal_code_rules"
             ),
         )
-        shipping_channel_listing = cls.validate_shipping_channel_listing(method, order)
+        manager = get_plugin_manager_promise(info.context).get()
+        shipping_channel_listing = (
+            ShippingMethodUpdateMixin.validate_shipping_channel_listing(method, order)
+        )
 
         shipping_method_data = convert_to_shipping_method_data(
             method,
@@ -151,8 +152,8 @@ class OrderUpdateShipping(
 
         if order.status != OrderStatus.DRAFT:
             clean_order_update_shipping(order, shipping_method_data, manager)
-        cls.update_shipping_method(order, method)
-        cls.update_shipping_price(order, shipping_channel_listing)
+        ShippingMethodUpdateMixin.update_shipping_method(order, method)
+        ShippingMethodUpdateMixin.update_shipping_price(order, shipping_channel_listing)
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
