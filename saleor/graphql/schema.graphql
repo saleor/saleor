@@ -27079,6 +27079,13 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
 
   """ID of the line."""
   lineId: ID
+
+  """
+  Checkout Line public metadata.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
 }
 
 """
