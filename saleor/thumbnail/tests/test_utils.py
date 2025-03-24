@@ -1,5 +1,5 @@
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
@@ -185,3 +185,31 @@ def test_get_filename_from_url_with_short_name_is_not_trimmed():
     assert result.endswith(file_format)
     assert result != f"{file_name}.{file_format}"
     assert len(result.split("_")[0]) < FILE_NAME_MAX_LENGTH
+
+
+@patch("saleor.thumbnail.utils.secrets.token_hex")
+def test_get_filename_from_url_with_query_params(mock_token_hex):
+    # given
+    token_hex = 1234
+    mock_token_hex.return_value = token_hex
+    url = "http://example.com/image.jpg?query=param"
+
+    # when
+    result = get_filename_from_url(url)
+
+    # then
+    assert result == f"image_{token_hex}.jpg"
+
+
+@patch("saleor.thumbnail.utils.secrets.token_hex")
+def test_get_filename_from_url_with_query_params_path(mock_token_hex):
+    # given
+    token_hex = 1234
+    mock_token_hex.return_value = token_hex
+    url = "http://example.com/image.jpg?token=12345/6789"
+
+    # when
+    result = get_filename_from_url(url)
+
+    # then
+    assert result == f"image_{token_hex}.jpg"
