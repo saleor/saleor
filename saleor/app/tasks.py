@@ -1,5 +1,6 @@
 import logging
 
+from celery.exceptions import SoftTimeLimitExceeded
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef, Q
@@ -18,48 +19,63 @@ from .models import App, AppExtension, AppInstallation, AppToken
 logger = logging.getLogger(__name__)
 
 
-@celeryconf.app.task
+# TODO Move to settings
+@celeryconf.app.task(soft_time_limit=15, time_limit=20)
 @allow_writer()
 def install_app_task(job_id, activate=False):
+    app_installation: AppInstallation | None = None
+
+    def _set_failed_installation_status(installation: AppInstallation):
+        installation.status = JobStatus.FAILED
+        installation.save(update_fields=["message", "status"])
+
     try:
-        app_installation = AppInstallation.objects.get(id=job_id)
-    except AppInstallation.DoesNotExist:
-        logger.warning(
-            "Failed to install app. AppInstallation not found for job_id: %s.", job_id
-        )
-        return
-    try:
-        app, _ = install_app(app_installation, activate=activate)
-        app_installation.delete()
-        app.is_installed = True
-        app.save(update_fields=["is_installed"])
-        return
-    except ValidationError as e:
-        msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])
-        app_installation.message = msg
-    except AppInstallationError as e:
-        logger.warning("Failed to install app. Error: %s", e)
-        app_installation.set_message(str(e))
-    except HTTPError as e:
-        logger.warning(
-            "Failed to install app. Response structure incorrect: missing error field."
-            " Error: %s",
-            e,
-        )
-        app_installation.message = (
-            f"App internal error ({e.response.status_code}). "
-            "Try later or contact with app support."
-        )
-    except RequestException as e:
-        logger.warning("Failed to install app. Error: %s", e)
-        app_installation.message = (
-            "Failed to connect to app. Try later or contact with app support."
-        )
-    except Exception as e:
-        logger.error("Failed to install app. Error: %s", e, exc_info=e)
-        app_installation.message = "Unknown error. Contact with app support."
-    app_installation.status = JobStatus.FAILED
-    app_installation.save(update_fields=["message", "status"])
+        try:
+            app_installation = AppInstallation.objects.get(id=job_id)
+        except AppInstallation.DoesNotExist:
+            logger.warning(
+                "Failed to install app. AppInstallation not found for job_id: %s.",
+                job_id,
+            )
+            return
+        try:
+            app, _ = install_app(app_installation, activate=activate)
+            app_installation.delete()
+            app.is_installed = True
+            app.save(update_fields=["is_installed"])
+            return
+        except ValidationError as e:
+            msg = ", ".join([f"{name}: {err}" for name, err in e.message_dict.items()])
+            app_installation.message = msg
+        except AppInstallationError as e:
+            logger.warning("Failed to install app. Error: %s", e)
+            app_installation.set_message(str(e))
+        except HTTPError as e:
+            logger.warning(
+                "Failed to install app. Response structure incorrect: missing error field."
+                " Error: %s",
+                e,
+            )
+            app_installation.message = (
+                f"App internal error ({e.response.status_code}). "
+                "Try later or contact with app support."
+            )
+        except RequestException as e:
+            logger.warning("Failed to install app. Error: %s", e)
+            app_installation.message = (
+                "Failed to connect to app. Try later or contact with app support."
+            )
+        except Exception as e:
+            logger.error("Failed to install app. Error: %s", e, exc_info=e)
+            app_installation.message = "Unknown error. Contact with app support."
+
+        _set_failed_installation_status(app_installation)
+    except SoftTimeLimitExceeded:
+        # Is it possible that app_installation is actually empty here?
+        # Should we re-fetch it?
+        # Or maybe just call Sentry?
+        # We should be able to always set failed state to avoid broken frontends
+        _set_failed_installation_status(app_installation)
 
 
 def _raw_remove_deliveries(deliveries_ids):
