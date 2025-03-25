@@ -337,8 +337,10 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         user = info.context.user
         channel = data.pop("channel")
 
-        metadata_list: list[MetadataInput] = data.pop("metadata", None)
-        private_metadata_list: list[MetadataInput] = data.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] | None = data.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] | None = data.pop(
+            "private_metadata", None
+        )
 
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
