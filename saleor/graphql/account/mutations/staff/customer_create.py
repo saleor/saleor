@@ -65,7 +65,6 @@ class CustomerCreate(BaseCustomerCreate):
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
 
-        is_creation = instance.pk is None
         super().save(info, instance, cleaned_input)
         if default_billing_address:
             instance.addresses.add(default_billing_address)
@@ -75,12 +74,8 @@ class CustomerCreate(BaseCustomerCreate):
         instance.search_document = prepare_user_search_document_value(instance)
         instance.save(update_fields=["search_document", "updated_at"])
 
-        # The instance is a new object in db, create an event
-        if is_creation:
-            cls.call_event(manager.customer_created, instance)
-            account_events.customer_account_created_event(user=instance)
-        else:
-            cls.call_event(manager.customer_updated, instance)
+        cls.call_event(manager.customer_created, instance)
+        account_events.customer_account_created_event(user=instance)
 
         if redirect_url := cleaned_input.get("redirect_url"):
             channel_slug = cleaned_input.get("channel")
