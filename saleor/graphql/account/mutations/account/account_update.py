@@ -1,19 +1,13 @@
 from typing import cast
-from urllib.parse import urlencode
 
 import graphene
-from django.contrib.auth.tokens import default_token_generator
 
 from .....account import models
-from .....account.error_codes import AccountErrorCode
-from .....account.notifications import send_set_password_notification
 from .....account.search import prepare_user_search_document_value
 from .....core.tracing import traced_atomic_transaction
-from .....core.utils.url import prepare_url
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.mixins import AddressMetadataMixin
-from ....channel.utils import clean_channel, validate_channel
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
@@ -103,7 +97,7 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
 
     @classmethod
     @traced_atomic_transaction()
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance: models.User, cleaned_input):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
         if default_shipping_address:
@@ -126,27 +120,9 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
         cls.call_event(manager.customer_updated, instance)
 
         if redirect_url := cleaned_input.get("redirect_url"):
-            channel_slug = cleaned_input.get("channel")
-            if not instance.is_staff:
-                channel_slug = clean_channel(
-                    channel_slug, error_class=AccountErrorCode, allow_replica=False
-                ).slug
-            elif channel_slug is not None:
-                channel_slug = validate_channel(
-                    channel_slug, error_class=AccountErrorCode
-                ).slug
-            send_set_password_notification(
-                redirect_url,
-                instance,
-                manager,
-                channel_slug,
-            )
-            token = default_token_generator.make_token(instance)
-            params = urlencode({"email": instance.email, "token": token})
-            cls.call_event(
-                manager.account_set_password_requested,
-                instance,
-                channel_slug,
-                token,
-                prepare_url(params, redirect_url),
+            cls.process_account_confirmation(
+                redirect_url=redirect_url,
+                instance=instance,
+                channel_slug_from_input=cleaned_input.get("channel"),
+                plugins_manager=manager,
             )
