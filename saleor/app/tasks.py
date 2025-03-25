@@ -18,9 +18,15 @@ from .models import App, AppExtension, AppInstallation, AppToken
 
 logger = logging.getLogger(__name__)
 
+INSTALLATION_TIMEOUT = settings.APP_INSTALLATION_TIMEOUT_SECONDS
+# Add extra 5s for cleanup
+INSTALLATION_HARD_TIMEOUT = INSTALLATION_TIMEOUT + 5
+
 
 # TODO Move to settings
-@celeryconf.app.task(soft_time_limit=15, time_limit=20)
+@celeryconf.app.task(
+    soft_time_limit=INSTALLATION_TIMEOUT, time_limit=INSTALLATION_HARD_TIMEOUT
+)
 @allow_writer()
 def install_app_task(job_id, activate=False):
     app_installation: AppInstallation | None = None

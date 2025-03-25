@@ -1060,3 +1060,6 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()
+
+# Does it have to be in envs?
+APP_INSTALLATION_TIMEOUT_SECONDS = 15
