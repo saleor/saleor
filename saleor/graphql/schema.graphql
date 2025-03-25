@@ -27081,7 +27081,7 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
   lineId: ID
 
   """
-  Checkout line public metadata. 
+  Checkout line public metadata. Will add and update keys. To delete keys use deleteMetadata mutation. 
   
   Added in Saleor 3.21. Can be read by any API client authorized to read the object it's attached to.
   

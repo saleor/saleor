@@ -59,7 +59,7 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
     metadata = NonNullList(
         MetadataInput,
         description=(
-            f"Checkout line public metadata. {ADDED_IN_321} "
+            f"Checkout line public metadata. Will add and update keys. To delete keys use deleteMetadata mutation. {ADDED_IN_321} "
             f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
         ),
         required=False,
