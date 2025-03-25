@@ -71,6 +71,24 @@ def test_send_webhooks_async_for_app_no_deliveries(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
+def test_send_webhooks_async_for_app_doesnt_pick_failed(
+    mock_send_webhook_using_scheme_method, app, event_delivery
+):
+    # given
+    event_delivery.status = EventDeliveryStatus.FAILED
+    event_delivery.save()
+    assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
+
+    # when
+    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+
+    # then
+    assert mock_send_webhook_using_scheme_method.called == 0
+
+
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
@@ -187,3 +205,49 @@ def test_send_multiple_webhooks_async_for_app(
 
     # deliveries should be cleared
     assert not EventDelivery.objects.exists()
+
+
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
+)
+def test_send_webhooks_async_for_app_last_retry_failed(
+    mock_send_webhooks_async_for_app_apply_async,
+    mock_send_webhook_using_scheme_method,
+    app,
+    event_delivery,
+):
+    # given
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
+    EventDeliveryAttempt.objects.bulk_create(
+        [
+            EventDeliveryAttempt(
+                delivery=event_delivery, status=EventDeliveryStatus.FAILED
+            )
+            for _ in range(5)
+        ]
+    )
+    mock_send_webhook_using_scheme_method.return_value = WebhookResponse(
+        content="", status=EventDeliveryStatus.FAILED
+    )
+
+    # when
+    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+
+    # then
+    mock_send_webhook_using_scheme_method.assert_called_once()
+    deliveries = EventDelivery.objects.all()
+    assert len(deliveries) == 1
+    assert deliveries[0].status == EventDeliveryStatus.FAILED
+    assert (
+        len(EventDeliveryAttempt.objects.filter(status=EventDeliveryStatus.FAILED)) == 6
+    )
+
+    mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+    )
