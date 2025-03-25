@@ -13,7 +13,7 @@ from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...mixins import AppImpersonateMixin
 from ...types import AddressInput, User
