@@ -245,6 +245,8 @@ class DraftOrderUpdate(
                     old_voucher_code,
                 )
 
+            # In case nothing change, do not update perform post-process actions;
+            # do not call the `DRAFT_ORDER_UPDATED` event.
             if not updated_fields:
                 return
 
@@ -270,8 +272,6 @@ class DraftOrderUpdate(
 
             instance.save(update_fields=updated_fields)
 
-            # The event is fired to not introduce the breaking change in 3.20.
-            # Won't be triggered in the next minor version in case nothing changed.
             call_order_event(
                 manager,
                 WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
