@@ -81,10 +81,11 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
-        update_fields = list(cleaned_input.keys())
+    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields):
+        update_fields = changed_fields
         with traced_atomic_transaction():
-            save_addresses(instance, cleaned_input)
+            address_fields = save_addresses(instance, cleaned_input)
+            update_fields.extend(address_fields)
 
             manager = get_plugin_manager_promise(info.context).get()
             if cls.should_invalidate_prices(cleaned_input):
@@ -97,7 +98,6 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
                 )
                 update_fields.extend(["updated_at", "search_vector"])
 
-            if update_fields:
                 instance.save(update_fields=update_fields)
                 call_order_event(
                     manager,
@@ -147,12 +147,19 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         instance = cls.get_instance(info, **data)
         channel_id = cls.get_instance_channel_id(instance, **data)
         cls.check_channel_permissions(info, [channel_id])
+        old_instance_data = instance.serialize_for_comparison()
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
 
         cls.clean_instance(info, instance)
-        cls.save(info, instance, cleaned_input)
+        new_instance_data = instance.serialize_for_comparison()
+        changed_fields = cls.diff_instance_data_fields(
+            instance.comparison_fields,
+            old_instance_data,
+            new_instance_data,
+        )
+        cls._save(info, instance, cleaned_input, changed_fields)
         return cls.success_response(instance)
 
     @classmethod
