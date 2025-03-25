@@ -2744,6 +2744,58 @@ def test_order_from_checkout_with_transaction_empty_product_translation(
     assert order_line.translated_variant_name == ""
 
 
+def test_order_from_checkout_with_translation_equal_name(
+    app_api_client,
+    site_settings,
+    checkout_with_item,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_variant = checkout_line.variant
+    checkout_line_product = checkout_line_variant.product
+    checkout_line_product.name = "Product name"
+    checkout_line_product.save()
+    checkout_line_variant.name = "Variant name"
+    checkout_line_variant.save()
+    product_translation = checkout_line_product.translations.create(
+        language_code=checkout.language_code, name=checkout_line_product.name
+    )
+    variant_translation = checkout_line_variant.translations.create(
+        language_code=checkout.language_code, name=checkout_line_variant.name
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    order_line = order.lines.first()
+    assert order_line.translated_product_name == product_translation.name
+    assert order_line.translated_variant_name == variant_translation.name
+
+
 def test_order_from_checkout_order_status_changed_after_creation(
     checkout_with_item_total_0,
     customer_user,
