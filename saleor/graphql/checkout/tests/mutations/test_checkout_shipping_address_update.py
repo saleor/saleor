@@ -1246,3 +1246,43 @@ def test_checkout_shipping_address_update_triggers_webhooks(
 
     tax_delivery = tax_delivery_call.args[0]
     assert tax_delivery.webhook_id == tax_webhook.id
+
+
+def test_checkout_shipping_address_update_when_switching_from_cc(
+    checkout_with_items,
+    app_api_client,
+    graphql_address_data_skipped_validation,
+    permission_handle_checkouts,
+    shipping_method,
+    address,
+):
+    # given
+    checkout = checkout_with_items
+    address_data = graphql_address_data_skipped_validation
+    # after switching for cc to standard shipping method - the shipping method is set
+    # and the shipping address is cleared
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.shipping_address = None
+    checkout.save(
+        update_fields=["shipping_method", "billing_address", "shipping_address"]
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "shippingAddress": address_data,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address
