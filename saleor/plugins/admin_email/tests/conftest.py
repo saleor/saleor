@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import dj_email_url
 import pytest
 
 from ....plugins.models import EmailTemplate, PluginConfiguration
@@ -138,3 +139,31 @@ def admin_email_template(admin_email_plugin):
         value="Custom staff reset password email template",
         plugin_configuration=config,
     )
+
+
+@pytest.fixture
+def default_admin_email_plugin(settings):
+    def fun(
+        default_email_from: str = "noreply@example.com",
+        email_url: str = "",
+    ):
+        settings.DEFAULT_FROM_EMAIL = default_email_from
+        settings.EMAIL_URL = email_url
+
+        email_config = dj_email_url.parse(email_url)
+
+        settings.EMAIL_FILE_PATH = email_config.get("EMAIL_FILE_PATH", "")
+        settings.EMAIL_HOST_USER = email_config.get("EMAIL_HOST_USER", "")
+        settings.EMAIL_HOST_PASSWORD = email_config.get("EMAIL_HOST_PASSWORD", "")
+        settings.EMAIL_HOST = email_config.get("EMAIL_HOST", "")
+        settings.EMAIL_PORT = str(email_config.get("EMAIL_PORT", ""))
+        settings.EMAIL_BACKEND = email_config.get("EMAIL_BACKEND", "")
+        settings.EMAIL_USE_TLS = email_config.get("EMAIL_USE_TLS", False)
+        settings.EMAIL_USE_SSL = email_config.get("EMAIL_USE_SSL", False)
+
+        settings.PLUGINS = ["saleor.plugins.admin_email.plugin.AdminEmailPlugin"]
+        manager = get_plugins_manager(allow_replica=False)
+        manager.get_all_plugins()
+        return manager.global_plugins[0]
+
+    return fun
