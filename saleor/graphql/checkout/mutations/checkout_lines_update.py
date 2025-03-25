@@ -15,7 +15,7 @@ from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ...utils import ERROR_COULD_NO_RESOLVE_GLOBAL_ID
@@ -58,7 +58,10 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
 
     metadata = NonNullList(
         MetadataInput,
-        description="Checkout Line public metadata." + ADDED_IN_321,
+        description=(
+            f"Checkout line public metadata. {ADDED_IN_321} "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
 

@@ -27081,9 +27081,11 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
   lineId: ID
 
   """
-  Checkout Line public metadata.
+  Checkout line public metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   metadata: [MetadataInput!]
 }
