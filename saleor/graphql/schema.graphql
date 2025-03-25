@@ -26863,16 +26863,20 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   validationRules: CheckoutValidationRules
 
   """
-  Checkout public metadata.
+  Checkout public metadata. 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21.Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   metadata: [MetadataInput!]
 
   """
-  Checkout private metadata. Requires one of the following permissions:MANAGE_CHECKOUTS, HANDLE_CHECKOUTS
+  Checkout private metadata. Requires one of the following permissions:MANAGE_CHECKOUTS, HANDLE_CHECKOUTS 
   
-  Added in Saleor 3.21.
+  Added in Saleor 3.21.Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
 }

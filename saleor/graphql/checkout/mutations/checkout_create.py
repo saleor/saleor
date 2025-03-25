@@ -184,7 +184,10 @@ class CheckoutCreateInput(BaseInputObjectType):
 
     metadata = NonNullList(
         MetadataInput,
-        description="Checkout public metadata." + ADDED_IN_321,
+        description=(
+            f"Checkout public metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
 
@@ -193,7 +196,8 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             "Checkout private metadata. Requires one of the following permissions:"
             f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
-            f"{CheckoutPermissions.HANDLE_CHECKOUTS.name}" + ADDED_IN_321
+            f"{CheckoutPermissions.HANDLE_CHECKOUTS.name} {ADDED_IN_321}"
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
         ),
         required=False,
     )
