@@ -1,7 +1,7 @@
 from unittest.mock import ANY, MagicMock, patch
 
-from saleor.core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
-from saleor.webhook.transport.asynchronous.transport import (
+from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
+from ..transport import (
     WebhookResponse,
     send_webhooks_async_for_app,
 )
