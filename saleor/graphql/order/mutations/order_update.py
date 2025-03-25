@@ -17,7 +17,7 @@ from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .draft_order_create import DraftOrderCreate
@@ -32,13 +32,19 @@ class OrderUpdateInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="Order public metadata." + ADDED_IN_321,
+        description=(
+            f"Order public metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
 
     private_metadata = NonNullList(
         MetadataInput,
-        description="Order private metadata." + ADDED_IN_321,
+        description=(
+            f"Order private metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
+        ),
         required=False,
     )
 
