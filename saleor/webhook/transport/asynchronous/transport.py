@@ -668,7 +668,7 @@ def send_webhooks_async_for_app(
     domain = get_domain()
     deliveries = get_deliveries_for_app(app_id)
 
-    if not deliveries or len(deliveries) == 0:
+    if not deliveries:
         return
 
     for delivery_id, delivery_with_count in deliveries.items():
@@ -680,9 +680,9 @@ def send_webhooks_async_for_app(
 
         try:
             if not delivery.payload:
-                raise ValueError(f"Event delivery id: %{delivery_id}r has no payload.")
+                raise ValueError(f"Event delivery id: {delivery_id} has no payload.")
             data = delivery.payload.get_payload()
-            # Covert payload to bytes if it's not already.
+            # Convert payload to bytes if it's not already.
             data = data if isinstance(data, bytes) else data.encode("utf-8")
             # Count payload size in bytes.
             payload_size = len(data)
