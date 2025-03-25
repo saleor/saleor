@@ -23442,7 +23442,7 @@ type OrderAddNote @doc(category: "Orders") {
 
 input OrderAddNoteInput @doc(category: "Orders") {
   """Note message."""
-  message: String! @deprecated
+  message: String!
 }
 
 """
