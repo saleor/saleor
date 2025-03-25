@@ -180,15 +180,17 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
+
         if default_shipping_address:
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
+
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
+
         if default_billing_address:
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
 
-        is_creation = instance.pk is None
         super().save(info, instance, cleaned_input)
         if default_billing_address:
             instance.addresses.add(default_billing_address)
@@ -198,12 +200,7 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         instance.search_document = prepare_user_search_document_value(instance)
         instance.save(update_fields=["search_document", "updated_at"])
 
-        # The instance is a new object in db, create an event
-        if is_creation:
-            cls.call_event(manager.customer_created, instance)
-            account_events.customer_account_created_event(user=instance)
-        else:
-            cls.call_event(manager.customer_updated, instance)
+        cls.call_event(manager.customer_updated, instance)
 
         if redirect_url := cleaned_input.get("redirect_url"):
             channel_slug = cleaned_input.get("channel")
@@ -215,6 +212,7 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
                 channel_slug = validate_channel(
                     channel_slug, error_class=AccountErrorCode
                 ).slug
+
             send_set_password_notification(
                 redirect_url,
                 instance,
@@ -223,6 +221,7 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             )
             token = default_token_generator.make_token(instance)
             params = urlencode({"email": instance.email, "token": token})
+
             cls.call_event(
                 manager.account_set_password_requested,
                 instance,
