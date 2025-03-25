@@ -217,9 +217,6 @@ class DraftOrderUpdate(
                     old_voucher_code,
                 )
 
-            if not updated_fields:
-                return
-
             if (
                 "shipping_address" in updated_fields
                 or "billing_address" in updated_fields

@@ -2444,3 +2444,90 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
     assert wrapped_call_order_event.called
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.update_order_search_vector",
+)
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_update_nothing_changed(
+    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_sync,
+    wrapped_call_order_event,
+    mocked_update_order_search_vector,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    settings,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    mocked_send_webhook_request_sync.return_value = []
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        draft_order_updated_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "input": {
+            "userEmail": order.user_email,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    # ensure the update fields were empty
+    mocked_update_order_search_vector.assert_not_called()
+
+    # confirm that event delivery was generated for each async webhook.
+    draft_order_updated_delivery = EventDelivery.objects.get(
+        webhook_id=draft_order_updated_webhook.id
+    )
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={"event_delivery_id": draft_order_updated_delivery.id},
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
+
+    # confirm each sync webhook was called without saving event delivery
+    mocked_send_webhook_request_sync.assert_called_once()
+    assert not EventDelivery.objects.exclude(
+        webhook_id=draft_order_updated_webhook.id
+    ).exists()
+
+    filter_shipping_call = mocked_send_webhook_request_sync.mock_calls[0]
+
+    filter_shipping_delivery = filter_shipping_call.args[0]
+    assert filter_shipping_delivery.webhook_id == shipping_filter_webhook.id
+    assert (
+        filter_shipping_delivery.event_type
+        == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
+    )
+    assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
+
+    assert wrapped_call_order_event.called
