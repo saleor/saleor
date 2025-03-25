@@ -27,11 +27,15 @@ from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ..base import BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD, CustomerInput
-from .customer_create import CustomerCreate
+from ..base import (
+    BILLING_ADDRESS_FIELD,
+    SHIPPING_ADDRESS_FIELD,
+    BaseCustomerCreate,
+    CustomerInput,
+)
 
 
-class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
+class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(description="ID of a customer to update.", required=False)
         external_reference = graphene.String(
