@@ -3,12 +3,11 @@ from typing import cast
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....order import OrderStatus, models
+from ....order import models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ....shipping import models as shipping_models
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.deprecated_event_types import WebhookEventType
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -23,7 +22,6 @@ from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
     EditableOrderValidationMixin,
     ShippingMethodUpdateMixin,
-    clean_order_update_shipping,
 )
 
 
@@ -141,20 +139,9 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             ),
         )
         manager = get_plugin_manager_promise(info.context).get()
-        shipping_channel_listing = (
-            ShippingMethodUpdateMixin.validate_shipping_channel_listing(method, order)
+        ShippingMethodUpdateMixin.process_shipping_method(
+            order, method, manager, update_shipping_discount=True
         )
-
-        shipping_method_data = convert_to_shipping_method_data(
-            method,
-            shipping_channel_listing,
-        )
-
-        if order.status != OrderStatus.DRAFT:
-            clean_order_update_shipping(order, shipping_method_data, manager)
-        ShippingMethodUpdateMixin.update_shipping_method(order, method)
-        ShippingMethodUpdateMixin.update_shipping_price(order, shipping_channel_listing)
-
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results
 

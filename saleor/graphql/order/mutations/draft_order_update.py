@@ -227,7 +227,7 @@ class DraftOrderUpdate(
                     ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
                 else:
                     ShippingMethodUpdateMixin.process_shipping_method(
-                        instance, method, update_shipping_discount=True
+                        instance, method, manager, update_shipping_discount=True
                     )
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 

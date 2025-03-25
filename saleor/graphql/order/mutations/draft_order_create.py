@@ -414,7 +414,7 @@ class DraftOrderCreate(
                     ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
                 else:
                     ShippingMethodUpdateMixin.process_shipping_method(
-                        instance, method, update_shipping_discount=False
+                        instance, method, manager, update_shipping_discount=False
                     )
 
             if instance.undiscounted_base_shipping_price_amount is None:

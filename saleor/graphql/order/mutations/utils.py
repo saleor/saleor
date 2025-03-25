@@ -19,6 +19,7 @@ from ....plugins.manager import PluginsManager
 from ....product import models as product_models
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
@@ -147,9 +148,19 @@ class ShippingMethodUpdateMixin:
 
     @classmethod
     def process_shipping_method(
-        cls, order: models.Order, method: ShippingMethod, update_shipping_discount: bool
+        cls,
+        order: models.Order,
+        method: ShippingMethod,
+        manager: "PluginsManager",
+        update_shipping_discount: bool,
     ):
         shipping_channel_listing = cls.validate_shipping_channel_listing(method, order)
+        if order.status != OrderStatus.DRAFT:
+            shipping_method_data = convert_to_shipping_method_data(
+                method,
+                shipping_channel_listing,
+            )
+            clean_order_update_shipping(order, shipping_method_data, manager)
         cls.update_shipping_method(order, method)
         cls.assign_shipping_price(order, shipping_channel_listing)
         # for new instance the shipping discount is created later
