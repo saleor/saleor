@@ -20,9 +20,10 @@ from ....webhook.payloads import (
 from ....webhook.transport.shipping import (
     get_excluded_shipping_methods_from_response,
     get_excluded_shipping_methods_or_fetch,
+    logger,
     parse_list_shipping_methods_response,
-    to_shipping_app_id,
 )
+from ....webhook.transport.shipping_common import to_shipping_app_id
 from ....webhook.transport.synchronous.transport import trigger_webhook_sync
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...base_plugin import ExcludedShippingMethod
@@ -1243,7 +1244,10 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
     mocked_parse.assert_called_once_with([])
 
 
-def test_parse_list_shipping_methods_response_response_incorrect_format(app):
+@mock.patch.object(logger, "warning")
+def test_parse_list_shipping_methods_response_response_incorrect_format(
+    mocked_logger, app
+):
     # given
     response_data_with_incorrect_format = [[1], 2, "3"]
     # when
@@ -1252,13 +1256,15 @@ def test_parse_list_shipping_methods_response_response_incorrect_format(app):
     )
     # then
     assert result == []
+    # Ensure the warning about invalit method data wa logged
+    assert mocked_logger.call_count == len(response_data_with_incorrect_format)
 
 
 def test_parse_list_shipping_methods_with_metadata(app):
     # given
     response_data_with_meta = [
         {
-            "id": 123,
+            "id": "123",
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
@@ -1279,7 +1285,7 @@ def test_parse_list_shipping_methods_with_metadata_in_incorrect_format(app):
     # given
     response_data_with_meta = [
         {
-            "id": 123,
+            "id": "123",
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
@@ -1299,7 +1305,7 @@ def test_parse_list_shipping_methods_metadata_absent_in_response(app):
     # given
     response_data_with_meta = [
         {
-            "id": 123,
+            "id": "123",
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
@@ -1318,7 +1324,7 @@ def test_parse_list_shipping_methods_metadata_is_none(app):
     # given
     response_data_with_meta = [
         {
-            "id": 123,
+            "id": "123",
             "amount": 10,
             "currency": "USD",
             "name": "shipping",

@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 from collections import defaultdict
@@ -7,7 +6,7 @@ from typing import Any, Union
 
 from django.db.models import QuerySet
 from graphql import GraphQLError
-from prices import Money
+from pydantic import ValidationError
 
 from ...app.models import App
 from ...checkout.models import Checkout
@@ -21,86 +20,23 @@ from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
+from .validation_schemas import ShippingMethodSchema
 
 logger = logging.getLogger(__name__)
-
-
-def to_shipping_app_id(app: App, shipping_method_id: str) -> str:
-    app_identifier = app.identifier or app.id
-    return base64.b64encode(
-        str.encode(f"{APP_ID_PREFIX}:{app_identifier}:{shipping_method_id}")
-    ).decode("utf-8")
-
-
-def convert_to_app_id_with_identifier(shipping_app_id: str) -> None | str:
-    """Prepare the shipping_app_id in format `app:<app-identifier>/method_id>`.
-
-    The format of shipping_app_id has been changes so we need to support both of them.
-    This method is preparing the new shipping_app_id format based on assumptions
-    that right now the old one is used which is `app:<app-pk>:method_id>`
-    """
-    decoded_id = base64.b64decode(shipping_app_id).decode()
-    splitted_id = decoded_id.split(":")
-    if len(splitted_id) != 3:
-        return None
-    try:
-        app_id = int(splitted_id[1])
-    except (TypeError, ValueError):
-        return None
-    app = App.objects.filter(id=app_id).first()
-    if app is None:
-        return None
-    return to_shipping_app_id(app, splitted_id[2])
-
-
-def method_metadata_is_valid(metadata) -> bool:
-    if not isinstance(metadata, dict):
-        return False
-    for key, value in metadata.items():
-        if not isinstance(key, str) or not isinstance(value, str) or not key.strip():
-            return False
-    return True
 
 
 def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
 ) -> list["ShippingMethodData"]:
-    shipping_methods = []
-    for shipping_method_data in response_data:
-        if not validate_shipping_method_data(shipping_method_data):
-            continue
-        method_id = shipping_method_data.get("id")
-        method_name = shipping_method_data.get("name")
-        method_amount = shipping_method_data.get("amount")
-        method_currency = shipping_method_data.get("currency")
-        method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
-        method_minimum_delivery_days = shipping_method_data.get("minimum_delivery_days")
-        method_description = shipping_method_data.get("description")
-        method_metadata = shipping_method_data.get("metadata") or {}
-        if method_metadata:
-            method_metadata = (
-                method_metadata if method_metadata_is_valid(method_metadata) else {}
-            )
-
-        shipping_methods.append(
-            ShippingMethodData(
-                id=to_shipping_app_id(app, method_id),
-                name=method_name,
-                price=Money(method_amount, method_currency),
-                maximum_delivery_days=method_maximum_delivery_days,
-                minimum_delivery_days=method_minimum_delivery_days,
-                description=method_description,
-                metadata=method_metadata,
-            )
-        )
-    return shipping_methods
-
-
-def validate_shipping_method_data(shipping_method_data):
-    if not isinstance(shipping_method_data, dict):
-        return False
-    keys = ["id", "name", "amount", "currency"]
-    return all(key in shipping_method_data for key in keys)
+    valid_methods = []
+    for method_data in response_data:
+        try:
+            shipping_method_schema = ShippingMethodSchema.model_validate(method_data)
+        except ValidationError as e:
+            logger.warning("Skipping invalid shipping method: %s", e)
+        else:
+            valid_methods.append(shipping_method_schema.get_shipping_method_data(app))
+    return valid_methods
 
 
 def get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
