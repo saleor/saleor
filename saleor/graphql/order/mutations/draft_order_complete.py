@@ -57,7 +57,8 @@ class DraftOrderComplete(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def update_user_fields(cls, order: models.Order, update_fields: list[str]):
+    def update_user_fields(cls, order: models.Order):
+        update_fields = []
         if order.user:
             order.user_email = order.user.email
             update_fields.append("user_email")
@@ -67,6 +68,7 @@ class DraftOrderComplete(BaseMutation):
             except User.DoesNotExist:
                 order.user = None
             update_fields.append("user_id")
+        return update_fields
 
     @classmethod
     def validate_order(cls, order):
@@ -127,7 +129,8 @@ class DraftOrderComplete(BaseMutation):
                 "display_gross_prices",
                 "updated_at",
             ]
-            cls.update_user_fields(order, update_fields)
+            update_user_fields = cls.update_user_fields(order)
+            update_fields.extend(update_user_fields)
             channel = order.channel
             order.status = (
                 OrderStatus.UNFULFILLED
