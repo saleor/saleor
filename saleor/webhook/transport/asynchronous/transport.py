@@ -634,9 +634,9 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
     bind=True,
 )
 @allow_writer()
-@task_with_telemetry_context
 def send_webhooks_async_for_app(
-    self, app_id, *, telemetry_context: TelemetryTaskContext
+    self,
+    app_id,
 ) -> None:
     domain = get_domain()
     deliveries = get_deliveries_for_app(app_id)
@@ -660,14 +660,11 @@ def send_webhooks_async_for_app(
             # Count payload size in bytes.
             payload_size = len(data)
 
-            if attempt_count == 0:
-                record_first_delivery_attempt_delay(delivery)
-            with webhooks_otel_trace(
+            with webhooks_opentracing_trace(
                 delivery.event_type,
                 domain,
                 payload_size,
                 app=webhook.app,
-                span_links=telemetry_context.links,
             ):
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
@@ -678,7 +675,6 @@ def send_webhooks_async_for_app(
                     webhook.custom_headers,
                 )
 
-            record_async_webhooks_count(delivery, response.status)
             if response.status == EventDeliveryStatus.FAILED:
                 attempt_update(attempt, response)
                 if attempt_count >= 5:
@@ -708,7 +704,6 @@ def send_webhooks_async_for_app(
     send_webhooks_async_for_app.apply_async(
         kwargs={
             "app_id": app_id,
-            "telemetry_context": get_task_context().to_dict(),
         },
     )
 
