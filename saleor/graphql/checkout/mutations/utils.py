@@ -30,6 +30,7 @@ from ....checkout.utils import (
     remove_external_shipping_from_checkout,
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
+from ....core.utils import metadata_manager
 from ....discount import DiscountType, DiscountValueType
 from ....discount.models import CheckoutLineDiscount, PromotionRule
 from ....discount.utils.promotion import (
@@ -45,6 +46,7 @@ from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.enums import MetadataErrorCode
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 
@@ -466,7 +468,19 @@ def group_lines_input_data_on_update(
             line_data.custom_price_to_update = True
 
         if "metadata" in line:
-            line_data.metadata_list = line["metadata"]
+            try:
+                metadata_manager.create_from_graphql_input(line["metadata"])
+
+                line_data.metadata_list = line["metadata"]
+            except metadata_manager.MetadataEmptyKeyError:
+                raise ValidationError(
+                    {
+                        "metadata": ValidationError(
+                            "Metadata key cannot be empty.",
+                            code=MetadataErrorCode.REQUIRED.value,
+                        )
+                    }
+                ) from None
 
     grouped_checkout_lines_data += list(checkout_lines_data_map.values())
     return grouped_checkout_lines_data

@@ -1762,3 +1762,41 @@ def test_checkout_lines_update_with_metadata_empty_list(
     assert line.metadata["test_key"] == "old_value"
 
     assert line.variant == variant
+
+
+def test_checkout_lines_update_with_invalid_metadata(
+    user_api_client,
+    checkout_with_item,
+):
+    checkout = checkout_with_item
+    lines, _ = fetch_checkout_lines(checkout)
+
+    assert checkout.lines.count() == 1
+
+    line = checkout.lines.first()
+    variant = line.variant
+
+    assert not line.metadata.get("test_key")
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "lines": [
+            {
+                "variantId": variant_id,
+                "quantity": 1,
+                # Key can't be empty
+                "metadata": [{"key": "", "value": "test_value"}],
+            }
+        ],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+
+    expected_error = data["errors"][0]
+
+    assert expected_error["field"] == "metadata"
+    assert expected_error["code"] == "REQUIRED"
