@@ -707,3 +707,40 @@ def test_order_update_public_and_private_metadata(
     assert order.private_metadata == {"meta key": "meta value"}
 
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_invalid_metadata(
+    order_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order_with_lines.metadata = {}
+    order_with_lines.private_metadata = {}
+    order.save()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        # Empty key is invalid
+        "metadata": [{"key": "", "value": "meta value"}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["orderUpdate"]["errors"]
+
+    assert errors[0]["field"] == "metadata"
+    assert errors[0]["code"] == "REQUIRED"
+
+    order.refresh_from_db()
+    assert order.metadata == {}
