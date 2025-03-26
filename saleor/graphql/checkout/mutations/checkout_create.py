@@ -349,18 +349,18 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         trying_to_set_private_metadata = private_metadata_list is not None
 
         if trying_to_set_private_metadata:
+            private_metadata_permissions = [
+                CheckoutPermissions.HANDLE_CHECKOUTS,
+                CheckoutPermissions.MANAGE_CHECKOUTS,
+            ]
+
             can_set_private_metadata = cls.check_permissions(
                 info.context,
-                permissions=[
-                    CheckoutPermissions.HANDLE_CHECKOUTS,
-                    CheckoutPermissions.MANAGE_CHECKOUTS,
-                ],
+                permissions=private_metadata_permissions,
             )
 
             if not can_set_private_metadata:
-                raise PermissionDenied(
-                    "You need MANAGE_CHECKOUTS or HANDLE_CHECKOUTS permission to set privateMetadata"
-                )
+                raise PermissionDenied(permissions=private_metadata_permissions)
 
         cleaned_input["metadata_collection"] = cls.create_metadata_from_graphql_input(
             metadata_list, error_field_name="metadata"
