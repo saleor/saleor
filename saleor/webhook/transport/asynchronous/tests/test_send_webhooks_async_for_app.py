@@ -1,4 +1,4 @@
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import patch
 
 from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from ..transport import (
@@ -10,19 +10,11 @@ from ..transport import (
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-@patch("saleor.webhook.transport.asynchronous.transport.record_async_webhooks_count")
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
-)
-@patch("saleor.webhook.transport.asynchronous.transport.webhooks_otel_trace")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_send_webhooks_async_for_app(
     mock_send_webhooks_async_for_app_apply_async,
-    mock_webhooks_otel_trace,
-    mock_record_first_delivery_attempt_delay,
-    mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
     app,
     event_delivery,
@@ -34,17 +26,13 @@ def test_send_webhooks_async_for_app(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     mock_send_webhook_using_scheme_method.assert_called_once()
-    mock_record_async_webhooks_count.assert_called_once()
-    mock_record_first_delivery_attempt_delay.assert_called_once()
-    mock_webhooks_otel_trace.assert_called_once()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
-            "telemetry_context": ANY,
         },
     )
 
@@ -62,7 +50,7 @@ def test_send_webhooks_async_for_app_no_deliveries(
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     assert mock_send_webhook_using_scheme_method.called == 0
@@ -80,7 +68,7 @@ def test_send_webhooks_async_for_app_doesnt_pick_failed(
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     assert mock_send_webhook_using_scheme_method.called == 0
@@ -105,7 +93,7 @@ def test_send_webhooks_async_for_app_no_payload(
     assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     mock_send_webhook_using_scheme_method.assert_not_called()
@@ -119,7 +107,6 @@ def test_send_webhooks_async_for_app_no_payload(
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
-            "telemetry_context": ANY,
         },
     )
 
@@ -143,7 +130,7 @@ def test_send_webhooks_async_for_app_failed_status(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     mock_send_webhook_using_scheme_method.assert_called_once()
@@ -157,7 +144,6 @@ def test_send_webhooks_async_for_app_failed_status(
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
-            "telemetry_context": ANY,
         },
     )
 
@@ -165,19 +151,11 @@ def test_send_webhooks_async_for_app_failed_status(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
-@patch("saleor.webhook.transport.asynchronous.transport.record_async_webhooks_count")
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
-)
-@patch("saleor.webhook.transport.asynchronous.transport.webhooks_otel_trace")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_send_multiple_webhooks_async_for_app(
     mock_send_webhooks_async_for_app_apply_async,
-    mock_webhooks_otel_trace,
-    mock_record_first_delivery_attempt_delay,
-    mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
     app,
     event_deliveries,
@@ -189,17 +167,13 @@ def test_send_multiple_webhooks_async_for_app(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     assert mock_send_webhook_using_scheme_method.call_count == 3
-    assert mock_record_async_webhooks_count.call_count == 3
-    assert mock_record_first_delivery_attempt_delay.call_count == 3
-    assert mock_webhooks_otel_trace.call_count == 3
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
-            "telemetry_context": ANY,
         },
     )
 
@@ -234,7 +208,7 @@ def test_send_webhooks_async_for_app_last_retry_failed(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(app_id=app.id)
 
     # then
     mock_send_webhook_using_scheme_method.assert_called_once()
@@ -248,6 +222,5 @@ def test_send_webhooks_async_for_app_last_retry_failed(
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
-            "telemetry_context": ANY,
         },
     )
