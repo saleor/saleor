@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
 - Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
+- Dropped the deprecated "Stripe (Deprecated)" payment plugin. If your codebase refers to `mirumee.payments.stripe`, you will need to migrate to the supported plugin, `saleor.payments.stripe` - #17539 by @patrys
 - Change error codes related to user enumeration bad habbit. Included mutations will now not reveal information in error codes if email was already registered:
   - `AccountRegister`,
     `AccountRegister` mutation will additionaly not return `ID` of the user.
