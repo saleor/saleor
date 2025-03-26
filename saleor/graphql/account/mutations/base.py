@@ -1,29 +1,23 @@
 from collections import defaultdict
-from urllib.parse import urlencode
 
 import graphene
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
-from ....account import models
 from ....account.error_codes import AccountErrorCode
-from ....account.notifications import send_set_password_notification
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.utils import metadata_manager
-from ....core.utils.url import prepare_url, validate_storefront_url
+from ....core.utils.url import validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
 from ....giftcard.utils import get_user_gift_cards
 from ....graphql.utils import get_user_or_app_from_context
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
-from ....plugins.manager import PluginsManager
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
-from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo, SaleorContext
 from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
@@ -358,43 +352,6 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
         if cleaned_input.get("first_name") or cleaned_input.get("last_name"):
             if user_gift_cards := get_user_gift_cards(instance):
                 mark_gift_cards_search_index_as_dirty(user_gift_cards)
-
-    @classmethod
-    def process_account_confirmation(
-        cls,
-        *,
-        redirect_url: str,
-        instance: models.User,
-        plugins_manager: PluginsManager,
-        channel_slug_from_input: str,
-    ):
-        channel_slug = channel_slug_from_input
-
-        if not instance.is_staff:
-            channel_slug = clean_channel(
-                channel_slug, error_class=AccountErrorCode, allow_replica=False
-            ).slug
-        elif channel_slug is not None:
-            channel_slug = validate_channel(
-                channel_slug, error_class=AccountErrorCode
-            ).slug
-
-        send_set_password_notification(
-            redirect_url,
-            instance,
-            plugins_manager,
-            channel_slug,
-        )
-        token = default_token_generator.make_token(instance)
-        params = urlencode({"email": instance.email, "token": token})
-
-        cls.call_event(
-            plugins_manager.account_set_password_requested,
-            instance,
-            channel_slug,
-            token,
-            prepare_url(params, redirect_url),
-        )
 
 
 class UserDeleteMixin:

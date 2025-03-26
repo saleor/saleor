@@ -118,11 +118,3 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
         instance.save(update_fields=["search_document", "updated_at"])
 
         cls.call_event(manager.customer_updated, instance)
-
-        if redirect_url := cleaned_input.get("redirect_url"):
-            cls.process_account_confirmation(
-                redirect_url=redirect_url,
-                instance=instance,
-                channel_slug_from_input=cleaned_input.get("channel"),
-                plugins_manager=manager,
-            )
