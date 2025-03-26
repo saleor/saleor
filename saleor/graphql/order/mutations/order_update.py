@@ -13,9 +13,11 @@ from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithExtRefMutation
-from ...core.types import BaseInputObjectType, OrderError
+from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .draft_order_create import DraftOrderCreate
@@ -27,6 +29,23 @@ class OrderUpdateInput(BaseInputObjectType):
     shipping_address = AddressInput(description="Shipping address of the customer.")
     external_reference = graphene.String(
         description="External ID of this order.", required=False
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            f"Order public metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
+        required=False,
+    )
+
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            f"Order private metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
+        ),
+        required=False,
     )
 
     class Meta:
@@ -51,6 +70,8 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -62,6 +83,8 @@ class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
             "shipping_address",
             "user_email",
             "external_reference",
+            "metadata",
+            "private_metadata",
         ]
         cleaned_input = {}
         for key in draft_order_cleaned_input:

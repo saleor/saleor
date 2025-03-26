@@ -15,13 +15,13 @@ DEFAULT_WAREHOUSE_ADDRESS = {
     "firstName": "Saleor",
     "lastName": "Mirumee",
     "companyName": "Mirumee Software",
-    "streetAddress1": "Tęczowa 7",
+    "streetAddress1": "2137 Cantebury Drive",
     "streetAddress2": "",
-    "postalCode": "53-601",
-    "country": "PL",
-    "city": "Wrocław",
-    "countryArea": "",
-    "phone": "+48321321888",
+    "postalCode": "10013",
+    "country": "US",
+    "city": "New York",
+    "countryArea": "NY",
+    "phone": "+19179920814",
 }
 
 ADDRESS_DE = {

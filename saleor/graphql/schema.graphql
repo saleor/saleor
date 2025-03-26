@@ -24148,6 +24148,24 @@ input OrderUpdateInput @doc(category: "Orders") {
 
   """External ID of this order."""
   externalReference: String
+
+  """
+  Order public metadata. 
+  
+  Added in Saleor 3.21.Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Order private metadata. 
+  
+  Added in Saleor 3.21.Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
