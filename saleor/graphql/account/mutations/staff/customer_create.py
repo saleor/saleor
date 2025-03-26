@@ -1,12 +1,21 @@
+from urllib.parse import urlencode
+
+from django.contrib.auth.tokens import default_token_generator
+
 from .....account import events as account_events
 from .....account import models
+from .....account.notifications import send_set_password_notification
 from .....account.search import prepare_user_search_document_value
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.url import prepare_url
 from .....permission.enums import AccountPermissions
+from .....plugins.manager import PluginsManager
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
+from ....channel.utils import clean_channel, validate_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
+from ....core.enums import AccountErrorCode
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -73,9 +82,46 @@ class CustomerCreate(BaseCustomerCreate):
         account_events.customer_account_created_event(user=instance)
 
         if redirect_url := cleaned_input.get("redirect_url"):
-            cls.process_account_confirmation(
+            cls._process_sending_password(
                 redirect_url=redirect_url,
                 instance=instance,
                 channel_slug_from_input=cleaned_input.get("channel"),
                 plugins_manager=manager,
             )
+
+    @classmethod
+    def _process_sending_password(
+        cls,
+        *,
+        redirect_url: str,
+        instance: models.User,
+        plugins_manager: PluginsManager,
+        channel_slug_from_input: str,
+    ):
+        channel_slug = channel_slug_from_input
+
+        if not instance.is_staff:
+            channel_slug = clean_channel(
+                channel_slug, error_class=AccountErrorCode, allow_replica=False
+            ).slug
+        elif channel_slug is not None:
+            channel_slug = validate_channel(
+                channel_slug, error_class=AccountErrorCode
+            ).slug
+
+        send_set_password_notification(
+            redirect_url,
+            instance,
+            plugins_manager,
+            channel_slug,
+        )
+        token = default_token_generator.make_token(instance)
+        params = urlencode({"email": instance.email, "token": token})
+
+        cls.call_event(
+            plugins_manager.account_set_password_requested,
+            instance,
+            channel_slug,
+            token,
+            prepare_url(params, redirect_url),
+        )
