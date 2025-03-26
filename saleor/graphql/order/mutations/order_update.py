@@ -19,9 +19,11 @@ from ...account.mixins import AddressMetadataMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithExtRefMutation
-from ...core.types import BaseInputObjectType, OrderError
+from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .utils import save_addresses
@@ -33,6 +35,23 @@ class OrderUpdateInput(BaseInputObjectType):
     shipping_address = AddressInput(description="Shipping address of the customer.")
     external_reference = graphene.String(
         description="External ID of this order.", required=False
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description=(
+            f"Order public metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
+        required=False,
+    )
+
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            f"Order private metadata. {ADDED_IN_321}"
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
+        ),
+        required=False,
     )
 
     class Meta:
@@ -57,6 +76,8 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
@@ -150,7 +171,23 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         old_instance_data = instance.serialize_for_comparison()
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
         instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
 
         cls.clean_instance(info, instance)
         new_instance_data = instance.serialize_for_comparison()
@@ -160,9 +197,4 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
             new_instance_data,
         )
         cls._save(info, instance, cleaned_input, changed_fields)
-        return cls.success_response(instance)
-
-    @classmethod
-    def success_response(cls, order):
-        """Return a success response."""
-        return OrderUpdate(order=SyncWebhookControlContext(order))
+        return OrderUpdate(order=SyncWebhookControlContext(instance))

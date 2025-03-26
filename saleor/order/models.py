@@ -394,6 +394,25 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
         ]
 
+    @property
+    def comparison_fields(self):
+        return [
+            "discount",
+            "voucher",
+            "voucher_code",
+            "customer_note",
+            "redirect_url",
+            "external_reference",
+            "user",
+            "user_email",
+            "channel",
+            "metadata",
+            "private_metadata",
+        ]
+
+    def serialize_for_comparison(self):
+        return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
+
     def is_fully_paid(self):
         return self.total_charged >= self.total.gross
 
@@ -522,23 +541,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     @property
     def total_balance(self):
         return self.total_charged - self.total.gross
-
-    @property
-    def comparison_fields(self):
-        return [
-            "discount",
-            "voucher",
-            "voucher_code",
-            "customer_note",
-            "redirect_url",
-            "external_reference",
-            "user",
-            "user_email",
-            "channel",
-        ]
-
-    def serialize_for_comparison(self):
-        return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
 
 
 class OrderLineQueryset(models.QuerySet["OrderLine"]):
