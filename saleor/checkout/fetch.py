@@ -27,6 +27,7 @@ from ..shipping.utils import (
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
+from ..webhook.transport.shipping_common import convert_to_app_id_with_identifier
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -219,7 +220,6 @@ class CheckoutInfo:
                 checkout.save(update_fields=fields_to_update)
 
     def get_delivery_method_info(self) -> "DeliveryMethodBase":
-        from ..webhook.transport.shipping import convert_to_app_id_with_identifier
         from .utils import get_external_shipping_id
 
         delivery_method: ShippingMethodData | Warehouse | None = None
