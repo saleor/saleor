@@ -1264,7 +1264,7 @@ def test_parse_list_shipping_methods_with_metadata(app):
     # given
     response_data_with_meta = [
         {
-            "id": "123",
+            "id": 123,
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
@@ -1285,7 +1285,7 @@ def test_parse_list_shipping_methods_with_metadata_in_incorrect_format(app):
     # given
     response_data_with_meta = [
         {
-            "id": "123",
+            "id": 123,
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
@@ -1305,7 +1305,7 @@ def test_parse_list_shipping_methods_metadata_absent_in_response(app):
     # given
     response_data_with_meta = [
         {
-            "id": "123",
+            "id": 123,
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
