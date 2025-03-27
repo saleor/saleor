@@ -1,3 +1,4 @@
+from .. import settings
 from ..celeryconf import app
 from ..core import EventDeliveryStatus
 from ..core.models import EventDelivery
@@ -19,6 +20,7 @@ def process_async_webhooks_task():
 def get_app_ids_with_pending_deliveries() -> list[int]:
     app_ids = (
         EventDelivery.objects.select_related("webhook")
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(status=EventDeliveryStatus.PENDING)
         .values_list("webhook__app_id", flat=True)
         .distinct()
