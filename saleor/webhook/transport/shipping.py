@@ -5,21 +5,18 @@ from collections.abc import Callable
 from typing import Any, Union
 
 from django.db.models import QuerySet
-from graphql import GraphQLError
 from pydantic import ValidationError
 
 from ...app.models import App
 from ...checkout.models import Checkout
-from ...graphql.core.utils import from_global_id_or_error
-from ...graphql.shipping.types import ShippingMethod
 from ...graphql.webhook.utils import get_pregenerated_subscription_payload
 from ...order.models import Order
 from ...plugins.base_plugin import ExcludedShippingMethod, RequestorOrLazyObject
 from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
-from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
-from .response_schemas import ShippingMethodSchema
+from ..const import CACHE_EXCLUDED_SHIPPING_TIME
+from ..response_schemas import ExcludedShippingMethodSchema, ShippingMethodSchema
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
 logger = logging.getLogger(__name__)
@@ -145,36 +142,27 @@ def get_excluded_shipping_data(
 
 def get_excluded_shipping_methods_from_response(
     response_data: dict,
-) -> list[dict]:
+) -> list[ExcludedShippingMethodSchema]:
     excluded_methods = []
     for method_data in response_data.get("excluded_methods", []):
         try:
-            type_name, method_id = from_global_id_or_error(method_data["id"])
-            if type_name not in (APP_ID_PREFIX, str(ShippingMethod)):
-                logger.warning(
-                    "Invalid type received. Expected ShippingMethod, got %s", type_name
-                )
-                continue
-
-        except (KeyError, ValueError, TypeError, GraphQLError) as e:
-            logger.warning("Malformed ShippingMethod id was provided: %s", e)
+            excluded_methods.append(
+                ExcludedShippingMethodSchema.model_validate(method_data)
+            )
+        except ValidationError:
             continue
-        excluded_methods.append(
-            {"id": method_id, "reason": method_data.get("reason", "")}
-        )
     return excluded_methods
 
 
 def parse_excluded_shipping_methods(
-    excluded_methods: list[dict],
+    excluded_methods: list[ExcludedShippingMethodSchema],
 ) -> dict[str, list[ExcludedShippingMethod]]:
+    """Prepare method_id to excluded methods map."""
     excluded_methods_map = defaultdict(list)
     for excluded_method in excluded_methods:
-        method_id = excluded_method["id"]
+        method_id = excluded_method.id
         excluded_methods_map[method_id].append(
-            ExcludedShippingMethod(
-                id=method_id, reason=excluded_method.get("reason", "")
-            )
+            ExcludedShippingMethod(id=method_id, reason=excluded_method.reason)
         )
     return excluded_methods_map
 
