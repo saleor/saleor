@@ -27,7 +27,7 @@ from ..shipping.utils import (
 )
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import Warehouse
-from ..webhook.transport.shipping_common import convert_to_app_id_with_identifier
+from ..webhook.transport.shipping_helpers import convert_to_app_id_with_identifier
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
