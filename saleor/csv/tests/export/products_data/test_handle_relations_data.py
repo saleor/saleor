@@ -177,7 +177,7 @@ def test_prepare_products_relations_data(
     ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
         reference_page=page,
-        slug=f"{product_with_image.pk}_{page.pk}",
+        slug=f"product_{product_with_image.pk}_page_{page.pk}",
         name=page.title,
         date_time=None,
     )
@@ -568,7 +568,7 @@ def test_prepare_variants_relations_data(
     page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
         reference_page=page,
-        slug=f"{variant.pk}_{page.pk}",
+        slug=f"variant_{variant.pk}_page_{page.pk}",
         name=page.title,
     )
     associate_attribute_values_to_instance(
@@ -579,7 +579,7 @@ def test_prepare_variants_relations_data(
     product_ref_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         reference_product=product,
-        slug=f"{variant.pk}_{product.pk}",
+        slug=f"variant_{variant.pk}_page_{product.pk}",
         name=product.name,
     )
     associate_attribute_values_to_instance(

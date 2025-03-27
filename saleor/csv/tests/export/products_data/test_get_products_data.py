@@ -332,13 +332,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
         reference_page=page_list[0],
-        slug=f"{product.pk}_{page_list[0].pk}",
+        slug=f"product_{product.pk}_page_{page_list[0].pk}",
         name=page_list[0].title,
     )
     variant_page_ref_value = AttributeValue.objects.create(
         attribute=product_type_page_reference_attribute,
         reference_page=page_list[1],
-        slug=f"{variant_with_many_stocks.pk}_{page_list[1].pk}",
+        slug=f"variant_{variant_with_many_stocks.pk}_page_{page_list[1].pk}",
         name=page_list[1].title,
     )
     associate_attribute_values_to_instance(
@@ -354,15 +354,15 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         attribute=product_type_product_reference_attribute,
         reference_product=product_with_variant_with_two_attributes,
         slug=(
-            f"{variant_with_many_stocks.pk}"
-            f"_{product_with_variant_with_two_attributes.pk}"
+            f"variant_{variant_with_many_stocks.pk}"
+            f"_product_{product_with_variant_with_two_attributes.pk}"
         ),
         name=product_with_variant_with_two_attributes.name,
     )
     product_product_ref_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
         reference_product=product_with_image,
-        slug=f"{product.pk}_{product_with_image.pk}",
+        slug=f"product_{product.pk}_product_{product_with_image.pk}",
         name=product_with_image.name,
     )
     associate_attribute_values_to_instance(
@@ -378,13 +378,13 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     variant_variant_ref_value = AttributeValue.objects.create(
         attribute=product_type_variant_reference_attribute,
         reference_variant=variant,
-        slug=(f"{variant_with_many_stocks.pk}_{variant.pk}"),
+        slug=(f"variant_{variant_with_many_stocks.pk}_variant_{variant.pk}"),
         name=variant.name,
     )
     product_variant_ref_value = AttributeValue.objects.create(
         attribute=product_type_variant_reference_attribute,
         reference_variant=variant,
-        slug=f"{product.pk}_{variant.pk}",
+        slug=f"product_{product.pk}_variant_{variant.pk}",
         name=variant.name,
     )
     associate_attribute_values_to_instance(
