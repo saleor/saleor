@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from .....core.prices import quantize_price
 from .....core.taxes import zero_money
-from .....discount import DiscountType, DiscountValueType
+from .....discount import DiscountType, DiscountValueType, VoucherType
 from .....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
 )
@@ -148,7 +148,7 @@ def test_add_fixed_order_discount_to_order(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
-    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+    assert Decimal(discount_data["amount_value"]) == order_discount.amount.amount
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
@@ -205,7 +205,7 @@ def test_add_percentage_order_discount_to_order(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.PERCENTAGE.value
-    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+    assert Decimal(discount_data["amount_value"]) == order_discount.amount.amount
 
 
 def test_add_order_discount_to_order_by_user_no_channel_access(
@@ -282,10 +282,122 @@ def test_add_fixed_order_discount_to_order_by_app(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
-    assert discount_data["amount_value"] == str(order_discount.amount.amount)
+    assert Decimal(discount_data["amount_value"]) == order_discount.amount.amount
 
 
-def test_add_manual_discount_to_order_with_order_discount(
+def test_add_manual_discount_replaces_entire_voucher(
+    order_with_lines, staff_api_client, permission_group_manage_orders, voucher
+):
+    """Order discount based on voucher:entire_order should be replaced with manual."""
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+
+    expected_voucher_discount_amount = Decimal("12")
+    assert voucher.type == VoucherType.ENTIRE_ORDER
+    assert voucher.discount_value_type == DiscountValueType.FIXED
+
+    voucher.channel_listings.update(discount_value=expected_voucher_discount_amount)
+
+    order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=expected_voucher_discount_amount,
+        amount_value=expected_voucher_discount_amount,
+        currency=order.currency,
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    manual_discount_value = Decimal("10.00")
+
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": manual_discount_value,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderDiscountAdd"]
+    order.refresh_from_db()
+    assert not data["errors"]
+
+    assert order.discounts.count() == 1
+
+    manual_discount = order.discounts.get(type=DiscountType.MANUAL)
+    assert manual_discount.value == manual_discount_value
+    assert manual_discount.value_type == DiscountValueType.FIXED
+    assert manual_discount.amount.amount == manual_discount_value
+
+    assert (
+        order.total_net_amount
+        == order.undiscounted_total_net_amount - manual_discount_value
+    )
+    assert (
+        order.shipping_price_net_amount + order.subtotal_net_amount
+        == order.total_net_amount
+    )
+
+
+def test_add_manual_discount_keeps_shipping_voucher(
+    draft_order_with_free_shipping_voucher,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    """Order discount based on voucher:shipping should be retained when adding manual."""
+    # given
+    order = draft_order_with_free_shipping_voucher
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    manual_discount_value = Decimal("10.00")
+
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": manual_discount_value,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderDiscountAdd"]
+    order.refresh_from_db()
+    assert not data["errors"]
+
+    assert order.discounts.count() == 2
+
+    shipping_discount = order.discounts.get(type=DiscountType.VOUCHER)
+    assert shipping_discount.value == Decimal("100")
+    assert shipping_discount.value_type == DiscountValueType.PERCENTAGE
+    assert shipping_discount.amount == order.undiscounted_base_shipping_price
+
+    manual_discount = order.discounts.get(type=DiscountType.MANUAL)
+    assert manual_discount.value == manual_discount_value
+    assert manual_discount.value_type == DiscountValueType.FIXED
+    assert manual_discount.amount.amount == manual_discount_value
+
+    applied_discount_amount = manual_discount_value + shipping_discount.amount_value
+    assert (
+        order.total_net_amount
+        == order.undiscounted_total_net_amount - applied_discount_amount
+    )
+    assert (
+        order.shipping_price_net_amount + order.subtotal_net_amount
+        == order.total_net_amount
+    )
+
+
+def test_add_manual_discount_replaces_order_promotion(
     order_with_lines_and_order_promotion,
     staff_api_client,
     permission_group_manage_orders,
@@ -295,7 +407,6 @@ def test_add_manual_discount_to_order_with_order_discount(
     order = order_with_lines_and_order_promotion
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status"])
-    order_discount = order.discounts.get()
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     discount_value = Decimal("10.00")
@@ -317,12 +428,9 @@ def test_add_manual_discount_to_order_with_order_discount(
     order.refresh_from_db()
     assert not data["errors"]
 
-    with pytest.raises(order_discount._meta.model.DoesNotExist):
-        order_discount.refresh_from_db()
-
     assert order.discounts.count() == 1
-    manual_discount = order.discounts.get()
 
+    manual_discount = order.discounts.get(type=DiscountType.MANUAL)
     assert manual_discount.value == discount_value
     assert manual_discount.value_type == DiscountValueType.FIXED
     assert manual_discount.amount.amount == discount_value
@@ -336,7 +444,7 @@ def test_add_manual_discount_to_order_with_order_discount(
     )
 
 
-def test_add_manual_discount_to_order_with_gift_discount(
+def test_add_manual_discount_replaces_gift_discount(
     order_with_lines_and_gift_promotion,
     staff_api_client,
     permission_group_manage_orders,
@@ -349,7 +457,8 @@ def test_add_manual_discount_to_order_with_gift_discount(
 
     assert order.lines.count() == 3
     gift_line = order.lines.filter(is_gift=True).first()
-    gift_discount = gift_line.discounts.get()
+    assert gift_line
+    assert gift_line.discounts.get()
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     discount_value = Decimal("10.00")
@@ -372,16 +481,11 @@ def test_add_manual_discount_to_order_with_gift_discount(
     assert not data["errors"]
 
     assert order.lines.count() == 2
-
-    with pytest.raises(gift_line._meta.model.DoesNotExist):
-        gift_line.refresh_from_db()
-
-    with pytest.raises(gift_discount._meta.model.DoesNotExist):
-        gift_discount.refresh_from_db()
+    assert not order.lines.filter(is_gift=True).first()
 
     assert order.discounts.count() == 1
-    manual_discount = order.discounts.get()
 
+    manual_discount = order.discounts.get(type=DiscountType.MANUAL)
     assert manual_discount.value == discount_value
     assert manual_discount.value_type == DiscountValueType.FIXED
     assert manual_discount.amount.amount == discount_value
