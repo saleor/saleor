@@ -104,3 +104,7 @@ All notable, unreleased changes to this project will be documented in this file.
   This ensures user awareness of potential security policy violations and compliance risks of storing
   certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
+
+#### Static typing
+
+- Introduce static typing for checkout `SHIPPING_LIST_METHODS_FOR_CHECKOUT` sync webhook - #17541 by @IKarbowiak
