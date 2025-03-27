@@ -10,7 +10,7 @@ from .shipping_helpers import to_shipping_app_id
 
 
 class ShippingMethodSchema(BaseModel):
-    id: str
+    id: str | int
     name: str
     amount: Decimal
     currency: str
@@ -50,7 +50,7 @@ class ShippingMethodSchema(BaseModel):
         # is `None` instead of an empty dict
         metadata = self.metadata or {}
         return ShippingMethodData(
-            id=to_shipping_app_id(app, self.id),
+            id=to_shipping_app_id(app, str(self.id)),
             name=self.name,
             price=self.price,
             maximum_delivery_days=self.maximum_delivery_days,
