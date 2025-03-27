@@ -17,6 +17,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
 )
+from ....webhook.response_schemas import logger as schema_logger
 from ....webhook.transport.shipping import (
     get_excluded_shipping_methods_from_response,
     get_excluded_shipping_methods_or_fetch,
@@ -395,7 +396,8 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     )
 
 
-def test_parse_excluded_shipping_methods_response(app):
+@mock.patch.object(schema_logger, "warning")
+def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
     # given
     external_id = to_shipping_app_id(app, "test-1234")
     response = {
@@ -423,8 +425,9 @@ def test_parse_excluded_shipping_methods_response(app):
 
     # then
     assert len(excluded_methods) == 2
-    assert excluded_methods[0]["id"] == "2"
-    assert excluded_methods[1]["id"] == external_id
+    assert excluded_methods[0].id == "2"
+    assert excluded_methods[1].id == external_id
+    assert mocked_schema_logger.call_count == 3
 
 
 @mock.patch(

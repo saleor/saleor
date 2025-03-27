@@ -1,12 +1,18 @@
+import logging
 from decimal import Decimal
 from typing import Any
 
+from graphql.error import GraphQLError
 from prices import Money
 from pydantic import BaseModel, field_validator
 
-from ...app.models import App
-from ...shipping.interface import ShippingMethodData
-from .shipping_helpers import to_shipping_app_id
+from ..app.models import App
+from ..graphql.core.utils import from_global_id_or_error
+from ..shipping.interface import ShippingMethodData
+from .const import APP_ID_PREFIX
+from .transport.shipping_helpers import to_shipping_app_id
+
+logger = logging.getLogger(__name__)
 
 
 class ShippingMethodSchema(BaseModel):
@@ -58,3 +64,24 @@ class ShippingMethodSchema(BaseModel):
             description=self.description,
             metadata=metadata,
         )
+
+
+class ExcludedShippingMethodSchema(BaseModel):
+    id: str
+    reason: str | None = ""
+
+    @field_validator("id", mode="after")
+    @classmethod
+    def clean_id(cls, value: str) -> str:
+        try:
+            type_name, method_id = from_global_id_or_error(value)
+        except (KeyError, ValueError, TypeError, GraphQLError) as e:
+            error_msg = "Malformed ShippingMethod id was provided: %s"
+            logger.warning(error_msg, value)
+            raise ValueError(error_msg, e) from e
+
+        if type_name not in (APP_ID_PREFIX, "ShippingMethod"):
+            error_msg = "Invalid type received. Expected ShippingMethod, got %s"
+            logger.warning(error_msg, type_name)
+            raise ValueError(error_msg, type_name)
+        return method_id
