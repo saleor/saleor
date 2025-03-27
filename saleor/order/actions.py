@@ -1956,6 +1956,10 @@ def create_fulfillments_for_returned_products(
         ).delete()
 
         call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
+        if new_order:
+            call_order_event(
+                manager, WebhookEventAsyncType.DRAFT_ORDER_CREATED, new_order
+            )
     return return_fulfillment, replace_fulfillment, new_order
 
 
