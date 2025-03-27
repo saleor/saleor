@@ -8,7 +8,7 @@ from ....core.utils import generate_unique_slug
 from ....permission.enums import ProductPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -18,7 +18,7 @@ from .mixins import AttributeMixin
 from .validators import validate_value_is_unique
 
 
-class AttributeValueCreate(AttributeMixin, ModelMutation):
+class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
     ATTRIBUTE_VALUES_FIELD = "input"
 
     attribute = graphene.Field(Attribute, description="The updated attribute.")

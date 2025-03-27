@@ -15,6 +15,14 @@ mutation OrderDiscountDelete($discountId: ID!){
   orderDiscountDelete(discountId: $discountId){
     order{
       id
+      total {
+        net {
+            amount
+        }
+        gross {
+            amount
+        }
+      }
     }
     errors{
       field
@@ -32,6 +40,7 @@ def test_delete_order_discount_from_order_with_old_id(
     draft_order_with_fixed_discount_order,
     staff_api_client,
     permission_group_manage_orders,
+    tax_configuration_flat_rates,
 ):
     # given
     order = draft_order_with_fixed_discount_order

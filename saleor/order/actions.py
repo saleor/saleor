@@ -833,7 +833,6 @@ def cancel_waiting_fulfillment(
         OrderLine.objects.bulk_update(order_lines, ["quantity_fulfilled"])
 
         fulfillment.delete()
-        update_order_status(fulfillment.order)
         call_event(manager.fulfillment_canceled, fulfillment)
         call_order_event(
             manager,
@@ -1957,6 +1956,10 @@ def create_fulfillments_for_returned_products(
         ).delete()
 
         call_order_event(manager, WebhookEventAsyncType.ORDER_UPDATED, order)
+        if new_order:
+            call_order_event(
+                manager, WebhookEventAsyncType.DRAFT_ORDER_CREATED, new_order
+            )
     return return_fulfillment, replace_fulfillment, new_order
 
 

@@ -30,7 +30,7 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
@@ -92,7 +92,8 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         )
         metadata = NonNullList(
             MetadataInput,
-            description=("Fields required to update the checkout metadata."),
+            description="Fields required to update the checkout metadata. "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
             required=False,
         )
 
@@ -278,7 +279,9 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 info,
                 id or checkout_id or graphene.Node.to_global_id("Checkout", token),
             )
-            cls.validate_metadata_keys(metadata)
+            cls.create_metadata_from_graphql_input(
+                metadata, error_field_name="metadata"
+            )
 
         validate_checkout_email(checkout)
 

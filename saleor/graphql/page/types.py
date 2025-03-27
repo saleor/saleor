@@ -12,7 +12,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ..core.descriptions import RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -125,10 +125,7 @@ class Page(ModelObjectType[models.Page]):
     title = graphene.String(required=True, description="Title of the page.")
     content = JSONString(description="Content of the page." + RICH_CONTENT)
     publication_date = Date(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `publishedAt` field to fetch the publication date."
-        ),
+        deprecation_reason="Use the `publishedAt` field to fetch the publication date."
     )
     published_at = DateTime(description="The page publication date.")
     is_published = graphene.Boolean(
@@ -143,7 +140,7 @@ class Page(ModelObjectType[models.Page]):
     )
     content_json = JSONString(
         description="Content of the page." + RICH_CONTENT,
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use the `content` field instead.",
+        deprecation_reason="Use the `content` field instead.",
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")

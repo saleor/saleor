@@ -64,11 +64,11 @@ package-mode = false
   azure-common = "^1.1.28"
   azure-storage-blob = "^12.23.1"
   azure-storage-common = "^2.1.0"
-  babel = ">=2.8,<2.17"
+  babel = ">=2.8,<2.18"
   boto3 = "^1.28"
-  botocore = "^1.35"
+  botocore = "^1.37"
   braintree = ">=4.2,<4.32"
-  cryptography = "^43.0.1"
+  cryptography = "^44.0.2"
   dj-database-url = "^2"
   dj-email-url = "^1"
   django = {version = "^4.2", extras = ["bcrypt"]}
@@ -120,7 +120,7 @@ package-mode = false
   text-unidecode = "^1.2"
   urllib3 = "^1.26.19"
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
-  setuptools = "^75.6.0"
+  setuptools = "^76.0.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
   opentelemetry-distro = {version = "^0.50b0", extras = ["otlp"]}
 
@@ -142,7 +142,7 @@ package-mode = false
 
   [tool.poetry.group.dev.dependencies]
   coverage = "^7.6"
-  deptry = "^0.21.1"
+  deptry = "^0.23.0"
   django-extensions = "^3.1.2"
   django-stubs = { version = "^4.2.7", extras = ["compatible-mypy"] }
   fakeredis = "^2.26"

@@ -22,7 +22,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import ChannelError, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -62,7 +62,7 @@ class ChannelUpdateInput(ChannelInput):
         doc_category = DOC_CATEGORY_CHANNELS
 
 
-class ChannelUpdate(ModelMutation):
+class ChannelUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a channel to update.")
         input = ChannelUpdateInput(

@@ -14,7 +14,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import Date
 from ....core.types import (
     BaseInputObjectType,
@@ -25,7 +25,7 @@ from ....core.types import (
 )
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection
 
@@ -51,12 +51,14 @@ class CollectionInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the collection metadata."),
+        description="Fields required to update the collection metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the collection private metadata."),
+        description="Fields required to update the collection private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 
@@ -75,7 +77,7 @@ class CollectionCreateInput(CollectionInput):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class CollectionCreate(ModelMutation):
+class CollectionCreate(DeprecatedModelMutation):
     class Arguments:
         input = CollectionCreateInput(
             required=True, description="Fields required to create a collection."

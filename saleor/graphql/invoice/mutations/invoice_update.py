@@ -9,9 +9,9 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ORDERS
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, InvoiceError, NonNullList
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ..types import Invoice
 
 
@@ -20,12 +20,14 @@ class UpdateInvoiceInput(BaseInputObjectType):
     url = graphene.String(description="URL of an invoice to download.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the invoice metadata.",
+        description="Fields required to update the invoice metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the invoice private metadata."),
+        description="Fields required to update the invoice private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 
@@ -33,7 +35,7 @@ class UpdateInvoiceInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class InvoiceUpdate(ModelMutation):
+class InvoiceUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
         input = UpdateInvoiceInput(
@@ -79,9 +81,21 @@ class InvoiceUpdate(ModelMutation):
         instance = cls.get_instance(info, id=id)
         cls.check_channel_permissions(info, [instance.order.channel_id])
         cleaned_input = cls.clean_input(info, instance, input)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         instance.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )

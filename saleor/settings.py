@@ -24,8 +24,10 @@ from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
+from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScrubber
 
 from . import PatchedSubscriberExecutionContext, __version__
+from .account.i18n_rules_override import i18n_rules_override
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
@@ -763,7 +765,28 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     Will only be called if SENTRY_DSN is not None, during core start, can be
     overriden in separate settings file.
     """
-    sentry_sdk.init(dsn, release=__version__, **sentry_opts)
+
+    SALEOR_DENYLIST = DEFAULT_DENYLIST + ["private_metadata"]
+    SALEOR_PII_DENYLIST = DEFAULT_PII_DENYLIST + [
+        "first_name",
+        "last_name",
+        "email",
+        "company_name",
+        "street_address",
+        "street_address_1",
+        "street_address_2",
+        "user_email",
+    ]
+
+    sentry_sdk.init(
+        dsn,
+        release=__version__,
+        send_default_pii=False,
+        event_scrubber=EventScrubber(
+            denylist=SALEOR_DENYLIST, pii_denylist=SALEOR_PII_DENYLIST
+        ),
+        **sentry_opts,
+    )
     ignore_logger("graphql.execution.utils")
     ignore_logger("graphql.execution.executor")
 
@@ -787,7 +810,6 @@ BUILTIN_PLUGINS = [
     "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.dummy_credit_card.plugin.DummyCreditCardGatewayPlugin",
-    "saleor.payment.gateways.stripe.deprecated.plugin.DeprecatedStripeGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
@@ -1008,6 +1030,10 @@ BREAKER_BOARD_SYNC_EVENTS = get_list(os.environ.get("BREAKER_BOARD_SYNC_EVENTS",
 BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
     os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
 )
+
+# Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
+# Patch `i18n` module to allows to override the default address rules.
+i18n_rules_override()
 
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"

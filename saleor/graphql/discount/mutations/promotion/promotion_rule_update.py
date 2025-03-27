@@ -13,7 +13,7 @@ from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -68,7 +68,7 @@ class PromotionRuleUpdateInput(PromotionRuleBaseInput):
     )
 
 
-class PromotionRuleUpdate(ModelMutation):
+class PromotionRuleUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(
             description="ID of the promotion rule to update.", required=True
@@ -178,7 +178,7 @@ class PromotionRuleUpdate(ModelMutation):
             if product_ids:
                 cls.call_event(
                     mark_products_in_channels_as_dirty,
-                    {channel_id: product_ids for channel_id in channel_ids_to_update},
+                    dict.fromkeys(channel_ids_to_update, product_ids),
                 )
         clear_promotion_old_sale_id(instance.promotion, save=True)
         app = get_app_promise(info.context).get()

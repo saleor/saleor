@@ -1,0 +1,118 @@
+name: Feature request
+description: Suggest an idea for this project
+labels: ["Feature request", "triage"]
+
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe what you are trying to achieve. You can include proposed solution.
+    validations:
+      required: true
+
+  - type: input
+    id: discord-discussion
+    attributes:
+      label: Discord Discussion Link
+      description: Link to a corresponding thread in the [Discord](https://saleor.io/discord)'s "#ideas" channel. Read more about the process in the [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing#contributing-issues).
+      placeholder: https://discord.com/channels/8640668198...
+    validations:
+      required: true
+
+  - type: textarea
+    id: general-assumptions
+    attributes:
+      label: General Assumptions
+      description: |
+        Describe the general assumptions and acceptance criteria for this feature.
+
+        Acceptance Criteria should include:
+        - Functional use cases (permissions, webhooks, version compatibility, error handling)
+        - Non-functional use cases (performance, scalability)
+      placeholder: |
+        ### Acceptance Criteria
+        - [ ] Functional use case 1
+        - [ ] Functional use case 2
+        - [ ] Non-functional use case 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-changes
+    attributes:
+      label: API Changes
+      description: |
+        Propose the GraphQL API changes needed for this feature.
+
+        Include:
+        - New mutations
+        - New types
+        - Changes to existing types
+      placeholder: |
+        ### Mutations
+        ```graphql
+        mutation ExampleMutation {
+          # Add mutation details here
+        }
+        ```
+
+        ### Types
+        ```graphql
+        type ExampleType {
+          # Add type details here
+        }
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: database-changes
+    attributes:
+      label: Database Changes
+      description: Describe any new models or changes to existing models that will be needed.
+    validations:
+      required: false
+
+  - type: textarea
+    id: uml-diagrams
+    attributes:
+      label: UML Diagrams
+      description: |
+        Include any relevant UML diagrams using Mermaid syntax.
+
+        You can render UML diagrams using [Mermaid](https://mermaidjs.github.io/).
+      placeholder: |
+        ```mermaid
+        # Add your diagram here
+        ```
+    validations:
+      required: false
+
+  - type: textarea
+    id: todo-list
+    attributes:
+      label: To Do List
+      description: List all tasks from a developer perspective that need to be completed.
+      placeholder: |
+        ### Tasks
+        - [ ] Task 1
+        - [ ] Task 2
+    validations:
+      required: false
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing Requirements
+      description: |
+        List additional scenarios that should be tested along with the new changes.
+
+        Examples:
+        - Check feature with tax systems
+        - Test with overrode prices
+      placeholder: |
+        - [ ] Test case 1
+        - [ ] Test case 2
+    validations:
+      required: false

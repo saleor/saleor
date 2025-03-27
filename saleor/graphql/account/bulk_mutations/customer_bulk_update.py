@@ -11,6 +11,7 @@ from ....account.events import CustomerEvents
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils import metadata_manager
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
@@ -19,7 +20,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import (
     BaseInputObjectType,
     BaseObjectType,
@@ -28,7 +29,8 @@ from ...core.types import (
 )
 from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...payment.utils import metadata_contains_empty_key
+from ...meta.inputs import MetadataInput
+from ...payment.utils import deprecated_metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
 from ..i18n import I18nMixin
 from ..mutations.base import (
@@ -208,7 +210,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         index: int,
         index_error_map: dict,
     ):
-        if metadata_contains_empty_key(metadata_list):
+        if deprecated_metadata_contains_empty_key(metadata_list):
             index_error_map[index].append(
                 CustomerBulkUpdateError(
                     path=f"input.{field_name}",
@@ -250,7 +252,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 BILLING_ADDRESS_FIELD, None
             )
 
-            customer_input["input"] = ModelMutation.clean_input(
+            customer_input["input"] = DeprecatedModelMutation.clean_input(
                 info, None, customer_input["input"], input_cls=CustomerInput
             )
 
@@ -360,8 +362,16 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     @classmethod
     def update_address(cls, info, instance, data, field):
         address = getattr(instance, field) or models.Address()
-        address_metadata = data.pop("metadata", [])
-        cls.update_metadata(address, address_metadata)
+        address_metadata: list[MetadataInput] = data.pop("metadata", [])
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            address_metadata, error_field_name="metadata"
+        )
+
+        metadata_manager.store_on_instance(
+            metadata_collection, address, metadata_manager.MetadataType.PUBLIC
+        )
+
         address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
         return address
@@ -383,8 +393,10 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             data = cleaned_input["input"]
             shipping_address_input = data.pop(SHIPPING_ADDRESS_FIELD, None)
             billing_address_input = data.pop(BILLING_ADDRESS_FIELD, None)
-            metadata_list = data.pop("metadata", None)
-            private_metadata_list = data.pop("private_metadata", None)
+            metadata_list: list[MetadataInput] = data.pop("metadata", None)
+            private_metadata_list: list[MetadataInput] = data.pop(
+                "private_metadata", None
+            )
 
             filtered_customers = list(
                 filter(
@@ -417,11 +429,28 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         )
 
                     if metadata_list is not None:
-                        cls.update_metadata(new_instance, metadata_list)
+                        metadata_collection = cls.create_metadata_from_graphql_input(
+                            metadata_list, error_field_name="metadata"
+                        )
+
+                        metadata_manager.store_on_instance(
+                            metadata_collection,
+                            new_instance,
+                            metadata_manager.MetadataType.PUBLIC,
+                        )
 
                     if private_metadata_list is not None:
-                        cls.update_metadata(
-                            new_instance, private_metadata_list, is_private=True
+                        private_metadata_collection = (
+                            cls.create_metadata_from_graphql_input(
+                                private_metadata_list,
+                                error_field_name="private_metadata",
+                            )
+                        )
+
+                        metadata_manager.store_on_instance(
+                            private_metadata_collection,
+                            new_instance,
+                            metadata_manager.MetadataType.PRIVATE,
                         )
 
                     instances_data_and_errors_list.append(
@@ -470,9 +499,6 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             old_instances.append(customer_data["old_instance"])
 
             if shipping_address := customer_data[SHIPPING_ADDRESS_FIELD]:
-                shipping_address = manager.change_user_address(
-                    shipping_address, "shipping", customer, save=False
-                )
                 if customer.default_shipping_address:
                     addresses_to_update.append(shipping_address)
                 else:
@@ -483,10 +509,6 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     )
 
             if billing_address := customer_data[BILLING_ADDRESS_FIELD]:
-                billing_address = manager.change_user_address(
-                    billing_address, "billing", customer, save=False
-                )
-
                 if customer.default_billing_address:
                     addresses_to_update.append(billing_address)
                 else:

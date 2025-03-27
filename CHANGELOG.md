@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
 - Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
+- Dropped the deprecated "Stripe (Deprecated)" payment plugin. If your codebase refers to `mirumee.payments.stripe`, you will need to migrate to the supported plugin, `saleor.payments.stripe` - #17539 by @patrys
 - Change error codes related to user enumeration bad habbit. Included mutations will now not reveal information in error codes if email was already registered:
   - `AccountRegister`,
     `AccountRegister` mutation will additionaly not return `ID` of the user.
@@ -37,6 +38,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Queries `checkouts`, `checkoutLines`, and `me.checkouts` will no longer trigger external calls to fetch shipping methods (`SHIPPING_LIST_METHODS_FOR_CHECKOUT`) or to filter the available shipping methods (`CHECKOUT_FILTER_SHIPPING_METHODS`) - #17387 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to calculate taxes: the `ORDER_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17421 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to filter the available shipping methods (`ORDER_FILTER_SHIPPING_METHODS`) - #17425 by @korycins
+- Drop `change_user_address` method from plugin manager - #17495 by @IKarbowiak
+- `OrderUpdate` mutation do not call `ORDER_UPDATED` anymore in case nothing changed - #17507 by @IKarbowiak
 
 ### GraphQL API
 
@@ -54,6 +57,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Mutation `draftOrderCreate` and `draftOrderUpdate` now supports adding metadata & privateMetadata (via `DraftOrderCreateInput`) - #17358 by @lkostrowski
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 - `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
+- Improved error handling when trying to set invalid metadata. Now, invalid metadata should properly return `error.field` containing `metadata` or `privateMetadata`, instead generic `input` - #17470 by @lkostrowski
+- `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
+- `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
 
 ### Webhooks
 
@@ -62,6 +68,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Webhooks `CHECKOUT_FILTER_SHIPPING_METHODS` & `ORDER_FILTER_SHIPPING_METHODS` are no longer executed when not needed (no available shipping methods, e.g. due to lack of shipping address) - #17328 by @lkostrowski
 - New feature: sync webhooks circuit breaker - #16658 by @tomaszszymanski129
 - Fixed webhook `PRODUCT_VARIANT_METADATA_UPDATED` not being sent when `productVariantUpdate` mutation was called. Now, when `metadata` or `privateMetadata` is included in `ProductVariantUpdateInput`, both `PRODUCT_VARIANT_METADATA_UPDATED` and `PRODUCT_VARIANT_UPDATED` will be emitted (if subscribed) - #17406 by @lkostrowski
+- Update Draft Order shipping via `orderUpdateShipping` will emit `DRAFT_ORDER_UPDATED` webhook. Previously it was `ORDER_UPDATED` - #17480 by @lkostrowski
+- Update editable Order shipping via `orderUpdateShipping` will emit `ORDER_UPDATED` webhook when `shippingMethod` will be cleared (by passing `null` to graphQL input). - #17480 by @lkostrowski
 
 ### Other changes
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
@@ -85,3 +93,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed Celery worker issues when using SQS by using celery[sqs] extras instead of direct pycurl dependency - by @mariobrgomes
 - Added [`alg`](https://datatracker.ietf.org/doc/html/rfc7517#section-4.4) key to JWKS available at `/.well-known/jwks.json` - #17363 by @lkostrowski
 - `checkout.shippingMethods` and `checkout.availableShippingMethods` will no longer return external shipping methods if their currency differs from the checkout's currency - #17350 by @korycins
+- Use denormalized base prices during order update - #17160 by @zedzior
+  - `UNCONFIRMED` orders will never refresh its base prices
+  - `DRAFT` orders will refresh its base prices after default 24 hours
+- Fix bug which, in some cases, caused product name translations to be empty in order lines - #17504 by @delemeator
+- Added a warning to metadata input fields in GraphQL schema informing to never store sensitive data.
+  This ensures user awareness of potential security policy violations and compliance risks of storing
+  certain types of data. - #17506 by @NyanKiyoshi
+- Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator

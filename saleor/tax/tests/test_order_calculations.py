@@ -8,7 +8,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...discount import DiscountType, DiscountValueType
 from ...order import OrderStatus
-from ...order.base_calculations import apply_order_discounts
+from ...order.base_calculations import calculate_prices
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.models import OrderLine
 from ...order.utils import get_order_country
@@ -164,7 +164,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines_untaxed, vo
         amount_value=10,
         voucher=voucher,
     )
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -193,7 +193,7 @@ def test_calculations_calculate_order_total_with_manual_discount(
         currency=order.currency,
         amount_value=10,
     )
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -248,7 +248,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
         currency=order.currency,
         amount_value=75,
     )
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -313,7 +313,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
         amount_value=10,
         voucher=voucher,
     )
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -340,7 +340,7 @@ def test_calculate_order_shipping(order_line, shipping_zone):
     order.undiscounted_base_shipping_price = base_shipping_price
     order.save()
 
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -400,7 +400,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     shipping_channel_listings = method.channel_listings.get(channel=channel)
     shipping_price = shipping_channel_listings.price
 
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
 
     # when
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
@@ -516,7 +516,7 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
     )
 
     # when
-    apply_order_discounts(order, lines)
+    calculate_prices(order, lines)
     lines, _ = update_taxes_for_order_lines(
         order, lines, country_code, Decimal(23), prices_entered_with_tax
     )

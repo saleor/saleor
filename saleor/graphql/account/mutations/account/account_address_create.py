@@ -12,7 +12,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -23,7 +23,7 @@ from ...types import Address, AddressInput, User
 
 
 class AccountAddressCreate(
-    AddressMetadataMixin, ModelMutation, I18nMixin, AppImpersonateMixin
+    AddressMetadataMixin, DeprecatedModelMutation, I18nMixin, AppImpersonateMixin
 ):
     user = graphene.Field(
         User, description="A user instance for which the address was created."

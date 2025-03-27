@@ -1,9 +1,13 @@
 import base64
 
 import graphene
+import pytest
+from django.db import transaction
 
+from .....checkout.models import Checkout
 from .....core.error_codes import MetadataErrorCode
 from .....core.models import ModelWithMetadata
+from .....tests import race_condition
 from ....tests.utils import assert_no_permission, get_graphql_content
 from . import (
     PRIVATE_KEY,
@@ -199,3 +203,83 @@ def test_update_private_metadata_by_customer(user_api_client, payment):
 
     # then
     assert_no_permission(response)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_update_private_metadata_for_item_on_deleted_instance(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
+
+    def delete_checkout_object(*args, **kwargs):
+        with transaction.atomic():
+            Checkout.objects.filter(pk=checkout.pk).delete()
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.meta.mutations.update_private_metadata.update_private_metadata",
+        delete_checkout_object,
+    ):
+        response = execute_update_private_metadata_for_item(
+            staff_api_client,
+            permission_manage_checkouts,
+            checkout.token,
+            "Checkout",
+            value="NewMetaValue",
+        )
+
+    # then
+    assert not Checkout.objects.filter(pk=checkout.pk).first()
+    assert (
+        response["data"]["updatePrivateMetadata"]["errors"][0]["code"]
+        == MetadataErrorCode.NOT_FOUND.name
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_update_private_metadata_race_condition(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout.metadata_storage.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE}
+    )
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    def update_private_metadata(*args, **kwargs):
+        checkout.metadata_storage.store_value_in_private_metadata(
+            {"new_before": "value"}
+        )
+        checkout.metadata_storage.save(update_fields=["private_metadata"])
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.meta.mutations.update_private_metadata.update_private_metadata",
+        update_private_metadata,
+    ):
+        # update without using postgresql `concat` operation to
+        # really test fixing race condition in `updateMetadata`
+        response = execute_update_private_metadata_for_item(
+            staff_api_client,
+            permission_manage_checkouts,
+            checkout.token,
+            "Checkout",
+            value="NewMetaValue",
+        )
+
+    # then
+    assert not response["data"]["updatePrivateMetadata"]["errors"]
+    assert item_contains_multiple_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
+        key=PRIVATE_KEY,
+        value="NewMetaValue",
+        key2="new_before",
+        value2="value",
+    )

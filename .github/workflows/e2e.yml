@@ -20,9 +20,10 @@ env:
   SECRET_KEY: ci-test
 
 jobs:
-  build:
+  e2e-tests:
     runs-on: ubuntu-22.04
     container: python:3.12
+    name: Run E2E tests
 
     services:
       postgres:
@@ -45,7 +46,7 @@ jobs:
 
       - name: Install and configure poetry
         run: |
-          pip install poetry==2.0.1
+          pip install poetry==2.1.1
 
       - name: Cache the venv
         id: cached-poetry-dependencies

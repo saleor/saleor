@@ -8,7 +8,7 @@ from .....product.error_codes import ProductErrorCode
 from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_INPUT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
@@ -50,7 +50,7 @@ class ProductTypeInput(BaseInputObjectType):
     weight = WeightScalar(description="Weight of the ProductType items.")
     tax_code = graphene.String(
         description=(
-            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT}. "
+            f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT} "
             "Use tax classes to control the tax calculation for a product type. "
             "If taxCode is provided, Saleor will try to find a tax class with given "
             "code (codes are stored in metadata) and assign it. If no tax class is "
@@ -70,7 +70,7 @@ class ProductTypeInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class ProductTypeCreate(ModelMutation):
+class ProductTypeCreate(DeprecatedModelMutation):
     class Arguments:
         input = ProductTypeInput(
             required=True, description="Fields required to create a product type."

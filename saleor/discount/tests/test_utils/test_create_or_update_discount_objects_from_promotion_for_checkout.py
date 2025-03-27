@@ -2303,7 +2303,7 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
         create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
 
     with race_condition.RunBefore(
-        "saleor.discount.utils.promotion.prepare_line_discount_objects_for_catalogue_promotions",
+        "saleor.discount.utils.checkout.prepare_checkout_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
     ):
         lines_info, _ = fetch_checkout_lines(checkout)

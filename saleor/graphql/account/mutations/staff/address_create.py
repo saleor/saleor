@@ -12,14 +12,14 @@ from ....account.mixins import AddressMetadataMixin
 from ....account.types import Address, AddressInput, User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...i18n import I18nMixin
 
 
-class AddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
+class AddressCreate(AddressMetadataMixin, DeprecatedModelMutation, I18nMixin):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -61,10 +61,8 @@ class AddressCreate(AddressMetadataMixin, ModelMutation, I18nMixin):
             cls.post_save_action(info, instance, cleaned_input)
             response = cls.success_response(instance)
             response.user = user
-            manager = get_plugin_manager_promise(info.context).get()
-            address = manager.change_user_address(instance, None, user)
             remove_the_oldest_user_address_if_address_limit_is_reached(user)
-            user.addresses.add(address)
+            user.addresses.add(instance)
             user.search_document = prepare_user_search_document_value(user)
 
             user.save(update_fields=["search_document", "updated_at"])

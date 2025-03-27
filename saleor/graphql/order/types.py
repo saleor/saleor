@@ -72,7 +72,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_320,
-    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -1444,7 +1444,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     tracking_client_id = graphene.String(
         required=True,
-        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_FIELD,
+        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_INPUT,
     )
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -1559,7 +1559,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     shipping_method = graphene.Field(
         ShippingMethod,
         description="Shipping method for this order.",
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+        deprecation_reason="Use `deliveryMethod` instead.",
     )
     undiscounted_shipping_price = graphene.Field(
         Money,
@@ -1605,7 +1605,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     token = graphene.String(
         required=True,
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
+        deprecation_reason="Use `id` instead.",
     )
     voucher = graphene.Field(Voucher, description="Voucher linked to the order.")
     voucher_code = graphene.String(
@@ -1644,7 +1644,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     total_captured = graphene.Field(
         Money,
         description="Amount captured for the order. ",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `totalCharged` instead.",
+        deprecation_reason="Use `totalCharged` instead.",
         required=True,
     )
     total_charged = graphene.Field(
@@ -1685,10 +1685,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         description=("The delivery method selected for this order."),
     )
     language_code = graphene.String(
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `languageCodeEnum` field to fetch the language code. "
-        ),
+        deprecation_reason="Use the `languageCodeEnum` field to fetch the language code.",
         required=True,
     )
     language_code_enum = graphene.Field(
@@ -1697,21 +1694,15 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     discount = graphene.Field(
         Money,
         description="Returns applied discount.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
-        ),
+        deprecation_reason="Use the `discounts` field instead.",
     )
     discount_name = graphene.String(
         description="Discount name.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
-        ),
+        deprecation_reason="Use the `discounts` field instead.",
     )
     translated_discount_name = graphene.String(
         description="Translated discount name.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
-        ),
+        deprecation_reason="Use the `discounts` field instead.",
     )
     discounts = NonNullList(
         "saleor.graphql.discount.types.OrderDiscount",

@@ -12,6 +12,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils import metadata_manager
 from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
 from ....giftcard.utils import get_user_gift_cards
@@ -28,9 +29,9 @@ from ...core.descriptions import (
 )
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import DeprecatedModelMutation, ModelDeleteMutation
 from ...core.types import BaseInputObjectType, NonNullList
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..utils import (
     get_not_manageable_permissions_when_deactivate_or_remove_users,
@@ -63,7 +64,7 @@ def check_can_edit_address(context, address):
     )
 
 
-class BaseAddressUpdate(ModelMutation, I18nMixin):
+class BaseAddressUpdate(DeprecatedModelMutation, I18nMixin):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
@@ -92,7 +93,15 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(
             info=info, instance=instance, data=data.get("input")
         )
-        cls.update_metadata(instance, cleaned_input.pop("metadata", []))
+
+        metadata = cleaned_input.pop("metadata", [])
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata, error_field_name="metadata"
+        )
+        metadata_manager.store_on_instance(
+            metadata_collection, instance, metadata_manager.MetadataType.PUBLIC
+        )
+
         address = cls.validate_address(cleaned_input, instance=instance, info=info)
         cls.clean_instance(info, address)
         cls.save(info, address, cleaned_input)
@@ -103,7 +112,6 @@ class BaseAddressUpdate(ModelMutation, I18nMixin):
             user.search_document = prepare_user_search_document_value(user)
             user.save(update_fields=["search_document", "updated_at"])
         manager = get_plugin_manager_promise(info.context).get()
-        address = manager.change_user_address(address, None, user)
         cls.call_event(manager.address_updated, address)
 
         success_response = cls.success_response(address)
@@ -179,12 +187,18 @@ class UserInput(BaseInputObjectType):
     note = graphene.String(description="A note about the user.")
     metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user metadata.",
+        description=(
+            "Fields required to update the user metadata. "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description="Fields required to update the user private metadata.",
+        description=(
+            "Fields required to update the user private metadata. "
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
+        ),
         required=False,
     )
 
@@ -246,7 +260,7 @@ class UserCreateInput(CustomerInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class BaseCustomerCreate(ModelMutation, I18nMixin):
+class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
     """Base mutation for customer create used by staff and account."""
 
     class Arguments:
@@ -264,25 +278,55 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         if shipping_address_data:
-            address_metadata = shipping_address_data.pop("metadata", [])
+            shipping_address_metadata: list[MetadataInput] = shipping_address_data.pop(
+                "metadata", []
+            )
+            shipping_address_metadata_collection = (
+                cls.create_metadata_from_graphql_input(
+                    shipping_address_metadata,
+                    error_field_name="metadata",
+                )
+            )
+
             shipping_address = cls.validate_address(
                 shipping_address_data,
                 address_type=AddressType.SHIPPING,
                 instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
                 info=info,
             )
-            cls.update_metadata(shipping_address, address_metadata)
+
+            metadata_manager.store_on_instance(
+                shipping_address_metadata_collection,
+                shipping_address,
+                metadata_manager.MetadataType.PUBLIC,
+            )
+
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_data:
-            address_metadata = billing_address_data.pop("metadata", [])
+            billing_address_metadata: list[MetadataInput] = billing_address_data.pop(
+                "metadata", []
+            )
+            billing_address_metadata_collection = (
+                cls.create_metadata_from_graphql_input(
+                    billing_address_metadata,
+                    error_field_name="metadata",
+                )
+            )
+
             billing_address = cls.validate_address(
                 billing_address_data,
                 address_type=AddressType.BILLING,
                 instance=getattr(instance, BILLING_ADDRESS_FIELD),
                 info=info,
             )
-            cls.update_metadata(billing_address, address_metadata)
+
+            metadata_manager.store_on_instance(
+                billing_address_metadata_collection,
+                billing_address,
+                metadata_manager.MetadataType.PUBLIC,
+            )
+
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 
         if cleaned_input.get("redirect_url"):
@@ -310,16 +354,10 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
         if default_shipping_address:
-            default_shipping_address = manager.change_user_address(
-                default_shipping_address, "shipping", instance
-            )
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
-            default_billing_address = manager.change_user_address(
-                default_billing_address, "billing", instance
-            )
             default_billing_address.save()
             instance.default_billing_address = default_billing_address
 

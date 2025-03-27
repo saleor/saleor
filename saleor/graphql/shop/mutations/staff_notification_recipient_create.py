@@ -5,7 +5,7 @@ from ....account import models as account_models
 from ....core.error_codes import ShopErrorCode
 from ....permission.enums import SitePermissions
 from ...account.types import StaffNotificationRecipient
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import ShopError
 
 
@@ -23,7 +23,7 @@ class StaffNotificationRecipientInput(graphene.InputObjectType):
     )
 
 
-class StaffNotificationRecipientCreate(ModelMutation):
+class StaffNotificationRecipientCreate(DeprecatedModelMutation):
     class Arguments:
         input = StaffNotificationRecipientInput(
             required=True,

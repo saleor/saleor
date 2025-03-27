@@ -11,6 +11,7 @@ from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -21,12 +22,12 @@ from ...core.doc_category import (
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
 )
-from ...core.mutations import ModelMutation
-from ...core.scalars import Day, Minute
+from ...core.mutations import DeprecatedModelMutation
+from ...core.scalars import Day, Hour, Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import (
     AllocationStrategyEnum,
@@ -140,6 +141,14 @@ class OrderSettingsInput(BaseInputObjectType):
             + PREVIEW_FEATURE
         ),
     )
+    draft_order_line_price_freeze_period = Hour(
+        required=False,
+        description=(
+            "Time in hours after which the draft order line price will be refreshed. "
+            "Default value is 24 hours. "
+            "Enter 0 or null to disable." + ADDED_IN_321 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -185,12 +194,15 @@ class ChannelInput(BaseInputObjectType):
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description="Channel public metadata.",
+        description=(
+            f"Channel public metadata. {MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description="Channel private metadata.",
+        description="Channel private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 
@@ -228,7 +240,7 @@ class ChannelCreateInput(ChannelInput):
         doc_category = DOC_CATEGORY_CHANNELS
 
 
-class ChannelCreate(ModelMutation):
+class ChannelCreate(DeprecatedModelMutation):
     class Arguments:
         input = ChannelCreateInput(
             required=True, description="Fields required to create channel."

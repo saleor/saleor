@@ -10,7 +10,7 @@ from promise import Promise
 from ...account import models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
-from ...graphql.meta.inputs import MetadataInput
+from ...graphql.meta.inputs import MetadataInput, MetadataInputDescription
 from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
@@ -35,7 +35,7 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_319, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -92,7 +92,9 @@ class AddressInput(BaseInputObjectType):
     )
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
-        description="Address public metadata.",
+        description=(
+            f"Address public metadata. {MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     skip_validation = graphene.Boolean(
@@ -354,10 +356,7 @@ class User(ModelObjectType[models.User]):
     checkout = graphene.Field(
         Checkout,
         description="Returns the last open checkout of this user.",
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} "
-            "Use the `checkoutTokens` field to fetch the user checkouts."
-        ),
+        deprecation_reason="Use the `checkoutTokens` field to fetch the user checkouts.",
     )
     checkout_tokens = NonNullList(
         UUID,
@@ -365,7 +364,7 @@ class User(ModelObjectType[models.User]):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `checkoutIds` instead."),
+        deprecation_reason="Use `checkoutIds` instead.",
     )
     checkout_ids = NonNullList(
         graphene.ID,
@@ -376,7 +375,12 @@ class User(ModelObjectType[models.User]):
     )
     checkouts = ConnectionField(
         CheckoutCountableConnection,
-        description="Returns checkouts assigned to this user.",
+        description=(
+            "Returns checkouts assigned to this user. The query will not initiate any "
+            "external requests, including fetching external shipping methods, "
+            "filtering available shipping methods, or performing external tax "
+            "calculations."
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -393,7 +397,10 @@ class User(ModelObjectType[models.User]):
     orders = ConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
         description=(
-            "List of user's orders. Requires one of the following permissions: "
+            "List of user's orders. The query will not initiate any external requests, "
+            "including filtering available shipping methods, or performing external "
+            "tax calculations. Requires one of the following"
+            " permissions: "
             f"{AccountPermissions.MANAGE_STAFF.name}, "
             f"{AuthorizationFilters.OWNER.name}."
         ),

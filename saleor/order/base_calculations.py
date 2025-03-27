@@ -50,7 +50,7 @@ def base_order_total(
 
     All discounts are included in this price.
     """
-    subtotal, shipping_price = apply_order_discounts(
+    subtotal, shipping_price = calculate_prices(
         order,
         lines,
         assign_prices=False,
@@ -168,7 +168,7 @@ def propagate_order_discount_on_order_prices(
     return subtotal, shipping_price
 
 
-def apply_order_discounts(
+def calculate_prices(
     order: "Order",
     lines: Iterable["OrderLine"],
     assign_prices=True,

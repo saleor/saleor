@@ -2,7 +2,6 @@ import graphene
 
 from ...invoice import models
 from ..core.context import SyncWebhookControlContext
-from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.scalars import DateTime
 from ..core.types import Job, ModelObjectType
 from ..meta.types import ObjectWithMetadata
@@ -14,10 +13,7 @@ class Invoice(ModelObjectType[models.Invoice]):
     external_url = graphene.String(
         description="URL to view an invoice.",
         required=False,
-        deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `url` field."
-            "This field will be removed in 4.0"
-        ),
+        deprecation_reason="Use `url` field.",
     )
     created_at = DateTime(
         required=True, description="Date and time at which invoice was created."

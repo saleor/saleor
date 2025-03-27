@@ -260,24 +260,6 @@ class PluginsManager(PaymentInterface):
             "check_payment_balance", None, details, channel_slug=channel_slug
         )
 
-    def change_user_address(
-        self,
-        address: "Address",
-        address_type: str | None,
-        user: Optional["User"],
-        save: bool = True,
-    ) -> "Address":
-        default_value = address
-        return self.__run_method_on_plugins(
-            "change_user_address",
-            default_value,
-            address,
-            address_type,
-            user,
-            save,
-            channel_slug=None,
-        )
-
     def calculate_checkout_total(
         self,
         checkout_info: "CheckoutInfo",

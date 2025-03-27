@@ -46,6 +46,7 @@ mutation OrderDraftCreate($input: DraftOrderCreateInput!) {
         ... BaseTaxedMoney
       }
       lines {
+        id
         productVariantId
         quantity
         undiscountedUnitPrice {
@@ -60,6 +61,10 @@ mutation OrderDraftCreate($input: DraftOrderCreateInput!) {
         totalPrice {
           ... BaseTaxedMoney
         }
+        unitDiscount {
+            amount
+        }
+        unitDiscountReason
       }
     }
   }

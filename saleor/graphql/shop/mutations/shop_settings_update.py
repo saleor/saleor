@@ -14,7 +14,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Shop
@@ -81,12 +81,14 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     metadata = common_types.NonNullList(
         MetadataInput,
-        description="Shop public metadata.",
+        description="Shop public metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description="Shop private metadata.",
+        description="Shop private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
     # deprecated
@@ -188,13 +190,25 @@ class ShopSettingsUpdate(BaseMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
         old_metadata = dict(instance.metadata)
         old_private_metadata = dict(instance.private_metadata)
 
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
         cls.clean_instance(info, instance)
         instance.save()
 

@@ -9,7 +9,7 @@ from ....core import ResolveInfo
 from ....core.descriptions import RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import (
     BaseInputObjectType,
     NonNullList,
@@ -19,7 +19,7 @@ from ....core.types import (
 )
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 
@@ -33,12 +33,14 @@ class CategoryInput(BaseInputObjectType):
     background_image_alt = graphene.String(description="Alt text for a product media.")
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the category metadata."),
+        description="Fields required to update the category metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the category private metadata."),
+        description="Fields required to update the category private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 
@@ -46,7 +48,7 @@ class CategoryInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class CategoryCreate(ModelMutation):
+class CategoryCreate(DeprecatedModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description="Fields required to create a category."

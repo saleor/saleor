@@ -4,7 +4,7 @@ from ....permission.enums import ShippingPermissions
 from ....shipping import models
 from ...channel.types import ChannelContext
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.types import ShippingError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ShippingMethodType, ShippingZone
@@ -12,7 +12,9 @@ from .base import ShippingMethodTypeMixin, ShippingPriceMixin
 from .shipping_price_create import ShippingPriceInput
 
 
-class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
+class ShippingPriceUpdate(
+    ShippingPriceMixin, ShippingMethodTypeMixin, DeprecatedModelMutation
+):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",

@@ -35,13 +35,13 @@ from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import UUID, DateTime, PositiveDecimal
 from ....core.types import NonNullList
 from ....core.types import common as common_types
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_one_of_args_is_in_mutation
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 from ...types import TransactionEvent, TransactionItem
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
     from .....plugins.manager import PluginsManager
 
 
-class TransactionEventReport(ModelMutation):
+class TransactionEventReport(DeprecatedModelMutation):
     already_processed = graphene.Boolean(
         description="Defines if the reported event hasn't been processed earlier."
     )
@@ -122,12 +122,14 @@ class TransactionEventReport(ModelMutation):
         )
         transaction_metadata = NonNullList(
             MetadataInput,
-            description=("Fields required to update the transaction metadata."),
+            description="Fields required to update the transaction metadata. "
+            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
             required=False,
         )
         transaction_private_metadata = NonNullList(
             MetadataInput,
-            description=("Fields required to update the transaction private metadata."),
+            description="Fields required to update the transaction private metadata."
+            f"\n\n{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
             required=False,
         )
 
@@ -183,8 +185,8 @@ class TransactionEventReport(ModelMutation):
         transaction_event: payment_models.TransactionEvent,
         available_actions: list[str] | None = None,
         app: Optional["App"] = None,
-        metadata: list[dict] | None = None,
-        private_metadata: list[dict] | None = None,
+        metadata: list[MetadataInput] | None = None,
+        private_metadata: list[MetadataInput] | None = None,
     ):
         fields_to_update = [
             "authorized_value",
@@ -286,8 +288,8 @@ class TransactionEventReport(ModelMutation):
         external_url=None,
         message=None,
         available_actions=None,
-        transaction_metadata: list[dict] | None = None,
-        transaction_private_metadata: list[dict] | None = None,
+        transaction_metadata: list[MetadataInput] | None = None,
+        transaction_private_metadata: list[MetadataInput] | None = None,
     ):
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
@@ -342,8 +344,16 @@ class TransactionEventReport(ModelMutation):
             transaction_event, transaction_event_data
         )
 
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            transaction_metadata, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            transaction_private_metadata,
+            error_field_name="private_metadata",
+        )
+
         cls.validate_and_update_metadata(
-            transaction, transaction_metadata, transaction_private_metadata
+            transaction, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, transaction_event)
 

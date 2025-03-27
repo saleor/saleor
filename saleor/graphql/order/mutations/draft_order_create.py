@@ -10,6 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
 from ....discount.utils.voucher import (
+    create_or_update_voucher_discount_objects_for_order,
     get_active_voucher_code,
     get_voucher_code_instance,
     increase_voucher_usage,
@@ -26,7 +27,6 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
-from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -38,7 +38,6 @@ from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_321,
-    DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
@@ -46,7 +45,7 @@ from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...core.utils import from_global_id_or_error
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
@@ -135,7 +134,7 @@ class DraftOrderInput(BaseInputObjectType):
     voucher = graphene.ID(
         description="ID of the voucher associated with the order.",
         name="voucher",
-        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `voucherCode` instead.",
+        deprecation_reason="Use `voucherCode` instead.",
     )
     voucher_code = graphene.String(
         description="A code of the voucher associated with the order." + ADDED_IN_318,
@@ -157,12 +156,14 @@ class DraftOrderInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="Order public metadata." + ADDED_IN_321,
+        description=f"Order public metadata. {ADDED_IN_321} "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description="Order private metadata." + ADDED_IN_321,
+        description=f"Order private metadata. {ADDED_IN_321} "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 
@@ -466,9 +467,6 @@ class DraftOrderCreate(
                 instance=instance.shipping_address,
                 info=info,
             )
-            shipping_address = manager.change_user_address(
-                shipping_address, "shipping", user=instance
-            )
             cleaned_input["shipping_address"] = shipping_address
             cleaned_input["draft_save_shipping_address"] = (
                 save_shipping_address or False
@@ -489,9 +487,6 @@ class DraftOrderCreate(
                 address_type=AddressType.BILLING,
                 instance=instance.billing_address,
                 info=info,
-            )
-            billing_address = manager.change_user_address(
-                billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
             cleaned_input["draft_save_billing_address"] = save_billing_address or False
@@ -613,12 +608,12 @@ class DraftOrderCreate(
                     shipping_channel_listing = cls.validate_shipping_channel_listing(
                         method, instance
                     )
-                    shipping_method_data = convert_to_shipping_method_data(
-                        method,
-                        shipping_channel_listing,
-                    )
-                    cls.update_shipping_method(instance, method, shipping_method_data)
-                    cls._update_shipping_price(instance, shipping_channel_listing)
+                    cls.update_shipping_method(instance, method)
+                    cls.assign_shipping_price(instance, shipping_channel_listing)
+                    # for new instance the shipping discount is created later
+                    if not is_new_instance:
+                        cls.update_shipping_discount(instance)
+
                 updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:
@@ -672,14 +667,30 @@ class DraftOrderCreate(
 
     @classmethod
     def handle_order_voucher(
-        cls, cleaned_input, instance, is_new_instance, old_voucher, old_voucher_code
+        cls,
+        cleaned_input,
+        instance: models.Order,
+        is_new_instance: bool,
+        old_voucher: Voucher | None,
+        old_voucher_code: str | None,
     ):
-        user_email = instance.user_email or instance.user and instance.user.email
+        voucher = cleaned_input["voucher"]
+        if voucher is None and old_voucher is None:
+            return
+
+        # create or update voucher discount object
+        create_or_update_voucher_discount_objects_for_order(instance)
+
+        # handle voucher usage
+        user_email = instance.user_email
+        if not user_email and instance.user:
+            user_email = instance.user.email
+
         channel = instance.channel
         if not channel.include_draft_order_in_voucher_usage:
             return
 
-        if voucher := cleaned_input["voucher"]:
+        if voucher:
             code_instance = cleaned_input.pop("voucher_code_instance", None)
             increase_voucher_usage(
                 voucher,

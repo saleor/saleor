@@ -22,13 +22,13 @@ from ...attribute.types import (
 )
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
 from ...core.mutations import (
     BaseMutation,
-    ModelMutation,
+    DeprecatedModelMutation,
     validation_error_to_error_type,
 )
 from ...core.scalars import Date, DateTime
@@ -41,6 +41,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shop.utils import get_track_inventory_by_default
 from ..mutations.channels import ProductVariantChannelListingAddInput
@@ -128,7 +129,7 @@ class BulkAttributeValueInput(BaseInputObjectType):
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
-            + DEPRECATED_IN_3X_FIELD
+            + DEPRECATED_IN_3X_INPUT
         ),
     )
     dropdown = AttributeValueSelectableTypeInput(
@@ -217,7 +218,7 @@ class ProductVariantBulkCreate(BaseMutation):
         ProductVariant,
         required=True,
         default_value=[],
-        description="List of the created variants." + DEPRECATED_IN_3X_FIELD,
+        description="List of the created variants." + DEPRECATED_IN_3X_INPUT,
     )
 
     results = NonNullList(
@@ -604,13 +605,24 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
                 continue
             try:
-                metadata_list = cleaned_input.pop("metadata", None)
-                private_metadata_list = cleaned_input.pop("private_metadata", None)
+                metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+                private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                    "private_metadata", None
+                )
+
+                metadata_collection = cls.create_metadata_from_graphql_input(
+                    metadata_list, error_field_name="metadata"
+                )
+                private_metadata_collection = cls.create_metadata_from_graphql_input(
+                    private_metadata_list,
+                    error_field_name="private_metadata",
+                )
+
                 instance = models.ProductVariant()
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.validate_and_update_metadata(
-                    instance, metadata_list, private_metadata_list
+                    instance, metadata_collection, private_metadata_collection
                 )
                 cls.clean_instance(info, instance)
                 instances_data_and_errors_list.append(
@@ -703,7 +715,7 @@ class ProductVariantBulkCreate(BaseMutation):
         index,
         errors,
     ):
-        cleaned_input = ModelMutation.clean_input(
+        cleaned_input = DeprecatedModelMutation.clean_input(
             info, None, variant_data, input_cls=ProductVariantBulkCreateInput
         )
 

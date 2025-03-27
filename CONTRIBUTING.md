@@ -2,12 +2,11 @@
 title: Contributing
 ---
 
-We welcome all contributions to Saleor, including issues, new features, docs, discussions, and more. Read the following document to learn more about the process of contributing.
+> [!IMPORTANT]
+> We value your contributions to Saleor and want to ensure they meet our project's needs. To help us maintain quality and consistency, we ask that you follow the process described in our [Contribution Guidelines](http://docs.saleor.io/developer/community/contributing). We welcome issues, new features, documentation improvements, community support, and more.
 
 ## Table of Contents
 
-- [Issues](#issues)
-- [New features](#new-features)
 - [Running Saleor locally](#running-saleor-locally)
 - [Managing dependencies](#managing-dependencies)
 - [File structure](#file-structure)
@@ -18,15 +17,6 @@ We welcome all contributions to Saleor, including issues, new features, docs, di
 - [Pull requests](#pull-requests)
 - [Changelog](#changelog)
 
-## Issues
-
-Use [Github Issues](https://github.com/saleor/saleor/issues) to report a bug or a problem that you found in Saleor. Use the "Bug report" issue template to provide information that will help us confirm the bug, such as steps to reproduce, expected behavior, Saleor version, and any additional context. When our team confirms a bug, it will be added to the internal backlog and picked up as soon as possible. When willing to fix a bug, let us know in the issue comment, and we will try to assist you on the way.
-
-## New features
-When willing to propose or add a new feature, we encourage you first to open a [discussion](https://github.com/saleor/saleor/discussions) or an [issue](https://github.com/saleor/saleor/issues) (using "Feature request" template) to discuss it with the core team. This process helps us decide if a feature is suitable for Saleor or design it before any implementation starts.
-
-Before merging, any new pull requests submitted to Saleor have to be reviewed and approved by the core team. We review pull requests daily, but if a pull request requires more time or feedback from the team, it will be marked as "queued for review".
-
 ## Running Saleor locally
 
 ### Running Saleor locally in development containers
@@ -35,12 +25,11 @@ The easiest way of running Saleor for local development is to use [development c
 
 Editor instructions:
 
-- [Visual studio code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container)
+- [Visual Studio Code](https://code.visualstudio.com/docs/devcontainers/containers#_quick-start-open-an-existing-folder-in-a-container)
 
 - [PyCharm](https://www.jetbrains.com/help/pycharm/connect-to-devcontainer.html)
 
 - [Codespaces](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers)
-
 
 Development container only creates container, you still need to start the server. See [common-commands](#common-commands) section to learn more.
 
@@ -68,7 +57,7 @@ cd .devcontainer
 docker compose up db dashboard redis mailpit
 ```
 
-If you didn’t set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
+If you didn't set python version globally set [pyenv](https://github.com/pyenv/pyenv) local version:
 
 ```shell
 pyenv local 3.12
@@ -169,16 +158,14 @@ poe shell
 
 ### Poetry
 
-To guarantee repeatable installations, all project dependencies are managed using [Poetry](https://python-poetry.org). The project’s direct dependencies are listed in `pyproject.toml`.
+To guarantee repeatable installations, all project dependencies are managed using [Poetry](https://python-poetry.org). The project's direct dependencies are listed in `pyproject.toml`.
 Running `poetry lock` generates `poetry.lock` which has all versions pinned.
 
 You can install Poetry by following the official installation [guide](https://python-poetry.org/docs/#installation).
-We recommend using at least version `2.0.1` as it contains many fixes and features that Saleor relies on.
+We recommend using at least version `2.1.1` as it contains many fixes and features that Saleor relies on.
 
 > [!TIP]
 > We recommend using this workflow and keeping `pyproject.toml` and `poetry.lock` under version control to ensure that all computers and environments run the same code.
-
-
 
 ## File structure
 
@@ -335,7 +322,6 @@ in every file.
 We recommend using `given`, `when`, `then` to distinguish between different test parts.
 It significantly improves test readability and clarifies what you are testing.
 
-
 ## Coding style
 
 Saleor uses various tools to maintain a common coding style and help with development.
@@ -370,7 +356,7 @@ Use [ruff](https://github.com/astral-sh/ruff) to check and format your code.
 
 [EditorConfig](http://editorconfig.org/) is a standard configuration file that aims to ensure consistent style across multiple programming environments.
 
-Saleor’s repository contains [an `.editorconfig` file](.editorconfig) describing our formatting requirements.
+Saleor's repository contains [an `.editorconfig` file](.editorconfig) describing our formatting requirements.
 
 Most editors and IDEs support this file either directly or via plugins. See the [list of supported editors and IDEs](http://editorconfig.org/#download) for detailed instructions.
 
@@ -428,7 +414,6 @@ You can find it in this PR [#9344](https://github.com/saleor/saleor/pull/9344).
 > [!NOTE]
 > The search vector update task is triggered by [celery beat scheduler](https://docs.saleor.io/developer/running-saleor/task-queue#periodic-tasks).
 > This feature will not work without task queue configuration.
-
 
 ### API
 
@@ -522,6 +507,7 @@ class AppSortingInput(SortInputObjectType):
 > [!TIP]
 > Sometimes you would like to sort the data by some field that should be calculated, which isn't the model field. There is an option for that; you need to create a method whose name starts with `qs_with` followed by a sort field name in lowercase.
 > The method should annotate the queryset to contain the new value. Look at the example:
+>
 > ```python
 > class CollectionSortField(graphene.Enum):
 >     NAME = ["name", "slug"]
@@ -539,7 +525,6 @@ class AppSortingInput(SortInputObjectType):
 >         return queryset.annotate(product_count=Count("collectionproduct__id"))
 >
 > ```
-
 
 A similar behavior can be found in filtering: you need to create `FilterInputObjectType`
 and Django `FilterSet` in a dedicated `filters.py` file.
@@ -655,12 +640,11 @@ To speed up the review process and to keep the logs tidy, we recommend the follo
 
 For more information and tips on how to write good commit messages, see the GitHub [guide](https://github.com/erlang/otp/wiki/writing-good-commit-messages).
 
-
 ## Pull requests
 
 Remember to add a meaningful title and a good description when you open a pull request.
 Please describe what is changing, the reason for doing that, or what problem it fixes.
-If it resolves a GitHub issue, please link it. Wait for all actions to be performed, and if all is green, request the `saleor/core` group for review.
+All Pull Requests should be linked to their corresponding GitHub issues.
 
 ## Changelog
 
@@ -678,7 +662,7 @@ The changelog entry should consist of the name of the PR, the PR number, and the
 Here is a complete list of changes that we consider breaking:
 
 - deleting a field from the GraphQL schema / renaming the field name
-- deleting the field from the webhook payload / changing the name of the returned field
+- deleting the field from the webhook payload / changing the name of the returned field
 - changing signatures of plugins functions (PluginsManager) - breaking only for existing plugins
 - adding new validation in a mutation logic - it may break storefronts and apps
 - changing of the API behavior even if the schema doesn't change - e.g., the type of field hasn't changed, but the requirements for value has

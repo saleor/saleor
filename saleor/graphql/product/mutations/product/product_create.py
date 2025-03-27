@@ -17,11 +17,11 @@ from ....core.descriptions import (
 )
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from ..utils import clean_tax_code
@@ -66,12 +66,14 @@ class ProductInput(BaseInputObjectType):
     rating = graphene.Float(description="Defines the product rating value.")
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the product metadata."),
+        description="Fields required to update the product metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the product private metadata."),
+        description="Fields required to update the product private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
     external_reference = graphene.String(
@@ -118,7 +120,7 @@ class ProductCreateInput(ProductInput):
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class ProductCreate(ModelMutation):
+class ProductCreate(DeprecatedModelMutation):
     class Arguments:
         input = ProductCreateInput(
             required=True, description="Fields required to create a product."

@@ -6,8 +6,10 @@ from django.core.exceptions import ValidationError
 
 from ....checkout.fetch import get_variant_channel_listing
 from ....core.taxes import zero_money, zero_taxed_money
+from ....discount import VoucherType
 from ....discount.interface import VariantPromotionRuleInfo, fetch_variant_rules_info
-from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events
+from ....discount.utils.manual_discount import apply_discount_to_value
+from ....order import ORDER_EDITABLE_STATUS, OrderStatus, events, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
@@ -75,7 +77,7 @@ class ShippingMethodUpdateMixin:
         invalidate_order_prices(order)
 
     @classmethod
-    def update_shipping_method(cls, order, method, shipping_method_data):
+    def update_shipping_method(cls, order, method):
         order.shipping_method = method
         order.shipping_method_name = method.name
 
@@ -104,11 +106,12 @@ class ShippingMethodUpdateMixin:
         return shipping_channel_listing
 
     @classmethod
-    def _update_shipping_price(
-        cls,
-        order,
-        shipping_channel_listing,
-    ):
+    def update_shipping_price(cls, order, shipping_channel_listing):
+        cls.assign_shipping_price(order, shipping_channel_listing)
+        cls.update_shipping_discount(order)
+
+    @classmethod
+    def assign_shipping_price(cls, order, shipping_channel_listing):
         if not shipping_channel_listing:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
@@ -119,11 +122,31 @@ class ShippingMethodUpdateMixin:
             and order.shipping_address
             and order.is_shipping_required()
         ):
-            order.base_shipping_price = shipping_channel_listing.price
-            order.undiscounted_base_shipping_price = shipping_channel_listing.price
+            undiscounted_shipping_price = shipping_channel_listing.price
+            order.undiscounted_base_shipping_price = undiscounted_shipping_price
+            order.base_shipping_price = undiscounted_shipping_price
+
         else:
             order.base_shipping_price = zero_money(order.currency)
             order.undiscounted_base_shipping_price = zero_money(order.currency)
+
+    @classmethod
+    def update_shipping_discount(cls, order):
+        if shipping_discount := order.discounts.filter(
+            voucher__type=VoucherType.SHIPPING
+        ).first():
+            undiscounted_shipping_price = order.undiscounted_base_shipping_price
+            shipping_price = apply_discount_to_value(
+                value=shipping_discount.value,
+                value_type=shipping_discount.value_type,
+                currency=order.currency,
+                price_to_discount=undiscounted_shipping_price,
+            )
+            order.base_shipping_price = shipping_price
+            shipping_discount_amount = undiscounted_shipping_price - shipping_price
+            if shipping_discount.amount != shipping_discount_amount:
+                shipping_discount.amount = shipping_discount_amount
+                shipping_discount.save(update_fields=["amount_value"])
 
 
 def clean_order_update_shipping(
@@ -201,7 +224,6 @@ def get_variant_rule_info_map(
     variants = product_models.ProductVariant.objects.filter(
         pk__in=variant_ids
     ).prefetch_related(
-        "channel_listings__variantlistingpromotionrule__promotion_rule__promotion",
         "channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "channel_listings__variantlistingpromotionrule__promotion_rule__translations",
     )
@@ -213,3 +235,18 @@ def get_variant_rule_info_map(
         ] = VariantData(variant=variant, rules_info=rules_info)
 
     return variant_id_to_variant_and_rules_info_map
+
+
+def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
+    update_fields = []
+    shipping_address = cleaned_input.get("shipping_address")
+    if shipping_address:
+        shipping_address.save()
+        instance.shipping_address = shipping_address
+        update_fields.append("shipping_address")
+    billing_address = cleaned_input.get("billing_address")
+    if billing_address:
+        billing_address.save()
+        instance.billing_address = billing_address
+        update_fields.append("billing_address")
+    return update_fields

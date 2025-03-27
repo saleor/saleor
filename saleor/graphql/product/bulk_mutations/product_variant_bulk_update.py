@@ -19,10 +19,11 @@ from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ...webhook.subscription_payload import generate_pre_save_payloads
@@ -392,7 +393,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
         index,
     ):
-        cleaned_input = ModelMutation.clean_input(
+        cleaned_input = DeprecatedModelMutation.clean_input(
             info, None, variant_data, input_cls=ProductVariantBulkUpdateInput
         )
 
@@ -567,12 +568,23 @@ class ProductVariantBulkUpdate(BaseMutation):
                 )
                 continue
             try:
-                metadata_list = cleaned_input.pop("metadata", None)
-                private_metadata_list = cleaned_input.pop("private_metadata", None)
+                metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+                private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+                    "private_metadata", None
+                )
+
+                metadata_collection = cls.create_metadata_from_graphql_input(
+                    metadata_list, error_field_name="metadata"
+                )
+                private_metadata_collection = cls.create_metadata_from_graphql_input(
+                    private_metadata_list,
+                    error_field_name="private_metadata",
+                )
+
                 instance = cleaned_input.pop("id")
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.validate_and_update_metadata(
-                    instance, metadata_list, private_metadata_list
+                    instance, metadata_collection, private_metadata_collection
                 )
                 cls.clean_instance(info, instance)
                 instances_data_and_errors_list.append(

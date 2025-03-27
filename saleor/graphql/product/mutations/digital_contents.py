@@ -10,9 +10,9 @@ from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
 
@@ -40,12 +40,14 @@ class DigitalContentInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the digital content metadata."),
+        description="Fields required to update the digital content metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the digital content private metadata."),
+        description="Fields required to update the digital content private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
 
@@ -134,11 +136,20 @@ class DigitalContentCreate(BaseMutation):
         digital_content.automatic_fulfillment = clean_input.get(
             "automatic_fulfillment", False
         )
-        metadata_list = clean_input.pop("metadata", None)
-        private_metadata_list = clean_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = clean_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = clean_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         cls.validate_and_update_metadata(
-            digital_content, metadata_list, private_metadata_list
+            digital_content, metadata_collection, private_metadata_collection
         )
 
         variant.digital_content = digital_content
@@ -263,8 +274,15 @@ class DigitalContentUpdate(BaseMutation):
         metadata_list = clean_input.pop("metadata", None)
         private_metadata_list = clean_input.pop("private_metadata", None)
 
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
         cls.validate_and_update_metadata(
-            digital_content, metadata_list, private_metadata_list
+            digital_content, metadata_collection, private_metadata_collection
         )
 
         variant.digital_content = digital_content
@@ -285,7 +303,7 @@ class DigitalContentUrlCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class DigitalContentUrlCreate(ModelMutation):
+class DigitalContentUrlCreate(DeprecatedModelMutation):
     class Arguments:
         input = DigitalContentUrlCreateInput(
             required=True, description="Fields required to create a new url."

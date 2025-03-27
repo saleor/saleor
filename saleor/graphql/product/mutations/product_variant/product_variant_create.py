@@ -17,11 +17,11 @@ from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....shop.utils import get_track_inventory_by_default
 from ....warehouse.types import Warehouse
@@ -74,12 +74,14 @@ class ProductVariantInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the product variant metadata."),
+        description="Fields required to update the product variant metadata. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=("Fields required to update the product variant private metadata."),
+        description="Fields required to update the product variant private metadata. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
     external_reference = graphene.String(
@@ -112,7 +114,7 @@ class ProductVariantCreateInput(ProductVariantInput):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class ProductVariantCreate(ModelMutation):
+class ProductVariantCreate(DeprecatedModelMutation):
     class Arguments:
         input = ProductVariantCreateInput(
             required=True, description="Fields required to create a product variant."

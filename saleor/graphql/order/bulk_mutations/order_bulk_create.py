@@ -60,12 +60,12 @@ from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
 from ...discount.enums import DiscountValueTypeEnum
-from ...meta.inputs import MetadataInput
+from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...payment.mutations.transaction.transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
 )
-from ...payment.utils import metadata_contains_empty_key
+from ...payment.utils import deprecated_metadata_contains_empty_key
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import (
@@ -365,9 +365,15 @@ class OrderBulkCreateInvoiceInput(BaseInputObjectType):
     )
     number = graphene.String(description="Invoice number.")
     url = graphene.String(description="URL of the invoice to download.")
-    metadata = NonNullList(MetadataInput, description="Metadata of the invoice.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Metadata of the invoice. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
+    )
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the invoice."
+        MetadataInput,
+        description="Private metadata of the invoice. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
     class Meta:
@@ -388,10 +394,14 @@ class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
     shipping_tax_class_metadata = NonNullList(
-        MetadataInput, description="Metadata of the tax class."
+        MetadataInput,
+        description="Metadata of the tax class. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
     )
     shipping_tax_class_private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
+        MetadataInput,
+        description="Private metadata of the tax class. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
     class Meta:
@@ -505,18 +515,28 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
         required=True,
         description="The ID of the warehouse, where the line will be allocated.",
     )
-    metadata = NonNullList(MetadataInput, description="Metadata of the order line.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Metadata of the order line. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
+    )
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the order line."
+        MetadataInput,
+        description="Private metadata of the order line. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
     tax_class_metadata = NonNullList(
-        MetadataInput, description="Metadata of the tax class."
+        MetadataInput,
+        description="Metadata of the tax class. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
     )
     tax_class_private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
+        MetadataInput,
+        description="Private metadata of the tax class. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
 
     class Meta:
@@ -545,9 +565,15 @@ class OrderBulkCreateInput(BaseInputObjectType):
         AddressInput, description="Shipping address of the customer."
     )
     currency = graphene.String(required=True, description="Currency code.")
-    metadata = NonNullList(MetadataInput, description="Metadata of the order.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Metadata of the order. "
+        f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
+    )
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the order."
+        MetadataInput,
+        description="Private metadata of the order. "
+        f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
     )
     customer_note = graphene.String(description="Note about customer.")
     notes = NonNullList(
@@ -921,7 +947,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         path: str,
         field: Any,
     ):
-        if metadata_contains_empty_key(metadata):
+        if deprecated_metadata_contains_empty_key(metadata):
             errors.append(
                 OrderBulkError(
                     message="Metadata key cannot be empty.",
@@ -1015,12 +1041,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         billing_address: Address | None = None
         billing_address_input = order_input["billing_address"]
-        metadata_list = billing_address_input.pop("metadata", None)
-        private_metadata_list = billing_address_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = billing_address_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = billing_address_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+
         try:
             billing_address = cls.validate_address(billing_address_input, info=info)
             cls.validate_and_update_metadata(
-                billing_address, metadata_list, private_metadata_list
+                billing_address, metadata_collection, private_metadata_collection
             )
         except Exception:
             order_data.errors.append(
@@ -1036,12 +1072,21 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if shipping_address_input := order_input.get("shipping_address"):
             metadata_list = shipping_address_input.pop("metadata", None)
             private_metadata_list = shipping_address_input.pop("private_metadata", None)
+
+            metadata_collection = cls.create_metadata_from_graphql_input(
+                metadata_list, error_field_name="metadata"
+            )
+            private_metadata_collection = cls.create_metadata_from_graphql_input(
+                private_metadata_list,
+                error_field_name="private_metadata",
+            )
+
             try:
                 shipping_address = cls.validate_address(
                     shipping_address_input, info=info
                 )
                 cls.validate_and_update_metadata(
-                    shipping_address, metadata_list, private_metadata_list
+                    shipping_address, metadata_collection, private_metadata_collection
                 )
             except Exception:
                 order_data.errors.append(

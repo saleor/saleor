@@ -23,6 +23,8 @@ from graphql.type.directives import DEFAULT_DEPRECATION_REASON, GraphQLDirective
 from graphql.type.schema import GraphQLSchema
 from graphql.utils.ast_from_value import ast_from_value
 
+from saleor.graphql.core.descriptions import DEPRECATED_IN_3X_INPUT
+
 __all__ = ["print_schema", "print_introspection_schema", "print_type"]
 
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -334,6 +336,13 @@ def print_input_value(name: str, arg: GraphQLArgument) -> str:
     arg_decl = f"{name}: {arg.type}"
     if default_ast:
         arg_decl += f" = {print_ast(default_ast)}"
+
+    if arg.description and DEPRECATED_IN_3X_INPUT in arg.description:
+        deprecation_pos = arg.description.index(DEPRECATED_IN_3X_INPUT)
+        reason = arg.description[deprecation_pos + len(DEPRECATED_IN_3X_INPUT) :]
+        reason = reason.strip() or DEFAULT_DEPRECATION_REASON
+        arg_decl += print_deprecated(reason)
+
     return arg_decl
 
 
@@ -460,9 +469,14 @@ def print_description(
     indentation: str = "",
     first_in_block: bool = True,
 ) -> str:
-    description = def_.description
+    description: str | None = def_.description
     if description is None:
         return ""
+
+    if DEPRECATED_IN_3X_INPUT in description:
+        deprecation_pos = description.index(DEPRECATED_IN_3X_INPUT)
+        description = description[:deprecation_pos]
+
     description = description.rstrip()
 
     if is_printable_as_block_string(description):

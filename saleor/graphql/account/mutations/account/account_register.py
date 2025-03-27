@@ -13,10 +13,10 @@ from ....channel.utils import clean_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import LanguageCodeEnum
-from ....core.mutations import ModelMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
-from ....meta.inputs import MetadataInput
+from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....site.dataloaders import get_site_promise
 from ...types import User
 from .base import AccountBaseInput
@@ -39,7 +39,9 @@ class AccountRegisterInput(AccountBaseInput):
     )
     metadata = NonNullList(
         MetadataInput,
-        description="User public metadata.",
+        description=(
+            f"User public metadata. {MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+        ),
         required=False,
     )
     channel = graphene.String(
@@ -54,7 +56,7 @@ class AccountRegisterInput(AccountBaseInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class AccountRegister(ModelMutation):
+class AccountRegister(DeprecatedModelMutation):
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
@@ -161,14 +163,29 @@ class AccountRegister(ModelMutation):
         instance = models.User()
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list = cleaned_input.pop("metadata", None)
-        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
 
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
+
         user_exists = cls.clean_instance(info, instance)
+
         context_data = RequestorAwareContext.create_context_data(info.context)
         cls.save_and_create_task(user_exists, instance, cleaned_input, context_data)
+
         return cls.success_response(instance)
 
     @classmethod

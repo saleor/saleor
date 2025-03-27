@@ -16,7 +16,7 @@ from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import (
     AttributeBulkUpdateError,
     BaseInputObjectType,
@@ -330,7 +330,7 @@ class AttributeBulkUpdate(BaseMutation):
             )
             return None
 
-        attribute_data["fields"] = ModelMutation.clean_input(
+        attribute_data["fields"] = DeprecatedModelMutation.clean_input(
             info, None, attribute_data.fields, input_cls=AttributeUpdateInput
         )
 

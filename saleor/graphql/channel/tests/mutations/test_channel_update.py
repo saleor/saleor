@@ -47,6 +47,7 @@ CHANNEL_UPDATE_MUTATION = """
                     deleteExpiredOrdersAfter
                     allowUnpaidOrders
                     includeDraftOrderInVoucherUsage
+                    draftOrderLinePriceFreezePeriod
                 }
             }
             errors{
@@ -1205,6 +1206,77 @@ def test_channel_update_order_settings_voucher_usage_enable(
     assert not data["errors"]
     assert data["channel"]["orderSettings"]["includeDraftOrderInVoucherUsage"] is True
     disconnect_voucher_codes_from_draft_orders_task_mock.assert_called_once()
+
+
+@pytest.mark.parametrize("new_freeze_period", [10, None, 0])
+def test_channel_update_draft_order_line_price_freeze_period(
+    new_freeze_period,
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    assert channel_USD.draft_order_line_price_freeze_period == 24
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "draftOrderLinePriceFreezePeriod": new_freeze_period,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert (
+        channel_data["orderSettings"]["draftOrderLinePriceFreezePeriod"]
+        == new_freeze_period
+    )
+    assert channel_USD.draft_order_line_price_freeze_period == new_freeze_period
+
+
+def test_channel_update_draft_order_line_price_freeze_period_negative_value(
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    assert channel_USD.draft_order_line_price_freeze_period == 24
+    new_freeze_period = -5
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "draftOrderLinePriceFreezePeriod": new_freeze_period,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelUpdate"]["errors"][0]
+    assert error["field"] == "draftOrderLinePriceFreezePeriod"
+    assert error["code"] == ChannelErrorCode.INVALID.name
 
 
 CHANNEL_UPDATE_MUTATION_WITH_CHECKOUT_SETTINGS = """

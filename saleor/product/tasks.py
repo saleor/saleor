@@ -89,7 +89,7 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).get(pk=product_type_pk)
     except ObjectDoesNotExist:
-        logging.warning("Cannot find product type with id: %s.", product_type_pk)
+        logger.warning("Cannot find product type with id: %s.", product_type_pk)
         return
     saved_attributes = Attribute.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
@@ -195,10 +195,7 @@ def update_variant_relations_for_active_promotion_rules_task():
         # in the promotion as dirty
         existing_variant_relation = _get_existing_rule_variant_list(rules)
 
-        new_rule_to_variant_list = fetch_variants_for_promotion_rules(
-            rules=rules,
-            database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
-        )
+        new_rule_to_variant_list = fetch_variants_for_promotion_rules(rules=rules)
         channel_to_product_map = _get_channel_to_products_map(
             existing_variant_relation + new_rule_to_variant_list
         )

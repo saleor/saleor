@@ -5,17 +5,17 @@ import graphene
 from ....core import models
 from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
-from ..inputs import MetadataInput
+from ..inputs import MetadataInput, MetadataInputDescription
 from ..permissions import PUBLIC_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import get_valid_metadata_instance, save_instance
+from .utils import get_valid_metadata_instance, update_metadata
 
 
 class UpdateMetadata(BaseMetadataMutation):
     class Meta:
         description = (
-            "Updates metadata of an object. To use it, you need to have access to the "
-            "modified object."
+            "Updates metadata of an object."
+            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
         )
         permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetadataError
@@ -39,9 +39,9 @@ class UpdateMetadata(BaseMetadataMutation):
         instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
-            cls.validate_metadata_keys(input)
+            cls.create_metadata_from_graphql_input(input, error_field_name="input")
             items = {data.key: data.value for data in input}
             meta_instance.store_value_in_metadata(items=items)
-            save_instance(meta_instance, ["metadata"])
+            update_metadata(meta_instance, items)
 
         return cls.success_response(instance)

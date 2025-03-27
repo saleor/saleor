@@ -25,13 +25,14 @@ mutation addCheckoutLines($checkoutId: ID!, $line: CheckoutLineInput!) {
 
 @patch("saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout")
 def test_checkout_lines_add_invalidate_prices(
-    mocked_function,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_items,
     stock,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
+    mocked_invalidate_checkout.return_value = []
     query = ADD_CHECKOUT_LINES
     variables = {
         "checkoutId": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -51,7 +52,9 @@ def test_checkout_lines_add_invalidate_prices(
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    mocked_function.assert_called_once_with(checkout_info, lines, mock.ANY, save=True)
+    mocked_invalidate_checkout.assert_called_once_with(
+        checkout_info, lines, mock.ANY, save=False
+    )
 
 
 UPDATE_CHECKOUT_LINES = """
@@ -68,13 +71,15 @@ mutation updateCheckoutLines($token: UUID!, $line: CheckoutLineUpdateInput!) {
 
 @patch("saleor.graphql.checkout.mutations.checkout_lines_add.invalidate_checkout")
 def test_checkout_lines_update_invalidate_prices(
-    mocked_function,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_items,
     stock,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
+    mocked_invalidate_checkout.return_value = []
+
     query = UPDATE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
@@ -87,14 +92,17 @@ def test_checkout_lines_update_invalidate_prices(
     }
 
     # when
-    response = get_graphql_content(api_client.post_graphql(query, variables))
+    content = api_client.post_graphql(query, variables)
+    response = get_graphql_content(content)
 
     # then
     assert not response["data"]["checkoutLinesUpdate"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    mocked_function.assert_called_once_with(checkout_info, lines, mock.ANY, save=True)
+    mocked_invalidate_checkout.assert_called_once_with(
+        checkout_info, lines, mock.ANY, save=False
+    )
 
 
 DELETE_CHECKOUT_LINES = """
@@ -111,12 +119,13 @@ mutation deleteCheckoutLines($token: UUID!, $lineId: ID!){
 
 @patch("saleor.graphql.checkout.mutations.checkout_lines_delete.invalidate_checkout")
 def test_checkout_lines_delete_invalidate_prices(
-    mocked_function,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_items,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
+    mocked_invalidate_checkout.return_value = []
     query = DELETE_CHECKOUT_LINES
     variables = {
         "token": checkout_with_items.token,
@@ -133,7 +142,9 @@ def test_checkout_lines_delete_invalidate_prices(
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    mocked_function.assert_called_once_with(checkout_info, lines, mock.ANY, save=True)
+    mocked_invalidate_checkout.assert_called_once_with(
+        checkout_info, lines, mock.ANY, save=False
+    )
 
 
 DELETE_CHECKOUT_LINE = """
@@ -150,12 +161,13 @@ mutation deleteCheckoutLine($token: UUID!, $lineId: ID!){
 
 @patch("saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout")
 def test_checkout_line_delete_invalidate_prices(
-    mocked_function,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_items,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
+    mocked_invalidate_checkout.return_value = []
     query = DELETE_CHECKOUT_LINE
     variables = {
         "token": checkout_with_items.token,
@@ -172,7 +184,9 @@ def test_checkout_line_delete_invalidate_prices(
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    mocked_function.assert_called_once_with(checkout_info, lines, mock.ANY, save=True)
+    mocked_invalidate_checkout.assert_called_once_with(
+        checkout_info, lines, mock.ANY, save=False
+    )
 
 
 UPDATE_CHECKOUT_SHIPPING_ADDRESS = """
@@ -192,7 +206,7 @@ mutation UpdateCheckoutShippingAddress($token: UUID!, $address: AddressInput!) {
     ".invalidate_checkout"
 )
 def test_checkout_shipping_address_update_invalidate_prices(
-    mocked_function,
+    mocked_invalidate_checkout,
     api_client,
     checkout_with_items,
     graphql_address_data,
@@ -200,12 +214,13 @@ def test_checkout_shipping_address_update_invalidate_prices(
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
+    mocked_invalidate_checkout.return_value = []
     query = UPDATE_CHECKOUT_SHIPPING_ADDRESS
     variables = {
         "token": checkout_with_items.token,
         "address": graphql_address_data,
     }
-    mocked_function.return_value = []
+    mocked_invalidate_checkout.return_value = []
 
     # when
     response = get_graphql_content(api_client.post_graphql(query, variables))
@@ -215,7 +230,9 @@ def test_checkout_shipping_address_update_invalidate_prices(
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    mocked_function.assert_called_once_with(checkout_info, lines, mock.ANY, save=False)
+    mocked_invalidate_checkout.assert_called_once_with(
+        checkout_info, lines, mock.ANY, save=False
+    )
 
 
 UPDATE_CHECKOUT_BILLING_ADDRESS = """
@@ -330,6 +347,7 @@ def test_checkout_delivery_method_update_invalidate_prices(
     checkout = checkout_with_shipping_address_for_cc
     checkout.price_expiration = timezone.now()
     checkout.save(update_fields=["price_expiration"])
+
     query = UPDATE_CHECKOUT_DELIVERY_METHOD
     variables = {
         "token": checkout.token,

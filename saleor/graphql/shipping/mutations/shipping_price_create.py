@@ -6,7 +6,7 @@ from ...channel.types import ChannelContext
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.fields import JSONString
-from ...core.mutations import ModelMutation
+from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import BaseInputObjectType, NonNullList, ShippingError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -67,7 +67,9 @@ class ShippingPriceInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_SHIPPING
 
 
-class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
+class ShippingPriceCreate(
+    ShippingPriceMixin, ShippingMethodTypeMixin, DeprecatedModelMutation
+):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",

@@ -21,6 +21,9 @@ mutation orderLineDelete($lineId: ID!) {
         ...BaseTaxedMoney
       }
       isShippingRequired
+      shippingPrice {
+        ...BaseTaxedMoney
+      }
       lines {
         id
         quantity
