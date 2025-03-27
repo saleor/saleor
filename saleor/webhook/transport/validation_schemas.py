@@ -6,7 +6,7 @@ from pydantic import BaseModel, field_validator
 
 from ...app.models import App
 from ...shipping.interface import ShippingMethodData
-from .shipping_common import to_shipping_app_id
+from .shipping_helpers import to_shipping_app_id
 
 
 class ShippingMethodSchema(BaseModel):

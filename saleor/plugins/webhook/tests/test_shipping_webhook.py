@@ -23,7 +23,7 @@ from ....webhook.transport.shipping import (
     logger,
     parse_list_shipping_methods_response,
 )
-from ....webhook.transport.shipping_common import to_shipping_app_id
+from ....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....webhook.transport.synchronous.transport import trigger_webhook_sync
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...base_plugin import ExcludedShippingMethod
