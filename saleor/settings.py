@@ -679,6 +679,10 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
+    "process-async-webhooks": {
+        "task": "saleor.webhook.tasks.process_async_webhooks_task",
+        "schedule": datetime.timedelta(seconds=30),
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
