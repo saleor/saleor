@@ -1628,8 +1628,8 @@ def test_checkout_lines_update_with_metadata(
     user_api_client,
     checkout_with_item,
 ):
+    # given
     checkout = checkout_with_item
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1640,6 +1640,7 @@ def test_checkout_lines_update_with_metadata(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "lines": [
@@ -1651,6 +1652,8 @@ def test_checkout_lines_update_with_metadata(
         ],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
@@ -1658,7 +1661,6 @@ def test_checkout_lines_update_with_metadata(
     assert not data["errors"]
 
     checkout.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1673,8 +1675,8 @@ def test_checkout_lines_update_with_metadata_overwrite_key(
     user_api_client,
     checkout_with_item,
 ):
+    # given
     checkout = checkout_with_item
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1687,6 +1689,7 @@ def test_checkout_lines_update_with_metadata_overwrite_key(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "lines": [
@@ -1698,6 +1701,8 @@ def test_checkout_lines_update_with_metadata_overwrite_key(
         ],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
@@ -1705,7 +1710,6 @@ def test_checkout_lines_update_with_metadata_overwrite_key(
     assert not data["errors"]
 
     checkout.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1720,8 +1724,8 @@ def test_checkout_lines_update_with_metadata_empty_list(
     user_api_client,
     checkout_with_item,
 ):
+    # given
     checkout = checkout_with_item
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1734,6 +1738,7 @@ def test_checkout_lines_update_with_metadata_empty_list(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "lines": [
@@ -1746,6 +1751,8 @@ def test_checkout_lines_update_with_metadata_empty_list(
         ],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
@@ -1753,7 +1760,6 @@ def test_checkout_lines_update_with_metadata_empty_list(
     assert not data["errors"]
 
     checkout.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1768,8 +1774,8 @@ def test_checkout_lines_update_with_invalid_metadata(
     user_api_client,
     checkout_with_item,
 ):
+    # given
     checkout = checkout_with_item
-    lines, _ = fetch_checkout_lines(checkout)
 
     assert checkout.lines.count() == 1
 
@@ -1780,6 +1786,7 @@ def test_checkout_lines_update_with_invalid_metadata(
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
+    # when
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
         "lines": [
@@ -1792,6 +1799,8 @@ def test_checkout_lines_update_with_invalid_metadata(
         ],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
