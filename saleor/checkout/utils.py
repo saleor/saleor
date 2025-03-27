@@ -19,6 +19,11 @@ from ..core.db.connection import allow_writer
 from ..core.exceptions import NonExistingCheckoutLines, ProductNotPublished
 from ..core.prices import quantize_price
 from ..core.taxes import zero_taxed_money
+from ..core.utils.metadata_manager import (
+    MetadataItemCollection,
+    MetadataType,
+    store_on_instance,
+)
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -1015,7 +1020,9 @@ def get_valid_collection_points_for_checkout(
     )
 
 
-def clear_delivery_method(checkout_info: "CheckoutInfo"):
+def clear_delivery_method(
+    checkout_info: "CheckoutInfo", save: bool = True
+) -> list[str]:
     checkout = checkout_info.checkout
     updated_fields = remove_delivery_method_from_checkout(checkout_info.checkout)
 
@@ -1031,12 +1038,11 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         shipping_channel_listings=checkout_info.shipping_channel_listings,
     )
     if updated_fields:
-        checkout.save(
-            update_fields=updated_fields
-            + [
-                "last_change",
-            ]
-        )
+        updated_fields.append("last_change")
+        if save:
+            checkout.save(update_fields=updated_fields)
+
+    return updated_fields
 
 
 def is_fully_paid(
@@ -1272,8 +1278,23 @@ def _get_external_shipping_id_from_meta(container: Union["Checkout", "Order"]):
 
 
 @allow_writer()
-def create_checkout_metadata(checkout: "Checkout"):
-    return CheckoutMetadata.objects.create(checkout=checkout)
+def create_checkout_metadata(
+    checkout: "Checkout",
+    *,
+    metadata: MetadataItemCollection | None,
+    private_metadata: MetadataItemCollection | None,
+) -> CheckoutMetadata:
+    checkout_metadata = CheckoutMetadata(checkout=checkout)
+
+    if metadata:
+        store_on_instance(metadata, checkout_metadata, MetadataType.PUBLIC)
+
+    if private_metadata:
+        store_on_instance(private_metadata, checkout_metadata, MetadataType.PRIVATE)
+
+    checkout_metadata.save()
+
+    return checkout_metadata
 
 
 @allow_writer()

@@ -23442,7 +23442,7 @@ type OrderAddNote @doc(category: "Orders") {
 
 input OrderAddNoteInput @doc(category: "Orders") {
   """Note message."""
-  message: String! @deprecated
+  message: String!
 }
 
 """
@@ -24148,6 +24148,24 @@ input OrderUpdateInput @doc(category: "Orders") {
 
   """External ID of this order."""
   externalReference: String
+
+  """
+  Order public metadata. 
+  
+  Added in Saleor 3.21.Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Order private metadata. 
+  
+  Added in Saleor 3.21.Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
@@ -26861,6 +26879,26 @@ input CheckoutCreateInput @doc(category: "Checkout") {
 
   """The checkout validation rules that can be changed."""
   validationRules: CheckoutValidationRules
+
+  """
+  Checkout public metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  
+  Added in Saleor 3.21.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Checkout private metadata. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_CHECKOUTS 
+  
+  Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  
+  Added in Saleor 3.21.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 input CheckoutLineInput @doc(category: "Checkout") {

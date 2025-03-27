@@ -50,6 +50,9 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID) {
           amount
         }
       }
+      shippingAddress {
+        ...Address
+      }
       deliveryMethod {
         ... on ShippingMethod {
           id

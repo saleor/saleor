@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Drop the `manager.perform_mutation` method. - #16515 by @maarcingebala
 - Dropped the invoicing plugin. For an example of a replacement, see https://docs.saleor.io/developer/app-store/apps/invoices - #16631 by @patrys
+- Dropped the deprecated "Stripe (Deprecated)" payment plugin. If your codebase refers to `mirumee.payments.stripe`, you will need to migrate to the supported plugin, `saleor.payments.stripe` - #17539 by @patrys
 - Change error codes related to user enumeration bad habbit. Included mutations will now not reveal information in error codes if email was already registered:
   - `AccountRegister`,
     `AccountRegister` mutation will additionaly not return `ID` of the user.
@@ -39,6 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to filter the available shipping methods (`ORDER_FILTER_SHIPPING_METHODS`) - #17425 by @korycins
 - Drop `change_user_address` method from plugin manager - #17495 by @IKarbowiak
 - `DraftOrderUpdate` do not call `DRAFT_ORDER_UPDATED` anymore in case nothing changed - #17532 by @IKarbowiak
+- `OrderUpdate` mutation do not call `ORDER_UPDATED` anymore in case nothing changed - #17507 by @IKarbowiak
 
 ### GraphQL API
 
@@ -57,6 +59,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 - `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
 - Improved error handling when trying to set invalid metadata. Now, invalid metadata should properly return `error.field` containing `metadata` or `privateMetadata`, instead generic `input` - #17470 by @lkostrowski
+- `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
+- `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
 
 ### Webhooks
 
@@ -93,6 +97,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use denormalized base prices during order update - #17160 by @zedzior
   - `UNCONFIRMED` orders will never refresh its base prices
   - `DRAFT` orders will refresh its base prices after default 24 hours
+- Fix bug which, in some cases, caused product name translations to be empty in order lines - #17504 by @delemeator
 - Added a warning to metadata input fields in GraphQL schema informing to never store sensitive data.
   This ensures user awareness of potential security policy violations and compliance risks of storing
   certain types of data. - #17506 by @NyanKiyoshi

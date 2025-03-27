@@ -338,8 +338,8 @@ def print_input_value(name: str, arg: GraphQLArgument) -> str:
         arg_decl += f" = {print_ast(default_ast)}"
 
     if arg.description and DEPRECATED_IN_3X_INPUT in arg.description:
-        deprection_pos = arg.description.index(DEPRECATED_IN_3X_INPUT)
-        reason = arg.description[deprection_pos + len(DEPRECATED_IN_3X_INPUT) :]
+        deprecation_pos = arg.description.index(DEPRECATED_IN_3X_INPUT)
+        reason = arg.description[deprecation_pos + len(DEPRECATED_IN_3X_INPUT) :]
         reason = reason.strip() or DEFAULT_DEPRECATION_REASON
         arg_decl += print_deprecated(reason)
 
@@ -474,8 +474,8 @@ def print_description(
         return ""
 
     if DEPRECATED_IN_3X_INPUT in description:
-        deprection_pos = description.index(DEPRECATED_IN_3X_INPUT)
-        description = description[:deprection_pos]
+        deprecation_pos = description.index(DEPRECATED_IN_3X_INPUT)
+        description = description[:deprecation_pos]
 
     description = description.rstrip()
 

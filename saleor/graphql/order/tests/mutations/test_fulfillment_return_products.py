@@ -1058,14 +1058,17 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     )
 
 
+@patch("saleor.plugins.manager.PluginsManager.draft_order_created")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.order.actions.order_refunded")
 @patch("saleor.order.actions.gateway.refund")
-def test_fulfillment_return_products_calls_order_refunded(
+def test_fulfillment_return_and_replace_products_calls_order_refunded_and_webhooks(
     mocked_refund,
     mocked_order_refunded,
+    mocked_order_updated,
+    mocked_draft_order_created,
     warehouse,
     variant,
-    channel_USD,
     staff_api_client,
     permission_group_manage_orders,
     fulfilled_order,
@@ -1080,6 +1083,7 @@ def test_fulfillment_return_products_calls_order_refunded(
     stock = Stock.objects.create(
         warehouse=warehouse, product_variant=variant, quantity=5
     )
+    order_count = Order.objects.count()
     channel_listing = variant.channel_listings.get()
     net = variant.get_price(channel_listing)
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
@@ -1114,7 +1118,7 @@ def test_fulfillment_return_products_calls_order_refunded(
         "input": {
             "refund": True,
             "orderLines": [
-                {"orderLineId": order_line_id, "quantity": 2, "replace": False}
+                {"orderLineId": order_line_id, "quantity": 2, "replace": True}
             ],
             "fulfillmentLines": [
                 {
@@ -1134,6 +1138,98 @@ def test_fulfillment_return_products_calls_order_refunded(
     amount = order_line.unit_price_gross_amount * 2
     amount = amount.quantize(Decimal("0.001"))
 
+    # refund not called as all lines are replaced
+    mocked_order_refunded.assert_not_called()
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
+
+    assert Order.objects.count() == order_count + 1
+    replace_order = Order.objects.first()
+    assert fulfilled_order.id != replace_order.id
+    mocked_draft_order_created.assert_called_once_with(replace_order, webhooks=set())
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_created")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.order.actions.order_refunded")
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_calls_order_refunded_and_webhooks(
+    mocked_refund,
+    mocked_order_refunded,
+    mocked_order_updated,
+    mocked_draft_order_created,
+    warehouse,
+    variant,
+    staff_api_client,
+    permission_group_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    # given
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    channel_listing = variant.channel_listings.get()
+    order_count = Order.objects.count()
+    net = variant.get_price(channel_listing)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    variant.track_inventory = False
+    variant.save()
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 5
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    fulfillment = fulfilled_order.fulfillments.get()
+    fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)
+    fulfillment_line_to_replace = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_replace.pk
+    )
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+    line_qty = 2
+    fulfillment_line_qty = 1
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "orderLines": [
+                {"orderLineId": order_line_id, "quantity": line_qty, "replace": False}
+            ],
+            "fulfillmentLines": [
+                {
+                    "fulfillmentLineId": fulfillment_line_id,
+                    "quantity": fulfillment_line_qty,
+                    "replace": False,
+                }
+            ],
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    # then
+    amount = order_line.unit_price_gross_amount * (line_qty + fulfillment_line_qty)
+    amount = amount.quantize(Decimal("0.001"))
+
     mocked_order_refunded.assert_called_once_with(
         order=fulfilled_order,
         user=staff_api_client.user,
@@ -1143,3 +1239,6 @@ def test_fulfillment_return_products_calls_order_refunded(
         manager=mock.ANY,
         trigger_order_updated=False,
     )
+    assert Order.objects.count() == order_count
+    mocked_order_updated.assert_called_once_with(fulfilled_order, webhooks=set())
+    mocked_draft_order_created.assert_not_called()

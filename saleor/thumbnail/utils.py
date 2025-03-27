@@ -2,6 +2,7 @@ import os
 import secrets
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
+from urllib.parse import urlparse
 
 import graphene
 import magic
@@ -254,7 +255,7 @@ class ProcessedIconImage(ProcessedImage):
 
 def get_filename_from_url(url: str) -> str:
     """Prepare a unique filename for file from the URL to avoid overwriting."""
-    file_name = os.path.basename(url)
+    file_name = os.path.basename(urlparse(url).path)
     name, format = os.path.splitext(file_name)
     name = name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
