@@ -251,8 +251,13 @@ class CheckoutLinesAdd(BaseMutation):
         )
 
         update_checkout_external_shipping_method_if_invalid(checkout_info, lines)
-        update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout(checkout_info, lines, manager, save=True)
+        shipping_update_fields = update_checkout_shipping_method_if_invalid(
+            checkout_info, lines
+        )
+        invalidate_update_fields = invalidate_checkout(
+            checkout_info, lines, manager, save=False
+        )
+        checkout.save(update_fields=shipping_update_fields + invalidate_update_fields)
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,
