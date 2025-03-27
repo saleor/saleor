@@ -408,6 +408,8 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             "channel",
             "metadata",
             "private_metadata",
+            "draft_save_billing_address",
+            "draft_save_shipping_address",
         ]
 
     def serialize_for_comparison(self):
