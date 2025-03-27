@@ -19,8 +19,8 @@ from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import APP_ID_PREFIX, CACHE_EXCLUDED_SHIPPING_TIME
+from .response_schemas import ShippingMethodSchema
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
-from .validation_schemas import ShippingMethodSchema
 
 logger = logging.getLogger(__name__)
 
