@@ -1059,3 +1059,6 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()
+
+# number of webhooks to be processed in a single batch per app
+WEBHOOK_ASYNC_BATCH_SIZE = 100
