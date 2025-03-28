@@ -28,11 +28,11 @@ def parse_list_shipping_methods_response(
     valid_methods = []
     for method_data in response_data:
         try:
-            shipping_method_schema = ShippingMethodSchema.model_validate(method_data)
+            shipping_method_model = ShippingMethodSchema.model_validate(method_data)
         except ValidationError as e:
             logger.warning("Skipping invalid shipping method: %s", e)
         else:
-            valid_methods.append(shipping_method_schema.get_shipping_method_data(app))
+            valid_methods.append(shipping_method_model.get_shipping_method_data(app))
     return valid_methods
 
 
@@ -64,7 +64,7 @@ def get_excluded_shipping_methods_or_fetch(
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     cache_data = get_cache_data_for_exclude_shipping_methods(payload)
-    excluded_methods = []
+    excluded_methods: list[ExcludedShippingMethodSchema] = []
     # Gather responses from webhooks
     for webhook in webhooks:
         pregenerated_subscription_payload = get_pregenerated_subscription_payload(
