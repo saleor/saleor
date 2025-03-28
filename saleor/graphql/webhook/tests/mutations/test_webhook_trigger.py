@@ -1,7 +1,9 @@
+import datetime
 import json
 from unittest import mock
 
 import graphene
+from freezegun import freeze_time
 
 from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content
@@ -375,11 +377,13 @@ def test_webhook_trigger_for_deferred_payload(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     webhook = subscription_checkout_updated_webhook
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
+    frozen_date = datetime.datetime(2025, 3, 28, 12, 0, 1, tzinfo=datetime.UTC)
 
     variables = {"webhookId": webhook_id, "objectId": checkout_id}
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    with freeze_time(frozen_date):
+        response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -395,6 +399,9 @@ def test_webhook_trigger_for_deferred_payload(
     ]
     assert generate_payload_kwargs["event_delivery_ids"] == [delivery_pk]
     assert generate_payload_kwargs["deferred_payload_data"]["object_id"] == checkout.pk
+    assert (
+        generate_payload_kwargs["deferred_payload_data"]["request_time"] == frozen_date
+    )
 
     assert mocked_send_webhook_request_async.called
     send_webhook_kwargs = mocked_send_webhook_request_async.call_args.kwargs["kwargs"]
