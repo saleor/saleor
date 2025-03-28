@@ -22,10 +22,7 @@ from ....graphql.core.utils import to_global_id_or_none
 from ....order import OrderStatus
 from ....order.calculations import fetch_order_prices_if_expired
 from ....order.models import Order
-from ....order.utils import (
-    create_order_discount_for_order,
-    update_discount_for_order_line,
-)
+from ....order.utils import create_manual_order_discount, update_discount_for_order_line
 from ....plugins.manager import get_plugins_manager
 from ....tax import TaxableObjectDiscountType
 from ...event_types import WebhookEventSyncType
@@ -1270,12 +1267,11 @@ def test_order_calculate_taxes_order_voucher_and_manual_discount(
     order.save(update_fields=["voucher_id"])
 
     manual_reward = Decimal(10)
-    create_order_discount_for_order(
+    create_manual_order_discount(
         order=order,
         reason="Manual discount",
         value_type=DiscountValueType.FIXED,
         value=manual_reward,
-        type=DiscountType.MANUAL,
     )
 
     subtotal_manual_reward_portion = (subtotal_amount / total_amount) * manual_reward
@@ -1375,12 +1371,11 @@ def test_order_calculate_taxes_order_promotion_and_manual_discount(
     assert rule.reward_type == RewardType.SUBTOTAL_DISCOUNT
 
     manual_reward = Decimal(10)
-    create_order_discount_for_order(
+    create_manual_order_discount(
         order=order,
         reason="Manual discount",
         value_type=DiscountValueType.FIXED,
         value=manual_reward,
-        type=DiscountType.MANUAL,
     )
 
     subtotal_manual_reward_portion = (subtotal_amount / total_amount) * manual_reward
@@ -1474,12 +1469,11 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_fixed(
     create_or_update_voucher_discount_objects_for_order(order)
 
     manual_reward = Decimal(10)
-    create_order_discount_for_order(
+    create_manual_order_discount(
         order=order,
         reason="Manual discount",
         value_type=DiscountValueType.FIXED,
         value=manual_reward,
-        type=DiscountType.MANUAL,
     )
 
     # Since shipping is free, whole manual discount should be applied to subtotal
@@ -1576,12 +1570,11 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_percent
     total_amount -= shipping_price_amount
 
     manual_reward = Decimal(10)
-    create_order_discount_for_order(
+    create_manual_order_discount(
         order=order,
         reason="Manual discount",
         value_type=DiscountValueType.PERCENTAGE,
         value=manual_reward,
-        type=DiscountType.MANUAL,
     )
 
     # Since shipping is free, whole manual discount should be applied to subtotal

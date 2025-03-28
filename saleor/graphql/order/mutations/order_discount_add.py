@@ -5,16 +5,18 @@ from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....order import events, models
-from ....order.calculations import fetch_order_prices_if_expired
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import create_order_discount_for_order, get_order_discounts
+from ....order.utils import (
+    create_manual_order_discount,
+    get_order_discounts,
+    invalidate_order_prices,
+)
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
-from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
 
@@ -61,7 +63,6 @@ class OrderDiscountAdd(OrderDiscountCommon):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, input, order_id: str
     ):
-        manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(info, order_id, only_type=Order)
         order = cast(models.Order, order)
         cls.check_channel_permissions(info, [order.channel_id])
@@ -72,18 +73,14 @@ class OrderDiscountAdd(OrderDiscountCommon):
         value = input.get("value")
         app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
-            order_discount = create_order_discount_for_order(
+            order_discount = create_manual_order_discount(
                 order, reason, value_type, value
             )
-            # Calling refreshing prices because it's set proper discount amount
-            # on OrderDiscount.
-            order, _ = fetch_order_prices_if_expired(order, manager, force_update=True)
-            order_discount.refresh_from_db()
-
             events.order_discount_added_event(
                 order=order,
                 user=info.context.user,
                 app=app,
                 order_discount=order_discount,
             )
+            invalidate_order_prices(order, save=True)
         return OrderDiscountAdd(order=SyncWebhookControlContext(order))

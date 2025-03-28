@@ -30,6 +30,7 @@ from ..discount.utils.order import (
     update_catalogue_promotion_discount_amount_for_order,
 )
 from ..discount.utils.promotion import (
+    delete_gift_lines_qs,
     get_sale_id,
     prepare_promotion_discount_reason,
 )
@@ -70,6 +71,7 @@ from . import (
     OrderStatus,
     events,
 )
+from .base_calculations import base_order_total
 from .error_codes import OrderErrorCode
 from .fetch import OrderLineInfo, fetch_draft_order_lines_info
 from .models import Order, OrderGrantedRefund, OrderLine
@@ -89,7 +91,7 @@ def order_qs_select_for_update():
     return Order.objects.order_by("id").select_for_update(of=(["self"]))
 
 
-def order_lines_qs_select_for_update():
+def order_lines_qs_select_for_update() -> QuerySet[OrderLine]:
     return OrderLine.objects.order_by("pk").select_for_update(of=["self"])
 
 
@@ -849,34 +851,39 @@ def get_order_discounts(order: Order) -> list[OrderDiscount]:
     return list(order.discounts.filter(type=DiscountType.MANUAL))
 
 
-def create_order_discount_for_order(
+def create_manual_order_discount(
     order: Order,
     reason: str,
     value_type: str,
     value: Decimal,
-    type: str | None = None,
-):
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> OrderDiscount:
     """Add new order discount and update the prices."""
-
-    current_total: TaxedMoney = order.undiscounted_total
     currency = order.currency
-
-    gross_total = apply_discount_to_value(
-        value, value_type, currency, current_total.gross
-    )
-
-    new_amount = quantize_price((current_total - gross_total).gross, currency)
-    kwargs = {} if not type else {"type": type}
-
+    order_lines = order.lines.using(database_connection_name).all()
+    has_gift_line = any(line.is_gift for line in order_lines)
     with transaction.atomic():
         # Manual order discount does not stack with other order-level discounts
         order.discounts.exclude(voucher__type=VoucherType.SHIPPING).delete()
-        order_discount = order.discounts.create(
+        if has_gift_line:
+            delete_gift_lines_qs(order)
+        current_total = base_order_total(
+            order, order_lines, database_connection_name=database_connection_name
+        )
+        total_with_manual_discount = apply_discount_to_value(
+            value, value_type, currency, current_total
+        )
+        manual_discount_amount = quantize_price(
+            (current_total - total_with_manual_discount), currency
+        )
+        order_discount = OrderDiscount.objects.create(
             value_type=value_type,
             value=value,
             reason=reason,
-            amount=new_amount,  # type: ignore[misc]
-            **kwargs,
+            amount_value=manual_discount_amount.amount,
+            currency=currency,
+            order=order,
+            type=DiscountType.MANUAL,
         )
 
     return order_discount

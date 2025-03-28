@@ -400,12 +400,31 @@ def _get_available_for_purchase_variant_ids(
 
 
 @allow_writer()
+def delete_gift_lines_qs(
+    order_or_checkout: Checkout | Order,
+):
+    from ...checkout.utils import checkout_lines_qs_select_for_update
+    from ...order.utils import order_lines_qs_select_for_update
+
+    with transaction.atomic():
+        if isinstance(order_or_checkout, Checkout):
+            locked_checkout_lines_qs = checkout_lines_qs_select_for_update()
+            locked_checkout_lines_qs.filter(
+                checkout_id=order_or_checkout.pk, is_gift=True
+            ).delete()
+        else:
+            locked_order_lines_qs = order_lines_qs_select_for_update()
+            locked_order_lines_qs.filter(
+                order_id=order_or_checkout.pk, is_gift=True
+            ).delete()
+
+
 def delete_gift_line(
     order_or_checkout: Checkout | Order,
     lines_info: list["CheckoutLineInfo"] | list["EditableOrderLineInfo"],
 ):
     if gift_line_infos := [line for line in lines_info if line.line.is_gift]:
-        order_or_checkout.lines.filter(is_gift=True).delete()  # type: ignore[misc]
+        delete_gift_lines_qs(order_or_checkout)
         for gift_line_info in gift_line_infos:
             lines_info.remove(gift_line_info)  # type: ignore[arg-type]
 
