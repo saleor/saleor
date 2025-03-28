@@ -119,15 +119,15 @@ tests-mypy = ["mypy (>=1.11.1) ; platform_python_implementation == \"CPython\" a
 
 [[package]]
 name = "authlib"
-version = "1.4.0"
+version = "1.5.1"
 description = "The ultimate Python library in building OAuth and OpenID Connect servers and clients."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 markers = "platform_python_implementation == \"PyPy\""
 files = [
-    {file = "Authlib-1.4.0-py2.py3-none-any.whl", hash = "sha256:4bb20b978c8b636222b549317c1815e1fe62234fc1c5efe8855d84aebf3a74e3"},
-    {file = "authlib-1.4.0.tar.gz", hash = "sha256:1c1e6608b5ed3624aeeee136ca7f8c120d6f51f731aa152b153d54741840e1f2"},
+    {file = "authlib-1.5.1-py2.py3-none-any.whl", hash = "sha256:8408861cbd9b4ea2ff759b00b6f02fd7d81ac5a56d0b2b22c08606c6049aae11"},
+    {file = "authlib-1.5.1.tar.gz", hash = "sha256:5cbc85ecb0667312c1cdc2f9095680bb735883b123fb509fde1e65b1c5df972e"},
 ]
 
 [package.dependencies]
@@ -6051,4 +6051,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "ffc5b2e8399044a51e1b2ed166c25ba3eb87bfe715070be3f12b70e82cb63ab9"
+content-hash = "ed08f72eba1fa28a9002de21546df3bc8b19cc877019bfdb85263caa568cae28"
