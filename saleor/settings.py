@@ -10,7 +10,6 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 import django_stubs_ext
-import jaeger_client.config
 import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
@@ -851,30 +850,6 @@ HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS: bool = get_bool_from_env(
 # time of the reservation in seconds.
 RESERVE_DURATION = 45
 
-# Initialize a simple and basic Jaeger Tracing integration
-# for open-tracing if enabled.
-#
-# Refer to our guide on https://docs.saleor.io/docs/next/guides/opentracing-jaeger/.
-#
-# If running locally, set:
-#   JAEGER_AGENT_HOST=localhost
-JAEGER_HOST = os.environ.get("JAEGER_AGENT_HOST")
-if JAEGER_HOST:
-    jaeger_client.Config(
-        config={
-            "sampler": {"type": "const", "param": 1},
-            "local_agent": {
-                "reporting_port": os.environ.get(
-                    "JAEGER_AGENT_PORT", jaeger_client.config.DEFAULT_REPORTING_PORT
-                ),
-                "reporting_host": JAEGER_HOST,
-            },
-            "logging": get_bool_from_env("JAEGER_LOGGING", False),
-        },
-        service_name="saleor",
-        validate=True,
-    ).initialize_tracer()
-
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get("REDIS_URL")
@@ -1059,3 +1034,6 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()
+
+TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
+TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
