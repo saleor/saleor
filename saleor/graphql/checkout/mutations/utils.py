@@ -443,6 +443,7 @@ def group_lines_input_data_on_update(
     for line in lines:
         variant_id = cast(str, line.get("variant_id"))
         line_id = cast(str, line.get("line_id"))
+        metadata_list = line.get("metadata")
 
         line_db_id, variant_db_id = None, None
         if line_id:
@@ -471,6 +472,11 @@ def group_lines_input_data_on_update(
         if "price" in line:
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
+
+        if line_data.metadata_list and metadata_list:
+            line_data.metadata_list += metadata_list
+        else:
+            line_data.metadata_list = metadata_list
 
     grouped_checkout_lines_data += list(checkout_lines_data_map.values())
     return grouped_checkout_lines_data
