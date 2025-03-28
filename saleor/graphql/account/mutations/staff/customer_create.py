@@ -19,7 +19,7 @@ from ....core.enums import AccountErrorCode
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ..base import BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD, BaseCustomerCreate
+from ..base import BaseCustomerCreate
 
 
 class CustomerCreate(BaseCustomerCreate):
@@ -56,24 +56,18 @@ class CustomerCreate(BaseCustomerCreate):
     @classmethod
     @traced_atomic_transaction()
     def save(cls, info: ResolveInfo, instance, cleaned_input):
-        default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         manager = get_plugin_manager_promise(info.context).get()
 
-        if default_shipping_address:
-            default_shipping_address.save()
-            instance.default_shipping_address = default_shipping_address
-
-        default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
-
-        if default_billing_address:
-            default_billing_address.save()
-            instance.default_billing_address = default_billing_address
+        default_addresses = cls.save_and_apply_addresses_from_input(
+            cleaned_input=cleaned_input, user_instance=instance
+        )
 
         super().save(info, instance, cleaned_input)
-        if default_billing_address:
-            instance.addresses.add(default_billing_address)
-        if default_shipping_address:
-            instance.addresses.add(default_shipping_address)
+
+        if default_addresses["billing"]:
+            instance.addresses.add(default_addresses["billing"])
+        if default_addresses["shipping"]:
+            instance.addresses.add(default_addresses["shipping"])
 
         instance.search_document = prepare_user_search_document_value(instance)
         instance.save(update_fields=["search_document", "updated_at"])
