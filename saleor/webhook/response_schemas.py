@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from graphql.error import GraphQLError
 from prices import Money
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from ..app.models import App
 from ..core.enums import CurrencyEnum
@@ -40,7 +40,7 @@ class ShippingMethodSchema(BaseModel):
 
     @property
     def price(self) -> Money:
-        return Money(self.amount, self.currency)
+        return Money(self.amount, self.currency.value)
 
     def get_shipping_method_data(self, app: "App"):
         metadata = cast(
@@ -56,6 +56,10 @@ class ShippingMethodSchema(BaseModel):
             description=self.description,
             metadata=metadata,
         )
+
+
+class ListShippingMethodsSchema(BaseModel):
+    methods: list[ShippingMethodSchema]
 
 
 class ExcludedShippingMethodSchema(BaseModel):
@@ -77,3 +81,28 @@ class ExcludedShippingMethodSchema(BaseModel):
             logger.warning(error_msg, type_name)
             raise ValueError(error_msg, type_name)
         return method_id
+
+
+class FilterShippingMethodsSchema(BaseModel):
+    excluded_methods: list[ExcludedShippingMethodSchema]
+
+    @field_validator("excluded_methods", mode="before")
+    @classmethod
+    def clean_excluded_methods(cls, value: Any):
+        # return the empty list for None to ensure the backward compatibility;
+        if value is None:
+            return []
+
+        # in case the data are not list, handle validation by pydantic
+        if not isinstance(value, list):
+            return value
+
+        excluded_methods = []
+        for method_data in value:
+            try:
+                excluded_methods.append(
+                    ExcludedShippingMethodSchema.model_validate(method_data)
+                )
+            except ValidationError:
+                continue
+        return excluded_methods
