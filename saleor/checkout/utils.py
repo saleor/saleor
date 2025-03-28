@@ -9,7 +9,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import prefetch_related_objects
+from django.db.models import QuerySet, prefetch_related_objects
 from django.utils import timezone
 from prices import Money
 
@@ -118,7 +118,7 @@ def invalidate_checkout_prices(
     return updated_fields
 
 
-def checkout_lines_qs_select_for_update():
+def checkout_lines_qs_select_for_update() -> QuerySet[CheckoutLine]:
     return CheckoutLine.objects.order_by("id").select_for_update(of=(["self"]))
 
 

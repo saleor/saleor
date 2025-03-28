@@ -29,7 +29,11 @@ from ..discount.utils.order import (
     create_order_line_discount_objects_for_catalogue_promotions,
     update_catalogue_promotion_discount_amount_for_order,
 )
-from ..discount.utils.promotion import get_sale_id, prepare_promotion_discount_reason
+from ..discount.utils.promotion import (
+    delete_gift_lines_qs,
+    get_sale_id,
+    prepare_promotion_discount_reason,
+)
 from ..discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
     create_or_update_line_discount_objects_from_voucher,
@@ -87,7 +91,7 @@ def order_qs_select_for_update():
     return Order.objects.order_by("id").select_for_update(of=(["self"]))
 
 
-def order_lines_qs_select_for_update():
+def order_lines_qs_select_for_update() -> QuerySet[OrderLine]:
     return OrderLine.objects.order_by("pk").select_for_update(of=["self"])
 
 
@@ -857,10 +861,12 @@ def create_manual_order_discount(
     """Add new order discount and update the prices."""
     currency = order.currency
     order_lines = order.lines.using(database_connection_name).all()
+    has_gift_line = any(line.is_gift for line in order_lines)
     with transaction.atomic():
         # Manual order discount does not stack with other order-level discounts
         order.discounts.exclude(voucher__type=VoucherType.SHIPPING).delete()
-
+        if has_gift_line:
+            delete_gift_lines_qs(order)
         current_total = base_order_total(
             order, order_lines, database_connection_name=database_connection_name
         )

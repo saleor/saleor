@@ -26,14 +26,6 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
       lines{
         id
       }
-      total{
-        gross{
-          amount
-        }
-        net{
-          amount
-        }
-      }
     }
     errors{
       field
@@ -102,7 +94,11 @@ def test_add_fixed_order_discount_order_is_not_draft(
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_add_fixed_order_discount_to_order(
-    status, draft_order, staff_api_client, permission_group_manage_orders
+    status,
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+    plugins_manager,
 ):
     # given
     order = draft_order
@@ -127,6 +123,9 @@ def test_add_fixed_order_discount_to_order(
     expected_net = total_before_order_discount.net.amount - value
     errors = data["errors"]
     assert len(errors) == 0
+
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
 
     # Use `net` values in comparison due to that fixture have taxes incluted in
     # prices but after recalculation taxes are removed because in tests we
@@ -153,7 +152,11 @@ def test_add_fixed_order_discount_to_order(
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_add_percentage_order_discount_to_order(
-    status, draft_order, staff_api_client, permission_group_manage_orders
+    status,
+    draft_order,
+    staff_api_client,
+    permission_group_manage_orders,
+    plugins_manager,
 ):
     order = draft_order
     order.status = status
@@ -183,6 +186,9 @@ def test_add_percentage_order_discount_to_order(
 
     errors = data["errors"]
     assert len(errors) == 0
+
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
 
     # Use `net` values in comparison due to that fixture have taxes included in
     # prices but after recalculation taxes are removed because in tests we
@@ -234,7 +240,7 @@ def test_add_order_discount_to_order_by_user_no_channel_access(
 
 
 def test_add_fixed_order_discount_to_order_by_app(
-    draft_order, app_api_client, permission_manage_orders
+    draft_order, app_api_client, permission_manage_orders, plugins_manager
 ):
     # given
     order = draft_order
@@ -262,12 +268,6 @@ def test_add_fixed_order_discount_to_order_by_app(
     errors = data["errors"]
     assert len(errors) == 0
 
-    # Use `net` values in comparison due to that fixture have taxes incluted in
-    # prices but after recalculation taxes are removed because in tests we
-    # don't use any tax app.
-    assert order.undiscounted_total.net == total_before_order_discount.net
-    assert expected_net == order.total.net.amount
-
     assert order.discounts.count() == 1
     order_discount = order.discounts.first()
     assert order_discount.value == value
@@ -284,15 +284,28 @@ def test_add_fixed_order_discount_to_order_by_app(
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
     assert Decimal(discount_data["amount_value"]) == order_discount.amount.amount
 
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
+
+    # Use `net` values in comparison due to that fixture have taxes incluted in
+    # prices but after recalculation taxes are removed because in tests we
+    # don't use any tax app.
+    assert order.undiscounted_total.net == total_before_order_discount.net
+    assert expected_net == order.total.net.amount
+
 
 def test_add_manual_discount_replaces_entire_voucher(
-    order_with_lines, staff_api_client, permission_group_manage_orders, voucher
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher,
+    plugins_manager,
 ):
     """Order discount based on voucher:entire_order should be replaced with manual."""
     # given
     order = order_with_lines
     order.status = OrderStatus.DRAFT
-    order.save(update_fields=["status"])
+    order.save(update_fields=["status", "should_refresh_prices"])
 
     expected_voucher_discount_amount = Decimal("12")
     assert voucher.type == VoucherType.ENTIRE_ORDER
@@ -314,7 +327,7 @@ def test_add_manual_discount_replaces_entire_voucher(
     variables = {
         "orderId": graphene.Node.to_global_id("Order", order.pk),
         "input": {
-            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "value": manual_discount_value,
         },
     }
@@ -330,14 +343,20 @@ def test_add_manual_discount_replaces_entire_voucher(
 
     assert order.discounts.count() == 1
 
+    expected_discount_amount = order.undiscounted_total.net * (
+        manual_discount_value / Decimal(100)
+    )
     manual_discount = order.discounts.get(type=DiscountType.MANUAL)
     assert manual_discount.value == manual_discount_value
-    assert manual_discount.value_type == DiscountValueType.FIXED
-    assert manual_discount.amount.amount == manual_discount_value
+    assert manual_discount.value_type == DiscountValueType.PERCENTAGE
+    assert manual_discount.amount.amount == expected_discount_amount.amount
+
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
 
     assert (
         order.total_net_amount
-        == order.undiscounted_total_net_amount - manual_discount_value
+        == order.undiscounted_total_net_amount - expected_discount_amount.amount
     )
     assert (
         order.shipping_price_net_amount + order.subtotal_net_amount
@@ -349,6 +368,7 @@ def test_add_manual_discount_keeps_shipping_voucher(
     draft_order_with_free_shipping_voucher,
     staff_api_client,
     permission_group_manage_orders,
+    plugins_manager,
 ):
     """Order discount based on voucher:shipping should be retained when adding manual."""
     # given
@@ -387,6 +407,9 @@ def test_add_manual_discount_keeps_shipping_voucher(
     assert manual_discount.amount.amount == manual_discount_value
 
     applied_discount_amount = manual_discount_value + shipping_discount.amount_value
+
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
     assert (
         order.total_net_amount
         == order.undiscounted_total_net_amount - applied_discount_amount
@@ -401,6 +424,7 @@ def test_add_manual_discount_replaces_order_promotion(
     order_with_lines_and_order_promotion,
     staff_api_client,
     permission_group_manage_orders,
+    plugins_manager,
 ):
     """Order discount should be deleted in a favour of manual discount."""
     # given
@@ -435,6 +459,9 @@ def test_add_manual_discount_replaces_order_promotion(
     assert manual_discount.value_type == DiscountValueType.FIXED
     assert manual_discount.amount.amount == discount_value
 
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
+
     assert (
         order.total_net_amount == order.undiscounted_total_net_amount - discount_value
     )
@@ -448,6 +475,7 @@ def test_add_manual_discount_replaces_gift_discount(
     order_with_lines_and_gift_promotion,
     staff_api_client,
     permission_group_manage_orders,
+    plugins_manager,
 ):
     """Order discount should be deleted in a favour of manual discount."""
     # given
@@ -490,6 +518,8 @@ def test_add_manual_discount_replaces_gift_discount(
     assert manual_discount.value_type == DiscountValueType.FIXED
     assert manual_discount.amount.amount == discount_value
 
+    assert order.should_refresh_prices
+    fetch_order_prices_if_expired(order, plugins_manager)
     assert (
         order.total_net_amount == order.undiscounted_total_net_amount - discount_value
     )
