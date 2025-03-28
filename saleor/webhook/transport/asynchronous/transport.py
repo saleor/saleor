@@ -468,7 +468,7 @@ def trigger_webhooks_async(
     )
 
 
-@app.task(bind=True)
+@app.task(queue=settings.WEBHOOK_CELERY_DEFERRED_PAYLOADS_QUEUE_NAME, bind=True)
 @allow_writer()
 def generate_deferred_payloads(
     self,
