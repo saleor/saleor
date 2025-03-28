@@ -4,6 +4,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
+from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
@@ -352,6 +353,31 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
         if cleaned_input.get("first_name") or cleaned_input.get("last_name"):
             if user_gift_cards := get_user_gift_cards(instance):
                 mark_gift_cards_search_index_as_dirty(user_gift_cards)
+
+    @classmethod
+    def save_and_apply_addresses_from_input(
+        cls, *, cleaned_input: dict, user_instance: models.User
+    ):
+        default_shipping_address: models.Address | None = cleaned_input.get(
+            SHIPPING_ADDRESS_FIELD
+        )
+
+        if default_shipping_address:
+            default_shipping_address.save()
+            user_instance.default_shipping_address = default_shipping_address
+
+        default_billing_address: models.Address | None = cleaned_input.get(
+            BILLING_ADDRESS_FIELD
+        )
+
+        if default_billing_address:
+            default_billing_address.save()
+            user_instance.default_billing_address = default_billing_address
+
+        return {
+            "shipping": default_shipping_address,
+            "billing": default_billing_address,
+        }
 
 
 class UserDeleteMixin:
