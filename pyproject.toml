@@ -207,7 +207,8 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 plugins = [
-  "mypy_django_plugin.main"
+  "mypy_django_plugin.main",
+  "pydantic.mypy"
 ]
 
 exclude = [
@@ -218,6 +219,10 @@ exclude = [
   module = ["saleor.*.migrations.*"]
   ignore_errors = true
 
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [tool.ruff]
 target-version = "py312"
