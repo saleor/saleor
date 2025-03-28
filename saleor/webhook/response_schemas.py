@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from graphql.error import GraphQLError
 from prices import Money
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, RootModel, ValidationError, field_validator
 
 from ..app.models import App
 from ..core.enums import CurrencyEnum
@@ -27,6 +27,7 @@ class ShippingMethodSchema(BaseModel):
     currency: CurrencyEnum
     maximum_delivery_days: int | None = Field(None, ge=0)
     minimum_delivery_days: int | None = Field(None, ge=0)
+    # TODO: set JSON as description
     description: str | None = None
     metadata: dict[str, str] | None = {}
 
@@ -58,8 +59,33 @@ class ShippingMethodSchema(BaseModel):
         )
 
 
-class ListShippingMethodsSchema(BaseModel):
-    methods: list[ShippingMethodSchema]
+class ListShippingMethodsSchema(RootModel):
+    root: list[ShippingMethodSchema]
+
+    @field_validator("root")
+    @classmethod
+    def check_valid_list(cls, value: Any):
+        # return the empty list for None to ensure the backward compatibility;
+        if value is None:
+            return []
+
+        # in case the data are not list, handle validation by pydantic
+        if not isinstance(value, list):
+            return value
+
+        methods = []
+        for method_data in value:
+            try:
+                methods.append(ShippingMethodSchema.model_validate(method_data))
+            except ValidationError as e:
+                logger.warning("Skipping invalid shipping method: %s", e)
+        return methods
+
+    def get_shipping_methods_data(self, app: "App") -> list[ShippingMethodData]:
+        return [
+            shipping_method.get_shipping_method_data(app)
+            for shipping_method in self.root
+        ]
 
 
 class ExcludedShippingMethodSchema(BaseModel):

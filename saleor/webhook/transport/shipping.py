@@ -20,7 +20,7 @@ from ..models import Webhook
 from ..response_schemas import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
-    ShippingMethodSchema,
+    ListShippingMethodsSchema,
 )
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
@@ -30,15 +30,14 @@ logger = logging.getLogger(__name__)
 def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
 ) -> list["ShippingMethodData"]:
-    valid_methods = []
-    for method_data in response_data:
-        try:
-            shipping_method_model = ShippingMethodSchema.model_validate(method_data)
-        except ValidationError as e:
-            logger.warning("Skipping invalid shipping method: %s", e)
-        else:
-            valid_methods.append(shipping_method_model.get_shipping_method_data(app))
-    return valid_methods
+    try:
+        list_shipping_method_model = ListShippingMethodsSchema.model_validate(
+            response_data
+        )
+    except ValidationError:
+        logger.warning("Skipping invalid shipping method response: %s", response_data)
+        return []
+    return list_shipping_method_model.get_shipping_methods_data(app)
 
 
 def get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
