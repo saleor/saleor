@@ -16,7 +16,12 @@ from ...settings import WEBHOOK_SYNC_TIMEOUT
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import CACHE_EXCLUDED_SHIPPING_TIME
-from ..response_schemas import ExcludedShippingMethodSchema, ShippingMethodSchema
+from ..models import Webhook
+from ..response_schemas import (
+    ExcludedShippingMethodSchema,
+    FilterShippingMethodsSchema,
+    ShippingMethodSchema,
+)
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
 logger = logging.getLogger(__name__)
@@ -84,7 +89,7 @@ def get_excluded_shipping_methods_or_fetch(
         )
         if response_data and isinstance(response_data, dict):
             excluded_methods.extend(
-                get_excluded_shipping_methods_from_response(response_data)
+                get_excluded_shipping_methods_from_response(response_data, webhook)
             )
     return parse_excluded_shipping_methods(excluded_methods)
 
@@ -142,15 +147,19 @@ def get_excluded_shipping_data(
 
 def get_excluded_shipping_methods_from_response(
     response_data: dict,
+    webhook: "Webhook",
 ) -> list[ExcludedShippingMethodSchema]:
     excluded_methods = []
-    for method_data in response_data.get("excluded_methods", []):
-        try:
-            excluded_methods.append(
-                ExcludedShippingMethodSchema.model_validate(method_data)
-            )
-        except ValidationError:
-            continue
+    try:
+        excluded_methods.extend(
+            FilterShippingMethodsSchema.model_validate(response_data).excluded_methods
+        )
+    except ValidationError:
+        logger.warning(
+            "Skipping invalid response from app %s: %s",
+            str(webhook.app.identifier),
+            response_data,
+        )
     return excluded_methods
 
 
