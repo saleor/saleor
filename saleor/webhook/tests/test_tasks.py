@@ -1154,27 +1154,29 @@ def test_handle_transaction_request_task_request_event_included_in_calculations(
     )
 
 
-@mock.patch("saleor.webhook.tasks.send_webhooks_async_for_app")
+@mock.patch("saleor.webhook.tasks.send_webhooks_async_for_app.apply_async")
 def test_process_async_webhooks_task(
     mock_send_webhooks_for_app, app_with_webhook, event_payload
 ):
     # given
-    app_1, app_2, app_3, app_4 = App.objects.bulk_create(
+    app_1, app_2, app_3, app_4, app_5 = App.objects.bulk_create(
         [
             App(name="App_1", is_active=True),
             App(name="App_2", is_active=True),
             App(name="App_3", is_active=True),
-            App(name="App_4", is_active=True),
+            App(name="App_4", is_active=False),
+            App(name="App_5", is_active=True),
         ]
     )
 
     target_url = "https://webhook.com/api/"
-    webhook_1, webhook_2, webhook_3, webhook_4 = Webhook.objects.bulk_create(
+    webhook_1, webhook_2, webhook_3, webhook_4, webhook_5 = Webhook.objects.bulk_create(
         [
             Webhook(name="webhook_1", app=app_1, target_url=target_url),
             Webhook(name="webhook_2", app=app_2, target_url=target_url),
             Webhook(name="webhook_3", app=app_3, target_url=target_url),
             Webhook(name="webhook_4", app=app_4, target_url=target_url),
+            Webhook(name="webhook_5", app=app_5, target_url=target_url),
         ]
     )
 
@@ -1198,6 +1200,12 @@ def test_process_async_webhooks_task(
                 payload=event_payload,
                 webhook=webhook_3,
             ),
+            EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=WebhookEventAsyncType.CHECKOUT_CREATED,
+                payload=event_payload,
+                webhook=webhook_4,
+            ),
         ]
     )
 
@@ -1205,4 +1213,4 @@ def test_process_async_webhooks_task(
     process_async_webhooks_task()
 
     # then
-    assert mock_send_webhooks_for_app.call_count == 2
+    assert mock_send_webhooks_for_app.call_count == 3
