@@ -325,10 +325,6 @@ def trigger_webhooks_async_for_multiple_objects(
 
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
 
-    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(event_type, {}).get(
-        "is_deferred_payload", False
-    )
-
     # List of deliveries with payloads.
     deliveries: list[EventDelivery] = []
 
@@ -366,29 +362,16 @@ def trigger_webhooks_async_for_multiple_objects(
             webhook_payload_data.subscribable_object
             for webhook_payload_data in webhook_payloads_data
         ]
-        if is_deferred_payload:
-            deferred_deliveries_per_object = (
-                create_deliveries_for_deferred_payload_subscriptions(
-                    event_type=event_type,
-                    subscribable_objects=subscribable_objects,
-                    webhooks=subscription_webhooks,
-                    requestor=requestor,
-                    allow_replica=allow_replica,
-                    request_time=request_time,
-                )
+        deferred_deliveries_per_object = (
+            create_deliveries_for_deferred_payload_subscriptions(
+                event_type=event_type,
+                subscribable_objects=subscribable_objects,
+                webhooks=subscription_webhooks,
+                requestor=requestor,
+                allow_replica=allow_replica,
+                request_time=request_time,
             )
-        else:
-            deliveries.extend(
-                create_deliveries_for_multiple_subscription_objects(
-                    event_type=event_type,
-                    subscribable_objects=subscribable_objects,
-                    webhooks=subscription_webhooks,
-                    requestor=requestor,
-                    allow_replica=allow_replica,
-                    pre_save_payloads=pre_save_payloads,
-                    request_time=request_time,
-                )
-            )
+        )
 
     for _, deferred_deliveries in deferred_deliveries_per_object.items():
         if not deferred_deliveries:
