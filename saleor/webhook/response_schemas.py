@@ -27,7 +27,6 @@ class ShippingMethodSchema(BaseModel):
     currency: CurrencyEnum
     maximum_delivery_days: int | None = Field(None, ge=0)
     minimum_delivery_days: int | None = Field(None, ge=0)
-    # TODO: set JSON as description
     description: str | None = None
     metadata: dict[str, str] | None = {}
 
@@ -62,7 +61,7 @@ class ShippingMethodSchema(BaseModel):
 class ListShippingMethodsSchema(RootModel):
     root: list[ShippingMethodSchema]
 
-    @field_validator("root")
+    @field_validator("root", mode="before")
     @classmethod
     def check_valid_list(cls, value: Any):
         # return the empty list for None to ensure the backward compatibility;
@@ -107,6 +106,11 @@ class ExcludedShippingMethodSchema(BaseModel):
             logger.warning(error_msg, type_name)
             raise ValueError(error_msg, type_name)
         return method_id
+
+    @field_validator("reason", mode="after")
+    @classmethod
+    def clean_reason(cls, value: str | None) -> str:
+        return value or ""
 
 
 class FilterShippingMethodsSchema(BaseModel):
