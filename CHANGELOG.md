@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to calculate taxes: the `ORDER_CALCULATE_TAXES` webhooks and plugins (including AvataxPlugin) - #17421 by @korycins
 - Queries: `orders`, `draftOrders` and `me.orders` will no longer trigger external calls to filter the available shipping methods (`ORDER_FILTER_SHIPPING_METHODS`) - #17425 by @korycins
 - Drop `change_user_address` method from plugin manager - #17495 by @IKarbowiak
+- `DraftOrderUpdate` do not call `DRAFT_ORDER_UPDATED` anymore in case nothing changed - #17532 by @IKarbowiak
 - `OrderUpdate` mutation do not call `ORDER_UPDATED` anymore in case nothing changed - #17507 by @IKarbowiak
 
 ### GraphQL API
@@ -58,6 +59,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 - `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
 - Improved error handling when trying to set invalid metadata. Now, invalid metadata should properly return `error.field` containing `metadata` or `privateMetadata`, instead generic `input` - #17470 by @lkostrowski
+- `CheckoutLinesUpdate` now accepts `metadata` for each line in the input. That means updating checkout lines and metadata of checkout lines can be done in single mutations - #17523 by @lkostrowski
+- `CheckoutLinesAdd` now properly validates `metadata` provided in input - #17523 by @lkostrowski
 - `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
 - `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
 - `DraftOrderInput` and `DraftOrderCreateInput` now allow to provide `languageCode` - #17553 by @lkostrowski

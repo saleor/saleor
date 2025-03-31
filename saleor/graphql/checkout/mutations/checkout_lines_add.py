@@ -1,4 +1,5 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....checkout.actions import call_checkout_info_event
 from ....checkout.error_codes import CheckoutErrorCode
@@ -8,6 +9,7 @@ from ....checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout
+from ....core.utils import metadata_manager
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
@@ -15,6 +17,7 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
+from ...core.enums import MetadataErrorCode
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
@@ -186,6 +189,21 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
     @classmethod
+    def _validate_lines_metadata(cls, lines: list[CheckoutLineInput]):
+        try:
+            for line in lines:
+                metadata_manager.create_from_graphql_input(line.metadata)
+        except metadata_manager.MetadataEmptyKeyError:
+            raise ValidationError(
+                {
+                    "metadata": ValidationError(
+                        "Metadata key cannot be empty.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            ) from None
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,
@@ -199,6 +217,11 @@ class CheckoutLinesAdd(BaseMutation):
     ):
         app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
+
+        # Validate lines early, before clean input. This class pass to clean_input already modified payload
+        # Hence common logic for validation pure input doesn't work.
+        # At this point lines are raw so validation like checking metadata can be performed early
+        cls._validate_lines_metadata(lines)
 
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
         manager = get_plugin_manager_promise(info.context).get()
