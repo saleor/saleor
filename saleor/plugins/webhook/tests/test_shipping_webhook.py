@@ -21,7 +21,6 @@ from ....webhook.response_schemas import logger as schema_logger
 from ....webhook.transport.shipping import (
     get_excluded_shipping_methods_from_response,
     get_excluded_shipping_methods_or_fetch,
-    logger,
     parse_list_shipping_methods_response,
 )
 from ....webhook.transport.shipping_helpers import to_shipping_app_id
@@ -419,9 +418,14 @@ def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
             },
         ]
     }
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-gateway.com/apiv2/",
+    )
 
     # when
-    excluded_methods = get_excluded_shipping_methods_from_response(response)
+    excluded_methods = get_excluded_shipping_methods_from_response(response, webhook)
 
     # then
     assert len(excluded_methods) == 2
@@ -1247,7 +1251,7 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
     mocked_parse.assert_called_once_with([])
 
 
-@mock.patch.object(logger, "warning")
+@mock.patch.object(schema_logger, "warning")
 def test_parse_list_shipping_methods_response_response_incorrect_format(
     mocked_logger, app
 ):
@@ -1284,7 +1288,7 @@ def test_parse_list_shipping_methods_with_metadata(app):
     assert response[0].description == response_data_with_meta[0]["description"]
 
 
-@mock.patch.object(logger, "warning")
+@mock.patch.object(schema_logger, "warning")
 def test_parse_list_shipping_methods_invalid_currency(mocked_logger, app):
     # given
     response_data_with_meta = [
