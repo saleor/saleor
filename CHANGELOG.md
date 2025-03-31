@@ -60,6 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improved error handling when trying to set invalid metadata. Now, invalid metadata should properly return `error.field` containing `metadata` or `privateMetadata`, instead generic `input` - #17470 by @lkostrowski
 - `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
 - `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
+- `DraftOrderInput` and `DraftOrderCreateInput` now allow to provide `languageCode` - #TODO by @lkostrowski
 
 ### Webhooks
 
