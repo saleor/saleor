@@ -58,6 +58,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `draftOrderInput.discount` field - #17294 by @zedzior
 - `GiftCardCreate` and `GiftCardUpdate` mutations now allows to set `metadata` and `privateMetadata` fields via `GiftCardCreateInput` and `GiftCardUpdateInput` - #17399 by @lkostrowski
 - Improved error handling when trying to set invalid metadata. Now, invalid metadata should properly return `error.field` containing `metadata` or `privateMetadata`, instead generic `input` - #17470 by @lkostrowski
+- `CheckoutLinesUpdate` now accepts `metadata` for each line in the input. That means updating checkout lines and metadata of checkout lines can be done in single mutations - #17523 by @lkostrowski
+- `CheckoutLinesAdd` now properly validates `metadata` provided in input - #17523 by @lkostrowski
 - `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
 - `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
 
