@@ -2350,7 +2350,7 @@ def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
     wraps=call_order_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -2445,7 +2445,7 @@ def test_draft_order_update_triggers_webhooks(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_create.call_order_event",
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
     wraps=call_order_event,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -3035,3 +3035,59 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
     assert line_1.unit_discount_reason is None
 
     assert discounted_line.discounts.count() == 1
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.update_order_search_vector",
+)
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_draft_order_update_nothing_changed(
+    wrapped_call_order_event,
+    mocked_update_order_search_vector,
+    setup_order_webhooks,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    settings,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save()
+
+    (
+        tax_webhook,
+        shipping_filter_webhook,
+        draft_order_updated_webhook,
+    ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_UPDATED)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {
+        "id": order_id,
+        "input": {
+            "userEmail": order.user_email,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    # ensure the update fields were empty
+    mocked_update_order_search_vector.assert_not_called()
+
+    # confirm that order events were not triggered
+    assert not wrapped_call_order_event.called
+
+    # confirm that event delivery was generated for each async webhook.
+    assert not EventDelivery.objects.filter(webhook_id=draft_order_updated_webhook.id)
