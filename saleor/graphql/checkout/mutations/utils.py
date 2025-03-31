@@ -376,13 +376,13 @@ def group_lines_input_on_add(
     for line in lines:
         variant_id = cast(str, line.get("variant_id"))
         force_new_line = line.get("force_new_line")
-        metadata_list = line.get("metadata")
+        metadata_list_from_input = line.get("metadata")
 
         _, variant_db_id = graphene.Node.from_global_id(variant_id)
 
         if force_new_line:
             line_data = CheckoutLineData(
-                variant_id=variant_db_id, metadata_list=metadata_list
+                variant_id=variant_db_id, metadata_list=metadata_list_from_input
             )
             grouped_checkout_lines_data.append(line_data)
         else:
@@ -396,7 +396,7 @@ def group_lines_input_on_add(
                 if not line_db_id:
                     line_data = checkout_lines_data_map[variant_db_id]
                     line_data.variant_id = variant_db_id
-                    line_data.metadata_list = metadata_list
+                    line_data.metadata_list = metadata_list_from_input
                 else:
                     line_data = checkout_lines_data_map[line_db_id]
                     line_data.line_id = line_db_id
@@ -404,15 +404,15 @@ def group_lines_input_on_add(
                         line_db_id, existing_lines_info
                     )
 
-                    if line_data.metadata_list and metadata_list:
-                        line_data.metadata_list += metadata_list
-                    else:
-                        line_data.metadata_list = metadata_list
+                    if line_data.metadata_list and metadata_list_from_input:
+                        line_data.metadata_list += metadata_list_from_input
+                    elif metadata_list_from_input and not line_data.metadata_list:
+                        line_data.metadata_list = metadata_list_from_input
 
             # when variant already exist in multiple lines then create a new line
             except ValidationError:
                 line_data = CheckoutLineData(
-                    variant_id=variant_db_id, metadata_list=metadata_list
+                    variant_id=variant_db_id, metadata_list=metadata_list_from_input
                 )
                 grouped_checkout_lines_data.append(line_data)
 
@@ -443,7 +443,7 @@ def group_lines_input_data_on_update(
     for line in lines:
         variant_id = cast(str, line.get("variant_id"))
         line_id = cast(str, line.get("line_id"))
-        metadata_list = line.get("metadata")
+        metadata_list_from_input = line.get("metadata")
 
         line_db_id, variant_db_id = None, None
         if line_id:
@@ -473,10 +473,10 @@ def group_lines_input_data_on_update(
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
 
-        if line_data.metadata_list and metadata_list:
-            line_data.metadata_list += metadata_list
-        else:
-            line_data.metadata_list = metadata_list
+        if line_data.metadata_list and metadata_list_from_input:
+            line_data.metadata_list += metadata_list_from_input
+        elif metadata_list_from_input and not line_data.metadata_list:
+            line_data.metadata_list = metadata_list_from_input
 
     grouped_checkout_lines_data += list(checkout_lines_data_map.values())
     return grouped_checkout_lines_data
