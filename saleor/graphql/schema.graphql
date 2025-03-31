@@ -24180,6 +24180,13 @@ input OrderUpdateInput @doc(category: "Orders") {
   Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  Order language code.
+  
+  Added in Saleor 3.21.
+  """
+  languageCode: LanguageCodeEnum
 }
 
 """

@@ -21,6 +21,7 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...meta.inputs import MetadataInput, MetadataInputDescription
@@ -52,6 +53,12 @@ class OrderUpdateInput(BaseInputObjectType):
             f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
         ),
         required=False,
+    )
+
+    language_code = graphene.Argument(
+        LanguageCodeEnum,
+        required=False,
+        description=(f"Order language code.{ADDED_IN_321}"),
     )
 
     class Meta:
