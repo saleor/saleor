@@ -63,7 +63,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - `CheckoutLinesAdd` now properly validates `metadata` provided in input - #17523 by @lkostrowski
 - `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
 - `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
-- `DraftOrderInput` and `DraftOrderCreateInput` now allow to provide `languageCode` - #17553 by @lkostrowski
+- `DraftOrderInput`, `OrderUpdateInput` and `DraftOrderCreateInput` now allow to provide `languageCode` - #17553 by @lkostrowski
 
 ### Webhooks
 
