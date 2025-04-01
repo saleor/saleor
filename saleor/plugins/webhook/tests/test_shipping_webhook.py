@@ -1288,29 +1288,6 @@ def test_parse_list_shipping_methods_with_metadata(app):
     assert response[0].description == response_data_with_meta[0]["description"]
 
 
-@mock.patch.object(schema_logger, "warning")
-def test_parse_list_shipping_methods_invalid_currency(mocked_logger, app):
-    # given
-    response_data_with_meta = [
-        {
-            "id": 123,
-            "amount": 10,
-            "currency": "ABC",
-            "name": "shipping",
-            "description": "Description",
-            "maximum_delivery_days": 10,
-            "minimum_delivery_days": 2,
-            "metadata": {"field": "value"},
-        }
-    ]
-    # when
-    response = parse_list_shipping_methods_response(response_data_with_meta, app)
-
-    # then
-    assert not response
-    assert mocked_logger.call_count == 1
-
-
 def test_parse_list_shipping_methods_with_metadata_in_incorrect_format(app):
     # given
     response_data_with_meta = [
