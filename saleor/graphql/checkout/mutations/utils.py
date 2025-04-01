@@ -404,10 +404,10 @@ def group_lines_input_on_add(
                         line_db_id, existing_lines_info
                     )
 
-                    if line_data.metadata_list and metadata_list_from_input:
+                    if metadata_list_from_input:
+                        line_data.metadata_list = line_data.metadata_list or []
+
                         line_data.metadata_list += metadata_list_from_input
-                    elif metadata_list_from_input and not line_data.metadata_list:
-                        line_data.metadata_list = metadata_list_from_input
 
             # when variant already exist in multiple lines then create a new line
             except ValidationError:
