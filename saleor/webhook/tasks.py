@@ -1,6 +1,7 @@
 from django.db.models import Exists, OuterRef
 
 from .. import settings
+from ..app.models import App
 from ..celeryconf import app
 from ..core import EventDeliveryStatus
 from ..core.models import EventDelivery
@@ -27,6 +28,9 @@ def get_app_ids_with_pending_deliveries() -> list[int]:
                     webhook_id=OuterRef("pk")
                 )
             )
+        )
+        .filter(
+            Exists(App.objects.filter(is_active=True).filter(id=OuterRef("app_id")))
         )
         .values_list("app_id", flat=True)
         .distinct()

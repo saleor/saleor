@@ -1213,4 +1213,4 @@ def test_process_async_webhooks_task(
     process_async_webhooks_task()
 
     # then
-    assert mock_send_webhooks_for_app.call_count == 3
+    assert mock_send_webhooks_for_app.call_count == 2
