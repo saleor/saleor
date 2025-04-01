@@ -4,10 +4,8 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from prices import Money
 from pydantic import ValidationError
 
-from ....shipping.interface import ShippingMethodData
 from ...response_schemas import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
@@ -207,35 +205,6 @@ def test_shipping_method_schema_invalid(data):
         ShippingMethodSchema.model_validate(data)
 
 
-def test_get_shipping_method_data(app):
-    """Test the get_shipping_method_data method."""
-    # given
-    data = {
-        "id": "1",
-        "name": "Standard Shipping",
-        "amount": Decimal("10.00"),
-        "currency": "USD",
-        "maximum_delivery_days": 5,
-        "minimum_delivery_days": 2,
-        "description": "Fast delivery",
-        "metadata": {"key1": "value1", "key2": "value2"},
-    }
-    schema = ShippingMethodSchema(**data)
-
-    # when
-    shipping_method_data = schema.get_shipping_method_data(app)
-
-    # then
-    assert isinstance(shipping_method_data, ShippingMethodData)
-    assert decode_id(shipping_method_data.id) == f"app:{app.identifier}:{data['id']}"
-    assert shipping_method_data.name == data["name"]
-    assert shipping_method_data.price == Money(data["amount"], data["currency"])
-    assert shipping_method_data.maximum_delivery_days == data["maximum_delivery_days"]
-    assert shipping_method_data.minimum_delivery_days == data["minimum_delivery_days"]
-    assert shipping_method_data.description == data["description"]
-    assert shipping_method_data.metadata == data["metadata"]
-
-
 @pytest.mark.parametrize("data", [None, []])
 def test_list_shipping_methods_schema_skipped_values(data):
     # when
@@ -276,47 +245,6 @@ def test_list_shipping_methods_schema_invalid_element_skipped(mocked_logger):
     assert schema.root[0].id == data[0]["id"]
     assert schema.root[0].name == data[0]["name"]
     assert mocked_logger.call_count == 1
-
-
-def test_list_shipping_methods_schema_get_shipping_methods_data(app):
-    """Test the get_shipping_methods_data method."""
-    # given a valid list of shipping methods
-    data = [
-        {
-            "id": "1",
-            "name": "Standard Shipping",
-            "amount": Decimal("10.00"),
-            "currency": "USD",
-            "maximum_delivery_days": 5,
-            "minimum_delivery_days": 2,
-            "description": "Fast delivery",
-            "metadata": {"key1": "value1", "key2": "value2"},
-        },
-        {
-            "id": "2",
-            "name": "Express Shipping",
-            "amount": Decimal("20.00"),
-            "currency": "EUR",
-        },
-    ]
-    schema = ListShippingMethodsSchema.model_validate(data)
-
-    # when calling get_shipping_methods_data
-    shipping_methods_data = schema.get_shipping_methods_data(app)
-
-    # then the result should be a list of ShippingMethodData objects
-    assert len(shipping_methods_data) == 2
-    assert all(
-        isinstance(method, ShippingMethodData) for method in shipping_methods_data
-    )
-    assert (
-        decode_id(shipping_methods_data[0].id)
-        == f"app:{app.identifier}:{data[0]['id']}"
-    )
-    assert (
-        decode_id(shipping_methods_data[1].id)
-        == f"app:{app.identifier}:{data[1]['id']}"
-    )
 
 
 @pytest.mark.parametrize(

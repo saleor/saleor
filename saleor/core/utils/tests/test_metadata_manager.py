@@ -1,6 +1,6 @@
 import pytest
 
-from ..metadata_manager import method_metadata_is_valid
+from ..metadata_manager import metadata_is_valid
 
 
 @pytest.mark.parametrize(
@@ -11,9 +11,9 @@ from ..metadata_manager import method_metadata_is_valid
         {"key1": ""},
     ],
 )
-def test_method_metadata_is_valid_true(metadata):
+def test_metadata_is_valid_true(metadata):
     # when
-    is_metadata_valid = method_metadata_is_valid(metadata)
+    is_metadata_valid = metadata_is_valid(metadata)
 
     # then
     assert is_metadata_valid is True
@@ -30,9 +30,9 @@ def test_method_metadata_is_valid_true(metadata):
         {"   ": "value1"},
     ],
 )
-def test_method_metadata_is_valid_false(metadata):
+def test_metadata_is_valid_false(metadata):
     # when
-    is_metadata_valid = method_metadata_is_valid(metadata)
+    is_metadata_valid = metadata_is_valid(metadata)
 
     # then
     assert is_metadata_valid is False

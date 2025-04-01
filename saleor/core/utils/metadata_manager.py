@@ -76,7 +76,7 @@ def create_from_graphql_input(
     )
 
 
-def method_metadata_is_valid(metadata: Any) -> bool:
+def metadata_is_valid(metadata: Any) -> bool:
     if not isinstance(metadata, dict):
         return False
     for key, value in metadata.items():

@@ -22,6 +22,7 @@ from ..response_schemas import (
     FilterShippingMethodsSchema,
     ListShippingMethodsSchema,
 )
+from .shipping_helpers import to_shipping_app_id
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
 logger = logging.getLogger(__name__)
@@ -37,7 +38,18 @@ def parse_list_shipping_methods_response(
     except ValidationError:
         logger.warning("Skipping invalid shipping method response: %s", response_data)
         return []
-    return list_shipping_method_model.get_shipping_methods_data(app)
+    return [
+        ShippingMethodData(
+            id=to_shipping_app_id(app, str(shipping_method.id)),
+            name=shipping_method.name,
+            price=shipping_method.price,
+            maximum_delivery_days=shipping_method.maximum_delivery_days,
+            minimum_delivery_days=shipping_method.minimum_delivery_days,
+            description=shipping_method.description,
+            metadata=shipping_method.metadata,  # type: ignore[arg-type]
+        )
+        for shipping_method in list_shipping_method_model.root
+    ]
 
 
 def get_cache_data_for_exclude_shipping_methods(payload: str) -> dict:
@@ -150,9 +162,10 @@ def get_excluded_shipping_methods_from_response(
 ) -> list[ExcludedShippingMethodSchema]:
     excluded_methods = []
     try:
-        excluded_methods.extend(
-            FilterShippingMethodsSchema.model_validate(response_data).excluded_methods
+        filter_methods_schema = FilterShippingMethodsSchema.model_validate(
+            response_data
         )
+        excluded_methods.extend(filter_methods_schema.excluded_methods)
     except ValidationError:
         logger.warning(
             "Skipping invalid response from app %s: %s",
