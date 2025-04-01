@@ -176,14 +176,12 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             cleaned_input=cleaned_input, user_instance=instance
         )
 
-        instance.save()
-
         if default_addresses["billing"]:
             instance.addresses.add(default_addresses["billing"])
         if default_addresses["shipping"]:
             instance.addresses.add(default_addresses["shipping"])
 
         instance.search_document = prepare_user_search_document_value(instance)
-        instance.save(update_fields=["search_document", "updated_at"])
+        instance.save()
 
         cls.call_event(manager.customer_updated, instance)
