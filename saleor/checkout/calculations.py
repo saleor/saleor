@@ -30,7 +30,6 @@ from ..tax.utils import (
     get_tax_app_identifier_for_checkout,
     get_tax_calculation_strategy_for_checkout,
     normalize_tax_rate_for_db,
-    validate_tax_data,
 )
 from .fetch import find_checkout_line_info
 from .models import Checkout
@@ -406,9 +405,10 @@ def _fetch_checkout_prices_if_expired(
             )
         except TaxDataError as e:
             if str(e) != TaxDataErrorMessage.EMPTY:
-                logger.warning(
-                    str(e), extra=checkout_info_for_logs(checkout_info, lines)
-                )
+                extra = checkout_info_for_logs(checkout_info, lines)
+                if e.errors:
+                    extra["errors"] = e.errors
+                logger.warning(str(e), extra=extra)
             _set_checkout_base_prices(checkout, checkout_info, lines)
             checkout.tax_error = str(e)
 
@@ -437,9 +437,10 @@ def _fetch_checkout_prices_if_expired(
                 )
             except TaxDataError as e:
                 if str(e) != TaxDataErrorMessage.EMPTY:
-                    logger.warning(
-                        str(e), extra=checkout_info_for_logs(checkout_info, lines)
-                    )
+                    extra = checkout_info_for_logs(checkout_info, lines)
+                    if e.errors:
+                        extra["errors"] = e.errors
+                    logger.warning(str(e), extra=extra)
                 _set_checkout_base_prices(checkout, checkout_info, lines)
                 checkout.tax_error = str(e)
         else:
@@ -500,8 +501,6 @@ def _calculate_and_add_tax(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     pregenerated_subscription_payloads: dict | None = None,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
-
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
@@ -514,15 +513,14 @@ def _calculate_and_add_tax(
                 checkout, manager, checkout_info, lines, address
             )
             # Get the taxes calculated with apps and apply to checkout.
-            tax_data = manager.get_taxes_for_checkout(
+            tax_data = _get_taxes_for_checkout(
                 checkout_info,
                 lines,
                 tax_app_identifier,
+                manager,
                 pregenerated_subscription_payloads,
+                skip_validation=True,
             )
-            if not tax_data:
-                log_address_if_validation_skipped_for_checkout(checkout_info, logger)
-            validate_tax_data(tax_data, lines, allow_empty_tax_data=True)
             _apply_tax_data(checkout, lines, tax_data)
         else:
             _call_plugin_or_tax_app(
@@ -555,8 +553,6 @@ def _call_plugin_or_tax_app(
     address: Optional["Address"] = None,
     pregenerated_subscription_payloads: dict | None = None,
 ):
-    from .utils import log_address_if_validation_skipped_for_checkout
-
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
 
@@ -580,16 +576,39 @@ def _call_plugin_or_tax_app(
         if checkout.tax_error:
             raise TaxDataError(checkout.tax_error)
     else:
-        tax_data = manager.get_taxes_for_checkout(
+        tax_data = _get_taxes_for_checkout(
             checkout_info,
             lines,
             tax_app_identifier,
-            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+            manager,
+            pregenerated_subscription_payloads,
         )
-        if tax_data is None:
-            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
-        validate_tax_data(tax_data, lines)
         _apply_tax_data(checkout, lines, tax_data)
+
+
+def _get_taxes_for_checkout(
+    checkout_info,
+    lines,
+    tax_app_identifier,
+    manager,
+    pregenerated_subscription_payloads,
+    skip_validation=False,
+):
+    from .utils import log_address_if_validation_skipped_for_checkout
+
+    tax_data, error = manager.get_taxes_for_checkout(
+        checkout_info,
+        lines,
+        tax_app_identifier,
+        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+    )
+    if tax_data is None:
+        log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+
+    if skip_validation or not error:
+        return tax_data
+
+    raise error
 
 
 def _remove_tax(checkout, lines_info):

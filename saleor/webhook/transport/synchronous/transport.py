@@ -8,11 +8,13 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from pydantic import ValidationError
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
+from ....core.taxes import TaxData
 from ....core.tracing import webhooks_opentracing_trace
 from ....core.utils import get_domain
 from ....core.utils.events import call_event
@@ -50,6 +52,7 @@ from ..utils import (
     generate_cache_key_for_webhook,
     get_delivery_for_webhook,
     handle_webhook_retry,
+    parse_tax_data,
     save_unsuccessful_delivery_attempt,
     send_webhook_using_http,
 )
@@ -337,15 +340,14 @@ if breaker_board := initialize_breaker_board():
     trigger_webhook_sync = breaker_board(trigger_webhook_sync)
 
 
-def trigger_all_webhooks_sync(
+def trigger_taxes_all_webhooks_sync(
     event_type: str,
     generate_payload: Callable,
-    parse_response: Callable[[Any], R | None],
+    expected_lines_count: int,
     subscribable_object=None,
     requestor=None,
-    allow_replica=False,
     pregenerated_subscription_payloads: dict | None = None,
-) -> R | None:
+) -> TaxData | None:
     """Send all synchronous webhook request for given event type.
 
     Requests are send sequentially.
@@ -366,7 +368,6 @@ def trigger_all_webhooks_sync(
                 request_context = initialize_request(
                     requestor,
                     event_type in WebhookEventSyncType.ALL,
-                    allow_replica,
                     event_type=event_type,
                 )
 
@@ -396,8 +397,17 @@ def trigger_all_webhooks_sync(
             )
 
         response_data = send_webhook_request_sync(delivery)
-        if parsed_response := parse_response(response_data):
-            return parsed_response
+        try:
+            parsed_response = parse_tax_data(response_data, expected_lines_count)
+        except ValidationError as e:
+            logger.warning(
+                "Webhook response for event %s is invalid: %s",
+                event_type,
+                str(e),
+                extra={"errors": e.errors()},
+            )
+            continue
+        return parsed_response
     return None
 
 

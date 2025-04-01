@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
     from ..core.notify import NotifyEventType
-    from ..core.taxes import TaxData, TaxType
+    from ..core.taxes import TaxData, TaxDataError, TaxType
     from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
@@ -722,12 +722,14 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     get_taxes_for_checkout: Callable[
         ["CheckoutInfo", list["CheckoutLineInfo"], str, Any, dict | None],
-        Optional["TaxData"],
+        tuple[Optional["TaxData"], Optional["TaxDataError"]],
     ]
 
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    get_taxes_for_order: Callable[["Order", str, Any], Optional["TaxData"]]
+    get_taxes_for_order: Callable[
+        ["Order", str, Any], tuple[Optional["TaxData"], Optional["TaxDataError"]]
+    ]
 
     get_client_token: Callable[[Any, Any], Any]
 
