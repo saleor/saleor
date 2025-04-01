@@ -176,7 +176,7 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             cleaned_input=cleaned_input, user_instance=instance
         )
 
-        super().save(info, instance, cleaned_input)
+        instance.save()
 
         if default_addresses["billing"]:
             instance.addresses.add(default_addresses["billing"])
