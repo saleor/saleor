@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Optional, Union
 
 import graphene
 from django.conf import settings
+from pydantic import ValidationError
 
 from ...app.models import App
 from ...channel.models import Channel
@@ -16,7 +17,7 @@ from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
-from ...core.taxes import TaxData, TaxType
+from ...core.taxes import TaxData, TaxDataError, TaxType
 from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
@@ -107,7 +108,7 @@ from ...webhook.transport.shipping import (
     parse_list_shipping_methods_response,
 )
 from ...webhook.transport.synchronous.transport import (
-    trigger_all_webhooks_sync,
+    trigger_taxes_all_webhooks_sync,
     trigger_transaction_request,
     trigger_webhook_sync,
     trigger_webhook_sync_if_not_cached,
@@ -3387,9 +3388,10 @@ class WebhookPlugin(BasePlugin):
         event_type: str,
         app_identifier: str,
         payload_gen: Callable,
+        expected_lines_count: int,
         subscriptable_object=None,
         pregenerated_subscription_payloads: dict | None = None,
-    ):
+    ) -> tuple[TaxData | None, TaxDataError | None]:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         app = (
@@ -3403,13 +3405,13 @@ class WebhookPlugin(BasePlugin):
         )
         if app is None:
             logger.warning("Configured tax app doesn't exists.")
-            return None
+            return None, None
         webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
         if webhook is None:
             logger.warning(
                 "Configured tax app's webhook for checkout taxes doesn't exists."
             )
-            return None
+            return None, None
 
         request_context = initialize_request(
             self.requestor,
@@ -3431,7 +3433,18 @@ class WebhookPlugin(BasePlugin):
             requestor=self.requestor,
             pregenerated_subscription_payload=pregenerated_subscription_payload,
         )
-        return parse_tax_data(response)
+        try:
+            tax_data = parse_tax_data(response, expected_lines_count)
+        except ValidationError as e:
+            errors = e.errors()
+            logger.warning(
+                "Webhook response for event %s is invalid: %s",
+                event_type,
+                str(e),
+                extra={"errors": errors},
+            )
+            return None, TaxDataError(str(e), errors=errors)
+        return tax_data, None
 
     def get_taxes_for_checkout(
         self,
@@ -3440,10 +3453,11 @@ class WebhookPlugin(BasePlugin):
         app_identifier,
         previous_value,
         pregenerated_subscription_payloads: dict | None = None,
-    ) -> Optional["TaxData"]:
+    ) -> tuple[TaxData | None, TaxDataError | None]:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
+        lines_count = len(lines)
         if app_identifier:
             return self.__run_tax_webhook(
                 event_type,
@@ -3451,39 +3465,48 @@ class WebhookPlugin(BasePlugin):
                 lambda: generate_checkout_payload_for_tax_calculation(
                     checkout_info, lines
                 ),
+                lines_count,
                 checkout_info.checkout,
                 pregenerated_subscription_payloads=pregenerated_subscription_payloads,
             )
-        return trigger_all_webhooks_sync(
+        # This is deprecated flow, kept to maintain backward compatibility.
+        # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
+        # be dropped.
+        return trigger_taxes_all_webhooks_sync(
             event_type,
             lambda: generate_checkout_payload_for_tax_calculation(
                 checkout_info,
                 lines,
             ),
-            parse_tax_data,
+            lines_count,
             checkout_info.checkout,
             self.requestor,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-        )
+        ), None
 
     def get_taxes_for_order(
         self, order: "Order", app_identifier, previous_value
-    ) -> Optional["TaxData"]:
+    ) -> tuple[TaxData | None, TaxDataError | None]:
         event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
+        lines_count = order.lines.count()
         if app_identifier:
             return self.__run_tax_webhook(
                 event_type,
                 app_identifier,
                 lambda: generate_order_payload_for_tax_calculation(order),
+                lines_count,
                 order,
             )
-        return trigger_all_webhooks_sync(
+        # This is deprecated flow, kept to maintain backward compatibility.
+        # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
+        # be dropped.
+        return trigger_taxes_all_webhooks_sync(
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,
             lambda: generate_order_payload_for_tax_calculation(order),
-            parse_tax_data,
+            lines_count,
             order,
             self.requestor,
-        )
+        ), None
 
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any

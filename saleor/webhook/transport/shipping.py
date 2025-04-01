@@ -17,7 +17,7 @@ from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import CACHE_EXCLUDED_SHIPPING_TIME
 from ..models import Webhook
-from ..response_schemas import (
+from ..response_schemas.shipping import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
     ListShippingMethodsSchema,

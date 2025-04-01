@@ -15,7 +15,7 @@ from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
-from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
+from ..core.taxes import TaxData, TaxDataError, TaxType, zero_money, zero_taxed_money
 from ..graphql.core import SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.base_calculations import (
@@ -85,6 +85,8 @@ if TYPE_CHECKING:
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
+
+TaxResponseType = tuple[TaxData | None, TaxDataError | None]
 
 
 class PluginsManager(PaymentInterface):
@@ -636,10 +638,10 @@ class PluginsManager(PaymentInterface):
         lines,
         app_identifier,
         pregenerated_subscription_payloads: dict | None = None,
-    ) -> TaxData | None:
+    ) -> TaxResponseType:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
-        return self.__run_plugin_method_until_first_success(
+        return self.__run_tax_method_until_first_success(
             "get_taxes_for_checkout",
             checkout_info,
             lines,
@@ -650,13 +652,33 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def get_taxes_for_order(self, order: "Order", app_identifier) -> TaxData | None:
-        return self.__run_plugin_method_until_first_success(
+    def get_taxes_for_order(self, order: "Order", app_identifier) -> TaxResponseType:
+        return self.__run_tax_method_until_first_success(
             "get_taxes_for_order",
             order,
             app_identifier,
             channel_slug=order.channel.slug,
         )
+
+    def __run_tax_method_until_first_success(
+        self,
+        method_name: str,
+        *args,
+        channel_slug: str | None,
+        plugins: list["BasePlugin"] | None = None,
+        **kwargs,
+    ) -> TaxResponseType:
+        if plugins is None:
+            plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
+        previous_value = (None, None)
+        if plugins:
+            for plugin in plugins:
+                result = self.__run_method_on_single_plugin(
+                    plugin, method_name, previous_value, *args, **kwargs
+                )
+                if result is not None:
+                    return result
+        return previous_value
 
     def preprocess_order_creation(
         self,

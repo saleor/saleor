@@ -8,7 +8,7 @@ from prices import Money
 from pydantic import ValidationError
 
 from ....shipping.interface import ShippingMethodData
-from ...response_schemas import (
+from ...response_schemas.shipping import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
     ListShippingMethodsSchema,

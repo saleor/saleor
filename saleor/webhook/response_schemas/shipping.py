@@ -6,14 +6,14 @@ from graphql.error import GraphQLError
 from prices import Money
 from pydantic import BaseModel, Field, RootModel, ValidationError, field_validator
 
-from ..app.models import App
-from ..core.enums import CurrencyEnum
-from ..core.utils.metadata_manager import method_metadata_is_valid
-from ..graphql.core.utils import from_global_id_or_error
-from ..shipping.interface import ShippingMethodData
-from ..shipping.models import ShippingMethod
-from .const import APP_ID_PREFIX
-from .transport.shipping_helpers import to_shipping_app_id
+from ...app.models import App
+from ...core.enums import CurrencyEnum
+from ...core.utils.metadata_manager import method_metadata_is_valid
+from ...graphql.core.utils import from_global_id_or_error
+from ...shipping.interface import ShippingMethodData
+from ...shipping.models import ShippingMethod
+from ..const import APP_ID_PREFIX
+from ..transport.shipping_helpers import to_shipping_app_id
 
 logger = logging.getLogger(__name__)
 
