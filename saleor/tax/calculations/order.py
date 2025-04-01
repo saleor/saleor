@@ -1,11 +1,11 @@
+from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from django.conf import settings
 from prices import TaxedMoney
 
-from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...order import base_calculations
@@ -13,7 +13,7 @@ from ...order.utils import get_order_country
 from ..models import TaxClassCountryRate
 from ..utils import (
     denormalize_tax_rate_from_db,
-    get_tax_rate_for_tax_class,
+    get_tax_rate_for_country,
     normalize_tax_rate_for_db,
 )
 from . import calculate_flat_rate_tax
@@ -40,24 +40,26 @@ def update_order_prices_with_flat_rates(
 
     # Calculate order line taxes.
     _, undiscounted_subtotal = update_taxes_for_order_lines(
-        order, lines, country_code, default_tax_rate, prices_entered_with_tax
+        order,
+        lines,
+        country_code,
+        default_tax_rate,
+        prices_entered_with_tax,
+        database_connection_name=database_connection_name,
     )
 
     # Calculate order shipping.
-    with allow_writer():
-        # allow writer as this action directly fetches the shipping method from the
-        # writer. Will be solved by the task:
-        # https://linear.app/saleor/issue/EXT-1990/update-order-prices-with-flat-rates-
-        # makes-db-writer-to-get-shipping
-        shipping_method = order.shipping_method
-        shipping_tax_class = getattr(shipping_method, "tax_class", None)
 
-    if shipping_tax_class:
-        shipping_tax_rate = get_tax_rate_for_tax_class(
-            shipping_tax_class,
-            shipping_tax_class.country_rates.using(database_connection_name).all(),
-            default_tax_rate,
-            country_code,
+    shipping_tax_rate = default_tax_rate
+
+    if order.shipping_tax_class_id:
+        shipping_tax_rates = TaxClassCountryRate.objects.using(
+            database_connection_name
+        ).filter(tax_class_id=order.shipping_tax_class_id)
+        shipping_tax_rate = get_tax_rate_for_country(
+            tax_class_country_rates=shipping_tax_rates,
+            default_tax_rate=default_tax_rate,
+            country_code=country_code,
         )
     elif (
         order.shipping_tax_class_name is not None
@@ -67,8 +69,6 @@ def update_order_prices_with_flat_rates(
         # the name is non-null). This is a valid case when recalculating shipping price
         # and the tax class is null, because it was removed from the system.
         shipping_tax_rate = denormalize_tax_rate_from_db(order.shipping_tax_rate)
-    else:
-        shipping_tax_rate = default_tax_rate
 
     order.shipping_price = _calculate_order_shipping(
         order, shipping_tax_rate, prices_entered_with_tax
@@ -140,22 +140,34 @@ def update_taxes_for_order_lines(
     country_code: str,
     default_tax_rate: Decimal,
     prices_entered_with_tax: bool,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[Iterable["OrderLine"], TaxedMoney]:
     currency = order.currency
     lines = list(lines)
 
     undiscounted_subtotal = zero_taxed_money(order.currency)
 
+    tax_class_ids: set[int] = {
+        line.tax_class_id for line in lines if line.tax_class_id is not None
+    }
+
+    tax_rates_per_tax_class_ic: dict[int, list[TaxClassCountryRate]] = defaultdict(list)
+    for rate in TaxClassCountryRate.objects.using(database_connection_name).filter(
+        tax_class_id__in=tax_class_ids
+    ):
+        rate_tax_class_id = cast(int, rate.tax_class_id)
+        tax_rates_per_tax_class_ic[rate_tax_class_id].append(rate)
+
     for line in lines:
         variant = line.variant
         if not variant:
             continue
 
-        tax_class = line.tax_class
-        if tax_class:
-            tax_rate = get_tax_rate_for_tax_class(
-                tax_class,
-                tax_class.country_rates.all() if tax_class else [],
+        tax_rate = default_tax_rate
+        tax_class_id = line.tax_class_id
+        if tax_class_id:
+            tax_rate = get_tax_rate_for_country(
+                tax_rates_per_tax_class_ic.get(tax_class_id, []),
                 default_tax_rate,
                 country_code,
             )
@@ -165,8 +177,6 @@ def update_taxes_for_order_lines(
             # try to use line.tax_rate which stores the denormalized tax rate value
             # that was originally provided by the tax class.
             tax_rate = denormalize_tax_rate_from_db(line.tax_rate)
-        else:
-            tax_rate = default_tax_rate
 
         undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
         price_with_discounts = (

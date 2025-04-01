@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
@@ -9,7 +10,7 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...core.utils.country import get_active_country
 from ..models import TaxClassCountryRate
-from ..utils import get_tax_rate_for_tax_class, normalize_tax_rate_for_db
+from ..utils import get_tax_rate_for_country, normalize_tax_rate_for_db
 from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
@@ -41,8 +42,7 @@ def update_checkout_prices_with_flat_rates(
     for line_info in lines:
         line = line_info.line
         tax_class = line_info.tax_class
-        tax_rate = get_tax_rate_for_tax_class(
-            tax_class,
+        tax_rate = get_tax_rate_for_country(
             tax_class.country_rates.all() if tax_class else [],
             default_tax_rate,
             country_code,
@@ -57,12 +57,18 @@ def update_checkout_prices_with_flat_rates(
         line.total_price = line_total_price
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
-    # Calculate shipping price.
-    shipping_method = checkout_info.get_delivery_method_info().delivery_method
-    tax_class = getattr(shipping_method, "tax_class", None)
-    shipping_tax_rate = get_tax_rate_for_tax_class(
-        tax_class,
-        tax_class.country_rates.all() if tax_class else [],
+    # Calculate shipping details.
+    shipping_tax_rates: Iterable[TaxClassCountryRate] = []
+    if shipping_method := checkout_info.shipping_method:
+        # external shipping methods do not have a way to provide tax-class
+        tax_class_id = shipping_method.tax_class_id
+        if tax_class_id:
+            shipping_tax_rates = TaxClassCountryRate.objects.using(
+                database_connection_name
+            ).filter(tax_class_id=tax_class_id)
+
+    shipping_tax_rate = get_tax_rate_for_country(
+        shipping_tax_rates,
         default_tax_rate,
         country_code,
     )

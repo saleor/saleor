@@ -80,8 +80,8 @@ class TaxClassByIdLoader(DataLoader):
         return [tax_class_map.get(obj_id) for obj_id in keys]
 
 
-class TaxClassByProductIdLoader(DataLoader):
-    context_key = "tax_class_by_product_id"
+class TaxClassIdByProductIdLoader(DataLoader):
+    context_key = "tax_class_id_by_product_id"
 
     def batch_load(self, keys):
         products = ProductByIdLoader(self.context).load_many(keys)
@@ -99,12 +99,7 @@ class TaxClassByProductIdLoader(DataLoader):
                 tax_class_id = product.tax_class_id or product_type.tax_class_id
                 tax_class_ids_map[product_id] = tax_class_id
 
-            return [
-                TaxClassByIdLoader(self.context).load(tax_class_ids_map[product_id])
-                if tax_class_ids_map[product_id]
-                else None
-                for product_id in keys
-            ]
+            return [tax_class_ids_map[product_id] for product_id in keys]
 
         return Promise.all([products, product_types]).then(load_tax_classes)
 
@@ -129,9 +124,11 @@ class TaxClassByVariantIdLoader(DataLoader):
                 tax_class_ids_map[variant_pk] = tax_class_id
 
             return [
-                TaxClassByIdLoader(self.context).load(tax_class_ids_map[variant_id])
-                if tax_class_ids_map[variant_id]
-                else None
+                (
+                    TaxClassByIdLoader(self.context).load(tax_class_ids_map[variant_id])
+                    if tax_class_ids_map[variant_id]
+                    else None
+                )
                 for variant_id in keys
             ]
 
@@ -157,8 +154,10 @@ class ProductChargeTaxesByTaxClassIdLoader(DataLoader):
             .in_bulk(keys)
         )
         return [
-            tax_class_map[tax_class_id].charge_taxes
-            if tax_class_map.get(tax_class_id)
-            else False
+            (
+                tax_class_map[tax_class_id].charge_taxes
+                if tax_class_map.get(tax_class_id)
+                else False
+            )
             for tax_class_id in keys
         ]
