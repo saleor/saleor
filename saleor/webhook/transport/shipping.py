@@ -182,8 +182,9 @@ def parse_excluded_shipping_methods(
     excluded_methods_map = defaultdict(list)
     for excluded_method in excluded_methods:
         method_id = excluded_method.id
+        reason = excluded_method.reason or ""
         excluded_methods_map[method_id].append(
-            ExcludedShippingMethod(id=method_id, reason=excluded_method.reason)
+            ExcludedShippingMethod(id=method_id, reason=reason)
         )
     return excluded_methods_map
 

@@ -431,7 +431,8 @@ def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
     assert len(excluded_methods) == 2
     assert excluded_methods[0].id == "2"
     assert excluded_methods[1].id == external_id
-    assert mocked_schema_logger.call_count == 3
+    # 2 warning for each invalid data
+    assert mocked_schema_logger.call_count == 6
 
 
 @mock.patch(

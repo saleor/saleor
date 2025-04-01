@@ -261,7 +261,7 @@ def test_excluded_shipping_method_schema_valid_external_method(data):
 
     # then
     assert excluded_method_data.id == data["id"]
-    assert excluded_method_data.reason == (data["reason"] or "")
+    assert excluded_method_data.reason == data["reason"]
 
 
 @pytest.mark.parametrize(
@@ -281,7 +281,7 @@ def test_excluded_shipping_method_schema_valid_shipping_method(data):
 
     # then
     assert excluded_method_data.id == graphene.Node.from_global_id(data["id"])[1]
-    assert excluded_method_data.reason == (data["reason"] or "")
+    assert excluded_method_data.reason == data["reason"]
 
 
 @pytest.mark.parametrize(
@@ -349,4 +349,4 @@ def test_filter_shipping_methods_schema_invalid_element_skipped(mocked_logger):
         schema.excluded_methods[1].id
         == graphene.Node.from_global_id(data["excluded_methods"][2]["id"])[1]
     )
-    assert schema.excluded_methods[1].reason == ""
+    assert schema.excluded_methods[1].reason == data["excluded_methods"][1]["reason"]

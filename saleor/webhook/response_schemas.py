@@ -88,11 +88,6 @@ class ExcludedShippingMethodSchema(BaseModel):
             raise ValueError(error_msg, type_name)
         return method_id
 
-    @field_validator("reason", mode="after")
-    @classmethod
-    def clean_reason(cls, value: str | None) -> str:
-        return value or ""
-
 
 class FilterShippingMethodsSchema(BaseModel):
     excluded_methods: list[ExcludedShippingMethodSchema]
