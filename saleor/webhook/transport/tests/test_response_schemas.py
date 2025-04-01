@@ -81,7 +81,7 @@ def test_shipping_method_schema_valid(data):
     assert shipping_method_model.id == data["id"]
     assert shipping_method_model.name == data["name"]
     assert shipping_method_model.amount == data["amount"]
-    assert shipping_method_model.currency.value == data["currency"]
+    assert shipping_method_model.currency == data["currency"]
     assert shipping_method_model.maximum_delivery_days == data.get(
         "maximum_delivery_days"
     )
@@ -112,7 +112,7 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata):
     assert shipping_method_model.id == data["id"]
     assert shipping_method_model.name == data["name"]
     assert shipping_method_model.amount == data["amount"]
-    assert shipping_method_model.currency.value == data["currency"]
+    assert shipping_method_model.currency == data["currency"]
     assert shipping_method_model.maximum_delivery_days is None
     assert shipping_method_model.minimum_delivery_days is None
     assert shipping_method_model.description is None
@@ -160,13 +160,6 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata):
             "name": "Express Shipping",
             "amount": Decimal("-10.00"),
             "currency": "USD",
-        },
-        # Invalid value for "currency"
-        {
-            "id": "3",
-            "name": "Overnight Shipping",
-            "amount": Decimal("50.00"),
-            "currency": "INVALID_CURRENCY",
         },
         # Invalid type for "maximum_delivery_days"
         {

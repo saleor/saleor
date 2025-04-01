@@ -7,7 +7,6 @@ from prices import Money
 from pydantic import BaseModel, Field, RootModel, ValidationError, field_validator
 
 from ..app.models import App
-from ..core.enums import CurrencyEnum
 from ..core.utils.metadata_manager import method_metadata_is_valid
 from ..graphql.core.utils import from_global_id_or_error
 from ..shipping.interface import ShippingMethodData
@@ -24,7 +23,7 @@ class ShippingMethodSchema(BaseModel):
     id: str | int
     name: str = Field(..., max_length=name_max_length)
     amount: Decimal = Field(..., ge=0)
-    currency: CurrencyEnum
+    currency: str
     maximum_delivery_days: int | None = Field(None, ge=0)
     minimum_delivery_days: int | None = Field(None, ge=0)
     description: str | None = None
@@ -40,7 +39,7 @@ class ShippingMethodSchema(BaseModel):
 
     @property
     def price(self) -> Money:
-        return Money(self.amount, self.currency.value)
+        return Money(self.amount, self.currency)
 
     def get_shipping_method_data(self, app: "App"):
         metadata = cast(
