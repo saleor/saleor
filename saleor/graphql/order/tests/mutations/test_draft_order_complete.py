@@ -1125,11 +1125,9 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     mock_request,
-    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1139,7 +1137,6 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 ):
     # given
     mock_request.return_value = tax_data_response
-    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1173,11 +1170,9 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_calls_correct_tax_app(
     mock_request,
-    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
@@ -1187,7 +1182,6 @@ def test_draft_order_complete_calls_correct_tax_app(
 ):
     # given
     mock_request.return_value = tax_data_response
-    mock_validate_tax_data.return_value = False
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
