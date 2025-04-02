@@ -104,3 +104,4 @@ All notable, unreleased changes to this project will be documented in this file.
   This ensures user awareness of potential security policy violations and compliance risks of storing
   certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
+- Fixes tax class not clearing when selecting a shipping method without a tax class - #17560 by @korycins
