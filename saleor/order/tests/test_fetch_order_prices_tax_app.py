@@ -77,7 +77,7 @@ def test_fetch_order_prices_tax_app(order_with_lines, tax_configuration_tax_app)
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -194,7 +194,7 @@ def test_fetch_order_prices_catalogue_discount_tax_app(
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -345,7 +345,7 @@ def test_fetch_order_prices_order_discount_tax_app(
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -515,7 +515,7 @@ def test_fetch_order_prices_order_discount_tax_app_prices_entered_with_taxes(
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -675,7 +675,7 @@ def test_fetch_order_prices_gift_discount_tax_app(
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -803,7 +803,7 @@ def test_fetch_order_prices_catalogue_and_order_discounts_tax_app(
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -1057,7 +1057,7 @@ def test_fetch_order_prices_manual_order_discount_and_line_level_voucher_tax_app
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -1259,7 +1259,7 @@ def test_fetch_order_prices_manual_line_discount_and_entire_order_voucher_tax_ap
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -1461,7 +1461,7 @@ def test_fetch_order_prices_shipping_voucher_and_manual_discount_tax_app(
         ],
     )
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
@@ -1615,7 +1615,7 @@ def test_fetch_order_prices_entire_order_voucher_no_tax_data_tax_app(
 
     tax_data = {}
 
-    manager_methods = {"get_taxes_for_order": Mock(return_value=tax_data)}
+    manager_methods = {"get_taxes_for_order": Mock(return_value=(tax_data, None))}
     manager = Mock(**manager_methods)
 
     # when
