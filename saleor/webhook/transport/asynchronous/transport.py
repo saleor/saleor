@@ -16,7 +16,7 @@ from django.db import transaction
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
-from ....core.models import EventDelivery, EventPayload
+from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.telemetry import (
     TelemetryTaskContext,
     get_task_context,
@@ -46,6 +46,7 @@ from ..utils import (
     WebhookResponse,
     WebhookSchemes,
     attempt_update,
+    clear_successful_deliveries,
     clear_successful_delivery,
     create_attempt,
     delivery_update,
@@ -66,6 +67,9 @@ task_logger = get_task_logger(f"{__name__}.celery")
 
 OBSERVABILITY_QUEUE_NAME = "observability"
 MAX_WEBHOOK_EVENTS_IN_DB_BULK = 100
+
+MAX_WEBHOOK_RETRIES = 5
+WEBHOOK_ASYNC_BATCH_SIZE = 100
 
 
 @dataclass
@@ -666,10 +670,13 @@ def send_webhooks_async_for_app(
     app_id,
 ) -> None:
     domain = get_domain()
-    deliveries = get_deliveries_for_app(app_id)
+    deliveries = get_deliveries_for_app(app_id, WEBHOOK_ASYNC_BATCH_SIZE)
 
     if not deliveries:
         return
+
+    failed_deliveries_attempts = []
+    successful_deliveries = []
 
     for delivery_id, delivery_with_count in deliveries.items():
         delivery = delivery_with_count.delivery
@@ -703,9 +710,8 @@ def send_webhooks_async_for_app(
                 )
 
             if response.status == EventDeliveryStatus.FAILED:
-                attempt_update(attempt, response)
-                if attempt_count >= 5:
-                    delivery_update(delivery, EventDeliveryStatus.FAILED)
+                attempt_update(attempt, response, with_save=False)
+                failed_deliveries_attempts.append((delivery, attempt, attempt_count))
             elif response.status == EventDeliveryStatus.SUCCESS:
                 task_logger.info(
                     "[Webhook ID:%r] Payload sent to %r for event %r. Delivery id: %r",
@@ -721,18 +727,48 @@ def send_webhooks_async_for_app(
             response = WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED
             )
-            attempt_update(attempt, response)
-            if attempt_count >= 5:
-                delivery_update(delivery, EventDeliveryStatus.FAILED)
+            attempt_update(attempt, response, with_save=False)
+            failed_deliveries_attempts.append((delivery, attempt, attempt_count))
 
         observability.report_event_delivery_attempt(attempt)
-        clear_successful_delivery(delivery)
+        successful_deliveries.append(delivery)
+
+    process_failed_deliveries(failed_deliveries_attempts)
+    clear_successful_deliveries(successful_deliveries)
 
     send_webhooks_async_for_app.apply_async(
         kwargs={
             "app_id": app_id,
         },
     )
+
+
+def process_failed_deliveries(
+    failed_deliveries_attempts: list[tuple[EventDelivery, EventDeliveryAttempt, int]],
+) -> None:
+    deliveries_to_update = []
+    deliveries_attempts_to_update = []
+    for delivery, attempt, attempt_count in failed_deliveries_attempts:
+        if attempt_count >= MAX_WEBHOOK_RETRIES:
+            delivery.status = EventDeliveryStatus.FAILED
+            deliveries_to_update.append(delivery)
+        deliveries_attempts_to_update.append(attempt)
+
+    if deliveries_to_update:
+        EventDelivery.objects.bulk_update(deliveries_to_update, ["status"])
+
+    update_fields = [
+        "duration",
+        "response",
+        "response_headers",
+        "response_status_code",
+        "request_headers",
+        "status",
+    ]
+    if deliveries_attempts_to_update:
+        EventDeliveryAttempt.objects.bulk_update(
+            deliveries_attempts_to_update, update_fields
+        )
 
 
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):

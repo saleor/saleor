@@ -1040,3 +1040,6 @@ TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # Whether to raise or log exceptions for telemetry unit conversion errors
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
+
+# number of webhooks to be processed in a single batch per app
+WEBHOOK_ASYNC_BATCH_SIZE = 100

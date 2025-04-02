@@ -418,7 +418,7 @@ def get_delivery_for_webhook(
 
 
 def get_deliveries_for_app(
-    app_id, batch_size=settings.WEBHOOK_ASYNC_BATCH_SIZE
+    app_id, batch_size
 ) -> dict[int, "EventDeliveryWithAttemptCount"]:
     deliveries = (
         EventDelivery.objects.select_related("payload", "webhook__app")
@@ -548,6 +548,41 @@ def clear_successful_delivery(delivery: "EventDelivery"):
         ]
         payloads_to_delete.delete()
         delete_files_from_private_storage_task(files_to_delete)
+
+
+@allow_writer()
+def clear_successful_deliveries(deliveries: list["EventDelivery"]):
+    delivery_ids_to_delete = []
+    payload_ids_to_delete = []
+    files_to_delete = []
+    for delivery in deliveries:
+        # skip deliveries that cannot be deleted
+        if not delivery.id or delivery.status != EventDeliveryStatus.SUCCESS:
+            continue
+
+        delivery_ids_to_delete.append(delivery.id)
+
+        payload_id = delivery.payload_id
+        if payload_id:
+            payload_ids_to_delete.append(payload_id)
+
+            payloads_to_delete = EventPayload.objects.filter(
+                pk=payload_id, deliveries__isnull=True
+            )
+
+            files_to_delete += [
+                event_payload.payload_file.name
+                for event_payload in payloads_to_delete.using(
+                    settings.DATABASE_CONNECTION_REPLICA_NAME
+                )
+                if event_payload.payload_file
+            ]
+
+    if payload_ids_to_delete:
+        EventPayload.objects.filter(pk__in=payload_ids_to_delete).delete()
+        delete_files_from_private_storage_task(files_to_delete)
+    if delivery_ids_to_delete:
+        EventDelivery.objects.filter(pk__in=delivery_ids_to_delete).delete()
 
 
 @allow_writer()
