@@ -62,6 +62,8 @@ class CustomerCreate(BaseCustomerCreate):
             cleaned_input=cleaned_input, user_instance=instance
         )
 
+        instance.save()
+
         if default_addresses["billing"]:
             instance.addresses.add(default_addresses["billing"])
         if default_addresses["shipping"]:
