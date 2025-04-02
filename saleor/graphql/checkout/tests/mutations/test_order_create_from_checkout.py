@@ -16,8 +16,6 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....core.taxes import (
-    TaxDataError,
-    TaxDataErrorMessage,
     TaxError,
     zero_money,
     zero_taxed_money,
@@ -2666,16 +2664,13 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     )
 
 
-@patch("saleor.checkout.calculations.validate_tax_data")
 def test_order_from_checkout_tax_error(
-    mock_validate_tax_data,
     app_api_client,
     permission_handle_checkouts,
     checkout_with_items_and_shipping,
     caplog,
 ):
     # given
-    mock_validate_tax_data.side_effect = TaxDataError(TaxDataErrorMessage.EMPTY)
     checkout = checkout_with_items_and_shipping
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 

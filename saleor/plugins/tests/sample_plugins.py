@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from prices import Money, TaxedMoney
 
 from ...account.models import User
-from ...core.taxes import TaxData, TaxLineData, TaxType
+from ...core.taxes import TaxData, TaxDataError, TaxLineData, TaxType
 from ...graphql.core import SaleorContext
 from ...order.interface import OrderTaxedPricesData
 from ...payment.interface import (
@@ -295,13 +295,13 @@ class PluginSample(BasePlugin):
         app_identifier,
         previous_value,
         pregenerated_subscription_payloads=None,
-    ) -> Optional["TaxData"]:
-        return sample_tax_data(checkout_info.checkout)
+    ) -> tuple[Optional["TaxData"], Optional["TaxDataError"]]:
+        return sample_tax_data(checkout_info.checkout), None
 
     def get_taxes_for_order(
         self, order: "Order", app_identifier, previous_value
-    ) -> Optional["TaxData"]:
-        return sample_tax_data(order)
+    ) -> tuple[Optional["TaxData"], Optional["TaxDataError"]]:
+        return sample_tax_data(order), None
 
     def sample_not_implemented(self, previous_value):
         return NotImplemented

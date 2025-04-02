@@ -632,30 +632,6 @@ def _unsafe_parse_tax_line_data(
     )
 
 
-def _unsafe_parse_tax_data(
-    tax_data_response: Any,
-) -> TaxData:
-    """Unsafe TaxData parser.
-
-    Raises KeyError or DecimalException on invalid data.
-    """
-    shipping_price_gross_amount = decimal.Decimal(
-        tax_data_response["shipping_price_gross_amount"]
-    )
-    shipping_price_net_amount = decimal.Decimal(
-        tax_data_response["shipping_price_net_amount"]
-    )
-    shipping_tax_rate = decimal.Decimal(tax_data_response["shipping_tax_rate"])
-    lines = [_unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]]
-
-    return TaxData(
-        shipping_price_gross_amount=shipping_price_gross_amount,
-        shipping_price_net_amount=shipping_price_net_amount,
-        shipping_tax_rate=shipping_tax_rate,
-        lines=lines,
-    )
-
-
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
     splitted_id = app_gateway_id.split(":", maxsplit=2)
     if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):

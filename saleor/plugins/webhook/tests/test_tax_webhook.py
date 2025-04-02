@@ -35,11 +35,14 @@ def test_get_taxes_for_checkout_no_permission(
     app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, app_identifier, None)
+    tax_data, error = plugin.get_taxes_for_checkout(
+        checkout_info, lines, app_identifier, None
+    )
 
     # then
     assert mock_request.call_count == 0
     assert tax_data is None
+    assert error is None
 
 
 @freeze_time()
@@ -63,7 +66,7 @@ def test_get_taxes_for_order(
     webhook.save(update_fields=["subscription_query"])
 
     # when
-    tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
+    tax_data, error = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
     mock_request.assert_called_once()
@@ -77,7 +80,8 @@ def test_get_taxes_for_order(
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.webhook == webhook
     mock_fetch.assert_not_called()
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, order.lines.count())
+    assert error is None
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -91,11 +95,12 @@ def test_get_taxes_for_order_no_permission(
     app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
+    tax_data, error = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
     assert mock_request.call_count == 0
     assert tax_data is None
+    assert error is None
 
 
 @pytest.fixture
@@ -181,7 +186,7 @@ def test_get_taxes_for_order_with_sync_subscription(
     app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_order(order, app_identifier, None)
+    tax_data, error = plugin.get_taxes_for_order(order, app_identifier, None)
 
     # then
     mock_request.assert_called_once()
@@ -195,7 +200,8 @@ def test_get_taxes_for_order_with_sync_subscription(
     assert delivery.event_type == WebhookEventSyncType.ORDER_CALCULATE_TAXES
     assert delivery.webhook == webhook
     mock_fetch.assert_not_called()
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, order.lines.count())
+    assert error is None
 
 
 @freeze_time()
@@ -228,7 +234,9 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     app_identifier = None
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(checkout_info, [], app_identifier, None)
+    tax_data, _error = plugin.get_taxes_for_checkout(
+        checkout_info, [], app_identifier, None
+    )
 
     # then
     mock_generate_payload.assert_called_once_with(
@@ -247,7 +255,7 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     assert delivery.webhook == webhook
     mock_fetch.assert_not_called()
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, checkout.lines.count())
 
 
 @freeze_time()
@@ -283,7 +291,7 @@ def test_get_taxes_for_checkout_with_sync_subscription_with_pregenerated_payload
     }
 
     # when
-    tax_data = plugin.get_taxes_for_checkout(
+    tax_data, _error = plugin.get_taxes_for_checkout(
         checkout_info,
         [],
         app_identifier,
@@ -302,4 +310,4 @@ def test_get_taxes_for_checkout_with_sync_subscription_with_pregenerated_payload
     assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     assert delivery.webhook == webhook
     mock_fetch.assert_not_called()
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, checkout.lines.count())

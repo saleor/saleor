@@ -1508,7 +1508,6 @@ def test_fetch_order_data_calls_plugin(
     mock_get_taxes.assert_not_called()
 
 
-@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_total")
 @patch("saleor.plugins.manager.PluginsManager.get_taxes_for_order")
 @patch("saleor.order.calculations._apply_tax_data")
@@ -1517,13 +1516,10 @@ def test_fetch_order_data_calls_tax_app(
     mock_apply_tax_data,
     mock_get_taxes,
     mock_calculate_order_total,
-    mock_validate_tax_data,
     order_with_lines,
     order_lines,
 ):
     # given
-    mock_validate_tax_data.return_value = False
-
     order = order_with_lines
     order.channel.tax_configuration.tax_app_id = "test.app"
     order.channel.tax_configuration.save()

@@ -253,7 +253,7 @@ def _calculate_and_add_tax(
             # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
             # be dropped.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
-            tax_data = tax_data = _get_taxes_for_order(
+            tax_data = _get_taxes_for_order(
                 order, tax_app_identifier, manager, skip_validation=True
             )
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
