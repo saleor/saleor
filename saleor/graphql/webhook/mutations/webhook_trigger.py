@@ -3,7 +3,6 @@ from dataclasses import asdict
 import graphene
 from celery.exceptions import Retry
 from django.db.models import Exists, OuterRef
-from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
 
 from ....app.models import App
@@ -175,7 +174,7 @@ class WebhookTrigger(BaseMutation):
                 )
                 delivery.save()
                 deferred_payload_data = prepare_deferred_payload_data(
-                    object, requestor, timezone.now()
+                    object, requestor, info.context.request_time
                 )
                 generate_deferred_payloads.apply_async(
                     kwargs={
