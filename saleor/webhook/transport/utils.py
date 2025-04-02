@@ -586,6 +586,58 @@ def clear_successful_deliveries(deliveries: list["EventDelivery"]):
 
 
 @allow_writer()
+def process_failed_deliveries(
+    failed_deliveries_attempts: list[tuple[EventDelivery, EventDeliveryAttempt, int]],
+    max_webhook_retries: int,
+) -> None:
+    deliveries_to_update = []
+    deliveries_attempts_to_update = []
+    for delivery, attempt, attempt_count in failed_deliveries_attempts:
+        if attempt_count >= max_webhook_retries:
+            delivery.status = EventDeliveryStatus.FAILED
+            deliveries_to_update.append(delivery)
+        deliveries_attempts_to_update.append(attempt)
+
+    if deliveries_to_update:
+        EventDelivery.objects.bulk_update(deliveries_to_update, ["status"])
+
+    update_fields = [
+        "duration",
+        "response",
+        "response_headers",
+        "response_status_code",
+        "request_headers",
+        "status",
+    ]
+    if deliveries_attempts_to_update:
+        EventDeliveryAttempt.objects.bulk_update(
+            deliveries_attempts_to_update, update_fields
+        )
+
+
+@allow_writer()
+def create_attempts_for_deliveries(
+    deliveries: dict[int, EventDeliveryWithAttemptCount],
+    task_id: str | None,
+) -> dict[int, EventDeliveryAttempt]:
+    attempt_for_deliveries = {}
+    for delivery_id, delivery_with_count in deliveries.items():
+        delivery = delivery_with_count.delivery
+
+        attempt = create_attempt(delivery, task_id, with_save=False)
+        attempt_for_deliveries[delivery_id] = attempt
+
+    if attempt_for_deliveries:
+        attempts_to_create = [
+            attempt_for_deliveries[delivery_id]
+            for delivery_id in attempt_for_deliveries
+        ]
+        EventDeliveryAttempt.objects.bulk_create(attempts_to_create)
+
+    return attempt_for_deliveries
+
+
+@allow_writer()
 def delivery_update(delivery: "EventDelivery", status: str):
     delivery.status = status
     if delivery.id:

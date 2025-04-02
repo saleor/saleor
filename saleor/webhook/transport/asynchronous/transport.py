@@ -16,7 +16,7 @@ from django.db import transaction
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
-from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
+from ....core.models import EventDelivery, EventPayload
 from ....core.telemetry import (
     TelemetryTaskContext,
     get_task_context,
@@ -49,12 +49,14 @@ from ..utils import (
     clear_successful_deliveries,
     clear_successful_delivery,
     create_attempt,
+    create_attempts_for_deliveries,
     delivery_update,
     get_deliveries_for_app,
     get_delivery_for_webhook,
     get_multiple_deliveries_for_webhooks,
     handle_webhook_retry,
     prepare_deferred_payload_data,
+    process_failed_deliveries,
     send_webhook_using_scheme_method,
 )
 
@@ -675,15 +677,18 @@ def send_webhooks_async_for_app(
     if not deliveries:
         return
 
+    attempts_for_deliveries = create_attempts_for_deliveries(
+        deliveries, self.request.id
+    )
     failed_deliveries_attempts = []
     successful_deliveries = []
 
     for delivery_id, delivery_with_count in deliveries.items():
         delivery = delivery_with_count.delivery
         attempt_count = delivery_with_count.count
+        attempt = attempts_for_deliveries[delivery_id]
 
         webhook = delivery.webhook
-        attempt = create_attempt(delivery, self.request.id)
 
         try:
             if not delivery.payload:
@@ -733,7 +738,7 @@ def send_webhooks_async_for_app(
         observability.report_event_delivery_attempt(attempt)
         successful_deliveries.append(delivery)
 
-    process_failed_deliveries(failed_deliveries_attempts)
+    process_failed_deliveries(failed_deliveries_attempts, MAX_WEBHOOK_RETRIES)
     clear_successful_deliveries(successful_deliveries)
 
     send_webhooks_async_for_app.apply_async(
@@ -741,34 +746,6 @@ def send_webhooks_async_for_app(
             "app_id": app_id,
         },
     )
-
-
-def process_failed_deliveries(
-    failed_deliveries_attempts: list[tuple[EventDelivery, EventDeliveryAttempt, int]],
-) -> None:
-    deliveries_to_update = []
-    deliveries_attempts_to_update = []
-    for delivery, attempt, attempt_count in failed_deliveries_attempts:
-        if attempt_count >= MAX_WEBHOOK_RETRIES:
-            delivery.status = EventDeliveryStatus.FAILED
-            deliveries_to_update.append(delivery)
-        deliveries_attempts_to_update.append(attempt)
-
-    if deliveries_to_update:
-        EventDelivery.objects.bulk_update(deliveries_to_update, ["status"])
-
-    update_fields = [
-        "duration",
-        "response",
-        "response_headers",
-        "response_status_code",
-        "request_headers",
-        "status",
-    ]
-    if deliveries_attempts_to_update:
-        EventDeliveryAttempt.objects.bulk_update(
-            deliveries_attempts_to_update, update_fields
-        )
 
 
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
