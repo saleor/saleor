@@ -1861,7 +1861,7 @@ def test_checkout_lines_update_with_empy_metadata_preserve_old(
     assert line.variant == variant
 
 
-def test_checkout_lines_update_with_empy_metadata_merge_old(
+def test_checkout_lines_update_with_new_metadata_merge_old(
     user_api_client,
     checkout_with_item,
 ):
@@ -1886,7 +1886,6 @@ def test_checkout_lines_update_with_empy_metadata_merge_old(
             {
                 "variantId": variant_id,
                 "quantity": 1,
-                # Leave input empty to ensure it will not affect existing entries
                 "metadata": [
                     {
                         "key": "new_key",
