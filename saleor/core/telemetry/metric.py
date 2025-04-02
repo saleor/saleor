@@ -161,7 +161,7 @@ class MeterProxy(Meter):
 
     def initialize(self, meter_cls: type[Meter], instrumentation_version: str) -> None:
         if self._meter:
-            logger.warning("Tracer already initialized")
+            logger.warning("Meter already initialized")
         self._meter = meter_cls(instrumentation_version)
         with self._lock:
             for name, kwargs in self._metrics.items():
