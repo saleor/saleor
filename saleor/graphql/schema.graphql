@@ -23281,6 +23281,13 @@ input DraftOrderCreateInput @doc(category: "Orders") {
   """
   privateMetadata: [MetadataInput!]
 
+  """
+  Order language code.
+  
+  Added in Saleor 3.21.
+  """
+  languageCode: LanguageCodeEnum
+
   """Variant line input consisting of variant ID and quantity of products."""
   lines: [OrderLineCreateInput!]
 }
@@ -23423,6 +23430,13 @@ input DraftOrderInput @doc(category: "Orders") {
   Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  Order language code.
+  
+  Added in Saleor 3.21.
+  """
+  languageCode: LanguageCodeEnum
 }
 
 """
@@ -24166,6 +24180,13 @@ input OrderUpdateInput @doc(category: "Orders") {
   Warning: never store sensitive information, including financial data such as credit card details.
   """
   privateMetadata: [MetadataInput!]
+
+  """
+  Order language code.
+  
+  Added in Saleor 3.21.
+  """
+  languageCode: LanguageCodeEnum
 }
 
 """
@@ -27117,6 +27138,15 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
 
   """ID of the line."""
   lineId: ID
+
+  """
+  Checkout line public metadata. Will add and update keys. To delete keys use deleteMetadata mutation. 
+  
+  Added in Saleor 3.21. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
 }
 
 """

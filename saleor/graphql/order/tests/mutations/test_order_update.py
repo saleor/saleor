@@ -834,3 +834,39 @@ def test_order_update_nothing_changed(
     assert not data["errors"]
 
     order_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_with_language_code(
+    order_updated_webhook_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.user = None
+    order.save()
+    email = "not_default@example.com"
+    assert not order.user_email == email
+    assert not order.shipping_address.first_name == graphql_address_data["firstName"]
+    assert not order.billing_address.last_name == graphql_address_data["lastName"]
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {"languageCode": "PL"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+
+    order.refresh_from_db()
+    assert order.language_code == "pl"
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
