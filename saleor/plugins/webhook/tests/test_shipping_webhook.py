@@ -17,7 +17,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
 )
-from ....webhook.response_schemas import logger as schema_logger
+from ....webhook.response_schemas.shipping import logger as schema_logger
 from ....webhook.transport.shipping import (
     get_excluded_shipping_methods_from_response,
     get_excluded_shipping_methods_or_fetch,

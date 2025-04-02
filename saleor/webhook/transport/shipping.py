@@ -17,7 +17,7 @@ from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..const import CACHE_EXCLUDED_SHIPPING_TIME
 from ..models import Webhook
-from ..response_schemas import (
+from ..response_schemas.shipping import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
     ListShippingMethodsSchema,
@@ -46,7 +46,7 @@ def parse_list_shipping_methods_response(
             maximum_delivery_days=shipping_method.maximum_delivery_days,
             minimum_delivery_days=shipping_method.minimum_delivery_days,
             description=shipping_method.description,
-            metadata=shipping_method.metadata,  # type: ignore[arg-type]
+            metadata=shipping_method.metadata,
         )
         for shipping_method in list_shipping_method_model.root
     ]

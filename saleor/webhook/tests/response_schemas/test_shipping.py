@@ -6,7 +6,7 @@ import graphene
 import pytest
 from pydantic import ValidationError
 
-from ...response_schemas import (
+from ...response_schemas.shipping import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
     ListShippingMethodsSchema,
@@ -76,7 +76,7 @@ def test_shipping_method_schema_valid(data):
     shipping_method_model = ShippingMethodSchema.model_validate(data)
 
     # then
-    assert shipping_method_model.id == data["id"]
+    assert shipping_method_model.id == str(data["id"])
     assert shipping_method_model.name == data["name"]
     assert shipping_method_model.amount == data["amount"]
     assert shipping_method_model.currency == data["currency"]
@@ -261,7 +261,7 @@ def test_excluded_shipping_method_schema_valid_external_method(data):
 
     # then
     assert excluded_method_data.id == data["id"]
-    assert excluded_method_data.reason == data["reason"]
+    assert excluded_method_data.reason == (data["reason"] or "")
 
 
 @pytest.mark.parametrize(
@@ -281,7 +281,7 @@ def test_excluded_shipping_method_schema_valid_shipping_method(data):
 
     # then
     assert excluded_method_data.id == graphene.Node.from_global_id(data["id"])[1]
-    assert excluded_method_data.reason == data["reason"]
+    assert excluded_method_data.reason == (data["reason"] or "")
 
 
 @pytest.mark.parametrize(
@@ -349,4 +349,4 @@ def test_filter_shipping_methods_schema_invalid_element_skipped(mocked_logger):
         schema.excluded_methods[1].id
         == graphene.Node.from_global_id(data["excluded_methods"][2]["id"])[1]
     )
-    assert schema.excluded_methods[1].reason == data["excluded_methods"][1]["reason"]
+    assert schema.excluded_methods[1].reason == ""
