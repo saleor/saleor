@@ -9832,6 +9832,7 @@ def setup_checkout_webhooks(
 
     subscription {
       event {
+        issuedAt
         ... on CheckoutCreated {
           issuingPrincipal {
             ...IssuingPrincipal
