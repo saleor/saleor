@@ -31,14 +31,14 @@ from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify import NotifyEventType
 from ....core.utils.url import prepare_url
-from ....discount import RewardType, RewardValueType
+from ....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
 from ....discount.utils.checkout import (
     create_or_update_discount_objects_from_promotion_for_checkout,
 )
 from ....graphql.discount.enums import DiscountValueTypeEnum
 from ....graphql.discount.utils import convert_migrated_sale_predicate_to_catalogue_info
-from ....graphql.order.tests.mutations.test_order_discount import ORDER_DISCOUNT_ADD
+from ....graphql.order.tests.mutations.test_order_discount import ORDER_DISCOUNT_UPDATE
 from ....graphql.product.tests.mutations.test_product_create import (
     CREATE_PRODUCT_MUTATION,
 )
@@ -2446,17 +2446,27 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
     webhook = subscription_calculate_taxes_for_order
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     mocked_get_webhooks_for_event.return_value = [webhook]
+
+    order_discount = draft_order.discounts.create(
+        value_type=DiscountValueType.FIXED,
+        value=Decimal("10"),
+        amount_value=Decimal("10"),
+        currency=draft_order.currency,
+        type=DiscountType.MANUAL,
+    )
+
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", draft_order.pk),
+        "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
         "input": {
             "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
             "value": Decimal("50"),
         },
     }
+
     app_api_client.app.permissions.add(permission_manage_orders)
 
     # when
-    app_api_client.post_graphql(ORDER_DISCOUNT_ADD, variables)
+    app_api_client.post_graphql(ORDER_DISCOUNT_UPDATE, variables)
 
     # then
     mocked_generate_payload.assert_called_once()
