@@ -446,7 +446,6 @@ def call_refund(
     )
     with tracer.start_as_current_span("adyen.payment.refund") as span:
         span.set_attribute("component", "payment")
-        span.set_attribute("service.name", "adyen")
         return api_call(request, adyen_client.payment.refund)
 
 
@@ -465,7 +464,6 @@ def call_capture(
     )
     with tracer.start_as_current_span("adyen.payment.capture") as span:
         span.set_attribute("component", "payment")
-        span.set_attribute("service.name", "adyen")
         return api_call(request, adyen_client.payment.capture)
 
 

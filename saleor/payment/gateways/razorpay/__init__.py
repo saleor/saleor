@@ -98,7 +98,6 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         try:
             with tracer.start_as_current_span("razorpay.payment.capture") as span:
                 span.set_attribute("component", "payment")
-                span.set_attribute("service.name", "razorpay")
                 response = razorpay_client.payment.capture(
                     payment_information.token, razorpay_amount
                 )
@@ -141,7 +140,6 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         try:
             with tracer.start_as_current_span("razorpay.payment.refund") as span:
                 span.set_attribute("component", "payment")
-                span.set_attribute("service.name", "razorpay")
                 response = razorpay_client.payment.refund(
                     payment_information.token, razorpay_amount
                 )

@@ -30,9 +30,7 @@ stripe.api_version = STRIPE_API_VERSION
 
 @contextmanager
 def stripe_otel_trace(span_name):
-    with otel_trace(
-        span_name=span_name, component_name="payment", service_name="stripe"
-    ):
+    with otel_trace(span_name=span_name, component_name="payment"):
         yield
 
 

@@ -346,7 +346,6 @@ class AvataxPlugin(BasePlugin):
         )
         with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
             span.set_attribute("component", "tax")
-            span.set_attribute("service.name", "avatax")
             response = api_post_request(transaction_url, data, self.config)
         if not response or "error" in response:
             msg = response.get("error", {}).get("message", "")
@@ -907,7 +906,6 @@ class AvataxPlugin(BasePlugin):
         url = urljoin(get_api_url(conf["Use sandbox"]), "utilities/ping")
         with tracer.start_as_current_span("avatax.utilities.ping") as span:
             span.set_attribute("component", "tax")
-            span.set_attribute("service.name", "avatax")
             response = api_get_request(
                 url,
                 username_or_account=conf["Username or account"],

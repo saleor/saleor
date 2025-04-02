@@ -566,7 +566,6 @@ def _fetch_new_taxes_data(
     )
     with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
         span.set_attribute("component", "tax")
-        span.set_attribute("service.name", "avatax")
         response = api_post_request(transaction_url, data, config)
     if response and "error" not in response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
@@ -674,7 +673,6 @@ def get_cached_tax_codes_or_fetch(
         tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
         with tracer.start_as_current_span("avatax.definitions.taxcodes") as span:
             span.set_attribute("component", "tax")
-            span.set_attribute("service.name", "avatax")
             response = api_get_request(
                 tax_codes_url, config.username_or_account, config.password_or_license
             )
