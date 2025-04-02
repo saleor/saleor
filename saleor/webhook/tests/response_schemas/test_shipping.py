@@ -201,8 +201,10 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata):
     ],
 )
 def test_shipping_method_schema_invalid(data):
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as e:
         ShippingMethodSchema.model_validate(data)
+
+    assert len(e.value.errors()) == 1
 
 
 @pytest.mark.parametrize("data", [None, []])

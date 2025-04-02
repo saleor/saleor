@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Annotated
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
@@ -6,15 +7,15 @@ from ...core.prices import MAXIMUM_PRICE
 
 
 class LineCalculateTaxesSchema(BaseModel):
-    tax_rate: Decimal = Field(..., ge=0, le=100)
-    total_gross_amount: Decimal = Field(..., ge=0, le=MAXIMUM_PRICE)
-    total_net_amount: Decimal = Field(..., ge=0, le=MAXIMUM_PRICE)
+    tax_rate: Annotated[Decimal, Field(ge=0, le=100)]
+    total_gross_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
+    total_net_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
 
 
 class CalculateTaxesSchema(BaseModel):
-    shipping_tax_rate: Decimal = Field(..., ge=0, le=100)
-    shipping_price_gross_amount: Decimal = Field(..., ge=0, le=MAXIMUM_PRICE)
-    shipping_price_net_amount: Decimal = Field(..., ge=0, le=MAXIMUM_PRICE)
+    shipping_tax_rate: Annotated[Decimal, Field(ge=0, le=100)]
+    shipping_price_gross_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
+    shipping_price_net_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
     lines: list[LineCalculateTaxesSchema] = []
 
     @field_validator("lines")
@@ -24,7 +25,7 @@ class CalculateTaxesSchema(BaseModel):
     ):
         context = info.context
         if not context:
-            return lines
+            raise ValueError("Context is required to validate the number of lines.")
 
         expected_line_count = context.get("expected_line_count")
         if expected_line_count and len(lines) != expected_line_count:
