@@ -16,6 +16,8 @@ All notable, unreleased changes to this project will be documented in this file.
       - `draftOrderUpdate`
 	- The flag must be provided as part of an address; otherwise, an error is raised.
 	- Does not apply to Click & Collect delivery methods — shipping address is not saved in such case.
+- Add OpenTelemetry support - #17456 by @maarcingebala & @przlada
+  - Saleor now supports OpenTelemetry as a standard telemetry solution. See the [documentation](https://docs.saleor.io/setup/telemetry) for more information.
 
 ### Breaking changes
 
