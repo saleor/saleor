@@ -17,12 +17,13 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_checkout_payload,
     generate_excluded_shipping_methods_for_order_payload,
 )
+from ....webhook.response_schemas.shipping import logger as schema_logger
 from ....webhook.transport.shipping import (
     get_excluded_shipping_methods_from_response,
     get_excluded_shipping_methods_or_fetch,
     parse_list_shipping_methods_response,
-    to_shipping_app_id,
 )
+from ....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....webhook.transport.synchronous.transport import trigger_webhook_sync
 from ....webhook.transport.utils import generate_cache_key_for_webhook
 from ...base_plugin import ExcludedShippingMethod
@@ -394,7 +395,8 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     )
 
 
-def test_parse_excluded_shipping_methods_response(app):
+@mock.patch.object(schema_logger, "warning")
+def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
     # given
     external_id = to_shipping_app_id(app, "test-1234")
     response = {
@@ -416,14 +418,21 @@ def test_parse_excluded_shipping_methods_response(app):
             },
         ]
     }
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-gateway.com/apiv2/",
+    )
 
     # when
-    excluded_methods = get_excluded_shipping_methods_from_response(response)
+    excluded_methods = get_excluded_shipping_methods_from_response(response, webhook)
 
     # then
     assert len(excluded_methods) == 2
-    assert excluded_methods[0]["id"] == "2"
-    assert excluded_methods[1]["id"] == external_id
+    assert excluded_methods[0].id == "2"
+    assert excluded_methods[1].id == external_id
+    # 2 warning for each invalid data
+    assert mocked_schema_logger.call_count == 6
 
 
 @mock.patch(
@@ -1243,7 +1252,10 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
     mocked_parse.assert_called_once_with([])
 
 
-def test_parse_list_shipping_methods_response_response_incorrect_format(app):
+@mock.patch.object(schema_logger, "warning")
+def test_parse_list_shipping_methods_response_response_incorrect_format(
+    mocked_logger, app
+):
     # given
     response_data_with_incorrect_format = [[1], 2, "3"]
     # when
@@ -1252,6 +1264,8 @@ def test_parse_list_shipping_methods_response_response_incorrect_format(app):
     )
     # then
     assert result == []
+    # Ensure the warning about invalit method data wa logged
+    assert mocked_logger.call_count == len(response_data_with_incorrect_format)
 
 
 def test_parse_list_shipping_methods_with_metadata(app):
@@ -1310,6 +1324,7 @@ def test_parse_list_shipping_methods_metadata_absent_in_response(app):
     ]
     # when
     response = parse_list_shipping_methods_response(response_data_with_meta, app)
+
     # then
     assert response[0].metadata == {}
 
@@ -1318,7 +1333,7 @@ def test_parse_list_shipping_methods_metadata_is_none(app):
     # given
     response_data_with_meta = [
         {
-            "id": 123,
+            "id": "123",
             "amount": 10,
             "currency": "USD",
             "name": "shipping",
