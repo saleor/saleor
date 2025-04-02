@@ -911,7 +911,6 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
     mocked_logger,
     prices_entered_with_tax,
     checkout_with_single_item,
-    caplog,
 ):
     # given
     checkout = checkout_with_single_item
@@ -961,7 +960,6 @@ def test_fetch_checkout_data_tax_data_missing_tax_id_tax_data_error(
     mocked_logger,
     prices_entered_with_tax,
     checkout_with_single_item,
-    caplog,
 ):
     # given
     checkout = checkout_with_single_item

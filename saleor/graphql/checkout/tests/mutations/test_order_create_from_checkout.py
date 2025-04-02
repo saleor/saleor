@@ -16,6 +16,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....core.taxes import (
+    TaxDataError,
     TaxError,
     zero_money,
     zero_taxed_money,
@@ -2664,7 +2665,12 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     )
 
 
+@patch(
+    "saleor.checkout.calculations._get_taxes_for_checkout",
+    side_effect=TaxDataError("Invalid data"),
+)
 def test_order_from_checkout_tax_error(
+    mocked_get_taxes_for_order,
     app_api_client,
     permission_handle_checkouts,
     checkout_with_items_and_shipping,
