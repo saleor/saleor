@@ -51,7 +51,6 @@ def tracing_wrapper(execute, sql, params, many, context):
             conn.settings_dict.get("HOST"),  # type: ignore[arg-type]
         )
         span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))  # type: ignore[arg-type]
-        span.set_attribute("service.name", "postgres")
         span.set_attribute("span.type", "sql")
         return execute(sql, params, many, context)
 

@@ -60,11 +60,7 @@ def get_fulfillment_for_order(order: Order) -> Fulfillment:
 
 @contextmanager
 def np_atobarai_otel_trace(span_name: str):
-    with otel_trace(
-        span_name=span_name,
-        component_name="payment",
-        service_name="np-atobarai",
-    ):
+    with otel_trace(span_name=span_name, component_name="payment"):
         yield
 
 

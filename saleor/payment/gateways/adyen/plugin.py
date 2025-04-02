@@ -261,7 +261,6 @@ class AdyenGatewayPlugin(BasePlugin):
         if path.startswith(ADDITIONAL_ACTION_PATH):
             with tracer.start_as_current_span("adyen.checkout.payment_details") as span:
                 span.set_attribute("component", "payment")
-                span.set_attribute("service.name", "adyen")
                 return handle_additional_actions(
                     request, self.adyen.checkout.payments_details, self.channel.slug
                 )
@@ -333,7 +332,6 @@ class AdyenGatewayPlugin(BasePlugin):
             )
             with tracer.start_as_current_span("adyen.checkout.payment_methods") as span:
                 span.set_attribute("component", "payment")
-                span.set_attribute("service.name", "adyen")
                 response = api_call(request, self.adyen.checkout.payment_methods)
                 adyen_payment_methods = json.dumps(response.message)
                 config.append({"field": "config", "value": adyen_payment_methods})
@@ -362,8 +360,6 @@ class AdyenGatewayPlugin(BasePlugin):
             "adyen.checkout.payment_methods_balance"
         ) as span:
             span.set_attribute("component", "payment")
-            span.set_attribute("service.name", "adyen")
-
             try:
                 result = api_call(
                     request_data,
@@ -429,7 +425,6 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         with tracer.start_as_current_span("adyen.checkout.payments") as span:
             span.set_attribute("component", "payment")
-            span.set_attribute("service.name", "adyen")
             result = api_call(request_data, self.adyen.checkout.payments)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
@@ -514,7 +509,6 @@ class AdyenGatewayPlugin(BasePlugin):
 
         with tracer.start_as_current_span("adyen.checkout.payment_details") as span:
             span.set_attribute("component", "payment")
-            span.set_attribute("service.name", "adyen")
             result = api_call(additional_data, self.adyen.checkout.payments_details)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
@@ -763,7 +757,6 @@ class AdyenGatewayPlugin(BasePlugin):
         )
         with tracer.start_as_current_span("adyen.payment.cancel") as span:
             span.set_attribute("component", "payment")
-            span.set_attribute("service.name", "adyen")
             result = api_call(request, self.adyen.payment.cancel)
 
         return GatewayResponse(

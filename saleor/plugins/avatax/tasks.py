@@ -39,7 +39,6 @@ def api_post_request_task(transaction_url, data, config, order_id):
 
     with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
         span.set_attribute("component", "tax")
-        span.set_attribute("service.name", "avatax")
         response = api_post_request(transaction_url, data, config)
     msg = f"Order sent to Avatax. Order ID: {order.id}"
     if not response or "error" in response:

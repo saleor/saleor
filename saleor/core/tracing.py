@@ -15,10 +15,9 @@ def traced_atomic_transaction():
 
 
 @contextmanager
-def otel_trace(span_name, component_name, service_name):
+def otel_trace(span_name, component_name):
     with tracer.start_as_current_span(span_name) as span:
         span.set_attribute("component", component_name)
-        span.set_attribute("service.name", service_name)
         yield
 
 
@@ -45,7 +44,6 @@ def webhooks_otel_trace(
             span.set_attribute("app.id", app.id)
             span.set_attribute("app.name", app.name)
         span.set_attribute("component", "webhooks")
-        span.set_attribute("service.name", "webhooks")
         span.set_attribute("webhooks.domain", domain)
         span.set_attribute("webhooks.execution_mode", "sync" if sync else "async")
         span.set_attribute("webhooks.payload_size", payload_size)
