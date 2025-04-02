@@ -3091,3 +3091,33 @@ def test_draft_order_update_nothing_changed(
 
     # confirm that event delivery was generated for each async webhook.
     assert not EventDelivery.objects.filter(webhook_id=draft_order_updated_webhook.id)
+
+
+def test_draft_order_update_with_language_code(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    query = DRAFT_ORDER_UPDATE_BY_EXTERNAL_REFERENCE
+
+    order = draft_order
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    assert not order.language_code == "pl"
+
+    variables = {
+        "id": order_id,
+        "input": {"languageCode": "PL"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+
+    order.refresh_from_db()
+
+    assert order.language_code == "pl"
