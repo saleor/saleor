@@ -17,7 +17,7 @@ from opentelemetry.trace import StatusCode
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
-from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
+from ....core.models import EventDelivery, EventPayload
 from ....core.telemetry import (
     TelemetryTaskContext,
     get_task_context,
