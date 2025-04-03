@@ -2,9 +2,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable
-from opentelemetry.semconv.trace import SpanAttributes
 
 from ...asgi.telemetry import get_hostname, telemetry_middleware
+from ...core.telemetry.attributes import SALEOR_ENVIRONMENT_DOMAIN
 
 
 @pytest.mark.parametrize(
@@ -80,9 +80,9 @@ async def test_telemetry_middleware(mock_set_global_attrs):
 
     # then
     mock_set_global_attrs.assert_called_once()
-    assert SpanAttributes.SERVER_ADDRESS in mock_set_global_attrs.call_args[0][0]
+    assert SALEOR_ENVIRONMENT_DOMAIN in mock_set_global_attrs.call_args[0][0]
     assert (
-        mock_set_global_attrs.call_args[0][0][SpanAttributes.SERVER_ADDRESS]
+        mock_set_global_attrs.call_args[0][0][SALEOR_ENVIRONMENT_DOMAIN]
         == "example.com"
     )
 
