@@ -1488,7 +1488,7 @@ def test_checkout_complete_with_voucher_single_use(
 
 
 @pytest.mark.integration
-def test_checkout_complete_with_voucher_and_gift_card(
+def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
@@ -1604,6 +1604,114 @@ def test_checkout_complete_with_voucher_and_gift_card(
 
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
+    assert gift_card.last_used_on
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
+
+
+@pytest.mark.integration
+def test_checkout_complete_with_voucher_paid_by_gift_card(
+    user_api_client,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    gift_card,
+    address,
+    shipping_method,
+):
+    # given
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
+
+    checkout = checkout_with_voucher_percentage
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout.gift_cards.add(gift_card)
+
+    expected_voucher_discount = checkout.discount
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total_without_gc = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.save()
+
+    expected_gc_balance_amount = (
+        gift_card.initial_balance_amount - total_without_gc.gross.amount
+    )
+
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.get()
+
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+    assert order.total == total
+    assert (
+        order.undiscounted_total
+        == subtotal + shipping_price + expected_voucher_discount
+    )
+
+    order_line = order.lines.first()
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+
+    assert (
+        order_line.unit_discount_amount
+        == (expected_voucher_discount / checkout_line_quantity).amount
+    )
+    assert order_line.unit_discount_reason
+
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
+    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).get()
+    assert order_discount.amount_value == expected_voucher_discount.amount
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance.amount == expected_gc_balance_amount
     assert gift_card.last_used_on
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER

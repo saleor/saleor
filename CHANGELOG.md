@@ -106,3 +106,4 @@ All notable, unreleased changes to this project will be documented in this file.
   certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
 - Allow to change Admin email plugin custom templates back to default - #17563 by @wcislo-saleor
+- Fixes incorrect gift card balances after covering the full order total - #17566 by @korycins
