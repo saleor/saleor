@@ -7,9 +7,9 @@ from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField, Q
 from django.utils import timezone
-from django_prices.models import MoneyField
 
 from ..app.models import App
+from ..core.db.fields import MoneyField
 from ..core.models import ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..permission.enums import GiftcardPermissions

@@ -12,10 +12,10 @@ from django.db import models
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
-from django_prices.models import MoneyField, TaxedMoneyField
 from prices import Money
 
 from ..channel.models import Channel
+from ..core.db.fields import MoneyField, TaxedMoneyField
 from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money
 from ..giftcard.models import GiftCard
