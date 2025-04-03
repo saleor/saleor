@@ -80,11 +80,16 @@ class ShippingMethodUpdateMixin:
         order.shipping_method_name = method.name
 
         tax_class = method.tax_class
+        order.shipping_tax_class = tax_class
         if tax_class:
-            order.shipping_tax_class = tax_class
             order.shipping_tax_class_name = tax_class.name
             order.shipping_tax_class_private_metadata = tax_class.private_metadata
             order.shipping_tax_class_metadata = tax_class.metadata
+        else:
+            order.shipping_tax_class_name = None
+            order.shipping_tax_class_private_metadata = {}
+            order.shipping_tax_class_metadata = {}
+
         invalidate_order_prices(order)
 
     @classmethod
