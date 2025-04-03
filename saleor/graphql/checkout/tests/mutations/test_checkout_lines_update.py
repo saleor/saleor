@@ -1811,7 +1811,7 @@ def test_checkout_lines_update_with_invalid_metadata(
     assert expected_error["code"] == "REQUIRED"
 
 
-def test_checkout_lines_update_with_empy_metadata_preserve_old(
+def test_checkout_lines_update_with_empty_metadata_preserve_old(
     user_api_client,
     checkout_with_item,
 ):
