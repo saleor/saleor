@@ -3409,7 +3409,7 @@ class WebhookPlugin(BasePlugin):
             raise TaxDataError(msg)
         webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
         if webhook is None:
-            msg = "Configured tax app's webhook for checkout taxes doesn't exists."
+            msg = "Configured tax app's webhook for taxes calculation doesn't exists."
             logger.warning(msg)
             raise TaxDataError(msg)
 
