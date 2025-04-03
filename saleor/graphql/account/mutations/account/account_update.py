@@ -100,14 +100,9 @@ class AccountUpdate(AddressMetadataMixin, BaseCustomerCreate, AppImpersonateMixi
     def save(cls, info: ResolveInfo, instance: models.User, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
 
-        default_addresses = cls.save_and_apply_addresses_from_input(
-            cleaned_input=cleaned_input, user_instance=instance
+        cls.save_default_addresses(
+            cleaned_input=cleaned_input, user_instance=instance, save_user=False
         )
-
-        if default_addresses["billing"]:
-            instance.addresses.add(default_addresses["billing"])
-        if default_addresses["shipping"]:
-            instance.addresses.add(default_addresses["shipping"])
 
         instance.search_document = prepare_user_search_document_value(instance)
         instance.save()

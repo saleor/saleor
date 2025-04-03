@@ -58,19 +58,12 @@ class CustomerCreate(BaseCustomerCreate):
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
 
-        default_addresses = cls.save_and_apply_addresses_from_input(
-            cleaned_input=cleaned_input, user_instance=instance
+        cls.save_default_addresses(
+            cleaned_input=cleaned_input, user_instance=instance, save_user=True
         )
 
-        instance.save()
-
-        if default_addresses["billing"]:
-            instance.addresses.add(default_addresses["billing"])
-        if default_addresses["shipping"]:
-            instance.addresses.add(default_addresses["shipping"])
-
         instance.search_document = prepare_user_search_document_value(instance)
-        instance.save()
+        instance.save(update_fields=["search_document"])
 
         cls.call_event(manager.customer_created, instance)
         account_events.customer_account_created_event(user=instance)
