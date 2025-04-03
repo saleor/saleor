@@ -655,6 +655,7 @@ def test_fetch_checkout_data_calls_tax_app(
     mock_get_taxes,
     mock_calculate_checkout_total,
     checkout_with_items,
+    tax_data_response,
 ):
     # given
 
@@ -662,7 +663,7 @@ def test_fetch_checkout_data_calls_tax_app(
     checkout.price_expiration = timezone.now()
     checkout.save()
 
-    mock_get_taxes.return_value = (None, None)
+    mock_get_taxes.return_value = (tax_data_response, None)
 
     checkout.channel.tax_configuration.tax_app_id = "test.app"
     checkout.channel.tax_configuration.save()
@@ -901,8 +902,8 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
 
 
 @pytest.mark.parametrize(
-    "prices_entered_with_tax",
-    [True, False],
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
 )
 @patch.object(logger, "warning")
 @patch("saleor.checkout.calculations._set_checkout_base_prices")
@@ -910,13 +911,14 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
     mock_set_base_prices,
     mocked_logger,
     prices_entered_with_tax,
+    tax_app_id,
     checkout_with_single_item,
 ):
     # given
     checkout = checkout_with_single_item
 
     channel = checkout.channel
-    channel.tax_configuration.tax_app_id = "test.app"
+    channel.tax_configuration.tax_app_id = tax_app_id
     channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     channel.tax_configuration.save()
 
@@ -947,6 +949,7 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
     assert len(mocked_logger.call_args) == 2
     assert mocked_logger.call_args[0][0] == error_msg
     assert mocked_logger.call_args[1]["extra"]["errors"] == errors
+    mock_set_base_prices.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -955,7 +958,7 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
 )
 @patch.object(logger, "warning")
 @patch("saleor.checkout.calculations._set_checkout_base_prices")
-def test_fetch_checkout_data_tax_data_missing_tax_id_tax_data_error(
+def test_fetch_checkout_data_tax_data_missing_tax_id_empty_tax_data(
     mock_set_base_prices,
     mocked_logger,
     prices_entered_with_tax,
@@ -969,9 +972,7 @@ def test_fetch_checkout_data_tax_data_missing_tax_id_tax_data_error(
     channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     channel.tax_configuration.save()
 
-    error_msg = "Invalid tax data"
-    errors = [{"error1": "Negative tax data"}, {"error2": "Invalid tax data"}]
-    returned_tax_data = (None, TaxDataError(message=error_msg, errors=errors))
+    returned_tax_data = (None, None)
     zero_money = zero_taxed_money(checkout.currency)
     manager_methods = {
         "calculate_checkout_total": Mock(return_value=zero_money),
@@ -994,6 +995,7 @@ def test_fetch_checkout_data_tax_data_missing_tax_id_tax_data_error(
     # In case the app identifier is not set, in case of error in tax data, it's skipped.
     assert not checkout_info.checkout.tax_error
     assert mocked_logger.call_count == 0
+    mock_set_base_prices.assert_not_called()
 
 
 @patch("saleor.plugins.avatax.plugin.get_checkout_tax_data")

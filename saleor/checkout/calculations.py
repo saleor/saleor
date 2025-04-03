@@ -513,13 +513,15 @@ def _calculate_and_add_tax(
                 checkout, manager, checkout_info, lines, address
             )
             # Get the taxes calculated with apps and apply to checkout.
+            # We should allow empty tax_data in case any tax webhook has been configured
+            # handled by `allowed_empty_tax_data`
             tax_data = _get_taxes_for_checkout(
                 checkout_info,
                 lines,
                 tax_app_identifier,
                 manager,
                 pregenerated_subscription_payloads,
-                skip_validation=True,
+                allowed_empty_tax_data=True,
             )
             _apply_tax_data(checkout, lines, tax_data)
         else:
@@ -592,8 +594,13 @@ def _get_taxes_for_checkout(
     tax_app_identifier,
     manager,
     pregenerated_subscription_payloads,
-    skip_validation=False,
+    allowed_empty_tax_data=False,
 ):
+    """Get taxes for checkout from tax apps.
+
+    The `allowed_empty_tax_data` flag prevents an error from being raised when tax data
+    is missing due to the absence of a configured tax app.
+    """
     from .utils import log_address_if_validation_skipped_for_checkout
 
     tax_data, error = manager.get_taxes_for_checkout(
@@ -605,10 +612,10 @@ def _get_taxes_for_checkout(
     if tax_data is None:
         log_address_if_validation_skipped_for_checkout(checkout_info, logger)
 
-        if not error:
+        if not error and not allowed_empty_tax_data:
             error = TaxDataError(TaxDataErrorMessage.EMPTY)
 
-    if error and not skip_validation:
+    if error:
         raise error
 
     return tax_data

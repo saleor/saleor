@@ -1520,13 +1520,14 @@ def test_fetch_order_data_calls_tax_app(
     mock_calculate_order_total,
     order_with_lines,
     order_lines,
+    tax_data_response,
 ):
     # given
     order = order_with_lines
     order.channel.tax_configuration.tax_app_id = "test.app"
     order.channel.tax_configuration.save()
 
-    mock_get_taxes.return_value = (None, None)
+    mock_get_taxes.return_value = (tax_data_response, None)
 
     fetch_kwargs = {
         "order": order,
@@ -1612,20 +1613,21 @@ def test_calculate_taxes_empty_tax_data_logging_address(
 
 
 @pytest.mark.parametrize(
-    "prices_entered_with_tax",
-    [True, False],
+    ("prices_entered_with_tax", "tax_app_id"),
+    [(True, None), (True, "test.app"), (False, None), (False, "test.app")],
 )
 @patch.object(logger, "warning")
 def test_fetch_order_data_tax_data_with_tax_data_error(
     mocked_logger,
     prices_entered_with_tax,
+    tax_app_id,
     order_with_lines,
 ):
     # given
     order = order_with_lines
 
     channel = order.channel
-    channel.tax_configuration.tax_app_id = "tax_app_id"
+    channel.tax_configuration.tax_app_id = tax_app_id
     channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     channel.tax_configuration.save()
 
@@ -1664,7 +1666,7 @@ def test_fetch_order_data_tax_data_with_tax_data_error(
     [True, False],
 )
 @patch.object(logger, "warning")
-def test_fetch_order_data_tax_data_missing_tax_id_tax_data_error(
+def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
     mocked_logger,
     prices_entered_with_tax,
     order_with_lines,
@@ -1677,9 +1679,7 @@ def test_fetch_order_data_tax_data_missing_tax_id_tax_data_error(
     channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     channel.tax_configuration.save()
 
-    error_msg = "Invalid tax data"
-    errors = [{"error1": "Negative tax data"}, {"error2": "Invalid tax data"}]
-    returned_tax_data = (None, TaxDataError(message=error_msg, errors=errors))
+    returned_tax_data = (None, None)
     zero_money = zero_taxed_money(order.currency)
     zero_prices = OrderTaxedPricesData(
         undiscounted_price=zero_money,

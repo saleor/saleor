@@ -448,12 +448,15 @@ def test_checkout_complete_calls_correct_tax_app(
     channel_USD,
     address,
     tax_app,
-    tax_data_response,  # noqa: F811
+    tax_data_response_factory,  # noqa: F811
     settings,
 ):
     # given
-    mock_request.return_value = tax_data_response
     checkout = checkout_without_shipping_required
+    mock_request.return_value = tax_data_response_factory(
+        lines_length=checkout.lines.count()
+    )
+
     checkout.billing_address = address
     checkout.price_expiration = timezone.now()
     checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
@@ -558,13 +561,17 @@ def test_checkout_complete_calls_correct_force_tax_calculation_when_tax_error_wa
     channel_USD,
     address,
     tax_app,
-    tax_data_response,  # noqa: F811
+    tax_data_response_factory,  # noqa: F811
     settings,
 ):
     # given
-    mock_request.return_value = tax_data_response
 
     checkout = checkout_without_shipping_required
+
+    mock_request.return_value = tax_data_response_factory(
+        lines_length=checkout.lines.count()
+    )
+
     checkout.billing_address = address
     checkout.price_expiration = (
         timezone.now() + settings.CHECKOUT_PRICES_TTL + timezone.timedelta(hours=1)

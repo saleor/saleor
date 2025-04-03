@@ -253,8 +253,11 @@ def _calculate_and_add_tax(
             # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
             # be dropped.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
+            # Get the taxes calculated with apps and apply to order.
+            # We should allow empty tax_data in case any tax webhook has been configured
+            # handled by `allowed_empty_tax_data`
             tax_data = _get_taxes_for_order(
-                order, tax_app_identifier, manager, skip_validation=True
+                order, tax_app_identifier, manager, allowed_empty_tax_data=True
             )
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
@@ -303,16 +306,23 @@ def _call_plugin_or_tax_app(
         _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
 
 
-def _get_taxes_for_order(order, tax_app_identifier, manager, skip_validation=False):
+def _get_taxes_for_order(
+    order, tax_app_identifier, manager, allowed_empty_tax_data=False
+):
+    """Get taxes for order from tax apps.
+
+    The `allowed_empty_tax_data` flag prevents an error from being raised when tax data
+    is missing due to the absence of a configured tax app.
+    """
     tax_data, error = manager.get_taxes_for_order(order, tax_app_identifier)
 
     if tax_data is None:
         log_address_if_validation_skipped_for_order(order, logger)
 
-        if not error:
+        if not error and not allowed_empty_tax_data:
             error = TaxDataError(TaxDataErrorMessage.EMPTY)
 
-    if error and not skip_validation:
+    if error:
         raise error
 
     return tax_data
