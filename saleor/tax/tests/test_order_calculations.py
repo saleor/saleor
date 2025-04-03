@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from prices import Money, TaxedMoney
 
-from saleor.tax.models import TaxClassCountryRate
+from saleor.tax.models import TaxClass, TaxClassCountryRate
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
@@ -335,6 +335,7 @@ def test_calculate_order_shipping(order_line, shipping_zone):
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = method.name
     order.shipping_method = method
+    order.shipping_tax_class = method.tax_class
     base_shipping_price = method.channel_listings.get(channel=order.channel).price
     order.base_shipping_price = base_shipping_price
     order.undiscounted_base_shipping_price = base_shipping_price
@@ -665,19 +666,10 @@ def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     )
 
     # when
-    for line in lines:
-        tax_class = line.variant.product.tax_class
-        if tax_class:
-            tax_class.delete()
-        tax_class = line.variant.product.product_type.tax_class
-        if tax_class:
-            tax_class.delete()
-        line.refresh_from_db()
+    TaxClass.objects.all().delete()
 
-    shipping_tax_class = order.shipping_method.tax_class
-    if shipping_tax_class:
-        shipping_tax_class.delete()
-        order.shipping_method.refresh_from_db()
+    order.refresh_from_db()
+    lines = order.lines.all()
 
     update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
