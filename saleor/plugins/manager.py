@@ -663,11 +663,9 @@ class PluginsManager(PaymentInterface):
         method_name: str,
         *args,
         channel_slug: str | None,
-        plugins: list["BasePlugin"] | None = None,
         **kwargs,
     ) -> TaxData | None:
-        if plugins is None:
-            plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
+        plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
         default_value = None
         error = None
         if plugins:
