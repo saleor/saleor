@@ -410,6 +410,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             "private_metadata",
             "draft_save_billing_address",
             "draft_save_shipping_address",
+            "language_code",
         ]
 
     def serialize_for_comparison(self):

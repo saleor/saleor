@@ -7,7 +7,7 @@ from prices import Money
 
 from .....checkout.utils import assign_external_shipping_to_checkout
 from .....shipping.interface import ShippingMethodData
-from .....webhook.transport.shipping import to_shipping_app_id
+from .....webhook.transport.shipping_helpers import to_shipping_app_id
 from ....tests.utils import get_graphql_content
 
 

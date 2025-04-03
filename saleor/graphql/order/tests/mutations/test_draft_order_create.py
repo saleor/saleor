@@ -3979,3 +3979,44 @@ def test_draft_order_create_set_order_line_price_expiration_time(
     # then
     new_line = OrderLine.objects.get()
     assert new_line.draft_base_price_expire_at == expected_expire_time
+
+
+def test_draft_order_create_create_with_language_code(
+    staff_api_client,
+    permission_group_manage_orders,
+    variant,
+    channel_USD,
+    graphql_address_data,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    variant_list = [{"variantId": variant_0_id, "quantity": 2}]
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "lines": variant_list,
+            "billingAddress": graphql_address_data,
+            "shippingAddress": graphql_address_data,
+            "channelId": channel_id,
+            "languageCode": "PL",
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    order_id = content["data"]["draftOrderCreate"]["order"]["id"]
+    _, order_pk = graphene.Node.from_global_id(order_id)
+
+    order = Order.objects.get(id=order_pk)
+
+    assert order.language_code == "pl"
