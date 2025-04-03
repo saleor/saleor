@@ -891,7 +891,7 @@ def test_fetch_order_prices_if_expired_plugins(
     plugins_manager.get_order_line_tax_rate = Mock(side_effect=tax_rates)
     plugins_manager.calculate_order_shipping = Mock(return_value=shipping)
     plugins_manager.get_order_shipping_tax_rate = Mock(return_value=shipping_tax_rate)
-    plugins_manager.get_taxes_for_order = Mock(return_value=(None, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=None)
     plugins_manager.calculate_order_total = Mock(return_value=total)
 
     # when
@@ -955,7 +955,7 @@ def test_fetch_order_prices_if_expired_webhooks_success(
 ):
     # given
     currency = order_with_lines.currency
-    plugins_manager.get_taxes_for_order = Mock(return_value=(tax_data, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -988,7 +988,7 @@ def test_fetch_order_prices_if_expired_plugins_with_allow_sync_webhooks_to_false
     plugins_manager.get_order_line_tax_rate = Mock(side_effect=None)
     plugins_manager.calculate_order_shipping = Mock(return_value=None)
     plugins_manager.get_order_shipping_tax_rate = Mock(return_value=None)
-    plugins_manager.get_taxes_for_order = Mock(return_value=(None, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=None)
     plugins_manager.calculate_order_total = Mock(return_value=None)
 
     fetch_kwargs_with_lines["allow_sync_webhooks"] = False
@@ -1054,7 +1054,7 @@ def test_fetch_order_prices_tax_app_with_allow_sync_webhook_set_to_false(
     order_with_lines,
 ):
     # given
-    plugins_manager.get_taxes_for_order = Mock(return_value=(None, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=None)
 
     fetch_kwargs_with_lines["allow_sync_webhooks"] = False
     order_from_input = fetch_kwargs_with_lines["order"]
@@ -1090,7 +1090,7 @@ def test_fetch_order_prices_if_expired_recalculate_all_prices(
     order_with_lines.undiscounted_total_net_amount = Decimal("0.00")
     order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
     order_with_lines.save()
-    plugins_manager.get_taxes_for_order = Mock(return_value=(tax_data, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -1147,7 +1147,7 @@ def test_fetch_order_prices_when_tax_exemption(
     order_with_lines.undiscounted_total_gross_amount = Decimal("0.00")
     order_with_lines.tax_exemption = True
     order_with_lines.save()
-    plugins_manager.get_taxes_for_order = Mock(return_value=(tax_data, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -1277,7 +1277,7 @@ def test_fetch_order_prices_on_promotion_if_expired_recalculate_all_prices(
     tax_data = tax_data_prices_entered_with_tax
     currency = order_with_lines.currency
     order_line_on_promotion.order = order_with_lines
-    plugins_manager.get_taxes_for_order = Mock(return_value=(tax_data, None))
+    plugins_manager.get_taxes_for_order = Mock(return_value=tax_data)
 
     # when
     calculations.fetch_order_prices_if_expired(**fetch_kwargs)
@@ -1527,7 +1527,7 @@ def test_fetch_order_data_calls_tax_app(
     order.channel.tax_configuration.tax_app_id = "test.app"
     order.channel.tax_configuration.save()
 
-    mock_get_taxes.return_value = (tax_data_response, None)
+    mock_get_taxes.return_value = tax_data_response
 
     fetch_kwargs = {
         "order": order,
@@ -1597,7 +1597,7 @@ def test_calculate_taxes_empty_tax_data_logging_address(
         "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
         "calculate_order_shipping": Mock(return_value=zero_money),
-        "get_taxes_for_order": Mock(return_value=(None, None)),
+        "get_taxes_for_order": Mock(return_value=None),
     }
     manager = Mock(**manager_methods)
     tax_calculation_strategy = get_tax_calculation_strategy_for_order(order)
@@ -1633,7 +1633,7 @@ def test_fetch_order_data_tax_data_with_tax_data_error(
 
     error_msg = "Invalid tax data"
     errors = [{"error1": "Negative tax data"}, {"error2": "Invalid tax data"}]
-    returned_tax_data = (None, TaxDataError(message=error_msg, errors=errors))
+    returned_tax_error = TaxDataError(message=error_msg, errors=errors)
     zero_money = zero_taxed_money(order.currency)
     zero_prices = OrderTaxedPricesData(
         undiscounted_price=zero_money,
@@ -1646,7 +1646,7 @@ def test_fetch_order_data_tax_data_with_tax_data_error(
         "calculate_order_shipping": Mock(return_value=zero_money),
         "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_order": Mock(return_value=returned_tax_data),
+        "get_taxes_for_order": Mock(side_effect=returned_tax_error),
     }
     manager = Mock(**manager_methods)
 
@@ -1679,7 +1679,6 @@ def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
     channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     channel.tax_configuration.save()
 
-    returned_tax_data = (None, None)
     zero_money = zero_taxed_money(order.currency)
     zero_prices = OrderTaxedPricesData(
         undiscounted_price=zero_money,
@@ -1692,7 +1691,7 @@ def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
         "calculate_order_shipping": Mock(return_value=zero_money),
         "get_order_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_order_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_order": Mock(return_value=returned_tax_data),
+        "get_taxes_for_order": Mock(return_value=None),
     }
     manager = Mock(**manager_methods)
 

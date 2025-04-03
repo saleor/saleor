@@ -560,13 +560,12 @@ def test_manager_get_taxes_for_checkout(
     app_identifier = None
 
     # when
-    tax_data, error = PluginsManager(plugins=plugins).get_taxes_for_checkout(
+    tax_data = PluginsManager(plugins=plugins).get_taxes_for_checkout(
         checkout_info, lines, app_identifier
     )
 
     # then
     assert tax_data == expected_tax_data(checkout)
-    assert error is None
 
 
 @pytest.mark.parametrize(
@@ -585,13 +584,12 @@ def test_manager_get_taxes_for_order(
     app_identifier = None
 
     # when
-    tax_data, error = PluginsManager(plugins=plugins).get_taxes_for_order(
+    tax_data = PluginsManager(plugins=plugins).get_taxes_for_order(
         order, app_identifier
     )
 
     # then
     assert tax_data == expected_tax_data(order)
-    assert not error
 
 
 def test_manager_sale_created(promotion_converted_from_sale):

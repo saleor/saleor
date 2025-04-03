@@ -603,20 +603,23 @@ def _get_taxes_for_checkout(
     """
     from .utils import log_address_if_validation_skipped_for_checkout
 
-    tax_data, error = manager.get_taxes_for_checkout(
-        checkout_info,
-        lines,
-        tax_app_identifier,
-        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-    )
-    if tax_data is None:
-        log_address_if_validation_skipped_for_checkout(checkout_info, logger)
+    tax_data = None
+    try:
+        tax_data = manager.get_taxes_for_checkout(
+            checkout_info,
+            lines,
+            tax_app_identifier,
+            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        )
+    except TaxDataError as e:
+        raise e from e
+    finally:
+        # log in case the tax_data is missing
+        if tax_data is None:
+            log_address_if_validation_skipped_for_checkout(checkout_info, logger)
 
-        if not error and not allowed_empty_tax_data:
-            error = TaxDataError(TaxDataErrorMessage.EMPTY)
-
-    if error:
-        raise error
+    if not tax_data and not allowed_empty_tax_data:
+        raise TaxDataError(TaxDataErrorMessage.EMPTY)
 
     return tax_data
 

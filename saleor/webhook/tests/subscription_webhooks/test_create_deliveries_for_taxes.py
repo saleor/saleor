@@ -1046,7 +1046,7 @@ def test_order_calculate_taxes_with_manual_discount(
     )
     total_amount = subtotal_amount + shipping_price_amount
 
-    manager = Mock(get_taxes_for_order=Mock(return_value=({}, None)))
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
     fetch_order_prices_if_expired(order, manager, [line_1, line_2], True)
 
     webhook = subscription_calculate_taxes_for_order
@@ -1185,7 +1185,7 @@ def test_order_calculate_taxes_order_promotion(
     assert rule.reward_value_type == RewardValueType.FIXED
     assert rule.reward_type == RewardType.SUBTOTAL_DISCOUNT
 
-    manager = Mock(get_taxes_for_order=Mock(return_value=({}, None)))
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
 
     # when
     fetch_order_prices_if_expired(order, manager, None, True)
@@ -1277,7 +1277,7 @@ def test_order_calculate_taxes_order_voucher_and_manual_discount(
     subtotal_manual_reward_portion = (subtotal_amount / total_amount) * manual_reward
     shipping_manual_reward_portion = manual_reward - subtotal_manual_reward_portion
 
-    manager = Mock(get_taxes_for_order=Mock(return_value=({}, None)))
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
 
     # when
     fetch_order_prices_if_expired(order, manager, None, True)
@@ -1381,7 +1381,7 @@ def test_order_calculate_taxes_order_promotion_and_manual_discount(
     subtotal_manual_reward_portion = (subtotal_amount / total_amount) * manual_reward
     shipping_manual_reward_portion = manual_reward - subtotal_manual_reward_portion
 
-    manager = Mock(get_taxes_for_order=Mock(return_value=({}, None)))
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
 
     # when
     fetch_order_prices_if_expired(order, manager, None, True)
@@ -1479,7 +1479,7 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_fixed(
     # Since shipping is free, whole manual discount should be applied to subtotal
     subtotal_manual_reward_portion = manual_reward
 
-    manager = Mock(get_taxes_for_order=Mock(return_value=({}, None)))
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
 
     # when
     fetch_order_prices_if_expired(order, manager, None, True)
@@ -1580,7 +1580,7 @@ def test_order_calculate_taxes_free_shipping_voucher_and_manual_discount_percent
     # Since shipping is free, whole manual discount should be applied to subtotal
     subtotal_manual_reward_portion = manual_reward / 100 * total_amount
 
-    manager = Mock(get_taxes_for_order=Mock(return_value=({}, None)))
+    manager = Mock(get_taxes_for_order=Mock(return_value={}))
 
     # when
     fetch_order_prices_if_expired(order, manager, None, True)

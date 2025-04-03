@@ -86,8 +86,6 @@ if TYPE_CHECKING:
 
 NotifyEventTypeChoice = str
 
-TaxResponseType = tuple[TaxData | None, TaxDataError | None]
-
 
 class PluginsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
@@ -638,7 +636,7 @@ class PluginsManager(PaymentInterface):
         lines,
         app_identifier,
         pregenerated_subscription_payloads: dict | None = None,
-    ) -> TaxResponseType:
+    ) -> TaxData | None:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         return self.__run_tax_method_until_first_success(
@@ -652,7 +650,7 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def get_taxes_for_order(self, order: "Order", app_identifier) -> TaxResponseType:
+    def get_taxes_for_order(self, order: "Order", app_identifier) -> TaxData | None:
         return self.__run_tax_method_until_first_success(
             "get_taxes_for_order",
             order,
@@ -667,19 +665,27 @@ class PluginsManager(PaymentInterface):
         channel_slug: str | None,
         plugins: list["BasePlugin"] | None = None,
         **kwargs,
-    ) -> TaxResponseType:
+    ) -> TaxData | None:
         if plugins is None:
             plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
-        result = (None, None)
+        default_value = None
+        error = None
         if plugins:
+            # try to get the proper response from the plugins; in case any plugin
+            # return proper response, raise an error from last plugin
             for plugin in plugins:
-                result = self.__run_method_on_single_plugin(
-                    plugin, method_name, (None, None), *args, **kwargs
-                )
-                tax_data = result[0]
+                try:
+                    tax_data = self.__run_method_on_single_plugin(
+                        plugin, method_name, default_value, *args, **kwargs
+                    )
+                except TaxDataError as e:
+                    error = e
+                    continue
                 if tax_data is not None:
-                    return result
-        return result
+                    return tax_data
+        if error:
+            raise error
+        return default_value
 
     def preprocess_order_creation(
         self,

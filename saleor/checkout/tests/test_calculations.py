@@ -153,7 +153,7 @@ def test_fetch_checkout_data_plugins(
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
     currency = checkout_with_items.currency
-    plugins_manager.get_taxes_for_checkout = Mock(return_value=(None, None))
+    plugins_manager.get_taxes_for_checkout = Mock(return_value=None)
 
     totals, tax_rates = zip(
         *[
@@ -217,7 +217,7 @@ def test_fetch_checkout_data_plugins_allow_sync_webhooks_set_to_false(
     checkout_with_items.save(update_fields=["price_expiration"])
 
     currency = checkout_with_items.currency
-    plugins_manager.get_taxes_for_checkout = Mock(return_value=(None, None))
+    plugins_manager.get_taxes_for_checkout = Mock(return_value=None)
 
     previous_subtotal = checkout_with_items.subtotal
     previous_shipping_price = checkout_with_items.shipping_price
@@ -466,7 +466,7 @@ def test_fetch_checkout_data_webhooks_success(
     checkout_with_items.price_expiration = timezone.now()
     checkout_with_items.save(update_fields=["price_expiration"])
     currency = checkout_with_items.currency
-    plugins_manager.get_taxes_for_checkout = Mock(return_value=(tax_data, None))
+    plugins_manager.get_taxes_for_checkout = Mock(return_value=tax_data)
 
     # when
     fetch_checkout_data(**fetch_kwargs)
@@ -663,7 +663,7 @@ def test_fetch_checkout_data_calls_tax_app(
     checkout.price_expiration = timezone.now()
     checkout.save()
 
-    mock_get_taxes.return_value = (tax_data_response, None)
+    mock_get_taxes.return_value = tax_data_response
 
     checkout.channel.tax_configuration.tax_app_id = "test.app"
     checkout.channel.tax_configuration.save()
@@ -876,7 +876,7 @@ def test_calculate_and_add_tax_empty_tax_data_logging_address(
         "calculate_checkout_shipping": Mock(return_value=zero_money),
         "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_checkout": Mock(return_value=(None, None)),
+        "get_taxes_for_checkout": Mock(return_value=None),
     }
     manager = Mock(**manager_methods)
 
@@ -924,7 +924,7 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
 
     error_msg = "Invalid tax data"
     errors = [{"error1": "Negative tax data"}, {"error2": "Invalid tax data"}]
-    returned_tax_data = (None, TaxDataError(message=error_msg, errors=errors))
+    returned_tax_error = TaxDataError(message=error_msg, errors=errors)
     zero_money = zero_taxed_money(checkout.currency)
     manager_methods = {
         "calculate_checkout_total": Mock(return_value=zero_money),
@@ -933,7 +933,7 @@ def test_fetch_checkout_data_tax_data_with_tax_data_error(
         "calculate_checkout_shipping": Mock(return_value=zero_money),
         "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_checkout": Mock(return_value=returned_tax_data),
+        "get_taxes_for_checkout": Mock(side_effect=returned_tax_error),
     }
     manager = Mock(**manager_methods)
 
@@ -972,7 +972,6 @@ def test_fetch_checkout_data_tax_data_missing_tax_id_empty_tax_data(
     channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     channel.tax_configuration.save()
 
-    returned_tax_data = (None, None)
     zero_money = zero_taxed_money(checkout.currency)
     manager_methods = {
         "calculate_checkout_total": Mock(return_value=zero_money),
@@ -981,7 +980,7 @@ def test_fetch_checkout_data_tax_data_missing_tax_id_empty_tax_data(
         "calculate_checkout_shipping": Mock(return_value=zero_money),
         "get_checkout_shipping_tax_rate": Mock(return_value=Decimal("0.00")),
         "get_checkout_line_tax_rate": Mock(return_value=Decimal("0.00")),
-        "get_taxes_for_checkout": Mock(return_value=returned_tax_data),
+        "get_taxes_for_checkout": Mock(return_value=None),
     }
     manager = Mock(**manager_methods)
 

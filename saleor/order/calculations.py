@@ -314,16 +314,18 @@ def _get_taxes_for_order(
     The `allowed_empty_tax_data` flag prevents an error from being raised when tax data
     is missing due to the absence of a configured tax app.
     """
-    tax_data, error = manager.get_taxes_for_order(order, tax_app_identifier)
+    tax_data = None
+    try:
+        tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+    except TaxDataError as e:
+        raise e from e
+    finally:
+        # log in case the tax_data is missing
+        if tax_data is None:
+            log_address_if_validation_skipped_for_order(order, logger)
 
-    if tax_data is None:
-        log_address_if_validation_skipped_for_order(order, logger)
-
-        if not error and not allowed_empty_tax_data:
-            error = TaxDataError(TaxDataErrorMessage.EMPTY)
-
-    if error:
-        raise error
+    if not tax_data and not allowed_empty_tax_data:
+        raise TaxDataError(TaxDataErrorMessage.EMPTY)
 
     return tax_data
 

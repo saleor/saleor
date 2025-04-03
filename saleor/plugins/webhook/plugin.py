@@ -3391,7 +3391,7 @@ class WebhookPlugin(BasePlugin):
         expected_lines_count: int,
         subscriptable_object=None,
         pregenerated_subscription_payloads: dict | None = None,
-    ) -> tuple[TaxData | None, TaxDataError | None]:
+    ) -> TaxData:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         app = (
@@ -3406,12 +3406,12 @@ class WebhookPlugin(BasePlugin):
         if app is None:
             msg = "Configured tax app doesn't exist."
             logger.warning(msg)
-            return None, TaxDataError(msg)
+            raise TaxDataError(msg)
         webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
         if webhook is None:
             msg = "Configured tax app's webhook for checkout taxes doesn't exists."
             logger.warning(msg)
-            return None, TaxDataError(msg)
+            raise TaxDataError(msg)
 
         request_context = initialize_request(
             self.requestor,
@@ -3443,8 +3443,8 @@ class WebhookPlugin(BasePlugin):
                 str(e),
                 extra={"errors": errors},
             )
-            return None, TaxDataError(str(e), errors=errors)
-        return tax_data, None
+            raise TaxDataError(str(e), errors=errors) from e
+        return tax_data
 
     def get_taxes_for_checkout(
         self,
@@ -3453,7 +3453,7 @@ class WebhookPlugin(BasePlugin):
         app_identifier,
         previous_value,
         pregenerated_subscription_payloads: dict | None = None,
-    ) -> tuple[TaxData | None, TaxDataError | None]:
+    ) -> TaxData | None:
         if pregenerated_subscription_payloads is None:
             pregenerated_subscription_payloads = {}
         event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
@@ -3482,11 +3482,11 @@ class WebhookPlugin(BasePlugin):
             checkout_info.checkout,
             self.requestor,
             pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-        ), None
+        )
 
     def get_taxes_for_order(
         self, order: "Order", app_identifier, previous_value
-    ) -> tuple[TaxData | None, TaxDataError | None]:
+    ) -> TaxData | None:
         event_type = WebhookEventSyncType.ORDER_CALCULATE_TAXES
         lines_count = order.lines.count()
         if app_identifier:
@@ -3506,7 +3506,7 @@ class WebhookPlugin(BasePlugin):
             lines_count,
             order,
             self.requestor,
-        ), None
+        )
 
     def get_shipping_methods_for_checkout(
         self, checkout: "Checkout", previous_value: Any

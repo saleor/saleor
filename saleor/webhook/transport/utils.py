@@ -548,7 +548,7 @@ def save_unsuccessful_delivery_attempt(attempt: "EventDeliveryAttempt"):
 def parse_tax_data(
     response_data: Any,
     lines_count: int,
-) -> TaxData | None:
+) -> TaxData:
     calculated_taxes_model = CalculateTaxesSchema.model_validate(
         response_data,
         context={"expected_line_count": lines_count},
