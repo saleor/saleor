@@ -605,10 +605,13 @@ def _get_taxes_for_checkout(
     if tax_data is None:
         log_address_if_validation_skipped_for_checkout(checkout_info, logger)
 
-    if skip_validation or not error:
-        return tax_data
+        if not error:
+            error = TaxDataError(TaxDataErrorMessage.EMPTY)
 
-    raise error
+    if error and not skip_validation:
+        raise error
+
+    return tax_data
 
 
 def _remove_tax(checkout, lines_info):

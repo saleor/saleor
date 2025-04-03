@@ -670,15 +670,16 @@ class PluginsManager(PaymentInterface):
     ) -> TaxResponseType:
         if plugins is None:
             plugins = self.get_plugins(channel_slug=channel_slug, active_only=True)
-        previous_value = (None, None)
+        result = (None, None)
         if plugins:
             for plugin in plugins:
                 result = self.__run_method_on_single_plugin(
-                    plugin, method_name, previous_value, *args, **kwargs
+                    plugin, method_name, (None, None), *args, **kwargs
                 )
-                if result is not None:
+                tax_data = result[0]
+                if tax_data is not None:
                     return result
-        return previous_value
+        return result
 
     def preprocess_order_creation(
         self,

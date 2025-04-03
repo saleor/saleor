@@ -435,7 +435,7 @@ def test_checkout_complete_fails_with_invalid_tax_app(
 
     checkout.refresh_from_db()
     assert checkout.price_expiration == timezone.now() + settings.CHECKOUT_PRICES_TTL
-    assert checkout.tax_error == "Empty tax data."
+    assert checkout.tax_error == "Configured tax app doesn't exist."
 
 
 @freeze_time()

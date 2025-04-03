@@ -305,13 +305,17 @@ def _call_plugin_or_tax_app(
 
 def _get_taxes_for_order(order, tax_app_identifier, manager, skip_validation=False):
     tax_data, error = manager.get_taxes_for_order(order, tax_app_identifier)
+
     if tax_data is None:
         log_address_if_validation_skipped_for_order(order, logger)
 
-    if skip_validation or not error:
-        return tax_data
+        if not error:
+            error = TaxDataError(TaxDataErrorMessage.EMPTY)
 
-    raise error
+    if error and not skip_validation:
+        raise error
+
+    return tax_data
 
 
 def _recalculate_with_plugins(

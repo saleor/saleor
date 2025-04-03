@@ -3404,14 +3404,14 @@ class WebhookPlugin(BasePlugin):
             .first()
         )
         if app is None:
-            logger.warning("Configured tax app doesn't exists.")
-            return None, None
+            msg = "Configured tax app doesn't exist."
+            logger.warning(msg)
+            return None, TaxDataError(msg)
         webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
         if webhook is None:
-            logger.warning(
-                "Configured tax app's webhook for checkout taxes doesn't exists."
-            )
-            return None, None
+            msg = "Configured tax app's webhook for checkout taxes doesn't exists."
+            logger.warning(msg)
+            return None, TaxDataError(msg)
 
         request_context = initialize_request(
             self.requestor,
