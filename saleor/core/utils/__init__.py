@@ -153,3 +153,14 @@ def prepare_unique_attribute_value_slug(attribute: "Attribute", slug: str):
         "slug", flat=True
     )
     return prepare_unique_slug(slug, value_slugs)
+
+
+def truncate_msg(message: str, max_length: int) -> str:
+    """Truncate a message to a specified maximum length.
+
+    If the message exceeds the maximum length, it will be truncated
+    and '...' will be appended to indicate truncation.
+    """
+    if len(message) > max_length:
+        return f"{message[: max_length - 3]}..."
+    return message

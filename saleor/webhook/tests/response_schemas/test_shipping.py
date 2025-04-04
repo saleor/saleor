@@ -99,7 +99,7 @@ def test_shipping_method_schema_valid(data):
     # then
     assert shipping_method_model.id == str(data["id"])
     assert shipping_method_model.name == data["name"]
-    assert shipping_method_model.amount == data["amount"]
+    assert shipping_method_model.amount == Decimal(data["amount"])
     assert shipping_method_model.currency == data["currency"]
     assert shipping_method_model.maximum_delivery_days == data.get(
         "maximum_delivery_days"

@@ -18,7 +18,7 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
 from ...core.taxes import TaxData, TaxDataError, TaxType
-from ...core.utils import build_absolute_uri
+from ...core.utils import build_absolute_uri, truncate_msg
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
@@ -30,6 +30,7 @@ from ...graphql.webhook.utils import (
     get_pregenerated_subscription_payload,
     get_subscription_query_hash,
 )
+from ...order.models import Order
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
@@ -160,6 +161,10 @@ if TYPE_CHECKING:
 # (FedEx, UPS, TNT, DHL).
 CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 3600 * 12
 
+MAX_TAX_ERROR_LGTH: int = min(  # type: ignore[type-var, assignment]
+    Order._meta.get_field("tax_error").max_length,
+    Checkout._meta.get_field("tax_error").max_length,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -3443,7 +3448,8 @@ class WebhookPlugin(BasePlugin):
                 str(e),
                 extra={"errors": errors},
             )
-            raise TaxDataError(str(e), errors=errors) from e
+            error_msg = truncate_msg(str(e), max_length=MAX_TAX_ERROR_LGTH)
+            raise TaxDataError(error_msg, errors=errors) from e
         return tax_data
 
     def get_taxes_for_checkout(

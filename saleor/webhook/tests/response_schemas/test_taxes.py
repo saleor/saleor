@@ -47,9 +47,9 @@ def test_line_calculate_taxes_schema_valid(data):
     line_model = LineCalculateTaxesSchema.model_validate(data)
 
     # then
-    assert line_model.tax_rate == Decimal(data["tax_rate"])
-    assert line_model.total_gross_amount == Decimal(data["total_gross_amount"])
-    assert line_model.total_net_amount == Decimal(data["total_net_amount"])
+    assert line_model.tax_rate == Decimal(str(data["tax_rate"]))
+    assert line_model.total_gross_amount == Decimal(str(data["total_gross_amount"]))
+    assert line_model.total_net_amount == Decimal(str(data["total_net_amount"]))
 
 
 @pytest.mark.parametrize(
@@ -260,7 +260,11 @@ def test_calculate_taxes_schema_invalid(data, expected_line_count):
     assert len(e.value.errors()) == 1
 
 
-def test_calculate_taxes_schema_missing_context(data, expected_line_count):
+def test_calculate_taxes_schema_missing_context():
     """Test CalculateTaxesSchema with invalid data."""
+    # given
+    data = {}
+
+    # when & then
     with pytest.raises(ValidationError):
         CalculateTaxesSchema.model_validate(data)
