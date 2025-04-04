@@ -1089,10 +1089,12 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
     draft_order,
     channel_USD,
     tax_app,
-    tax_data_response,  # noqa: F811
+    tax_data_response_factory,
 ):
     # given
-    mock_request.return_value = tax_data_response
+    mock_request.return_value = tax_data_response_factory(
+        lines_length=draft_order.lines.count()
+    )
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1120,26 +1122,25 @@ def test_draft_order_complete_fails_with_invalid_tax_app(
 
     order.refresh_from_db()
     assert not order.should_refresh_prices
-    assert order.tax_error == "Empty tax data."
+    assert order.tax_error == "Configured tax app doesn't exist."
 
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
     mock_request,
-    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
     channel_USD,
     tax_app,
-    tax_data_response,  # noqa: F811
+    tax_data_response_factory,  # noqa: F811
 ):
     # given
-    mock_request.return_value = tax_data_response
-    mock_validate_tax_data.return_value = False
+    mock_request.return_value = tax_data_response_factory(
+        lines_length=draft_order.lines.count()
+    )
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order
@@ -1173,21 +1174,20 @@ def test_draft_order_complete_force_tax_calculation_when_tax_error_was_saved(
 
 @freeze_time()
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
-@patch("saleor.order.calculations.validate_tax_data")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 def test_draft_order_complete_calls_correct_tax_app(
     mock_request,
-    mock_validate_tax_data,
     staff_api_client,
     permission_group_manage_orders,
     draft_order,
     channel_USD,
     tax_app,
-    tax_data_response,  # noqa: F811
+    tax_data_response_factory,  # noqa: F811
 ):
     # given
-    mock_request.return_value = tax_data_response
-    mock_validate_tax_data.return_value = False
+    mock_request.return_value = tax_data_response_factory(
+        lines_length=draft_order.lines.count()
+    )
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     order = draft_order

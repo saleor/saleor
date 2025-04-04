@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from ...core.models import EventDelivery, EventPayload
 from ..event_types import WebhookEventSyncType
-from ..transport.synchronous.transport import trigger_all_webhooks_sync
+from ..transport.synchronous.transport import trigger_taxes_all_webhooks_sync
 from ..transport.utils import parse_tax_data
 
 
@@ -20,7 +20,7 @@ def test_not_trigger_sync_webhook_for_removed_app(
     data = '{"key": "value"}'
 
     # when
-    trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
+    trigger_taxes_all_webhooks_sync(event_type, lambda: data, parse_tax_data, [0])
 
     # then
     assert EventPayload.objects.count() == 0

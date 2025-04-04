@@ -1045,9 +1045,9 @@ def test_create_order_with_voucher_0_total(
     )
 
 
-@patch("saleor.checkout.calculations.validate_tax_data")
+@patch("saleor.checkout.calculations._calculate_and_add_tax")
 def test_create_order_from_checkout_update_tax_error(
-    mock_validate_tax_data,
+    _calculate_and_add_tax_mock,
     checkout_with_items_and_shipping,
     customer_user,
     app,
@@ -1055,10 +1055,9 @@ def test_create_order_from_checkout_update_tax_error(
     caplog,
 ):
     # given
-    mock_validate_tax_data.side_effect = TaxDataError(TaxDataErrorMessage.EMPTY)
-
     checkout = checkout_with_items_and_shipping
     lines, _ = fetch_checkout_lines(checkout)
+    _calculate_and_add_tax_mock.side_effect = TaxDataError(TaxDataErrorMessage.EMPTY)
 
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager, [])
@@ -1071,6 +1070,7 @@ def test_create_order_from_checkout_update_tax_error(
             user=None,
             app=app,
         )
+
     assert not Order.objects.exists()
     assert "Tax app error for checkout" in caplog.text
     assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)

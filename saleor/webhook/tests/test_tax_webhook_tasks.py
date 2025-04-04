@@ -6,7 +6,7 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ..event_types import WebhookEventSyncType
 from ..models import Webhook, WebhookEvent
-from ..transport.synchronous import trigger_all_webhooks_sync
+from ..transport.synchronous import trigger_taxes_all_webhooks_sync
 from ..transport.utils import parse_tax_data
 
 
@@ -50,9 +50,10 @@ def test_trigger_tax_webhook_sync(
     webhook = tax_app.webhooks.get(name="tax-webhook-1")
     webhook.subscription_query = None
     webhook.save(update_fields=["subscription_query"])
+    lines_count = len(tax_data_response["lines"])
 
     # when
-    tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
+    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, lines_count)
 
     # then
     mock_request.assert_called_once()
@@ -63,7 +64,7 @@ def test_trigger_tax_webhook_sync(
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
     assert delivery.webhook == webhook
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, lines_count)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -76,9 +77,10 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     mock_request.side_effect = [tax_data_response, {}, {}]
     event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
+    lines_count = len(tax_data_response["lines"])
 
     # when
-    tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
+    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, lines_count)
 
     # then
     successful_webhook = tax_checkout_webhooks[0]
@@ -89,7 +91,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     assert delivery.status == EventDeliveryStatus.PENDING
     assert delivery.event_type == event_type
     assert delivery.webhook == successful_webhook
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, lines_count)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -102,9 +104,10 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
     mock_request.side_effect = [{}, {}, tax_data_response]
     event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
+    lines_count = len(tax_data_response["lines"])
 
     # when
-    tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
+    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, lines_count)
 
     # then
     assert mock_request.call_count == 3
@@ -119,7 +122,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
         assert delivery.payload.get_payload() == data
         assert delivery.webhook == webhook
 
-    assert tax_data == parse_tax_data(tax_data_response)
+    assert tax_data == parse_tax_data(tax_data_response, lines_count)
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -134,7 +137,7 @@ def test_trigger_tax_webhook_sync_invalid_webhooks(
     data = '{"key": "value"}'
 
     # when
-    tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
+    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, 0)
 
     # then
     assert mock_request.call_count == len(tax_checkout_webhooks)

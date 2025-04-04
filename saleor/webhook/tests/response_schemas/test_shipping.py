@@ -35,9 +35,30 @@ def decode_id(id):
         },
         # Optional fields not provided
         {
-            "id": 2,  # Integer ID
+            "id": 2,
             "name": "Express Shipping",
             "amount": Decimal("20.00"),
+            "currency": "EUR",
+        },
+        # Amount as str
+        {
+            "id": 2,
+            "name": "Express Shipping",
+            "amount": "20.00",
+            "currency": "EUR",
+        },
+        # Amount as float
+        {
+            "id": "2",
+            "name": "Express Shipping",
+            "amount": 20.00,
+            "currency": "EUR",
+        },
+        # Amount as int
+        {
+            "id": 2,
+            "name": "Express Shipping",
+            "amount": 20,
             "currency": "EUR",
         },
         # Metadata is empty, delivery days, and description as None
@@ -78,7 +99,7 @@ def test_shipping_method_schema_valid(data):
     # then
     assert shipping_method_model.id == str(data["id"])
     assert shipping_method_model.name == data["name"]
-    assert shipping_method_model.amount == data["amount"]
+    assert shipping_method_model.amount == Decimal(data["amount"])
     assert shipping_method_model.currency == data["currency"]
     assert shipping_method_model.maximum_delivery_days == data.get(
         "maximum_delivery_days"
@@ -201,8 +222,10 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata):
     ],
 )
 def test_shipping_method_schema_invalid(data):
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError) as e:
         ShippingMethodSchema.model_validate(data)
+
+    assert len(e.value.errors()) == 1
 
 
 @pytest.mark.parametrize("data", [None, []])

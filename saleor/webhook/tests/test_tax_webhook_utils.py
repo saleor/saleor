@@ -1,10 +1,10 @@
 import decimal
 
 import pytest
+from pydantic import ValidationError
 
 from ...core.taxes import TaxData
 from ..transport.utils import (
-    _unsafe_parse_tax_data,
     _unsafe_parse_tax_line_data,
     parse_tax_data,
 )
@@ -45,45 +45,12 @@ def test_unsafe_parse_tax_line_data_decimalexception(tax_line_data_response):
         _unsafe_parse_tax_line_data(tax_line_data_response)
 
 
-def test_unsafe_parse_tax_data_success(tax_data_response):
-    # when
-    tax_data = _unsafe_parse_tax_data(tax_data_response)
-
-    # then
-    assert not tax_data.shipping_price_gross_amount.compare(
-        decimal.Decimal(tax_data_response["shipping_price_gross_amount"])
-    )
-    assert not tax_data.shipping_price_net_amount.compare(
-        decimal.Decimal(tax_data_response["shipping_price_net_amount"])
-    )
-    assert tax_data.shipping_tax_rate == tax_data_response["shipping_tax_rate"]
-    assert tax_data.lines == [
-        _unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]
-    ]
-
-
-def test_unsafe_parse_tax_data_keyerror(tax_data_response):
-    # given
-    tax_data_response["shipping_tax_rate_2"] = tax_data_response["shipping_tax_rate"]
-    del tax_data_response["shipping_tax_rate"]
-
-    # when
-    with pytest.raises(KeyError):
-        _unsafe_parse_tax_data(tax_data_response)
-
-
-def test_unsafe_parse_tax_data_decimalexception(tax_data_response):
-    # given
-    tax_data_response["shipping_price_gross_amount"] = "invalid value"
-
-    # when
-    with pytest.raises(decimal.DecimalException):
-        _unsafe_parse_tax_data(tax_data_response)
-
-
 def test_parse_tax_data_success(tax_data_response):
+    # given
+    line_count = len(tax_data_response["lines"])
+
     # when
-    tax_data = parse_tax_data(tax_data_response)
+    tax_data = parse_tax_data(tax_data_response, line_count)
 
     # then
     assert isinstance(tax_data, TaxData)
@@ -93,23 +60,21 @@ def test_parse_tax_data_keyerror(tax_data_response):
     # given
     tax_data_response["shipping_tax_rate_2"] = tax_data_response["shipping_tax_rate"]
     del tax_data_response["shipping_tax_rate"]
+    line_count = len(tax_data_response["lines"])
 
-    # when
-    tax_data = parse_tax_data(tax_data_response)
-
-    # then
-    assert tax_data is None
+    # when & then
+    with pytest.raises(ValidationError):
+        parse_tax_data(tax_data_response, line_count)
 
 
 def test_parse_tax_data_decimalexception(tax_data_response):
     # given
     tax_data_response["shipping_price_gross_amount"] = "invalid value"
+    line_count = len(tax_data_response["lines"])
 
-    # when
-    tax_data = parse_tax_data(tax_data_response)
-
-    # then
-    assert tax_data is None
+    # when & then
+    with pytest.raises(ValidationError):
+        parse_tax_data(tax_data_response, line_count)
 
 
 @pytest.mark.parametrize(
@@ -130,4 +95,5 @@ def test_parse_tax_data_decimalexception(tax_data_response):
     ],
 )
 def test_parse_tax_data_malformed(response_data):
-    assert parse_tax_data(response_data) is None
+    with pytest.raises(ValidationError):
+        parse_tax_data(response_data, 1)

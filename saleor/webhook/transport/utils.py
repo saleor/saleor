@@ -47,6 +47,7 @@ from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventSyncType
 from ..models import Webhook
+from ..response_schemas.taxes import CalculateTaxesSchema
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
@@ -546,11 +547,25 @@ def save_unsuccessful_delivery_attempt(attempt: "EventDeliveryAttempt"):
 
 def parse_tax_data(
     response_data: Any,
-) -> TaxData | None:
-    try:
-        return _unsafe_parse_tax_data(response_data)
-    except (TypeError, KeyError, decimal.DecimalException):
-        return None
+    lines_count: int,
+) -> TaxData:
+    calculated_taxes_model = CalculateTaxesSchema.model_validate(
+        response_data,
+        context={"expected_line_count": lines_count},
+    )
+    return TaxData(
+        shipping_price_gross_amount=calculated_taxes_model.shipping_price_gross_amount,
+        shipping_price_net_amount=calculated_taxes_model.shipping_price_net_amount,
+        shipping_tax_rate=calculated_taxes_model.shipping_tax_rate,
+        lines=[
+            TaxLineData(
+                tax_rate=tax_line.tax_rate,
+                total_gross_amount=tax_line.total_gross_amount,
+                total_net_amount=tax_line.total_net_amount,
+            )
+            for tax_line in calculated_taxes_model.lines
+        ],
+    )
 
 
 def parse_payment_action_response(
@@ -614,30 +629,6 @@ def _unsafe_parse_tax_line_data(
         total_gross_amount=total_gross_amount,
         total_net_amount=total_net_amount,
         tax_rate=tax_rate,
-    )
-
-
-def _unsafe_parse_tax_data(
-    tax_data_response: Any,
-) -> TaxData:
-    """Unsafe TaxData parser.
-
-    Raises KeyError or DecimalException on invalid data.
-    """
-    shipping_price_gross_amount = decimal.Decimal(
-        tax_data_response["shipping_price_gross_amount"]
-    )
-    shipping_price_net_amount = decimal.Decimal(
-        tax_data_response["shipping_price_net_amount"]
-    )
-    shipping_tax_rate = decimal.Decimal(tax_data_response["shipping_tax_rate"])
-    lines = [_unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]]
-
-    return TaxData(
-        shipping_price_gross_amount=shipping_price_gross_amount,
-        shipping_price_net_amount=shipping_price_net_amount,
-        shipping_tax_rate=shipping_tax_rate,
-        lines=lines,
     )
 
 
