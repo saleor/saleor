@@ -513,8 +513,8 @@ def _calculate_and_add_tax(
                 checkout, manager, checkout_info, lines, address
             )
             # Get the taxes calculated with apps and apply to checkout.
-            # We should allow empty tax_data in case any tax webhook has been configured
-            # handled by `allowed_empty_tax_data`
+            # We should allow empty tax_data in case any tax webhook has not been
+            # configured - handled by `allowed_empty_tax_data`
             tax_data = _get_taxes_for_checkout(
                 checkout_info,
                 lines,
@@ -589,12 +589,12 @@ def _call_plugin_or_tax_app(
 
 
 def _get_taxes_for_checkout(
-    checkout_info,
-    lines,
-    tax_app_identifier,
-    manager,
-    pregenerated_subscription_payloads,
-    allowed_empty_tax_data=False,
+    checkout_info: "CheckoutInfo",
+    lines: list["CheckoutLineInfo"],
+    tax_app_identifier: str | None,
+    manager: "PluginsManager",
+    pregenerated_subscription_payloads: dict | None = None,
+    allowed_empty_tax_data: bool = False,
 ):
     """Get taxes for checkout from tax apps.
 

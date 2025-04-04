@@ -10,26 +10,35 @@ from ...response_schemas.taxes import CalculateTaxesSchema, LineCalculateTaxesSc
 @pytest.mark.parametrize(
     "data",
     [
-        # Valid case
+        # Decimal values
         {
             "tax_rate": Decimal("20.12"),
             "total_gross_amount": Decimal("100.33"),
             "total_net_amount": Decimal("80.00"),
         },
+        # String values with decimal points
         {
             "tax_rate": "20.12",
             "total_gross_amount": "100.33",
             "total_net_amount": "80.23",
         },
+        # String values
         {
             "tax_rate": "20",
             "total_gross_amount": "100",
             "total_net_amount": "80",
         },
+        # Integer values
         {
             "tax_rate": 20,
             "total_gross_amount": 100,
             "total_net_amount": 80,
+        },
+        # Float values
+        {
+            "tax_rate": 20.11,
+            "total_gross_amount": 100.21,
+            "total_net_amount": 80.32,
         },
     ],
 )
@@ -249,3 +258,9 @@ def test_calculate_taxes_schema_invalid(data, expected_line_count):
         )
 
     assert len(e.value.errors()) == 1
+
+
+def test_calculate_taxes_schema_missing_context(data, expected_line_count):
+    """Test CalculateTaxesSchema with invalid data."""
+    with pytest.raises(ValidationError):
+        CalculateTaxesSchema.model_validate(data)

@@ -35,9 +35,30 @@ def decode_id(id):
         },
         # Optional fields not provided
         {
-            "id": 2,  # Integer ID
+            "id": 2,
             "name": "Express Shipping",
             "amount": Decimal("20.00"),
+            "currency": "EUR",
+        },
+        # Amount as str
+        {
+            "id": 2,
+            "name": "Express Shipping",
+            "amount": "20.00",
+            "currency": "EUR",
+        },
+        # Amount as float
+        {
+            "id": "2",
+            "name": "Express Shipping",
+            "amount": 20.00,
+            "currency": "EUR",
+        },
+        # Amount as int
+        {
+            "id": 2,
+            "name": "Express Shipping",
+            "amount": 20,
             "currency": "EUR",
         },
         # Metadata is empty, delivery days, and description as None

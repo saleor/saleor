@@ -254,8 +254,8 @@ def _calculate_and_add_tax(
             # be dropped.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
             # Get the taxes calculated with apps and apply to order.
-            # We should allow empty tax_data in case any tax webhook has been configured
-            # handled by `allowed_empty_tax_data`
+            # We should allow empty tax_data in case any tax webhook has not been
+            # configured - handled by `allowed_empty_tax_data`
             tax_data = _get_taxes_for_order(
                 order, tax_app_identifier, manager, allowed_empty_tax_data=True
             )
@@ -307,7 +307,10 @@ def _call_plugin_or_tax_app(
 
 
 def _get_taxes_for_order(
-    order, tax_app_identifier, manager, allowed_empty_tax_data=False
+    order: "Order",
+    tax_app_identifier: str | None,
+    manager: "PluginsManager",
+    allowed_empty_tax_data: bool = False,
 ):
     """Get taxes for order from tax apps.
 
