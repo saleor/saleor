@@ -105,3 +105,4 @@ All notable, unreleased changes to this project will be documented in this file.
   This ensures user awareness of potential security policy violations and compliance risks of storing
   certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
+- Allow to change Admin email plugin custom templates back to default - #17563 by @wcislo-saleor
