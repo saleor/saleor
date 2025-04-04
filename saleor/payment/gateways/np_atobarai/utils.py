@@ -6,7 +6,7 @@ from itertools import chain
 
 from django.db.models import Q
 
-from ....core.tracing import opentracing_trace
+from ....core.tracing import otel_trace
 from ....order import FulfillmentStatus
 from ....order.events import external_notification_event
 from ....order.models import Fulfillment, FulfillmentLine, Order
@@ -59,12 +59,8 @@ def get_fulfillment_for_order(order: Order) -> Fulfillment:
 
 
 @contextmanager
-def np_atobarai_opentracing_trace(span_name: str):
-    with opentracing_trace(
-        span_name=span_name,
-        component_name="payment",
-        service_name="np-atobarai",
-    ):
+def np_atobarai_otel_trace(span_name: str):
+    with otel_trace(span_name=span_name, component_name="payment"):
         yield
 
 

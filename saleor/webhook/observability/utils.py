@@ -21,7 +21,7 @@ from ..utils import get_webhooks_for_event
 from .buffers import get_buffer
 from .exceptions import TruncationError
 from .payloads import generate_api_call_payload, generate_event_delivery_attempt_payload
-from .tracing import opentracing_trace
+from .tracing import otel_trace
 
 if TYPE_CHECKING:
     from celery.exceptions import Retry
@@ -57,7 +57,7 @@ def get_webhooks_clear_mem_cache():
 
 
 def get_webhooks(timeout=CACHE_TIMEOUT) -> list[WebhookData]:
-    with opentracing_trace("get_observability_webhooks", "webhooks"):
+    with otel_trace("get_observability_webhooks", "webhooks"):
         buffer_name = get_buffer_name()
         if cached := _webhooks_mem_cache.get(buffer_name, None):
             webhooks_data, check_time = cached
@@ -93,7 +93,7 @@ def task_next_retry_date(retry_error: "Retry") -> datetime.datetime | None:
 def put_event(generate_payload: Callable[[], bytes]):
     try:
         payload = generate_payload()
-        with opentracing_trace("put_event", "buffer"):
+        with otel_trace("put_event", "buffer"):
             if get_buffer(get_buffer_name()).put_event(payload):
                 logger.warning("Observability buffer full, event dropped.")
     except TruncationError as err:
@@ -103,7 +103,7 @@ def put_event(generate_payload: Callable[[], bytes]):
 
 
 def pop_events_with_remaining_size() -> tuple[list[bytes], int]:
-    with opentracing_trace("pop_events", "buffer"):
+    with otel_trace("pop_events", "buffer"):
         try:
             buffer = get_buffer(get_buffer_name())
             events, remaining = buffer.pop_events_get_size()
@@ -140,7 +140,7 @@ class ApiCall:
             logger.error("HttpResponse not provided, observability event dropped.")
             return
         self._reported = True
-        with opentracing_trace("report_api_call", "reporter"):
+        with otel_trace("report_api_call", "reporter"):
             if get_webhooks():
                 put_event(
                     partial(
@@ -196,7 +196,7 @@ def report_event_delivery_attempt(
         logger.error(
             "Observability event dropped. %r not assigned to delivery.", attempt
         )
-    with opentracing_trace("report_event_delivery_attempt", "reporter"):
+    with otel_trace("report_event_delivery_attempt", "reporter"):
         if get_webhooks():
             put_event(
                 partial(
