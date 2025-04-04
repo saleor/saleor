@@ -195,7 +195,7 @@ def test_manager_get_taxes_for_order_raises_no_active_plugin(
     "saleor.plugins.webhook.plugin.WebhookPlugin.get_taxes_for_order",
     side_effect=TaxDataError("test error"),
 )
-def test_manager_get_taxes_for_corder_multiple_plugins(
+def test_manager_get_taxes_for_order_multiple_plugins(
     mocked_get_taxes_for_order,
     plugins,
     order,
