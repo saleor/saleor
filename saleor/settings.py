@@ -300,7 +300,6 @@ INSTALLED_APPS = [
     "saleor.schedulers",
     # External apps
     "django_measurement",
-    "django_prices",
     "mptt",
     "django_countries",
     "django_filters",

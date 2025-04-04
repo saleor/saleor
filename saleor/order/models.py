@@ -15,11 +15,11 @@ from django.db.models.expressions import Exists, OuterRef
 from django.forms.models import model_to_dict
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
-from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
 
 from ..app.models import App
 from ..channel.models import Channel
+from ..core.db.fields import MoneyField, TaxedMoneyField
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -641,7 +641,7 @@ class OrderLine(ModelWithMetadata):
     unit_price = TaxedMoneyField(
         net_amount_field="unit_price_net_amount",
         gross_amount_field="unit_price_gross_amount",
-        currency="currency",
+        currency_field="currency",
     )
 
     total_price_net_amount = models.DecimalField(
@@ -665,7 +665,7 @@ class OrderLine(ModelWithMetadata):
     total_price = TaxedMoneyField(
         net_amount_field="total_price_net_amount",
         gross_amount_field="total_price_gross_amount",
-        currency="currency",
+        currency_field="currency",
     )
 
     undiscounted_unit_price_gross_amount = models.DecimalField(
@@ -681,7 +681,7 @@ class OrderLine(ModelWithMetadata):
     undiscounted_unit_price = TaxedMoneyField(
         net_amount_field="undiscounted_unit_price_net_amount",
         gross_amount_field="undiscounted_unit_price_gross_amount",
-        currency="currency",
+        currency_field="currency",
     )
 
     undiscounted_total_price_gross_amount = models.DecimalField(
@@ -697,7 +697,7 @@ class OrderLine(ModelWithMetadata):
     undiscounted_total_price = TaxedMoneyField(
         net_amount_field="undiscounted_total_price_net_amount",
         gross_amount_field="undiscounted_total_price_gross_amount",
-        currency="currency",
+        currency_field="currency",
     )
 
     base_unit_price_amount = models.DecimalField(

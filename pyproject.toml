@@ -79,7 +79,6 @@ package-mode = false
   django-measurement = "^3.0"
   django-mptt = "^0"
   django-phonenumber-field = ">=4,<9"
-  django-prices = "^2.3"
   django-stubs-ext = "^5.1.1"
   draftjs-sanitizer = "^1.0.0"
   faker = ">=26.0.0,<27.0"

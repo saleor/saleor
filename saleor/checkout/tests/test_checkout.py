@@ -1359,7 +1359,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
             None,
             Money(2, "USD"),
             10,
-            "This offer is only valid for orders over $5.00.",
+            "This offer is only valid for orders over 5.00 USD.",
         ),
         (
             True,
@@ -1383,7 +1383,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
             10,
             Money(2, "USD"),
             9,
-            "This offer is only valid for orders over $5.00.",
+            "This offer is only valid for orders over 5.00 USD.",
         ),
     ],
 )

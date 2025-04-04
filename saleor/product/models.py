@@ -16,14 +16,13 @@ from django.forms.models import model_to_dict
 from django.urls import reverse
 from django.utils import timezone
 from django_measurement.models import MeasurementField
-from django_prices.models import MoneyField
 from measurement.measures import Weight
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 from prices import Money
 
 from ..channel.models import Channel
-from ..core.db.fields import SanitizedJSONField
+from ..core.db.fields import MoneyField, SanitizedJSONField
 from ..core.models import (
     ModelWithExternalReference,
     ModelWithMetadata,
