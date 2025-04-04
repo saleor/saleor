@@ -24,7 +24,9 @@ def test_send_webhooks_async_for_app(
     mock_record_first_delivery_attempt_delay,
     mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
+    settings,
     app,
+    app_webhook_mutex,
     event_delivery,
 ):
     # given
@@ -41,11 +43,17 @@ def test_send_webhooks_async_for_app(
     mock_record_async_webhooks_count.assert_called_once()
     mock_record_first_delivery_attempt_delay.assert_called_once()
     mock_webhooks_otel_trace.assert_called_once()
+    # get current lock uuid
+    app_webhook_mutex.refresh_from_db()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
             "telemetry_context": ANY,
         },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # deliveries should be cleared
@@ -56,7 +64,7 @@ def test_send_webhooks_async_for_app(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
 def test_send_webhooks_async_for_app_no_deliveries(
-    mock_send_webhook_using_scheme_method, app
+    mock_send_webhook_using_scheme_method, settings, app, app_webhook_mutex
 ):
     # given
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
@@ -72,7 +80,11 @@ def test_send_webhooks_async_for_app_no_deliveries(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
 )
 def test_send_webhooks_async_for_app_doesnt_pick_failed(
-    mock_send_webhook_using_scheme_method, app, event_delivery
+    mock_send_webhook_using_scheme_method,
+    settings,
+    app,
+    event_delivery,
+    app_webhook_mutex,
 ):
     # given
     event_delivery.status = EventDeliveryStatus.FAILED
@@ -95,7 +107,9 @@ def test_send_webhooks_async_for_app_doesnt_pick_failed(
 def test_send_webhooks_async_for_app_no_payload(
     mock_send_webhooks_async_for_app_apply_async,
     mock_send_webhook_using_scheme_method,
+    settings,
     app,
+    app_webhook_mutex,
     event_delivery,
 ):
     # given
@@ -116,11 +130,17 @@ def test_send_webhooks_async_for_app_no_payload(
         status=EventDeliveryStatus.FAILED
     ).exists()
 
+    # get current lock uuid
+    app_webhook_mutex.refresh_from_db()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
             "telemetry_context": ANY,
         },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
 
@@ -133,7 +153,9 @@ def test_send_webhooks_async_for_app_no_payload(
 def test_send_webhooks_async_for_app_failed_status(
     mock_send_webhooks_async_for_app_apply_async,
     mock_send_webhook_using_scheme_method,
+    settings,
     app,
+    app_webhook_mutex,
     event_delivery,
 ):
     # given
@@ -154,11 +176,17 @@ def test_send_webhooks_async_for_app_failed_status(
         status=EventDeliveryStatus.FAILED
     ).exists()
 
+    # get current lock uuid
+    app_webhook_mutex.refresh_from_db()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
             "telemetry_context": ANY,
         },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
 
@@ -179,7 +207,9 @@ def test_send_multiple_webhooks_async_for_app(
     mock_record_first_delivery_attempt_delay,
     mock_record_async_webhooks_count,
     mock_send_webhook_using_scheme_method,
+    settings,
     app,
+    app_webhook_mutex,
     event_deliveries,
 ):
     # given
@@ -196,11 +226,17 @@ def test_send_multiple_webhooks_async_for_app(
     assert mock_record_async_webhooks_count.call_count == 3
     assert mock_record_first_delivery_attempt_delay.call_count == 3
     assert mock_webhooks_otel_trace.call_count == 3
+    # get current lock uuid
+    app_webhook_mutex.refresh_from_db()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={
             "app_id": app.id,
             "telemetry_context": ANY,
         },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
 
     # deliveries should be cleared
@@ -216,7 +252,9 @@ def test_send_multiple_webhooks_async_for_app(
 def test_send_webhooks_async_for_app_last_retry_failed(
     mock_send_webhooks_async_for_app_apply_async,
     mock_send_webhook_using_scheme_method,
+    settings,
     app,
+    app_webhook_mutex,
     event_delivery,
 ):
     # given
@@ -245,6 +283,12 @@ def test_send_webhooks_async_for_app_last_retry_failed(
         len(EventDeliveryAttempt.objects.filter(status=EventDeliveryStatus.FAILED)) == 6
     )
 
+    # get current lock uuid
+    app_webhook_mutex.refresh_from_db()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
         kwargs={"app_id": app.id, "telemetry_context": ANY},
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
+        bind=True,
     )
