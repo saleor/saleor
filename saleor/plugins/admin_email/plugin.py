@@ -308,6 +308,10 @@ class AdminEmailPlugin(BasePlugin):
                     plugin_configuration=plugin_configuration,
                     defaults={"value": et_data["value"]},
                 )
+            else:
+                EmailTemplate.objects.filter(
+                    plugin_configuration=plugin_configuration, name=et_data["name"]
+                ).delete()
 
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels

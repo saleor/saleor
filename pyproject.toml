@@ -79,7 +79,6 @@ package-mode = false
   django-measurement = "^3.0"
   django-mptt = "^0"
   django-phonenumber-field = ">=4,<9"
-  django-prices = "^2.3"
   django-stubs-ext = "^5.1.1"
   draftjs-sanitizer = "^1.0.0"
   faker = ">=26.0.0,<27.0"
@@ -124,6 +123,8 @@ package-mode = false
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
   setuptools = "^76.0.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
+  pydantic = "^2.10.6"
+  pydantic-core = "^2.33.0"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"
@@ -206,7 +207,8 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 
 plugins = [
-  "mypy_django_plugin.main"
+  "mypy_django_plugin.main",
+  "pydantic.mypy"
 ]
 
 exclude = [
@@ -217,6 +219,10 @@ exclude = [
   module = ["saleor.*.migrations.*"]
   ignore_errors = true
 
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [tool.ruff]
 target-version = "py312"

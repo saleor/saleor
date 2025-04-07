@@ -10,13 +10,11 @@ from django.db import connection, models
 from django.db.models import Exists, JSONField, OuterRef, Q, Subquery, Sum
 from django.utils import timezone
 from django_countries.fields import CountryField
-from django_prices.models import MoneyField
-from django_prices.templatetags.prices import amount
 from prices import Money, fixed_discount, percentage_discount
 
 from ..app.models import App
 from ..channel.models import Channel
-from ..core.db.fields import SanitizedJSONField
+from ..core.db.fields import MoneyField, SanitizedJSONField
 from ..core.models import ModelWithMetadata
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -180,7 +178,8 @@ class Voucher(ModelWithMetadata):
             raise NotApplicable("This voucher is not assigned to this channel")
         min_spent = voucher_channel_listing.min_spent
         if min_spent and value < min_spent:
-            msg = f"This offer is only valid for orders over {amount(min_spent)}."
+            target = min_spent.quantize()
+            msg = f"This offer is only valid for orders over {target.amount} {target.currency}."
             raise NotApplicable(msg, min_spent=min_spent)
 
     def validate_min_checkout_items_quantity(self, quantity):

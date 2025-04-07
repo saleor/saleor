@@ -27,7 +27,7 @@ from ....product.utils.variants import get_variant_selection_attributes
 from ....tax.utils import (
     get_display_gross_prices,
     get_tax_calculation_strategy,
-    get_tax_rate_for_tax_class,
+    get_tax_rate_for_country,
 )
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
@@ -94,10 +94,9 @@ from ...site.dataloaders import load_site_callback
 from ...tax.dataloaders import (
     ProductChargeTaxesByTaxClassIdLoader,
     TaxClassByIdLoader,
-    TaxClassByProductIdLoader,
-    TaxClassByVariantIdLoader,
     TaxClassCountryRateByTaxClassIDLoader,
     TaxClassDefaultRateByCountryLoader,
+    TaxClassIdByProductIdLoader,
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
@@ -628,14 +627,16 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             context
         ).load((root.node.id, channel_slug))
         channel = ChannelBySlugLoader(context).load(channel_slug)
-        tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
+        tax_class_id_loader = TaxClassIdByProductIdLoader(context).load(
+            root.node.product_id
+        )
 
         def load_tax_configuration(data):
             (
                 product_channel_listing,
                 variant_channel_listing,
                 channel,
-                tax_class,
+                tax_class_id,
             ) = data
 
             if not variant_channel_listing or not product_channel_listing:
@@ -664,8 +665,8 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                             if default_country_rate_obj
                             else Decimal(0)
                         )
-                        tax_rate = get_tax_rate_for_tax_class(
-                            tax_class, country_rates, default_tax_rate, country_code
+                        tax_rate = get_tax_rate_for_country(
+                            country_rates, default_tax_rate, country_code
                         )
 
                         availability = get_variant_availability(
@@ -683,9 +684,9 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
 
                     country_rates = (
                         TaxClassCountryRateByTaxClassIDLoader(context).load(
-                            tax_class.pk
+                            tax_class_id
                         )
-                        if tax_class
+                        if tax_class_id
                         else []
                     )
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
@@ -712,7 +713,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 product_channel_listing,
                 variant_channel_listing,
                 channel,
-                tax_class,
+                tax_class_id_loader,
             ]
         ).then(load_tax_configuration)
 
@@ -1139,14 +1140,14 @@ class Product(ChannelContextType[models.Product]):
                 (root.node.id, channel_slug)
             )
         )
-        tax_class = TaxClassByProductIdLoader(context).load(root.node.id)
+        tax_class_id_loader = TaxClassIdByProductIdLoader(context).load(root.node.id)
 
         def load_tax_configuration(data):
             (
                 channel,
                 product_channel_listing,
                 variants_channel_listing,
-                tax_class,
+                tax_class_id,
             ) = data
 
             if not variants_channel_listing:
@@ -1178,8 +1179,8 @@ class Product(ChannelContextType[models.Product]):
                             if default_country_rate_obj
                             else Decimal(0)
                         )
-                        tax_rate = get_tax_rate_for_tax_class(
-                            tax_class, country_rates, default_tax_rate, country_code
+                        tax_rate = get_tax_rate_for_country(
+                            country_rates, default_tax_rate, country_code
                         )
 
                         availability = get_product_availability(
@@ -1196,9 +1197,9 @@ class Product(ChannelContextType[models.Product]):
 
                     country_rates = (
                         TaxClassCountryRateByTaxClassIDLoader(context).load(
-                            tax_class.pk
+                            tax_class_id
                         )
-                        if tax_class
+                        if tax_class_id
                         else []
                     )
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
@@ -1225,7 +1226,7 @@ class Product(ChannelContextType[models.Product]):
                 channel,
                 product_channel_listing,
                 variants_channel_listing,
-                tax_class,
+                tax_class_id_loader,
             ]
         ).then(load_tax_configuration)
 

@@ -1,5 +1,4 @@
 import graphene
-from django_prices.templatetags import prices
 
 from ....core.prices import quantize_price
 from ...core.doc_category import DOC_CATEGORY_TAXES
@@ -16,10 +15,6 @@ class Money(graphene.ObjectType):
     @staticmethod
     def resolve_amount(root, _info):
         return quantize_price(root.amount, root.currency)
-
-    @staticmethod
-    def resolve_localized(root, _info):
-        return prices.amount(root)
 
 
 class MoneyRange(graphene.ObjectType):

@@ -35,6 +35,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
+from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
@@ -160,6 +161,12 @@ class DraftOrderInput(BaseInputObjectType):
         description=f"Order private metadata. {ADDED_IN_321} "
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
+    )
+
+    language_code = graphene.Argument(
+        LanguageCodeEnum,
+        required=False,
+        description=(f"Order language code.{ADDED_IN_321}"),
     )
 
     class Meta:

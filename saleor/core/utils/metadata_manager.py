@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from ...graphql.meta.inputs import MetadataInput
 from ..models import ModelWithMetadata
@@ -73,3 +74,12 @@ def create_from_graphql_input(
     return MetadataItemCollection(
         [MetadataItem(item.key, item.value) for item in items]
     )
+
+
+def metadata_is_valid(metadata: Any) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    for key, value in metadata.items():
+        if not isinstance(key, str) or not isinstance(value, str) or not key.strip():
+            return False
+    return True

@@ -174,7 +174,7 @@ class WebhookTrigger(BaseMutation):
                 )
                 delivery.save()
                 deferred_payload_data = prepare_deferred_payload_data(
-                    object, requestor, None
+                    object, requestor, info.context.request_time
                 )
                 generate_deferred_payloads.apply_async(
                     kwargs={

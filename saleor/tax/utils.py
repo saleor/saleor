@@ -218,17 +218,22 @@ def calculate_tax_rate(price: TaxedMoney) -> Decimal:
     return tax_rate
 
 
-def get_tax_rate_for_tax_class(
-    tax_class: Optional["TaxClass"],
+def get_tax_rate_for_country(
     tax_class_country_rates: Iterable["TaxClassCountryRate"],
     default_tax_rate: Decimal,
     country_code: str,
 ) -> Decimal:
+    """Get tax rate for provided country code.
+
+    Function returns the tax rate for provided country code. If not found, the default
+    one will be returned.
+    `tax_class_country_rates` is the iterable set of rates assigned to single
+    `TaxClass`.
+    """
     tax_rate = default_tax_rate
-    if tax_class:
-        for country_rate in tax_class_country_rates:
-            if country_rate.country == country_code:
-                tax_rate = country_rate.rate
+    for country_rate in tax_class_country_rates:
+        if country_rate.country == country_code:
+            tax_rate = country_rate.rate
     return tax_rate
 
 
