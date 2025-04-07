@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
+from opentelemetry.trace import StatusCode
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -123,10 +124,10 @@ def _send_webhook_request_sync(
     response = WebhookResponse(content="")
     response_data = None
 
-    try:
-        with webhooks_otel_trace(
-            delivery.event_type, domain, payload_size, sync=True, app=webhook.app
-        ):
+    with webhooks_otel_trace(
+        delivery.event_type, domain, payload_size, sync=True, app=webhook.app
+    ) as span:
+        try:
             response = send_webhook_using_http(
                 webhook.target_url,
                 message,
@@ -137,31 +138,33 @@ def _send_webhook_request_sync(
                 custom_headers=webhook.custom_headers,
             )
             response_data = json.loads(response.content)
-
-    except JSONDecodeError as e:
-        logger.info(
-            "[Webhook] Failed parsing JSON response from %r: %r."
-            "ID of failed DeliveryAttempt: %r . ",
-            sanitize_url_for_logging(webhook.target_url),
-            e,
-            attempt.id,
-        )
-        response.status = EventDeliveryStatus.FAILED
-    else:
-        if response.status == EventDeliveryStatus.FAILED:
+        except JSONDecodeError as e:
             logger.info(
-                "[Webhook] Failed request to %r: %r. "
+                "[Webhook] Failed parsing JSON response from %r: %r."
                 "ID of failed DeliveryAttempt: %r . ",
                 sanitize_url_for_logging(webhook.target_url),
-                response.content,
+                e,
                 attempt.id,
             )
-        if response.status == EventDeliveryStatus.SUCCESS:
-            logger.debug(
-                "[Webhook] Success response from %r.Successful DeliveryAttempt id: %r",
-                sanitize_url_for_logging(webhook.target_url),
-                attempt.id,
-            )
+            response.status = EventDeliveryStatus.FAILED
+        else:
+            if response.status == EventDeliveryStatus.FAILED:
+                logger.info(
+                    "[Webhook] Failed request to %r: %r. "
+                    "ID of failed DeliveryAttempt: %r . ",
+                    sanitize_url_for_logging(webhook.target_url),
+                    response.content,
+                    attempt.id,
+                )
+            if response.status == EventDeliveryStatus.SUCCESS:
+                logger.debug(
+                    "[Webhook] Success response from %r.Successful DeliveryAttempt id: %r",
+                    sanitize_url_for_logging(webhook.target_url),
+                    attempt.id,
+                )
+        finally:
+            if response.status == EventDeliveryStatus.FAILED:
+                span.set_status(StatusCode.ERROR)
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)

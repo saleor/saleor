@@ -12,6 +12,7 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from opentelemetry.trace import StatusCode
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -609,7 +610,7 @@ def send_webhook_request_async(
             payload_size,
             app=webhook.app,
             span_links=telemetry_context.links,
-        ):
+        ) as span:
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
                 domain,
@@ -618,6 +619,8 @@ def send_webhook_request_async(
                 data,
                 webhook.custom_headers,
             )
+            if response.status == EventDeliveryStatus.FAILED:
+                span.set_status(StatusCode.ERROR)
 
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)

@@ -47,4 +47,4 @@ def webhooks_otel_trace(
         span.set_attribute("webhooks.domain", domain)
         span.set_attribute("webhooks.execution_mode", "sync" if sync else "async")
         span.set_attribute("webhooks.payload_size", payload_size)
-        yield
+        yield span

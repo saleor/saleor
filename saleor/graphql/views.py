@@ -16,6 +16,7 @@ from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from opentelemetry.trace import StatusCode
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
@@ -354,7 +355,7 @@ class GraphQLView(View):
 
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
-                span.set_attribute("error", True)
+                span.set_status(StatusCode.ERROR)
 
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
