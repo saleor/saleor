@@ -16,6 +16,7 @@ from ...core.db.connection import allow_writer_in_context
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType
+from ...discount import models as discount_models
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.core.context import (
     SyncWebhookControlContext,
@@ -26,7 +27,7 @@ from ...graphql.core.federation.resolvers import resolve_federation_references
 from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
-from ...order import OrderStatus, calculations, models
+from ...order import OrderOrigin, OrderStatus, calculations, models
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -1434,11 +1435,32 @@ class OrderLine(
 
         def with_manager_and_order(data):
             manager, order = data
+
+            def handle_line_discount_from_checkout(line_discounts):
+                if order.origin != OrderOrigin.CHECKOUT:
+                    return line_discounts
+
+                discounts_to_return = []
+                for discount in line_discounts:
+                    # voucher discount propagated on the line is represented by
+                    # OrderDiscount.
+                    order_from_checkout = order.origin == OrderOrigin.CHECKOUT
+                    if order_from_checkout and discount.type == DiscountType.VOUCHER:
+                        continue
+                    discounts_to_return.append(discount)
+
+                return discounts_to_return
+
             with allow_writer_in_context(info.context):
                 fetch_order_prices_if_expired(
                     order, manager, allow_sync_webhooks=root.allow_sync_webhooks
                 )
-            return OrderLineDiscountsByOrderLineIDLoader(info.context).load(line.id)
+
+            return (
+                OrderLineDiscountsByOrderLineIDLoader(info.context)
+                .load(line.id)
+                .then(handle_line_discount_from_checkout)
+            )
 
         manager = get_plugin_manager_promise(info.context)
         order = OrderByIdLoader(info.context).load(line.order_id)
@@ -1833,13 +1855,70 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     @staticmethod
     @prevent_sync_event_circular_query
     def resolve_discounts(root: SyncWebhookControlContext[models.Order], info):
-        @allow_writer_in_context(info.context)
-        def with_manager(manager):
-            order = root.node
-            fetch_order_prices_if_expired(
-                order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+        order = root.node
+
+        # Line-lvl voucher discounts are represented as OrderDiscount objects for order
+        # created from checkout.
+        def wrap_line_discounts_from_checkout(order_discounts):
+            if order.origin != OrderOrigin.CHECKOUT:
+                return order_discounts
+
+            def wrap_order_line(order_lines):
+                def wrap_order_line_discount(
+                    order_line_discounts: list[list[discount_models.OrderLineDiscount]],
+                ):
+                    artificial_order_discount = None
+                    for line_discount_list in order_line_discounts:
+                        for line_discount in line_discount_list:
+                            if line_discount.type != DiscountType.VOUCHER:
+                                continue
+
+                            if artificial_order_discount is None:
+                                artificial_order_discount = (
+                                    discount_models.OrderDiscount(
+                                        id=line_discount.id,
+                                        name=line_discount.name,
+                                        type=line_discount.type,
+                                        value_type=line_discount.value_type,
+                                        value=line_discount.value,
+                                        amount_value=line_discount.amount_value,
+                                        currency=line_discount.currency,
+                                        reason=line_discount.reason,
+                                        translated_name=line_discount.translated_name,
+                                    )
+                                )
+                            else:
+                                artificial_order_discount.amount_value += (
+                                    line_discount.amount_value
+                                )
+
+                    if artificial_order_discount:
+                        return order_discounts + [artificial_order_discount]
+                    return order_discounts
+
+                return (
+                    OrderLineDiscountsByOrderLineIDLoader(info.context)
+                    .load_many([line.pk for line in order_lines])
+                    .then(wrap_order_line_discount)
+                )
+
+            return (
+                OrderLinesByOrderIdLoader(info.context)
+                .load(order.id)
+                .then(wrap_order_line)
             )
-            return OrderDiscountsByOrderIDLoader(info.context).load(order.id)
+
+        def with_manager(manager):
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+
+            return (
+                OrderDiscountsByOrderIDLoader(info.context)
+                .load(order.id)
+                .then(wrap_line_discounts_from_checkout)
+            )
 
         return get_plugin_manager_promise(info.context).then(with_manager)
 
