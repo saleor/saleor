@@ -11808,7 +11808,11 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
   """Returns amount of discount."""
   amount: Money! @deprecated(reason: "Use `total` instead.")
 
-  """The amount of discount applied to the order."""
+  """
+  The amount of discount applied to the order.
+  
+  Added in Saleor 3.21.
+  """
   total: Money
 }
 
