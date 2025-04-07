@@ -16,9 +16,9 @@ from graphql.language.ast import (
     OperationDefinition,
 )
 from graphql.type import GraphQLField
-from graphql.validation import validate
+from graphql.utils.type_info import TypeInfo
 from graphql.validation.rules.base import ValidationRule
-from graphql.validation.validation import ValidationContext
+from graphql.validation.validation import ValidationContext, visit_using_rules
 
 from .sensitive_data import ALLOWED_HEADERS, SENSITIVE_HEADERS, SensitiveFieldsMap
 
@@ -160,8 +160,20 @@ def _contain_sensitive_field(
     validator = cast(
         type[ValidationRule], ContainSensitiveField(sensitive_fields=sensitive_fields)
     )
+    if not (
+        document.schema
+        and document.document_ast
+        and isinstance(document.schema, GraphQLSchema)
+    ):
+        return False
+
     try:
-        validate(document.schema, document.document_ast, [validator])
+        visit_using_rules(
+            document.schema,
+            TypeInfo(document.schema),
+            document.document_ast,
+            [validator],
+        )
     except SensitiveFieldError:
         return True
     return False
