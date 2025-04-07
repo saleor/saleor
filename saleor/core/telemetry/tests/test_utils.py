@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from opentelemetry.trace import Link, SpanContext, TraceFlags
@@ -46,6 +46,18 @@ def test_convert_unit_unsupported_conversion():
     # Test unsupported conversion (e.g., milliseconds to requests)
     with pytest.raises(ValueError, match="Conversion from .* to .* not supported"):
         convert_unit(100, Unit.MILLISECOND, Unit.REQUEST)
+
+
+def test_convert_unit_unsupported_conversion_with_raising_disabled(settings):
+    settings.TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
+
+    # Test unsupported conversion (e.g., milliseconds to requests)
+    with patch("saleor.core.telemetry.utils.logger.error") as mock_error:
+        assert convert_unit(100, Unit.MILLISECOND, Unit.REQUEST) == 100
+        mock_error.assert_called_once_with(
+            "Conversion from Unit.MILLISECOND to Unit.REQUEST not supported",
+            exc_info=ANY,
+        )
 
 
 def test_global_attributes():

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
 
+from django.conf import settings
 from opentelemetry.trace import Link, SpanContext, TraceFlags
 from opentelemetry.util.types import Attributes, AttributeValue
 
@@ -44,7 +45,11 @@ def convert_unit(amount: Amount, unit: Unit | None, to_unit: Unit) -> Amount:
     try:
         return amount * UNIT_CONVERSIONS[(unit, to_unit)]
     except KeyError as e:
-        raise ValueError(f"Conversion from {unit} to {to_unit} not supported") from e
+        msg = f"Conversion from {unit} to {to_unit} not supported"
+        if settings.TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS:
+            raise ValueError(msg) from e
+        logger.error(msg, exc_info=e)
+    return amount
 
 
 @contextmanager

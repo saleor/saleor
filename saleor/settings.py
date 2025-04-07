@@ -1037,3 +1037,5 @@ i18n_rules_override()
 
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
+# Whether to raise or log exceptions for telemetry unit conversion errors
+TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
