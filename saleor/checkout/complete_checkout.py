@@ -623,15 +623,11 @@ def _prepare_order_data(
 
     order_data.update(_process_voucher_data_for_order(checkout_info))
 
-    order_data["total_price_left"] = (
-        calculations.checkout_subtotal(
-            manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
-            address=address,
-        )
-        + undiscounted_base_shipping_price
-        - checkout.discount
+    order_data["total_price_left"] = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
     ).gross
 
     try:
@@ -1419,14 +1415,13 @@ def _create_order_from_checkout(
     )
 
     # giftcards
-    total_without_giftcard = (
-        order.subtotal
-        + undiscounted_base_shipping_price
-        - checkout_info.checkout.discount
-    )
-    add_gift_cards_to_order(
-        checkout_info, order, total_without_giftcard.gross, user, app
-    )
+    total_without_giftcard = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+    ).gross
+    add_gift_cards_to_order(checkout_info, order, total_without_giftcard, user, app)
 
     # payments
     checkout_info.checkout.payments.update(order=order, checkout_id=None)
