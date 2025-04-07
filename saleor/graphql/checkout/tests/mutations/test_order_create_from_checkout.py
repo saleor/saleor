@@ -22,7 +22,7 @@ from .....core.taxes import (
     zero_taxed_money,
 )
 from .....discount import DiscountType, DiscountValueType, RewardValueType
-from .....discount.models import CheckoutLineDiscount
+from .....discount.models import CheckoutLineDiscount, OrderLineDiscount
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
@@ -1012,15 +1012,15 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
-    assert order_discount.type == DiscountType.VOUCHER
-    assert order_discount.voucher == voucher_percentage
-    assert order_discount.voucher_code == code.code
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_percentage
+    assert order_line_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -1079,15 +1079,16 @@ def test_order_from_checkout_with_specific_product_voucher(
     assert checkout_line_variant == order_line.variant
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
-    assert order_discount.type == DiscountType.VOUCHER
-    assert order_discount.voucher == voucher_specific_product_type
-    assert order_discount.voucher_code == code.code
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_specific_product_type
+    assert order_line_discount.voucher_code == code.code
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
