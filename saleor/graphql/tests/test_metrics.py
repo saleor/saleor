@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from ...core.telemetry import Unit
 from ..metrics import (
     METRIC_GRAPHQL_QUERIES,
     METRIC_GRAPHQL_QUERY_DURATION,
@@ -14,7 +15,7 @@ def test_record_graphql_queries_count(mock_meter):
     record_graphql_queries_count(5)
 
     # then
-    mock_meter.record.assert_called_once_with(METRIC_GRAPHQL_QUERIES, 5)
+    mock_meter.record.assert_called_once_with(METRIC_GRAPHQL_QUERIES, 5, Unit.REQUEST)
 
 
 @patch("saleor.graphql.metrics.meter")
