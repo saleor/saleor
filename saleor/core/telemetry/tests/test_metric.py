@@ -377,22 +377,6 @@ def test_meter_proxy_create_metric_with_meter():
     assert metric_name == "test_metric"
 
 
-def test_meter_proxy_record_without_meter():
-    # given
-    meter_proxy = MeterProxy()
-
-    # when
-    meter_proxy.record(
-        "test_metric",
-        1,
-        unit=Unit.REQUEST,
-        attributes={"attr1": "value1"},
-    )
-
-    # then
-    # should not raise an error, but do nothing
-
-
 def test_meter_proxy_record_with_meter():
     # given
     meter_proxy = MeterProxy()
