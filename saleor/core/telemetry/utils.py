@@ -39,8 +39,8 @@ UNIT_CONVERSIONS: dict[tuple[Unit, Unit], float] = {
 }
 
 
-def convert_unit(amount: Amount, unit: Unit | None, to_unit: Unit) -> Amount:
-    if unit is None or unit == to_unit:
+def convert_unit(amount: Amount, unit: Unit, to_unit: Unit) -> Amount:
+    if unit == to_unit:
         return amount
     try:
         return amount * UNIT_CONVERSIONS[(unit, to_unit)]

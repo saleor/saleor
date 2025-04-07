@@ -21,7 +21,7 @@ METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
 
 # Helper functions
 def record_graphql_queries_count(amount: int = 1) -> None:
-    meter.record(METRIC_GRAPHQL_QUERIES, amount)
+    meter.record(METRIC_GRAPHQL_QUERIES, amount, Unit.REQUEST)
 
 
 def record_graphql_query_duration() -> AbstractContextManager[
