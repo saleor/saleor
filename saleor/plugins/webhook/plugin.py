@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Optional, Union
 
 import graphene
 from django.conf import settings
+from django.template.defaultfilters import truncatechars
 from pydantic import ValidationError
 
 from ...app.models import App
@@ -18,7 +19,7 @@ from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
 from ...core.taxes import TaxData, TaxDataError, TaxType
-from ...core.utils import build_absolute_uri, truncate_msg
+from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
@@ -3448,7 +3449,7 @@ class WebhookPlugin(BasePlugin):
                 str(e),
                 extra={"errors": errors},
             )
-            error_msg = truncate_msg(str(e), max_length=MAX_TAX_ERROR_LGTH)
+            error_msg = truncatechars(str(e), MAX_TAX_ERROR_LGTH)
             raise TaxDataError(error_msg, errors=errors) from e
         return tax_data
 

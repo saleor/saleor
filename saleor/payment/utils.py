@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 
 from ..account.models import User
@@ -26,7 +27,6 @@ from ..checkout.payment_utils import update_refundable_for_checkout
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
-from ..core.utils import truncate_msg
 from ..graphql.core.utils import str_to_enum
 from ..order.fetch import fetch_order_info
 from ..order.models import Order, OrderGrantedRefund
@@ -1003,7 +1003,7 @@ def parse_transaction_action_data(
 
 
 def truncate_transaction_event_message(message: str):
-    return truncate_msg(message, TRANSACTION_EVENT_MSG_MAX_LENGTH)
+    return truncatechars(message, TRANSACTION_EVENT_MSG_MAX_LENGTH)
 
 
 def get_failed_transaction_event_type_for_request_event(
