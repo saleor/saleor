@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
+from django.forms import model_to_dict
 
 from .....account import events as account_events
 from .....account import models
@@ -63,7 +64,11 @@ class CustomerCreate(BaseCustomerCreate):
         )
 
         instance.search_document = prepare_user_search_document_value(instance)
-        instance.save(update_fields=["search_document"])
+
+        (instance, created) = models.User.objects.get_or_create(
+            email=instance.email, defaults=model_to_dict(instance)
+        )
+        # TODO - it never creates because it was created earlier
 
         cls.call_event(manager.customer_created, instance)
         account_events.customer_account_created_event(user=instance)
