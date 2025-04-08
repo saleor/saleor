@@ -44,6 +44,14 @@ MUTATION_UPDATE_PRODUCT = """
                     variants {
                         name
                     }
+                    productVariants(first: 10) {
+                        edges {
+                            node {
+                                id
+                                name
+                            }
+                        }
+                    }
                     taxType {
                         taxCode
                         description
