@@ -104,4 +104,6 @@ PRIVATE_MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "private-media")  # noqa: F
 
 BREAKER_BOARD_ENABLED = False
 
+# Enable exception raising for telemetry unit conversion errors
+# This helps identify unit conversion issues during development and testing
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = True
