@@ -114,8 +114,8 @@ class Meter:
         self,
         metric_name: str,
         amount: Amount,
+        unit: Unit,
         *,
-        unit: Unit | None = None,
         attributes: Attributes = None,
     ) -> None:
         """Record a measurement for the specified metric.
@@ -123,7 +123,7 @@ class Meter:
         Args:
             metric_name: Name of the metric to record a measurement
             amount: Value to record
-            unit: Optional unit of the measurement (converted if different from metric unit)
+            unit: Unit of the measurement (converted if different from metric unit)
             attributes: Attributes to record with the measurement
 
         """
@@ -200,8 +200,8 @@ class MeterProxy(Meter):
         self,
         metric_name: str,
         amount: Amount,
+        unit: Unit,
         *,
-        unit: Unit | None = None,
         attributes: Attributes = None,
     ) -> None:
         if self._meter:

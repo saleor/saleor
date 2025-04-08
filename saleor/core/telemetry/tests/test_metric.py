@@ -213,6 +213,7 @@ def test_meter_record():
     meter.record(
         "test_metric",
         1,
+        Unit.REQUEST,
         attributes={"attr1": "value1"},
     )
 
@@ -249,6 +250,7 @@ def test_meter_record_non_existent_metric():
         meter.record(
             "non_existent_metric",
             1,
+            Unit.REQUEST,
         )
 
 

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from opentelemetry.trace import Link, SpanContext, TraceFlags
@@ -28,12 +28,6 @@ def test_convert_unit_same_unit():
     assert convert_unit(100, Unit.NANOSECOND, Unit.NANOSECOND) == 100
 
 
-def test_convert_unit_null_source():
-    # Null source unit should return the same value
-    assert convert_unit(100, None, Unit.SECOND) == 100
-    assert convert_unit(100, None, Unit.MILLISECOND) == 100
-
-
 def test_convert_unit_supported_conversions():
     # Test nanoseconds to milliseconds
     assert convert_unit(1000000, Unit.NANOSECOND, Unit.MILLISECOND) == 1
@@ -42,10 +36,29 @@ def test_convert_unit_supported_conversions():
     assert convert_unit(1000000000, Unit.NANOSECOND, Unit.SECOND) == 1
 
 
-def test_convert_unit_unsupported_conversion():
-    # Test unsupported conversion (e.g., milliseconds to requests)
+@pytest.mark.parametrize(
+    ("from_unit", "to_unit"),
+    [
+        (Unit.MILLISECOND, Unit.REQUEST),
+        (None, Unit.REQUEST),
+        (Unit.REQUEST, Unit.MILLISECOND),
+    ],
+)
+def test_convert_unit_unsupported_conversion(from_unit, to_unit):
     with pytest.raises(ValueError, match="Conversion from .* to .* not supported"):
-        convert_unit(100, Unit.MILLISECOND, Unit.REQUEST)
+        convert_unit(100, from_unit, to_unit)
+
+
+def test_convert_unit_unsupported_conversion_with_raising_disabled(settings):
+    settings.TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
+
+    # Test unsupported conversion (e.g., milliseconds to requests)
+    with patch("saleor.core.telemetry.utils.logger.error") as mock_error:
+        assert convert_unit(100, Unit.MILLISECOND, Unit.REQUEST) == 100
+        mock_error.assert_called_once_with(
+            "Conversion from Unit.MILLISECOND to Unit.REQUEST not supported",
+            exc_info=ANY,
+        )
 
 
 def test_global_attributes():
