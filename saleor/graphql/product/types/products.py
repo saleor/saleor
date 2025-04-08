@@ -1447,11 +1447,12 @@ class Product(ChannelContextType[models.Product]):
         requestor = get_user_or_app_from_context(info.context)
 
         def _resolve_product_variants(channel_obj):
+            limited_channel_access = False if channel_slug is None else True
             qs = resolve_product_variants(
                 info,
                 channel=channel_obj,
                 product_id=root.node.pk,
-                limited_channel_access=True,
+                limited_channel_access=limited_channel_access,
                 requestor=requestor,
             )
             kwargs["channel"] = qs.channel_slug
@@ -1462,11 +1463,13 @@ class Product(ChannelContextType[models.Product]):
                 qs, info, kwargs, ProductVariantCountableConnection
             )
 
-        return (
-            ChannelBySlugLoader(info.context)
-            .load(root.channel_slug)
-            .then(_resolve_product_variants)
-        )
+        if channel_slug := root.channel_slug:
+            return (
+                ChannelBySlugLoader(info.context)
+                .load(channel_slug)
+                .then(_resolve_product_variants)
+            )
+        return _resolve_product_variants(None)
 
     @staticmethod
     def resolve_channel_listings(root: ChannelContext[models.Product], info):
