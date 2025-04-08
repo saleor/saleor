@@ -21,6 +21,7 @@ from ..app.models import App
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, TaxedMoneyField
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
+from ..core.taxes import TAX_ERROR_FIELD_LENGTH
 from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import zero_weight
@@ -357,7 +358,9 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     # this field is used only for draft/unconfirmed orders
     should_refresh_prices = models.BooleanField(default=True)
     tax_exemption = models.BooleanField(default=False)
-    tax_error = models.CharField(max_length=255, null=True, blank=True)
+    tax_error = models.CharField(
+        max_length=TAX_ERROR_FIELD_LENGTH, null=True, blank=True
+    )
 
     objects = OrderManager()
 

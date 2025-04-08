@@ -38,7 +38,6 @@ from ..tax.utils import (
     get_tax_app_identifier_for_order,
     get_tax_calculation_strategy_for_order,
     normalize_tax_rate_for_db,
-    validate_tax_data,
 )
 from . import ORDER_EDITABLE_STATUS, OrderStatus
 from .base_calculations import base_order_line_total, calculate_prices
@@ -199,7 +198,10 @@ def calculate_taxes(
             )
         except TaxDataError as e:
             if str(e) != TaxDataErrorMessage.EMPTY:
-                logger.warning(str(e), extra=order_info_for_logs(order, lines))
+                extra = order_info_for_logs(order, lines)
+                if e.errors:
+                    extra["errors"] = e.errors
+                logger.warning(str(e), extra=extra)
             order.tax_error = str(e)
 
         if not should_charge_tax:
@@ -224,7 +226,10 @@ def calculate_taxes(
                 )
             except TaxDataError as e:
                 if str(e) != TaxDataErrorMessage.EMPTY:
-                    logger.warning(str(e), extra=order_info_for_logs(order, lines))
+                    extra = order_info_for_logs(order, lines)
+                    if e.errors:
+                        extra["errors"] = e.errors
+                    logger.warning(str(e), extra=extra)
                 order.tax_error = str(e)
         else:
             remove_tax(order, lines, prices_entered_with_tax)
@@ -248,10 +253,12 @@ def _calculate_and_add_tax(
             # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
             # be dropped.
             _recalculate_with_plugins(manager, order, lines, prices_entered_with_tax)
-            tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
-            if not tax_data:
-                log_address_if_validation_skipped_for_order(order, logger)
-            validate_tax_data(tax_data, lines, allow_empty_tax_data=True)
+            # Get the taxes calculated with apps and apply to order.
+            # We should allow empty tax_data in case any tax webhook has not been
+            # configured - handled by `allowed_empty_tax_data`
+            tax_data = _get_taxes_for_order(
+                order, tax_app_identifier, manager, allowed_empty_tax_data=True
+            )
             _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
         else:
             _call_plugin_or_tax_app(
@@ -295,11 +302,35 @@ def _call_plugin_or_tax_app(
         if order.tax_error:
             raise TaxDataError(order.tax_error)
     else:
+        tax_data = _get_taxes_for_order(order, tax_app_identifier, manager)
+        _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
+
+
+def _get_taxes_for_order(
+    order: "Order",
+    tax_app_identifier: str | None,
+    manager: "PluginsManager",
+    allowed_empty_tax_data: bool = False,
+):
+    """Get taxes for order from tax apps.
+
+    The `allowed_empty_tax_data` flag prevents an error from being raised when tax data
+    is missing due to the absence of a configured tax app.
+    """
+    tax_data = None
+    try:
         tax_data = manager.get_taxes_for_order(order, tax_app_identifier)
+    except TaxDataError as e:
+        raise e from e
+    finally:
+        # log in case the tax_data is missing
         if tax_data is None:
             log_address_if_validation_skipped_for_order(order, logger)
-        validate_tax_data(tax_data, lines)
-        _apply_tax_data(order, lines, tax_data, prices_entered_with_tax)
+
+    if not tax_data and not allowed_empty_tax_data:
+        raise TaxDataError(TaxDataErrorMessage.EMPTY)
+
+    return tax_data
 
 
 def _recalculate_with_plugins(
