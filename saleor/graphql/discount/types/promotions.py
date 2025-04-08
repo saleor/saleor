@@ -162,7 +162,9 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     def resolve_gift_ids(root: models.PromotionRule, info: ResolveInfo):
         def with_gifts(gifts):
             return [
-                graphene.Node.to_global_id("ProductVariant", gift.pk) for gift in gifts
+                graphene.Node.to_global_id("ProductVariant", gift.pk)
+                for gift in gifts
+                if gift
             ]
 
         return GiftsByPromotionRuleIDLoader(info.context).load(root.id).then(with_gifts)
