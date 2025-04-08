@@ -523,3 +523,68 @@ def test_get_taxes_for_order_with_app_identifier(
     assert delivery.webhook == webhook
     mock_fetch.assert_not_called()
     assert tax_data == parse_tax_data(tax_data_response, order.lines.count())
+
+
+@freeze_time()
+@mock.patch("saleor.order.calculations.fetch_order_prices_if_expired")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+)
+def test_get_taxes_for_order_with_app_identifier_empty_response(
+    mock_generate_payload,
+    mock_request,
+    mock_fetch,
+    webhook_plugin,
+    tax_data_response,
+    order,
+    tax_app,
+):
+    # given
+    mock_request.return_value = None
+    subscription_query = "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
+    expected_payload = {"taxBase": {"currency": "USD"}}
+    mock_generate_payload.return_value = expected_payload
+    plugin = webhook_plugin()
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["subscription_query"])
+    app_identifier = tax_app.identifier
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        plugin.get_taxes_for_order(order, app_identifier, None)
+
+
+@freeze_time()
+@mock.patch("saleor.checkout.calculations.fetch_checkout_data")
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+)
+def test_get_taxes_for_checkout_with_app_identifier_empty_response(
+    mock_generate_payload,
+    mock_request,
+    mock_fetch,
+    webhook_plugin,
+    tax_data_response,
+    checkout,
+    tax_app,
+):
+    # given
+    subscription_query = "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
+    expected_payload = {"taxBase": {"currency": "USD"}}
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
+    mock_request.return_value = None
+    mock_generate_payload.return_value = expected_payload
+    plugin = webhook_plugin()
+    webhook = tax_app.webhooks.get(name="tax-webhook-1")
+    webhook.subscription_query = subscription_query
+    webhook.save(update_fields=["subscription_query"])
+    app_identifier = tax_app.identifier
+
+    # when & then
+    with pytest.raises(TaxDataError):
+        plugin.get_taxes_for_checkout(checkout_info, [], app_identifier, None)

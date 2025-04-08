@@ -20,7 +20,7 @@ class CalculateTaxesSchema(BaseModel):
 
     @field_validator("lines")
     @classmethod
-    def validate_lines_length(
+    def clean_lines_length(
         cls, lines: list[LineCalculateTaxesSchema], info: ValidationInfo
     ):
         context = info.context

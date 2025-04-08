@@ -18,7 +18,7 @@ from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
-from ...core.taxes import TaxData, TaxDataError, TaxType
+from ...core.taxes import TAX_ERROR_FIELD_LENGTH, TaxData, TaxDataError, TaxType
 from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...csv.notifications import get_default_export_payload
@@ -161,11 +161,6 @@ if TYPE_CHECKING:
 # time labels were valid for when checking documentation for the carriers
 # (FedEx, UPS, TNT, DHL).
 CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 3600 * 12
-
-MAX_TAX_ERROR_LGTH: int = min(  # type: ignore[type-var, assignment]
-    Order._meta.get_field("tax_error").max_length,
-    Checkout._meta.get_field("tax_error").max_length,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -3449,7 +3444,7 @@ class WebhookPlugin(BasePlugin):
                 str(e),
                 extra={"errors": errors},
             )
-            error_msg = truncatechars(str(e), MAX_TAX_ERROR_LGTH)
+            error_msg = truncatechars(str(e), TAX_ERROR_FIELD_LENGTH)
             raise TaxDataError(error_msg, errors=errors) from e
         return tax_data
 

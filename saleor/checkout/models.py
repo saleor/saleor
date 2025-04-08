@@ -17,7 +17,7 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
-from ..core.taxes import zero_money
+from ..core.taxes import TAX_ERROR_FIELD_LENGTH, zero_money
 from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
@@ -220,7 +220,9 @@ class Checkout(models.Model):
     )
 
     tax_exemption = models.BooleanField(default=False)
-    tax_error = models.CharField(max_length=255, blank=True, null=True)
+    tax_error = models.CharField(
+        max_length=TAX_ERROR_FIELD_LENGTH, blank=True, null=True
+    )
 
     class Meta:
         ordering = ("-last_change", "pk")

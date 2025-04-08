@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from prices import Money, TaxedMoney
 
+TAX_ERROR_FIELD_LENGTH = 255
+
 
 class TaxError(Exception):
     """Default tax error."""

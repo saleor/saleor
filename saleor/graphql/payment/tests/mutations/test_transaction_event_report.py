@@ -3223,7 +3223,7 @@ def test_transaction_event_report_message_limit_exceeded(
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
     assert event.user is None
-    assert event.message == message[:509] + "..."
+    assert event.message == message[:511] + "…"
 
 
 def test_transaction_event_report_empty_message(
