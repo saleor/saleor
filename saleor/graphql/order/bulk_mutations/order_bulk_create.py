@@ -24,7 +24,12 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....discount.models import OrderDiscount, VoucherCode
+from ....discount.models import (
+    DiscountType,
+    OrderDiscount,
+    OrderLineDiscount,
+    VoucherCode,
+)
 from ....discount.utils.manual_discount import apply_discount_to_value
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
@@ -102,6 +107,7 @@ class OrderBulkFulfillment:
 @dataclass
 class OrderBulkOrderLine:
     line: OrderLine
+    line_discount: OrderLineDiscount | None
     warehouse: Warehouse
 
 
@@ -163,6 +169,14 @@ class OrderBulkCreateData:
     @property
     def all_order_lines(self) -> list[OrderLine]:
         return [order_line.line for order_line in self.lines]
+
+    @property
+    def all_order_line_discounts(self) -> list[OrderLineDiscount]:
+        return [
+            order_line.line_discount
+            for order_line in self.lines
+            if order_line.line_discount
+        ]
 
     @property
     def all_fulfillment_lines(self) -> list[FulfillmentLine]:
@@ -276,6 +290,8 @@ class LineAmounts:
     total_net: Decimal
     unit_gross: Decimal
     unit_net: Decimal
+    base_unit_price: Decimal
+    undiscounted_base_unit_price: Decimal
     unit_discount_value: Decimal
     unit_discount_type: str | None
     unit_discount_reason: str | None
@@ -1238,11 +1254,26 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
+        prices_entered_with_tax = True
+        if channel := order_data.channel:
+            prices_entered_with_tax = channel.tax_configuration.prices_entered_with_tax
+
+        undiscounted_base_unit_price_amount = (
+            undiscounted_unit_price_gross_amount
+            if prices_entered_with_tax
+            else undiscounted_unit_price_net_amount
+        )
+        base_unit_price = undiscounted_base_unit_price_amount
+        if unit_discount_amount:
+            base_unit_price -= unit_discount_amount
+
         return LineAmounts(
             total_gross=gross_amount,
             total_net=net_amount,
             unit_gross=unit_price_gross_amount,
             unit_net=unit_price_net_amount,
+            base_unit_price=base_unit_price,
+            undiscounted_base_unit_price=undiscounted_base_unit_price_amount,
             unit_discount_reason=unit_discount_reason,
             unit_discount_type=unit_discount_type,
             unit_discount_value=unit_discount_value,
@@ -1738,11 +1769,26 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_unit_price_gross_amount=line_amounts.undiscounted_unit_gross,
             undiscounted_total_price_net_amount=line_amounts.undiscounted_total_net,
             undiscounted_total_price_gross_amount=line_amounts.undiscounted_total_gross,
+            base_unit_price_amount=line_amounts.base_unit_price,
+            undiscounted_base_unit_price_amount=line_amounts.undiscounted_base_unit_price,
             unit_discount_amount=line_amounts.unit_discount_amount,
             tax_rate=line_amounts.tax_rate,
             tax_class=line_tax_class,
             tax_class_name=order_line_input.get("tax_class_name"),
         )
+        line_discount = None
+        if line_amounts.unit_discount_amount > 0:
+            discount_amount = line_amounts.unit_discount_amount * line_amounts.quantity
+            line_discount = OrderLineDiscount(
+                line=order_line,
+                unique_type=DiscountType.MANUAL,
+                type=DiscountType.MANUAL,
+                value_type=line_amounts.unit_discount_type,
+                value=line_amounts.unit_discount_value,
+                amount_value=discount_amount,
+                currency=order_line.currency,
+                reason=line_amounts.unit_discount_reason,
+            )
 
         if metadata := order_line_input.get("metadata"):
             cls.process_metadata(
@@ -1775,7 +1821,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 field=order_line.tax_class_private_metadata,
             )
 
-        return OrderBulkOrderLine(line=order_line, warehouse=warehouse)
+        return OrderBulkOrderLine(
+            line=order_line, line_discount=line_discount, warehouse=warehouse
+        )
 
     @classmethod
     def create_single_fulfillment(
@@ -2285,6 +2333,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             [],
         )
         OrderLine.objects.bulk_create(order_lines)
+
+        order_line_discounts: list[OrderLineDiscount] = sum(
+            [
+                order_data.all_order_line_discounts
+                for order_data in orders_data
+                if order_data.order
+            ],
+            [],
+        )
+        OrderLineDiscount.objects.bulk_create(order_line_discounts)
 
         notes = [
             note
