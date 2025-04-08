@@ -1783,7 +1783,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 line=order_line,
                 unique_type=DiscountType.MANUAL,
                 type=DiscountType.MANUAL,
-                value_type=line_amounts.unit_discount_type,
+                value_type=line_amounts.unit_discount_type
+                or DiscountValueTypeEnum.FIXED.name,  # type: ignore[attr-defined]
                 value=line_amounts.unit_discount_value,
                 amount_value=discount_amount,
                 currency=order_line.currency,
