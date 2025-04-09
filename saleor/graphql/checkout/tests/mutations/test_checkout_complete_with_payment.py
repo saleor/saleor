@@ -2365,12 +2365,20 @@ def test_checkout_complete_product_on_old_sale(
 
 
 @pytest.mark.parametrize(
-    ("use_legacy_voucher_propagation", "expected_voucher_discount_value_type"),
-    [(True, DiscountValueType.FIXED), (False, DiscountValueType.PERCENTAGE)],
+    (
+        "use_legacy_voucher_propagation",
+        "expected_voucher_discount_value_type",
+        "expected_voucher_discount_value",
+    ),
+    [
+        (True, DiscountValueType.FIXED, Decimal("1.5")),
+        (False, DiscountValueType.PERCENTAGE, Decimal(10)),
+    ],
 )
 def test_checkout_with_voucher_on_specific_product_complete_with_product_on_promotion(
     use_legacy_voucher_propagation,
     expected_voucher_discount_value_type,
+    expected_voucher_discount_value,
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
     voucher_specific_product_type,
@@ -2517,6 +2525,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     line_voucher_discount = order_line.discounts.get(type=DiscountType.VOUCHER)
     assert line_voucher_discount.voucher == voucher_specific_product_type
     assert line_voucher_discount.value_type == expected_voucher_discount_value_type
+    assert line_voucher_discount.value == expected_voucher_discount_value
     assert line_voucher_discount.type == DiscountType.VOUCHER
     assert line_voucher_discount.voucher_code == code.code
     unit_discount = (

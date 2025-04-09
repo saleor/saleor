@@ -466,14 +466,16 @@ def _create_order_line_discount_object_for_voucher(
         # Previously voucher discount was always set as fixed value. To keep it in the
         # same way as previously we force the fixed type when legacy flow is used
         value_type = DiscountValueType.FIXED
+        value = discount_amount
     else:
         value_type = voucher.discount_value_type
+        value = voucher_channel_listing.discount_value
 
     return OrderLineDiscount(
         line=order_line,
         type=DiscountType.VOUCHER,
         value_type=value_type,
-        value=discount_amount,
+        value=value,
         amount_value=discount_amount,
         currency=order_line.currency,
         name=discount_name,
