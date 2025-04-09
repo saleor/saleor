@@ -47,7 +47,6 @@ from ..tests.sample_plugins import (
     InactivePaymentGateway,
     PluginInactive,
     PluginSample,
-    sample_tax_data,
 )
 
 
@@ -535,49 +534,6 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
 )
 def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
     assert tax_rate_list == PluginsManager(plugins=plugins).get_tax_rate_type_choices()
-
-
-def sample_none_data(obj):
-    return None
-
-
-@pytest.mark.parametrize(
-    ("plugins", "expected_tax_data"),
-    [
-        ([], sample_none_data),
-        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
-    ],
-)
-def test_manager_get_taxes_for_checkout(
-    checkout,
-    plugins,
-    expected_tax_data,
-):
-    lines, _ = fetch_checkout_lines(checkout)
-    manager = get_plugins_manager(allow_replica=False)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    app_identifier = None
-    assert PluginsManager(plugins=plugins).get_taxes_for_checkout(
-        checkout_info, lines, app_identifier
-    ) == expected_tax_data(checkout)
-
-
-@pytest.mark.parametrize(
-    ("plugins", "expected_tax_data"),
-    [
-        ([], sample_none_data),
-        (["saleor.plugins.tests.sample_plugins.PluginSample"], sample_tax_data),
-    ],
-)
-def test_manager_get_taxes_for_order(
-    order,
-    plugins,
-    expected_tax_data,
-):
-    app_identifier = None
-    assert PluginsManager(plugins=plugins).get_taxes_for_order(
-        order, app_identifier
-    ) == expected_tax_data(order)
 
 
 def test_manager_sale_created(promotion_converted_from_sale):

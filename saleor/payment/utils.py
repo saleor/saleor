@@ -11,6 +11,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 
 from ..account.models import User
@@ -1002,11 +1003,7 @@ def parse_transaction_action_data(
 
 
 def truncate_transaction_event_message(message: str):
-    return (
-        message[: TRANSACTION_EVENT_MSG_MAX_LENGTH - 3] + "..."
-        if len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH
-        else message
-    )
+    return truncatechars(message, TRANSACTION_EVENT_MSG_MAX_LENGTH)
 
 
 def get_failed_transaction_event_type_for_request_event(

@@ -41,9 +41,9 @@ OnErrorSkipShippingMethod = Annotated[T, WrapValidator(skip_invalid_shipping_met
 
 
 class ShippingMethodSchema(BaseModel):
-    id: str = Field(coerce_numbers_to_str=True)
-    name: str = Field(max_length=name_max_length)
-    amount: Decimal = Field(ge=0)
+    id: Annotated[str, Field(coerce_numbers_to_str=True)]
+    name: Annotated[str, Field(max_length=name_max_length)]
+    amount: Annotated[Decimal, Field(ge=0)]
     currency: str
     maximum_delivery_days: Annotated[int, Field(ge=0)] | None = None
     minimum_delivery_days: Annotated[int, Field(ge=0)] | None = None

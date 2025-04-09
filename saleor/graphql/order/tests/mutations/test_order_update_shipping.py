@@ -195,6 +195,53 @@ def test_order_update_shipping_no_shipping_method_channel_listings(
     assert errors[0]["field"] == "shippingMethod"
 
 
+def test_order_sets_shipping_tax_details_to_none_when_default_tax_used(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    shipping_method,
+    other_shipping_method,
+):
+    # given
+    shipping_tax_class = shipping_method.tax_class
+    shipping_tax_class.private_metadata = {"key": "value"}
+    shipping_tax_class.metadata = {"key": "value"}
+    shipping_tax_class.save()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.shipping_tax_class = shipping_tax_class
+    order.shipping_tax_class_name = shipping_tax_class.name
+    order.shipping_tax_class_private_metadata = shipping_tax_class.private_metadata
+    order.shipping_tax_class_metadata = shipping_tax_class.metadata
+    order.save()
+
+    assert not other_shipping_method.tax_class
+
+    # when
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", other_shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["order"]["id"] == order_id
+
+    order.refresh_from_db()
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.shipping_method == other_shipping_method
+    assert order.shipping_method_name == other_shipping_method.name
+
+    assert not order.shipping_tax_class
+    assert not order.shipping_tax_class_name
+    assert not order.shipping_tax_class_private_metadata
+    assert not order.shipping_tax_class_metadata
+
+
 def test_order_update_shipping_tax_included(
     staff_api_client,
     permission_group_manage_orders,

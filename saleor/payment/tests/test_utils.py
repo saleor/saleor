@@ -1809,7 +1809,7 @@ def test_create_transaction_event_from_request_and_webhook_response_message_loo_
     assert event.amount_value == event_amount
     assert event.created_at == datetime.datetime.fromisoformat(event_time)
     assert event.external_url == event_url
-    assert event.message == event_message[:509] + "..."
+    assert event.message == event_message[:511] + "…"
     assert event.type == event_type
     assert len(caplog.records) == 1
     assert caplog.records[0].message == (
@@ -2719,7 +2719,7 @@ def test_create_transaction_event_message_limit_exceeded(
     transaction.refresh_from_db()
     assert transaction.events.count() == 2
     event = transaction.events.last()
-    assert event.message == message[:509] + "..."
+    assert event.message == message[:511] + "…"
     assert len(caplog.records) == 1
     assert caplog.records[0].message == (
         "Value for field: message in response of transaction action webhook "

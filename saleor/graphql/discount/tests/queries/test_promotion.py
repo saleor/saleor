@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 
@@ -209,6 +210,52 @@ def test_query_order_promotion_with_gift_rule(
     assert set(rule["giftIds"]) == {
         graphene.Node.to_global_id("ProductVariant", gift.pk)
         for gift in rule_db.gifts.all()
+    }
+    assert rule["giftsLimit"] == 1
+    assert rule["rewardType"] == RewardType.GIFT.upper()
+
+
+@patch(
+    "saleor.graphql.discount.types.promotions.GiftsByPromotionRuleIDLoader.batch_load"
+)
+def test_query_order_promotion_with_gift_rule_variant_removed_in_meantime(
+    mock_batch_load,
+    order_promotion_without_rules,
+    gift_promotion_rule,
+    staff_api_client,
+    permission_group_manage_discounts,
+):
+    # given
+    query = """
+        query Promotion($id: ID!) {
+            promotion(id: $id) {
+                id
+                rules {
+                    rewardType
+                    giftIds
+                    giftsLimit
+                }
+            }
+        }
+    """
+    promotion = order_promotion_without_rules
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    promotion.rules.add(gift_promotion_rule)
+
+    variables = {"id": promotion_id}
+
+    returned_gift = gift_promotion_rule.gifts.first()
+    mock_batch_load.return_value = [[None, returned_gift]]
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    rule = content["data"]["promotion"]["rules"][0]
+    assert set(rule["giftIds"]) == {
+        graphene.Node.to_global_id("ProductVariant", returned_gift.pk)
     }
     assert rule["giftsLimit"] == 1
     assert rule["rewardType"] == RewardType.GIFT.upper()

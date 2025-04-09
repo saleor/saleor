@@ -6,9 +6,12 @@ import graphene
 import pytest
 
 from saleor.order import OrderEvents
-from saleor.order.models import Order
+from saleor.order.models import Order, OrderLine
 from saleor.payment.models import TransactionItem
 
+from .....order.calculations import fetch_order_prices_if_expired
+from .....plugins.manager import get_plugins_manager
+from ....discount.enums import DiscountValueTypeEnum
 from ....order.enums import OrderStatusEnum
 from ....payment.enums import TransactionActionEnum
 from ....payment.tests.mutations.test_transaction_request_action import (
@@ -301,3 +304,104 @@ def test_filter_imported_orders(
     assert data_1["edges"][0]["node"]["id"] == order_2_id
     assert data_2["totalCount"] == 1
     assert data_2["edges"][0]["node"]["id"] == order_3_id
+
+
+@pytest.mark.integration
+def test_refresh_order_prices_from_imported_draft_order_with_unit_discount(
+    staff_api_client,
+    permission_manage_orders_import,
+    permission_group_manage_orders,
+    order_bulk_input,  # noqa: F811
+    product,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders_import)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    # import draft order from external system
+    order = order_bulk_input
+    order["status"] = OrderStatusEnum.DRAFT.name
+    order["deliveryMethod"] = None
+    order["channel"] = channel_USD.slug
+    order["currency"] = "USD"
+    order["fulfillments"] = []
+    order["transactions"] = []
+    order["invoices"] = []
+    order["discounts"] = []
+
+    discount_type = DiscountValueTypeEnum.FIXED.name
+    discount_value = 10
+    discount_reason = "Test discount"
+    variant = product.variants.first()
+    order["lines"][0]["variantId"] = graphene.Node.to_global_id(
+        "ProductVariant", variant.id
+    )
+    order["lines"][0]["isShippingRequired"] = False
+    order["lines"][0]["unitDiscountValue"] = discount_value
+    order["lines"][0]["unitDiscountType"] = discount_type
+    order["lines"][0]["unitDiscountReason"] = discount_reason
+
+    line_total_price_net = 50
+    line_total_price_gross = 60
+    order["lines"][0]["totalPrice"]["net"] = line_total_price_net
+    order["lines"][0]["totalPrice"]["gross"] = line_total_price_gross
+
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
+    }
+
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    order_response_data = data[0]["order"]
+
+    order_line = order_response_data["lines"][0]
+    assert order_line["variant"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant.id
+    )
+    assert order_line["unitDiscountType"] == discount_type
+    assert order_line["unitDiscountValue"] == discount_value
+    assert order_line["unitDiscountReason"] == discount_reason
+    assert order_response_data["total"]["net"]["amount"] == line_total_price_net
+    assert order_response_data["total"]["gross"]["amount"] == line_total_price_gross
+    assert (
+        order_response_data["undiscountedTotal"]["net"]["amount"]
+        == order["lines"][0]["undiscountedTotalPrice"]["net"]
+    )
+    assert (
+        order_response_data["undiscountedTotal"]["gross"]["amount"]
+        == order["lines"][0]["undiscountedTotalPrice"]["gross"]
+    )
+    assert order_response_data["shippingPrice"]["gross"]["amount"] == 0
+    assert order_response_data["shippingPrice"]["net"]["amount"] == 0
+
+    db_order_line = OrderLine.objects.get()
+    assert db_order_line.variant == variant
+    assert db_order_line.unit_discount_type == discount_type.lower()
+    assert db_order_line.unit_discount_value == discount_value
+    assert db_order_line.unit_discount_reason == discount_reason
+
+    assert order_response_data
+
+    # refetch order prices
+    order = Order.objects.get()
+    order, lines = fetch_order_prices_if_expired(
+        order, get_plugins_manager(allow_replica=True), force_update=True
+    )
+
+    # then - ensure the order prices are updated, the discount is applied
+    line = lines[0]
+    assert line.unit_discount_type == discount_type.lower()
+    assert line.unit_discount_value == discount_value
+    assert line.unit_discount_reason == discount_reason
+    assert (
+        line.undiscounted_total_price_net_amount - line.total_price_net_amount
+    ) / line.quantity == line.unit_discount_amount
+    assert order.total_net_amount == line.total_price_net_amount
+    assert order.total_gross_amount == line.total_price_gross_amount
