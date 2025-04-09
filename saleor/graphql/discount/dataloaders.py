@@ -239,7 +239,7 @@ class OrderDiscountsByOrderIDLoader(DataLoader[UUID, list[OrderDiscount]]):
         discount_map = defaultdict(list)
         for discount in discounts:
             discount_map[discount.order_id].append(discount)
-        return [discount_map.get(order_id, []) for order_id in keys]
+        return [discount_map[order_id] for order_id in keys]
 
 
 class OrderLineDiscountsByOrderLineIDLoader(DataLoader[UUID, list[OrderDiscount]]):
@@ -252,7 +252,7 @@ class OrderLineDiscountsByOrderLineIDLoader(DataLoader[UUID, list[OrderDiscount]
         discount_map = defaultdict(list)
         for discount in discounts:
             discount_map[discount.line_id].append(discount)
-        return [discount_map.get(line_id, []) for line_id in keys]
+        return [discount_map[line_id] for line_id in keys]
 
 
 class CheckoutLineDiscountsByCheckoutLineIdLoader(
