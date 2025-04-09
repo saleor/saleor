@@ -107,3 +107,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
 - Allow to change Admin email plugin custom templates back to default - #17563 by @wcislo-saleor
 - Fixes incorrect gift card balances after covering the full order total - #17566 by @korycins
+- Fixes tax class not clearing when selecting a shipping method without a tax class - #17560 by @korycins

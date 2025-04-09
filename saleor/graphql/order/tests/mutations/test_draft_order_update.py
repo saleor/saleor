@@ -1804,6 +1804,11 @@ def test_draft_order_update_shipping_method_clear_with_none(
     assert order.undiscounted_base_shipping_price == zero_money(order.currency)
     assert order.base_shipping_price == zero_money(order.currency)
 
+    assert not order.shipping_tax_class
+    assert not order.shipping_tax_class_name
+    assert not order.shipping_tax_class_private_metadata
+    assert not order.shipping_tax_class_metadata
+
 
 def test_draft_order_update_shipping_method(
     staff_api_client, permission_group_manage_orders, draft_order, shipping_method
@@ -1814,6 +1819,11 @@ def test_draft_order_update_shipping_method(
     order.shipping_method = None
     order.base_shipping_price = zero_money(order.currency)
     order.save()
+
+    shipping_tax_class = shipping_method.tax_class
+    shipping_tax_class.private_metadata = {"key": "value"}
+    shipping_tax_class.metadata = {"key": "value"}
+    shipping_tax_class.save()
 
     query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -1851,6 +1861,65 @@ def test_draft_order_update_shipping_method(
     assert order.undiscounted_base_shipping_price == shipping_total
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
+
+    assert order.shipping_tax_class == shipping_tax_class
+    assert order.shipping_tax_class_name == shipping_tax_class.name
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+
+
+def test_draft_order_update_sets_shipping_tax_details_to_none_when_default_tax_used(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    shipping_method,
+    other_shipping_method,
+):
+    # given
+    shipping_tax_class = shipping_method.tax_class
+    shipping_tax_class.private_metadata = {"key": "value"}
+    shipping_tax_class.metadata = {"key": "value"}
+    shipping_tax_class.save()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.shipping_method = shipping_method
+    order.base_shipping_price = zero_money(order.currency)
+    order.shipping_tax_class = shipping_tax_class
+    order.shipping_tax_class_name = shipping_tax_class.name
+    order.shipping_tax_class_private_metadata = shipping_tax_class.private_metadata
+    order.shipping_tax_class_metadata = shipping_tax_class.metadata
+    order.save()
+
+    assert not other_shipping_method.tax_class
+
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", other_shipping_method.id)
+    variables = {
+        "id": order_id,
+        "shippingMethod": method_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    assert data["order"]["shippingMethodName"] == other_shipping_method.name
+
+    order.refresh_from_db()
+    assert order.shipping_method == other_shipping_method
+    assert order.shipping_method_name == other_shipping_method.name
+
+    assert not order.shipping_tax_class
+    assert not order.shipping_tax_class_name
+    assert not order.shipping_tax_class_private_metadata
+    assert not order.shipping_tax_class_metadata
 
 
 def test_draft_order_update_shipping_method_order_with_shipping_voucher(
