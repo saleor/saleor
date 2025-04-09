@@ -164,7 +164,7 @@ class OrderSettingsInput(BaseInputObjectType):
             "an `OrderLineDiscount` assigned to the corresponding order line, and can "
             "be found in the `OrderLine.discounts` field."
             "By default, it is set to false for newly created channels."
-            "Starting from version 3.22, `OrderLineDiscount` propagation will become "
+            "In future releases, `OrderLineDiscount` propagation will become "
             "the default, and this flag will be removed." + ADDED_IN_321
         ),
     )
