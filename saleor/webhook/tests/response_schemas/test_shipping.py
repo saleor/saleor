@@ -13,6 +13,7 @@ from ...response_schemas.shipping import (
     ShippingMethodSchema,
     logger,
 )
+from ...transport.shipping_helpers import to_shipping_app_id
 
 
 def decode_id(id):
@@ -92,12 +93,14 @@ def decode_id(id):
         },
     ],
 )
-def test_shipping_method_schema_valid(data):
+def test_shipping_method_schema_valid(data, app):
     # when
-    shipping_method_model = ShippingMethodSchema.model_validate(data)
+    shipping_method_model = ShippingMethodSchema.model_validate(
+        data, context={"app": app}
+    )
 
     # then
-    assert shipping_method_model.id == str(data["id"])
+    assert shipping_method_model.id == to_shipping_app_id(app, data["id"])
     assert shipping_method_model.name == data["name"]
     assert shipping_method_model.amount == Decimal(data["amount"])
     assert shipping_method_model.currency == data["currency"]
@@ -114,7 +117,7 @@ def test_shipping_method_schema_valid(data):
 @pytest.mark.parametrize(
     "metadata", [12345, "not_a_dict", {123: 123}, {"123": 123}, {123: "123"}]
 )
-def test_shipping_method_schema_invalid_metadata_skipped(metadata):
+def test_shipping_method_schema_invalid_metadata_skipped(metadata, app):
     # given
     data = {
         "id": "4",
@@ -125,10 +128,12 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata):
     }
 
     # when
-    shipping_method_model = ShippingMethodSchema.model_validate(data)
+    shipping_method_model = ShippingMethodSchema.model_validate(
+        data, context={"app": app}
+    )
 
     # then
-    assert shipping_method_model.id == data["id"]
+    assert shipping_method_model.id == to_shipping_app_id(app, data["id"])
     assert shipping_method_model.name == data["name"]
     assert shipping_method_model.amount == data["amount"]
     assert shipping_method_model.currency == data["currency"]
@@ -221,24 +226,24 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata):
         },
     ],
 )
-def test_shipping_method_schema_invalid(data):
+def test_shipping_method_schema_invalid(data, app):
     with pytest.raises(ValidationError) as e:
-        ShippingMethodSchema.model_validate(data)
+        ShippingMethodSchema.model_validate(data, context={"app": app})
 
     assert len(e.value.errors()) == 1
 
 
 @pytest.mark.parametrize("data", [None, []])
-def test_list_shipping_methods_schema_skipped_values(data):
+def test_list_shipping_methods_schema_skipped_values(data, app):
     # when
-    list_methods = ListShippingMethodsSchema.model_validate(data)
+    list_methods = ListShippingMethodsSchema.model_validate(data, context={"app": app})
 
     # Then the root should be an empty list
     assert list_methods.root == []
 
 
 @patch.object(logger, "warning")
-def test_list_shipping_methods_schema_invalid_element_skipped(mocked_logger):
+def test_list_shipping_methods_schema_invalid_element_skipped(mocked_logger, app):
     """Test when the provided input has 2 elements, one valid and one invalid."""
     # given a list with one valid and one invalid shipping method
     data = [
@@ -261,11 +266,11 @@ def test_list_shipping_methods_schema_invalid_element_skipped(mocked_logger):
     ]
 
     # when
-    schema = ListShippingMethodsSchema.model_validate(data)
+    schema = ListShippingMethodsSchema.model_validate(data, context={"app": app})
 
     # then only the valid shipping method should be included
     assert len(schema.root) == 1
-    assert schema.root[0].id == data[0]["id"]
+    assert schema.root[0].id == to_shipping_app_id(app, data[0]["id"])
     assert schema.root[0].name == data[0]["name"]
     assert mocked_logger.call_count == 1
 
