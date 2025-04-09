@@ -3231,7 +3231,13 @@ def test_checkout_complete_multiple_rules_applied(
     )
 
 
+@pytest.mark.parametrize(
+    ("use_legacy_voucher_propagation", "expected_voucher_discount_value_type"),
+    [(True, DiscountValueType.FIXED), (False, DiscountValueType.PERCENTAGE)],
+)
 def test_checkout_with_voucher_on_specific_product_complete_with_product_on_promotion(
+    use_legacy_voucher_propagation,
+    expected_voucher_discount_value_type,
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
     voucher_specific_product_type,
@@ -3240,8 +3246,14 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     shipping_method,
     transaction_events_generator,
     transaction_item_generator,
+    channel_USD,
 ):
     # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = (
+        use_legacy_voucher_propagation
+    )
+    channel_USD.save()
+
     checkout = prepare_checkout_for_test(
         checkout_with_item_and_voucher_specific_products,
         address,
@@ -3254,6 +3266,15 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     voucher_used_count = code.used
     voucher_specific_product_type.usage_limit = voucher_used_count + 1
     voucher_specific_product_type.save(update_fields=["usage_limit"])
+
+    voucher_expected_value = Decimal(10)
+    voucher_specific_product_type.channel_listings.update(
+        discount_value=voucher_expected_value
+    )
+    assert (
+        voucher_specific_product_type.discount_value_type
+        == DiscountValueType.PERCENTAGE
+    )
 
     checkout_line = checkout.lines.first()
     checkout_line_variant = checkout_line.variant
@@ -3303,6 +3324,9 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     assert order.undiscounted_total == total + (
         order_line.undiscounted_total_price - order_line.total_price
     )
+
+    line_voucher_discount = order_line.discounts.get(type=DiscountType.VOUCHER)
+    assert line_voucher_discount.value_type == expected_voucher_discount_value_type
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1

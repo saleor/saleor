@@ -153,10 +153,14 @@ def test_checkout_voucher_should_not_cause_negative_variant_price_CORE_0911(
         checkout_id,
     )
     assert order_data["status"] == "UNFULFILLED"
-    assert order_data["discounts"][0]["type"] == "VOUCHER"
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["total"]["gross"]["amount"] == discounted_total_gross
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
     assert order_data["shippingPrice"]["gross"]["amount"] == shipping_price
+    assert not order_data["discounts"]
+
     order_line = order_data["lines"][0]
     assert order_line["unitPrice"]["gross"]["amount"] == 0
+    assert len(order_line["discounts"]) == 1
+    order_line_discount = order_line["discounts"][0]
+    assert order_line_discount["type"] == "VOUCHER"

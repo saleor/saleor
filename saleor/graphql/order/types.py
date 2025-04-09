@@ -1436,8 +1436,15 @@ class OrderLine(
         def with_manager_and_order(data):
             manager, order = data
 
-            def handle_line_discount_from_checkout(line_discounts):
-                if order.origin != OrderOrigin.CHECKOUT:
+            def handle_line_discount_from_checkout(data):
+                channel, line_discounts = data
+
+                # For legacy propagation, voucher discount was returned as OrderDiscount
+                # when legacy is disabled, return the voucher discount as
+                # OrderLineDiscount. It is a temporary solution to provide a grace
+                # period for migration
+                use_legacy = channel.use_legacy_line_voucher_propagation_for_order
+                if order.origin != OrderOrigin.CHECKOUT or not use_legacy:
                     return line_discounts
 
                 discounts_to_return = []
@@ -1454,11 +1461,12 @@ class OrderLine(
                 fetch_order_prices_if_expired(
                     order, manager, allow_sync_webhooks=root.allow_sync_webhooks
                 )
-
-            return (
-                OrderLineDiscountsByOrderLineIDLoader(info.context)
-                .load(line.id)
-                .then(handle_line_discount_from_checkout)
+            channel_loader = ChannelByIdLoader(info.context).load(order.channel_id)
+            order_line_discounts = OrderLineDiscountsByOrderLineIDLoader(
+                info.context
+            ).load(line.id)
+            return Promise.all([channel_loader, order_line_discounts]).then(
+                handle_line_discount_from_checkout
             )
 
         manager = get_plugin_manager_promise(info.context)
@@ -1858,8 +1866,17 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
 
         # Line-lvl voucher discounts are represented as OrderDiscount objects for order
         # created from checkout.
-        def wrap_line_discounts_from_checkout(order_discounts):
+        def wrap_line_discounts_from_checkout(data):
+            channel, order_discounts = data
+
             if order.origin != OrderOrigin.CHECKOUT:
+                return order_discounts
+
+            # voucher discount is stored as OrderLineDiscount object in DB.
+            # for backward compatibility, when legacy propagation is enabled
+            # we convert the order-line-discounts into single OrderDiscount
+            # It is a temporary solution to provide a grace period for migration
+            if not channel.use_legacy_line_voucher_propagation_for_order:
                 return order_discounts
 
             def wrap_order_line(order_lines):
@@ -1919,11 +1936,10 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 fetch_order_prices_if_expired(
                     order, manager, allow_sync_webhooks=root.allow_sync_webhooks
                 )
-
-            return (
-                OrderDiscountsByOrderIDLoader(info.context)
-                .load(order.id)
-                .then(wrap_line_discounts_from_checkout)
+            channel_loader = ChannelByIdLoader(info.context).load(order.channel_id)
+            order_discounts = OrderDiscountsByOrderIDLoader(info.context).load(order.id)
+            return Promise.all([channel_loader, order_discounts]).then(
+                wrap_line_discounts_from_checkout
             )
 
         return get_plugin_manager_promise(info.context).then(with_manager)
