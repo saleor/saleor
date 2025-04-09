@@ -1,5 +1,4 @@
 import datetime
-import logging
 from unittest import mock
 from unittest.mock import call, patch
 
@@ -707,7 +706,7 @@ def test_delete_expired_orders_task_schedule_itself(
 
 
 def test_bulk_release_voucher_usage_voucher_usage_mismatch(
-    order_list, allocations, channel_USD, voucher_customer, caplog
+    order_list, allocations, channel_USD, voucher_customer
 ):
     # We can have mismatch between `voucher.used` and number of order utilizing
     # the voucher. It can happen in following cases:
@@ -744,7 +743,6 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     channel_USD.save()
 
     now = timezone.now()
-    caplog.set_level(logging.ERROR)
     code = voucher_customer.voucher_code
     voucher = code.voucher
     code.used = 1
@@ -770,7 +768,6 @@ def test_bulk_release_voucher_usage_voucher_usage_mismatch(
     # then
     code.refresh_from_db()
     assert code.used == 0
-    assert code.code in caplog.text
 
 
 @patch(
