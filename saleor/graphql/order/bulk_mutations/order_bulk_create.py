@@ -49,7 +49,7 @@ from ....payment.models import TransactionEvent, TransactionItem
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
-from ....tax.models import TaxClass
+from ....tax.models import TaxClass, TaxConfiguration
 from ....warehouse.management import stock_bulk_update
 from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
@@ -131,6 +131,7 @@ class OrderBulkCreateData:
     user: User | None = None
     billing_address: Address | None = None
     channel: Channel | None = None
+    tax_configuration: TaxConfiguration | None = None
     shipping_address: Address | None = None
     voucher_code: VoucherCode | None = None
     # error which ignores error policy and disqualify order
@@ -781,6 +782,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             | Q(external_reference__in=identifiers.variant_external_references.keys)
         )
         channels = Channel.objects.filter(slug__in=identifiers.channel_slugs.keys)
+        tax_configurations = TaxConfiguration.objects.filter(
+            channel_id__in=channels.values("id")
+        )
         voucher_codes = VoucherCode.objects.filter(
             code__in=identifiers.voucher_codes.keys
         ).select_related("voucher")
@@ -818,6 +822,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         for channel in channels:
             object_storage[f"Channel.slug.{channel.slug}"] = channel
+
+        for tax_configuration in tax_configurations:
+            object_storage[
+                f"TaxConfiguration.channel_id.{tax_configuration.channel_id}"
+            ] = tax_configuration
 
         for voucher_code in voucher_codes:
             object_storage[f"VoucherCode.code.{voucher_code.code}"] = voucher_code
@@ -1055,6 +1064,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
         )
 
+        tax_configuration = None
+        if channel:
+            tax_configuration = object_storage.get(
+                f"TaxConfiguration.channel_id.{channel.id}"
+            )
+
         billing_address: Address | None = None
         billing_address_input = order_input["billing_address"]
         metadata_list: list[MetadataInput] = billing_address_input.pop("metadata", None)
@@ -1141,6 +1156,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         order_data.user = user
         order_data.channel = channel
+        order_data.tax_configuration = tax_configuration
         order_data.billing_address = billing_address
         order_data.shipping_address = shipping_address
         order_data.voucher_code = voucher_code
@@ -1255,8 +1271,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
 
         prices_entered_with_tax = True
-        if channel := order_data.channel:
-            prices_entered_with_tax = channel.tax_configuration.prices_entered_with_tax
+        if tax_configuration := order_data.tax_configuration:
+            prices_entered_with_tax = tax_configuration.prices_entered_with_tax
 
         undiscounted_base_unit_price_amount = (
             undiscounted_unit_price_gross_amount
