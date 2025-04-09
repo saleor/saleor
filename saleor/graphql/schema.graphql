@@ -11246,10 +11246,10 @@ type OrderLineDiscount @doc(category: "Orders") {
   reason: String
 
   """The discount amount applied to the line item."""
-  total: Money
+  total: Money!
 
   """The discount amount applied to the single line unit."""
-  unit: Money
+  unit: Money!
 }
 
 enum OrderDiscountType @doc(category: "Discounts") {
@@ -11813,7 +11813,7 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
   
   Added in Saleor 3.21.
   """
-  total: Money
+  total: Money!
 }
 
 type OrderError @doc(category: "Orders") {

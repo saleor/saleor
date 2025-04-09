@@ -60,7 +60,9 @@ class OrderDiscount(BaseOrderDiscount[models.OrderDiscount]):
     )
 
     total = graphene.Field(
-        Money, description="The amount of discount applied to the order." + ADDED_IN_321
+        Money,
+        required=True,
+        description="The amount of discount applied to the order." + ADDED_IN_321,
     )
 
     class Meta:
@@ -81,10 +83,14 @@ class OrderDiscount(BaseOrderDiscount[models.OrderDiscount]):
 
 class OrderLineDiscount(BaseOrderDiscount[models.OrderLineDiscount]):
     total = graphene.Field(
-        Money, description="The discount amount applied to the line item."
+        Money,
+        required=True,
+        description="The discount amount applied to the line item.",
     )
     unit = graphene.Field(
-        Money, description="The discount amount applied to the single line unit."
+        Money,
+        required=True,
+        description="The discount amount applied to the single line unit.",
     )
 
     class Meta:
