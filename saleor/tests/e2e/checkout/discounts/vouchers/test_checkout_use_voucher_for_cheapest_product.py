@@ -211,7 +211,7 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
     assert len(first_order_line_data["discounts"]) == 1
     first_order_line_discount = first_order_line_data["discounts"][0]
     assert first_order_line_discount["type"] == "VOUCHER"
-    assert first_order_line_discount["value"] == line_discount
+    assert first_order_line_discount["value"] == voucher_discount_value
     assert first_order_line_discount["unit"]["amount"] == line_discount
     assert (
         first_order_line_discount["total"]["amount"]
