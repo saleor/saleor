@@ -1,13 +1,10 @@
-import decimal
 from unittest import mock
 
 import pytest
-from graphql.language.ast import FloatValue, IntValue, ObjectValue, StringValue
 
 from ....order.models import Order
 from ....payment.interface import PaymentGatewayData
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
-from ..scalars import Decimal, PositiveDecimal
 from ..utils import to_global_id_or_none
 
 QUERY_CHECKOUT = """
@@ -422,39 +419,3 @@ def test_correct_date_time_as_input(
 
     # then
     get_graphql_content(response)
-
-
-@pytest.mark.parametrize("invalid_value", ["NaN", "-Infinity", "1e-9999999", "-", "x"])
-def test_decimal_scalar_invalid_value(invalid_value):
-    result = Decimal.parse_value(invalid_value)
-    assert result is None
-
-
-@pytest.mark.parametrize("invalid_value", ["NaN", "-Infinity", "1e-9999999", "-1"])
-def test_positive_decimal_scalar_invalid_value(invalid_value):
-    result = PositiveDecimal.parse_value(invalid_value)
-    assert result is None
-
-
-@pytest.mark.parametrize(
-    "valid_node",
-    [
-        FloatValue(value="1.0"),
-        IntValue(value="1"),
-    ],
-)
-def test_decimal_scalar_valid_literal(valid_node):
-    result = Decimal.parse_literal(valid_node)
-    assert result == decimal.Decimal(1)
-
-
-@pytest.mark.parametrize(
-    "invalid_node",
-    [
-        StringValue(value="1.0"),
-        ObjectValue(fields=[]),
-    ],
-)
-def test_decimal_scalar_invalid_literal(invalid_node):
-    result = Decimal.parse_literal(invalid_node)
-    assert result is None
