@@ -190,6 +190,24 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
+    def get_editable_values_from_instance(cls, instance):
+        field_names = [
+            field.name for field in cls._meta.model._meta.fields if field.editable
+        ]
+        instance_values = {
+            field_name: getattr(instance, field_name) for field_name in field_names
+        }
+        return instance_values
+
+    @classmethod
+    def get_edited_fields(cls, old_values, new_values):
+        return [
+            field
+            for field in old_values.keys()
+            if old_values.get(field) != new_values.get(field)
+        ]
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -212,6 +230,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
+        instance_values_before_update = cls.get_editable_values_from_instance(instance)
         old_instance_data = instance.serialize_for_comparison()  # type: ignore[union-attr]
         cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
@@ -232,7 +251,13 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
         cls.clean_instance(info, new_instance)
         new_instance_data = new_instance.serialize_for_comparison()
+        instance_values_after_update = cls.get_editable_values_from_instance(
+            new_instance
+        )
 
+        changed_field_my = cls.get_edited_fields(
+            instance_values_before_update, instance_values_after_update
+        )
         changed_fields = cls.diff_instance_data_fields(
             new_instance.comparison_fields,
             old_instance_data,

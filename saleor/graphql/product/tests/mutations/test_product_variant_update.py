@@ -13,7 +13,9 @@ from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....product.error_codes import ProductErrorCode
+from ....core.utils import snake_to_camel_case
 from ....tests.utils import get_graphql_content
+from ...mutations.product_variant.product_variant_create import ProductVariantInput
 
 
 def test_product_variant_update_with_new_attributes(
@@ -374,6 +376,78 @@ def test_update_product_variant_skip_updating_fields_when_unchanged(
         variables,
         permissions=[permission_manage_products],
     )
+
+    # then
+    variant.refresh_from_db()
+    get_graphql_content(response)
+    save_variant_mock.assert_not_called()
+    call_event_mock.assert_not_called()
+
+
+PRODUCT_VARIANT_UPDATE_MUTATION = """
+mutation ProductVariantUpdate($id: ID!, $input: ProductVariantInput!) {
+  productVariantUpdate(id: $id, input: $input) {
+    errors {
+      field
+      code
+      message
+    }
+    productVariant {
+      id
+      attributes {
+        attribute {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+"""
+
+
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
+def test_update_product_variant_nothing_changed(
+    save_variant_mock,
+    call_event_mock,
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    input_fields = [
+        snake_to_camel_case(key) for key in ProductVariantInput._meta.fields.keys()
+    ]
+    input = {
+        "attributes": [],
+        "sku": "",
+        "name": "",
+        "trackInventory": True,
+        "weight": 0,
+        "preorder": None,
+        "quantityLimitPerCustomer": 0,
+        "metadata": [{"key": "test_key1", "value": "test_value1"}],
+        "privateMetadata": [{"key": "test_key1", "value": "test_value1"}],
+        "externalReference": "",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    variables = {"id": variant_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_UPDATE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
 
     # then
     variant.refresh_from_db()
