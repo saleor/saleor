@@ -35,6 +35,7 @@ from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
 from .patch_gzip import patch_gzip
+from .patch_local import patch_local
 
 django_stubs_ext.monkeypatch()
 
@@ -1075,3 +1076,7 @@ patch_gzip()
 # `BaseDatabaseValidation` and `DatabaseErrorWrapper` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_db()
+
+# Patch `Local` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_local()
