@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from ..transport import (
@@ -31,9 +31,7 @@ def test_send_webhooks_async_for_app(
     # then
     mock_send_webhook_using_scheme_method.assert_called_once()
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
-        kwargs={
-            "app_id": app.id,
-        },
+        kwargs={"app_id": app.id, "telemetry_context": ANY},
     )
 
     # deliveries should be cleared
@@ -105,9 +103,7 @@ def test_send_webhooks_async_for_app_no_payload(
     ).exists()
 
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
-        kwargs={
-            "app_id": app.id,
-        },
+        kwargs={"app_id": app.id, "telemetry_context": ANY},
     )
 
 
@@ -142,9 +138,7 @@ def test_send_webhooks_async_for_app_failed_status(
     ).exists()
 
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
-        kwargs={
-            "app_id": app.id,
-        },
+        kwargs={"app_id": app.id, "telemetry_context": ANY},
     )
 
 
@@ -172,9 +166,7 @@ def test_send_multiple_webhooks_async_for_app(
     # then
     assert mock_send_webhook_using_scheme_method.call_count == 3
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
-        kwargs={
-            "app_id": app.id,
-        },
+        kwargs={"app_id": app.id, "telemetry_context": ANY},
     )
 
     # deliveries should be cleared
@@ -220,7 +212,5 @@ def test_send_webhooks_async_for_app_last_retry_failed(
     )
 
     mock_send_webhooks_async_for_app_apply_async.assert_called_once_with(
-        kwargs={
-            "app_id": app.id,
-        },
+        kwargs={"app_id": app.id, "telemetry_context": ANY},
     )
