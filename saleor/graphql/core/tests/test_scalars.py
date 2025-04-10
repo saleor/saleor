@@ -2,12 +2,12 @@ import decimal
 from unittest import mock
 
 import pytest
-from graphql.language.ast import FloatValue, IntValue, StringValue, ObjectValue
+from graphql.language.ast import FloatValue, IntValue, ObjectValue, StringValue
 
-from ..scalars import Decimal, PositiveDecimal
 from ....order.models import Order
 from ....payment.interface import PaymentGatewayData
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
+from ..scalars import Decimal, PositiveDecimal
 from ..utils import to_global_id_or_none
 
 QUERY_CHECKOUT = """
