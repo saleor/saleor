@@ -22,7 +22,6 @@ from ..response_schemas.shipping import (
     FilterShippingMethodsSchema,
     ListShippingMethodsSchema,
 )
-from .shipping_helpers import to_shipping_app_id
 from .synchronous.transport import trigger_webhook_sync_if_not_cached
 
 logger = logging.getLogger(__name__)
@@ -33,14 +32,14 @@ def parse_list_shipping_methods_response(
 ) -> list["ShippingMethodData"]:
     try:
         list_shipping_method_model = ListShippingMethodsSchema.model_validate(
-            response_data
+            response_data, context={"app": app}
         )
     except ValidationError:
         logger.warning("Skipping invalid shipping method response: %s", response_data)
         return []
     return [
         ShippingMethodData(
-            id=to_shipping_app_id(app, str(shipping_method.id)),
+            id=shipping_method.id,
             name=shipping_method.name,
             price=shipping_method.price,
             maximum_delivery_days=shipping_method.maximum_delivery_days,
