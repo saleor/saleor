@@ -121,11 +121,12 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
         True,
     )
 
+    first_line_quantity = 1
     # Step 1 - Create checkout for product
     lines = [
         {
             "variantId": first_variant_id,
-            "quantity": 1,
+            "quantity": first_line_quantity,
         },
         {
             "variantId": second_variant_id,
@@ -201,14 +202,25 @@ def test_checkout_use_voucher_for_cheapest_product_0907(
         checkout_id,
     )
     assert order_data["status"] == "UNFULFILLED"
-    assert order_data["discounts"][0]["type"] == "VOUCHER"
-    assert order_data["discounts"][0]["value"] == line_discount
     assert order_data["voucher"]["code"] == voucher_code
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
     assert order_data["deliveryMethod"]["id"] == shipping_method_id
-    first_order_line = order_data["lines"][0]
+    assert not order_data["discounts"]
+
+    first_order_line_data = order_data["lines"][0]
+    assert len(first_order_line_data["discounts"]) == 1
+    first_order_line_discount = first_order_line_data["discounts"][0]
+    assert first_order_line_discount["type"] == "VOUCHER"
+    assert first_order_line_discount["value"] == voucher_discount_value
+    assert first_order_line_discount["unit"]["amount"] == line_discount
     assert (
-        first_order_line["unitPrice"]["gross"]["amount"] == discounted_first_line_price
+        first_order_line_discount["total"]["amount"]
+        == line_discount * first_line_quantity
+    )
+
+    assert (
+        first_order_line_data["unitPrice"]["gross"]["amount"]
+        == discounted_first_line_price
     )
     second_order_line = order_data["lines"][1]
     assert second_order_line["unitPrice"]["gross"]["amount"] == float(
