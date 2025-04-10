@@ -1444,8 +1444,7 @@ class OrderLine(
                 for discount in line_discounts:
                     # voucher discount propagated on the line is represented by
                     # OrderDiscount.
-                    order_from_checkout = order.origin == OrderOrigin.CHECKOUT
-                    if order_from_checkout and discount.type == DiscountType.VOUCHER:
+                    if discount.type == DiscountType.VOUCHER:
                         continue
                     discounts_to_return.append(discount)
 
@@ -1867,6 +1866,13 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 def wrap_order_line_discount(
                     order_line_discounts: list[list[discount_models.OrderLineDiscount]],
                 ):
+                    # This affects orders created from checkout and applies
+                    # specifically to vouchers of the types: `SPECIFIC_PRODUCT` and
+                    # `ENTIRE_ORDER` with `applyOncePerOrder` enabled.
+                    # discounts from these vouchers should be represented as
+                    # OrderDiscount, but they are stored as OrderLineDiscount in
+                    # database. To not add any breaking change, we create artifical
+                    # order discount object
                     artificial_order_discount = None
                     for line_discount_list in order_line_discounts:
                         for line_discount in line_discount_list:
