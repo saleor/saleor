@@ -1752,7 +1752,9 @@ class ProductType(ModelObjectType[models.ProductType]):
         @allow_writer_in_context(info.context)
         def with_tax_class(data):
             tax_class, manager = data
-            tax_data = manager.get_tax_code_from_object_meta(tax_class)
+            tax_data = manager.get_tax_code_from_object_meta(
+                tax_class, channel_slug=None
+            )
             return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
         if root.tax_class_id:
