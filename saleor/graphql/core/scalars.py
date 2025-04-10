@@ -21,35 +21,55 @@ class Decimal(graphene.Float):
     """
 
     @staticmethod
-    def parse_literal(node):
-        try:
-            return decimal.Decimal(node.value)
-        except decimal.DecimalException:
-            return None
+    def parse_literal(node) -> decimal.Decimal | None:
+        if isinstance(node, ast.FloatValue | ast.IntValue):
+            try:
+                return decimal.Decimal(node.value)
+            except decimal.DecimalException:
+                return None
+        return None
 
     @staticmethod
-    def parse_value(value):
+    def parse_value(value) -> decimal.Decimal | None:
         try:
             # Converting the float to str before parsing it to Decimal is
             # necessary to keep the decimal places as typed
             value = str(value)
-            return decimal.Decimal(value)
+            value = decimal.Decimal(value)
+            if value.is_infinite():
+                return None
+            if value.is_nan():
+                return None
+            if value.is_subnormal():
+                return None
+            return value
         except decimal.DecimalException:
             return None
 
 
-class PositiveDecimal(Decimal):
+class PositiveDecimal(graphene.Float):
     """Nonnegative Decimal scalar implementation.
 
     Should be used in places where value must be nonnegative (0 or greater).
     """
 
     @staticmethod
-    def parse_value(value):
-        value = super(PositiveDecimal, PositiveDecimal).parse_value(value)
-        if value and value < 0:
-            return None
-        return value
+    def parse_value(value) -> decimal.Decimal | None:
+        parsed_value = Decimal.parse_value(value)
+
+        if (parsed_value is not None) and parsed_value >= 0:
+            return parsed_value
+
+        return None
+
+    @staticmethod
+    def parse_literal(node) -> decimal.Decimal | None:
+        parsed_value = Decimal.parse_literal(node)
+
+        if (parsed_value is not None) and parsed_value >= 0:
+            return parsed_value
+
+        return None
 
 
 class JSON(GenericScalar):
