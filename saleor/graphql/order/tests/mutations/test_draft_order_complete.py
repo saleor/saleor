@@ -20,10 +20,7 @@ from .....discount.utils.voucher import (
 )
 from .....order import OrderOrigin, OrderStatus
 from .....order import events as order_events
-from .....order.actions import (
-    call_order_event,
-    order_created,
-)
+from .....order.actions import call_order_event, order_created
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
@@ -1291,6 +1288,9 @@ DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """
                     amount {
                         amount
                     }
+                    total {
+                        amount
+                    }
                     valueType
                     type
                     reason
@@ -1310,6 +1310,17 @@ DRAFT_ORDER_COMPLETE_WITH_DISCOUNTS_MUTATION = """
                     unitDiscountReason
                     unitDiscountType
                     isGift
+                    discounts{
+                        valueType
+                        value
+                        reason
+                        total{
+                          amount
+                        }
+                        unit{
+                            amount
+                        }
+                    }
                 }
             }
         }
@@ -1356,8 +1367,8 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
 
     order_discount = order_data["discounts"][0]
     assert order_discount["amount"]["amount"] == 25.00 == rule_total_value
+    assert order_discount["total"]["amount"] == 25.00 == rule_total_value
     assert order_discount["reason"] == f"Promotion: {order_promotion_id}"
-    assert order_discount["amount"]["amount"] == 25.00 == rule_total_value
     assert order_discount["valueType"] == DiscountValueType.FIXED.upper()
 
     lines_db = order.lines.all()
@@ -1380,6 +1391,7 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
     assert line_1["unitDiscount"]["amount"] == 0.00
     assert line_1["unitDiscountReason"] is None
     assert line_1["unitDiscountValue"] == 0.00
+    assert len(line_1["discounts"]) == 0
 
     line_2_total = quantize_price(
         line_2_db.undiscounted_total_price_net_amount
@@ -1387,11 +1399,27 @@ def test_draft_order_complete_with_catalogue_and_order_discount(
         - line_2_order_discount_portion,
         currency,
     )
+
+    expected_discount_reason = f"Promotion: {catalogue_promotion_id}"
+    expected_unit_discount_amount = rule_catalogue_value
+
     assert line_2["totalPrice"]["net"]["amount"] == float(line_2_total)
-    assert line_2["unitDiscount"]["amount"] == rule_catalogue_value
-    assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
+    assert line_2["unitDiscount"]["amount"] == expected_unit_discount_amount
+    assert line_2["unitDiscountReason"] == expected_discount_reason
     assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
     assert line_2["unitDiscountValue"] == rule_catalogue_value
+
+    assigned_discount_objects = line_2["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == DiscountValueType.FIXED.upper()
+    assert (
+        assigned_discount["total"]["amount"]
+        == expected_unit_discount_amount * line_2_db.quantity
+    )
+    assert assigned_discount["unit"]["amount"] == expected_unit_discount_amount
+    assert assigned_discount["value"] == rule_catalogue_value
 
     total = (
         order.undiscounted_total_net_amount
@@ -1456,23 +1484,50 @@ def test_draft_order_complete_with_catalogue_and_gift_discount(
     assert line_1["unitDiscount"]["amount"] == 0.00
     assert line_1["unitDiscountReason"] is None
     assert line_1["unitDiscountValue"] == 0.00
+    assert len(line_1["discounts"]) == 0
 
     line_2_total = quantize_price(
         line_2_db.undiscounted_total_price_net_amount
         - rule_catalogue_value * line_2_db.quantity,
         currency,
     )
+    expected_line_2_discount_reason = f"Promotion: {catalogue_promotion_id}"
+    expected_line_2_unit_discount_amount = rule_catalogue_value
+
     assert line_2["totalPrice"]["net"]["amount"] == line_2_total
     assert line_2["unitDiscount"]["amount"] == rule_catalogue_value
-    assert line_2["unitDiscountReason"] == f"Promotion: {catalogue_promotion_id}"
+    assert line_2["unitDiscountReason"] == expected_line_2_discount_reason
     assert line_2["unitDiscountType"] == DiscountValueType.FIXED.upper()
     assert line_2["unitDiscountValue"] == rule_catalogue_value
 
+    assigned_discount_objects = line_2["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_line_2_discount_reason
+    assert assigned_discount["valueType"] == DiscountValueType.FIXED.upper()
+    assert (
+        assigned_discount["total"]["amount"]
+        == expected_line_2_unit_discount_amount * line_2_db.quantity
+    )
+    assert assigned_discount["unit"]["amount"] == expected_line_2_unit_discount_amount
+    assert assigned_discount["value"] == rule_catalogue_value
+
+    expected_gift_line_discount_reason = f"Promotion: {gift_promotion_id}"
+
     assert gift_line["totalPrice"]["net"]["amount"] == 0.00
     assert gift_line["unitDiscount"]["amount"] == gift_price
-    assert gift_line["unitDiscountReason"] == f"Promotion: {gift_promotion_id}"
+    assert gift_line["unitDiscountReason"] == expected_gift_line_discount_reason
     assert gift_line["unitDiscountType"] == DiscountValueType.FIXED.upper()
     assert gift_line["unitDiscountValue"] == gift_price
+
+    assigned_gift_line_discount_objects = gift_line["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_gift_line_discount = assigned_gift_line_discount_objects[0]
+    assert assigned_gift_line_discount["reason"] == expected_gift_line_discount_reason
+    assert assigned_gift_line_discount["valueType"] == DiscountValueType.FIXED.upper()
+    assert assigned_gift_line_discount["unit"]["amount"] == gift_price
+    assert assigned_gift_line_discount["total"]["amount"] == gift_price
+    assert assigned_gift_line_discount["value"] == gift_price
 
     total = (
         order.undiscounted_total_net_amount - rule_catalogue_value * line_2_db.quantity

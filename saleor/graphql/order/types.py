@@ -72,6 +72,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -95,7 +96,11 @@ from ..core.types import (
 from ..core.types.sync_webhook_control import SyncWebhookControlContextModelObjectType
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
-from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
+from ..discount.dataloaders import (
+    OrderDiscountsByOrderIDLoader,
+    OrderLineDiscountsByOrderLineIDLoader,
+    VoucherByIdLoader,
+)
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
 from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
@@ -1084,6 +1089,10 @@ class OrderLine(
     is_gift = graphene.Boolean(
         description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
+    discounts = NonNullList(
+        "saleor.graphql.discount.types.discounts.OrderLineDiscount",
+        description="List of applied discounts" + ADDED_IN_321,
+    )
 
     class Meta:
         default_resolver = (
@@ -1418,6 +1427,22 @@ class OrderLine(
     ):
         check_private_metadata_privilege(root.node, info)
         return resolve_metadata(root.node.tax_class_private_metadata)
+
+    @staticmethod
+    def resolve_discounts(root: SyncWebhookControlContext[models.OrderLine], info):
+        line = root.node
+
+        def with_manager_and_order(data):
+            manager, order = data
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+            return OrderLineDiscountsByOrderLineIDLoader(info.context).load(line.id)
+
+        manager = get_plugin_manager_promise(info.context)
+        order = OrderByIdLoader(info.context).load(line.order_id)
+        return Promise.all([manager, order]).then(with_manager_and_order)
 
 
 @federated_entity("id")

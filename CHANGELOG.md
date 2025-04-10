@@ -64,6 +64,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
 - `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
 - `DraftOrderInput`, `OrderUpdateInput` and `DraftOrderCreateInput` now allow to provide `languageCode` - #17553 by @lkostrowski
+- Expose line-level discounts through the `OrderLineDiscount` type, retrievable via the `OrderLine.discounts` API field - #17510 by @korycins
+- Introduce total field in OrderDiscount to replace the amount field, with OrderDiscount.amount now deprecated. - #17510 by @korycins
 
 ### Webhooks
 
