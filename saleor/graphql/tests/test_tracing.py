@@ -1,8 +1,14 @@
 import hashlib
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
+from django.test import override_settings
 from opentelemetry.sdk.trace import ReadableSpan
+from opentelemetry.trace import StatusCode
+
+from ...graphql.api import backend, schema
+from ..views import GraphQLView
 
 
 @pytest.fixture
@@ -483,3 +489,93 @@ def test_tracing_have_source_service_name_set(
     # then
     span = get_span_by_name(get_test_spans(), "graphql_query")
     assert span.attributes["source.service.name"] == expected_result
+
+
+@pytest.mark.parametrize(
+    ("data", "error_message"),
+    [
+        ("", "Must provide a query string."),
+        (
+            {"query": "{"},
+            "Syntax Error GraphQL (1:2) Expected Name, found EOF\n\n1: {\n    ^\n",
+        ),
+        (
+            {
+                "query": "query { ... { __schema { __typename } } ... { shop { name } } }"
+            },
+            "Queries and introspection cannot be mixed in the same request.",
+        ),
+        (
+            {"query": "{ products(first: 9999999999) { edges { node { id } } } }"},
+            'Argument "first" has invalid value 9999999999.\nExpected type "Int", found 9999999999.',
+        ),
+    ],
+)
+@patch("saleor.core.telemetry.tracer.start_as_current_span")
+def test_graphql_query_span_set_status_error_invalid_query(
+    mock_start_span,
+    data,
+    error_message,
+    rf,
+):
+    # given
+    mock_span = MagicMock()
+    mock_start_span.return_value.__enter__.return_value = mock_span
+
+    request = rf.post(
+        path="/graphql",
+        data=data,
+        content_type="application/json",
+    )
+
+    # when
+    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view(request)
+
+    # then
+    mock_span.set_status.assert_called_once_with(
+        status=StatusCode.ERROR, description=error_message
+    )
+
+
+@override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
+@patch("saleor.core.telemetry.tracer.start_as_current_span")
+def test_graphql_query_span_set_status_error_cost_exceeded(
+    mock_start_span,
+    api_client,
+    variant_with_many_stocks,
+    channel_USD,
+):
+    # given
+    mock_span = MagicMock()
+    mock_start_span.return_value.__enter__.return_value = mock_span
+
+    query_fields = "\n".join(
+        [
+            f"p{i}:  productVariant(id: $id, channel: $channel) {{ id }}"
+            for i in range(20)
+        ]
+    )
+    query = f"""
+        query variantAvailability($id: ID!, $channel: String) {{
+            {query_fields}
+        }}
+    """
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    json_response = response.json()
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    expected_error_message = (
+        f"The query exceeds the maximum cost of 1. Actual cost is {query_cost}"
+    )
+    mock_span.set_status.assert_called_once_with(
+        status=StatusCode.ERROR, description=expected_error_message
+    )
