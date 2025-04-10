@@ -1119,6 +1119,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     assert order_line_discount.type == DiscountType.VOUCHER
     assert order_line_discount.voucher == voucher_percentage
     assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
 
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
@@ -1377,6 +1378,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
     assert order_line_discount.type == DiscountType.VOUCHER
     assert order_line_discount.voucher == voucher_specific_product_type
     assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1

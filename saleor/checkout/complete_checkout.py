@@ -1245,7 +1245,15 @@ def _handle_allocations_of_order_lines(
 def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
     checkout = checkout_info.checkout
     checkout_discount = checkout.discounts.first()
+
+    # Currently, we don't create `CheckoutDiscount` of type VOUCHER, so if there is
+    # discount on checkout, but not related `CheckoutDiscount`, we assume it is
+    # a voucher discount.
     is_voucher_discount = checkout.discount and not checkout_discount
+    is_order_level_voucher_discount = is_voucher_discount and not is_line_level_voucher(
+        checkout_info.voucher
+    )
+
     is_promotion_discount = (
         checkout_discount and checkout_discount.type == DiscountType.ORDER_PROMOTION
     )
@@ -1257,10 +1265,7 @@ def _create_order_discount(order: "Order", checkout_info: "CheckoutInfo"):
         del discount_data["checkout"]
         order.discounts.create(**discount_data)
 
-    if is_voucher_discount and not is_line_level_voucher(checkout_info.voucher):
-        # Currently, we don't create `CheckoutDiscount` of type VOUCHER, so if there is
-        # discount on checkout, but not related `CheckoutDiscount`, we assume it is
-        # a voucher discount.
+    if is_order_level_voucher_discount:
         # Store voucher as a fixed value as it this the simplest solution for now.
         # This will be solved when we refactor the voucher logic to use .discounts
         # relations.

@@ -995,13 +995,12 @@ def test_order_discounts_query_with_line_lvl_voucher_discount_from_checkout(
     expected_reason = "Voucher"
     expected_discount_value = Decimal(5)
 
-    first_order_line_discount = Decimal(3)
     first_order_line = order.lines.first()
     first_order_line_discount = first_order_line.discounts.create(
         type=DiscountType.VOUCHER,
         value_type=voucher.discount_value_type,
         value=expected_discount_value,
-        amount_value=first_order_line_discount,
+        amount_value=expected_discount_value,
         currency=first_order_line.currency,
         reason="Voucher",
         voucher=voucher,
@@ -1009,12 +1008,11 @@ def test_order_discounts_query_with_line_lvl_voucher_discount_from_checkout(
     )
 
     second_order_line = order.lines.last()
-    second_order_line_discount = Decimal(4)
     second_order_line_discount = second_order_line.discounts.create(
         type=DiscountType.VOUCHER,
         value_type=voucher.discount_value_type,
         value=expected_discount_value,
-        amount_value=second_order_line_discount,
+        amount_value=expected_discount_value,
         currency=second_order_line.currency,
         reason="Voucher",
         voucher=voucher,
