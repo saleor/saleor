@@ -421,7 +421,7 @@ class GraphQLView(View):
         self, execution_result: ExecutionResult | None
     ) -> str | None:
         if execution_result and execution_result.errors:
-            return "".join([str(error) for error in execution_result.errors])
+            return "\n".join([str(error) for error in execution_result.errors])
         return None
 
 
