@@ -1,4 +1,4 @@
-name: Notify Discord on Good First Issue
+name: Notify Discord on Help Wanted Issue
 
 on:
   issues:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   notify:
-    if: github.event.label.name == 'good first issue'
+    if: github.event.label.name == 'help wanted'
     runs-on: ubuntu-latest
     steps:
       - name: Send notification to Discord
@@ -14,7 +14,7 @@ jobs:
         with:
           webhook_url: ${{ secrets.DISCORD_GFI_WEBHOOK_URL }}
           message: |
-            🎉 New Issue Labeled with "Good First Issue"
+            🎉 New Issue Labeled with "Help Wanted" in Saleor Core
 
             **Issue Details:**
             - Title: ${{ github.event.issue.title }}
