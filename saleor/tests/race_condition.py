@@ -11,6 +11,14 @@ class RaceConditionTrigger:
     def __enter__(self):
         self.patched_function = patch(self.target)
         original_function, _ = self.patched_function.get_original()
+        if type(original_function) is classmethod:
+            # classmethod needs to have an initialized class. get_original
+            # returns the direct handler to the classmethod. Calling it without class
+            # produces "'classmethod' object is not callable" error
+            target_class = self.patched_function.getter()
+            target_method = self.patched_function.attribute
+            original_function = getattr(target_class, target_method)
+
         self.patched_function.new = self.wrap(original_function)
         return self.patched_function.__enter__()
 
