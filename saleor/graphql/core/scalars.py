@@ -51,28 +51,31 @@ class InvalidPositiveDecimal(ValueError):
 
 
 class PositiveDecimal(graphene.Float):
-    """Nonnegative Decimal scalar implementation.
+    """Non-negative Decimal scalar implementation.
 
     Should be used in places where value must be nonnegative (0 or greater).
     """
 
     @staticmethod
+    def _get_positive_decimal_or_none(
+        value: decimal.Decimal | None,
+    ) -> decimal.Decimal | None:
+        if (value is not None) and value >= 0:
+            return value
+
+        return None
+
+    @staticmethod
     def parse_value(value) -> decimal.Decimal | None:
         parsed_decimal = Decimal.parse_value(value)
 
-        if (parsed_decimal is not None) and parsed_decimal >= 0:
-            return parsed_decimal
-
-        return None
+        return PositiveDecimal._get_positive_decimal_or_none(parsed_decimal)
 
     @staticmethod
     def parse_literal(node) -> decimal.Decimal | None:
         parsed_decimal = Decimal.parse_literal(node)
 
-        if (parsed_decimal is not None) and parsed_decimal >= 0:
-            return parsed_decimal
-
-        return None
+        return PositiveDecimal._get_positive_decimal_or_none(parsed_decimal)
 
     @staticmethod
     def serialize(value) -> decimal.Decimal:
