@@ -16,12 +16,25 @@ from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from opentelemetry.semconv._incubating.attributes import (
+    db_attributes,
+    graphql_attributes,
+)
+from opentelemetry.semconv._incubating.attributes import (
+    http_attributes as incubating_http_attributes,
+)
+from opentelemetry.semconv.attributes import (
+    http_attributes,
+    server_attributes,
+    url_attributes,
+    user_agent_attributes,
+)
 from opentelemetry.trace import StatusCode
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.telemetry import Scope, SpanAttributes, SpanKind, tracer
+from ..core.telemetry import Scope, SpanAttributes, SpanKind, saleor_attributes, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -32,6 +45,7 @@ from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
     get_source_service_name_value,
+    gql_operation_type,
     query_fingerprint,
     query_identifier,
 )
@@ -42,17 +56,21 @@ INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
-    operation = f"{conn.alias} {conn.display_name}"
-    with tracer.start_as_current_span(operation, kind=SpanKind.CLIENT) as span:
-        span.set_attribute("component", "db")
-        span.set_attribute(SpanAttributes.DB_STATEMENT, sql)
-        span.set_attribute(SpanAttributes.DB_SYSTEM, conn.display_name)
+    database_name = f"{conn.alias}.{conn.settings_dict.get('NAME')}"
+    with tracer.start_as_current_span(database_name, kind=SpanKind.CLIENT) as span:
+        # span.set_attribute("component", "db")
+        span.set_attribute(db_attributes.DB_SYSTEM, conn.vendor)
+        span.set_attribute(db_attributes.DB_NAMESPACE, database_name)
+        span.set_attribute(db_attributes.DB_QUERY_TEXT, sql)
         span.set_attribute(
-            SpanAttributes.SERVER_ADDRESS,
+            server_attributes.SERVER_ADDRESS,
             conn.settings_dict.get("HOST"),  # type: ignore[arg-type]
         )
-        span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))  # type: ignore[arg-type]
-        span.set_attribute("span.type", "sql")
+        span.set_attribute(
+            server_attributes.SERVER_PORT,
+            conn.settings_dict.get("PORT"),  # type: ignore[arg-type]
+        )
+        # span.set_attribute("span.type", "sql")
         return execute(sql, params, many, context)
 
 
@@ -162,13 +180,16 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", scope=Scope.SERVICE, kind=SpanKind.SERVER
+            f"{request.method} {request.path}",
+            scope=Scope.SERVICE,
+            kind=SpanKind.SERVER,
         ) as span:
-            span.set_attribute("component", "http")
-            span.set_attribute("resource.name", request.path)
-            span.set_attribute(SpanAttributes.HTTP_METHOD, request.method)  # type: ignore[arg-type]
+            span.set_attribute(http_attributes.HTTP_REQUEST_METHOD, request.method)  # type: ignore[arg-type]
+            # span.set_attribute("component", "http")
+            # span.set_attribute("resource.name", request.path)
+            span.set_attribute(url_attributes.URL_PATH, request.path)
             span.set_attribute(
-                SpanAttributes.HTTP_URL,
+                url_attributes.URL_FULL,
                 request.build_absolute_uri(request.get_full_path()),
             )
             accepted_encoding = request.headers.get("accept-encoding", "")
@@ -176,9 +197,10 @@ class GraphQLView(View):
                 "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
             )
             span.set_attribute(
-                SpanAttributes.HTTP_USER_AGENT, request.headers.get("user-agent", "")
+                user_agent_attributes.USER_AGENT_ORIGINAL,
+                request.headers.get("user-agent", ""),
             )
-            span.set_attribute("span.type", "web")
+            # span.set_attribute("span.type", "web")
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
@@ -199,13 +221,15 @@ class GraphQLView(View):
                     span.set_attribute(f"ip_{additional_ip_header}", request_ips[:100])
 
             response = self._handle_query(request)
-            span.set_attribute(SpanAttributes.HTTP_STATUS_CODE, response.status_code)
+            span.set_attribute(
+                http_attributes.HTTP_RESPONSE_STATUS_CODE, response.status_code
+            )
 
             # RFC2616: Content-Length is defined in bytes,
             # we can calculate the RAW UTF-8 size using the length of
             # response.content of type 'bytes'
             span.set_attribute(
-                SpanAttributes.HTTP_RESPONSE_CONTENT_LENGTH_UNCOMPRESSED,
+                incubating_http_attributes.HTTP_RESPONSE_BODY_SIZE,
                 len(response.content),
             )
             with observability.report_api_call(request) as api_call:
@@ -269,11 +293,13 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            tracer.start_as_current_span("graphql_query", scope=Scope.SERVICE) as span,
+            tracer.start_as_current_span(
+                "GraphQL Operation", scope=Scope.SERVICE
+            ) as span,
             record_graphql_query_duration(),
         ):
             record_graphql_queries_count()
-            span.set_attribute("component", "graphql")
+            # span.set_attribute("component", "graphql")
             span.set_attribute(
                 SpanAttributes.HTTP_URL,
                 request.build_absolute_uri(request.get_full_path()),
@@ -301,16 +327,34 @@ class GraphQLView(View):
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
-            span.set_attribute("resource.name", raw_query_string)
-            span.set_attribute("graphql.query", raw_query_string)
-            span.set_attribute("graphql.query_identifier", _query_identifier)
-            span.set_attribute("graphql.query_fingerprint", query_fingerprint(document))
+            # span.set_attribute("resource.name", raw_query_string)
+            span.set_attribute(graphql_attributes.GRAPHQL_DOCUMENT, raw_query_string)
+            if operation_type := gql_operation_type(document):
+                span.set_attribute(
+                    graphql_attributes.GRAPHQL_OPERATION_TYPE, operation_type
+                )
+                span.update_name(operation_type)
+            if operation_name:
+                span.set_attribute(
+                    graphql_attributes.GRAPHQL_OPERATION_NAME, operation_name
+                )
+
+            span.set_attribute(
+                saleor_attributes.SALEOR_GRAPHQL_OPERATION_IDENTIFIER,
+                _query_identifier,
+            )
+            span.set_attribute(
+                saleor_attributes.SALEOR_GRAPHQL_DOCUMENT_FINGERPRINT,
+                query_fingerprint(document),
+            )
 
             source_service_name = get_source_service_name_value(
                 request.headers.get("source-service-name")
             )
             if source_service_name:
-                span.set_attribute("source.service.name", source_service_name)
+                span.set_attribute(
+                    saleor_attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
+                )
 
             query_cost, cost_errors = validate_query_cost(
                 schema,
@@ -319,7 +363,9 @@ class GraphQLView(View):
                 COST_MAP,
                 settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
             )
-            span.set_attribute("graphql.query_cost", query_cost)
+            span.set_attribute(
+                saleor_attributes.SALEOR_GRAPHQL_OPERATION_COST, query_cost
+            )
 
             if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
                 result = ExecutionResult(errors=cost_errors, invalid=True)
@@ -336,8 +382,8 @@ class GraphQLView(View):
 
             context = get_context_value(request)
             if app := getattr(request, "app", None):
-                span.set_attribute("app.id", app.id)
-                span.set_attribute("app.name", app.name)
+                span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
+                span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
 
             try:
                 with connection.execute_wrapper(tracing_wrapper):

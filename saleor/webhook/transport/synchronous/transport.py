@@ -125,7 +125,7 @@ def _send_webhook_request_sync(
     response_data = None
 
     with webhooks_otel_trace(
-        delivery.event_type, domain, payload_size, sync=True, app=webhook.app
+        delivery.event_type, payload_size, sync=True, app=webhook.app
     ) as span:
         try:
             response = send_webhook_using_http(

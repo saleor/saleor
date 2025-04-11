@@ -6,7 +6,7 @@ from asgiref.typing import (
 )
 
 from ..core.telemetry import set_global_attributes
-from ..core.telemetry.attributes import SALEOR_ENVIRONMENT_DOMAIN
+from ..core.telemetry.saleor_attributes import SALEOR_ENVIRONMENT_DOMAIN
 
 
 def get_hostname(scope: Scope) -> str:

@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 from django.db import transaction
 
-from ..core.telemetry import Link, Scope, SpanKind, tracer
+from ..core.telemetry import Link, Scope, SpanKind, saleor_attributes, tracer
 
 
 @contextmanager
@@ -23,8 +23,7 @@ def otel_trace(span_name, component_name):
 
 @contextmanager
 def webhooks_otel_trace(
-    span_name,
-    domain,
+    event_type: str,
     payload_size: int,
     sync=False,
     app=None,
@@ -35,16 +34,18 @@ def webhooks_otel_trace(
     :param payload_size: size of the payload in bytes
     """
     with tracer.start_as_current_span(
-        f"webhooks.{span_name}",
+        f"webhook.{event_type}",
         scope=Scope.SERVICE,
         kind=SpanKind.CLIENT,
         links=span_links,
     ) as span:
         if app:
-            span.set_attribute("app.id", app.id)
-            span.set_attribute("app.name", app.name)
-        span.set_attribute("component", "webhooks")
-        span.set_attribute("webhooks.domain", domain)
-        span.set_attribute("webhooks.execution_mode", "sync" if sync else "async")
-        span.set_attribute("webhooks.payload_size", payload_size)
+            span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
+            span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
+        # span.set_attribute("component", "webhooks")
+        # span.set_attribute("webhooks.domain", domain)
+        span.set_attribute(
+            saleor_attributes.SALEOR_WEBHOOK_EXECUTION_MODE, "sync" if sync else "async"
+        )
+        span.set_attribute(saleor_attributes.SALEOR_WEBHOOK_PAYLOAD_SIZE, payload_size)
         yield span
