@@ -20,7 +20,12 @@ from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID, add_voucher_to_checkout
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
-from .....discount.models import CheckoutLineDiscount, PromotionRule, Voucher
+from .....discount.models import (
+    CheckoutLineDiscount,
+    OrderLineDiscount,
+    PromotionRule,
+    Voucher,
+)
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderOrigin, OrderStatus
@@ -2312,12 +2317,17 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_percentage
+    assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
+
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
@@ -2412,13 +2422,18 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
         - gift_card_initial_balance
     )
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_percentage
+    assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
+
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
@@ -2821,12 +2836,16 @@ def test_checkout_with_voucher_on_specific_product_complete(
         order_line.undiscounted_total_price - order_line.total_price
     )
 
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_specific_product_type
+    assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -2917,13 +2936,17 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
         + shipping_price
     )
 
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
         - gift_card_initial_balance
     )
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_specific_product_type
+    assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
