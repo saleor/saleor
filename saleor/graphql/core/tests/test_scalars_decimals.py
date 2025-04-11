@@ -95,15 +95,15 @@ def test_positive_decimal_scalar_invalid_literal(node):
 
 
 def test_positive_decimal_scalar_serialize():
-    result = PositiveDecimal.serialize(1)
+    result = PositiveDecimal.serialize(1.2)
 
-    assert result == 1.0
+    assert result == "1.2"
 
 
 def test_positive_decimal_scalar_serialize_zero():
     result = PositiveDecimal.serialize(0)
 
-    assert result == 0.0
+    assert result == "0"
 
 
 def test_positive_decimal_scalar_serialize_invalid_value():

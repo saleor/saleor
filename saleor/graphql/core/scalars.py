@@ -78,7 +78,7 @@ class PositiveDecimal(graphene.Float):
         return PositiveDecimal._get_positive_decimal_or_none(parsed_decimal)
 
     @staticmethod
-    def serialize(value) -> decimal.Decimal:
+    def serialize(value) -> str:
         parsed_value = PositiveDecimal.parse_value(value)
 
         if parsed_value is None:
@@ -87,7 +87,7 @@ class PositiveDecimal(graphene.Float):
                 f"Received invalid value. Should be positive decimal, received {value}"
             )
 
-        return parsed_value
+        return str(parsed_value)
 
 
 class JSON(GenericScalar):
