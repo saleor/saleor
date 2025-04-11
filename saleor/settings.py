@@ -1065,3 +1065,9 @@ patch_db()
 # Patch `Local` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_local()
+
+TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
+TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
+# Whether to raise or log exceptions for telemetry unit conversion errors
+# Disabled by default to prevent disruptions caused by unexpected unit conversion issues
+TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
