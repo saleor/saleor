@@ -16,12 +16,16 @@ from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
-from opentelemetry.semconv._incubating.attributes import graphql_attributes
+from opentelemetry.semconv._incubating.attributes import (
+    db_attributes,
+    graphql_attributes,
+)
 from opentelemetry.semconv._incubating.attributes import (
     http_attributes as incubating_http_attributes,
 )
 from opentelemetry.semconv.attributes import (
     http_attributes,
+    server_attributes,
     url_attributes,
     user_agent_attributes,
 )
@@ -52,17 +56,21 @@ INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
-    operation = f"{conn.alias} {conn.display_name}"
-    with tracer.start_as_current_span(operation, kind=SpanKind.CLIENT) as span:
-        span.set_attribute("component", "db")
-        span.set_attribute(SpanAttributes.DB_STATEMENT, sql)
-        span.set_attribute(SpanAttributes.DB_SYSTEM, conn.display_name)
+    database_name = f"{conn.alias}.{conn.settings_dict.get('NAME')}"
+    with tracer.start_as_current_span(database_name, kind=SpanKind.CLIENT) as span:
+        # span.set_attribute("component", "db")
+        span.set_attribute(db_attributes.DB_SYSTEM, conn.vendor)
+        span.set_attribute(db_attributes.DB_NAMESPACE, database_name)
+        span.set_attribute(db_attributes.DB_QUERY_TEXT, sql)
         span.set_attribute(
-            SpanAttributes.SERVER_ADDRESS,
+            server_attributes.SERVER_ADDRESS,
             conn.settings_dict.get("HOST"),  # type: ignore[arg-type]
         )
-        span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))  # type: ignore[arg-type]
-        span.set_attribute("span.type", "sql")
+        span.set_attribute(
+            server_attributes.SERVER_PORT,
+            conn.settings_dict.get("PORT"),  # type: ignore[arg-type]
+        )
+        # span.set_attribute("span.type", "sql")
         return execute(sql, params, many, context)
 
 
