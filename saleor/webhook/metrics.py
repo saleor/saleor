@@ -42,4 +42,6 @@ def record_async_webhooks_count(
         "app.name": event_delivery.webhook.app.name,
         "response_status": response_status,
     }
-    meter.record(METRIC_ASYNC_WEBHOOK_CALLS, amount, attributes=attributes)
+    meter.record(
+        METRIC_ASYNC_WEBHOOK_CALLS, amount, unit=Unit.REQUEST, attributes=attributes
+    )
