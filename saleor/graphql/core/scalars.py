@@ -23,7 +23,7 @@ class Decimal(graphene.Float):
     def parse_literal(node) -> decimal.Decimal | None:
         if isinstance(node, ast.FloatValue | ast.IntValue):
             try:
-                return decimal.Decimal(node.value)
+                return Decimal.parse_value(decimal.Decimal(node.value))
             except decimal.DecimalException:
                 return None
         return None
@@ -46,6 +46,10 @@ class Decimal(graphene.Float):
             return None
 
 
+class InvalidPositiveDecimal(ValueError):
+    pass
+
+
 class PositiveDecimal(graphene.Float):
     """Nonnegative Decimal scalar implementation.
 
@@ -54,21 +58,33 @@ class PositiveDecimal(graphene.Float):
 
     @staticmethod
     def parse_value(value) -> decimal.Decimal | None:
-        parsed_value = Decimal.parse_value(value)
+        parsed_decimal = Decimal.parse_value(value)
 
-        if (parsed_value is not None) and parsed_value >= 0:
-            return parsed_value
+        if (parsed_decimal is not None) and parsed_decimal >= 0:
+            return parsed_decimal
 
         return None
 
     @staticmethod
     def parse_literal(node) -> decimal.Decimal | None:
-        parsed_value = Decimal.parse_literal(node)
+        parsed_decimal = Decimal.parse_literal(node)
 
-        if (parsed_value is not None) and parsed_value >= 0:
-            return parsed_value
+        if (parsed_decimal is not None) and parsed_decimal >= 0:
+            return parsed_decimal
 
         return None
+
+    @staticmethod
+    def serialize(value) -> decimal.Decimal:
+        parsed_value = PositiveDecimal.parse_value(value)
+
+        if parsed_value is None:
+            # Should throw, it means somewhere in business logic value was malformed
+            raise InvalidPositiveDecimal(
+                f"Received invalid value. Should be positive decimal, received {value}"
+            )
+
+        return parsed_value
 
 
 class JSON(GenericScalar):
