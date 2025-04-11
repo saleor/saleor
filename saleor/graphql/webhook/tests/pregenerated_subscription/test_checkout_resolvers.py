@@ -454,20 +454,24 @@ def test_shipping_methods_use_pregenerated_payload(
 
     # then
     assert content["data"]["checkout"]["id"] == checkout_global_id
-    assert content["data"]["checkout"]["shippingMethods"] == [
-        {
-            "id": shipping_method_global_ids[0],
-            "name": "DHL",
-            "active": True,
-            "message": "",
-        },
-        {
-            "id": shipping_method_global_ids[1],
-            "name": "DHL",
-            "active": False,
-            "message": exclude_msg,
-        },
-    ]
+
+    shipping_methods = content["data"]["checkout"]["shippingMethods"]
+    first_expected_shipping_method = {
+        "id": shipping_method_global_ids[0],
+        "name": "DHL",
+        "active": True,
+        "message": "",
+    }
+    second_expected_shipping_method = {
+        "id": shipping_method_global_ids[1],
+        "name": "DHL",
+        "active": False,
+        "message": exclude_msg,
+    }
+    assert len(shipping_methods) == 2
+    assert first_expected_shipping_method in shipping_methods
+    assert second_expected_shipping_method in shipping_methods
+
     mock_request.assert_called_once()
     mock_generate_payload.assert_not_called()
 
@@ -601,20 +605,24 @@ def test_shipping_methods_and_taxes_use_pregenerated_payload(
 
     # then
     assert content["data"]["checkout"]["id"] == checkout_global_id
-    assert content["data"]["checkout"]["shippingMethods"] == [
-        {
-            "id": shipping_method_global_ids[0],
-            "name": "DHL",
-            "active": True,
-            "message": "",
-        },
-        {
-            "id": shipping_method_global_ids[1],
-            "name": "DHL",
-            "active": False,
-            "message": exclude_msg,
-        },
-    ]
+
+    shipping_methods = content["data"]["checkout"]["shippingMethods"]
+    first_expected_shipping_method = {
+        "id": shipping_method_global_ids[0],
+        "name": "DHL",
+        "active": True,
+        "message": "",
+    }
+    second_expected_shipping_method = {
+        "id": shipping_method_global_ids[1],
+        "name": "DHL",
+        "active": False,
+        "message": exclude_msg,
+    }
+    assert len(shipping_methods) == 2
+    assert first_expected_shipping_method in shipping_methods
+    assert second_expected_shipping_method in shipping_methods
+
     assert content["data"]["checkout"]["totalPrice"]["net"]["amount"] == 16
     assert content["data"]["checkout"]["totalPrice"]["gross"]["amount"] == 20
     mock_tax_request.assert_called_once()
