@@ -13,3 +13,7 @@ SALEOR_SOURCE_SERVICE_NAME: Final = "saleor.source.service.name"
 # Apps
 SALEOR_APP_ID: Final = "saleor.app.id"
 SALEOR_APP_NAME: Final = "saleor.app.name"
+
+# Webhooks
+SALEOR_WEBHOOK_EXECUTION_MODE: Final = "saleor.webhook.execution_mode"
+SALEOR_WEBHOOK_PAYLOAD_SIZE: Final = "saleor.webhook.payload.size"
