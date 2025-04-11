@@ -254,6 +254,17 @@ def query_identifier(document: GraphQLDocument) -> str:
     return ", ".join(sorted(set(labels)))
 
 
+def gql_operation_type(document: GraphQLDocument) -> str | None:
+    for definition in document.document_ast.definitions:
+        if getattr(definition, "operation", None) in {
+            "query",
+            "mutation",
+            "subscription",
+        }:
+            return definition.operation
+    return None
+
+
 def query_fingerprint(document: GraphQLDocument) -> str:
     """Generate a fingerprint for a GraphQL query."""
     label = "unknown"
