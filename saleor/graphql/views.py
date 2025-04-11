@@ -16,6 +16,7 @@ from graphql import GraphQLBackend, GraphQLDocument, GraphQLSchema
 from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
+from opentelemetry.trace import StatusCode
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
@@ -280,19 +281,29 @@ class GraphQLView(View):
 
             query, variables, operation_name = self.get_graphql_params(request, data)
             document, error = self.parse_query(query)
+
             with observability.report_gql_operation() as operation:
                 operation.query = document
                 operation.name = operation_name
                 operation.variables = variables
+
             if error or document is None:
+                error_description = self.format_span_error_description(error)
+                span.set_status(status=StatusCode.ERROR, description=error_description)
                 return error
+
+            try:
+                query_contains_schema = check_if_query_contains_only_schema(document)
+            except GraphQLError as e:
+                span.set_status(status=StatusCode.ERROR, description=str(e))
+                return ExecutionResult(errors=[e], invalid=True)
 
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
             span.set_attribute("resource.name", raw_query_string)
             span.set_attribute("graphql.query", raw_query_string)
-            span.set_attribute("graphql.query_identifier", query_identifier(document))
+            span.set_attribute("graphql.query_identifier", _query_identifier)
             span.set_attribute("graphql.query_fingerprint", query_fingerprint(document))
 
             source_service_name = get_source_service_name_value(
@@ -300,11 +311,6 @@ class GraphQLView(View):
             )
             if source_service_name:
                 span.set_attribute("source.service.name", source_service_name)
-
-            try:
-                query_contains_schema = check_if_query_contains_only_schema(document)
-            except GraphQLError as e:
-                return ExecutionResult(errors=[e], invalid=True)
 
             query_cost, cost_errors = validate_query_cost(
                 schema,
@@ -314,8 +320,11 @@ class GraphQLView(View):
                 settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
             )
             span.set_attribute("graphql.query_cost", query_cost)
+
             if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
                 result = ExecutionResult(errors=cost_errors, invalid=True)
+                error_description = self.format_span_error_description(result)
+                span.set_status(status=StatusCode.ERROR, description=error_description)
                 return set_query_cost_on_result(result, query_cost)
 
             extra_options: dict[str, Any | None] = {}
@@ -349,12 +358,20 @@ class GraphQLView(View):
                             middleware=self.middleware,
                             **extra_options,
                         )
+                        if response.errors:
+                            error_description = self.format_span_error_description(
+                                response
+                            )
+                            span.set_status(
+                                status=StatusCode.ERROR, description=error_description
+                            )
+
                         if should_use_cache_for_scheme:
                             cache.set(key, response)
 
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
-                span.set_attribute("error", True)
+                span.set_status(status=StatusCode.ERROR, description=str(e))
 
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
@@ -399,6 +416,13 @@ class GraphQLView(View):
 
     def format_error(self, error):
         return format_error(error, self.HANDLED_EXCEPTIONS, self._query)
+
+    def format_span_error_description(
+        self, execution_result: ExecutionResult | None
+    ) -> str | None:
+        if execution_result and execution_result.errors:
+            return "\n".join([str(error) for error in execution_result.errors])
+        return None
 
 
 def get_key(key):
