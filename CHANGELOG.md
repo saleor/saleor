@@ -106,7 +106,6 @@ All notable, unreleased changes to this project will be documented in this file.
   certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
 - Allow to change Admin email plugin custom templates back to default - #17563 by @wcislo-saleor
-- Prevent possible race condition when running CustomerCreate mutation. Now second call will return ValidationError - #17582 by @lkostrowski
 - Fixes incorrect gift card balances after covering the full order total - #17566 by @korycins
 - Fixes tax class not clearing when selecting a shipping method without a tax class - #17560 by @korycins
 - The prices for draft orders created in `OrderBulkCreate` now are properly calculated - #17583 by @IKarbowiak
