@@ -7,7 +7,7 @@ from prices import Money, TaxedMoney
 
 from .....core.prices import quantize_price
 from .....discount import DiscountType, DiscountValueType
-from .....order import OrderStatus
+from .....order import OrderOrigin, OrderStatus
 from .....order.interface import OrderTaxedPricesData
 from .....thumbnail.models import Thumbnail
 from .....warehouse.models import Stock
@@ -763,24 +763,7 @@ def test_order_query_undiscounted_prices_no_tax(
     assert first_order_data_line_price["gross"]["amount"] == line.unit_price.net.amount
 
 
-def test_order_line_returns_discount_object(
-    staff_api_client, order_with_lines, permission_group_all_perms_all_channels
-):
-    # given
-    expected_amount = Decimal("6")
-    expected_reason = "test"
-
-    line = order_with_lines.lines.first()
-    line.discounts.create(
-        type=DiscountType.MANUAL,
-        value_type=DiscountValueType.FIXED,
-        value=expected_amount,
-        amount_value=expected_amount,
-        currency=line.currency,
-        reason=expected_reason,
-    )
-
-    query = """
+QUERY_WITH_LINE_DISCOUNTS = """
     query OrderQuery($id: ID) {
       order(id: $id) {
         lines {
@@ -800,11 +783,30 @@ def test_order_line_returns_discount_object(
     }
     """
 
+
+def test_order_line_returns_discount_object(
+    staff_api_client, order_with_lines, permission_group_all_perms_all_channels
+):
+    # given
+    expected_amount = Decimal("6")
+    expected_reason = "test"
+
+    line = order_with_lines.lines.first()
+    line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=expected_amount,
+        amount_value=expected_amount,
+        currency=line.currency,
+        reason=expected_reason,
+    )
+
     permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables={"id": to_global_id_or_none(order_with_lines)}
+        QUERY_WITH_LINE_DISCOUNTS,
+        variables={"id": to_global_id_or_none(order_with_lines)},
     )
 
     # then
@@ -818,3 +820,38 @@ def test_order_line_returns_discount_object(
     assert line_discount["value"] == expected_amount
     assert line_discount["unit"]["amount"] == expected_amount / line.quantity
     assert line_discount["total"]["amount"] == expected_amount
+
+
+def test_order_line_skips_voucher_discount_object_when_checkout_origin(
+    staff_api_client, order_with_lines, permission_group_all_perms_all_channels
+):
+    # given
+    expected_amount = Decimal("6")
+    expected_reason = "test"
+
+    order_with_lines.origin = OrderOrigin.CHECKOUT
+    order_with_lines.save()
+
+    line = order_with_lines.lines.first()
+    line.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=expected_amount,
+        amount_value=expected_amount,
+        currency=line.currency,
+        reason=expected_reason,
+    )
+
+    permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WITH_LINE_DISCOUNTS,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    line_discounts = content["data"]["order"]["lines"][0]["discounts"]
+
+    assert len(line_discounts) == 0
