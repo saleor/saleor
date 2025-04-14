@@ -49,6 +49,9 @@ type_schema = {
 }
 
 
+# TODO: Change to run CI test. Remove before merge
+
+
 @pytest.mark.parametrize(
     ("ip_address", "expected_ip"),
     [

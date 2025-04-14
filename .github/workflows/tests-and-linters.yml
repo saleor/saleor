@@ -83,8 +83,6 @@ jobs:
           echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
 
       - name: Run unit tests
-        env:
-          COVERAGE_CORE: sysmon
         run: |
           pytest \
             -m "not e2e" \
