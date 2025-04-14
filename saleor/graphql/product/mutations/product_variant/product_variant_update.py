@@ -231,7 +231,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
         instance = cast(ProductVariant, instance)
-        instance_values_before_update = cls.get_editable_values_from_instance(
+        instance_values_before_update = get_editable_values_from_instance(
             deepcopy(instance)
         )
         cleaned_input = cls.clean_input(info, instance, input)
@@ -252,13 +252,13 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             new_instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, new_instance)
-        instance_values_after_update = get_editable_values_from_instance(new_instance)
 
+        instance_values_after_update = get_editable_values_from_instance(new_instance)
         changed_fields = get_edited_fields(
             instance_values_before_update, instance_values_after_update
         )
 
-        # TODO zedzior: refactor clean_input function to not call the attribute logic twice
+        # TODO zedzior: attribute logic refactor PR:
         has_new_attribute_values = False
         if attributes_data := cleaned_input.get("attributes"):
             has_new_attribute_values = has_input_new_attribute_values(

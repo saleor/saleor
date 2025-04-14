@@ -1,9 +1,15 @@
+from copy import deepcopy
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.update_mutation_manager import (
+    get_editable_values_from_instance,
+    get_edited_fields,
+)
 from ....discount.models import VoucherCode
 from ....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
@@ -268,7 +274,8 @@ class DraftOrderUpdate(
                 invalidate_order_prices(instance)
                 updated_fields.extend(["should_refresh_prices"])
 
-            instance.save(update_fields=updated_fields)
+            if updated_fields:
+                cls._save_order_instance(instance, updated_fields)
 
             call_order_event(
                 manager,
@@ -314,13 +321,20 @@ class DraftOrderUpdate(
             release_voucher_code_usage(voucher_code, old_voucher, user_email)
 
     @classmethod
+    def _save_order_instance(cls, instance: models.Order, changed_fields):
+        update_fields = ["updated_at"] + changed_fields
+        instance.save(update_fields=update_fields)
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         channel_id = cls.get_instance_channel_id(instance, **data)
 
         cls.check_channel_permissions(info, [channel_id])
 
-        old_instance_data = instance.serialize_for_comparison()
+        instance_values_before_update = get_editable_values_from_instance(
+            deepcopy(instance)
+        )
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
         data = data["input"]
@@ -338,17 +352,16 @@ class DraftOrderUpdate(
         )
 
         instance = cls.construct_instance(instance, cleaned_input)
-
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, instance)
-        new_instance_data = instance.serialize_for_comparison()
-        changed_fields = cls.diff_instance_data_fields(
-            instance.comparison_fields,
-            old_instance_data,
-            new_instance_data,
+
+        instance_values_after_update = get_editable_values_from_instance(instance)
+        changed_fields = get_edited_fields(
+            instance_values_before_update, instance_values_after_update
         )
+
         cls._save(
             info, instance, cleaned_input, old_voucher, old_voucher_code, changed_fields
         )

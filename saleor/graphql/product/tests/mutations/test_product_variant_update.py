@@ -476,10 +476,11 @@ def test_update_product_variant_nothing_changed(
         variables,
         permissions=[permission_manage_products],
     )
+    content = get_graphql_content(response)
 
     # then
+    assert not content["data"]["productVariantUpdate"]["errors"]
     variant.refresh_from_db()
-    get_graphql_content(response)
     save_variant_mock.assert_not_called()
     call_event_mock.assert_not_called()
 
