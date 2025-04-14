@@ -132,37 +132,6 @@ class ProductVariantCreate(DeprecatedModelMutation):
         support_private_meta_field = True
 
     @classmethod
-    def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
-    ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
-        return attributes
-
-    @classmethod
-    def validate_duplicated_attribute_values(
-        cls, attributes_data, used_attribute_values, instance=None
-    ):
-        attribute_values = defaultdict(list)
-        for attr, attr_data in attributes_data:
-            if attr.input_type == AttributeInputType.FILE:
-                values = (
-                    [slugify(attr_data.file_url.split("/")[-1])]
-                    if attr_data.file_url
-                    else []
-                )
-            else:
-                values = attr_data.values
-            attribute_values[attr_data.global_id].extend(values)
-        if attribute_values in used_attribute_values:
-            raise ValidationError(
-                "Duplicated attribute values for product variant.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                params={"attributes": attribute_values.keys()},
-            )
-        used_attribute_values.append(attribute_values)
-
-    @classmethod
     def clean_input(
         cls,
         info: ResolveInfo,
@@ -201,6 +170,23 @@ class ProductVariantCreate(DeprecatedModelMutation):
         if stocks:
             cls.check_for_duplicates_in_stocks(stocks)
 
+        cls.clean_attributes(cleaned_input, instance)
+
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+
+        preorder_settings = cleaned_input.get("preorder")
+        if preorder_settings:
+            cleaned_input["is_preorder"] = True
+            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
+                "global_threshold"
+            )
+            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
+
+        return cleaned_input
+
+    @classmethod
+    def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
         if instance.pk:
             # If the variant is getting updated,
             # simply retrieve the associated product type
@@ -230,6 +216,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 product_type.variant_attributes.all().values_list("pk", flat=True)
             )
         }
+
         attributes = cleaned_input.get("attributes")
         attributes_ids = {attr["id"] for attr in attributes or []}
         invalid_attributes = attributes_ids - variant_attributes_ids
@@ -248,7 +235,10 @@ class ProductVariantCreate(DeprecatedModelMutation):
             # the value's PK.
             try:
                 if attributes:
-                    cleaned_attributes = cls.clean_attributes(attributes, product_type)
+                    attributes_qs = product_type.variant_attributes.all()
+                    cleaned_attributes: T_INPUT_MAP = (
+                        AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
+                    )
                     cls.validate_duplicated_attribute_values(
                         cleaned_attributes, used_attribute_values, instance
                     )
@@ -272,18 +262,28 @@ class ProductVariantCreate(DeprecatedModelMutation):
                     ProductErrorCode.INVALID.value,
                 )
 
-        if "sku" in cleaned_input:
-            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
+    @classmethod
+    def validate_duplicated_attribute_values(
+        cls, attributes_data, used_attribute_values, instance=None
+    ):
+        attribute_values = defaultdict(list)
+        for attr, attr_data in attributes_data:
+            if attr.input_type == AttributeInputType.FILE:
+                values = (
+                    [slugify(attr_data.file_url.split("/")[-1])]
+                    if attr_data.file_url
+                    else []
+                )
+            else:
+                values = attr_data.values
+            attribute_values[attr_data.global_id].extend(values)
+        if attribute_values in used_attribute_values:
+            raise ValidationError(
+                "Duplicated attribute values for product variant.",
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                params={"attributes": attribute_values.keys()},
             )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
-
-        return cleaned_input
+        used_attribute_values.append(attribute_values)
 
     @classmethod
     def check_for_duplicates_in_stocks(cls, stocks_data):

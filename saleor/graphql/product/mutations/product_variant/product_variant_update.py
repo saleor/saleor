@@ -53,15 +53,6 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         support_meta_field = True
         support_private_meta_field = True
 
-    @classmethod
-    def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
-    ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, creation=False
-        )
-        return attributes
 
     @classmethod
     def validate_duplicated_attribute_values(
