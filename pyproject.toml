@@ -120,7 +120,7 @@ package-mode = false
   stripe = "^3.0.0"
   text-unidecode = "^1.2"
   urllib3 = "^1.26.19"
-  uvicorn = {extras = ["standard"], version = "^0.32.0"}
+  uvicorn = {extras = ["standard"], version = "^0.34.1"}
   setuptools = "^76.0.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
   pydantic = "^2.10.6"
