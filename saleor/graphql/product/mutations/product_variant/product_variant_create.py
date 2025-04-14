@@ -189,28 +189,9 @@ class ProductVariantCreate(DeprecatedModelMutation):
 
     @classmethod
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
-        if instance.pk:
-            # If the variant is getting updated,
-            # simply retrieve the associated product type
-            product_type = instance.product.product_type
-            used_attribute_values = get_used_variants_attribute_values(instance.product)
-        else:
-            # If the variant is getting created, no product type is associated yet,
-            # retrieve it from the required "product" input field
-            product = cleaned_input["product"]
-            if not product:
-                raise ValidationError(
-                    {
-                        "product": ValidationError(
-                            "Product cannot be set empty.",
-                            code=ProductErrorCode.INVALID.value,
-                        )
-                    }
-                )
-            product_type = cleaned_input["product"].product_type
-            used_attribute_values = get_used_variants_attribute_values(
-                cleaned_input["product"]
-            )
+        product = cls.get_product(cleaned_input, instance)
+        product_type = product.product_type
+        used_attribute_values = get_used_variants_attribute_values(product)
 
         variant_attributes_ids = {
             graphene.Node.to_global_id("Attribute", attr_id)
@@ -263,6 +244,20 @@ class ProductVariantCreate(DeprecatedModelMutation):
                     "Cannot assign attributes for product type without variants",
                     ProductErrorCode.INVALID.value,
                 )
+
+    @classmethod
+    def get_product(cls, cleaned_input: dict, instance) -> models.Product:
+        product = cleaned_input["product"]
+        if not product:
+            raise ValidationError(
+                {
+                    "product": ValidationError(
+                        "Product cannot be set empty.",
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+        return product
 
     @classmethod
     def validate_duplicated_attribute_values(

@@ -110,6 +110,10 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         return None
 
     @classmethod
+    def get_product(cls, cleaned_input: dict, instance) -> models.Product:
+        return instance.product
+
+    @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
         track_inventory = cleaned_input.get("track_inventory")
         if track_inventory is not None:
