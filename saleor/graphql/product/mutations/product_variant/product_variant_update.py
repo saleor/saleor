@@ -9,6 +9,10 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import (
+    get_editable_values_from_instance,
+    get_edited_fields,
+)
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.utils.variants import generate_and_set_variant_name
@@ -204,24 +208,6 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
-    def get_editable_values_from_instance(cls, instance):
-        field_names = [
-            field.name for field in cls._meta.model._meta.fields if field.editable
-        ]
-        instance_values = {
-            field_name: getattr(instance, field_name) for field_name in field_names
-        }
-        return instance_values
-
-    @classmethod
-    def get_edited_fields(cls, old_values, new_values):
-        return [
-            field
-            for field in old_values.keys()
-            if old_values.get(field) != new_values.get(field)
-        ]
-
-    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -248,7 +234,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance_values_before_update = cls.get_editable_values_from_instance(
             deepcopy(instance)
         )
-        cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
+        cleaned_input = cls.clean_input(info, instance, input)
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
@@ -266,11 +252,9 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             new_instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, new_instance)
-        instance_values_after_update = cls.get_editable_values_from_instance(
-            new_instance
-        )
+        instance_values_after_update = get_editable_values_from_instance(new_instance)
 
-        changed_fields = cls.get_edited_fields(
+        changed_fields = get_edited_fields(
             instance_values_before_update, instance_values_after_update
         )
 
