@@ -416,26 +416,55 @@ def test_update_product_variant_nothing_changed(
     save_variant_mock,
     call_event_mock,
     staff_api_client,
-    variant_with_many_stocks,
+    product_with_variant_with_two_attributes,
     permission_manage_products,
+    color_attribute,
+    size_attribute,
 ):
     # given
-    variant = variant_with_many_stocks
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+
+    variant.name = "some_name"
+    variant.sku = "some_sku"
+    variant.external_reference = "some-ext-ref"
+    key = "some_key"
+    value = "some_value"
+    variant.metadata = {key: value}
+    variant.private_metadata = {key: value}
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.save()
+
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    attribute_slug_1 = variant.attributes.first().values.first().slug
+    attribute_slug_2 = variant.attributes.last().values.first().slug
+
     input_fields = [
         snake_to_camel_case(key) for key in ProductVariantInput._meta.fields.keys()
     ]
+
     input = {
-        "attributes": [],
-        "sku": "",
-        "name": "",
-        "trackInventory": True,
-        "weight": 0,
-        "preorder": None,
-        "quantityLimitPerCustomer": 0,
-        "metadata": [{"key": "test_key1", "value": "test_value1"}],
-        "privateMetadata": [{"key": "test_key1", "value": "test_value1"}],
-        "externalReference": "",
+        "attributes": [
+            {"id": color_attribute_id, "values": [attribute_slug_1]},
+            {"id": size_attribute_id, "values": [attribute_slug_2]},
+        ],
+        "sku": variant.sku,
+        "name": variant.name,
+        "trackInventory": variant.track_inventory,
+        "weight": variant.weight,
+        "preorder": {
+            "globalThreshold": variant.preorder_global_threshold,
+            "endDate": variant.preorder_end_date,
+        },
+        "quantityLimitPerCustomer": variant.quantity_limit_per_customer,
+        "metadata": [{"key": key, "value": value}],
+        "privateMetadata": [{"key": key, "value": value}],
+        "externalReference": variant.external_reference,
     }
     assert set(input_fields) == set(input.keys())
 
@@ -447,7 +476,6 @@ def test_update_product_variant_nothing_changed(
         variables,
         permissions=[permission_manage_products],
     )
-    content = get_graphql_content(response)
 
     # then
     variant.refresh_from_db()

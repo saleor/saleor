@@ -3,11 +3,11 @@ import re
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, NamedTuple
+from typing import NamedTuple
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db.models import Model, Q
+from django.db.models import Model, Q, QuerySet
 from django.db.models.expressions import Exists, OuterRef
 from django.template.defaultfilters import truncatechars
 from django.utils.text import slugify
@@ -16,7 +16,7 @@ from text_unidecode import unidecode
 
 from ...attribute import AttributeEntityType, AttributeInputType
 from ...attribute import models as attribute_models
-from ...attribute.models import AttributeValue
+from ...attribute.models import Attribute, AttributeValue
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...core.utils import (
     generate_unique_slug,
@@ -29,15 +29,12 @@ from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
+from ...product.models import ProductVariant
 from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..core.validators import validate_one_of_args_is_in_mutation
+from ..product.utils import get_used_attribute_values_for_variant
 from ..utils import get_nodes
 from .enums import AttributeValueBulkActionEnum
-
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
-
-    from ...attribute.models import Attribute
 
 
 @dataclass
@@ -1612,3 +1609,30 @@ def prepare_error_list_from_error_attribute_mapping(
         errors.append(error)
 
     return errors
+
+
+def has_input_new_attribute_values(
+    variant: ProductVariant, attributes_data: list[tuple[Attribute, AttrValuesInput]]
+) -> bool:
+    """Compare already assigned attribute values with values from AttrValuesInput.
+
+    Return:
+        `False` if the attribute values are equal, otherwise `True`.
+
+    """
+    if variant.product_id is not None:
+        assigned_attributes = get_used_attribute_values_for_variant(variant)
+        input_attribute_values = defaultdict(list)
+        for attr, attr_data in attributes_data:
+            if attr.input_type == AttributeInputType.FILE:
+                values = (
+                    [slugify(attr_data.file_url.split("/")[-1])]
+                    if attr_data.file_url
+                    else []
+                )
+            else:
+                values = attr_data.values
+            input_attribute_values[attr_data.global_id].extend(values)
+        if input_attribute_values != assigned_attributes:
+            return True
+    return False
