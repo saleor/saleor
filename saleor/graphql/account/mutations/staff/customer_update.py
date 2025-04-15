@@ -21,10 +21,7 @@ from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
-from ..base import (
-    BaseCustomerCreate,
-    CustomerInput,
-)
+from ..base import BaseCustomerCreate, CustomerInput
 
 
 class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
@@ -173,7 +170,8 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         cls.save_default_addresses(
-            cleaned_input=cleaned_input, user_instance=instance, save_user=False
+            cleaned_input=cleaned_input,
+            user_instance=instance,
         )
 
         instance.search_document = prepare_user_search_document_value(instance)

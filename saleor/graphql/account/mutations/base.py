@@ -20,9 +20,7 @@ from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo, SaleorContext
-from ...core.descriptions import (
-    DEPRECATED_IN_3X_INPUT,
-)
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation, ModelDeleteMutation
@@ -355,15 +353,14 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
                 mark_gift_cards_search_index_as_dirty(user_gift_cards)
 
     @classmethod
-    def save_default_addresses(
-        cls, *, cleaned_input: dict, user_instance: models.User, save_user: bool
-    ):
+    def save_default_addresses(cls, *, cleaned_input: dict, user_instance: models.User):
         default_shipping_address: models.Address | None = cleaned_input.get(
             SHIPPING_ADDRESS_FIELD
         )
 
         if default_shipping_address:
             default_shipping_address.save()
+            user_instance.addresses.add(default_shipping_address)
             user_instance.default_shipping_address = default_shipping_address
 
         default_billing_address: models.Address | None = cleaned_input.get(
@@ -372,15 +369,8 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
 
         if default_billing_address:
             default_billing_address.save()
-            user_instance.default_billing_address = default_billing_address
-
-        if save_user:
-            user_instance.save()
-
-        if default_billing_address:
             user_instance.addresses.add(default_billing_address)
-        if default_shipping_address:
-            user_instance.addresses.add(default_shipping_address)
+            user_instance.default_billing_address = default_billing_address
 
 
 class UserDeleteMixin:
