@@ -759,6 +759,7 @@ def send_webhooks_async_for_app(
     send_webhooks_async_for_app.apply_async(
         kwargs={
             "app_id": app_id,
+            "telemetry_context": telemetry_context.to_dict(),
         },
     )
 
