@@ -442,7 +442,7 @@ def trigger_webhooks_async_for_multiple_objects(
         lock_uuid = app_id_to_lock[app_id].uuid if app_id in app_id_to_lock else None
         send_webhooks_async_for_app.apply_async(
             kwargs={
-                "event_delivery_id": delivery.pk,
+                "app_id": app_id,
                 "telemetry_context": get_task_context().to_dict(),
             },
             queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
