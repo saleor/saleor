@@ -212,7 +212,7 @@ class DraftOrderUpdate(
     def _save(
         cls,
         info: ResolveInfo,
-        instance,
+        instance: models.Order,
         cleaned_input,
         old_voucher,
         old_voucher_code,
@@ -225,7 +225,11 @@ class DraftOrderUpdate(
             address_fields = save_addresses(instance, cleaned_input)
             updated_fields.extend(address_fields)
 
-            if "shipping_method" in cleaned_input:
+            is_shipping_method_update_required = (
+                "shipping_method" in cleaned_input
+                and cleaned_input["shipping_method"] != instance.shipping_method
+            )
+            if is_shipping_method_update_required:
                 method = cleaned_input["shipping_method"]
                 if method is None:
                     ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
