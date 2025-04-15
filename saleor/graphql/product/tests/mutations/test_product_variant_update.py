@@ -7,6 +7,7 @@ import graphene
 import pytest
 from django.conf import settings
 from django.utils.text import slugify
+from measurement.measures import Weight
 
 from .....attribute import AttributeInputType
 from .....attribute.models import AttributeValue
@@ -435,6 +436,9 @@ def test_update_product_variant_nothing_changed(
     variant.is_preorder = True
     variant.preorder_global_threshold = 10
     variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.track_inventory = True
+    variant.weight = Weight(kg=10)
+    variant.quantity_limit_per_customer = 10
     variant.save()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -456,7 +460,7 @@ def test_update_product_variant_nothing_changed(
         "sku": variant.sku,
         "name": variant.name,
         "trackInventory": variant.track_inventory,
-        "weight": variant.weight,
+        "weight": 10,
         "preorder": {
             "globalThreshold": variant.preorder_global_threshold,
             "endDate": variant.preorder_end_date,
@@ -483,6 +487,89 @@ def test_update_product_variant_nothing_changed(
     variant.refresh_from_db()
     save_variant_mock.assert_not_called()
     call_event_mock.assert_not_called()
+
+
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
+def test_update_product_variant_emit_event(
+    save_variant_mock,
+    call_event_mock,
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    permission_manage_products,
+    color_attribute,
+    size_attribute,
+):
+    # given
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+
+    variant.name = "some_name"
+    variant.sku = "some_sku"
+    variant.external_reference = "some-ext-ref"
+    key = "some_key"
+    value = "some_value"
+    variant.metadata = {key: value}
+    variant.private_metadata = {key: value}
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.track_inventory = True
+    variant.weight = Weight(kg=10)
+    variant.quantity_limit_per_customer = 10
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    input_fields = [
+        snake_to_camel_case(key) for key in ProductVariantInput._meta.fields.keys()
+    ]
+
+    input = {
+        "attributes": [
+            {"id": color_attribute_id, "values": ["new_color"]},
+            {"id": size_attribute_id, "values": ["new_size"]},
+        ],
+        "sku": variant.sku + "_new",
+        "name": variant.name + "_new",
+        "trackInventory": not variant.track_inventory,
+        "weight": 11,
+        "preorder": {
+            "globalThreshold": variant.preorder_global_threshold + 1,
+            "endDate": "2024-12-03T00:00Z",
+        },
+        "quantityLimitPerCustomer": variant.quantity_limit_per_customer + 1,
+        "metadata": [{"key": key + "_new", "value": value + "_new"}],
+        "privateMetadata": [{"key": key + "_new", "value": value + "_new"}],
+        "externalReference": variant.external_reference + "_new",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    # fields making changes to related models (other than variant)
+    non_base_model_fields = ["attributes"]
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    for key, value in input.items():
+        variables = {"id": variant_id, "input": {key: value}}
+
+        # when
+        response = staff_api_client.post_graphql(
+            PRODUCT_VARIANT_UPDATE_MUTATION,
+            variables,
+        )
+        content = get_graphql_content(response)
+
+        # then
+        assert not content["data"]["productVariantUpdate"]["errors"]
+        if key not in non_base_model_fields:
+            save_variant_mock.assert_called()
+        call_event_mock.assert_called()
 
 
 def test_update_product_variant_marks_prices_as_dirty(
