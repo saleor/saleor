@@ -35,13 +35,19 @@ from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
-from .metrics import record_graphql_queries_count, record_graphql_query_duration
+from .metrics import (
+    record_graphql_query_count,
+    record_graphql_query_duration,
+)
 from .query_cost_map import COST_MAP
 from .utils import (
+    GRAPHQL_IDENTIFIER_UNKNOWN,
+    GRAPHQL_OPERATION_TYPE_UNKNOWN,
     format_error,
     get_source_service_name_value,
     query_fingerprint,
     query_identifier,
+    query_operation_type,
 )
 from .utils.validators import check_if_query_contains_only_schema
 
@@ -267,7 +273,6 @@ class GraphQLView(View):
             tracer.start_as_current_span("graphql_query", scope=Scope.SERVICE) as span,
             record_graphql_query_duration(),
         ):
-            record_graphql_queries_count()
             span.set_attribute(saleor_attributes.COMPONENT, "graphql")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
@@ -281,15 +286,28 @@ class GraphQLView(View):
             if error or document is None:
                 error_description = self.format_span_error_description(error)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
+                record_graphql_query_count(
+                    identifier=GRAPHQL_IDENTIFIER_UNKNOWN,
+                    operation_type=GRAPHQL_OPERATION_TYPE_UNKNOWN,
+                )
                 return error
 
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
+                record_graphql_query_count(
+                    identifier=GRAPHQL_IDENTIFIER_UNKNOWN,
+                    operation_type=GRAPHQL_OPERATION_TYPE_UNKNOWN,
+                )
                 return ExecutionResult(errors=[e], invalid=True)
 
+            # Query identifier and fingerprint cannot be calculated earlier, as they
+            # require a parsed and valid GraphQL document.
             _query_identifier = query_identifier(document)
+            _query_fingerprint = query_fingerprint(document)
+            operation_type = query_operation_type(_query_fingerprint)
+
             self._query = _query_identifier
             raw_query_string = document.document_string
             span.set_attribute(saleor_attributes.RESOURCE_NAME, raw_query_string)
@@ -332,6 +350,9 @@ class GraphQLView(View):
                 result = ExecutionResult(errors=cost_errors, invalid=True)
                 error_description = self.format_span_error_description(result)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
+                record_graphql_query_count(
+                    identifier=_query_identifier, operation_type=operation_type
+                )
                 return set_query_cost_on_result(result, query_cost)
 
             extra_options: dict[str, Any | None] = {}
@@ -384,6 +405,9 @@ class GraphQLView(View):
                     e = GraphQLError(str(e))
                 return ExecutionResult(errors=[e], invalid=True)
             finally:
+                record_graphql_query_count(
+                    identifier=_query_identifier, operation_type=operation_type
+                )
                 clear_context(context)
 
     @staticmethod

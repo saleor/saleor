@@ -2,7 +2,7 @@ import hashlib
 import logging
 import traceback
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Final
 from uuid import UUID
 
 import graphene
@@ -55,6 +55,12 @@ AVAILABLE_SOURCE_SERVICE_NAMES_FOR_SPAN_TAG = {
 }
 
 INTERNAL_ERROR_MESSAGE = "Internal Server Error"
+
+# When reporting GraphQL metrics, the identifier or operation_type may be unknown in some
+# cases, e.g. when query parsing fails. We still want to report these cases, so we
+# define constants for them.
+GRAPHQL_IDENTIFIER_UNKNOWN: Final = "UNKNOWN"
+GRAPHQL_OPERATION_TYPE_UNKNOWN: Final = "UNKNOWN"
 
 
 def resolve_global_ids_to_primary_keys(
@@ -208,7 +214,7 @@ def requestor_is_superuser(requestor):
 
 
 def query_identifier(document: GraphQLDocument) -> str:
-    """Generate a fingerprint for a GraphQL query.
+    """Generate a identifier for a GraphQL query.
 
     For queries identifier is sorted set of all root objects separated by `,`.
     e.g
@@ -250,13 +256,13 @@ def query_identifier(document: GraphQLDocument) -> str:
             for selection in selections:
                 labels.append(selection.name.value)
     if not labels:
-        return "undefined"
+        return GRAPHQL_IDENTIFIER_UNKNOWN
     return ", ".join(sorted(set(labels)))
 
 
 def query_fingerprint(document: GraphQLDocument) -> str:
     """Generate a fingerprint for a GraphQL query."""
-    label = "unknown"
+    label = GRAPHQL_IDENTIFIER_UNKNOWN
     for definition in document.document_ast.definitions:
         if getattr(definition, "operation", None) in {
             "query",
@@ -270,6 +276,10 @@ def query_fingerprint(document: GraphQLDocument) -> str:
             break
     query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
     return f"{label}:{query_hash}"
+
+
+def query_operation_type(fingerprint: str) -> str:
+    return fingerprint.split(":")[0]
 
 
 def format_error(error, handled_exceptions, query=None):
