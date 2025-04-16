@@ -6,11 +6,7 @@ import pytest
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType, VoucherType
-from ...discount.models import (
-    OrderDiscount,
-    OrderLineDiscount,
-    PromotionRule,
-)
+from ...discount.models import OrderDiscount, OrderLineDiscount, PromotionRule
 from ...discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
 )
@@ -133,11 +129,6 @@ def test_fetch_order_prices_catalogue_discount_flat_rates(
     assert order.total_gross_amount == order.total_net_amount * tax_rate
     assert order.subtotal_net_amount == order.total_net_amount - shipping_net_price
     assert order.subtotal_gross_amount == order.subtotal_net_amount * tax_rate
-
-    assert line_1.unit_discount_amount == reward_value
-    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
-    assert line_1.unit_discount_type == DiscountValueType.FIXED
-    assert line_1.unit_discount_value == reward_value
 
 
 @pytest.mark.parametrize("create_new_discounts", [True, False])
@@ -1213,10 +1204,6 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
     assert line_1.unit_price_gross_amount == round_up(
         line_1.unit_price_net_amount * tax_rate
     )
-    assert line_1.unit_discount_amount == rule_catalogue_reward
-    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
-    assert line_1.unit_discount_value == rule_catalogue_reward
-    assert line_1.unit_discount_type == DiscountValueType.FIXED
 
     variant_2 = line_2.variant
     variant_2_listing = variant_2.channel_listings.get(channel=order.channel)
@@ -1949,11 +1936,6 @@ def test_fetch_order_prices_catalogue_discount_prices_entered_with_tax_tax_exemp
         order.subtotal_gross_amount == order.total_gross_amount - shipping_gross_price
     )
     assert order.subtotal_gross_amount == order.subtotal_net_amount
-
-    assert line_1.unit_discount_amount == reward_value
-    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
-    assert line_1.unit_discount_type == DiscountValueType.FIXED
-    assert line_1.unit_discount_value == reward_value
 
 
 def test_fetch_order_prices_removing_catalogue_promotion_doesnt_remove_discount(

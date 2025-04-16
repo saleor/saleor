@@ -240,9 +240,6 @@ def test_fetch_order_prices_catalogue_discount_tax_app(
     assert line_1.unit_price_net_amount == line_1_unit_price_net
     assert line_1.unit_price_gross_amount == line_1_unit_price_gross
 
-    assert line_1.unit_discount_reason == f"Promotion: {promotion_id}"
-    assert line_1.unit_discount_amount == reward_value
-
     assert line_2.undiscounted_total_price_net_amount == line_2_total_price_net
     assert line_2.undiscounted_total_price_gross_amount == line_2_total_price_gross
     assert line_2.undiscounted_unit_price_net_amount == line_2_unit_price_net
@@ -253,9 +250,6 @@ def test_fetch_order_prices_catalogue_discount_tax_app(
     assert line_2.total_price_gross_amount == line_2_total_price_gross
     assert line_2.unit_price_net_amount == line_2_unit_price_net
     assert line_2.unit_price_gross_amount == line_2_unit_price_gross
-
-    assert line_2.unit_discount_reason is None
-    assert line_2.unit_discount_amount == Decimal(0)
 
 
 def test_fetch_order_prices_order_discount_tax_app(

@@ -22,18 +22,15 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountType, DiscountValueType
+from ..discount import DiscountType
 from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
 from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.order import (
     create_order_line_discount_objects_for_catalogue_promotions,
     update_catalogue_promotion_discount_amount_for_order,
+    update_unit_discount_data_on_order_line,
 )
-from ..discount.utils.promotion import (
-    delete_gift_lines_qs,
-    get_sale_id,
-    prepare_promotion_discount_reason,
-)
+from ..discount.utils.promotion import delete_gift_lines_qs, get_sale_id
 from ..discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
     create_or_update_line_discount_objects_from_voucher,
@@ -325,31 +322,13 @@ def create_order_line(
     )
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
-    if unit_discount.gross:
-        if rules_info:
-            line_discounts = (
-                create_order_line_discount_objects_for_catalogue_promotions(
-                    line, rules_info, channel
-                )
-            )
-            promotion = rules_info[0].promotion
-            line.sale_id = get_sale_id(promotion)
-            line.unit_discount_reason = (
-                prepare_promotion_discount_reason(rules_info[0].promotion)
-                if line_discounts
-                else None
-            )
-
-        tax_configuration = channel.tax_configuration
-        prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
-        if prices_entered_with_tax:
-            discount_amount = unit_discount.gross
-        else:
-            discount_amount = unit_discount.net
-        line.unit_discount = discount_amount
-        line.unit_discount_type = DiscountValueType.FIXED
-        line.unit_discount_value = discount_amount.amount
+    if unit_discount.gross and rules_info:
+        line_discounts = create_order_line_discount_objects_for_catalogue_promotions(
+            line, rules_info, channel
+        )
+        promotion = rules_info[0].promotion
+        line.sale_id = get_sale_id(promotion)
+        update_unit_discount_data_on_order_line(line, line_discounts)
 
         line.save(
             update_fields=[
