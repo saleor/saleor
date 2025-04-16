@@ -162,7 +162,7 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            f"{request.method} {request.path}",
+            f"{request.method} {request.resolver_match.route if request.resolver_match else request.path}",
             scope=Scope.SERVICE,
             kind=SpanKind.SERVER,
         ) as span:
