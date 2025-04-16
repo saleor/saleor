@@ -32,7 +32,6 @@ from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
     get_source_service_name_value,
-    gql_operation_type,
     query_fingerprint,
     query_identifier,
 )
@@ -296,8 +295,11 @@ class GraphQLView(View):
                 span.set_status(status=StatusCode.ERROR, description=error_description)
                 return error
 
-            if operation_type := gql_operation_type(document):
-                span.update_name(operation_type)
+            if operation_type := document.get_operation_type(operation_name):
+                if operation_name:
+                    span.update_name(f"{operation_type} {operation_name}")
+                else:
+                    span.update_name(operation_type)
 
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
