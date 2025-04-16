@@ -1279,7 +1279,9 @@ def test_update_order_line_discount(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, currency=order.currency)
+    )
 
     line_discount = line_to_discount.discounts.get()
     assert line_discount.type == DiscountType.MANUAL
@@ -1374,7 +1376,9 @@ def test_update_order_line_discount_by_app(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, unit_discount.currency)
+    )
 
     line_discount = line_to_discount.discounts.get()
     assert line_discount.type == DiscountType.MANUAL
@@ -1475,7 +1479,9 @@ def test_update_order_line_discount_line_with_discount(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, unit_discount.currency)
+    )
 
     assert discount_data["old_value"] == str(line_discount_value_before_update)
     assert discount_data["old_value_type"] == DiscountValueTypeEnum.FIXED.value
