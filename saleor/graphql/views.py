@@ -7,8 +7,6 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connection
-from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
@@ -17,15 +15,14 @@ from graphql.error import GraphQLError, GraphQLSyntaxError
 from graphql.execution import ExecutionResult
 from jwt.exceptions import PyJWTError
 from opentelemetry.semconv._incubating.attributes import (
-    db_attributes,
     graphql_attributes,
 )
 from opentelemetry.semconv._incubating.attributes import (
     http_attributes as incubating_http_attributes,
 )
 from opentelemetry.semconv.attributes import (
+    client_attributes,
     http_attributes,
-    server_attributes,
     url_attributes,
     user_agent_attributes,
 )
@@ -34,7 +31,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.telemetry import Scope, SpanAttributes, SpanKind, saleor_attributes, tracer
+from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -52,26 +49,6 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-
-def tracing_wrapper(execute, sql, params, many, context):
-    conn: DatabaseWrapper = context["connection"]
-    database_name = f"{conn.alias}.{conn.settings_dict.get('NAME')}"
-    with tracer.start_as_current_span(database_name, kind=SpanKind.CLIENT) as span:
-        # span.set_attribute("component", "db")
-        span.set_attribute(db_attributes.DB_SYSTEM, conn.vendor)
-        span.set_attribute(db_attributes.DB_NAMESPACE, database_name)
-        span.set_attribute(db_attributes.DB_QUERY_TEXT, sql)
-        span.set_attribute(
-            server_attributes.SERVER_ADDRESS,
-            conn.settings_dict.get("HOST"),  # type: ignore[arg-type]
-        )
-        span.set_attribute(
-            server_attributes.SERVER_PORT,
-            conn.settings_dict.get("PORT"),  # type: ignore[arg-type]
-        )
-        # span.set_attribute("span.type", "sql")
-        return execute(sql, params, many, context)
 
 
 class GraphQLView(View):
@@ -194,25 +171,22 @@ class GraphQLView(View):
             )
             accepted_encoding = request.headers.get("accept-encoding", "")
             span.set_attribute(
-                "http.compression", "gzip" if "gzip" in accepted_encoding else "none"
+                f"{http_attributes.HTTP_REQUEST_HEADER_TEMPLATE}.accept-encoding",
+                ["gzip"] if "gzip" in accepted_encoding else ["none"],
             )
             span.set_attribute(
                 user_agent_attributes.USER_AGENT_ORIGINAL,
                 request.headers.get("user-agent", ""),
             )
-            # span.set_attribute("span.type", "web")
+            span.set_attribute("span.type", "web")
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
 
             request_ips = request.META.get(main_ip_header, "")
             for ip in request_ips.split(","):
-                if is_valid_ipv4(ip):
-                    span.set_attribute(SpanAttributes.NET_PEER_IP, ip)
-                    span.set_attribute(SpanAttributes.NETWORK_TYPE, "ipv4")
-                elif is_valid_ipv6(ip):
-                    span.set_attribute(SpanAttributes.NET_PEER_IP, ip)
-                    span.set_attribute(SpanAttributes.NETWORK_TYPE, "ipv6")
+                if is_valid_ipv4(ip) or is_valid_ipv6(ip):
+                    span.set_attribute(client_attributes.CLIENT_ADDRESS, ip)
                 else:
                     continue
                 break
@@ -299,11 +273,7 @@ class GraphQLView(View):
             record_graphql_query_duration(),
         ):
             record_graphql_queries_count()
-            # span.set_attribute("component", "graphql")
-            span.set_attribute(
-                SpanAttributes.HTTP_URL,
-                request.build_absolute_uri(request.get_full_path()),
-            )
+            span.set_attribute("component", "graphql")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
             document, error = self.parse_query(query)
@@ -386,36 +356,33 @@ class GraphQLView(View):
                 span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
 
             try:
-                with connection.execute_wrapper(tracing_wrapper):
-                    response = None
-                    should_use_cache_for_scheme = query_contains_schema & (
-                        not settings.DEBUG
+                response = None
+                should_use_cache_for_scheme = query_contains_schema & (
+                    not settings.DEBUG
+                )
+                if should_use_cache_for_scheme:
+                    key = generate_cache_key(raw_query_string)
+                    response = cache.get(key)
+
+                if not response:
+                    response = document.execute(
+                        root=self.get_root_value(),
+                        variables=variables,
+                        operation_name=operation_name,
+                        context=context,
+                        middleware=self.middleware,
+                        **extra_options,
                     )
-                    if should_use_cache_for_scheme:
-                        key = generate_cache_key(raw_query_string)
-                        response = cache.get(key)
-
-                    if not response:
-                        response = document.execute(
-                            root=self.get_root_value(),
-                            variables=variables,
-                            operation_name=operation_name,
-                            context=context,
-                            middleware=self.middleware,
-                            **extra_options,
+                    if response.errors:
+                        error_description = self.format_span_error_description(response)
+                        span.set_status(
+                            status=StatusCode.ERROR, description=error_description
                         )
-                        if response.errors:
-                            error_description = self.format_span_error_description(
-                                response
-                            )
-                            span.set_status(
-                                status=StatusCode.ERROR, description=error_description
-                            )
 
-                        if should_use_cache_for_scheme:
-                            cache.set(key, response)
+                    if should_use_cache_for_scheme:
+                        cache.set(key, response)
 
-                    return set_query_cost_on_result(response, query_cost)
+                return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
 

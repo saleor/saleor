@@ -34,7 +34,7 @@ def webhooks_otel_trace(
     :param payload_size: size of the payload in bytes
     """
     with tracer.start_as_current_span(
-        f"webhook.{event_type}",
+        f"webhooks.{event_type}",
         scope=Scope.SERVICE,
         kind=SpanKind.CLIENT,
         links=span_links,

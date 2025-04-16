@@ -42,9 +42,8 @@ class DataLoader(BaseLoader, Generic[K, R]):
     def batch_load_fn(  # pylint: disable=method-hidden
         self, keys: Iterable[K]
     ) -> Promise[list[R]]:
-        with tracer.start_as_current_span("dataloader.batch_load") as span:
-            span.set_attribute("resource.name", self.__class__.__name__)
-
+        span_name = f"dataloader.batch_load.{self.__class__.__name__}"
+        with tracer.start_as_current_span(span_name):
             with allow_writer_in_context(self.context):
                 results = self.batch_load(keys)
 
