@@ -32,6 +32,7 @@ from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
     get_source_service_name_value,
+    gql_operation_type,
     query_fingerprint,
     query_identifier,
 )
@@ -162,10 +163,11 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", scope=Scope.SERVICE, kind=SpanKind.SERVER
+            f"{request.method} {request.path}",
+            scope=Scope.SERVICE,
+            kind=SpanKind.SERVER,
         ) as span:
             span.set_attribute("component", "http")
-            span.set_attribute("resource.name", request.path)
             span.set_attribute(SpanAttributes.HTTP_METHOD, request.method)  # type: ignore[arg-type]
             span.set_attribute(
                 SpanAttributes.HTTP_URL,
@@ -269,7 +271,9 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            tracer.start_as_current_span("graphql_query", scope=Scope.SERVICE) as span,
+            tracer.start_as_current_span(
+                "GraphQL Operation", scope=Scope.SERVICE
+            ) as span,
             record_graphql_query_duration(),
         ):
             record_graphql_queries_count()
@@ -292,6 +296,9 @@ class GraphQLView(View):
                 span.set_status(status=StatusCode.ERROR, description=error_description)
                 return error
 
+            if operation_type := gql_operation_type(document):
+                span.update_name(operation_type)
+
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
@@ -301,7 +308,6 @@ class GraphQLView(View):
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
-            span.set_attribute("resource.name", raw_query_string)
             span.set_attribute("graphql.query", raw_query_string)
             span.set_attribute("graphql.query_identifier", _query_identifier)
             span.set_attribute("graphql.query_fingerprint", query_fingerprint(document))
