@@ -31,6 +31,7 @@ env.bak/
 venv.bak/
 Pipfile
 !.env.example
+logoutput/
 
 # Exported results file
 django-queries-results.html
