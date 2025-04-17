@@ -115,12 +115,17 @@ def prepare_voucher(
         "voucher_discount_type",
         "expected_voucher_discount",
         "expected_unit_price",
+        "legacy_voucher_propagation",
     ),
     [
-        ("19.99", 13, "PERCENTAGE", 2.60, 13, "PERCENTAGE", 2.26, 15.13),
-        ("30", 10, "FIXED", 10, 5, "FIXED", 5, 17.5),
-        ("56.50", 19.99, "FIXED", 19.99, 33, "PERCENTAGE", 12.05, 24.46),
-        ("77.77", 17.5, "PERCENTAGE", 13.61, 25, "FIXED", 25, 51.66),
+        ("19.99", 13, "PERCENTAGE", 2.60, 13, "PERCENTAGE", 2.26, 15.13, True),
+        ("30", 10, "FIXED", 10, 5, "FIXED", 5, 17.5, True),
+        ("56.50", 19.99, "FIXED", 19.99, 33, "PERCENTAGE", 12.05, 24.46, True),
+        ("77.77", 17.5, "PERCENTAGE", 13.61, 25, "FIXED", 25, 51.66, True),
+        ("19.99", 13, "PERCENTAGE", 2.60, 13, "PERCENTAGE", 2.26, 15.13, False),
+        ("30", 10, "FIXED", 10, 5, "FIXED", 5, 17.5, False),
+        ("56.50", 19.99, "FIXED", 19.99, 33, "PERCENTAGE", 12.05, 24.46, False),
+        ("77.77", 17.5, "PERCENTAGE", 13.61, 25, "FIXED", 25, 51.66, False),
     ],
 )
 def test_checkout_with_promotion_and_voucher_CORE_2107(
@@ -137,6 +142,7 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     voucher_discount_type,
     expected_voucher_discount,
     expected_unit_price,
+    legacy_voucher_propagation,
 ):
     # Before
     permissions = [
@@ -146,7 +152,12 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_default_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(
+        e2e_staff_api_client,
+        channel_order_settings={
+            "useLegacyLineVoucherPropagation": legacy_voucher_propagation
+        },
+    )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
@@ -260,6 +271,10 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == float(
         product_variant_price
     )
-    assert order_line["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Promotion: {promotion_id}"
-    )
+    assert f"Promotion: {promotion_id}" in order_line["unitDiscountReason"]
+
+    if legacy_voucher_propagation:
+        assert (
+            f"Entire order voucher code: {voucher_code}"
+            in order_line["unitDiscountReason"]
+        )
