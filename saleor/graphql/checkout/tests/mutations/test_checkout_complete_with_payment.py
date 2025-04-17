@@ -1017,16 +1017,36 @@ def test_checkout_with_voucher_complete(
     )
 
 
+@pytest.mark.parametrize(
+    (
+        "use_legacy_voucher_propagation",
+        "expected_voucher_discount_value_type",
+        "expected_voucher_discount_value",
+    ),
+    [
+        (True, DiscountValueType.FIXED, Decimal("1")),
+        (False, DiscountValueType.PERCENTAGE, Decimal(10)),
+    ],
+)
 @pytest.mark.integration
 def test_checkout_complete_with_voucher_apply_once_per_order(
+    use_legacy_voucher_propagation,
+    expected_voucher_discount_value_type,
+    expected_voucher_discount_value,
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
     payment_dummy,
     address,
     shipping_method,
+    channel_USD,
 ):
     # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = (
+        use_legacy_voucher_propagation
+    )
+    channel_USD.save()
+
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
@@ -1119,10 +1139,13 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     assert order_line_discount.type == DiscountType.VOUCHER
     assert order_line_discount.voucher == voucher_percentage
     assert order_line_discount.voucher_code == code.code
-    assert order_line_discount.value_type == DiscountValueType.FIXED
+    assert order_line_discount.value_type == expected_voucher_discount_value_type
+    assert order_line_discount.value == expected_voucher_discount_value
 
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
+
+    assert not order.discounts.exists()
 
     assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
         "Checkout should have been deleted"
@@ -1283,15 +1306,35 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     )
 
 
+@pytest.mark.parametrize(
+    (
+        "use_legacy_voucher_propagation",
+        "expected_voucher_discount_value_type",
+        "expected_voucher_discount_value",
+    ),
+    [
+        (True, DiscountValueType.FIXED, Decimal("3")),
+        (False, DiscountValueType.PERCENTAGE, Decimal(10)),
+    ],
+)
 def test_checkout_with_voucher_on_specific_product_complete(
+    use_legacy_voucher_propagation,
+    expected_voucher_discount_value_type,
+    expected_voucher_discount_value,
     user_api_client,
     checkout_with_item_and_voucher_specific_products,
     voucher_specific_product_type,
     payment_dummy,
     address,
     shipping_method,
+    channel_USD,
 ):
     # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = (
+        use_legacy_voucher_propagation
+    )
+    channel_USD.save()
+
     code = voucher_specific_product_type.codes.first()
     voucher_used_count = code.used
     voucher_specific_product_type.usage_limit = voucher_used_count + 1
@@ -1378,12 +1421,15 @@ def test_checkout_with_voucher_on_specific_product_complete(
     assert order_line_discount.type == DiscountType.VOUCHER
     assert order_line_discount.voucher == voucher_specific_product_type
     assert order_line_discount.voucher_code == code.code
-    assert order_line_discount.value_type == DiscountValueType.FIXED
+    assert order_line_discount.value_type == expected_voucher_discount_value_type
+    assert order_line_discount.value == expected_voucher_discount_value
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
     assert order.voucher == voucher_specific_product_type
     assert order.voucher.code == code.code
+
+    assert not order.discounts.exists()
 
     assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
         "Checkout should have been deleted"
@@ -2554,6 +2600,8 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     assert code.used == voucher_used_count + 1
     assert order.voucher == voucher_specific_product_type
     assert order.voucher.code == code.code
+
+    assert not order.discounts.exists()
 
     assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
         "Checkout should have been deleted"

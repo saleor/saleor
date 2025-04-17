@@ -1038,6 +1038,8 @@ def test_order_discounts_with_line_lvl_voucher_discount_from_checkout_and_legacy
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     permission_group_manage_shipping.user_set.add(staff_api_client.user)
 
+    assert not order.discounts.exists()
+
     # when
     response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
     content = get_graphql_content(response)
@@ -1056,6 +1058,9 @@ def test_order_discounts_with_line_lvl_voucher_discount_from_checkout_and_legacy
     )
     assert discount_data["amount"]["amount"] == order_discount_amount
     assert discount_data["total"]["amount"] == order_discount_amount
+
+    assert len(order_data["lines"][0]["discounts"]) == 0
+    assert len(order_data["lines"][1]["discounts"]) == 0
 
 
 def test_order_discounts_with_line_lvl_voucher_discount_from_checkout(
@@ -1108,6 +1113,8 @@ def test_order_discounts_with_line_lvl_voucher_discount_from_checkout(
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     permission_group_manage_shipping.user_set.add(staff_api_client.user)
+
+    assert not order.discounts.exists()
 
     # when
     response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)

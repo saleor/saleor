@@ -766,6 +766,9 @@ def test_order_query_undiscounted_prices_no_tax(
 QUERY_WITH_LINE_DISCOUNTS = """
     query OrderQuery($id: ID) {
       order(id: $id) {
+        discounts {
+          id
+        }
         lines {
           discounts{
             id
@@ -860,8 +863,8 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin_and_legac
     # then
     content = get_graphql_content(response)
     line_discounts = content["data"]["order"]["lines"][0]["discounts"]
-
     assert len(line_discounts) == 0
+    assert content["data"]["order"]["discounts"]
 
 
 def test_order_line_skips_voucher_discount_object_when_checkout_origin(
@@ -912,3 +915,5 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin(
         == line_discount.amount_value / line.quantity
     )
     assert line_discount_data["total"]["amount"] == line_discount.amount_value
+
+    assert not content["data"]["order"]["discounts"]
