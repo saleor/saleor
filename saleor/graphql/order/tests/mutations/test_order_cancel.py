@@ -138,13 +138,13 @@ def test_order_cancel_no_channel_access(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 @patch("saleor.graphql.order.mutations.order_cancel.clean_order_cancel")
 def test_order_cancel_skip_trigger_webhooks(
     mock_clean_order_cancel,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     setup_order_webhooks,
@@ -162,6 +162,8 @@ def test_order_cancel_skip_trigger_webhooks(
     ) = setup_order_webhooks(
         [WebhookEventAsyncType.ORDER_UPDATED, WebhookEventAsyncType.ORDER_CANCELLED]
     )
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -202,16 +204,19 @@ def test_order_cancel_skip_trigger_webhooks(
     assert not tax_delivery
     assert not filter_shipping_delivery
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={
+                    "app_id": app.id,
+                    "telemetry_context": ANY,
+                },
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
