@@ -520,7 +520,7 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="core",
         MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
