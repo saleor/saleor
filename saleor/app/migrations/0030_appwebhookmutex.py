@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                     "app",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="webhook_mutexes",
+                        related_name="webhook_mutex",
                         to="app.app",
                         verbose_name="App",
                     ),
