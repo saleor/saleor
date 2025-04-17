@@ -1,12 +1,12 @@
 import pytest
 
-from ....app.models import App
+from ....app.models import App, AppWebhookMutex
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
 
 
 @pytest.fixture
-def webhook(app):
+def webhook(app, app_webhook_mutex):
     webhook = Webhook.objects.create(
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
     )
@@ -15,14 +15,14 @@ def webhook(app):
 
 
 @pytest.fixture
-def webhook_without_name(app):
+def webhook_without_name(app, app_webhook_mutex):
     webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
 
 
 @pytest.fixture
-def webhook_removed_app(removed_app):
+def webhook_removed_app(removed_app, removed_app_webhook_mutex):
     webhook = Webhook.objects.create(
         name="Removed app webhook",
         app=removed_app,
@@ -33,7 +33,7 @@ def webhook_removed_app(removed_app):
 
 
 @pytest.fixture
-def any_webhook(app):
+def any_webhook(app, app_webhook_mutex):
     webhook = Webhook.objects.create(
         name="Any webhook", app=app, target_url="http://www.example.com/any"
     )
@@ -46,6 +46,8 @@ def observability_webhook(db, permission_manage_observability):
     app = App.objects.create(name="Observability App", is_active=True)
     app.tokens.create(name="Default")
     app.permissions.add(permission_manage_observability)
+
+    AppWebhookMutex.objects.create(app=app)
 
     webhook = Webhook.objects.create(
         name="observability-webhook-1",
@@ -168,6 +170,9 @@ def setup_checkout_webhooks(
                 ),
             ]
         )
+        AppWebhookMutex.objects.create(app=tax_app)
+        AppWebhookMutex.objects.create(app=shipping_app)
+        AppWebhookMutex.objects.create(app=additional_app)
         tax_app.permissions.add(permission_handle_taxes)
         shipping_app.permissions.set(
             [permission_manage_shipping, permission_manage_checkouts]
@@ -358,6 +363,9 @@ def setup_order_webhooks(
                 ),
             ]
         )
+        AppWebhookMutex.objects.create(app=tax_app)
+        AppWebhookMutex.objects.create(app=shipping_app)
+        AppWebhookMutex.objects.create(app=additional_app)
         tax_app.permissions.add(permission_handle_taxes)
         shipping_app.permissions.set(
             [permission_manage_shipping, permission_manage_orders]
