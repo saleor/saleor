@@ -1,5 +1,6 @@
 import json
 from unittest import mock
+from unittest.mock import ANY
 
 import graphene
 
@@ -16,13 +17,16 @@ from .payloads import generate_payment_payload
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_trigger_webhooks_async(
     mocked_send_webhook_request,
     webhook,
+    app,
+    app_webhook_mutex,
     subscription_order_created_webhook,
     order,
+    settings,
 ):
     webhook_type = WebhookEventAsyncType.ORDER_CREATED
     webhooks, payload = Webhook.objects.all(), '{"example": "payload"}'
@@ -33,17 +37,17 @@ def test_trigger_webhooks_async(
     assert deliveries.count() == 2
     assert deliveries[0].webhook == subscription_order_created_webhook
     assert deliveries[1].webhook == webhook
-    for delivery in deliveries:
+    for _ in deliveries:
         assert (
             mock.call(
                 kwargs={
-                    "event_delivery_id": delivery.id,
-                    "telemetry_context": mock.ANY,
+                    "app_id": app.id,
+                    "telemetry_context": ANY,
                 },
-                queue=None,
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
             in mocked_send_webhook_request.mock_calls
         )
@@ -53,14 +57,17 @@ def test_trigger_webhooks_async(
     "saleor.webhook.transport.asynchronous.transport.MAX_WEBHOOK_EVENTS_IN_DB_BULK", 2
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_trigger_webhooks_async_for_multiple_objects(
     mocked_send_webhook_request,
     webhook,
+    app,
+    app_webhook_mutex,
     subscription_order_created_webhook,
     order_with_lines,
     order_unconfirmed,
+    settings,
 ):
     # given
     webhook_type = WebhookEventAsyncType.ORDER_CREATED
@@ -98,24 +105,24 @@ def test_trigger_webhooks_async_for_multiple_objects(
         generated_payload = delivery.payload.get_payload()
         assert any(order_id in generated_payload for order_id in order_ids)
 
-    for delivery in deliveries:
+    for _ in deliveries:
         assert (
             mock.call(
                 kwargs={
-                    "event_delivery_id": delivery.id,
-                    "telemetry_context": mock.ANY,
+                    "app_id": app.id,
+                    "telemetry_context": ANY,
                 },
-                queue=None,
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
             in mocked_send_webhook_request.mock_calls
         )
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.create_deliveries_for_subscriptions"
