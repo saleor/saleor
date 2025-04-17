@@ -28,7 +28,7 @@ subscription {
 
 
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_metadata_updated(
@@ -87,7 +87,7 @@ def test_order_metadata_updated(
 
 
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_metadata_updated_without_channels_input(
@@ -160,7 +160,7 @@ def test_order_metadata_updated_without_channels_input(
     "saleor.webhook.transport.asynchronous.transport.create_event_delivery_list_for_webhooks"
 )
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_metadata_updated_with_different_channel(
@@ -198,7 +198,7 @@ def test_order_metadata_updated_with_different_channel(
     "saleor.webhook.transport.asynchronous.transport.create_event_delivery_list_for_webhooks"
 )
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_different_event_doesnt_trigger_webhook(

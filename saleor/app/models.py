@@ -133,7 +133,7 @@ class AppWebhookMutex(models.Model):
     app = models.OneToOneField(
         App,
         on_delete=models.CASCADE,
-        related_name="webhook_mutexes",
+        related_name="webhook_mutex",
         verbose_name="App",
     )
     acquired_at = models.DateTimeField(null=True)
