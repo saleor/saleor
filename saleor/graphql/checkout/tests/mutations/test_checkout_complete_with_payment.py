@@ -909,8 +909,22 @@ def test_checkout_complete_requires_confirmation(
     recalculate_with_plugins_mock.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    (
+        "legacy_voucher_propagation",
+        "expected_unit_discount_amount",
+        "expected_unit_discount_reason",
+    ),
+    [
+        (True, Decimal(1), "Entire order voucher code: saleor"),
+        (False, Decimal(0), None),
+    ],
+)
 @pytest.mark.integration
 def test_checkout_with_voucher_complete(
+    legacy_voucher_propagation,
+    expected_unit_discount_amount,
+    expected_unit_discount_reason,
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
@@ -919,6 +933,10 @@ def test_checkout_with_voucher_complete(
     shipping_method,
 ):
     # given
+    channel = checkout_with_voucher_percentage.channel
+    channel.use_legacy_line_voucher_propagation_for_order = legacy_voucher_propagation
+    channel.save()
+
     code = voucher_percentage.codes.first()
     voucher_used_count = code.used
     voucher_percentage.usage_limit = voucher_used_count + 1
@@ -995,11 +1013,9 @@ def test_checkout_with_voucher_complete(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
-    assert (
-        order_line.unit_discount_amount
-        == (discount_amount / checkout_line_quantity).amount
-    )
-    assert order_line.unit_discount_reason
+
+    assert order_line.unit_discount_amount == expected_unit_discount_amount
+    assert order_line.unit_discount_reason == expected_unit_discount_reason
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1

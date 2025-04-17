@@ -137,14 +137,13 @@ def prepare_shop(
     return created_channels, tax_config
 
 
-def prepare_default_shop(
-    e2e_staff_api_client,
-):
+def prepare_default_shop(e2e_staff_api_client, channel_order_settings=None):
     created_warehouse = create_warehouse(e2e_staff_api_client)
 
     created_channel = create_channel(
         e2e_staff_api_client,
         warehouse_ids=[created_warehouse["id"]],
+        order_settings=channel_order_settings,
     )
 
     created_shipping_zone = create_shipping_zone(

@@ -33,7 +33,7 @@ from ..discount.utils.voucher import (
     calculate_line_discount_amount_from_voucher,
     increase_voucher_usage,
     is_line_level_voucher,
-    is_shipping_voucher,
+    is_order_level_voucher,
     release_voucher_code_usage,
 )
 from ..graphql.checkout.utils import (
@@ -346,22 +346,24 @@ def _create_line_for_order(
         prices_entered_with_tax,
     )
 
-    discount_price = undiscounted_unit_price - unit_price
-    if prices_entered_with_tax:
-        discount_amount = discount_price.gross
-    else:
-        discount_amount = discount_price.net
-
     voucher_code = checkout_info.checkout.voucher_code
     is_line_voucher_code = bool(checkout_line_info.voucher)
 
-    tax_class = None
     if product.tax_class_id:
         tax_class = product.tax_class
     else:
         tax_class = product.product_type.tax_class
 
     is_price_overridden = checkout_line.price_override is not None
+
+    discount_amount = _get_unit_discount(
+        unit_price=unit_price,
+        undiscounted_unit_price=undiscounted_unit_price,
+        base_unit_price=base_unit_price,
+        undiscounted_base_unit_price=undiscounted_base_unit_price,
+        use_legacy_voucher_propagation=checkout_info.channel.use_legacy_line_voucher_propagation_for_order,
+        prices_entered_with_tax=prices_entered_with_tax,
+    )
 
     line = OrderLine(  # type: ignore[misc] # see below:
         product_name=product_name,
@@ -395,11 +397,15 @@ def _create_line_for_order(
     line_discounts = _create_order_line_discounts(
         checkout_line_info, line, checkout_info.channel, voucher_channel_listing
     )
+
     line.unit_discount_reason = _get_unit_discount_reason(
-        voucher_code,
-        is_line_voucher_code,
-        is_shipping_voucher(checkout_info.voucher),
         line_discounts,
+        order_lvl_voucher_code=(
+            checkout_info.voucher.code
+            if checkout_info.voucher and is_order_level_voucher(checkout_info.voucher)
+            else None
+        ),
+        use_legacy_voucher_propagation=checkout_info.channel.use_legacy_line_voucher_propagation_for_order,
     )
 
     if line_discounts:
@@ -422,23 +428,48 @@ def _create_line_for_order(
     return line_info
 
 
+def _get_unit_discount(
+    unit_price: TaxedMoney,
+    undiscounted_unit_price: TaxedMoney,
+    base_unit_price: Money,
+    undiscounted_base_unit_price: Money,
+    use_legacy_voucher_propagation: bool,
+    prices_entered_with_tax: bool,
+) -> Money:
+    """Returng the discount applicable on single line.
+
+    When `use_legacy_voucher_propagation` is `True`, the discount
+    amount includes the `ENTIRE_ORDER` voucher discount. This is
+    already reflected in the order-level discounts, but to maintain
+    backward compatibility, the legacy flow behaves as before.
+
+    When `use_legacy_voucher_propagation` is `False`, the
+    `unit_discount` includes only the order-line level discounts.
+    """
+    if use_legacy_voucher_propagation:
+        discount_price = undiscounted_unit_price - unit_price
+        if prices_entered_with_tax:
+            return discount_price.gross
+        return discount_price.net
+    return undiscounted_base_unit_price - base_unit_price
+
+
 def _get_unit_discount_reason(
-    voucher_code: str | None,
-    is_line_voucher_code: bool,
-    is_shipping_voucher: bool,
     line_discounts: list[OrderLineDiscount],
+    order_lvl_voucher_code: str | None,
+    use_legacy_voucher_propagation: bool,
 ) -> str | None:
-    voucher_not_applicable = not voucher_code or is_shipping_voucher
-    if voucher_not_applicable and not line_discounts:
+    include_entire_order_lvl_reason = (
+        order_lvl_voucher_code and use_legacy_voucher_propagation
+    )
+    if not include_entire_order_lvl_reason and not line_discounts:
         return None
+
     reasons = []
-    if not is_line_voucher_code and voucher_code:
-        reasons.append(f"Entire order voucher code: {voucher_code}")
+    if include_entire_order_lvl_reason:
+        reasons.append(f"Entire order voucher code: {order_lvl_voucher_code}")
 
     reasons.extend([discount.reason for discount in line_discounts if discount.reason])
-
-    if not reasons:
-        return None
     return " & ".join(reasons)
 
 
