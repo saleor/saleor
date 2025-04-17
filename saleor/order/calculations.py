@@ -141,11 +141,6 @@ def fetch_order_prices_if_expired(
                     "undiscounted_total_price_net_amount",
                     "undiscounted_total_price_gross_amount",
                     "tax_rate",
-                    "unit_discount_amount",
-                    "unit_discount_reason",
-                    "unit_discount_type",
-                    "unit_discount_value",
-                    "base_unit_price_amount",
                 ],
             )
 
