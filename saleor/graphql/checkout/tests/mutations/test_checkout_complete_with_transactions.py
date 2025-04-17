@@ -1943,8 +1943,22 @@ def test_checkout_complete_with_variant_without_sku(
     assert order_line.product_variant_id == order_line.variant.get_global_id()
 
 
+@pytest.mark.parametrize(
+    (
+        "legacy_voucher_propagation",
+        "expected_unit_discount_amount",
+        "expected_unit_discount_reason",
+    ),
+    [
+        (True, Decimal(1), "Entire order voucher code: saleor"),
+        (False, Decimal(0), None),
+    ],
+)
 @pytest.mark.integration
 def test_checkout_with_voucher_complete(
+    legacy_voucher_propagation,
+    expected_unit_discount_amount,
+    expected_unit_discount_reason,
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
@@ -1954,6 +1968,10 @@ def test_checkout_with_voucher_complete(
     transaction_item_generator,
 ):
     # given
+    channel = checkout_with_voucher_percentage.channel
+    channel.use_legacy_line_voucher_propagation_for_order = legacy_voucher_propagation
+    channel.save()
+
     code = voucher_percentage.codes.first()
     checkout = prepare_checkout_for_test(
         checkout_with_voucher_percentage,
@@ -2025,11 +2043,8 @@ def test_checkout_with_voucher_complete(
     )
 
     order_line = order.lines.first()
-    assert (
-        order_line.unit_discount_amount
-        == (discount_amount / order_line.quantity).amount
-    )
-    assert order_line.unit_discount_reason
+    assert order_line.unit_discount_amount == expected_unit_discount_amount
+    assert order_line.unit_discount_reason == expected_unit_discount_reason
 
 
 @pytest.mark.integration
