@@ -690,7 +690,7 @@ def test_order_line_update_triggers_webhooks(
             "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
         MessageGroupId="core",
         MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
