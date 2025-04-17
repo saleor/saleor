@@ -154,10 +154,10 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", scope=Scope.SERVICE, kind=SpanKind.SERVER
+            request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER
         ) as span:
             span.set_attribute(saleor_attributes.COMPONENT, "http")
-            span.set_attribute(saleor_attributes.RESOURCE_NAME, request.path)
+            span.set_attribute(saleor_attributes.OPERATION_NAME, "http")
             span.set_attribute(http_attributes.HTTP_REQUEST_METHOD, request.method)  # type: ignore[arg-type]
             span.set_attribute(
                 url_attributes.URL_FULL,
@@ -264,10 +264,13 @@ class GraphQLView(View):
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
         with (
-            tracer.start_as_current_span("graphql_query", scope=Scope.SERVICE) as span,
+            tracer.start_as_current_span(
+                "GraphQL Operation", scope=Scope.SERVICE
+            ) as span,
             record_graphql_query_duration(),
         ):
             record_graphql_queries_count()
+            span.set_attribute(saleor_attributes.OPERATION_NAME, "graphql_query")
             span.set_attribute(saleor_attributes.COMPONENT, "graphql")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
@@ -292,7 +295,7 @@ class GraphQLView(View):
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
-            span.set_attribute(saleor_attributes.RESOURCE_NAME, raw_query_string)
+            span.update_name(raw_query_string)
             span.set_attribute(graphql_attributes.GRAPHQL_DOCUMENT, raw_query_string)
             if operation_type := document.get_operation_type(operation_name):
                 span.set_attribute(

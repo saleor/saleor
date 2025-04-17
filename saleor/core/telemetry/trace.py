@@ -12,7 +12,7 @@ from opentelemetry.trace import (
 )
 from opentelemetry.util.types import Attributes
 
-from .utils import Scope, enrich_with_global_attributes
+from .utils import Scope, enrich_span_with_global_attributes
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class Tracer:
             The newly created span
 
         """
-        attributes = enrich_with_global_attributes(attributes)
+        attributes = enrich_span_with_global_attributes(attributes, name)
         tracer = self._service_tracer if scope.is_service else self._core_tracer
         with tracer.start_as_current_span(
             name,
@@ -112,7 +112,7 @@ class Tracer:
             The newly created span
 
         """
-        attributes = enrich_with_global_attributes(attributes)
+        attributes = enrich_span_with_global_attributes(attributes, name)
         tracer = self._service_tracer if scope.is_service else self._core_tracer
         return tracer.start_span(
             name,
