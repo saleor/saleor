@@ -7,8 +7,6 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import connection
-from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
@@ -38,22 +36,6 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
-
-
-def tracing_wrapper(execute, sql, params, many, context):
-    conn: DatabaseWrapper = context["connection"]
-    operation = f"{conn.alias} {conn.display_name}"
-    with tracer.start_as_current_span(operation, kind=SpanKind.CLIENT) as span:
-        span.set_attribute("component", "db")
-        span.set_attribute(SpanAttributes.DB_STATEMENT, sql)
-        span.set_attribute(SpanAttributes.DB_SYSTEM, conn.display_name)
-        span.set_attribute(
-            SpanAttributes.SERVER_ADDRESS,
-            conn.settings_dict.get("HOST"),  # type: ignore[arg-type]
-        )
-        span.set_attribute(SpanAttributes.SERVER_PORT, conn.settings_dict.get("PORT"))  # type: ignore[arg-type]
-        span.set_attribute("span.type", "sql")
-        return execute(sql, params, many, context)
 
 
 class GraphQLView(View):
@@ -340,36 +322,33 @@ class GraphQLView(View):
                 span.set_attribute("app.name", app.name)
 
             try:
-                with connection.execute_wrapper(tracing_wrapper):
-                    response = None
-                    should_use_cache_for_scheme = query_contains_schema & (
-                        not settings.DEBUG
+                response = None
+                should_use_cache_for_scheme = query_contains_schema & (
+                    not settings.DEBUG
+                )
+                if should_use_cache_for_scheme:
+                    key = generate_cache_key(raw_query_string)
+                    response = cache.get(key)
+
+                if not response:
+                    response = document.execute(
+                        root=self.get_root_value(),
+                        variables=variables,
+                        operation_name=operation_name,
+                        context=context,
+                        middleware=self.middleware,
+                        **extra_options,
                     )
-                    if should_use_cache_for_scheme:
-                        key = generate_cache_key(raw_query_string)
-                        response = cache.get(key)
-
-                    if not response:
-                        response = document.execute(
-                            root=self.get_root_value(),
-                            variables=variables,
-                            operation_name=operation_name,
-                            context=context,
-                            middleware=self.middleware,
-                            **extra_options,
+                    if response.errors:
+                        error_description = self.format_span_error_description(response)
+                        span.set_status(
+                            status=StatusCode.ERROR, description=error_description
                         )
-                        if response.errors:
-                            error_description = self.format_span_error_description(
-                                response
-                            )
-                            span.set_status(
-                                status=StatusCode.ERROR, description=error_description
-                            )
 
-                        if should_use_cache_for_scheme:
-                            cache.set(key, response)
+                    if should_use_cache_for_scheme:
+                        cache.set(key, response)
 
-                    return set_query_cost_on_result(response, query_cost)
+                return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
 
