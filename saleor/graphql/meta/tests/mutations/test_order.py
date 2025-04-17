@@ -619,11 +619,11 @@ def test_add_private_metadata_for_fulfillment(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_change_in_public_metadata_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -639,6 +639,8 @@ def test_change_in_public_metadata_triggers_webhooks(
         shipping_filter_webhook,
         additional_order_webhook,
     ) = setup_order_webhooks([WebhookEventAsyncType.ORDER_METADATA_UPDATED])
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -653,20 +655,20 @@ def test_change_in_public_metadata_triggers_webhooks(
     )
 
     # then
-    order_metadata_updated_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_METADATA_UPDATED,
     )
 
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_metadata_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -698,11 +700,11 @@ def test_change_in_public_metadata_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_change_in_private_metadata_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -718,6 +720,8 @@ def test_change_in_private_metadata_triggers_webhooks(
         shipping_filter_webhook,
         additional_order_webhook,
     ) = setup_order_webhooks([WebhookEventAsyncType.ORDER_METADATA_UPDATED])
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -732,19 +736,19 @@ def test_change_in_private_metadata_triggers_webhooks(
     )
 
     # then
-    order_metadata_updated_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_METADATA_UPDATED,
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_metadata_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
