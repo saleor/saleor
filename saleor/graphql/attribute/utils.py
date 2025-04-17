@@ -1611,7 +1611,7 @@ def prepare_error_list_from_error_attribute_mapping(
     return errors
 
 
-def has_input_new_attribute_values(
+def has_input_modified_attribute_values(
     variant: ProductVariant, attributes_data: list[tuple[Attribute, AttrValuesInput]]
 ) -> bool:
     """Compare already assigned attribute values with values from AttrValuesInput.
@@ -1631,7 +1631,7 @@ def has_input_new_attribute_values(
                     else []
                 )
             else:
-                values = attr_data.values
+                values = attr_data.values  # type: ignore[assignment]
             input_attribute_values[attr_data.global_id].extend(values)
         if input_attribute_values != assigned_attributes:
             return True

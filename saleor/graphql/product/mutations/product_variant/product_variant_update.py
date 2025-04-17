@@ -1,5 +1,4 @@
 from collections import defaultdict
-from copy import deepcopy
 from typing import cast
 
 import graphene
@@ -10,8 +9,7 @@ from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.update_mutation_manager import (
-    get_editable_values_from_instance,
-    get_edited_fields,
+    InstanceTracker,
 )
 from .....permission.enums import ProductPermissions
 from .....product import models
@@ -19,7 +17,7 @@ from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.utils import (
     AttributeAssignmentMixin,
     AttrValuesInput,
-    has_input_new_attribute_values,
+    has_input_modified_attribute_values,
 )
 from ....core import ResolveInfo
 from ....core.mutations import ModelWithExtRefMutation
@@ -155,27 +153,37 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     def _save(
         cls,
         info: ResolveInfo,
-        instance,
+        instance_tracker: InstanceTracker,
         cleaned_input,
-        changed_fields,
-        has_new_attribute_values: bool,
     ) -> bool:
         is_modified = False
-        metadata_changed = (
-            "metadata" in changed_fields or "private_metadata" in changed_fields
-        )
-
         refresh_product_search_index = False
+        instance = cast(ProductVariant, instance_tracker.instance)
+        modified_instance_fields = instance_tracker.get_modified_fields()
+        metadata_changed = instance_tracker.metadata_modified()
+
+        attribute_changed = False
+        if attributes_data := cleaned_input.get("attributes"):
+            attribute_changed = has_input_modified_attribute_values(
+                instance, attributes_data
+            )
+
         with traced_atomic_transaction():
-            if changed_fields:
-                cls._save_variant_instance(instance, changed_fields)
-                if "sku" in changed_fields or "name" in changed_fields:
+            # handle product variant
+            if modified_instance_fields:
+                instance_tracker.save_instance()
+                if (
+                    "sku" in modified_instance_fields
+                    or "name" in modified_instance_fields
+                ):
                     refresh_product_search_index = True
-            if has_new_attribute_values:
-                attributes = cleaned_input.get("attributes")
-                AttributeAssignmentMixin.save(instance, attributes)
+
+            # handle attributes
+            if attribute_changed:
+                AttributeAssignmentMixin.save(instance, attributes_data)
                 refresh_product_search_index = True
 
+            # handle product
             if refresh_product_search_index:
                 instance.product.search_index_dirty = True
                 product_update_fields = ["updated_at", "search_index_dirty"]
@@ -187,8 +195,8 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            # if changed_fields or attributes:
-            if changed_fields or has_new_attribute_values or metadata_changed:
+            # emit events if something was updated
+            if modified_instance_fields or attribute_changed or metadata_changed:
                 manager = get_plugin_manager_promise(info.context).get()
                 cls.call_event(manager.product_variant_updated, instance)
                 is_modified = True
@@ -230,10 +238,23 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        instance = cast(ProductVariant, instance)
-        instance_values_before_update = get_editable_values_from_instance(
-            deepcopy(instance)
+        instance = cast(models.ProductVariant, instance)
+        instance_tracker = InstanceTracker(
+            instance=instance,
+            instance_editable_fields=[
+                "attributes",
+                "sku",
+                "name",
+                "trackInventory",
+                "weight",
+                "preorder",
+                "quantityLimitPerCustomer",
+                "metadata",
+                "privateMetadata",
+                "externalReference",
+            ],
         )
+
         cleaned_input = cls.clean_input(info, instance, input)
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
@@ -253,21 +274,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
         cls.clean_instance(info, new_instance)
 
-        instance_values_after_update = get_editable_values_from_instance(new_instance)
-        changed_fields = get_edited_fields(
-            instance_values_before_update, instance_values_after_update
-        )
-
-        # TODO zedzior: attribute logic refactor PR:
-        has_new_attribute_values = False
-        if attributes_data := cleaned_input.get("attributes"):
-            has_new_attribute_values = has_input_new_attribute_values(
-                instance, attributes_data
-            )
-
-        variant_modified = cls._save(
-            info, instance, cleaned_input, changed_fields, has_new_attribute_values
-        )
+        variant_modified = cls._save(info, instance_tracker, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
 
         if variant_modified:
