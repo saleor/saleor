@@ -127,7 +127,7 @@ def test_enrich_span_with_global_attributes():
 
         # then
         assert enriched is not None
-        assert enriched["operation.name"] == ""
+        assert enriched["operation.name"] == span_name
         assert enriched["global_key"] == "global_value"
         assert enriched["local_key"] == "local_value"
 
@@ -142,7 +142,7 @@ def test_enrich_span_with_global_attributes_none():
         enriched = enrich_span_with_global_attributes(None, span_name)
 
         # then
-        assert enriched == {"operation.name": span_name}
+        assert enriched == {"operation.name": span_name, **global_attrs}
 
 
 def test_telemetry_task_context_to_dict():
