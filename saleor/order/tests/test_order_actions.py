@@ -358,11 +358,11 @@ def test_handle_fully_paid_order_for_draft_order(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_handle_fully_paid_order_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     setup_order_webhooks,
@@ -384,6 +384,10 @@ def test_handle_fully_paid_order_triggers_webhooks(
             WebhookEventAsyncType.ORDER_FULLY_PAID,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -420,16 +424,16 @@ def test_handle_fully_paid_order_triggers_webhooks(
 
     order_deliveries = [order_updated_delivery, order_fully_paid_delivery]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -647,11 +651,11 @@ def test_cancel_order(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_cancel_order_dont_trigger_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     setup_order_webhooks,
@@ -672,6 +676,9 @@ def test_cancel_order_dont_trigger_webhooks(
             WebhookEventAsyncType.ORDER_CANCELLED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     webhook_event_map = get_webhooks_for_multiple_events(
         WEBHOOK_EVENTS_FOR_ORDER_CANCELED
@@ -710,16 +717,16 @@ def test_cancel_order_dont_trigger_webhooks(
         order_updated_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -810,11 +817,11 @@ def test_order_refunded_by_app(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_refunded_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     setup_order_webhooks,
@@ -836,6 +843,9 @@ def test_order_refunded_triggers_webhooks(
             WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -886,16 +896,16 @@ def test_order_refunded_triggers_webhooks(
         order_refunded_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -939,11 +949,11 @@ def test_order_refunded_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_voided_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -961,6 +971,9 @@ def test_order_voided_triggers_webhooks(
     ) = setup_order_webhooks(
         WebhookEventAsyncType.ORDER_UPDATED,
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
@@ -982,19 +995,19 @@ def test_order_voided_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    order_updated_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1031,11 +1044,11 @@ def test_order_voided_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_fulfilled_dont_trigger_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     setup_order_webhooks,
@@ -1056,6 +1069,10 @@ def test_order_fulfilled_dont_trigger_webhooks(
     ) = setup_order_webhooks(
         [WebhookEventAsyncType.ORDER_UPDATED, WebhookEventAsyncType.ORDER_FULFILLED]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     plugins_manager = get_plugins_manager(allow_replica=False)
 
     webhook_event_map = get_webhooks_for_multiple_events(
@@ -1097,19 +1114,20 @@ def test_order_fulfilled_dont_trigger_webhooks(
         order_fulfilled_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
+
     assert not mocked_send_webhook_request_sync.called
 
     wrapped_call_order_events.assert_called_once_with(
@@ -1129,11 +1147,11 @@ def test_order_fulfilled_dont_trigger_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_awaits_fulfillment_approval_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -1164,6 +1182,10 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
             WebhookEventAsyncType.ORDER_UPDATED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     plugins_manager = get_plugins_manager(allow_replica=False)
 
     # when
@@ -1178,20 +1200,19 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    order_updated_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1228,11 +1249,11 @@ def test_order_awaits_fulfillment_approval_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_authorized_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -1258,6 +1279,10 @@ def test_order_authorized_triggers_webhooks(
             WebhookEventAsyncType.ORDER_UPDATED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",
         is_active=True,
@@ -1275,19 +1300,19 @@ def test_order_authorized_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    order_updated_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1329,11 +1354,11 @@ def test_order_authorized_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_charged_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     wrapped_call_order_event,
@@ -1363,6 +1388,9 @@ def test_order_charged_triggers_webhooks(
             WebhookEventAsyncType.ORDER_UPDATED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     webhook_event_map = get_webhooks_for_multiple_events(
         WEBHOOK_EVENTS_FOR_ORDER_CHARGED
@@ -1398,16 +1426,16 @@ def test_order_charged_triggers_webhooks(
         order_paid_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -1712,11 +1740,11 @@ def test_order_transaction_updated_order_fully_paid(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_transaction_updated_for_charged_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     wrapped_call_order_event,
@@ -1741,6 +1769,10 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
             WebhookEventAsyncType.ORDER_UPDATED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -1794,16 +1826,16 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
         order_paid_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -1849,11 +1881,11 @@ def test_order_transaction_updated_for_charged_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_transaction_updated_for_authorized_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -1873,6 +1905,10 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
     ) = setup_order_webhooks(
         WebhookEventAsyncType.ORDER_UPDATED,
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -1907,19 +1943,19 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    order_updated_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_UPDATED,
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_updated_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1957,11 +1993,11 @@ def test_order_transaction_updated_for_authorized_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_transaction_updated_for_refunded_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     setup_order_webhooks,
@@ -1985,6 +2021,10 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
             WebhookEventAsyncType.ORDER_UPDATED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -2038,16 +2078,16 @@ def test_order_transaction_updated_for_refunded_triggers_webhooks(
         order_refunded_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -2502,7 +2542,7 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -2511,7 +2551,7 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_triggers_sync_webhook(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2533,6 +2573,9 @@ def test_call_order_event_triggers_sync_webhook(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2542,13 +2585,16 @@ def test_call_order_event_triggers_sync_webhook(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -2576,11 +2622,11 @@ def test_call_order_event_triggers_sync_webhook(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_incorrect_webhook_event(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2611,7 +2657,7 @@ def test_call_order_event_incorrect_webhook_event(
             )
 
     # then
-    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhooks_async_for_app.called
     assert not mocked_send_webhook_request_sync.called
 
 
@@ -2633,7 +2679,7 @@ def test_call_order_event_incorrect_webhook_event(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -2642,7 +2688,7 @@ def test_call_order_event_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_missing_filter_shipping_method_webhook(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2667,6 +2713,9 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
     shipping_filter_webhook.is_active = False
     shipping_filter_webhook.save(update_fields=["is_active"])
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2676,13 +2725,16 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     mocked_send_webhook_request_sync.assert_called_once()
@@ -2716,7 +2768,7 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -2725,7 +2777,7 @@ def test_call_order_event_missing_filter_shipping_method_webhook(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2750,6 +2802,9 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2759,13 +2814,16 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -2806,7 +2864,7 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -2815,7 +2873,7 @@ def test_call_order_event_skips_tax_webhook_when_prices_are_valid(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2840,6 +2898,9 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2849,13 +2910,16 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     assert not EventDelivery.objects.exclude(webhook_id=order_webhook.id).exists()
@@ -2866,7 +2930,7 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -2875,7 +2939,7 @@ def test_call_order_event_skips_sync_webhooks_when_order_not_editable(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2895,6 +2959,9 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_event(
@@ -2904,7 +2971,7 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
     tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
     filter_shipping_delivery = EventDelivery.objects.filter(
         webhook_id=shipping_filter_webhook.id,
@@ -2912,12 +2979,15 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
     ).first()
     assert not filter_shipping_delivery
     assert not tax_delivery
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_called_once_with(
@@ -2927,11 +2997,11 @@ def test_call_order_event_skips_sync_webhooks_when_draft_order_deleted(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_skips_when_async_webhooks_missing(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -2968,13 +3038,13 @@ def test_call_order_event_skips_when_async_webhooks_missing(
     ).first()
     assert not filter_shipping_delivery
     assert not tax_delivery
-    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhooks_async_for_app.called
     assert not mocked_send_webhook_request_sync.called
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -2983,13 +3053,15 @@ def test_call_order_event_skips_when_async_webhooks_missing(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_event_skips_when_sync_webhooks_missing(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     order_with_lines,
     settings,
     webhook,
     permission_manage_orders,
     django_capture_on_commit_callbacks,
+    app,
+    app_webhook_mutex,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3011,13 +3083,16 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_called_once_with(
@@ -3042,7 +3117,7 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3051,7 +3126,7 @@ def test_call_order_event_skips_when_sync_webhooks_missing(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_triggers_sync_webhook(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3073,6 +3148,9 @@ def test_call_order_events_triggers_sync_webhook(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3085,13 +3163,16 @@ def test_call_order_events_triggers_sync_webhook(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     # confirm each sync webhook was called without saving event delivery
     assert mocked_send_webhook_request_sync.call_count == 2
@@ -3128,7 +3209,7 @@ def test_call_order_events_triggers_sync_webhook(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3137,7 +3218,7 @@ def test_call_order_events_triggers_sync_webhook(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_incorrect_webhook_event(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3171,7 +3252,7 @@ def test_call_order_events_incorrect_webhook_event(
             )
 
     # then
-    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhooks_async_for_app.called
     assert not mocked_send_webhook_request_sync.called
     assert not mocked_call_event_including_protected_events.called
 
@@ -3193,7 +3274,7 @@ def test_call_order_events_incorrect_webhook_event(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3202,7 +3283,7 @@ def test_call_order_events_incorrect_webhook_event(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_missing_filter_shipping_method_webhook(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3227,6 +3308,9 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
     shipping_filter_webhook.is_active = False
     shipping_filter_webhook.save(update_fields=["is_active"])
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3239,13 +3323,16 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -3288,7 +3375,7 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3297,7 +3384,7 @@ def test_call_order_events_missing_filter_shipping_method_webhook(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3322,6 +3409,9 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3334,13 +3424,16 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -3389,7 +3482,7 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3398,7 +3491,7 @@ def test_call_order_events_skips_tax_webhook_when_prices_are_valid(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3423,6 +3516,9 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
         order_webhook,
     ) = setup_order_webhooks(webhook_event)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3435,7 +3531,7 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
     tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
     filter_shipping_delivery = EventDelivery.objects.filter(
         webhook_id=shipping_filter_webhook.id,
@@ -3443,12 +3539,15 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
     ).first()
     assert not filter_shipping_delivery
     assert not tax_delivery
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_has_calls(
@@ -3467,7 +3566,7 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3476,7 +3575,7 @@ def test_call_order_events_skips_sync_webhooks_when_order_not_editable(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3496,6 +3595,9 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.DRAFT_ORDER_DELETED)
 
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     # when
     with django_capture_on_commit_callbacks(execute=True):
         call_order_events(
@@ -3508,7 +3610,7 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
     tax_delivery = EventDelivery.objects.filter(webhook_id=tax_webhook.id).first()
     filter_shipping_delivery = EventDelivery.objects.filter(
         webhook_id=shipping_filter_webhook.id,
@@ -3516,12 +3618,15 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
     ).first()
     assert not filter_shipping_delivery
     assert not tax_delivery
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_has_calls(
@@ -3540,11 +3645,11 @@ def test_call_order_events_skips_sync_webhooks_when_draft_order_deleted(
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_skips_when_async_webhooks_missing(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     setup_order_webhooks,
     order_with_lines,
@@ -3584,13 +3689,13 @@ def test_call_order_events_skips_when_async_webhooks_missing(
     ).first()
     assert not filter_shipping_delivery
     assert not tax_delivery
-    assert not mocked_send_webhook_request_async.called
+    assert not mocked_send_webhooks_async_for_app.called
     assert not mocked_send_webhook_request_sync.called
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.order.actions.call_event_including_protected_events",
@@ -3599,13 +3704,15 @@ def test_call_order_events_skips_when_async_webhooks_missing(
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_skips_when_sync_webhooks_missing(
     mocked_call_event_including_protected_events,
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     order_with_lines,
     settings,
     webhook,
     permission_manage_orders,
     django_capture_on_commit_callbacks,
+    app,
+    app_webhook_mutex,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -3630,13 +3737,16 @@ def test_call_order_events_skips_when_sync_webhooks_missing(
         )
 
     # then
-    order_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_has_calls(
@@ -3663,11 +3773,11 @@ def test_call_order_events_skips_when_sync_webhooks_missing(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_created_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_events,
     wrapped_call_order_event,
@@ -3693,6 +3803,10 @@ def test_order_created_triggers_webhooks(
             WebhookEventAsyncType.ORDER_CONFIRMED,
         ]
     )
+
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -3748,16 +3862,16 @@ def test_order_created_triggers_webhooks(
         order_fully_paid_delivery,
     ]
 
-    mocked_send_webhook_request_async.assert_has_calls(
+    mocked_send_webhooks_async_for_app.assert_has_calls(
         [
             call(
-                kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-                queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+                kwargs={"app_id": app.id, "telemetry_context": ANY},
+                queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+                MessageGroupId="core",
+                MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
                 bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
-            for delivery in order_deliveries
+            for _ in order_deliveries
         ],
         any_order=True,
     )
@@ -3822,11 +3936,11 @@ def test_order_created_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_confirmed_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -3848,6 +3962,9 @@ def test_order_confirmed_triggers_webhooks(
         ]
     )
 
+    app = additional_order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
+
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
@@ -3859,19 +3976,19 @@ def test_order_confirmed_triggers_webhooks(
 
     # then
     # confirm that event delivery was generated for each async webhook.
-    order_confirmed_delivery = EventDelivery.objects.get(
+    EventDelivery.objects.get(
         webhook_id=additional_order_webhook.id,
         event_type=WebhookEventAsyncType.ORDER_CONFIRMED,
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": order_confirmed_delivery.id,
+            "app_id": app.id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery

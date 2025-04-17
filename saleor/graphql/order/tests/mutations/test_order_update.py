@@ -546,11 +546,11 @@ def test_order_update_invalid_address_skip_validation(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_order_update_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhooks_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_order_event,
     setup_order_webhooks,
@@ -567,6 +567,8 @@ def test_order_update_triggers_webhooks(
         shipping_filter_webhook,
         order_webhook,
     ) = setup_order_webhooks(WebhookEventAsyncType.ORDER_UPDATED)
+    app = order_webhook.app
+    app_webhook_mutex = app.webhook_mutex
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
@@ -590,13 +592,16 @@ def test_order_update_triggers_webhooks(
     assert not content["data"]["orderUpdate"]["errors"]
 
     # confirm that event delivery was generated for each async webhook.
-    order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
-    mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+    EventDelivery.objects.get(webhook_id=order_webhook.id)
+    mocked_send_webhooks_async_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": app.id,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+        MessageGroupId="core",
+        MessageDeduplicationId=f"{app.id}-{app_webhook_mutex.uuid}",
         bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
