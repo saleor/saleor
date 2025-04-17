@@ -13,15 +13,6 @@ from ...graphql.api import backend, schema
 from ..views import GraphQLView
 
 
-@pytest.fixture
-def get_test_spans(in_memory_span_exporter):
-    # Clear any existing spans from the buffer before test execution
-    in_memory_span_exporter.clear()
-    yield in_memory_span_exporter.get_finished_spans
-    # Clean up by clearing the buffer after test completion
-    in_memory_span_exporter.clear()
-
-
 def get_spans_by_name(spans, name) -> tuple[ReadableSpan, ...]:
     return tuple(span for span in spans if span.name == name)
 

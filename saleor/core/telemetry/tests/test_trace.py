@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from opentelemetry.trace import INVALID_SPAN, Span, SpanKind
 
+from .. import attributes, tracer
 from ..trace import Tracer, TracerProxy
 from ..utils import Scope
 
@@ -215,3 +216,52 @@ def test_tracer_proxy_get_current_span_without_tracer():
 
     # then
     assert span == INVALID_SPAN
+
+
+def test_span_set_attributes(get_test_spans):
+    # given
+    span_name = "my-span"
+    key_a, val_a = "key.a", "value a"
+    key_b, val_b = "key.b", "value b"
+
+    # when
+    with tracer.start_as_current_span(span_name, attributes={key_a: val_a}) as span:
+        span.set_attribute(key_b, val_b)
+
+    # then
+    spans = get_test_spans()
+    assert len(spans) == 1
+    assert spans[0].name == span_name
+    assert spans[0].attributes[key_a] == val_a
+    assert spans[0].attributes[key_b] == val_b
+
+
+def test_span_set_operation_name(get_test_spans):
+    # given
+    span_name = "my-span"
+
+    # when
+    with tracer.start_as_current_span(span_name) as span:
+        span.set_attribute("key", "val")
+
+    # then
+    spans = get_test_spans()
+    assert len(spans) == 1
+    assert spans[0].name == span_name
+    assert spans[0].attributes[attributes.OPERATION_NAME] == span_name
+
+
+def test_span_override_operation_name(get_test_spans):
+    # given
+    span_name = "my-span"
+    custom_operation_name = "custom-operation"
+
+    # when
+    with tracer.start_as_current_span(span_name) as span:
+        span.set_attribute(attributes.OPERATION_NAME, custom_operation_name)
+
+    # then
+    spans = get_test_spans()
+    assert len(spans) == 1
+    assert spans[0].name == span_name
+    assert spans[0].attributes[attributes.OPERATION_NAME] == custom_operation_name
