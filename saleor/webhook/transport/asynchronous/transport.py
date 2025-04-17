@@ -445,7 +445,7 @@ def trigger_webhooks_async_for_multiple_objects(
                 "app_id": app_id,
                 "telemetry_context": get_task_context().to_dict(),
             },
-            queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+            queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
             MessageGroupId="core",
             MessageDeduplicationId=f"{app_id}-{lock_uuid}",
             bind=True,
@@ -674,7 +674,7 @@ def send_webhook_request_async(
 
 
 @app.task(
-    queue=settings.WEBHOOK_FIFO_QUEUE_NAME,
+    queue=settings.WEBHOOK_BATCH_CELERY_QUEUE_NAME,
     MessageGroupId="core",
     bind=True,
 )
