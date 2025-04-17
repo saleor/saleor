@@ -7,13 +7,16 @@ import graphene
 import pytest
 from django.conf import settings
 from django.utils.text import slugify
+from measurement.measures import Weight
 
 from .....attribute import AttributeInputType
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....product.error_codes import ProductErrorCode
+from ....core.utils import snake_to_camel_case
 from ....tests.utils import get_graphql_content
+from ...mutations.product_variant.product_variant_create import ProductVariantInput
 
 
 def test_product_variant_update_with_new_attributes(
@@ -246,11 +249,7 @@ QUERY_UPDATE_VARIANT_CHANGING_FIELDS = """
 @patch(
     "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
 )
-@patch(
-    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
-)
 def test_update_product_variant_update_fields_when_necessary(
-    save_variant_mock,
     call_event_mock,
     staff_api_client,
     product,
@@ -301,7 +300,6 @@ def test_update_product_variant_update_fields_when_necessary(
     # then
     variant.refresh_from_db()
     get_graphql_content(response)
-    save_variant_mock.assert_called_once_with(variant, changed_fields)
     call_event_mock.assert_has_calls(
         [
             call(ANY, variant),
@@ -324,11 +322,7 @@ def test_update_product_variant_update_fields_when_necessary(
 @patch(
     "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
 )
-@patch(
-    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
-)
 def test_update_product_variant_skip_updating_fields_when_unchanged(
-    save_variant_mock,
     call_event_mock,
     staff_api_client,
     product,
@@ -378,8 +372,181 @@ def test_update_product_variant_skip_updating_fields_when_unchanged(
     # then
     variant.refresh_from_db()
     get_graphql_content(response)
-    save_variant_mock.assert_not_called()
     call_event_mock.assert_not_called()
+
+
+PRODUCT_VARIANT_UPDATE_MUTATION = """
+mutation ProductVariantUpdate($id: ID!, $input: ProductVariantInput!) {
+  productVariantUpdate(id: $id, input: $input) {
+    errors {
+      field
+      code
+      message
+    }
+    productVariant {
+      id
+      attributes {
+        attribute {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+"""
+
+
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+def test_update_product_variant_nothing_changed(
+    call_event_mock,
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    permission_manage_products,
+    color_attribute,
+    size_attribute,
+):
+    # given
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+
+    variant.name = "some_name"
+    variant.sku = "some_sku"
+    variant.external_reference = "some-ext-ref"
+    key = "some_key"
+    value = "some_value"
+    variant.metadata = {key: value}
+    variant.private_metadata = {key: value}
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.track_inventory = True
+    variant.weight = Weight(kg=10)
+    variant.quantity_limit_per_customer = 10
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    attribute_slug_1 = variant.attributes.first().values.first().slug
+    attribute_slug_2 = variant.attributes.last().values.first().slug
+
+    input_fields = [
+        snake_to_camel_case(key) for key in ProductVariantInput._meta.fields.keys()
+    ]
+
+    input = {
+        "attributes": [
+            {"id": color_attribute_id, "values": [attribute_slug_1]},
+            {"id": size_attribute_id, "values": [attribute_slug_2]},
+        ],
+        "sku": variant.sku,
+        "name": variant.name,
+        "trackInventory": variant.track_inventory,
+        "weight": 10,
+        "preorder": {
+            "globalThreshold": variant.preorder_global_threshold,
+            "endDate": variant.preorder_end_date,
+        },
+        "quantityLimitPerCustomer": variant.quantity_limit_per_customer,
+        "metadata": [{"key": key, "value": value}],
+        "privateMetadata": [{"key": key, "value": value}],
+        "externalReference": variant.external_reference,
+    }
+    assert set(input_fields) == set(input.keys())
+
+    variables = {"id": variant_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_UPDATE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["productVariantUpdate"]["errors"]
+    variant.refresh_from_db()
+    call_event_mock.assert_not_called()
+
+
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
+)
+def test_update_product_variant_emit_event(
+    call_event_mock,
+    staff_api_client,
+    product_with_variant_with_two_attributes,
+    permission_manage_products,
+    color_attribute,
+    size_attribute,
+):
+    # given
+    product = product_with_variant_with_two_attributes
+    variant = product.variants.first()
+
+    variant.name = "some_name"
+    variant.sku = "some_sku"
+    variant.external_reference = "some-ext-ref"
+    key = "some_key"
+    value = "some_value"
+    variant.metadata = {key: value}
+    variant.private_metadata = {key: value}
+    variant.is_preorder = True
+    variant.preorder_global_threshold = 10
+    variant.preorder_end_date = "2024-12-02T00:00Z"
+    variant.track_inventory = True
+    variant.weight = Weight(kg=10)
+    variant.quantity_limit_per_customer = 10
+    variant.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    input_fields = [
+        snake_to_camel_case(key) for key in ProductVariantInput._meta.fields.keys()
+    ]
+
+    input = {
+        "attributes": [
+            {"id": color_attribute_id, "values": ["new_color"]},
+            {"id": size_attribute_id, "values": ["new_size"]},
+        ],
+        "sku": variant.sku + "_new",
+        "name": variant.name + "_new",
+        "trackInventory": not variant.track_inventory,
+        "weight": 11,
+        "preorder": {
+            "globalThreshold": variant.preorder_global_threshold + 1,
+            "endDate": "2024-12-03T00:00Z",
+        },
+        "quantityLimitPerCustomer": variant.quantity_limit_per_customer + 1,
+        "metadata": [{"key": key + "_new", "value": value + "_new"}],
+        "privateMetadata": [{"key": key + "_new", "value": value + "_new"}],
+        "externalReference": variant.external_reference + "_new",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    for key, value in input.items():
+        variables = {"id": variant_id, "input": {key: value}}
+
+        # when
+        response = staff_api_client.post_graphql(
+            PRODUCT_VARIANT_UPDATE_MUTATION,
+            variables,
+        )
+        content = get_graphql_content(response)
+
+        # then
+        assert not content["data"]["productVariantUpdate"]["errors"]
+        call_event_mock.assert_called()
 
 
 def test_update_product_variant_marks_prices_as_dirty(

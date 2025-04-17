@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -7,10 +8,17 @@ from django.utils.text import slugify
 from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import (
+    InstanceTracker,
+)
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.utils.variants import generate_and_set_variant_name
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils import (
+    AttributeAssignmentMixin,
+    AttrValuesInput,
+    has_input_modified_attribute_values,
+)
 from ....core import ResolveInfo
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
@@ -142,23 +150,40 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance.save(update_fields=update_fields)
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields) -> bool:
-        metadata_changed = (
-            "metadata" in changed_fields or "private_metadata" in changed_fields
-        )
-
+    def _save(
+        cls,
+        info: ResolveInfo,
+        instance_tracker: InstanceTracker,
+        cleaned_input,
+    ) -> bool:
+        is_modified = False
         refresh_product_search_index = False
+        instance = cast(ProductVariant, instance_tracker.instance)
+        modified_instance_fields = instance_tracker.get_modified_fields()
+        metadata_changed = instance_tracker.metadata_modified()
+
+        attribute_changed = False
+        if attributes_data := cleaned_input.get("attributes"):
+            attribute_changed = has_input_modified_attribute_values(
+                instance, attributes_data
+            )
+
         with traced_atomic_transaction():
-            if changed_fields:
-                cls._save_variant_instance(instance, changed_fields)
-                if "sku" in changed_fields or "name" in changed_fields:
+            # handle product variant
+            if modified_instance_fields:
+                instance_tracker.save_instance()
+                if (
+                    "sku" in modified_instance_fields
+                    or "name" in modified_instance_fields
+                ):
                     refresh_product_search_index = True
-            if stocks := cleaned_input.get("stocks"):
-                cls.create_variant_stocks(instance, stocks)
-            if attributes := cleaned_input.get("attributes"):
-                AttributeAssignmentMixin.save(instance, attributes)
+
+            # handle attributes
+            if attribute_changed:
+                AttributeAssignmentMixin.save(instance, attributes_data)
                 refresh_product_search_index = True
 
+            # handle product
             if refresh_product_search_index:
                 instance.product.search_index_dirty = True
                 product_update_fields = ["updated_at", "search_index_dirty"]
@@ -170,16 +195,17 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            if changed_fields or stocks or attributes:
+            # emit events if something was updated
+            if modified_instance_fields or attribute_changed or metadata_changed:
                 manager = get_plugin_manager_promise(info.context).get()
                 cls.call_event(manager.product_variant_updated, instance)
+                is_modified = True
 
-                if metadata_changed:
-                    cls.call_event(manager.product_variant_metadata_updated, instance)
+            if metadata_changed:
+                cls.call_event(manager.product_variant_metadata_updated, instance)
+                is_modified = True
 
-                return True
-
-            return False
+            return is_modified
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> ProductVariant:
@@ -212,8 +238,24 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        old_instance_data = instance.serialize_for_comparison()  # type: ignore[union-attr]
-        cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
+        instance = cast(models.ProductVariant, instance)
+        instance_tracker = InstanceTracker(
+            instance=instance,
+            instance_editable_fields=[
+                "attributes",
+                "sku",
+                "name",
+                "trackInventory",
+                "weight",
+                "preorder",
+                "quantityLimitPerCustomer",
+                "metadata",
+                "privateMetadata",
+                "externalReference",
+            ],
+        )
+
+        cleaned_input = cls.clean_input(info, instance, input)
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
@@ -231,15 +273,8 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             new_instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, new_instance)
-        new_instance_data = new_instance.serialize_for_comparison()
 
-        changed_fields = cls.diff_instance_data_fields(
-            new_instance.comparison_fields,
-            old_instance_data,
-            new_instance_data,
-        )
-
-        variant_modified = cls._save(info, instance, cleaned_input, changed_fields)
+        variant_modified = cls._save(info, instance_tracker, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
 
         if variant_modified:
