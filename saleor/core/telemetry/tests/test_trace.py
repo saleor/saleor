@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from opentelemetry.trace import INVALID_SPAN, Span, SpanKind
 
-from .. import attributes, tracer
+from .. import saleor_attributes, tracer
 from ..trace import Tracer, TracerProxy
 from ..utils import Scope
 
@@ -248,7 +248,7 @@ def test_span_set_operation_name(get_test_spans):
     spans = get_test_spans()
     assert len(spans) == 1
     assert spans[0].name == span_name
-    assert spans[0].attributes[attributes.OPERATION_NAME] == span_name
+    assert spans[0].attributes[saleor_attributes.OPERATION_NAME] == span_name
 
 
 def test_span_override_operation_name(get_test_spans):
@@ -258,10 +258,12 @@ def test_span_override_operation_name(get_test_spans):
 
     # when
     with tracer.start_as_current_span(span_name) as span:
-        span.set_attribute(attributes.OPERATION_NAME, custom_operation_name)
+        span.set_attribute(saleor_attributes.OPERATION_NAME, custom_operation_name)
 
     # then
     spans = get_test_spans()
     assert len(spans) == 1
     assert spans[0].name == span_name
-    assert spans[0].attributes[attributes.OPERATION_NAME] == custom_operation_name
+    assert (
+        spans[0].attributes[saleor_attributes.OPERATION_NAME] == custom_operation_name
+    )
