@@ -154,10 +154,10 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER
+            "http", scope=Scope.SERVICE, kind=SpanKind.SERVER
         ) as span:
-            span.set_attribute("resource.name", request.path)
             span.set_attribute(saleor_attributes.COMPONENT, "http")
+            span.set_attribute(saleor_attributes.RESOURCE_NAME, request.path)
             span.set_attribute(http_attributes.HTTP_REQUEST_METHOD, request.method)  # type: ignore[arg-type]
             span.set_attribute(
                 url_attributes.URL_FULL,
@@ -166,7 +166,7 @@ class GraphQLView(View):
             accepted_encoding = request.headers.get("accept-encoding", "")
             span.set_attribute(
                 f"{http_attributes.HTTP_REQUEST_HEADER_TEMPLATE}.accept-encoding",
-                ["gzip"] if "gzip" in accepted_encoding else "none",
+                ["gzip"] if "gzip" in accepted_encoding else ["none"],
             )
             span.set_attribute(
                 user_agent_attributes.USER_AGENT_ORIGINAL,
@@ -187,7 +187,7 @@ class GraphQLView(View):
             for additional_ip_header in additional_ip_headers:
                 if request_ips := request.META.get(additional_ip_header):
                     span.set_attribute(
-                        f"{http_attributes.HTTP_REQUEST_HEADER_TEMPLATE}.additional_ip_header",
+                        f"{http_attributes.HTTP_REQUEST_HEADER_TEMPLATE}.{additional_ip_header}",
                         request_ips[:100],
                     )
 
@@ -292,7 +292,7 @@ class GraphQLView(View):
             _query_identifier = query_identifier(document)
             self._query = _query_identifier
             raw_query_string = document.document_string
-            span.update_name(raw_query_string)
+            span.set_attribute(saleor_attributes.RESOURCE_NAME, raw_query_string)
             span.set_attribute(graphql_attributes.GRAPHQL_DOCUMENT, raw_query_string)
             if operation_type := document.get_operation_type(operation_name):
                 span.set_attribute(

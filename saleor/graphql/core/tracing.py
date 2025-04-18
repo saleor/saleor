@@ -11,7 +11,7 @@ def traced_resolver(func):
         info = next(arg for arg in args if isinstance(arg, ResolveInfo))
         operation = f"{info.parent_type.name}.{info.field_name}"
         with tracer.start_as_current_span("graphql.resolve") as span:
-            span.set_attribute("resource.name", operation)
+            span.set_attribute(saleor_attributes.RESOURCE_NAME, operation)
             span.set_attribute(
                 saleor_attributes.GRAPHQL_PARENT_TYPE, info.parent_type.name
             )
