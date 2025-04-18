@@ -1812,7 +1812,7 @@ class BasePlugin:
     def save_plugin_configuration(
         cls, plugin_configuration: "PluginConfiguration", cleaned_data
     ):
-        current_config = plugin_configuration.configuration
+        current_config: list[dict] = plugin_configuration.configuration
         configuration_to_update = cleaned_data.get("configuration")
         if configuration_to_update:
             cls._update_config_items(configuration_to_update, current_config)

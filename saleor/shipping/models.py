@@ -187,7 +187,7 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         if lines is None:
             # TODO: lines should comes from args in get_valid_shipping_methods_for_order
             lines = list(
-                instance.lines.prefetch_related("variant__product")  # type: ignore[misc] # this is hack # noqa: E501
+                instance.lines.prefetch_related("variant__product")
                 .using(database_connection_name)
                 .all()
             )

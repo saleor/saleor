@@ -578,7 +578,7 @@ def _get_product_channel_listing(
     product_channel_listing = product_channel_listing_mapping.get(product.id)
     if product.id not in product_channel_listing_mapping:
         for channel_listing in product.channel_listings.all():
-            if channel_listing.channel_id == channel_id:  # type: ignore[attr-defined]
+            if channel_listing.channel_id == channel_id:
                 product_channel_listing = channel_listing
         product_channel_listing_mapping[product.id] = product_channel_listing
     return product_channel_listing

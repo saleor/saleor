@@ -204,8 +204,6 @@ def filter_qs_by_predicate(
     if result_qs is None:
         result_qs = base_qs
 
-    result_qs = cast(QuerySet, result_qs)
-
     and_data: list[dict] | None = predicate.pop("AND", None)
     or_data: list[dict] | None = predicate.pop("OR", None)
 
@@ -222,7 +220,7 @@ def filter_qs_by_predicate(
             result_qs, base_qs, predicate, Operators.AND, predicate_type, currency
         )
 
-    return result_qs
+    return result_qs  # type: ignore[return-value]
 
 
 def _handle_and_data(
