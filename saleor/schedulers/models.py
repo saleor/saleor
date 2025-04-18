@@ -1,13 +1,16 @@
 import importlib
+from typing import TYPE_CHECKING, Union
 
 from celery.schedules import BaseSchedule
 from django.core.exceptions import SuspiciousOperation, ValidationError
 from django.db import models
 from django.db.models import signals
 from django_celery_beat import models as base_models
-from django_celery_beat import querysets
 
 from . import customschedule
+
+if TYPE_CHECKING:
+    from django.db.models.expressions import Combinable
 
 
 class CustomSchedule(models.Model):  # type: ignore[django-manager-missing] # problem with django-stubs # noqa: E501
@@ -68,25 +71,34 @@ class CustomSchedule(models.Model):  # type: ignore[django-manager-missing] # pr
         return f"{self.schedule_import_path=}"
 
 
-PeriodicTaskManager = models.Manager.from_queryset(querysets.PeriodicTaskQuerySet)
+class PeriodicTaskQuerySet(models.QuerySet["CustomPeriodicTask"]):
+    def enabled(self):
+        return self.filter(enabled=True).prefetch_related(
+            "interval", "crontab", "solar", "clocked"
+        )
+
+
+PeriodicTaskManager = models.Manager.from_queryset(PeriodicTaskQuerySet)
 
 
 class CustomPeriodicTask(base_models.PeriodicTask):
     no_changes = False
 
-    custom = models.ForeignKey(
-        CustomSchedule,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        verbose_name="Custom Schedule",
-        help_text=(
-            "Custom Schedule to run the task on. "
-            "Set only one schedule type, leave the others null."
-        ),
+    custom: models.ForeignKey[Union[CustomSchedule, "Combinable"], CustomSchedule] = (
+        models.ForeignKey(
+            CustomSchedule,
+            on_delete=models.CASCADE,
+            null=True,
+            blank=True,
+            verbose_name="Custom Schedule",
+            help_text=(
+                "Custom Schedule to run the task on. "
+                "Set only one schedule type, leave the others null."
+            ),
+        )
     )
 
-    objects = PeriodicTaskManager()
+    objects: PeriodicTaskManager = PeriodicTaskManager()
 
     def validate_unique(self, *args, **kwargs):
         models.Model.validate_unique(self, *args, **kwargs)

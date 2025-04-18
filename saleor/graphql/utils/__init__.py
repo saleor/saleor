@@ -61,7 +61,7 @@ def resolve_global_ids_to_primary_keys(
     ids: Iterable[str], graphene_type=None, raise_error: bool = False
 ):
     pks = []
-    invalid_ids = []
+    invalid_ids: list[str] = []
     used_type = graphene_type
 
     for graphql_id in ids:

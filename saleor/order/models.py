@@ -252,10 +252,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     )
     shipping_tax_class_name = models.CharField(max_length=255, blank=True, null=True)
     shipping_tax_class_private_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
     shipping_tax_class_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
 
     # Token of a checkout instance that this order was created from
@@ -732,10 +732,10 @@ class OrderLine(ModelWithMetadata):
     )
     tax_class_name = models.CharField(max_length=255, blank=True, null=True)
     tax_class_private_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
     tax_class_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
 
     is_price_overridden = models.BooleanField(null=True, blank=True)

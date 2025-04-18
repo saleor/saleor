@@ -988,7 +988,7 @@ class Group(ModelObjectType[models.Group]):
     @staticmethod
     def resolve_users(root: models.Group, info: ResolveInfo):
         database_connection_name = get_database_connection_name(info.context)
-        return root.user_set.using(database_connection_name).all()  # type: ignore[attr-defined]
+        return root.user_set.using(database_connection_name).all()
 
     @staticmethod
     def resolve_permissions(root: models.Group, info: ResolveInfo):

@@ -132,7 +132,7 @@ def _get_channel_to_products_map(rule_to_variant_list):
     )
 
     rule_to_channels_map = defaultdict(set)
-    for promotionrule_id, channel_id in promotion_channel_qs.iterator():
+    for promotionrule_id, channel_id in promotion_channel_qs.iterator(chunk_size=1000):
         rule_to_channels_map[promotionrule_id].add(channel_id)
     channel_to_products_map = defaultdict(set)
     for rule_to_variant in rule_to_variant_list:
