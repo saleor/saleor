@@ -6,7 +6,7 @@ from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
 from ...core.db.connection import allow_writer_in_context
-from ...core.telemetry import tracer
+from ...core.telemetry import saleor_attributes, tracer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -43,7 +43,7 @@ class DataLoader(BaseLoader, Generic[K, R]):
         self, keys: Iterable[K]
     ) -> Promise[list[R]]:
         with tracer.start_as_current_span("dataloader.batch_load") as span:
-            span.set_attribute("resource.name", self.__class__.__name__)
+            span.set_attribute(saleor_attributes.RESOURCE_NAME, self.__class__.__name__)
 
             with allow_writer_in_context(self.context):
                 results = self.batch_load(keys)

@@ -5,7 +5,7 @@ from decimal import Decimal
 import razorpay
 import razorpay.errors
 
-from ....core.telemetry import tracer
+from ....core.telemetry import saleor_attributes, tracer
 from ... import TransactionKind
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
 from . import errors
@@ -97,7 +97,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     if not error:
         try:
             with tracer.start_as_current_span("razorpay.payment.capture") as span:
-                span.set_attribute("component", "payment")
+                span.set_attribute(saleor_attributes.COMPONENT, "payment")
                 response = razorpay_client.payment.capture(
                     payment_information.token, razorpay_amount
                 )
@@ -139,7 +139,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         razorpay_amount = get_amount_for_razorpay(payment_information.amount)
         try:
             with tracer.start_as_current_span("razorpay.payment.refund") as span:
-                span.set_attribute("component", "payment")
+                span.set_attribute(saleor_attributes.COMPONENT, "payment")
                 response = razorpay_client.payment.refund(
                     payment_information.token, razorpay_amount
                 )

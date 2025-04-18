@@ -16,7 +16,7 @@ from ...checkout.fetch import fetch_checkout_lines
 from ...checkout.utils import log_address_if_validation_skipped_for_checkout
 from ...core.prices import MAXIMUM_PRICE
 from ...core.taxes import TaxDataErrorMessage, TaxError, TaxType, zero_taxed_money
-from ...core.telemetry import tracer
+from ...core.telemetry import saleor_attributes, tracer
 from ...order import base_calculations as order_base_calculation
 from ...order.interface import OrderTaxedPricesData
 from ...product.models import ProductType
@@ -345,7 +345,7 @@ class AvataxPlugin(BasePlugin):
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
         with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
-            span.set_attribute("component", "tax")
+            span.set_attribute(saleor_attributes.COMPONENT, "tax")
             response = api_post_request(transaction_url, data, self.config)
         if not response or "error" in response:
             msg = response.get("error", {}).get("message", "")
@@ -905,7 +905,7 @@ class AvataxPlugin(BasePlugin):
         }
         url = urljoin(get_api_url(conf["Use sandbox"]), "utilities/ping")
         with tracer.start_as_current_span("avatax.utilities.ping") as span:
-            span.set_attribute("component", "tax")
+            span.set_attribute(saleor_attributes.COMPONENT, "tax")
             response = api_get_request(
                 url,
                 username_or_account=conf["Username or account"],

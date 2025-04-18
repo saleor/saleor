@@ -5,8 +5,7 @@ from asgiref.typing import (
     Scope,
 )
 
-from ..core.telemetry import set_global_attributes
-from ..core.telemetry.attributes import SALEOR_ENVIRONMENT_DOMAIN
+from ..core.telemetry import saleor_attributes, set_global_attributes
 
 
 def get_hostname(scope: Scope) -> str:
@@ -21,7 +20,9 @@ def telemetry_middleware(application: ASGI3Application) -> ASGI3Application:
     async def telemetry_wrapper(
         scope: Scope, receive: ASGIReceiveCallable, send: ASGISendCallable
     ) -> None:
-        with set_global_attributes({SALEOR_ENVIRONMENT_DOMAIN: get_hostname(scope)}):
+        with set_global_attributes(
+            {saleor_attributes.SALEOR_ENVIRONMENT_DOMAIN: get_hostname(scope)}
+        ):
             return await application(scope, receive, send)
 
     return telemetry_wrapper
