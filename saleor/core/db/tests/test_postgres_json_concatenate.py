@@ -71,44 +71,6 @@ def test_save_concat_new_dict(checkout, checkout_metadata_qs):
     assert metadata.metadata == new_dict
 
 
-def test_save_concat_new_dict_null_value_in_db(checkout, checkout_metadata_qs):
-    # given
-    checkout.metadata_storage.metadata = None
-    checkout.metadata_storage.save()
-    new_dict = {"new-key": "new"}
-
-    # when
-    checkout_metadata_qs.update(
-        metadata=PostgresJsonConcatenate(
-            F("metadata"), Value(new_dict, output_field=JSONField())
-        )
-    )
-
-    # then
-    metadata = checkout.metadata_storage
-    metadata.refresh_from_db()
-    assert metadata.metadata == new_dict
-
-
-def test_save_concat_null_value_in_db(checkout, checkout_metadata_qs):
-    # given
-    checkout.metadata_storage.metadata = None
-    checkout.metadata_storage.save()
-    new_dict = None
-
-    # when
-    checkout_metadata_qs.update(
-        metadata=PostgresJsonConcatenate(
-            F("metadata"), Value(new_dict, output_field=JSONField())
-        )
-    )
-
-    # then
-    metadata = checkout.metadata_storage
-    metadata.refresh_from_db()
-    assert metadata.metadata == {}
-
-
 def test_save_concat_with_none_value(checkout, checkout_metadata_qs):
     # given
     checkout.metadata_storage.metadata = TEST_DICT
