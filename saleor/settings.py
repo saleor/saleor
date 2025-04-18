@@ -938,6 +938,9 @@ ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
     "ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
 )
 
+WEBHOOK_BATCH_CELERY_QUEUE_NAME = os.environ.get(
+    "WEBHOOK_BATCH_CELERY_QUEUE_NAME", None
+)
 
 # Queue name for execution of collection product_updated events
 COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(
@@ -1040,6 +1043,3 @@ TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # Whether to raise or log exceptions for telemetry unit conversion errors
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
-
-# number of webhooks to be processed in a single batch per app
-WEBHOOK_ASYNC_BATCH_SIZE = 100
