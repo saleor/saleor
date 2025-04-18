@@ -8,11 +8,7 @@ from django.utils import timezone
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
-from ...discount.models import (
-    OrderLineDiscount,
-    Promotion,
-    PromotionRule,
-)
+from ...discount.models import OrderLineDiscount, Promotion, PromotionRule
 from ...discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
 )
@@ -1580,7 +1576,9 @@ def test_fetch_order_prices_single_line_expired_apply_once_per_order_voucher_new
     assert line_2.total_price_gross_amount == quantize_price(
         line_2.total_price_net_amount * tax_rate, currency
     )
-    assert line_2.unit_discount_amount == expected_unit_discount_2
+    assert line_2.unit_discount_amount == quantize_price(
+        expected_unit_discount_2, currency
+    )
     assert line_2.unit_discount_reason == f"Voucher code: {order.voucher_code}"
 
     discount_2 = line_2.discounts.get()

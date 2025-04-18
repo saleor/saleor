@@ -16,6 +16,7 @@ from .....order import OrderEvents, OrderStatus
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
+from .....order.utils import invalidate_order_prices
 from ....discount.enums import DiscountValueTypeEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -1171,8 +1172,13 @@ mutation OrderLineDiscountUpdate($input: OrderDiscountCommonInput!, $orderLineId
 """
 
 
+@patch(
+    "saleor.graphql.order.mutations.order_line_discount_update.invalidate_order_prices",
+    wraps=invalidate_order_prices,
+)
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_update_order_line_discount(
+    mocked_invalidate_order_prices,
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
@@ -1279,7 +1285,9 @@ def test_update_order_line_discount(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, currency=order.currency)
+    )
 
     line_discount = line_to_discount.discounts.get()
     assert line_discount.type == DiscountType.MANUAL
@@ -1287,6 +1295,8 @@ def test_update_order_line_discount(
     assert line_discount.value_type == value_type.value
     assert line_discount.reason == reason
     assert line_discount.amount_value == value * line_to_discount.quantity
+
+    mocked_invalidate_order_prices.assert_called_once_with(order, save=True)
 
 
 def test_update_order_line_discount_by_user_no_channel_access(
@@ -1321,7 +1331,12 @@ def test_update_order_line_discount_by_user_no_channel_access(
     assert_no_permission(response)
 
 
+@patch(
+    "saleor.graphql.order.mutations.order_line_discount_update.invalidate_order_prices",
+    wraps=invalidate_order_prices,
+)
 def test_update_order_line_discount_by_app(
+    mocked_invalidate_order_prices,
     draft_order_with_fixed_discount_order,
     app_api_client,
     permission_manage_orders,
@@ -1374,7 +1389,9 @@ def test_update_order_line_discount_by_app(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, unit_discount.currency)
+    )
 
     line_discount = line_to_discount.discounts.get()
     assert line_discount.type == DiscountType.MANUAL
@@ -1382,6 +1399,8 @@ def test_update_order_line_discount_by_app(
     assert line_discount.value_type == value_type.value
     assert line_discount.reason == reason
     assert line_discount.amount_value == value * line_to_discount.quantity
+
+    mocked_invalidate_order_prices.assert_called_once_with(order, save=True)
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
@@ -1475,7 +1494,9 @@ def test_update_order_line_discount_line_with_discount(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == value_type.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, unit_discount.currency)
+    )
 
     assert discount_data["old_value"] == str(line_discount_value_before_update)
     assert discount_data["old_value_type"] == DiscountValueTypeEnum.FIXED.value

@@ -8,7 +8,7 @@ from ....product.models import (
     VariantChannelListingPromotionRule,
 )
 from ....warehouse.models import Stock
-from ... import DiscountType, RewardType, RewardValueType
+from ... import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ...interface import VariantPromotionRuleInfo, fetch_variant_rules_info
 from ...models import OrderDiscount, OrderLineDiscount
 from ...utils.order import (
@@ -269,9 +269,9 @@ def test_create_order_discount_gift(
     assert gift_line.unit_price_gross_amount == Decimal(0)
     assert gift_line.unit_price_net_amount == Decimal(0)
     assert gift_line.base_unit_price_amount == Decimal(0)
-    assert gift_line.unit_discount_amount == Decimal(0)
-    assert gift_line.unit_discount_type is None
-    assert gift_line.unit_discount_value == Decimal(0)
+    assert gift_line.unit_discount_amount == listing.price_amount
+    assert gift_line.unit_discount_type == DiscountValueType.FIXED
+    assert gift_line.unit_discount_value == listing.price_amount
     assert gift_line.product_name == product.name
     assert gift_line.product_sku == variant.sku
 

@@ -2,7 +2,7 @@ import datetime
 import uuid
 from collections import defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
 
@@ -31,6 +31,7 @@ from ....checkout.utils import (
 )
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....discount import DiscountType, DiscountValueType
+from ....discount.interface import DiscountInfo
 from ....discount.models import CheckoutLineDiscount, PromotionRule
 from ....discount.utils.promotion import (
     create_gift_line,
@@ -568,17 +569,19 @@ def apply_gift_reward_if_applicable_on_checkout_creation(
     if not gift_listing:
         return
 
+    line_discount_data = DiscountInfo(
+        type=DiscountType.ORDER_PROMOTION,
+        amount_value=best_discount_amount,
+        value_type=DiscountValueType.FIXED,
+        value=best_discount_amount,
+        promotion_rule=best_rule,
+        currency=checkout.currency,
+    )
     with transaction.atomic():
-        line, _line_created = create_gift_line(checkout, gift_listing)
-        CheckoutLineDiscount.objects.create(
-            type=DiscountType.ORDER_PROMOTION,
-            line=line,
-            amount_value=best_discount_amount,
-            value_type=DiscountValueType.FIXED,
-            value=best_discount_amount,
-            promotion_rule=best_rule,
-            currency=checkout.currency,
+        line, _line_created = create_gift_line(
+            checkout, gift_listing, line_discount_data
         )
+        CheckoutLineDiscount.objects.create(line=line, **asdict(line_discount_data))
 
 
 def _set_checkout_base_subtotal_and_total_on_checkout_creation(

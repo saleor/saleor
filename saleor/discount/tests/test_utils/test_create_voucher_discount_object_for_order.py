@@ -7,14 +7,8 @@ from ....core.taxes import zero_money
 from ....order import OrderStatus
 from ....order.calculations import fetch_order_prices_if_expired
 from ... import DiscountType, DiscountValueType, VoucherType
-from ...models import (
-    OrderDiscount,
-    OrderLineDiscount,
-    PromotionRule,
-)
-from ...utils.voucher import (
-    create_or_update_voucher_discount_objects_for_order,
-)
+from ...models import OrderDiscount, OrderLineDiscount, PromotionRule
+from ...utils.voucher import create_or_update_voucher_discount_objects_for_order
 
 
 def test_create_discount_for_voucher_specific_product_fixed(
@@ -300,7 +294,9 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
         * discounted_line.quantity
         * tax_rate
     )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
+    assert discounted_line.unit_discount_amount == quantize_price(
+        unit_discount_amount, currency
+    )
     assert discounted_line.unit_discount_type == DiscountValueType.PERCENTAGE
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
 
@@ -406,7 +402,9 @@ def test_create_discount_for_voucher_apply_once_per_order_fixed(
         * discounted_line.quantity
         * tax_rate
     )
-    assert discounted_line.unit_discount_amount == unit_discount_amount
+    assert discounted_line.unit_discount_amount == quantize_price(
+        unit_discount_amount, currency
+    )
     assert discounted_line.unit_discount_type == DiscountValueType.FIXED
     assert discounted_line.unit_discount_reason == f"Voucher code: {order.voucher_code}"
 

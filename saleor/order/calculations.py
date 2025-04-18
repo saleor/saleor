@@ -21,7 +21,7 @@ from ..discount.utils.order import (
     handle_order_promotion,
     refresh_manual_line_discount_object,
     refresh_order_line_discount_objects_for_catalogue_promotions,
-    update_unit_discount_data_on_order_line,
+    update_unit_discount_data_on_order_lines_info,
 )
 from ..discount.utils.voucher import (
     create_or_update_line_discount_objects_from_voucher,
@@ -95,9 +95,6 @@ def fetch_order_prices_if_expired(
     # on the every recalculation
     handle_order_promotion(order, lines_info, database_connection_name)
 
-    # update `OrderLine.unit_discount_...` fields
-    update_unit_discount_data_on_order_line(lines_info)
-
     lines = [line_info.line for line_info in lines_info]
     calculate_prices(
         order,
@@ -144,11 +141,6 @@ def fetch_order_prices_if_expired(
                     "undiscounted_total_price_net_amount",
                     "undiscounted_total_price_gross_amount",
                     "tax_rate",
-                    "unit_discount_amount",
-                    "unit_discount_reason",
-                    "unit_discount_type",
-                    "unit_discount_value",
-                    "base_unit_price_amount",
                 ],
             )
 
@@ -594,7 +586,7 @@ def refresh_order_base_prices_and_discounts(
         create_or_update_line_discount_objects_from_voucher(lines_info_to_update)
 
     # update unit discount fields based on updated discounts
-    update_unit_discount_data_on_order_line(lines_info)
+    update_unit_discount_data_on_order_lines_info(lines_info)
 
     # set price expiration time
     expiration_time = calculate_draft_order_line_price_expiration_date(

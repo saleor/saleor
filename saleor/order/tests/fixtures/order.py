@@ -14,6 +14,7 @@ from ....core.prices import quantize_price
 from ....core.taxes import zero_money
 from ....discount import DiscountType, RewardType, RewardValueType, VoucherType
 from ....discount.models import NotApplicable, Voucher
+from ....discount.utils.order import update_unit_discount_data_on_order_line
 from ....discount.utils.voucher import (
     get_products_voucher_discount,
     validate_voucher_in_order,
@@ -544,7 +545,7 @@ def order_with_lines_and_catalogue_promotion(
         currency=currency,
     )
 
-    line.discounts.create(
+    discount = line.discounts.create(
         type=DiscountType.PROMOTION,
         value_type=RewardValueType.FIXED,
         value=reward_value,
@@ -560,11 +561,16 @@ def order_with_lines_and_catalogue_promotion(
     total = quantize_price(line.base_unit_price_amount * line.quantity, currency)
     line.total_price_net_amount = total
     line.total_price_gross_amount = quantize_price(total * Decimal("1.23"), currency)
+    update_unit_discount_data_on_order_line(line, [discount])
     line.save(
         update_fields=[
             "base_unit_price_amount",
             "total_price_net_amount",
             "total_price_gross_amount",
+            "unit_discount_amount",
+            "unit_discount_reason",
+            "unit_discount_type",
+            "unit_discount_value",
         ]
     )
     return order

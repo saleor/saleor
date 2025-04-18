@@ -1,5 +1,5 @@
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 from uuid import UUID
@@ -15,6 +15,7 @@ from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import Order
 from .. import DiscountType, VoucherType
+from ..interface import DiscountInfo, VoucherInfo
 from ..models import (
     DiscountValueType,
     NotApplicable,
@@ -33,7 +34,6 @@ if TYPE_CHECKING:
     from ...order.fetch import EditableOrderLineInfo
     from ...order.models import OrderLine
     from ...plugins.manager import PluginsManager
-    from ..interface import VoucherInfo
     from ..models import Voucher
 
 
@@ -346,7 +346,16 @@ def create_or_update_voucher_discount_objects_for_order(
         lines_info, use_denormalized_data
     )
     lines = [line_info.line for line_info in lines_info]
-    OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "base_unit_price_amount",
+            "unit_discount_amount",
+            "unit_discount_reason",
+            "unit_discount_type",
+            "unit_discount_value",
+        ],
+    )
 
 
 def create_or_update_discount_object_from_order_level_voucher(
@@ -406,24 +415,24 @@ def create_or_update_discount_object_from_order_level_voucher(
     discount_reason = f"Voucher code: {order.voucher_code}"
     discount_name = voucher.name or ""
 
-    discount_object_defaults = {
-        "voucher": voucher,
-        "value_type": voucher.discount_value_type,
-        "value": voucher_channel_listing.discount_value,
-        "amount_value": discount_amount.amount,
-        "currency": order.currency,
-        "reason": discount_reason,
-        "name": discount_name,
-        "type": DiscountType.VOUCHER,
-        "voucher_code": order.voucher_code,
+    discount_data = DiscountInfo(
+        voucher=voucher,
+        value_type=voucher.discount_value_type,
+        value=voucher_channel_listing.discount_value,
+        amount_value=discount_amount.amount,
+        currency=order.currency,
+        reason=discount_reason,
+        name=discount_name,
+        type=DiscountType.VOUCHER,
+        voucher_code=order.voucher_code,
         # TODO (SHOPX-914): set translated voucher name
-        "translated_name": "",
-    }
+        translated_name="",
+    )
 
     with allow_writer():
         discount_object, created = order.discounts.get_or_create(
             type=DiscountType.VOUCHER,
-            defaults=discount_object_defaults,
+            defaults=asdict(discount_data),
         )
         if not created:
             updated_fields: list[str] = []
@@ -461,7 +470,7 @@ def create_or_update_line_discount_objects_from_voucher(
     # FIXME: temporary - create_order_line_discount_objects should be moved to shared
     from .order import (
         create_order_line_discount_objects,
-        update_unit_discount_data_on_order_line,
+        update_unit_discount_data_on_order_lines_info,
     )
 
     discount_data = prepare_line_discount_objects_for_voucher(
@@ -470,7 +479,7 @@ def create_or_update_line_discount_objects_from_voucher(
     modified_lines_info = create_order_line_discount_objects(lines_info, discount_data)
     if modified_lines_info:
         _reduce_base_unit_price_for_voucher_discount(modified_lines_info)
-        update_unit_discount_data_on_order_line(modified_lines_info)
+        update_unit_discount_data_on_order_lines_info(modified_lines_info)
 
 
 # TODO (SHOPX-912): share the method with checkout
@@ -484,7 +493,7 @@ def prepare_line_discount_objects_for_voucher(
     conditions from the moment of the voucher application. Otherwise, the latest
     voucher values will be retrieved from the database.
     """
-    line_discounts_to_create_inputs: list[dict] = []
+    line_discounts_to_create: list[OrderLineDiscount] = []
     line_discounts_to_update: list[OrderLineDiscount] = []
     line_discounts_to_remove: list[OrderLineDiscount] = []
     updated_fields: list[str] = []
@@ -560,24 +569,24 @@ def prepare_line_discount_objects_for_voucher(
             )
             line_discounts_to_update.append(discount_to_update)
         else:
-            line_discount_input = {
-                "line": line,
-                "type": DiscountType.VOUCHER,
-                "value_type": discount_value_type,
-                "value": discount_value,
-                "amount_value": discount_amount,
-                "currency": line.currency,
-                "name": discount_name,
-                "translated_name": None,
-                "reason": discount_reason,
-                "voucher": voucher,
-                "unique_type": DiscountType.VOUCHER,
-                "voucher_code": code,
-            }
-            line_discounts_to_create_inputs.append(line_discount_input)
+            line_discount_to_create = OrderLineDiscount(
+                line=line,
+                type=DiscountType.VOUCHER,
+                value_type=discount_value_type,
+                value=discount_value,
+                amount_value=discount_amount,
+                currency=line.currency,
+                name=discount_name,
+                translated_name=None,
+                reason=discount_reason,
+                voucher=voucher,
+                unique_type=DiscountType.VOUCHER,
+                voucher_code=code,
+            )
+            line_discounts_to_create.append(line_discount_to_create)
 
     return (
-        line_discounts_to_create_inputs,
+        line_discounts_to_create,
         line_discounts_to_update,
         line_discounts_to_remove,
         updated_fields,

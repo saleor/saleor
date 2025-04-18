@@ -1926,7 +1926,9 @@ def test_order_lines_create_specific_product_voucher_existing_variant(
         line_1.undiscounted_base_unit_price_amount * line_1.quantity * tax_rate,
         currency,
     )
+
     assert line_1.unit_discount_amount == initial_unit_discount
+
     assert line_1.unit_discount_type == initial_discount_value_type
     assert line_1.unit_discount_reason == f"Voucher code: {order.voucher_code}"
     assert line_1.unit_discount_value == initial_discount_value
