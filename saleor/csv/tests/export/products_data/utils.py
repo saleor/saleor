@@ -21,7 +21,7 @@ def add_product_attribute_data_to_expected_data(data, product, attribute_ids, pk
             Exists(product_attributes.filter(attribute_id=OuterRef("id")))
         )
         .order_by("attributeproduct__sort_order")
-        .iterator()
+        .iterator(chunk_size=1000)
     )
     assigned_values = AssignedProductAttributeValue.objects.filter(
         product_id=product.pk

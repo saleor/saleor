@@ -138,7 +138,7 @@ class AttributeVariantsByProductTypeIdLoader(DataLoader):
             )
         attribute_variants = qs.filter(product_type_id__in=keys)
         producttype_to_attributevariants = defaultdict(list)
-        for attribute_variant in attribute_variants.iterator():
+        for attribute_variant in attribute_variants.iterator(chunk_size=1000):
             producttype_to_attributevariants[attribute_variant.product_type_id].append(
                 attribute_variant
             )
@@ -166,7 +166,9 @@ class AssignedVariantAttributesByProductVariantId(DataLoader):
             "assignment__attribute"
         )
         variant_attributes = defaultdict(list)
-        for assigned_variant_attribute in assigned_variant_attributes.iterator():
+        for assigned_variant_attribute in assigned_variant_attributes.iterator(
+            chunk_size=1000
+        ):
             variant_attributes[assigned_variant_attribute.variant_id].append(
                 assigned_variant_attribute
             )
@@ -180,7 +182,7 @@ class AttributeValuesByAssignedVariantAttributeIdLoader(DataLoader):
         attribute_values = list(
             AssignedVariantAttributeValue.objects.using(self.database_connection_name)
             .filter(assignment_id__in=keys)
-            .iterator()
+            .iterator(chunk_size=1000)
         )
         value_ids = [a.value_id for a in attribute_values]
 
@@ -211,7 +213,7 @@ class BaseAttributeValuesByProductIdLoader(DataLoader):
         attribute_values = list(
             AssignedProductAttributeValue.objects.using(self.database_connection_name)
             .filter(product_id__in=keys)
-            .iterator()
+            .iterator(chunk_size=1000)
         )
         value_ids = [a.value_id for a in attribute_values]
 

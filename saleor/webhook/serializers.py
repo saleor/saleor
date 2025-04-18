@@ -119,7 +119,7 @@ def serialize_product_attributes(product: "Product") -> list[dict]:
         values_map[av.value.attribute_id].append(av.value)
 
     for attribute_product in attribute_products:
-        attribute = attribute_product.attribute  # type: ignore[attr-defined]
+        attribute = attribute_product.attribute
 
         attr_id = graphene.Node.to_global_id("Attribute", attribute.pk)
         attr_data: dict[Any, Any] = {
