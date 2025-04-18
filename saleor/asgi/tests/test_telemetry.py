@@ -4,7 +4,7 @@ import pytest
 from asgiref.typing import ASGIReceiveCallable, ASGISendCallable
 
 from ...asgi.telemetry import get_hostname, telemetry_middleware
-from ...core.telemetry.attributes import SALEOR_ENVIRONMENT_DOMAIN
+from ...core.telemetry.saleor_attributes import SALEOR_ENVIRONMENT_DOMAIN
 
 
 @pytest.mark.parametrize(

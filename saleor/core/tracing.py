@@ -3,21 +3,21 @@ from contextlib import contextmanager
 
 from django.db import transaction
 
-from ..core.telemetry import Link, Scope, SpanKind, tracer
+from ..core.telemetry import Link, Scope, SpanKind, saleor_attributes, tracer
 
 
 @contextmanager
 def traced_atomic_transaction():
     with transaction.atomic():
         with tracer.start_as_current_span("transaction") as span:
-            span.set_attribute("component", "orm")
+            span.set_attribute(saleor_attributes.COMPONENT, "orm")
             yield
 
 
 @contextmanager
 def otel_trace(span_name, component_name):
     with tracer.start_as_current_span(span_name) as span:
-        span.set_attribute("component", component_name)
+        span.set_attribute(saleor_attributes.COMPONENT, component_name)
         yield
 
 
@@ -41,10 +41,11 @@ def webhooks_otel_trace(
         links=span_links,
     ) as span:
         if app:
-            span.set_attribute("app.id", app.id)
-            span.set_attribute("app.name", app.name)
-        span.set_attribute("component", "webhooks")
-        span.set_attribute("webhooks.domain", domain)
-        span.set_attribute("webhooks.execution_mode", "sync" if sync else "async")
-        span.set_attribute("webhooks.payload_size", payload_size)
+            span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
+            span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
+        span.set_attribute(saleor_attributes.COMPONENT, "webhooks")
+        span.set_attribute(
+            saleor_attributes.SALEOR_WEBHOOK_EXECUTION_MODE, "sync" if sync else "async"
+        )
+        span.set_attribute(saleor_attributes.SALEOR_WEBHOOK_PAYLOAD_SIZE, payload_size)
         yield span

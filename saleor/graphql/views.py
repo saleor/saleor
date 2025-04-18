@@ -29,7 +29,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
-from ..core.telemetry import Scope, SpanKind, attributes, tracer
+from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
 from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
@@ -154,10 +154,10 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with tracer.start_as_current_span(
-            "http", scope=Scope.SERVICE, kind=SpanKind.SERVER
+            request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER
         ) as span:
             span.set_attribute("resource.name", request.path)
-            span.set_attribute(attributes.COMPONENT, "http")
+            span.set_attribute(saleor_attributes.COMPONENT, "http")
             span.set_attribute(http_attributes.HTTP_REQUEST_METHOD, request.method)  # type: ignore[arg-type]
             span.set_attribute(
                 url_attributes.URL_FULL,
@@ -172,7 +172,7 @@ class GraphQLView(View):
                 user_agent_attributes.USER_AGENT_ORIGINAL,
                 request.headers.get("user-agent", ""),
             )
-            span.set_attribute(attributes.SPAN_TYPE, "web")
+            span.set_attribute(saleor_attributes.SPAN_TYPE, "web")
 
             main_ip_header = settings.REAL_IP_ENVIRON[0]
             additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
@@ -268,7 +268,7 @@ class GraphQLView(View):
             record_graphql_query_duration(),
         ):
             record_graphql_queries_count()
-            span.set_attribute(attributes.COMPONENT, "graphql")
+            span.set_attribute(saleor_attributes.COMPONENT, "graphql")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
             document, error = self.parse_query(query)
@@ -304,10 +304,10 @@ class GraphQLView(View):
                 )
 
             span.set_attribute(
-                attributes.SALEOR_GRAPHQL_OPERATION_IDENTIFIER, _query_identifier
+                saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, _query_identifier
             )
             span.set_attribute(
-                attributes.SALEOR_GRAPHQL_DOCUMENT_FINGERPRINT,
+                saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT,
                 query_fingerprint(document),
             )
 
@@ -316,7 +316,7 @@ class GraphQLView(View):
             )
             if source_service_name:
                 span.set_attribute(
-                    attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
+                    saleor_attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
                 )
 
             query_cost, cost_errors = validate_query_cost(
@@ -326,7 +326,7 @@ class GraphQLView(View):
                 COST_MAP,
                 settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
             )
-            span.set_attribute(attributes.SALEOR_GRAPHQL_OPERATION_COST, query_cost)
+            span.set_attribute(saleor_attributes.GRAPHQL_OPERATION_COST, query_cost)
 
             if settings.GRAPHQL_QUERY_MAX_COMPLEXITY and cost_errors:
                 result = ExecutionResult(errors=cost_errors, invalid=True)
@@ -343,8 +343,8 @@ class GraphQLView(View):
 
             context = get_context_value(request)
             if app := getattr(request, "app", None):
-                span.set_attribute(attributes.SALEOR_APP_ID, app.id)
-                span.set_attribute(attributes.SALEOR_APP_NAME, app.name)
+                span.set_attribute(saleor_attributes.SALEOR_APP_ID, app.id)
+                span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
 
             try:
                 response = None

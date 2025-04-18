@@ -2,7 +2,7 @@ from functools import wraps
 
 from graphene import ResolveInfo
 
-from ...core.telemetry import tracer
+from ...core.telemetry import saleor_attributes, tracer
 
 
 def traced_resolver(func):
@@ -12,8 +12,10 @@ def traced_resolver(func):
         operation = f"{info.parent_type.name}.{info.field_name}"
         with tracer.start_as_current_span("graphql.resolve") as span:
             span.set_attribute("resource.name", operation)
-            span.set_attribute("graphql.parent_type", info.parent_type.name)
-            span.set_attribute("graphql.field_name", info.field_name)
+            span.set_attribute(
+                saleor_attributes.GRAPHQL_PARENT_TYPE, info.parent_type.name
+            )
+            span.set_attribute(saleor_attributes.GRAPHQL_FIELD_NAME, info.field_name)
             return func(*args, **kwargs)
 
     return wrapper

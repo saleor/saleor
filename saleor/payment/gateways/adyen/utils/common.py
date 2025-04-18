@@ -23,7 +23,7 @@ from .....checkout.fetch import (
 )
 from .....checkout.models import Checkout
 from .....checkout.utils import get_checkout_metadata, is_shipping_required
-from .....core.telemetry import tracer
+from .....core.telemetry import saleor_attributes, tracer
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
@@ -445,7 +445,7 @@ def call_refund(
         token=token,
     )
     with tracer.start_as_current_span("adyen.payment.refund") as span:
-        span.set_attribute("component", "payment")
+        span.set_attribute(saleor_attributes.COMPONENT, "payment")
         return api_call(request, adyen_client.payment.refund)
 
 
@@ -463,7 +463,7 @@ def call_capture(
         token=token,
     )
     with tracer.start_as_current_span("adyen.payment.capture") as span:
-        span.set_attribute("component", "payment")
+        span.set_attribute(saleor_attributes.COMPONENT, "payment")
         return api_call(request, adyen_client.payment.capture)
 
 

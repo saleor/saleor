@@ -6,9 +6,11 @@ COMPONENT: Final = "component"
 SPAN_TYPE: Final = "span.type"
 
 # GraphQL
-SALEOR_GRAPHQL_DOCUMENT_FINGERPRINT: Final = "graphql.document_fingerprint"
-SALEOR_GRAPHQL_OPERATION_IDENTIFIER: Final = "graphql.operation.identifier"
-SALEOR_GRAPHQL_OPERATION_COST: Final = "graphql.operation.cost"
+GRAPHQL_DOCUMENT_FINGERPRINT: Final = "graphql.document_fingerprint"
+GRAPHQL_OPERATION_IDENTIFIER: Final = "graphql.operation.identifier"
+GRAPHQL_OPERATION_COST: Final = "graphql.operation.cost"
+GRAPHQL_PARENT_TYPE: Final = "graphql.parent_type"
+GRAPHQL_FIELD_NAME: Final = "graphql.field_name"
 
 # Http
 SALEOR_SOURCE_SERVICE_NAME: Final = "saleor.source.service.name"
