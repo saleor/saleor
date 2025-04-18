@@ -111,3 +111,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixes incorrect gift card balances after covering the full order total - #17566 by @korycins
 - Fixes tax class not clearing when selecting a shipping method without a tax class - #17560 by @korycins
 - The prices for draft orders created in `OrderBulkCreate` now are properly calculated - #17583 by @IKarbowiak
+- Raises logger.error when sync webhook is called inside db.transaction - #15138 by @robfleur

@@ -308,6 +308,13 @@ def trigger_webhook_sync(
     pregenerated_subscription_payload: dict | None = None,
 ) -> dict[Any, Any] | None:
     """Send a synchronous webhook request."""
+    if transaction.get_connection().in_atomic_block:
+        # Sync webhooks should be delivered after the transaction is committed.
+        # Otherwise the delivery task may not be able to fetch all the required data and
+        # the delivery may fail.
+        logger.error("Sync webhook was triggered inside a transaction: %s", event_type)
+    # TODO: Add logic to check whether or not this function is called within a test.
+
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
             event_type=event_type,
