@@ -35,7 +35,6 @@ from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
-from .metrics import record_graphql_queries_count, record_graphql_query_duration
 from .query_cost_map import COST_MAP
 from .utils import (
     format_error,
@@ -263,13 +262,9 @@ class GraphQLView(View):
             return None, ExecutionResult(errors=[e], invalid=True)
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
-        with (
-            tracer.start_as_current_span(
-                "GraphQL Operation", scope=Scope.SERVICE
-            ) as span,
-            record_graphql_query_duration(),
-        ):
-            record_graphql_queries_count()
+        with tracer.start_as_current_span(
+            "GraphQL Operation", scope=Scope.SERVICE
+        ) as span:
             span.set_attribute(saleor_attributes.OPERATION_NAME, "graphql_query")
             span.set_attribute(saleor_attributes.COMPONENT, "graphql")
 
