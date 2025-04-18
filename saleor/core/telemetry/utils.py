@@ -10,7 +10,7 @@ from django.conf import settings
 from opentelemetry.trace import Link, SpanContext, TraceFlags
 from opentelemetry.util.types import Attributes, AttributeValue
 
-from .attributes import OPERATION_NAME
+from .saleor_attributes import OPERATION_NAME
 
 logger = logging.getLogger(__name__)
 
