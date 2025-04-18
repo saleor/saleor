@@ -89,13 +89,11 @@ package-mode = false
   graphql-core = "^2.3.2"
   graphql-relay = "^2.0.1"
   html-to-draftjs = "^1.0.1"
-  jaeger-client = "^4.5.0"
   lxml = "^4.9.3"
   markdown = "^3.1.1"
   measurement = "^3.2.2"
   micawber = "^0.5.5"
   oauthlib = "^3.1"
-  opentracing = "^2.3.0"
   petl = "1.7.15"
   phonenumberslite = "^8.13.52"
   pillow = "^11.1.0"
@@ -123,6 +121,7 @@ package-mode = false
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
   setuptools = "^76.0.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
+  opentelemetry-distro = {version = "^0.50b0", extras = ["otlp"]}
   pydantic = "^2.10.6"
   pydantic-core = "^2.33.0"
 

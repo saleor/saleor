@@ -2,8 +2,6 @@ import json
 from typing import Optional
 from urllib.parse import urlencode, urljoin
 
-import opentracing
-import opentracing.tags
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.http import HttpResponse, HttpResponseNotFound
@@ -11,6 +9,7 @@ from django.urls import reverse
 from requests.exceptions import SSLError
 
 from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
+from ....core.telemetry import saleor_attributes, tracer
 from ....core.utils import build_absolute_uri
 from ....core.utils.url import prepare_url
 from ....graphql.core import SaleorContext
@@ -260,12 +259,8 @@ class AdyenGatewayPlugin(BasePlugin):
         if path.startswith(WEBHOOK_PATH):
             return handle_webhook(request, config)
         if path.startswith(ADDITIONAL_ACTION_PATH):
-            with opentracing.global_tracer().start_active_span(
-                "adyen.checkout.payment_details"
-            ) as scope:
-                span = scope.span
-                span.set_tag(opentracing.tags.COMPONENT, "payment")
-                span.set_tag("service.name", "adyen")
+            with tracer.start_as_current_span("adyen.checkout.payment_details") as span:
+                span.set_attribute(saleor_attributes.COMPONENT, "payment")
                 return handle_additional_actions(
                     request, self.adyen.checkout.payments_details, self.channel.slug
                 )
@@ -335,12 +330,8 @@ class AdyenGatewayPlugin(BasePlugin):
                 checkout_lines,
                 local_config.connection_params["merchant_account"],
             )
-            with opentracing.global_tracer().start_active_span(
-                "adyen.checkout.payment_methods"
-            ) as scope:
-                span = scope.span
-                span.set_tag(opentracing.tags.COMPONENT, "payment")
-                span.set_tag("service.name", "adyen")
+            with tracer.start_as_current_span("adyen.checkout.payment_methods") as span:
+                span.set_attribute(saleor_attributes.COMPONENT, "payment")
                 response = api_call(request, self.adyen.checkout.payment_methods)
                 adyen_payment_methods = json.dumps(response.message)
                 config.append({"field": "config", "value": adyen_payment_methods})
@@ -365,13 +356,10 @@ class AdyenGatewayPlugin(BasePlugin):
             data, self.config.connection_params["merchant_account"]
         )
 
-        with opentracing.global_tracer().start_active_span(
+        with tracer.start_as_current_span(
             "adyen.checkout.payment_methods_balance"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
-
+        ) as span:
+            span.set_attribute(saleor_attributes.COMPONENT, "payment")
             try:
                 result = api_call(
                     request_data,
@@ -435,12 +423,8 @@ class AdyenGatewayPlugin(BasePlugin):
             merchant_account=self.config.connection_params["merchant_account"],
             native_3d_secure=self.config.connection_params["enable_native_3d_secure"],
         )
-        with opentracing.global_tracer().start_active_span(
-            "adyen.checkout.payments"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
+        with tracer.start_as_current_span("adyen.checkout.payments") as span:
+            span.set_attribute(saleor_attributes.COMPONENT, "payment")
             result = api_call(request_data, self.adyen.checkout.payments)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
@@ -523,12 +507,8 @@ class AdyenGatewayPlugin(BasePlugin):
                 f"does not have the additional data.",
             )
 
-        with opentracing.global_tracer().start_active_span(
-            "adyen.checkout.payment_details"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
+        with tracer.start_as_current_span("adyen.checkout.payment_details") as span:
+            span.set_attribute(saleor_attributes.COMPONENT, "payment")
             result = api_call(additional_data, self.adyen.checkout.payments_details)
         result_code = result.message["resultCode"].strip().lower()
         is_success = result_code not in FAILED_STATUSES
@@ -775,12 +755,8 @@ class AdyenGatewayPlugin(BasePlugin):
             merchant_account=self.config.connection_params["merchant_account"],
             token=payment_information.token,
         )
-        with opentracing.global_tracer().start_active_span(
-            "adyen.payment.cancel"
-        ) as scope:
-            span = scope.span
-            span.set_tag(opentracing.tags.COMPONENT, "payment")
-            span.set_tag("service.name", "adyen")
+        with tracer.start_as_current_span("adyen.payment.cancel") as span:
+            span.set_attribute(saleor_attributes.COMPONENT, "payment")
             result = api_call(request, self.adyen.payment.cancel)
 
         return GatewayResponse(

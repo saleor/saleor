@@ -12,12 +12,18 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from opentelemetry.trace import StatusCode
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
-from ....core.tracing import webhooks_opentracing_trace
+from ....core.telemetry import (
+    TelemetryTaskContext,
+    get_task_context,
+    task_with_telemetry_context,
+)
+from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
 from ....graphql.core.dataloaders import DataLoader
@@ -408,13 +414,16 @@ def trigger_webhooks_async_for_multiple_objects(
                 "event_delivery_ids": event_delivery_ids,
                 "deferred_payload_data": asdict(deferred_payload_data),
                 "send_webhook_queue": queue,
+                "telemetry_context": get_task_context().to_dict(),
             },
             bind=True,
         )
-
     for delivery in deliveries:
         send_webhook_request_async.apply_async(
-            kwargs={"event_delivery_id": delivery.pk},
+            kwargs={
+                "event_delivery_id": delivery.pk,
+                "telemetry_context": get_task_context().to_dict(),
+            },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
                 default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
@@ -470,11 +479,14 @@ def trigger_webhooks_async(
 
 @app.task(bind=True)
 @allow_writer()
+@task_with_telemetry_context
 def generate_deferred_payloads(
     self,
     event_delivery_ids: list,
     deferred_payload_data: dict,
     send_webhook_queue: str | None = None,
+    *,
+    telemetry_context: TelemetryTaskContext,
 ):
     deliveries = list(
         get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
@@ -543,12 +555,13 @@ def generate_deferred_payloads(
                 EventDelivery.objects.bulk_update(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
-
     for delivery in event_deliveries_for_bulk_update:
         # Trigger webhook delivery task when the payload is ready.
         send_webhook_request_async.apply_async(
             kwargs={
                 "event_delivery_id": delivery.pk,
+                # Propagate received telemetry context
+                "telemetry_context": telemetry_context.to_dict(),
             },
             queue=get_queue_name_for_webhook(
                 delivery.webhook,
@@ -567,7 +580,10 @@ def generate_deferred_payloads(
     retry_kwargs={"max_retries": 5},
 )
 @allow_writer()
-def send_webhook_request_async(self, event_delivery_id) -> None:
+@task_with_telemetry_context
+def send_webhook_request_async(
+    self, event_delivery_id, *, telemetry_context: TelemetryTaskContext
+) -> None:
     delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
         if not_found:
@@ -588,9 +604,13 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
         data = data if isinstance(data, bytes) else data.encode("utf-8")
         # Count payload size in bytes.
         payload_size = len(data)
-        with webhooks_opentracing_trace(
-            delivery.event_type, domain, payload_size, app=webhook.app
-        ):
+        with webhooks_otel_trace(
+            delivery.event_type,
+            domain,
+            payload_size,
+            app=webhook.app,
+            span_links=telemetry_context.links,
+        ) as span:
             response = send_webhook_using_scheme_method(
                 webhook.target_url,
                 domain,
@@ -599,6 +619,8 @@ def send_webhook_request_async(self, event_delivery_id) -> None:
                 data,
                 webhook.custom_headers,
             )
+            if response.status == EventDeliveryStatus.FAILED:
+                span.set_status(StatusCode.ERROR)
 
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)
@@ -686,26 +708,26 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
 @app.task(queue=OBSERVABILITY_QUEUE_NAME)
 @allow_writer()
 def observability_send_events():
-    with observability.opentracing_trace("send_events_task", "task"):
+    with observability.otel_trace("send_events_task", "task"):
         if webhooks := observability.get_webhooks():
-            with observability.opentracing_trace("pop_events", "buffer"):
+            with observability.otel_trace("pop_events", "buffer"):
                 events, _ = observability.pop_events_with_remaining_size()
             if events:
-                with observability.opentracing_trace("send_events", "webhooks"):
+                with observability.otel_trace("send_events", "webhooks"):
                     send_observability_events(webhooks, events)
 
 
 @app.task(queue=OBSERVABILITY_QUEUE_NAME)
 @allow_writer()
 def observability_reporter_task():
-    with observability.opentracing_trace("reporter_task", "task"):
+    with observability.otel_trace("reporter_task", "task"):
         if webhooks := observability.get_webhooks():
-            with observability.opentracing_trace("pop_events", "buffer"):
+            with observability.otel_trace("pop_events", "buffer"):
                 events, batch_count = observability.pop_events_with_remaining_size()
             if batch_count > 0:
                 tasks = [observability_send_events.s() for _ in range(batch_count)]
                 expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
                 group(tasks).apply_async(expires=expiration)
             if events:
-                with observability.opentracing_trace("send_events", "webhooks"):
+                with observability.otel_trace("send_events", "webhooks"):
                     send_observability_events(webhooks, events)

@@ -1,7 +1,8 @@
 from functools import wraps
 
-import opentracing
 from graphene import ResolveInfo
+
+from ...core.telemetry import saleor_attributes, tracer
 
 
 def traced_resolver(func):
@@ -9,11 +10,12 @@ def traced_resolver(func):
     def wrapper(*args, **kwargs):
         info = next(arg for arg in args if isinstance(arg, ResolveInfo))
         operation = f"{info.parent_type.name}.{info.field_name}"
-        with opentracing.global_tracer().start_active_span("graphql.resolve") as scope:
-            span = scope.span
-            span.set_tag("resource.name", operation)
-            span.set_tag("graphql.parent_type", info.parent_type.name)
-            span.set_tag("graphql.field_name", info.field_name)
+        with tracer.start_as_current_span(operation) as span:
+            span.set_attribute(saleor_attributes.OPERATION_NAME, "graphql.resolve")
+            span.set_attribute(
+                saleor_attributes.GRAPHQL_PARENT_TYPE, info.parent_type.name
+            )
+            span.set_attribute(saleor_attributes.GRAPHQL_FIELD_NAME, info.field_name)
             return func(*args, **kwargs)
 
     return wrapper
