@@ -22,6 +22,7 @@ from .....payment import ChargeStatus, TransactionAction
 from .....payment.models import TransactionEvent, TransactionItem
 from .....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from .....warehouse.models import Stock, Warehouse
+from ....core.utils import to_global_id_or_none
 from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import (
@@ -114,6 +115,18 @@ query OrdersQuery {
                             amount
                         }
                         net{
+                            amount
+                        }
+                    }
+                    discounts{
+                        id
+                        valueType
+                        value
+                        reason
+                        total{
+                            amount
+                        }
+                        unit{
                             amount
                         }
                     }
@@ -976,14 +989,17 @@ def test_order_discounts_query(
     assert discount_data["reason"] == discount.reason
 
 
-def test_order_discounts_query_with_line_lvl_voucher_discount_from_checkout(
+def test_order_discounts_with_line_lvl_voucher_discount_from_checkout_and_legacy_flow(
     staff_api_client,
     permission_group_manage_orders,
     permission_group_manage_shipping,
     order_with_lines,
     voucher,
+    channel_USD,
 ):
     # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = True
+    channel_USD.save()
 
     order = order_with_lines
     order.voucher = voucher
@@ -1022,6 +1038,8 @@ def test_order_discounts_query_with_line_lvl_voucher_discount_from_checkout(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     permission_group_manage_shipping.user_set.add(staff_api_client.user)
 
+    assert not order.discounts.exists()
+
     # when
     response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
     content = get_graphql_content(response)
@@ -1040,6 +1058,115 @@ def test_order_discounts_query_with_line_lvl_voucher_discount_from_checkout(
     )
     assert discount_data["amount"]["amount"] == order_discount_amount
     assert discount_data["total"]["amount"] == order_discount_amount
+
+    assert len(order_data["lines"][0]["discounts"]) == 0
+    assert len(order_data["lines"][1]["discounts"]) == 0
+
+
+def test_order_discounts_with_line_lvl_voucher_discount_from_checkout(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    order_with_lines,
+    voucher,
+    channel_USD,
+):
+    # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = False
+    channel_USD.save()
+
+    order = order_with_lines
+    order.voucher = voucher
+    order.voucher_code = voucher.code
+    order.status = OrderStatus.UNCONFIRMED
+    order.origin = OrderOrigin.CHECKOUT
+    order.save()
+
+    expected_reason = "Voucher"
+    expected_discount_value = Decimal(5)
+
+    first_order_line_discount = Decimal(3)
+    first_order_line = order.lines.first()
+    first_order_line_discount = first_order_line.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=voucher.discount_value_type,
+        value=expected_discount_value,
+        amount_value=first_order_line_discount,
+        currency=first_order_line.currency,
+        reason="Voucher",
+        voucher=voucher,
+        voucher_code=voucher.code,
+    )
+
+    second_order_line = order.lines.last()
+    second_order_line_discount = Decimal(4)
+    second_order_line_discount = second_order_line.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=voucher.discount_value_type,
+        value=expected_discount_value,
+        amount_value=second_order_line_discount,
+        currency=second_order_line.currency,
+        reason="Voucher",
+        voucher=voucher,
+        voucher_code=voucher.code,
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_shipping.user_set.add(staff_api_client.user)
+
+    assert not order.discounts.exists()
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    discounts_data = order_data.get("discounts")
+    assert len(discounts_data) == 0
+
+    order_lines_data = order_data["lines"]
+
+    first_order_line_id = to_global_id_or_none(first_order_line)
+    first_order_line_data = [
+        line for line in order_lines_data if line["id"] == first_order_line_id
+    ][0]
+    assert len(first_order_line_data["discounts"]) == 1
+    first_line_discount_data = first_order_line_data["discounts"][0]
+    assert first_line_discount_data["id"] == to_global_id_or_none(
+        first_order_line_discount
+    )
+    assert first_line_discount_data["valueType"] == voucher.discount_value_type.upper()
+    assert first_line_discount_data["reason"] == expected_reason
+    assert (
+        first_line_discount_data["unit"]["amount"]
+        == first_order_line_discount.amount_value / first_order_line.quantity
+    )
+    assert (
+        first_line_discount_data["total"]["amount"]
+        == first_order_line_discount.amount_value
+    )
+
+    second_order_line_id = to_global_id_or_none(second_order_line)
+    second_order_line_data = [
+        line for line in order_lines_data if line["id"] == second_order_line_id
+    ][0]
+
+    assert len(second_order_line_data["discounts"]) == 1
+    second_line_discount_data = second_order_line_data["discounts"][0]
+    assert second_line_discount_data["id"] == to_global_id_or_none(
+        second_order_line_discount
+    )
+    assert second_line_discount_data["valueType"] == voucher.discount_value_type.upper()
+    assert second_line_discount_data["reason"] == expected_reason
+    assert (
+        second_line_discount_data["unit"]["amount"]
+        == second_order_line_discount.amount_value / second_order_line.quantity
+    )
+    assert (
+        second_line_discount_data["total"]["amount"]
+        == second_order_line_discount.amount_value
+    )
 
 
 def test_order_line_discount_query(
