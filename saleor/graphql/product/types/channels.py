@@ -279,7 +279,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                                 tax_class_id
                             )
                             if tax_class_id
-                            else []
+                            else Promise.resolve([])
                         )
                         default_country_rate = TaxClassDefaultRateByCountryLoader(
                             context

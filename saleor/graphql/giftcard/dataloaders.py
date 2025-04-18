@@ -28,7 +28,7 @@ class GiftCardEventsByGiftCardIdLoader(DataLoader[int, list[GiftCardEvent]]):
             gift_card_id__in=keys
         )
         events_map = defaultdict(list)
-        for event in events.iterator():
+        for event in events.iterator(chunk_size=1000):
             events_map[event.gift_card_id].append(event)
         return [events_map.get(gift_card_id, []) for gift_card_id in keys]
 
