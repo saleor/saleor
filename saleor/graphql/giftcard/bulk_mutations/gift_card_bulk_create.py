@@ -91,8 +91,9 @@ class GiftCardBulkCreate(BaseMutation):
         instances = cls.create_instances(input, info)
         if tags:
             cls.assign_gift_card_tags(instances, tags)
+        manager = get_plugin_manager_promise(info.context).get()
         transaction.on_commit(
-            lambda: cls.call_gift_card_created_on_plugins(instances, info.context)
+            lambda: cls.call_gift_card_created_on_plugins(instances, manager)
         )
         return cls(count=len(instances), gift_cards=instances)
 
@@ -172,8 +173,7 @@ class GiftCardBulkCreate(BaseMutation):
             tag_instance.gift_cards.set(instances)
 
     @classmethod
-    def call_gift_card_created_on_plugins(cls, instances, context):
+    def call_gift_card_created_on_plugins(cls, instances, manager):
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.GIFT_CARD_CREATED)
-        manager = get_plugin_manager_promise(context).get()
         for instance in instances:
             cls.call_event(manager.gift_card_created, instance, webhooks=webhooks)

@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from prices import TaxedMoney
 
-from ..core.prices import MAXIMUM_PRICE
-from ..core.taxes import TaxData, TaxDataError, TaxDataErrorMessage
 from ..core.utils.country import get_active_country
 from . import TaxCalculationStrategy
 
@@ -218,17 +216,22 @@ def calculate_tax_rate(price: TaxedMoney) -> Decimal:
     return tax_rate
 
 
-def get_tax_rate_for_tax_class(
-    tax_class: Optional["TaxClass"],
+def get_tax_rate_for_country(
     tax_class_country_rates: Iterable["TaxClassCountryRate"],
     default_tax_rate: Decimal,
     country_code: str,
 ) -> Decimal:
+    """Get tax rate for provided country code.
+
+    Function returns the tax rate for provided country code. If not found, the default
+    one will be returned.
+    `tax_class_country_rates` is the iterable set of rates assigned to single
+    `TaxClass`.
+    """
     tax_rate = default_tax_rate
-    if tax_class:
-        for country_rate in tax_class_country_rates:
-            if country_rate.country == country_code:
-                tax_rate = country_rate.rate
+    for country_rate in tax_class_country_rates:
+        if country_rate.country == country_code:
+            tax_rate = country_rate.rate
     return tax_rate
 
 
@@ -254,78 +257,3 @@ def get_shipping_tax_class_kwargs_for_order(tax_class: Optional["TaxClass"]):
         "shipping_tax_class_private_metadata": tax_class.private_metadata,
         "shipping_tax_class_metadata": tax_class.metadata,
     }
-
-
-def validate_tax_data(
-    tax_data: TaxData | None,
-    lines: Iterable,
-    allow_empty_tax_data: bool = False,
-):
-    if tax_data is None and not allow_empty_tax_data:
-        raise TaxDataError(TaxDataErrorMessage.EMPTY)
-
-    if check_negative_values_in_tax_data(tax_data):
-        raise TaxDataError(TaxDataErrorMessage.NEGATIVE_VALUE)
-
-    if check_line_number_in_tax_data(tax_data, lines):
-        raise TaxDataError(TaxDataErrorMessage.LINE_NUMBER)
-
-    if check_overflows_in_tax_data(tax_data):
-        raise TaxDataError(TaxDataErrorMessage.OVERFLOW)
-
-
-def check_negative_values_in_tax_data(tax_data: TaxData | None) -> bool:
-    """Check if tax data contains negative values."""
-    if not tax_data:
-        return False
-
-    if (
-        tax_data.shipping_price_gross_amount < 0
-        or tax_data.shipping_price_net_amount < 0
-        or tax_data.shipping_tax_rate < 0
-    ):
-        return True
-
-    for line in tax_data.lines:
-        if (
-            line.total_gross_amount < 0
-            or line.total_net_amount < 0
-            or line.tax_rate < 0
-        ):
-            return True
-
-    return False
-
-
-def check_line_number_in_tax_data(tax_data: TaxData | None, lines: Iterable) -> bool:
-    """Check if tax data contains same line number as input data."""
-    if not tax_data:
-        return False
-
-    if len(tax_data.lines) != len(list(lines)):
-        return True
-
-    return False
-
-
-def check_overflows_in_tax_data(tax_data: TaxData | None) -> bool:
-    """Check if tax rates exceed 100% and line prices are lower than a billion."""
-    if not tax_data:
-        return False
-
-    if (
-        tax_data.shipping_price_gross_amount > MAXIMUM_PRICE
-        or tax_data.shipping_price_net_amount > MAXIMUM_PRICE
-        or tax_data.shipping_tax_rate > 100
-    ):
-        return True
-
-    for line in tax_data.lines:
-        if (
-            line.total_gross_amount > MAXIMUM_PRICE
-            or line.total_net_amount > MAXIMUM_PRICE
-            or line.tax_rate > 100
-        ):
-            return True
-
-    return False

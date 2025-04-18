@@ -2,9 +2,9 @@ from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 import graphene
+from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django_prices.utils.formatting import get_currency_fraction
 from graphene.utils.str_converters import to_camel_case
 from graphql.error import GraphQLError
 
@@ -76,7 +76,7 @@ def validate_price_precision(
         except KeyError:
             currency_fraction = currency_fractions["DEFAULT"][0]
     else:
-        currency_fraction = get_currency_fraction(currency)
+        currency_fraction = get_currency_precision(currency)
 
     value = value.normalize()
     if value.as_tuple().exponent < -currency_fraction:

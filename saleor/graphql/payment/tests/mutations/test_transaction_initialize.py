@@ -2721,7 +2721,7 @@ def test_for_checkout_too_long_message_in_response(
         mocked_initialize=mocked_initialize,
         charged_value=expected_amount,
         returned_data=expected_response["data"],
-        expected_message=expected_response["message"][:509] + "...",
+        expected_message=expected_response["message"][:511] + "…",
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL

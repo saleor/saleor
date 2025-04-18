@@ -495,6 +495,70 @@ def test_product_only_with_variants_without_sku_query_by_anonymous(
     assert product_data["variants"] == [{"id": variant_id}]
 
 
+def test_product_variants_query_by_staff_no_channel_provided(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    variables = {
+        "id": product_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCT_BY_ID,
+        variables=variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data is not None
+    assert product_data["id"] == product_id
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    assert product_data["productVariants"]["edges"] == [{"node": {"id": variant_id}}]
+    # deprecated field test
+    assert product_data["variants"] == [{"id": variant_id}]
+
+
+def test_product_variants_query_by_app_no_channel_provided(
+    app_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    app_api_client.app.permissions.add(permission_manage_products)
+
+    variables = {
+        "id": product_id,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_PRODUCT_BY_ID,
+        variables=variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_data = content["data"]["product"]
+
+    assert product_data is not None
+    assert product_data["id"] == product_id
+
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    assert product_data["productVariants"]["edges"] == [{"node": {"id": variant_id}}]
+    # deprecated field test
+    assert product_data["variants"] == [{"id": variant_id}]
+
+
 QUERY_PRODUCT_BY_ID_WITH_MEDIA = """
     query ($id: ID, $channel: String, $size: Int, $format: ThumbnailFormatEnum){
         product(id: $id, channel: $channel) {

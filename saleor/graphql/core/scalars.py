@@ -29,7 +29,7 @@ class Decimal(graphene.Float):
         return None
 
     @staticmethod
-    def parse_value(value):
+    def parse_value(value) -> decimal.Decimal | None:
         try:
             # Converting the float to str before parsing it to Decimal is
             # necessary to keep the decimal places as typed
@@ -46,18 +46,29 @@ class Decimal(graphene.Float):
             return None
 
 
-class PositiveDecimal(Decimal):
+class PositiveDecimal(graphene.Float):
     """Nonnegative Decimal scalar implementation.
 
     Should be used in places where value must be nonnegative (0 or greater).
     """
 
     @staticmethod
-    def parse_value(value):
-        value = Decimal.parse_value(value)
-        if value and value < 0:
-            return None
-        return value
+    def parse_value(value) -> decimal.Decimal | None:
+        parsed_value = Decimal.parse_value(value)
+
+        if (parsed_value is not None) and parsed_value >= 0:
+            return parsed_value
+
+        return None
+
+    @staticmethod
+    def parse_literal(node) -> decimal.Decimal | None:
+        parsed_value = Decimal.parse_literal(node)
+
+        if (parsed_value is not None) and parsed_value >= 0:
+            return parsed_value
+
+        return None
 
 
 class JSON(GenericScalar):

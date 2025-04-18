@@ -3,6 +3,8 @@ from decimal import Decimal
 
 from prices import Money, TaxedMoney
 
+TAX_ERROR_FIELD_LENGTH = 255
+
 
 class TaxError(Exception):
     """Default tax error."""
@@ -10,6 +12,10 @@ class TaxError(Exception):
 
 class TaxDataError(Exception):
     """Error in tax data received from tax app or plugin."""
+
+    def __init__(self, message: str, errors: list | None = None):
+        super().__init__(message)
+        self.errors = errors or []
 
 
 def zero_money(currency: str) -> Money:

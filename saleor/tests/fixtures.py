@@ -713,18 +713,32 @@ def tax_line_data_response():
 
 
 @pytest.fixture
-def tax_data_response(tax_line_data_response):
-    return {
-        "currency": "PLN",
-        "total_net_amount": 12.34,
-        "total_gross_amount": 12.34,
-        "subtotal_net_amount": 12.34,
-        "subtotal_gross_amount": 12.34,
-        "shipping_price_gross_amount": 12.34,
-        "shipping_price_net_amount": 12.34,
-        "shipping_tax_rate": 23,
-        "lines": [tax_line_data_response] * 5,
-    }
+def tax_data_response(tax_data_response_factory):
+    return tax_data_response_factory()
+
+
+@pytest.fixture
+def tax_data_response_factory(tax_line_data_response):
+    def factory(
+        shipping_price_gross_amount=12.34,
+        shipping_price_net_amount=12.34,
+        shipping_tax_rate=23,
+        lines_length=5,
+    ):
+        lines = [tax_line_data_response] * lines_length
+        return {
+            "currency": "PLN",
+            "total_net_amount": 12.34,
+            "total_gross_amount": 12.34,
+            "subtotal_net_amount": 12.34,
+            "subtotal_gross_amount": 12.34,
+            "shipping_price_gross_amount": shipping_price_gross_amount,
+            "shipping_price_net_amount": shipping_price_net_amount,
+            "shipping_tax_rate": shipping_tax_rate,
+            "lines": lines,
+        }
+
+    return factory
 
 
 @pytest.fixture

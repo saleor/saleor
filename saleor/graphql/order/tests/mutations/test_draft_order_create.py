@@ -58,6 +58,9 @@ DRAFT_ORDER_CREATE_MUTATION = """
                     }
                     discountName
                     discounts {
+                        total {
+                            amount
+                        }
                         amount {
                             amount
                         }
@@ -138,6 +141,17 @@ DRAFT_ORDER_CREATE_MUTATION = """
                         unitDiscountValue
                         isGift
                         isPriceOverridden
+                        discounts{
+                            valueType
+                            value
+                            reason
+                            unit{
+                                amount
+                            }
+                            total{
+                                amount
+                            }
+                        }
                     }
                 }
             }
@@ -820,14 +834,23 @@ def test_draft_order_create_with_voucher_specific_product(
         discounted_line_data["totalPrice"]["gross"]["amount"]
         == discounted_variant_total
     )
-    assert (
-        discounted_line_data["unitDiscount"]["amount"]
-        == discount_amount / variant_0_qty
-    )
+
+    expected_discount_amount = discount_amount / variant_0_qty
+    assert discounted_line_data["unitDiscount"]["amount"] == expected_discount_amount
     assert (
         discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
     )
-    assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
+    expected_discount_reason = f"Voucher code: {code}"
+    assert discounted_line_data["unitDiscountReason"] == expected_discount_reason
+
+    assigned_discount_objects = discounted_line_data["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == voucher.discount_value_type.upper()
+    assert assigned_discount["unit"]["amount"] == expected_discount_amount
+    assert assigned_discount["total"]["amount"] == discount_amount
+    assert assigned_discount["value"] == voucher.channel_listings.get().discount_value
 
     assert line_1_data["productVariantId"] == variant_1_id
     assert line_1_data["quantity"] == variant_1_qty
@@ -838,6 +861,7 @@ def test_draft_order_create_with_voucher_specific_product(
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
     assert line_1_data["unitDiscountReason"] is None
+    assert len(line_1_data["discounts"]) == 0
 
     assert order.discounts.count() == 0
 
@@ -964,6 +988,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
         discounted_line_data["totalPrice"]["gross"]["amount"]
         == discounted_variant_total
     )
+
     assert (
         discounted_line_data["unitDiscount"]["amount"]
         == discount_amount / variant_0_qty
@@ -971,7 +996,17 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     assert (
         discounted_line_data["unitDiscountType"] == voucher.discount_value_type.upper()
     )
-    assert discounted_line_data["unitDiscountReason"] == f"Voucher code: {code}"
+    expected_discount_reason = f"Voucher code: {code}"
+    assert discounted_line_data["unitDiscountReason"] == expected_discount_reason
+
+    assigned_discount_objects = discounted_line_data["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == voucher.discount_value_type.upper()
+    assert assigned_discount["total"]["amount"] == discount_amount
+    assert assigned_discount["unit"]["amount"] == discount_amount / variant_0_qty
+    assert assigned_discount["value"] == voucher.channel_listings.get().discount_value
 
     assert line_1_data["productVariantId"] == variant_1_id
     assert line_1_data["quantity"] == variant_1_qty
@@ -982,6 +1017,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     assert line_1_data["unitDiscount"]["amount"] == 0
     assert line_1_data["unitDiscountType"] is None
     assert line_1_data["unitDiscountReason"] is None
+    assert len(line_1_data["discounts"]) == 0
 
     assert order.discounts.count() == 0
 
@@ -2767,6 +2803,7 @@ def test_draft_order_create_with_custom_price_and_catalogue_promotion(
 
     line_1_unit_discount = custom_price * reward_value / 100
     promotion_id = graphene.Node.to_global_id("Promotion", promotion_rule.promotion_id)
+    expected_discount_reason = f"Promotion: {promotion_id}"
     line_data_1 = {
         "productVariantId": variant_id,
         "quantity": quantity,
@@ -2788,13 +2825,23 @@ def test_draft_order_create_with_custom_price_and_catalogue_promotion(
                 "amount": float((custom_price - line_1_unit_discount) * quantity),
             },
         },
-        "unitDiscountReason": f"Promotion: {promotion_id}",
+        "unitDiscountReason": expected_discount_reason,
         "unitDiscountType": RewardValueType.PERCENTAGE.upper(),
         "unitDiscountValue": reward_value,
         "isPriceOverridden": True,
         "isGift": False,
+        "discounts": [
+            {
+                "total": {"amount": Decimal(line_1_unit_discount * quantity)},
+                "unit": {"amount": Decimal(line_1_unit_discount)},
+                "reason": expected_discount_reason,
+                "value": reward_value,
+                "valueType": RewardValueType.PERCENTAGE.upper(),
+            }
+        ],
     }
     assert line_data_1 in data["lines"]
+
     line_2_unit_discount = variant_price * reward_value / 100
     line_data_2 = {
         "productVariantId": variant_id,
@@ -2817,11 +2864,20 @@ def test_draft_order_create_with_custom_price_and_catalogue_promotion(
                 "amount": float((variant_price - line_2_unit_discount) * quantity),
             },
         },
-        "unitDiscountReason": f"Promotion: {promotion_id}",
+        "unitDiscountReason": expected_discount_reason,
         "unitDiscountType": RewardValueType.PERCENTAGE.upper(),
         "unitDiscountValue": reward_value,
         "isPriceOverridden": False,
         "isGift": False,
+        "discounts": [
+            {
+                "total": {"amount": Decimal(line_2_unit_discount * quantity)},
+                "unit": {"amount": Decimal(line_2_unit_discount)},
+                "reason": expected_discount_reason,
+                "value": reward_value,
+                "valueType": RewardValueType.PERCENTAGE.upper(),
+            }
+        ],
     }
     assert line_data_2 in data["lines"]
 
@@ -2908,9 +2964,11 @@ def test_draft_order_create_product_catalogue_promotion(
 
     assert order.search_vector
 
+    expected_unit_discount = reward_value
+
     assert len(data["lines"]) == 1
     line_data = data["lines"][0]
-    assert line_data["unitDiscount"]["amount"] == reward_value
+    assert line_data["unitDiscount"]["amount"] == expected_unit_discount
     assert (
         line_data["unitPrice"]["gross"]["amount"]
         == variant_channel_listing.discounted_price_amount
@@ -2919,14 +2977,25 @@ def test_draft_order_create_product_catalogue_promotion(
         line_data["undiscountedUnitPrice"]["gross"]["amount"]
         == variant_channel_listing.price_amount
     )
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    expected_discount_reason = f"Promotion: {promotion_id}"
+
     line_total = variant_channel_listing.discounted_price_amount * quantity
     assert line_data["totalPrice"]["gross"]["amount"] == line_total
-    assert line_data["unitDiscountReason"]
-    assert line_data["unitDiscountType"]
-
+    assert line_data["unitDiscountReason"] == expected_discount_reason
+    assert line_data["unitDiscountType"] == rule.reward_value_type.upper()
     line = order.lines.first()
     assert line.discounts.count() == 1
     assert line.sale_id
+
+    assigned_discount_objects = line_data["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == rule.reward_value_type.upper()
+    assert assigned_discount["unit"]["amount"] == expected_unit_discount
+    assert assigned_discount["total"]["amount"] == expected_unit_discount * quantity
+    assert assigned_discount["value"] == rule.reward_value
 
     assert data["total"]["gross"]["amount"] == shipping_total + line_total
     assert (
@@ -3041,9 +3110,11 @@ def test_draft_order_create_product_catalogue_promotion_flat_taxes(
 
     assert order.search_vector
 
+    expected_unit_discount = reward_value
+
     assert len(data["lines"]) == 1
     line_data = data["lines"][0]
-    assert line_data["unitDiscount"]["amount"] == reward_value
+    assert line_data["unitDiscount"]["amount"] == expected_unit_discount
     assert (
         line_data["unitPrice"]["gross"]["amount"]
         == variant_channel_listing.discounted_price_amount
@@ -3052,14 +3123,27 @@ def test_draft_order_create_product_catalogue_promotion_flat_taxes(
         line_data["undiscountedUnitPrice"]["gross"]["amount"]
         == variant_channel_listing.price_amount
     )
+
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    expected_discount_reason = f"Promotion: {promotion_id}"
+
     line_total = variant_channel_listing.discounted_price_amount * quantity
     assert line_data["totalPrice"]["gross"]["amount"] == line_total
-    assert line_data["unitDiscountReason"]
+    assert line_data["unitDiscountReason"] == expected_discount_reason
     assert line_data["unitDiscountType"]
 
     line = order.lines.first()
     assert line.discounts.count() == 1
     assert line.sale_id
+
+    assigned_discount_objects = line_data["discounts"]
+    assert len(assigned_discount_objects) == 1
+    assigned_discount = assigned_discount_objects[0]
+    assert assigned_discount["reason"] == expected_discount_reason
+    assert assigned_discount["valueType"] == rule.reward_value_type.upper()
+    assert assigned_discount["unit"]["amount"] == expected_unit_discount
+    assert assigned_discount["total"]["amount"] == expected_unit_discount * quantity
+    assert assigned_discount["value"] == rule.reward_value
 
     assert data["total"]["gross"]["amount"] == shipping_total + line_total
     assert (
@@ -3171,6 +3255,7 @@ def test_draft_order_create_order_promotion_flat_rates(
     assert order["shippingPrice"]["gross"]["amount"] == float(shipping_price_gross)
 
     assert len(order["discounts"]) == 1
+    assert order["discounts"][0]["total"]["amount"] == discount_amount
     assert order["discounts"][0]["amount"]["amount"] == discount_amount
     assert order["discounts"][0]["reason"] == f"Promotion: {promotion_id}"
     assert order["discounts"][0]["type"] == DiscountType.ORDER_PROMOTION.upper()

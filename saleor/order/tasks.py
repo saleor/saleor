@@ -78,15 +78,6 @@ def _bulk_release_voucher_usage(order_ids):
         Exists(vouchers.filter(id=OuterRef("voucher_id"))),
     ).annotate(order_count=Subquery(count_orders))
 
-    # We observed mismatch between code.used and number of orders which utilize the code
-    # In some cases it is expected, but we want to further investigate the issue
-    suspected_codes = [code.code for code in codes if code.used < code.order_count]
-    if suspected_codes:
-        logger.error(
-            "Voucher codes: [%s] have been used more times than indicated by `code.used` field.",
-            ",".join(suspected_codes),
-        )
-
     codes.update(used=Greatest(F("used") - F("order_count"), 0))
 
     orders = Order.objects.filter(id__in=order_ids)

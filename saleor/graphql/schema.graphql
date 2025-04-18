@@ -11182,6 +11182,13 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   isGift: Boolean
+
+  """
+  List of applied discounts
+  
+  Added in Saleor 3.21.
+  """
+  discounts: [OrderLineDiscount!]
 }
 
 """
@@ -11209,6 +11216,48 @@ type Allocation implements Node @doc(category: "Products") {
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
   """
   warehouse: Warehouse!
+}
+
+"""Represent the discount applied to order line."""
+type OrderLineDiscount @doc(category: "Orders") {
+  """The ID of discount applied."""
+  id: ID!
+
+  """The type of applied discount: Sale, Voucher or Manual."""
+  type: OrderDiscountType!
+
+  """The name of applied discount."""
+  name: String
+
+  """Translated name of the applied discount."""
+  translatedName: String
+
+  """Type of the discount: fixed or percent"""
+  valueType: DiscountValueTypeEnum!
+
+  """Value of the discount. Can store fixed value or percent value"""
+  value: PositiveDecimal!
+
+  """
+  Explanation for the applied discount.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  reason: String
+
+  """The discount amount applied to the line item."""
+  total: Money!
+
+  """The discount amount applied to the single line unit."""
+  unit: Money!
+}
+
+enum OrderDiscountType @doc(category: "Discounts") {
+  SALE
+  VOUCHER
+  MANUAL
+  PROMOTION
+  ORDER_PROMOTION
 }
 
 enum OrderAction @doc(category: "Payments") {
@@ -11757,15 +11806,14 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
   reason: String
 
   """Returns amount of discount."""
-  amount: Money!
-}
+  amount: Money! @deprecated(reason: "Use `total` instead.")
 
-enum OrderDiscountType @doc(category: "Discounts") {
-  SALE
-  VOUCHER
-  MANUAL
-  PROMOTION
-  ORDER_PROMOTION
+  """
+  The amount of discount applied to the order.
+  
+  Added in Saleor 3.21.
+  """
+  total: Money!
 }
 
 type OrderError @doc(category: "Orders") {

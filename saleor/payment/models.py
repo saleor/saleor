@@ -10,10 +10,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import JSONField
 from django.utils import timezone
-from django_prices.models import MoneyField
 from prices import Money
 
 from ..checkout.models import Checkout
+from ..core.db.fields import MoneyField
 from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money
 from ..permission.enums import PaymentPermissions

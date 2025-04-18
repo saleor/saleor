@@ -19,7 +19,7 @@ from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
-from .....discount.models import CheckoutLineDiscount, Promotion
+from .....discount.models import CheckoutLineDiscount, OrderLineDiscount, Promotion
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
@@ -1110,12 +1110,17 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_percentage
+    assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
+
     assert order.voucher == voucher_percentage
     assert order.voucher.code == code.code
 
@@ -1364,12 +1369,16 @@ def test_checkout_with_voucher_on_specific_product_complete(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
-    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).first()
-    assert order_discount
+    order_line_discount = OrderLineDiscount.objects.get()
+    assert order_line_discount
     assert (
-        order_discount.amount_value
+        order_line_discount.amount_value
         == (order.undiscounted_total - order.total).gross.amount
     )
+    assert order_line_discount.type == DiscountType.VOUCHER
+    assert order_line_discount.voucher == voucher_specific_product_type
+    assert order_line_discount.voucher_code == code.code
+    assert order_line_discount.value_type == DiscountValueType.FIXED
 
     code.refresh_from_db()
     assert code.used == voucher_used_count + 1
@@ -1488,7 +1497,7 @@ def test_checkout_complete_with_voucher_single_use(
 
 
 @pytest.mark.integration
-def test_checkout_complete_with_voucher_and_gift_card(
+def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
@@ -1604,6 +1613,114 @@ def test_checkout_complete_with_voucher_and_gift_card(
 
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
+    assert gift_card.last_used_on
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    )
+
+
+@pytest.mark.integration
+def test_checkout_complete_with_voucher_paid_by_gift_card(
+    user_api_client,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    gift_card,
+    address,
+    shipping_method,
+):
+    # given
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.save(update_fields=["usage_limit"])
+
+    checkout = checkout_with_voucher_percentage
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    checkout.gift_cards.add(gift_card)
+
+    expected_voucher_discount = checkout.discount
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total_without_gc = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.save()
+
+    expected_gc_balance_amount = (
+        gift_card.initial_balance_amount - total_without_gc.gross.amount
+    )
+
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    shipping_price = shipping_method.channel_listings.get(
+        channel=checkout.channel
+    ).price
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.get()
+
+    subtotal = get_subtotal(order.lines.all(), order.currency)
+    assert order.subtotal == subtotal
+    assert data["order"]["subtotal"]["gross"]["amount"] == subtotal.gross.amount
+    assert order.total == total
+    assert (
+        order.undiscounted_total
+        == subtotal + shipping_price + expected_voucher_discount
+    )
+
+    order_line = order.lines.first()
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+
+    assert (
+        order_line.unit_discount_amount
+        == (expected_voucher_discount / checkout_line_quantity).amount
+    )
+    assert order_line.unit_discount_reason
+
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
+    order_discount = order.discounts.filter(type=DiscountType.VOUCHER).get()
+    assert order_discount.amount_value == expected_voucher_discount.amount
+    assert order.voucher == voucher_percentage
+    assert order.voucher.code == code.code
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance.amount == expected_gc_balance_amount
     assert gift_card.last_used_on
     assert GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
@@ -2262,6 +2379,15 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     voucher_specific_product_type.usage_limit = voucher_used_count + 1
     voucher_specific_product_type.save(update_fields=["usage_limit"])
 
+    voucher_expected_value = Decimal(10)
+    voucher_specific_product_type.channel_listings.update(
+        discount_value=voucher_expected_value
+    )
+    assert (
+        voucher_specific_product_type.discount_value_type
+        == DiscountValueType.PERCENTAGE
+    )
+
     checkout = checkout_with_item_and_voucher_specific_products
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -2309,7 +2435,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         discount_amount=reward_value,
         currency=channel.currency_code,
     )
-    line_discount = CheckoutLineDiscount.objects.create(
+    CheckoutLineDiscount.objects.create(
         line=checkout_line,
         type=DiscountType.PROMOTION,
         value_type=DiscountValueType.FIXED,
@@ -2370,11 +2496,21 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         order_line.undiscounted_total_price - order_line.total_price
     )
 
-    assert order_line.discounts.count() == 1
-    line_discount = order_line.discounts.first()
-    assert line_discount.promotion_rule == rule
-    assert line_discount.value_type == DiscountValueType.FIXED
-    assert line_discount.amount_value == reward_value * order_line.quantity
+    assert order_line.discounts.count() == 2
+    line_promotion_discount = order_line.discounts.get(type=DiscountType.PROMOTION)
+    assert line_promotion_discount.promotion_rule == rule
+    assert line_promotion_discount.value_type == DiscountValueType.FIXED
+    assert line_promotion_discount.amount_value == reward_value * order_line.quantity
+
+    line_voucher_discount = order_line.discounts.get(type=DiscountType.VOUCHER)
+    assert line_voucher_discount.voucher == voucher_specific_product_type
+    assert line_voucher_discount.value_type == DiscountValueType.FIXED
+    assert line_voucher_discount.type == DiscountType.VOUCHER
+    assert line_voucher_discount.voucher_code == code.code
+    unit_discount = (
+        voucher_expected_value / 100 * variant_channel_listing.discounted_price_amount
+    )
+    assert line_voucher_discount.amount_value == unit_discount * order_line.quantity
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
@@ -2382,8 +2518,8 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         "Promotion", catalogue_promotion_without_rules.id
     )
     unit_discount_reason = (
-        f"Voucher code: {voucher_specific_product_type.code}"
-        f" & Promotion: {order_line.sale_id}"
+        f"Promotion: {order_line.sale_id}"
+        f" & Voucher code: {voucher_specific_product_type.code}"
     )
     assert order_line.unit_discount_reason == unit_discount_reason
     assert order.shipping_address == address

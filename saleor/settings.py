@@ -28,9 +28,12 @@ from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScr
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .account.i18n_rules_override import i18n_rules_override
+from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
+from .graphql.promise import patch_promise
+from .patch_local import patch_local
 
 django_stubs_ext.monkeypatch()
 
@@ -299,7 +302,6 @@ INSTALLED_APPS = [
     "saleor.schedulers",
     # External apps
     "django_measurement",
-    "django_prices",
     "mptt",
     "django_countries",
     "django_filters",
@@ -1031,12 +1033,25 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
     os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
 )
 
-# Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
-# Patch `i18n` module to allows to override the default address rules.
-i18n_rules_override()
-
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # Whether to raise or log exceptions for telemetry unit conversion errors
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
+
+# Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
+# Patch `i18n` module to allows to override the default address rules.
+i18n_rules_override()
+
+# Patch Promise to remove all references that could result in reference cycles, allowing memory to be freed
+# immediately, without the need of a deep garbage collection cycle.
+patch_promise()
+
+# Patch `DatabaseClient`, `DatabaseCreation`, `DatabaseFeatures`, `DatabaseIntrospection`, `DatabaseOperations`,
+# `BaseDatabaseValidation` and `DatabaseErrorWrapper` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_db()
+
+# Patch `Local` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_local()

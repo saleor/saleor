@@ -66,6 +66,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - `CheckoutCreateInput` now accepts `metadata` and `privateMetadata` fields, so `checkoutCreate` can now create checkout with metadata in a single call - #17503 by @lkostrowski
 - `orderUpdate` mutation now allows to update `metadata` and `privateMetadata` via `OrderUpdateInput` - #1508 by @lkostrowski
 - `DraftOrderInput`, `OrderUpdateInput` and `DraftOrderCreateInput` now allow to provide `languageCode` - #17553 by @lkostrowski
+- Expose line-level discounts through the `OrderLineDiscount` type, retrievable via the `OrderLine.discounts` API field - #17510 by @korycins
+- Introduce total field in OrderDiscount to replace the amount field, with OrderDiscount.amount now deprecated. - #17510 by @korycins
 
 ### Webhooks
 
@@ -107,3 +109,7 @@ All notable, unreleased changes to this project will be documented in this file.
   This ensures user awareness of potential security policy violations and compliance risks of storing
   certain types of data. - #17506 by @NyanKiyoshi
 - Improve status calculation for orders with waiting-for-approval fulfillments - #17471 by @delemeator
+- Allow to change Admin email plugin custom templates back to default - #17563 by @wcislo-saleor
+- Fixes incorrect gift card balances after covering the full order total - #17566 by @korycins
+- Fixes tax class not clearing when selecting a shipping method without a tax class - #17560 by @korycins
+- The prices for draft orders created in `OrderBulkCreate` now are properly calculated - #17583 by @IKarbowiak

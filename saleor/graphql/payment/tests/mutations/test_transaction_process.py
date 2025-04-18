@@ -2301,7 +2301,7 @@ def test_for_order_too_long_message_in_response(
         mocked_process=mocked_process,
         charged_value=expected_amount,
         returned_data=None,
-        expected_message=expected_response["message"][:509] + "...",
+        expected_message=expected_response["message"][:511] + "…",
     )
     assert (
         "Value for field: message in response of transaction action webhook "

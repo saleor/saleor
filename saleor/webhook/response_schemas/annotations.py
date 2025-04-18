@@ -7,8 +7,10 @@ from pydantic_core import PydanticUseDefault
 
 from ...core.utils.metadata_manager import metadata_is_valid
 
+M = TypeVar("M")
 
-def skip_invalid_metadata(value: Any) -> Any:
+
+def skip_invalid_metadata(value: M) -> M:
     if not metadata_is_valid(value):
         raise PydanticUseDefault()
     return value

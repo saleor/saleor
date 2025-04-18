@@ -9,15 +9,18 @@ from pydantic import (
     Field,
     RootModel,
     ValidationError,
+    ValidationInfo,
     ValidatorFunctionWrapHandler,
     WrapValidator,
     field_validator,
 )
 from pydantic_core import PydanticOmit
 
+from ...app.models import App
 from ...graphql.core.utils import from_global_id_or_error
 from ...shipping.models import ShippingMethod
 from ..const import APP_ID_PREFIX
+from ..transport.shipping_helpers import to_shipping_app_id
 from .annotations import DefaultIfNone, Metadata
 
 logger = logging.getLogger(__name__)
@@ -41,9 +44,9 @@ OnErrorSkipShippingMethod = Annotated[T, WrapValidator(skip_invalid_shipping_met
 
 
 class ShippingMethodSchema(BaseModel):
-    id: str = Field(coerce_numbers_to_str=True)
-    name: str = Field(max_length=name_max_length)
-    amount: Decimal = Field(ge=0)
+    id: Annotated[str, Field(coerce_numbers_to_str=True)]
+    name: Annotated[str, Field(max_length=name_max_length)]
+    amount: Annotated[Decimal, Field(ge=0)]
     currency: str
     maximum_delivery_days: Annotated[int, Field(ge=0)] | None = None
     minimum_delivery_days: Annotated[int, Field(ge=0)] | None = None
@@ -53,6 +56,14 @@ class ShippingMethodSchema(BaseModel):
     @property
     def price(self) -> Money:
         return Money(self.amount, self.currency)
+
+    @field_validator("id", mode="after")
+    @classmethod
+    def clean_id(cls, shipping_method_id: str, info: ValidationInfo) -> str:
+        app: App | None = info.context.get("app", None) if info.context else None
+        if not app:
+            raise RuntimeError("Missing app in context")
+        return to_shipping_app_id(app, shipping_method_id)
 
 
 class ListShippingMethodsSchema(RootModel):

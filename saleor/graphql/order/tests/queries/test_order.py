@@ -7,7 +7,8 @@ from prices import Money, TaxedMoney
 from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
-from .....order import OrderStatus
+from .....discount import DiscountType
+from .....order import OrderOrigin, OrderStatus
 from .....order.events import transaction_event
 from .....order.models import Order, OrderGrantedRefund
 from .....order.utils import (
@@ -122,6 +123,9 @@ query OrdersQuery {
                     valueType
                     value
                     reason
+                    total{
+                        amount
+                    }
                     amount{
                         amount
                     }
@@ -968,7 +972,74 @@ def test_order_discounts_query(
     assert discount_data["valueType"] == discount.value_type.upper()
     assert discount_data["value"] == discount.value
     assert discount_data["amount"]["amount"] == discount.amount_value
+    assert discount_data["total"]["amount"] == discount.amount_value
     assert discount_data["reason"] == discount.reason
+
+
+def test_order_discounts_query_with_line_lvl_voucher_discount_from_checkout(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    order_with_lines,
+    voucher,
+):
+    # given
+
+    order = order_with_lines
+    order.voucher = voucher
+    order.voucher_code = voucher.code
+    order.status = OrderStatus.UNCONFIRMED
+    order.origin = OrderOrigin.CHECKOUT
+    order.save()
+
+    expected_reason = "Voucher"
+    expected_discount_value = Decimal(5)
+
+    first_order_line = order.lines.first()
+    first_order_line_discount = first_order_line.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=voucher.discount_value_type,
+        value=expected_discount_value,
+        amount_value=expected_discount_value,
+        currency=first_order_line.currency,
+        reason="Voucher",
+        voucher=voucher,
+        voucher_code=voucher.code,
+    )
+
+    second_order_line = order.lines.last()
+    second_order_line_discount = second_order_line.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=voucher.discount_value_type,
+        value=expected_discount_value,
+        amount_value=expected_discount_value,
+        currency=second_order_line.currency,
+        reason="Voucher",
+        voucher=voucher,
+        voucher_code=voucher.code,
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_shipping.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    discounts_data = order_data.get("discounts")
+    assert len(discounts_data) == 1
+    discount_data = discounts_data[0]
+    _, discount_id = graphene.Node.from_global_id(discount_data["id"])
+    assert discount_id == str(first_order_line_discount.id)
+    assert discount_data["valueType"] == voucher.discount_value_type.upper()
+    assert discount_data["reason"] == expected_reason
+    order_discount_amount = (
+        first_order_line_discount.amount_value + second_order_line_discount.amount_value
+    )
+    assert discount_data["amount"]["amount"] == order_discount_amount
+    assert discount_data["total"]["amount"] == order_discount_amount
 
 
 def test_order_line_discount_query(

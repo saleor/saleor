@@ -2413,7 +2413,7 @@ def test_transaction_create_create_event_message_limit_exceeded(
 
     transaction = order_with_lines.payment_transactions.first()
     event = transaction.events.last()
-    assert event.message == transaction_msg[:509] + "..."
+    assert event.message == transaction_msg[:511] + "…"
     assert event.psp_reference == transaction_reference
 
 
