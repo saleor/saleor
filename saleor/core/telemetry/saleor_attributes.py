@@ -4,7 +4,7 @@ SALEOR_ENVIRONMENT_DOMAIN: Final = "saleor.environment.domain"
 
 COMPONENT: Final = "component"
 SPAN_TYPE: Final = "span.type"
-RESOURCE_NAME: Final = "resource.name"
+OPERATION_NAME: Final = "operation.name"
 
 # GraphQL
 GRAPHQL_DOCUMENT_FINGERPRINT: Final = "graphql.document_fingerprint"

@@ -9,6 +9,7 @@ from ..utils import (
     TelemetryTaskContext,
     Unit,
     convert_unit,
+    enrich_span_with_global_attributes,
     enrich_with_global_attributes,
     get_global_attributes,
     set_global_attributes,
@@ -112,6 +113,36 @@ def test_enrich_with_global_attributes_none():
 
         # then
         assert enriched == global_attrs
+
+
+def test_enrich_span_with_global_attributes():
+    # given
+    global_attrs: dict[str, AttributeValue] = {"global_key": "global_value"}
+    local_attrs: dict[str, AttributeValue] = {"local_key": "local_value"}
+    span_name = "graphql_query"
+
+    with set_global_attributes(global_attrs):
+        # when
+        enriched = enrich_span_with_global_attributes(local_attrs, span_name)
+
+        # then
+        assert enriched is not None
+        assert enriched["operation.name"] == span_name
+        assert enriched["global_key"] == "global_value"
+        assert enriched["local_key"] == "local_value"
+
+
+def test_enrich_span_with_global_attributes_none():
+    # given
+    global_attrs: dict[str, AttributeValue] = {"global_key": "global_value"}
+    span_name = "graphql_query"
+
+    with set_global_attributes(global_attrs):
+        # when
+        enriched = enrich_span_with_global_attributes(None, span_name)
+
+        # then
+        assert enriched == {"operation.name": span_name, **global_attrs}
 
 
 def test_telemetry_task_context_to_dict():
