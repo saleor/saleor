@@ -79,9 +79,11 @@ class PublishableModel(models.Model):
 
 class ModelWithMetadata(models.Model):
     private_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
-    metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
+    metadata = JSONField(
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
+    )
 
     class Meta:
         indexes: list[PostgresIndex] = [

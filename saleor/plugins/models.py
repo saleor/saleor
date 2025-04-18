@@ -14,9 +14,7 @@ class PluginConfiguration(models.Model):
     )
     description = models.TextField(blank=True)
     active = models.BooleanField(default=False)
-    configuration = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
-    )
+    configuration = JSONField(db_default={}, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         unique_together = ("identifier", "channel")

@@ -208,7 +208,7 @@ class SaleorGraphQLBackend(GraphQLCoreBackend):
             schema=schema,
             document_string=document_string,
             document_ast=document_ast,
-            execute=partial(execute, schema, document_ast, **self.execute_params),
+            execute=partial(execute, schema, document_ast, **self.execute_params),  # type: ignore[arg-type]
         )
 
 

@@ -403,7 +403,7 @@ def get_order_lines_data(
             undiscounted_amount = prices_data.undiscounted_price.net.amount
             price_with_discounts_amount = prices_data.price_with_discounts.net.amount
 
-        append_line_to_data_kwargs = {
+        append_line_to_data_kwargs: dict[str, Any] = {
             "data": data,
             "quantity": line.quantity,
             # This is a workaround for Avatax and sending a lines with amount 0. Like

@@ -21,6 +21,9 @@ class FinalSortOrder:
     def _prepare_related_fields_for_save(self, operation_name, fields=None):
         pass
 
+    def _is_pk_set(self):
+        return self.pk is not None
+
 
 class Reordering:
     def __init__(
