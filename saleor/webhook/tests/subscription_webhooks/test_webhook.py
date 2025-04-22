@@ -36,7 +36,10 @@ def test_trigger_webhooks_async(
     for delivery in deliveries:
         assert (
             mock.call(
-                kwargs={"event_delivery_id": delivery.id},
+                kwargs={
+                    "event_delivery_id": delivery.id,
+                    "telemetry_context": mock.ANY,
+                },
                 queue=None,
                 bind=True,
                 retry_backoff=10,
@@ -98,7 +101,10 @@ def test_trigger_webhooks_async_for_multiple_objects(
     for delivery in deliveries:
         assert (
             mock.call(
-                kwargs={"event_delivery_id": delivery.id},
+                kwargs={
+                    "event_delivery_id": delivery.id,
+                    "telemetry_context": mock.ANY,
+                },
                 queue=None,
                 bind=True,
                 retry_backoff=10,

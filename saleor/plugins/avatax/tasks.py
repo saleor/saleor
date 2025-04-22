@@ -1,11 +1,10 @@
-import opentracing
-import opentracing.tags
 from celery.utils.log import get_task_logger
 from django.conf import settings
 
 from ...celeryconf import app
 from ...core.db.connection import allow_writer
 from ...core.taxes import TaxError
+from ...core.telemetry import saleor_attributes, tracer
 from ...order.events import external_notification_event
 from ...order.models import Order
 from . import AvataxConfiguration, api_post_request
@@ -38,12 +37,8 @@ def api_post_request_task(transaction_url, data, config, order_id):
         )
         return
 
-    with opentracing.global_tracer().start_active_span(
-        "avatax.transactions.crateoradjust"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "tax")
-        span.set_tag("service.name", "avatax")
+    with tracer.start_as_current_span("avatax.transactions.crateoradjust") as span:
+        span.set_attribute(saleor_attributes.COMPONENT, "tax")
         response = api_post_request(transaction_url, data, config)
     msg = f"Order sent to Avatax. Order ID: {order.id}"
     if not response or "error" in response:

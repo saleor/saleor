@@ -1,28 +1,35 @@
 import hashlib
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
-from opentracing.mocktracer import MockTracer
+from django.test import override_settings
+from opentelemetry.sdk.trace import ReadableSpan
+from opentelemetry.semconv._incubating.attributes import graphql_attributes
+from opentelemetry.trace import StatusCode
+
+from ...core.telemetry import saleor_attributes
+from ...graphql.api import backend, schema
+from ..views import GraphQLView
 
 
-def _get_graphql_span(spans):
-    return next(_get_graphql_spans(spans))
+def get_spans_by_name(spans, name) -> tuple[ReadableSpan, ...]:
+    return tuple(span for span in spans if span.name == name)
 
 
-def _get_graphql_spans(spans):
-    return filter(lambda item: item.tags.get("graphql.query_fingerprint"), spans)
+def get_span_by_name(spans, name) -> ReadableSpan:
+    filtered = get_spans_by_name(spans, name)
+    assert filtered, f"No span with name '{name}' found"
+    assert len(filtered) == 1, f"Multiple '{name}' spans"
+    return filtered[0]
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -39,22 +46,24 @@ def test_tracing_query_hashing(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:test:{hash}"
+    hash = hashlib.md5(
+        span.attributes[graphql_attributes.GRAPHQL_DOCUMENT].encode("utf-8")
+    ).hexdigest()
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
+        == f"query:test:{hash}"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_with_fragment(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         fragment ProductVariant on ProductVariant {
           id
@@ -77,22 +86,24 @@ def test_tracing_query_hashing_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:test:{hash}"
+    hash = hashlib.md5(
+        span.attributes[graphql_attributes.GRAPHQL_DOCUMENT].encode("utf-8")
+    ).hexdigest()
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
+        == f"query:test:{hash}"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_different_vars_same_checksum(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test($first: Int!) {
           products(first: $first) {
@@ -114,22 +125,19 @@ def test_tracing_query_hashing_different_vars_same_checksum(
 
     # then
     fingerprints = [
-        span.tags["graphql.query_fingerprint"]
-        for span in _get_graphql_spans(tracer.finished_spans())
+        span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
+        for span in get_spans_by_name(get_test_spans(), query)
     ]
     assert len(fingerprints) == QUERIES
     assert len(set(fingerprints)) == 1
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_unnamed_query(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query {
           products(first:5) {
@@ -146,22 +154,24 @@ def test_tracing_query_hashing_unnamed_query(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:{hash}"
+    hash = hashlib.md5(
+        span.attributes[graphql_attributes.GRAPHQL_DOCUMENT].encode("utf-8")
+    ).hexdigest()
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
+        == f"query:{hash}"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_hashing_unnamed_query_no_query_spec(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         {
           products(first:5) {
@@ -178,23 +188,25 @@ def test_tracing_query_hashing_unnamed_query_no_query_spec(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"query:{hash}"
+    hash = hashlib.md5(
+        span.attributes[graphql_attributes.GRAPHQL_DOCUMENT].encode("utf-8")
+    ).hexdigest()
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
+        == f"query:{hash}"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_mutation_hashing(
-    tracing_mock,
     staff_api_client,
     permission_manage_orders,
     order_with_lines,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     order = order_with_lines
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -214,24 +226,29 @@ def test_tracing_mutation_hashing(
 
     # when
     staff_api_client.post_graphql(
-        mutation, variables, permissions=[permission_manage_orders]
+        mutation,
+        variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
     )
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), mutation)
 
     # then
-    hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
-    assert span.tags["graphql.query_fingerprint"] == f"mutation:cancelOrder:{hash}"
+    hash = hashlib.md5(
+        span.attributes[graphql_attributes.GRAPHQL_DOCUMENT].encode("utf-8")
+    ).hexdigest()
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
+        == f"mutation:cancelOrder:{hash}"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_query(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first: 5, channel:"default-channel") {
@@ -253,20 +270,24 @@ def test_tracing_query_identifier_for_query(
           }
         }
     """
+
+    # when
     staff_api_client.user.user_permissions.add(permission_manage_products)
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
-    assert span.tags["graphql.query_identifier"] == "me, products"
+    span = get_span_by_name(get_test_spans(), query)
+
+    # then
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER]
+        == "me, products"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_with_fragment(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         fragment ProductVariant on ProductVariant {
           id
@@ -289,20 +310,17 @@ def test_tracing_query_identifier_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert span.tags["graphql.query_identifier"] == "products"
+    assert span.attributes[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] == "products"
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_unnamed_mutation(
-    tracing_mock,
     staff_api_client,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         mutation{
           tokenCreate(email: "admin@example.com", password:"admin"){
@@ -313,20 +331,19 @@ def test_tracing_query_identifier_for_unnamed_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert span.tags["graphql.query_identifier"] == "tokenCreate"
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] == "tokenCreate"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_named_mutation(
-    tracing_mock,
     staff_api_client,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         mutation MutationName{
           tokenCreate(email: "admin@example.com", password:"admin"){
@@ -337,20 +354,19 @@ def test_tracing_query_identifier_for_named_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert span.tags["graphql.query_identifier"] == "tokenCreate"
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] == "tokenCreate"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_for_many_mutations(
-    tracing_mock,
     staff_api_client,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
       mutation {
         tokenCreate(email: "admin@example.com", password:"admin"){
@@ -368,21 +384,21 @@ def test_tracing_query_identifier_for_many_mutations(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert span.tags["graphql.query_identifier"] == "deleteWarehouse, tokenCreate"
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER]
+        == "deleteWarehouse, tokenCreate"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_query_identifier_undefined(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         fragment ProductVariant on ProductVariant {
           id
@@ -392,21 +408,20 @@ def test_tracing_query_identifier_undefined(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert span.tags["graphql.query_identifier"] == "undefined"
+    assert (
+        span.attributes[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] == "undefined"
+    )
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_dont_have_app_data_staff_as_requestor(
-    tracing_mock,
     staff_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -423,22 +438,19 @@ def test_tracing_dont_have_app_data_staff_as_requestor(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert "app.name" not in span.tags
-    assert "app.id" not in span.tags
+    assert "app.name" not in span.attributes
+    assert "app.id" not in span.attributes
 
 
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_have_app_data_app_as_requestor(
-    tracing_mock,
     app_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -456,11 +468,11 @@ def test_tracing_have_app_data_app_as_requestor(
 
     # when
     app_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
 
     # then
-    assert span.tags["app.name"] == app.name
-    assert span.tags["app.id"] == app.id
+    assert span.attributes[saleor_attributes.SALEOR_APP_NAME] == app.name
+    assert span.attributes[saleor_attributes.SALEOR_APP_ID] == app.id
 
 
 @pytest.mark.parametrize(
@@ -477,17 +489,14 @@ def test_tracing_have_app_data_app_as_requestor(
         (None, "unknown_service"),
     ],
 )
-@patch("saleor.graphql.views.opentracing.global_tracer")
 def test_tracing_have_source_service_name_set(
-    tracing_mock,
     header_source,
     expected_result,
     app_api_client,
     permission_manage_products,
+    get_test_spans,
 ):
     # given
-    tracer = MockTracer()
-    tracing_mock.return_value = tracer
     query = """
         query test {
           products(first:5) {
@@ -507,9 +516,97 @@ def test_tracing_have_source_service_name_set(
     app_api_client.post_graphql(query, headers={"source-service-name": header_source})
 
     # then
-    spans = list(
-        filter(lambda s: s.tags.get("source.service.name"), tracer.finished_spans())
+    span = get_span_by_name(get_test_spans(), query)
+    assert (
+        span.attributes[saleor_attributes.SALEOR_SOURCE_SERVICE_NAME] == expected_result
     )
-    assert len(spans) == 1
-    span = spans[0]
-    assert span.tags["source.service.name"] == expected_result
+
+
+@pytest.mark.parametrize(
+    ("data", "error_message"),
+    [
+        ("", "Must provide a query string."),
+        (
+            {"query": "{"},
+            "Syntax Error GraphQL (1:2) Expected Name, found EOF\n\n1: {\n    ^\n",
+        ),
+        (
+            {
+                "query": "query { ... { __schema { __typename } } ... { shop { name } } }"
+            },
+            "Queries and introspection cannot be mixed in the same request.",
+        ),
+        (
+            {"query": "{ products(first: 9999999999) { edges { node { id } } } }"},
+            'Argument "first" has invalid value 9999999999.\nExpected type "Int", found 9999999999.',
+        ),
+    ],
+)
+@patch("saleor.core.telemetry.tracer.start_as_current_span")
+def test_graphql_query_span_set_status_error_invalid_query(
+    mock_start_span,
+    data,
+    error_message,
+    rf,
+):
+    # given
+    mock_span = MagicMock()
+    mock_start_span.return_value.__enter__.return_value = mock_span
+
+    request = rf.post(
+        path="/graphql",
+        data=data,
+        content_type="application/json",
+    )
+
+    # when
+    view = GraphQLView.as_view(backend=backend, schema=schema)
+    view(request)
+
+    # then
+    mock_span.set_status.assert_called_once_with(
+        status=StatusCode.ERROR, description=error_message
+    )
+
+
+@override_settings(GRAPHQL_QUERY_MAX_COMPLEXITY=1)
+@patch("saleor.core.telemetry.tracer.start_as_current_span")
+def test_graphql_query_span_set_status_error_cost_exceeded(
+    mock_start_span,
+    api_client,
+    variant_with_many_stocks,
+    channel_USD,
+):
+    # given
+    mock_span = MagicMock()
+    mock_start_span.return_value.__enter__.return_value = mock_span
+
+    query_fields = "\n".join(
+        [
+            f"p{i}:  productVariant(id: $id, channel: $channel) {{ id }}"
+            for i in range(20)
+        ]
+    )
+    query = f"""
+        query variantAvailability($id: ID!, $channel: String) {{
+            {query_fields}
+        }}
+    """
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    json_response = response.json()
+    query_cost = json_response["extensions"]["cost"]["requestedQueryCost"]
+    expected_error_message = (
+        f"The query exceeds the maximum cost of 1. Actual cost is {query_cost}"
+    )
+    mock_span.set_status.assert_called_once_with(
+        status=StatusCode.ERROR, description=expected_error_message
+    )

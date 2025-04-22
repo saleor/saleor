@@ -30,7 +30,7 @@ from .errors import (
 from .utils import (
     create_refunded_lines,
     notify_dashboard,
-    np_atobarai_opentracing_trace,
+    np_atobarai_otel_trace,
 )
 
 if TYPE_CHECKING:
@@ -52,7 +52,7 @@ def _request(
     json: dict | None = None,
 ) -> requests.Response:
     trace_name = f"np-atobarai.request.{path.lstrip('/')}"
-    with np_atobarai_opentracing_trace(trace_name):
+    with np_atobarai_otel_trace(trace_name):
         response = HTTPClient.send_request(
             method,
             get_url(config, path),
