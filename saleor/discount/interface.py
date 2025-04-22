@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import TYPE_CHECKING, NamedTuple, Optional
 
-from .models import Voucher
+from . import DiscountType, DiscountValueType
+from .models import PromotionRule, Voucher
 
 if TYPE_CHECKING:
     from ..product.models import (
@@ -14,6 +16,26 @@ if TYPE_CHECKING:
         PromotionRuleTranslation,
         PromotionTranslation,
     )
+
+
+@dataclass
+class DiscountInfo:
+    """It stores the discount details.
+
+    The dataclass used to represent the discount before storing it on database side.
+    """
+
+    currency: str
+    type: str = DiscountType.MANUAL
+    value_type: str = DiscountValueType.FIXED
+    value: Decimal = Decimal("0.0")
+    amount_value: Decimal = Decimal("0.0")
+    name: str | None = None
+    translated_name: str | None = None
+    reason: str | None = None
+    promotion_rule: PromotionRule | None = None
+    voucher: Voucher | None = None
+    voucher_code: str | None = None
 
 
 @dataclass

@@ -224,7 +224,9 @@ def test_update_voucher_discount_specific_product_with_apply_once_per_order(
     assert discount_2.reason == f"Voucher code: {order.voucher_code}"
     assert discount_2.value == voucher_2_discount_amount
 
-    unit_discount_amount_2 = discount_amount_2 / cheapest_line.quantity
+    unit_discount_amount_2 = quantize_price(
+        discount_amount_2 / cheapest_line.quantity, currency
+    )
     assert quantize_price(
         cheapest_line.base_unit_price_amount, currency
     ) == quantize_price(

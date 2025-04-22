@@ -793,6 +793,12 @@ def test_order_line_update_catalogue_discount(
     assert discount.amount_value != initial_discount_amount
     assert discount.amount_value == unit_discount * new_quantity
 
+    assert line_data["unitDiscountType"] == discount.value_type.upper()
+    assert line_data["unitDiscountValue"] == discount.value
+    assert Decimal(line_data["unitDiscount"]["amount"]) == quantize_price(
+        unit_discount, currency
+    )
+
 
 def test_order_line_update_apply_once_per_order_voucher_discount(
     order_with_lines,

@@ -481,14 +481,18 @@ def test_refresh_order_base_prices_apply_once_per_order_voucher_new_cheapest(
 
     assert line_2.undiscounted_base_unit_price_amount == new_variant_2_price
     assert line_2.base_unit_price_amount == expected_unit_price_2
-    assert line_2.unit_discount_amount == expected_unit_discount_2
+    assert line_2.unit_discount_amount == quantize_price(
+        expected_unit_discount_2, currency
+    )
 
     with pytest.raises(OrderLineDiscount.DoesNotExist):
         discount_1.refresh_from_db()
     assert not line_1.discounts.exists()
 
     discount_2 = line_2.discounts.get()
-    assert discount_2.amount.amount == expected_discount_amount_2
+    assert discount_2.amount.amount == quantize_price(
+        expected_discount_amount_2, currency
+    )
     assert discount_2.value == new_voucher_unit_discount
     assert discount_2.value_type == DiscountValueType.PERCENTAGE
 
