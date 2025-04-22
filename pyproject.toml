@@ -121,7 +121,7 @@ package-mode = false
   uvicorn = {extras = ["standard"], version = "^0.32.0"}
   setuptools = "^76.0.0"
   psycopg = {version = "^3.1.8", extras = ["binary"]}
-  opentelemetry-distro = {version = "^0.50b0", extras = ["otlp"]}
+  opentelemetry-distro = {extras = ["otlp"], version = "^0.53b1"}
   pydantic = "^2.10.6"
   pydantic-core = "^2.33.0"
 
