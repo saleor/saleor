@@ -2047,6 +2047,98 @@ def test_checkout_with_voucher_complete(
     assert order_line.unit_discount_reason == expected_unit_discount_reason
 
 
+@pytest.mark.parametrize(
+    (
+        "legacy_propagation",
+        "expected_unit_discount_amount",
+    ),
+    [
+        (True, Decimal("1.67")),
+        (
+            False,
+            Decimal(0),
+        ),
+    ],
+)
+@pytest.mark.integration
+def test_checkout_with_order_promotion_complete(
+    legacy_propagation,
+    expected_unit_discount_amount,
+    user_api_client,
+    checkout_with_item_and_order_discount,
+    address,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_item_and_order_discount
+
+    channel = checkout.channel
+    channel.use_legacy_line_voucher_propagation_for_order = legacy_propagation
+    channel.save()
+
+    checkout = prepare_checkout_for_test(
+        checkout,
+        address,
+        address,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+    )
+
+    discount_amount = checkout.discount
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+
+    assert order.total == total
+    assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
+    assert order.undiscounted_total == total + discount_amount
+
+    assert not Checkout.objects.filter(pk=checkout.pk).exists(), (
+        "Checkout should have been deleted"
+    )
+
+    order_line = order.lines.first()
+    assert order_line.unit_discount_amount == expected_unit_discount_amount
+    assert order_line.unit_discount_reason is None
+
+    order_discount = order.discounts.filter(type=DiscountType.ORDER_PROMOTION).first()
+    assert order_discount
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
+
+
 @pytest.mark.integration
 def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_transaction(
     user_api_client,
