@@ -98,6 +98,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
+    from ..channel.models import Channel
     from ..discount.models import Voucher, VoucherChannelListing, VoucherCode
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
@@ -392,7 +393,7 @@ def _create_line_for_order(
     )
 
     line_discounts = _create_order_line_discounts(
-        checkout_line_info, line, voucher_channel_listing
+        checkout_line_info, line, checkout_info.channel, voucher_channel_listing
     )
     line.unit_discount_reason = _get_unit_discount_reason(
         voucher_code,
@@ -444,6 +445,7 @@ def _get_unit_discount_reason(
 def _create_order_line_discount_object_for_voucher(
     checkout_line_info: "CheckoutLineInfo",
     order_line: "OrderLine",
+    channel: "Channel",
     voucher_channel_listing: Optional["VoucherChannelListing"],
 ) -> OrderLineDiscount | None:
     voucher = checkout_line_info.voucher
@@ -460,11 +462,20 @@ def _create_order_line_discount_object_for_voucher(
     code = checkout_line_info.voucher_code
     discount_reason = f"Voucher code: {code}"
 
+    if channel.use_legacy_line_voucher_propagation_for_order:
+        # Previously voucher discount was always set as fixed value. To keep it in the
+        # same way as previously we force the fixed type when legacy flow is used
+        value_type = DiscountValueType.FIXED
+        value = discount_amount
+    else:
+        value_type = voucher.discount_value_type
+        value = voucher_channel_listing.discount_value
+
     return OrderLineDiscount(
         line=order_line,
         type=DiscountType.VOUCHER,
-        value_type=DiscountValueType.FIXED,
-        value=discount_amount,
+        value_type=value_type,
+        value=value,
         amount_value=discount_amount,
         currency=order_line.currency,
         name=discount_name,
@@ -479,6 +490,7 @@ def _create_order_line_discount_object_for_voucher(
 def _create_order_line_discounts(
     checkout_line_info: "CheckoutLineInfo",
     order_line: "OrderLine",
+    channel: "Channel",
     voucher_channel_listing: Optional["VoucherChannelListing"],
 ) -> list["OrderLineDiscount"]:
     line_discounts = []
@@ -491,7 +503,10 @@ def _create_order_line_discounts(
         line_discounts.append(OrderLineDiscount(**discount_data))
 
     voucher_line_discount = _create_order_line_discount_object_for_voucher(
-        checkout_line_info, order_line, voucher_channel_listing=voucher_channel_listing
+        checkout_line_info,
+        order_line,
+        channel=channel,
+        voucher_channel_listing=voucher_channel_listing,
     )
     if voucher_line_discount:
         line_discounts.append(voucher_line_discount)

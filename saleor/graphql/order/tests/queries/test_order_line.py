@@ -766,8 +766,12 @@ def test_order_query_undiscounted_prices_no_tax(
 QUERY_WITH_LINE_DISCOUNTS = """
     query OrderQuery($id: ID) {
       order(id: $id) {
+        discounts {
+          id
+        }
         lines {
           discounts{
+            id
             valueType
             value
             reason
@@ -822,10 +826,16 @@ def test_order_line_returns_discount_object(
     assert line_discount["total"]["amount"] == expected_amount
 
 
-def test_order_line_skips_voucher_discount_object_when_checkout_origin(
-    staff_api_client, order_with_lines, permission_group_all_perms_all_channels
+def test_order_line_skips_voucher_discount_object_when_checkout_origin_and_legacy_flow(
+    staff_api_client,
+    order_with_lines,
+    permission_group_all_perms_all_channels,
+    channel_USD,
 ):
     # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = True
+    channel_USD.save()
+
     expected_amount = Decimal("6")
     expected_reason = "test"
 
@@ -853,5 +863,57 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin(
     # then
     content = get_graphql_content(response)
     line_discounts = content["data"]["order"]["lines"][0]["discounts"]
-
     assert len(line_discounts) == 0
+    assert content["data"]["order"]["discounts"]
+
+
+def test_order_line_skips_voucher_discount_object_when_checkout_origin(
+    staff_api_client,
+    order_with_lines,
+    permission_group_all_perms_all_channels,
+    channel_USD,
+):
+    # given
+    channel_USD.use_legacy_line_voucher_propagation_for_order = False
+    channel_USD.save()
+
+    expected_amount = Decimal("6")
+    expected_reason = "test"
+
+    order_with_lines.origin = OrderOrigin.CHECKOUT
+    order_with_lines.save()
+
+    line = order_with_lines.lines.first()
+    line_discount = line.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=expected_amount,
+        amount_value=expected_amount,
+        currency=line.currency,
+        reason=expected_reason,
+    )
+
+    permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WITH_LINE_DISCOUNTS,
+        variables={"id": to_global_id_or_none(order_with_lines)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    line_discounts_data = content["data"]["order"]["lines"][0]["discounts"]
+    assert len(line_discounts_data) == 1
+    line_discount_data = line_discounts_data[0]
+
+    assert line_discount_data["id"] == to_global_id_or_none(line_discount)
+    assert line_discount_data["valueType"] == DiscountValueType.FIXED.upper()
+    assert line_discount_data["reason"] == expected_reason
+    assert (
+        line_discount_data["unit"]["amount"]
+        == line_discount.amount_value / line.quantity
+    )
+    assert line_discount_data["total"]["amount"] == line_discount.amount_value
+
+    assert not content["data"]["order"]["discounts"]

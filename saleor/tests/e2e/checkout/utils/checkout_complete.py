@@ -90,6 +90,17 @@ mutation CheckoutComplete($checkoutId: ID!) {
         unitDiscountType
         unitDiscountReason
         unitDiscountValue
+        discounts{
+          id
+          type
+          value
+          total{
+            amount
+          }
+          unit{
+            amount
+          }
+        }
       }
       discounts {
         id
