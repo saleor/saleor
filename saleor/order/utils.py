@@ -890,7 +890,7 @@ def update_discount_for_order_line(
     """Update discount fields for order line. Apply discount to the price."""
     line_discounts = list(order_line.discounts.all())
     _remove_invalid_discounts_for_adding_manual(line_discounts)
-    manual_line_discount = _get_order_line_discount_to_update(line_discounts)
+    manual_line_discount = _get_manual_order_line_discount(line_discounts)
     if not manual_line_discount:
         current_value = None
         current_value_type = None
@@ -911,7 +911,7 @@ def update_discount_for_order_line(
     undiscounted_base_unit_price = order_line.undiscounted_base_unit_price
     currency = undiscounted_base_unit_price.currency
 
-    _create_or_update_manual_order_line_discount_object(
+    _update_order_line_discount_object(
         value,
         value_type,
         reason,
@@ -957,7 +957,7 @@ def _remove_invalid_discounts_for_adding_manual(
         ).delete()
 
 
-def _get_order_line_discount_to_update(
+def _get_manual_order_line_discount(
     order_line_discounts: list[OrderLineDiscount],
 ) -> OrderLineDiscount | None:
     discount_to_update = None
@@ -968,7 +968,7 @@ def _get_order_line_discount_to_update(
     return discount_to_update
 
 
-def _create_or_update_manual_order_line_discount_object(
+def _update_order_line_discount_object(
     value: Decimal,
     value_type: str,
     reason: str | None,
