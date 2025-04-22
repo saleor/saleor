@@ -77,7 +77,9 @@ class Meter:
         if type == MetricType.UP_DOWN_COUNTER:
             return otel_meter.create_up_down_counter(name, **kwargs)
         if type == MetricType.HISTOGRAM:
-            return otel_meter.create_histogram(name, **kwargs)
+            return otel_meter.create_histogram(
+                name, **kwargs, explicit_bucket_boundaries_advisory=None
+            )
         raise AttributeError(f"Unsupported instrument type: {type}")
 
     def create_metric(
