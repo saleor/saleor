@@ -2361,7 +2361,13 @@ class Order(ModelObjectType[models.Order]):
         def _resolve_total_refund(data):
             payments, transactions = data
             last_payment = get_last_payment(payments)
-            if last_payment and last_payment.is_active:
+            payment_is_active = last_payment and last_payment.is_active
+            payment_is_fully_refunded = (
+                last_payment
+                and last_payment.charge_status == ChargeStatus.FULLY_REFUNDED
+            )
+
+            if payment_is_active or payment_is_fully_refunded:
                 return (
                     TransactionByPaymentIdLoader(info.context)
                     .load(last_payment.id)
