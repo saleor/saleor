@@ -1,0 +1,47 @@
+from opentelemetry.semconv.attributes import error_attributes
+
+from ...core.models import EventDeliveryStatus
+from ...core.telemetry import MetricType, Scope, Unit, meter
+from .utils import WebhookResponse
+
+# Initialize metrics
+METRIC_EXTERNAL_REQUEST_COUNT = meter.create_metric(
+    "saleor.external_request_count",
+    scope=Scope.SERVICE,
+    type=MetricType.COUNTER,
+    unit=Unit.REQUEST,
+    description="",
+)
+METRIC_EXTERNAL_REQUEST_DURATION = meter.create_metric(
+    "saleor.external_request_duration",
+    scope=Scope.SERVICE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.SECOND,
+    description="",
+)
+METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH = meter.create_metric(
+    "saleor.external_request_content_length",
+    scope=Scope.SERVICE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.BYTE,
+    description="",
+)
+
+
+def record_external_request(webhook_response: WebhookResponse, payload_size: int):
+    attributes = {}
+    if webhook_response.status == EventDeliveryStatus.FAILED:
+        attributes[error_attributes.ERROR_TYPE] = "request_error"
+    meter.record(METRIC_EXTERNAL_REQUEST_COUNT, 1, Unit.REQUEST, attributes=attributes)
+    meter.record(
+        METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH,
+        payload_size,
+        Unit.BYTE,
+        attributes=attributes,
+    )
+    meter.record(
+        METRIC_EXTERNAL_REQUEST_DURATION,
+        webhook_response.duration,
+        Unit.SECOND,
+        attributes=attributes,
+    )

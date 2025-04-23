@@ -37,6 +37,9 @@ from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
+from ..metrics import (
+    record_external_request,
+)
 from ..utils import (
     DeferredPayloadData,
     RequestorModelName,
@@ -622,6 +625,7 @@ def send_webhook_request_async(
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
 
+        record_external_request(response, payload_size)
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
