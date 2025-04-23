@@ -135,9 +135,12 @@ class Meter:
         return get_instrument_method(instrument)(amount, attributes)
 
     @contextmanager
-    def record_duration(self, metric_name: str) -> Iterator[dict[str, AttributeValue]]:
+    def record_duration(
+        self, metric_name: str, attributes: dict[str, AttributeValue] | None = None
+    ) -> Iterator[dict[str, AttributeValue]]:
         start = time.monotonic_ns()
-        attributes: dict[str, AttributeValue] = {}
+        if attributes is None:
+            attributes = {}
         try:
             yield attributes
         finally:

@@ -41,8 +41,6 @@ from .metrics import (
 )
 from .query_cost_map import COST_MAP
 from .utils import (
-    GRAPHQL_IDENTIFIER_UNKNOWN,
-    GRAPHQL_OPERATION_TYPE_UNKNOWN,
     format_error,
     get_source_service_name_value,
     query_fingerprint,
@@ -272,7 +270,7 @@ class GraphQLView(View):
             tracer.start_as_current_span(
                 "GraphQL Operation", scope=Scope.SERVICE
             ) as span,
-            record_graphql_query_duration(),
+            record_graphql_query_duration() as query_duration_attrs,
         ):
             span.set_attribute(saleor_attributes.OPERATION_NAME, "graphql_query")
             span.set_attribute(saleor_attributes.COMPONENT, "graphql")
@@ -287,47 +285,56 @@ class GraphQLView(View):
 
             if error or document is None:
                 error_description = self.format_span_error_description(error)
-                span.set_status(status=StatusCode.ERROR, description=error_description)
-                record_graphql_query_count(
-                    identifier=GRAPHQL_IDENTIFIER_UNKNOWN,
-                    operation_type=GRAPHQL_OPERATION_TYPE_UNKNOWN,
+                error_type = (
+                    error.errors[0].__class__.__name__
+                    if error and error.errors
+                    else None
                 )
+                span.set_status(status=StatusCode.ERROR, description=error_description)
+                record_graphql_query_count(error_type=error_type)
                 return error
 
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
-                record_graphql_query_count(
-                    identifier=GRAPHQL_IDENTIFIER_UNKNOWN,
-                    operation_type=GRAPHQL_OPERATION_TYPE_UNKNOWN,
-                )
+                record_graphql_query_count(error_type=e.__class__.__name__)
                 return ExecutionResult(errors=[e], invalid=True)
 
             # Query identifier and fingerprint cannot be calculated earlier, as they
             # require a parsed and valid GraphQL document.
-            _query_identifier = query_identifier(document)
-            _query_fingerprint = query_fingerprint(document)
+            operation_identifier = query_identifier(document)
+            operation_fingerprint = query_fingerprint(document)
+            operation_type = document.get_operation_type(operation_name)
 
-            self._query = _query_identifier
+            self._query = operation_identifier
             raw_query_string = document.document_string
             span.update_name(raw_query_string)
             span.set_attribute(graphql_attributes.GRAPHQL_DOCUMENT, raw_query_string)
-            if operation_type := document.get_operation_type(operation_name):
+            if operation_type:
                 span.set_attribute(
                     graphql_attributes.GRAPHQL_OPERATION_TYPE, operation_type
+                )
+                query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_TYPE] = (
+                    operation_type
                 )
             if operation_name:
                 span.set_attribute(
                     graphql_attributes.GRAPHQL_OPERATION_NAME, operation_name
                 )
+                query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_NAME] = (
+                    operation_name
+                )
 
             span.set_attribute(
-                saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, _query_identifier
+                saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, operation_identifier
+            )
+            query_duration_attrs[saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER] = (
+                operation_identifier
             )
             span.set_attribute(
                 saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT,
-                _query_fingerprint,
+                operation_fingerprint,
             )
 
             source_service_name = get_source_service_name_value(
@@ -352,7 +359,10 @@ class GraphQLView(View):
                 error_description = self.format_span_error_description(result)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
                 record_graphql_query_count(
-                    identifier=_query_identifier, operation_type=operation_type or ""
+                    operation_name=operation_name or "",
+                    operation_identifier=operation_identifier,
+                    operation_type=operation_type or "",
+                    error_type=cost_errors[0].__class__.__name__,
                 )
                 return set_query_cost_on_result(result, query_cost)
 
@@ -370,6 +380,7 @@ class GraphQLView(View):
 
             try:
                 response = None
+                error_type = None
                 should_use_cache_for_scheme = query_contains_schema & (
                     not settings.DEBUG
                 )
@@ -387,6 +398,7 @@ class GraphQLView(View):
                         **extra_options,
                     )
                     if response.errors:
+                        error_type = response.errors[0].__class__.__name__
                         error_description = self.format_span_error_description(response)
                         span.set_status(
                             status=StatusCode.ERROR, description=error_description
@@ -395,6 +407,12 @@ class GraphQLView(View):
                     if should_use_cache_for_scheme:
                         cache.set(key, response)
 
+                record_graphql_query_count(
+                    operation_name=operation_name or "",
+                    operation_identifier=operation_identifier,
+                    operation_type=operation_type or "",
+                    error_type=error_type,
+                )
                 return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
@@ -404,11 +422,14 @@ class GraphQLView(View):
                 # As it's a validation error we want to raise GraphQLError instead.
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
+                record_graphql_query_count(
+                    operation_name=operation_name or "",
+                    operation_identifier=operation_identifier,
+                    operation_type=operation_type or "",
+                    error_type=e.__class__.__name__,
+                )
                 return ExecutionResult(errors=[e], invalid=True)
             finally:
-                record_graphql_query_count(
-                    identifier=_query_identifier, operation_type=operation_type or ""
-                )
                 clear_context(context)
 
     @staticmethod
