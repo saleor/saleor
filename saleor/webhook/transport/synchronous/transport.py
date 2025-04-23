@@ -43,6 +43,7 @@ from ...event_types import WebhookEventSyncType
 from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
 from .. import signature_for_payload
+from ..metrics import record_external_request
 from ..utils import (
     WebhookResponse,
     WebhookSchemes,
@@ -169,6 +170,7 @@ def _send_webhook_request_sync(
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
 
+    record_external_request(response, payload_size)
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
     observability.report_event_delivery_attempt(attempt)
