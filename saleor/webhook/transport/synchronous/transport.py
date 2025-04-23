@@ -170,7 +170,7 @@ def _send_webhook_request_sync(
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
 
-    record_external_request(response, payload_size)
+    record_external_request(webhook.target_url, response, payload_size)
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
     observability.report_event_delivery_attempt(attempt)

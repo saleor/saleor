@@ -624,7 +624,7 @@ def send_webhook_request_async(
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
 
-        record_external_request(response, payload_size)
+        record_external_request(webhook.target_url, response, payload_size)
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
