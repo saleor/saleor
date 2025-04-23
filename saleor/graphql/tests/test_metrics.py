@@ -1,10 +1,8 @@
 from unittest.mock import patch
 
-from ...core.telemetry import Unit
-from ...core.telemetry.attributes import (
-    SALEOR_GRAPHQL_IDENTIFIER,
-    SALEOR_GRAPHQL_OPERATION_TYPE,
-)
+from opentelemetry.semconv._incubating.attributes import graphql_attributes
+
+from ...core.telemetry import Unit, saleor_attributes
 from ..metrics import (
     METRIC_GRAPHQL_QUERY_COUNT,
     METRIC_GRAPHQL_QUERY_DURATION,
@@ -16,16 +14,19 @@ from ..metrics import (
 @patch("saleor.graphql.metrics.meter")
 def test_record_graphql_query_count(mock_meter):
     # when
-    record_graphql_query_count("identifier", "query", 5)
+    record_graphql_query_count(
+        operation_name="name", operation_type="query", operation_identifier="identifier"
+    )
 
     # then
     mock_meter.record.assert_called_once_with(
         METRIC_GRAPHQL_QUERY_COUNT,
-        5,
+        1,
         Unit.REQUEST,
         attributes={
-            SALEOR_GRAPHQL_IDENTIFIER: "identifier",
-            SALEOR_GRAPHQL_OPERATION_TYPE: "query",
+            graphql_attributes.GRAPHQL_OPERATION_NAME: "name",
+            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
         },
     )
 
@@ -40,5 +41,12 @@ def test_record_graphql_query_duration(mock_meter):
     result = record_graphql_query_duration()
 
     # then
-    mock_meter.record_duration.assert_called_once_with(METRIC_GRAPHQL_QUERY_DURATION)
+    call_attributes = {
+        graphql_attributes.GRAPHQL_OPERATION_NAME: "",
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
+    }
+    mock_meter.record_duration.assert_called_once_with(
+        METRIC_GRAPHQL_QUERY_DURATION, attributes=call_attributes
+    )
     assert result == mock_context_manager
