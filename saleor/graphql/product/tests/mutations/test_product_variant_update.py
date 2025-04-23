@@ -2838,7 +2838,11 @@ mutation ProductVariantUpdate($id: ID!, $input: ProductVariantInput!) {
 @patch(
     "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
 )
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
 def test_update_product_variant_nothing_changed(
+    save_variant_mock,
     call_event_mock,
     staff_api_client,
     product_with_variant_with_two_attributes,
@@ -2847,6 +2851,7 @@ def test_update_product_variant_nothing_changed(
     size_attribute,
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     product = product_with_variant_with_two_attributes
     variant = product.variants.first()
 
@@ -2902,7 +2907,6 @@ def test_update_product_variant_nothing_changed(
     response = staff_api_client.post_graphql(
         PRODUCT_VARIANT_UPDATE_MUTATION,
         variables,
-        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
@@ -2910,12 +2914,17 @@ def test_update_product_variant_nothing_changed(
     assert not content["data"]["productVariantUpdate"]["errors"]
     variant.refresh_from_db()
     call_event_mock.assert_not_called()
+    save_variant_mock.assert_not_called()
 
 
 @patch(
     "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate.call_event"
 )
+@patch(
+    "saleor.graphql.product.mutations.product_variant.ProductVariantUpdate._save_variant_instance"
+)
 def test_update_product_variant_emit_event(
+    save_variant_mock,
     call_event_mock,
     staff_api_client,
     product_with_variant_with_two_attributes,
@@ -2924,6 +2933,7 @@ def test_update_product_variant_emit_event(
     size_attribute,
 ):
     # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     product = product_with_variant_with_two_attributes
     variant = product.variants.first()
 
@@ -2970,7 +2980,8 @@ def test_update_product_variant_emit_event(
     }
     assert set(input_fields) == set(input.keys())
 
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    # fields making changes to related models (other than variant)
+    non_variant_instance_fields = ["attributes"]
 
     for key, value in input.items():
         variables = {"id": variant_id, "input": {key: value}}
@@ -2985,3 +2996,5 @@ def test_update_product_variant_emit_event(
         # then
         assert not content["data"]["productVariantUpdate"]["errors"]
         call_event_mock.assert_called()
+        if key not in non_variant_instance_fields:
+            save_variant_mock.assert_called()
