@@ -609,7 +609,6 @@ def send_webhook_request_async(
         payload_size = len(data)
         with webhooks_otel_trace(
             delivery.event_type,
-            domain,
             payload_size,
             app=webhook.app,
             span_links=telemetry_context.links,
