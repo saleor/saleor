@@ -87,6 +87,8 @@ class RequestPasswordReset(BaseMutation):
 
         if channel:
             channel_slug = validate_channel(channel, error_class=AccountErrorCode).slug
+        else:
+            channel_slug = ""
 
         trigger_send_password_reset_notification.delay(
             redirect_url=redirect_url,
