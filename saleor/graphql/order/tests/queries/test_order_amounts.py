@@ -2,6 +2,8 @@ from decimal import Decimal
 
 import pytest
 
+from saleor.core.prices import quantize_price
+
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -236,7 +238,7 @@ def test_order_total_refunded_query_with_payment_by_staff_user(
     assert total_refunded["amount"] == first_refund_amount + second_refund_amount
 
 
-def test_order_total_refunded_query_with_payment_by_app(
+def test_order_total_refunded_query_with_partially_refunded_payment_by_app(
     app_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
 ):
     # given
@@ -262,6 +264,29 @@ def test_order_total_refunded_query_with_payment_by_app(
     order_data = content["data"]["orders"]["edges"][0]["node"]
     total_refunded = order_data["totalRefunded"]
     assert total_refunded["amount"] == first_refund_amount + second_refund_amount
+
+
+def test_order_total_refunded_query_with_fully_refunded_payment_by_app(
+    app_api_client, permission_manage_orders, order_with_lines, payment_txn_refunded
+):
+    # given
+    payment = payment_txn_refunded
+    assert not payment.is_active
+    refund_transaction = payment.transactions.first()
+    assert refund_transaction.amount == payment.total
+
+    app_api_client.app.permissions.set([permission_manage_orders])
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_QUERY_WITH_AMOUNT_FIELDS)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    total_refunded = order_data["totalRefunded"]
+    assert quantize_price(
+        Decimal(total_refunded["amount"]), payment.currency
+    ) == quantize_price(payment.total, payment.currency)
 
 
 def test_order_total_refund_pending_query_with_transactions_by_staff_user(
