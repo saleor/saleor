@@ -833,7 +833,7 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin_and_legac
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = True
+    channel_USD.use_legacy_line_discount_propagation_for_order = True
     channel_USD.save()
 
     expected_amount = Decimal("6")
@@ -874,7 +874,7 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin(
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = False
+    channel_USD.use_legacy_line_discount_propagation_for_order = False
     channel_USD.save()
 
     expected_amount = Decimal("6")

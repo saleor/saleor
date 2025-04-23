@@ -211,7 +211,7 @@ class OrderSettings(ObjectType):
         ),
     )
 
-    use_legacy_line_voucher_propagation = graphene.Boolean(
+    use_legacy_line_discount_propagation = graphene.Boolean(
         required=True,
         description=(
             "This flag only affects orders created from checkout and applies "
@@ -530,8 +530,8 @@ class Channel(ModelObjectType):
             draft_order_line_price_freeze_period=(
                 root.draft_order_line_price_freeze_period
             ),
-            use_legacy_line_voucher_propagation=(
-                root.use_legacy_line_voucher_propagation_for_order
+            use_legacy_line_discount_propagation=(
+                root.use_legacy_line_discount_propagation_for_order
             ),
         )
 

@@ -1945,7 +1945,7 @@ def test_checkout_complete_with_variant_without_sku(
 
 @pytest.mark.parametrize(
     (
-        "legacy_voucher_propagation",
+        "legacy_discount_propagation",
         "expected_unit_discount_amount",
         "expected_unit_discount_reason",
     ),
@@ -1956,7 +1956,7 @@ def test_checkout_complete_with_variant_without_sku(
 )
 @pytest.mark.integration
 def test_checkout_with_voucher_complete(
-    legacy_voucher_propagation,
+    legacy_discount_propagation,
     expected_unit_discount_amount,
     expected_unit_discount_reason,
     user_api_client,
@@ -1969,7 +1969,7 @@ def test_checkout_with_voucher_complete(
 ):
     # given
     channel = checkout_with_voucher_percentage.channel
-    channel.use_legacy_line_voucher_propagation_for_order = legacy_voucher_propagation
+    channel.use_legacy_line_discount_propagation_for_order = legacy_discount_propagation
     channel.save()
 
     code = voucher_percentage.codes.first()
@@ -2075,7 +2075,7 @@ def test_checkout_with_order_promotion_complete(
     checkout = checkout_with_item_and_order_discount
 
     channel = checkout.channel
-    channel.use_legacy_line_voucher_propagation_for_order = legacy_propagation
+    channel.use_legacy_line_discount_propagation_for_order = legacy_propagation
     channel.save()
 
     checkout = prepare_checkout_for_test(
@@ -2354,7 +2354,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
 
 @pytest.mark.parametrize(
     (
-        "use_legacy_voucher_propagation",
+        "use_legacy_discount_propagation",
         "expected_voucher_discount_value_type",
         "expected_voucher_discount_value",
     ),
@@ -2365,7 +2365,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
 )
 @pytest.mark.integration
 def test_checkout_complete_with_voucher_apply_once_per_order(
-    use_legacy_voucher_propagation,
+    use_legacy_discount_propagation,
     expected_voucher_discount_value_type,
     expected_voucher_discount_value,
     user_api_client,
@@ -2378,8 +2378,8 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = (
-        use_legacy_voucher_propagation
+    channel_USD.use_legacy_line_discount_propagation_for_order = (
+        use_legacy_discount_propagation
     )
     channel_USD.save()
 
@@ -2908,7 +2908,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
 @pytest.mark.parametrize(
     (
-        "use_legacy_voucher_propagation",
+        "use_legacy_discount_propagation",
         "expected_voucher_discount_value_type",
         "expected_voucher_discount_value",
     ),
@@ -2918,7 +2918,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     ],
 )
 def test_checkout_with_voucher_on_specific_product_complete(
-    use_legacy_voucher_propagation,
+    use_legacy_discount_propagation,
     expected_voucher_discount_value_type,
     expected_voucher_discount_value,
     user_api_client,
@@ -2931,8 +2931,8 @@ def test_checkout_with_voucher_on_specific_product_complete(
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = (
-        use_legacy_voucher_propagation
+    channel_USD.use_legacy_line_discount_propagation_for_order = (
+        use_legacy_discount_propagation
     )
     channel_USD.save()
 
@@ -3386,7 +3386,7 @@ def test_checkout_complete_multiple_rules_applied(
 
 @pytest.mark.parametrize(
     (
-        "use_legacy_voucher_propagation",
+        "use_legacy_discount_propagation",
         "expected_voucher_discount_value_type",
         "expected_voucher_discount_value",
     ),
@@ -3396,7 +3396,7 @@ def test_checkout_complete_multiple_rules_applied(
     ],
 )
 def test_checkout_with_voucher_on_specific_product_complete_with_product_on_promotion(
-    use_legacy_voucher_propagation,
+    use_legacy_discount_propagation,
     expected_voucher_discount_value_type,
     expected_voucher_discount_value,
     user_api_client,
@@ -3410,8 +3410,8 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = (
-        use_legacy_voucher_propagation
+    channel_USD.use_legacy_line_discount_propagation_for_order = (
+        use_legacy_discount_propagation
     )
     channel_USD.save()
 

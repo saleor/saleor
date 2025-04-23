@@ -150,7 +150,7 @@ class OrderSettingsInput(BaseInputObjectType):
         ),
     )
 
-    use_legacy_line_voucher_propagation = graphene.Boolean(
+    use_legacy_line_discount_propagation = graphene.Boolean(
         required=False,
         description=(
             "This flag only affects orders created from checkout and applies "

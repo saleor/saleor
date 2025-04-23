@@ -998,7 +998,7 @@ def test_order_discounts_with_line_lvl_voucher_discount_from_checkout_and_legacy
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = True
+    channel_USD.use_legacy_line_discount_propagation_for_order = True
     channel_USD.save()
 
     order = order_with_lines
@@ -1072,7 +1072,7 @@ def test_order_discounts_with_line_lvl_voucher_discount_from_checkout(
     channel_USD,
 ):
     # given
-    channel_USD.use_legacy_line_voucher_propagation_for_order = False
+    channel_USD.use_legacy_line_discount_propagation_for_order = False
     channel_USD.save()
 
     order = order_with_lines

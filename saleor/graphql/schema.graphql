@@ -5189,7 +5189,7 @@ type OrderSettings {
   
   Added in Saleor 3.21.
   """
-  useLegacyLineVoucherPropagation: Boolean!
+  useLegacyLineDiscountPropagation: Boolean!
 }
 
 """
@@ -27551,7 +27551,7 @@ input OrderSettingsInput @doc(category: "Orders") {
   
   Added in Saleor 3.21.
   """
-  useLegacyLineVoucherPropagation: Boolean
+  useLegacyLineDiscountPropagation: Boolean
 }
 
 input CheckoutSettingsInput @doc(category: "Checkout") {

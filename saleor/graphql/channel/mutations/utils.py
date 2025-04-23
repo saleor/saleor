@@ -84,12 +84,12 @@ def clean_input_order_settings(
 
     # For newly created channels, by default use new discount propagation flow
     if instance.pk is None:
-        cleaned_input["use_legacy_line_voucher_propagation_for_order"] = False
+        cleaned_input["use_legacy_line_discount_propagation_for_order"] = False
 
-    if order_settings.get("use_legacy_line_voucher_propagation") is not None:
-        cleaned_input["use_legacy_line_voucher_propagation_for_order"] = order_settings[
-            "use_legacy_line_voucher_propagation"
-        ]
+    if order_settings.get("use_legacy_line_discount_propagation") is not None:
+        cleaned_input["use_legacy_line_discount_propagation_for_order"] = (
+            order_settings["use_legacy_line_discount_propagation"]
+        )
 
 
 def clean_input_checkout_settings(checkout_settings: dict, cleaned_input: dict):
