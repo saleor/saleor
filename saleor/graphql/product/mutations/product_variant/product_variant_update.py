@@ -275,11 +275,11 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             private_metadata_list, error_field_name="private_metadata"
         )
 
-        new_instance = cls.construct_instance(instance, cleaned_input)
+        cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(
-            new_instance, metadata_collection, private_metadata_collection
+            instance, metadata_collection, private_metadata_collection
         )
-        cls.clean_instance(info, new_instance)
+        cls.clean_instance(info, instance)
 
         variant_modified = cls._save(info, instance_tracker, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)

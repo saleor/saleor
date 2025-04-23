@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, TypeVar
 
 from django.db.models import Model
@@ -15,7 +16,7 @@ class InstanceTracker:
             for field in self.instance._meta.model._meta.fields
             if field.editable
         ]
-        self.initial_instance_values: dict[str, Any] = self.get_field_values()
+        self.initial_instance_values: dict[str, Any] = deepcopy(self.get_field_values())
 
     def get_field_values(self) -> dict[str, Any]:
         return {
