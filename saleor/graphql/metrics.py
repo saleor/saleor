@@ -1,12 +1,10 @@
 from contextlib import AbstractContextManager
 
+from opentelemetry.semconv._incubating.attributes import graphql_attributes
+from opentelemetry.semconv.attributes import error_attributes
 from opentelemetry.util.types import AttributeValue
 
-from ..core.telemetry import MetricType, Scope, Unit, meter
-from ..core.telemetry.attributes import (
-    SALEOR_GRAPHQL_IDENTIFIER,
-    SALEOR_GRAPHQL_OPERATION_TYPE,
-)
+from ..core.telemetry import MetricType, Scope, Unit, meter, saleor_attributes
 
 # Initialize metrics
 METRIC_GRAPHQL_QUERY_COUNT = meter.create_metric(
@@ -34,12 +32,19 @@ METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
 
 # Helper functions
 def record_graphql_query_count(
-    identifier: str, operation_type: str, amount: int = 1
+    operation_name: str = "",
+    operation_type: str = "",
+    operation_identifier: str = "",
+    amount: int = 1,
+    error_type: str | None = None,
 ) -> None:
     attributes = {
-        SALEOR_GRAPHQL_IDENTIFIER: identifier,
-        SALEOR_GRAPHQL_OPERATION_TYPE: operation_type,
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
+        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name,
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
     }
+    if error_type:
+        attributes[error_attributes.ERROR_TYPE] = error_type
     meter.record(
         METRIC_GRAPHQL_QUERY_COUNT, amount, Unit.REQUEST, attributes=attributes
     )
@@ -48,4 +53,9 @@ def record_graphql_query_count(
 def record_graphql_query_duration() -> AbstractContextManager[
     dict[str, AttributeValue]
 ]:
-    return meter.record_duration(METRIC_GRAPHQL_QUERY_DURATION)
+    attributes: dict[str, AttributeValue] = {
+        graphql_attributes.GRAPHQL_OPERATION_NAME: "",
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
+    }
+    return meter.record_duration(METRIC_GRAPHQL_QUERY_DURATION, attributes=attributes)
