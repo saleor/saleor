@@ -1,8 +1,11 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import InstanceTracker
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
@@ -23,6 +26,7 @@ from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 from ...utils import clean_variant_sku, get_used_variants_attribute_values
+from ..utils import PRODUCT_VARIANT_UPDATE_FIELDS
 from . import product_variant_cleaner as cleaner
 from .product_variant_create import ProductVariantInput
 
@@ -54,6 +58,8 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         errors_mapping = {"price_amount": "price"}
         support_meta_field = True
         support_private_meta_field = True
+
+    FIELDS_TO_TRACK = list(PRODUCT_VARIANT_UPDATE_FIELDS)
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data) -> models.ProductVariant | None:
@@ -110,12 +116,12 @@ class ProductVariantUpdate(DeprecatedModelMutation):
 
         cleaner.clean_weight(cleaned_input)
         cleaner.clean_quantity_limit(cleaned_input)
-        cls.clean_attributes(cleaned_input, instance)
+        attribute_modified = cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
         cleaner.clean_preorder_settings(cleaned_input)
 
-        return cleaned_input
+        return cleaned_input, attribute_modified
 
     @classmethod
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
@@ -183,29 +189,42 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             instance.track_inventory = track_inventory
 
     @classmethod
-    def _save_variant_instance(cls, instance, changed_fields):
-        update_fields = ["updated_at"] + changed_fields
+    def _save_variant_instance(cls, instance, modified_instance_fields):
+        update_fields = ["updated_at"] + modified_instance_fields
         instance.save(update_fields=update_fields)
 
     @classmethod
     def _save(
-        cls, info: ResolveInfo, instance, cleaned_input, changed_fields
-    ) -> tuple[bool, bool, bool]:
-        metadata_changed = (
-            "metadata" in changed_fields or "private_metadata" in changed_fields
+        cls,
+        instance_tracker: InstanceTracker,
+        cleaned_input,
+        attribute_modified: bool,
+    ) -> tuple[bool, bool]:
+        instance = cast(models.ProductVariant, instance_tracker.instance)
+        modified_instance_fields = instance_tracker.get_modified_fields()
+        metadata_modified = (
+            "metadata" in modified_instance_fields
+            or "private_metadata" in modified_instance_fields
         )
 
         refresh_product_search_index = False
         with traced_atomic_transaction():
-            if changed_fields:
-                cls._save_variant_instance(instance, changed_fields)
-                if "sku" in changed_fields or "name" in changed_fields:
+            # handle product variant
+            if modified_instance_fields:
+                cls._save_variant_instance(instance, modified_instance_fields)
+                if (
+                    "sku" in modified_instance_fields
+                    or "name" in modified_instance_fields
+                ):
                     refresh_product_search_index = True
 
-            if attributes := cleaned_input.get("attributes"):
-                AttributeAssignmentMixin.save(instance, attributes)
+            # handle attributes
+            if attribute_modified:
+                attributes_data = cleaned_input.get("attributes")
+                AttributeAssignmentMixin.save(instance, attributes_data)
                 refresh_product_search_index = True
 
+            # handle product
             if refresh_product_search_index:
                 instance.product.search_index_dirty = True
                 product_update_fields = ["updated_at", "search_index_dirty"]
@@ -217,7 +236,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            return bool(changed_fields), bool(attributes), metadata_changed
+            return bool(modified_instance_fields), metadata_modified
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:
@@ -293,28 +312,26 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        old_instance_data = instance.serialize_for_comparison()  # type: ignore[union-attr]
-        cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
+        instance = cast(models.ProductVariant, instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
+
+        cleaned_input, attribute_modified = cls.clean_input(info, instance, input)
 
         cls.handle_metadata(instance, cleaned_input)
 
-        instance = cls.construct_instance(instance, cleaned_input)
-
+        cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
-        new_instance_data = instance.serialize_for_comparison()
 
-        changed_fields = cls.diff_instance_data_fields(
-            instance.comparison_fields,
-            old_instance_data,
-            new_instance_data,
-        )
-
-        variant_modified, attributes_modified, metadata_modified = cls._save(
-            info, instance, cleaned_input, changed_fields
+        variant_modified, metadata_modified = cls._save(
+            instance_tracker, cleaned_input, attribute_modified
         )
         cls._save_m2m(info, instance, cleaned_input)
         cls._post_save_action(
-            info, instance, variant_modified, attributes_modified, metadata_modified
+            info,
+            instance,
+            variant_modified,
+            attribute_modified,
+            metadata_modified,
         )
 
         return cls.success_response(instance)
