@@ -359,9 +359,9 @@ class GraphQLView(View):
                 error_description = self.format_span_error_description(result)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
                 record_graphql_query_count(
-                    operation_name=operation_name or "",
+                    operation_name=operation_name,
                     operation_identifier=operation_identifier,
-                    operation_type=operation_type or "",
+                    operation_type=operation_type,
                     error_type=cost_errors[0].__class__.__name__,
                 )
                 return set_query_cost_on_result(result, query_cost)
@@ -408,9 +408,9 @@ class GraphQLView(View):
                         cache.set(key, response)
 
                 record_graphql_query_count(
-                    operation_name=operation_name or "",
+                    operation_name=operation_name,
                     operation_identifier=operation_identifier,
-                    operation_type=operation_type or "",
+                    operation_type=operation_type,
                     error_type=error_type,
                 )
                 return set_query_cost_on_result(response, query_cost)
@@ -423,9 +423,9 @@ class GraphQLView(View):
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
                 record_graphql_query_count(
-                    operation_name=operation_name or "",
+                    operation_name=operation_name,
                     operation_identifier=operation_identifier,
-                    operation_type=operation_type or "",
+                    operation_type=operation_type,
                     error_type=e.__class__.__name__,
                 )
                 return ExecutionResult(errors=[e], invalid=True)

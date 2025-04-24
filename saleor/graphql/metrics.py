@@ -14,6 +14,7 @@ METRIC_GRAPHQL_QUERY_COUNT = meter.create_metric(
     unit=Unit.REQUEST,
     description="Number of GraphQL queries.",
 )
+
 METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
     "saleor.graphql.query_duration",
     scope=Scope.SERVICE,
@@ -21,6 +22,7 @@ METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
     unit=Unit.MILLISECOND,
     description="Duration of GraphQL queries.",
 )
+
 METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
     "saleor.graphql.query_cost",
     scope=Scope.SERVICE,
@@ -32,16 +34,16 @@ METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
 
 # Helper functions
 def record_graphql_query_count(
-    operation_name: str = "",
-    operation_type: str = "",
-    operation_identifier: str = "",
     amount: int = 1,
+    operation_name: str | None = "",
+    operation_type: str | None = "",
+    operation_identifier: str | None = "",
     error_type: str | None = None,
 ) -> None:
     attributes = {
-        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
-        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name,
-        graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
+        saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier or "",
+        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name or "",
+        graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type or "",
     }
     if error_type:
         attributes[error_attributes.ERROR_TYPE] = error_type
