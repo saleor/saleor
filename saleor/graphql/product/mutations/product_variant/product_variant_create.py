@@ -2,9 +2,7 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 
-from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
@@ -13,7 +11,11 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils import (
+    AttributeAssignmentMixin,
+    AttrValuesInput,
+    get_values_from_attribute_values_input,
+)
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -268,15 +270,9 @@ class ProductVariantCreate(DeprecatedModelMutation):
     ):
         attribute_values = defaultdict(list)
         for attr, attr_data in attributes_data:
-            if attr.input_type == AttributeInputType.FILE:
-                values = (
-                    [slugify(attr_data.file_url.split("/")[-1])]
-                    if attr_data.file_url
-                    else []
-                )
-            else:
-                values = attr_data.values
+            values = get_values_from_attribute_values_input(attr, attr_data)
             attribute_values[attr_data.global_id].extend(values)
+
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",

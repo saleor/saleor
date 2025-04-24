@@ -1,18 +1,19 @@
-from collections import defaultdict
 from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 
-from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.update_mutation_manager import InstanceTracker
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.utils.variants import generate_and_set_variant_name
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils import (
+    AttributeAssignmentMixin,
+    AttrValuesInput,
+    has_input_modified_attribute_values,
+)
 from ....core import ResolveInfo
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
@@ -21,7 +22,6 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
-from ...utils import get_used_attribute_values_for_variant
 from .product_variant_create import ProductVariantCreate, ProductVariantInput
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
@@ -53,29 +53,14 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         support_meta_field = True
         support_private_meta_field = True
 
-
     @classmethod
     def validate_duplicated_attribute_values(
         cls, attributes_data, used_attribute_values, instance=None
     ):
-        # Check if the variant is getting updated,
-        # and the assigned attributes do not change
-        # TODO zedzior: duplicated logic
-        if instance.product_id is not None:
-            assigned_attributes = get_used_attribute_values_for_variant(instance)
-            input_attribute_values = defaultdict(list)
-            for attr, attr_data in attributes_data:
-                if attr.input_type == AttributeInputType.FILE:
-                    values = (
-                        [slugify(attr_data.file_url.split("/")[-1])]
-                        if attr_data.file_url
-                        else []
-                    )
-                else:
-                    values = attr_data.values
-                input_attribute_values[attr_data.global_id].extend(values)
-            if input_attribute_values == assigned_attributes:
-                return
+        if not has_input_modified_attribute_values(
+            attributes_data, used_attribute_values
+        ):
+            return
         # if assigned attributes is getting updated run duplicated attribute validation
         super().validate_duplicated_attribute_values(
             attributes_data, used_attribute_values
@@ -147,7 +132,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
         attribute_changed = False
         if attributes_data := cleaned_input.get("attributes"):
-            attribute_changed = cls.has_input_modified_attribute_values(
+            attribute_changed = has_input_modified_attribute_values(
                 instance, attributes_data
             )
 
@@ -197,33 +182,6 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         if not instance.name:
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
         return instance
-
-    @classmethod
-    def has_input_modified_attribute_values(
-        cls, variant: models.ProductVariant, attributes_data: T_INPUT_MAP
-    ) -> bool:
-        """Compare already assigned attribute values with values from AttrValuesInput.
-
-        Return:
-            `False` if the attribute values are equal, otherwise `True`.
-
-        """
-        if variant.product_id is not None:
-            assigned_attributes = get_used_attribute_values_for_variant(variant)
-            input_attribute_values = defaultdict(list)
-            for attr, attr_data in attributes_data:
-                if attr.input_type == AttributeInputType.FILE:
-                    values = (
-                        [slugify(attr_data.file_url.split("/")[-1])]
-                        if attr_data.file_url
-                        else []
-                    )
-                else:
-                    values = attr_data.values  # type: ignore[assignment]
-                input_attribute_values[attr_data.global_id].extend(values)
-            if input_attribute_values != assigned_attributes:
-                return True
-        return False
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
