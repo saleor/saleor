@@ -99,7 +99,7 @@ class OrderLinesByOrderIdLoader(DataLoader[UUID, list[OrderLine]]):
             .order_by("created_at")
         )
         line_map = defaultdict(list)
-        for line in lines.iterator():
+        for line in lines.iterator(chunk_size=1000):
             line_map[line.order_id].append(line)
         return [line_map.get(order_id, []) for order_id in keys]
 
@@ -114,7 +114,7 @@ class OrderEventsByOrderIdLoader(DataLoader[UUID, list[OrderEvent]]):
             .order_by("pk")
         )
         events_map = defaultdict(list)
-        for event in events.iterator():
+        for event in events.iterator(chunk_size=1000):
             events_map[event.order_id].append(event)
         return [events_map.get(order_id, []) for order_id in keys]
 
@@ -140,7 +140,7 @@ class OrderGrantedRefundsByOrderIdLoader(DataLoader[UUID, list[OrderGrantedRefun
         ).filter(order_id__in=keys)
         refunds_map = defaultdict(list)
 
-        for refund in refunds.iterator():
+        for refund in refunds.iterator(chunk_size=1000):
             refunds_map[refund.order_id].append(refund)
         return [refunds_map.get(order_id, []) for order_id in keys]
 
@@ -156,7 +156,7 @@ class OrderGrantedRefundLinesByOrderGrantedRefundIdLoader(
         ).filter(granted_refund_id__in=keys)
         refund_lines_map = defaultdict(list)
 
-        for refund_line in refund_lines.iterator():
+        for refund_line in refund_lines.iterator(chunk_size=1000):
             refund_lines_map[refund_line.granted_refund_id].append(refund_line)
         return [
             refund_lines_map.get(granted_refund_id, []) for granted_refund_id in keys
@@ -188,7 +188,7 @@ class FulfillmentsByOrderIdLoader(DataLoader[UUID, list[Fulfillment]]):
             .order_by("pk")
         )
         fulfillments_map = defaultdict(list)
-        for fulfillment in fulfillments.iterator():
+        for fulfillment in fulfillments.iterator(chunk_size=1000):
             fulfillments_map[fulfillment.order_id].append(fulfillment)
         return [fulfillments_map.get(order_id, []) for order_id in keys]
 
