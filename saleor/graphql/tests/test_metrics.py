@@ -9,6 +9,7 @@ from opentelemetry.semconv.attributes import error_attributes
 from ...core.telemetry import Unit, saleor_attributes
 from ...graphql.api import backend, schema
 from ..metrics import (
+    METRIC_GRAPHQL_QUERY_COST,
     METRIC_GRAPHQL_QUERY_COUNT,
     METRIC_GRAPHQL_QUERY_DURATION,
     record_graphql_query_count,
@@ -59,13 +60,14 @@ def test_record_graphql_query_duration(mock_meter):
 
 
 @patch("saleor.graphql.metrics.meter")
-def test_graphql_query_record_metrics(mock_meter, rf):
+def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list):
     # given
     request = rf.post(
-        path="/graphql",
+        path="/graphql/",
         data={
-            "query": "query shopQuery { shop { name } }",
-            "operationName": "shopQuery",
+            "query": "query productsQuery($channel: String!) { products(first: 5, channel: $channel) { edges { node { name } } } }",
+            "operationName": "productsQuery",
+            "variables": {"channel": channel_USD.slug},
         },
         content_type="application/json",
     )
@@ -75,17 +77,31 @@ def test_graphql_query_record_metrics(mock_meter, rf):
     view(request)
 
     # then
-    mock_meter.record.assert_called_once_with(
+    # check that saleor.graphql.query_count is recorded
+    mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COUNT,
         1,
         Unit.REQUEST,
         attributes={
-            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "shop",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "shopQuery",
+            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
+            graphql_attributes.GRAPHQL_OPERATION_NAME: "productsQuery",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
         },
     )
 
+    # check that saleor.graphql.query_cost is recorded
+    mock_meter.record.assert_any_call(
+        METRIC_GRAPHQL_QUERY_COST,
+        5,
+        Unit.REQUEST,
+        attributes={
+            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
+            graphql_attributes.GRAPHQL_OPERATION_NAME: "productsQuery",
+            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+        },
+    )
+
+    # check that saleor.graphql.query_duration is recorded and has correct attributes
     mock_meter.record_duration.assert_called_once_with(
         METRIC_GRAPHQL_QUERY_DURATION,
         attributes={
@@ -95,8 +111,8 @@ def test_graphql_query_record_metrics(mock_meter, rf):
         },
     )
     set_attr_calls = mock_meter.record_duration().__enter__().__setitem__.call_args_list
-    assert call("graphql.operation.identifier", "shop") in set_attr_calls
-    assert call("graphql.operation.name", "shopQuery") in set_attr_calls
+    assert call("graphql.operation.identifier", "products") in set_attr_calls
+    assert call("graphql.operation.name", "productsQuery") in set_attr_calls
     assert call("graphql.operation.type", "query") in set_attr_calls
 
 
@@ -141,7 +157,7 @@ def test_graphql_query_record_metrics_invalid_query(
 ):
     # given
     request = rf.post(
-        path="/graphql",
+        path="/graphql/",
         data=data,
         content_type="application/json",
     )
@@ -151,8 +167,20 @@ def test_graphql_query_record_metrics_invalid_query(
     view(request)
 
     # then
-    mock_meter.record.assert_called_once_with(
+    mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COUNT,
+        1,
+        Unit.REQUEST,
+        attributes={
+            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
+            graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name,
+            graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
+            error_attributes.ERROR_TYPE: error_type,
+        },
+    )
+
+    mock_meter.record.assert_any_call(
+        METRIC_GRAPHQL_QUERY_COST,
         1,
         Unit.REQUEST,
         attributes={
@@ -214,9 +242,21 @@ def test_graphql_query_record_metrics_cost_exceeded(
 
     # then
     # check that saleor.graphql.query_count is recorded
-    mock_meter.record.assert_called_once_with(
+    mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COUNT,
         1,
+        Unit.REQUEST,
+        attributes={
+            saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
+            graphql_attributes.GRAPHQL_OPERATION_NAME: "",
+            graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
+            error_attributes.ERROR_TYPE: "QueryCostError",
+        },
+    )
+
+    mock_meter.record.assert_any_call(
+        METRIC_GRAPHQL_QUERY_COST,
+        20,
         Unit.REQUEST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",

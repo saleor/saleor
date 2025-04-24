@@ -36,10 +36,11 @@ from .api import API_PATH, schema
 from .context import clear_context, get_context_value
 from .core.validators.query_cost import validate_query_cost
 from .metrics import (
+    record_graphql_query_cost,
     record_graphql_query_count,
     record_graphql_query_duration,
 )
-from .query_cost_map import COST_MAP
+from .query_cost_map import COST_MAP, QUERY_COST_FAILED_OPERATION
 from .utils import (
     format_error,
     get_source_service_name_value,
@@ -292,6 +293,9 @@ class GraphQLView(View):
                 )
                 span.set_status(status=StatusCode.ERROR, description=error_description)
                 record_graphql_query_count(error_type=error_type)
+                record_graphql_query_cost(
+                    QUERY_COST_FAILED_OPERATION, error_type=error_type
+                )
                 return error
 
             try:
@@ -299,6 +303,9 @@ class GraphQLView(View):
             except GraphQLError as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
                 record_graphql_query_count(error_type=e.__class__.__name__)
+                record_graphql_query_cost(
+                    QUERY_COST_FAILED_OPERATION, error_type=e.__class__.__name__
+                )
                 return ExecutionResult(errors=[e], invalid=True)
 
             # Query identifier and fingerprint cannot be calculated earlier, as they
@@ -364,6 +371,13 @@ class GraphQLView(View):
                     operation_type=operation_type,
                     error_type=cost_errors[0].__class__.__name__,
                 )
+                record_graphql_query_cost(
+                    query_cost,
+                    operation_name=operation_name,
+                    operation_identifier=operation_identifier,
+                    operation_type=operation_type,
+                    error_type=cost_errors[0].__class__.__name__,
+                )
                 return set_query_cost_on_result(result, query_cost)
 
             extra_options: dict[str, Any | None] = {}
@@ -413,6 +427,13 @@ class GraphQLView(View):
                     operation_type=operation_type,
                     error_type=error_type,
                 )
+                record_graphql_query_cost(
+                    query_cost,
+                    operation_name=operation_name,
+                    operation_identifier=operation_identifier,
+                    operation_type=operation_type,
+                    error_type=error_type,
+                )
                 return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
@@ -423,6 +444,13 @@ class GraphQLView(View):
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
                 record_graphql_query_count(
+                    operation_name=operation_name,
+                    operation_identifier=operation_identifier,
+                    operation_type=operation_type,
+                    error_type=e.__class__.__name__,
+                )
+                record_graphql_query_cost(
+                    query_cost,
                     operation_name=operation_name,
                     operation_identifier=operation_identifier,
                     operation_type=operation_type,
