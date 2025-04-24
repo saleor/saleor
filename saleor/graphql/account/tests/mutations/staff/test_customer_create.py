@@ -590,7 +590,6 @@ def test_customer_create_race_condition(
         User.objects.create(email=email_to_create)
 
     with race_condition.RunBefore(
-        # CustomerCreate.save,
         "saleor.graphql.account.mutations.staff.customer_create.CustomerCreate._save",
         create_existing_customer,
     ):
