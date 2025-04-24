@@ -43,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop `change_user_address` method from plugin manager - #17495 by @IKarbowiak
 - `DraftOrderUpdate` do not call `DRAFT_ORDER_UPDATED` anymore in case nothing changed - #17532 by @IKarbowiak
 - `OrderUpdate` mutation do not call `ORDER_UPDATED` anymore in case nothing changed - #17507 by @IKarbowiak
+- The `transactionId` argument of `OrderGrantRefundCreateInput` is now required - #17635 by @IKarbowiak
 
 ### GraphQL API
 
