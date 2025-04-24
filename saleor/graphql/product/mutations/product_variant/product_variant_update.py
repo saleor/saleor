@@ -1,3 +1,5 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -197,6 +199,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
+        instance = cast(models.ProductVariant, instance)
         instance_tracker = InstanceTracker(instance=instance)
 
         cleaned_input = cls.clean_input(info, instance, input)

@@ -1626,10 +1626,11 @@ def has_input_modified_attribute_values(
     """
     if variant.product_id is not None:
         assigned_attributes = get_used_attribute_values_for_variant(variant)
-        input_attribute_values = defaultdict(list)
+        input_attribute_values: defaultdict[str, list[str]] = defaultdict(list)
         for attr, attr_data in attributes_data:
             values = get_values_from_attribute_values_input(attr, attr_data)
-            input_attribute_values[attr_data.global_id].extend(values)
+            if attr_data.global_id is not None:
+                input_attribute_values[attr_data.global_id].extend(values)
         if input_attribute_values != assigned_attributes:
             return True
     return False
@@ -1645,4 +1646,4 @@ def get_values_from_attribute_values_input(
             if attribute_data.file_url
             else []
         )
-    return attribute_data.values
+    return attribute_data.values or []

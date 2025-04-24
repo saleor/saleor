@@ -263,7 +263,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
     def validate_duplicated_attribute_values(
         cls, attributes_data, used_attribute_values, instance=None
     ):
-        attribute_values = defaultdict(list)
+        attribute_values: defaultdict[str, list[str]] = defaultdict(list)
         for attr, attr_data in attributes_data:
             values = get_values_from_attribute_values_input(attr, attr_data)
             attribute_values[attr_data.global_id].extend(values)
