@@ -1,15 +1,11 @@
 from copy import deepcopy
-from typing import Any, TypeVar
-
-from django.db.models import Model
-
-N = TypeVar("N", bound=Model)
+from typing import Any
 
 
 class InstanceTracker:
     """Instance with modifications tracker."""
 
-    def __init__(self, instance: N):
+    def __init__(self, instance):
         self.instance = instance
         self.instance_editable_fields = [
             field.name

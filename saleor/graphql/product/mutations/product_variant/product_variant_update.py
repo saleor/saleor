@@ -1,5 +1,3 @@
-from typing import cast
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -57,9 +55,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     def validate_duplicated_attribute_values(
         cls, attributes_data, used_attribute_values, instance=None
     ):
-        if not has_input_modified_attribute_values(
-            attributes_data, used_attribute_values
-        ):
+        if not has_input_modified_attribute_values(instance, attributes_data):
             return
         # if assigned attributes is getting updated run duplicated attribute validation
         super().validate_duplicated_attribute_values(
@@ -127,7 +123,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
     @classmethod
     def _save(
         cls, info: ResolveInfo, instance_tracker: InstanceTracker, cleaned_input
-    ) -> bool:
+    ) -> tuple[bool, bool, bool]:
         instance = instance_tracker.instance
         modified_instance_fields = instance_tracker.get_modified_fields()
         metadata_changed = (
@@ -168,16 +164,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            if modified_instance_fields or attribute_changed or metadata_changed:
-                manager = get_plugin_manager_promise(info.context).get()
-                cls.call_event(manager.product_variant_updated, instance)
-
-                if metadata_changed:
-                    cls.call_event(manager.product_variant_metadata_updated, instance)
-
-                return True
-
-            return False
+            return bool(modified_instance_fields), attribute_changed, metadata_changed
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:
@@ -210,17 +197,14 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        instance = cast(models.ProductVariant, instance)
         instance_tracker = InstanceTracker(instance=instance)
 
-        cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
+        cleaned_input = cls.clean_input(info, instance, input)
 
-        # TODO zedzior: too many metadata related lines
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
         )
-
         metadata_collection = cls.create_metadata_from_graphql_input(
             metadata_list, error_field_name="metadata"
         )
@@ -234,16 +218,36 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
         cls.clean_instance(info, instance)
 
-        variant_modified = cls._save(info, instance_tracker, cleaned_input)
+        variant_modified, attribute_modified, metadata_modified = cls._save(
+            info, instance_tracker, cleaned_input
+        )
         cls._save_m2m(info, instance, cleaned_input)
-
-        if variant_modified:
-            # add to cleaned_input popped metadata to allow running post save events
-            # that depends on the metadata inputs
-            if metadata_list:
-                cleaned_input["metadata"] = metadata_list
-            if private_metadata_list:
-                cleaned_input["private_metadata"] = private_metadata_list
-            cls.post_save_action(info, instance, cleaned_input)
+        cls._post_save_action(
+            info,
+            instance,
+            cleaned_input,
+            variant_modified,
+            attribute_modified,
+            metadata_modified,
+        )
 
         return cls.success_response(instance)
+
+    @classmethod
+    def _post_save_action(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        variant_modified: bool,
+        attribute_modified: bool,
+        metadata_modified: bool,
+    ):
+        if variant_modified or attribute_modified or metadata_modified:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.product_variant_updated, instance)
+
+            if metadata_modified:
+                cls.call_event(manager.product_variant_metadata_updated, instance)
+
+            super().post_save_action(info, instance, cleaned_input)
