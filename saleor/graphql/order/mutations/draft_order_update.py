@@ -359,6 +359,23 @@ class DraftOrderUpdate(
             )
 
     @classmethod
+    def handle_metadata(cls, instance: models.Order, cleaned_input):
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         channel_id = instance.channel_id
@@ -371,23 +388,12 @@ class DraftOrderUpdate(
         old_voucher_code = instance.voucher_code
         data = data["input"]
         cleaned_input = cls.clean_input(info, instance, data)
-        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
-        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
-            "private_metadata", None
-        )
 
-        metadata_collection = cls.create_metadata_from_graphql_input(
-            metadata_list, error_field_name="metadata"
-        )
-        private_metadata_collection = cls.create_metadata_from_graphql_input(
-            private_metadata_list, error_field_name="private_metadata"
-        )
+        cls.handle_metadata(instance, cleaned_input)
 
+        # update instance with data from input
         instance = cls.construct_instance(instance, cleaned_input)
 
-        cls.validate_and_update_metadata(
-            instance, metadata_collection, private_metadata_collection
-        )
         cls.clean_instance(info, instance)
 
         manager = get_plugin_manager_promise(info.context).get()
