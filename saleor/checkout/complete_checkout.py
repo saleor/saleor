@@ -361,7 +361,7 @@ def _create_line_for_order(
         undiscounted_unit_price=undiscounted_unit_price,
         base_unit_price=base_unit_price,
         undiscounted_base_unit_price=undiscounted_base_unit_price,
-        use_legacy_voucher_propagation=checkout_info.channel.use_legacy_line_voucher_propagation_for_order,
+        use_legacy_discount_propagation=checkout_info.channel.use_legacy_line_discount_propagation_for_order,
         prices_entered_with_tax=prices_entered_with_tax,
     )
 
@@ -405,7 +405,7 @@ def _create_line_for_order(
             if checkout_info.voucher and is_order_level_voucher(checkout_info.voucher)
             else None
         ),
-        use_legacy_voucher_propagation=checkout_info.channel.use_legacy_line_voucher_propagation_for_order,
+        use_legacy_discount_propagation=checkout_info.channel.use_legacy_line_discount_propagation_for_order,
     )
 
     if line_discounts:
@@ -433,20 +433,20 @@ def _get_unit_discount(
     undiscounted_unit_price: TaxedMoney,
     base_unit_price: Money,
     undiscounted_base_unit_price: Money,
-    use_legacy_voucher_propagation: bool,
+    use_legacy_discount_propagation: bool,
     prices_entered_with_tax: bool,
 ) -> Money:
     """Returng the discount applicable on single line.
 
-    When `use_legacy_voucher_propagation` is `True`, the discount
-    amount includes the `ENTIRE_ORDER` voucher discount. This is
-    already reflected in the order-level discounts, but to maintain
+    When `use_legacy_discount_propagation` is `True`, the discount
+    amount includes the `ENTIRE_ORDER` voucher discount, and OrderPromotion discount.
+    This is already reflected in the order-level discounts, but to maintain
     backward compatibility, the legacy flow behaves as before.
 
-    When `use_legacy_voucher_propagation` is `False`, the
+    When `use_legacy_discount_propagation` is `False`, the
     `unit_discount` includes only the order-line level discounts.
     """
-    if use_legacy_voucher_propagation:
+    if use_legacy_discount_propagation:
         discount_price = undiscounted_unit_price - unit_price
         if prices_entered_with_tax:
             return discount_price.gross
@@ -457,10 +457,10 @@ def _get_unit_discount(
 def _get_unit_discount_reason(
     line_discounts: list[OrderLineDiscount],
     order_lvl_voucher_code: str | None,
-    use_legacy_voucher_propagation: bool,
+    use_legacy_discount_propagation: bool,
 ) -> str | None:
     include_entire_order_lvl_reason = (
-        order_lvl_voucher_code and use_legacy_voucher_propagation
+        order_lvl_voucher_code and use_legacy_discount_propagation
     )
     if not include_entire_order_lvl_reason and not line_discounts:
         return None
@@ -493,7 +493,7 @@ def _create_order_line_discount_object_for_voucher(
     code = checkout_line_info.voucher_code
     discount_reason = f"Voucher code: {code}"
 
-    if channel.use_legacy_line_voucher_propagation_for_order:
+    if channel.use_legacy_line_discount_propagation_for_order:
         # Previously voucher discount was always set as fixed value. To keep it in the
         # same way as previously we force the fixed type when legacy flow is used
         value_type = DiscountValueType.FIXED

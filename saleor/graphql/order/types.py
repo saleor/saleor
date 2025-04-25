@@ -1443,7 +1443,7 @@ class OrderLine(
                 # when legacy is disabled, return the voucher discount as
                 # OrderLineDiscount. It is a temporary solution to provide a grace
                 # period for migration
-                use_legacy = channel.use_legacy_line_voucher_propagation_for_order
+                use_legacy = channel.use_legacy_line_discount_propagation_for_order
                 if order.origin != OrderOrigin.CHECKOUT or not use_legacy:
                     return line_discounts
 
@@ -1876,7 +1876,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             # for backward compatibility, when legacy propagation is enabled
             # we convert the order-line-discounts into single OrderDiscount
             # It is a temporary solution to provide a grace period for migration
-            if not channel.use_legacy_line_voucher_propagation_for_order:
+            if not channel.use_legacy_line_discount_propagation_for_order:
                 return order_discounts
 
             def wrap_order_line(order_lines):

@@ -312,7 +312,7 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
                 allowUnpaidOrders
                 includeDraftOrderInVoucherUsage
                 draftOrderLinePriceFreezePeriod
-                useLegacyLineVoucherPropagation
+                useLegacyLineDiscountPropagation
             }
         }
     }
@@ -375,8 +375,8 @@ def test_query_channel_order_settings_as_staff_user(
     )
 
     assert (
-        channel_data["orderSettings"]["useLegacyLineVoucherPropagation"]
-        == channel_USD.use_legacy_line_voucher_propagation_for_order
+        channel_data["orderSettings"]["useLegacyLineDiscountPropagation"]
+        == channel_USD.use_legacy_line_discount_propagation_for_order
     )
 
 
@@ -429,8 +429,8 @@ def test_query_channel_order_settings_as_app(
         == channel_USD.draft_order_line_price_freeze_period
     )
     assert (
-        channel_data["orderSettings"]["useLegacyLineVoucherPropagation"]
-        == channel_USD.use_legacy_line_voucher_propagation_for_order
+        channel_data["orderSettings"]["useLegacyLineDiscountPropagation"]
+        == channel_USD.use_legacy_line_discount_propagation_for_order
     )
 
 

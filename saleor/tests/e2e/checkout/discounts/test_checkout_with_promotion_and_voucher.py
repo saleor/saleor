@@ -148,7 +148,7 @@ def test_checkout_with_promotion_and_voucher_legacy_propagation_CORE_2107(
 
     shop_data = prepare_default_shop(
         e2e_staff_api_client,
-        channel_order_settings={"useLegacyLineVoucherPropagation": True},
+        channel_order_settings={"useLegacyLineDiscountPropagation": True},
     )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
@@ -313,7 +313,7 @@ def test_checkout_with_promotion_and_voucher_CORE_2107(
 
     shop_data = prepare_default_shop(
         e2e_staff_api_client,
-        channel_order_settings={"useLegacyLineVoucherPropagation": False},
+        channel_order_settings={"useLegacyLineDiscountPropagation": False},
     )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
