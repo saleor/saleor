@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
@@ -12,6 +12,7 @@ from ......account.tasks import finish_creating_user
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
+from ......tests import race_condition
 from .....tests.utils import get_graphql_content
 
 ACCOUNT_REGISTER_MUTATION = """
@@ -407,3 +408,63 @@ def test_account_register_returns_empty_id(
     assert not data["errors"]
     assert data["user"]["id"] == ""
     assert data["user"]["email"] == customer_user.email
+
+
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch(
+    "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
+    wraps=finish_creating_user,
+)
+def test_customer_register_race_codition(
+    mocked_finish_creating_user,
+    mocked_notify,
+    mocked_generator,
+    api_client,
+    channel_PLN,
+):
+    # given
+    mocked_generator.return_value = "token"
+    email = "customer@example.com"
+
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "input": {
+            "email": email,
+            "password": "Password",
+            "redirectUrl": redirect_url,
+            "firstName": "saleor",
+            "lastName": "rocks",
+            "languageCode": "PL",
+            "channel": channel_PLN.slug,
+        }
+    }
+
+    def create_new_user(*args, **kwargs):
+        User.objects.create(email=email)
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.account.mutations.account.account_register."
+        "AccountRegister.save_and_create_task",
+        create_new_user,
+    ):
+        response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["accountRegister"]
+
+    assert data["user"]["firstName"] == variables["input"]["firstName"]
+    assert data["user"]["lastName"] == variables["input"]["lastName"]
+    assert data["user"]["email"] == variables["input"]["email"]
+    assert data["user"]["id"] == ""
+    assert not data["errors"]
+
+    assert not mocked_notify.called
+    mocked_finish_creating_user.delay.assert_called_once_with(
+        None, redirect_url, channel_PLN.slug, ANY
+    )
