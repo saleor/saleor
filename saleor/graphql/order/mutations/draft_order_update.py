@@ -29,7 +29,6 @@ from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
 from ...core.mutations import (
     ModelWithExtRefMutation,
-    ModelWithRestrictedChannelAccessMutation,
 )
 from ...core.types import OrderError
 from ...meta.inputs import MetadataInput
@@ -47,7 +46,6 @@ from .utils import (
 
 class DraftOrderUpdate(
     AddressMetadataMixin,
-    ModelWithRestrictedChannelAccessMutation,
     ModelWithExtRefMutation,
     I18nMixin,
 ):
@@ -354,8 +352,7 @@ class DraftOrderUpdate(
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
-        channel_id = cls.get_instance_channel_id(instance, **data)
-
+        channel_id = instance.channel_id
         cls.check_channel_permissions(info, [channel_id])
 
         instance = cast(models.Order, instance)
@@ -396,9 +393,3 @@ class DraftOrderUpdate(
         cls._save_m2m(info, instance, cleaned_input)
 
         return DraftOrderUpdate(order=SyncWebhookControlContext(node=instance))
-
-    @classmethod
-    def get_instance_channel_id(cls, instance, **data):
-        if channel_id := instance.channel_id:
-            return channel_id
-        return None
