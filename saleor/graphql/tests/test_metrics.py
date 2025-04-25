@@ -199,14 +199,18 @@ def test_graphql_query_record_metrics_invalid_query(
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         },
     )
+    assert (
+        call(error_attributes.ERROR_TYPE, error_type)
+        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
+    )
     if operation_type:
         assert (
-            call("graphql.operation.type", operation_type)
+            call(graphql_attributes.GRAPHQL_OPERATION_TYPE, operation_type)
             in mock_meter.record_duration().__enter__().__setitem__.call_args_list
         )
     if operation_identifier:
         assert (
-            call("graphql.operation.identifier", operation_identifier)
+            call(saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, operation_identifier)
             in mock_meter.record_duration().__enter__().__setitem__.call_args_list
         )
 
@@ -276,10 +280,14 @@ def test_graphql_query_record_metrics_cost_exceeded(
         },
     )
     assert (
-        call("graphql.operation.type", "query")
+        call(error_attributes.ERROR_TYPE, "QueryCostError")
         in mock_meter.record_duration().__enter__().__setitem__.call_args_list
     )
     assert (
-        call("graphql.operation.identifier", "productVariant")
+        call(graphql_attributes.GRAPHQL_OPERATION_TYPE, "query")
+        in mock_meter.record_duration().__enter__().__setitem__.call_args_list
+    )
+    assert (
+        call(saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, "productVariant")
         in mock_meter.record_duration().__enter__().__setitem__.call_args_list
     )

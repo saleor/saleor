@@ -20,6 +20,7 @@ from opentelemetry.semconv._incubating.attributes import (
 )
 from opentelemetry.semconv.attributes import (
     client_attributes,
+    error_attributes,
     http_attributes,
     url_attributes,
     user_agent_attributes,
@@ -292,20 +293,24 @@ class GraphQLView(View):
                     else None
                 )
                 span.set_status(status=StatusCode.ERROR, description=error_description)
-                record_graphql_query_count(error_type=error_type)
-                record_graphql_query_cost(
-                    QUERY_COST_FAILED_OPERATION, error_type=error_type
-                )
+                if error_type:
+                    record_graphql_query_count(error_type=error_type)
+                    record_graphql_query_cost(
+                        QUERY_COST_FAILED_OPERATION, error_type=error_type
+                    )
+                    query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return error
 
             try:
                 query_contains_schema = check_if_query_contains_only_schema(document)
             except GraphQLError as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
-                record_graphql_query_count(error_type=e.__class__.__name__)
+                error_type = e.__class__.__name__
+                record_graphql_query_count(error_type=error_type)
                 record_graphql_query_cost(
-                    QUERY_COST_FAILED_OPERATION, error_type=e.__class__.__name__
+                    QUERY_COST_FAILED_OPERATION, error_type=error_type
                 )
+                query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return ExecutionResult(errors=[e], invalid=True)
 
             # Query identifier and fingerprint cannot be calculated earlier, as they
@@ -365,19 +370,21 @@ class GraphQLView(View):
                 result = ExecutionResult(errors=cost_errors, invalid=True)
                 error_description = self.format_span_error_description(result)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
+                error_type = cost_errors[0].__class__.__name__
                 record_graphql_query_count(
                     operation_name=operation_name,
                     operation_identifier=operation_identifier,
                     operation_type=operation_type,
-                    error_type=cost_errors[0].__class__.__name__,
+                    error_type=error_type,
                 )
                 record_graphql_query_cost(
                     query_cost,
                     operation_name=operation_name,
                     operation_identifier=operation_identifier,
                     operation_type=operation_type,
-                    error_type=cost_errors[0].__class__.__name__,
+                    error_type=error_type,
                 )
+                query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return set_query_cost_on_result(result, query_cost)
 
             extra_options: dict[str, Any | None] = {}
@@ -434,6 +441,8 @@ class GraphQLView(View):
                     operation_type=operation_type,
                     error_type=error_type,
                 )
+                if error_type:
+                    query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_status(status=StatusCode.ERROR, description=str(e))
@@ -443,19 +452,21 @@ class GraphQLView(View):
                 # As it's a validation error we want to raise GraphQLError instead.
                 if str(e).startswith(INT_ERROR_MSG) or isinstance(e, ValueError):
                     e = GraphQLError(str(e))
+                error_type = e.__class__.__name__
                 record_graphql_query_count(
                     operation_name=operation_name,
                     operation_identifier=operation_identifier,
                     operation_type=operation_type,
-                    error_type=e.__class__.__name__,
+                    error_type=error_type,
                 )
                 record_graphql_query_cost(
                     query_cost,
                     operation_name=operation_name,
                     operation_identifier=operation_identifier,
                     operation_type=operation_type,
-                    error_type=e.__class__.__name__,
+                    error_type=error_type,
                 )
+                query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return ExecutionResult(errors=[e], invalid=True)
             finally:
                 clear_context(context)
