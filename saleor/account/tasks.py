@@ -1,3 +1,4 @@
+import logging
 from typing import cast
 from urllib.parse import urlencode
 
@@ -15,6 +16,8 @@ from .models import User
 from .notifications import send_password_reset_notification
 from .utils import RequestorAwareContext
 
+logger = logging.getLogger(__name__)
+
 
 def _prepare_redirect_url(user: User, redirect_url: str, token: str) -> str:
     params = urlencode({"email": user.email, "token": token})
@@ -31,6 +34,12 @@ def trigger_send_password_reset_notification(
 
     user = User.objects.filter(pk=user_pk).first()
     user = cast(User, user)
+
+    if not channel_slug and not user.is_staff:
+        logger.warning(
+            "Channel slug was not provided for user %s in request password reset.",
+            user_pk,
+        )
 
     context_data["allow_replica"] = True
     manager = get_plugin_manager_promise(
