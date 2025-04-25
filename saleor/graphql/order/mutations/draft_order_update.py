@@ -148,17 +148,11 @@ class DraftOrderUpdate(
         cls, info: ResolveInfo, instance: models.Order, data: dict, **kwargs
     ):
         cls.clean_channel_id(instance, data)
-        manager = get_plugin_manager_promise(info.context).get()
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
-        redirect_url = data.pop("redirect_url", None)
+        redirect_url = data.pop("redirect_url", "")
 
-        shipping_method_input = {}
-        if "shipping_method" in data:
-            shipping_method_input["shipping_method"] = get_shipping_model_by_object_id(
-                object_id=data.pop("shipping_method", None),
-                error_field="shipping_method",
-            )
+        shipping_method_input = cls.clean_shipping_method(instance, data)
 
         if email := data.get("user_email", None):
             try:
@@ -175,7 +169,7 @@ class DraftOrderUpdate(
         draft_order_cleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
 
         cls.clean_addresses(
-            info, instance, cleaned_input, shipping_address, billing_address, manager
+            info, instance, cleaned_input, shipping_address, billing_address
         )
 
         draft_order_cleaner.clean_redirect_url(redirect_url, cleaned_input)
@@ -196,6 +190,22 @@ class DraftOrderUpdate(
                 )
 
     @classmethod
+    def clean_shipping_method(cls, instance, cleaned_input):
+        shipping_method_input = {}
+        if "shipping_method" in cleaned_input:
+            shipping_method = get_shipping_model_by_object_id(
+                object_id=cleaned_input.pop("shipping_method", None),
+                error_field="shipping_method",
+            )
+            shipping_method_input["shipping_method"] = shipping_method
+
+            # do not process shipping method if it is already associated with the order
+            if shipping_method and shipping_method.id == instance.shipping_method_id:
+                shipping_method_input = {}
+
+        return shipping_method_input
+
+    @classmethod
     def clean_addresses(
         cls,
         info: ResolveInfo,
@@ -203,7 +213,6 @@ class DraftOrderUpdate(
         cleaned_input,
         shipping_address,
         billing_address,
-        manager,
     ):
         save_shipping_address = cleaned_input.get("save_shipping_address")
         save_billing_address = cleaned_input.get("save_billing_address")
@@ -275,12 +284,12 @@ class DraftOrderUpdate(
                 modified_instance_fields.extend(["should_refresh_prices"])
 
             # Save instance
-            cls._save_variant_instance(instance, modified_instance_fields)
+            cls._save_order_instance(instance, modified_instance_fields)
 
             return True
 
     @classmethod
-    def _save_variant_instance(cls, instance, modified_instance_fields):
+    def _save_order_instance(cls, instance, modified_instance_fields):
         update_fields = ["updated_at"] + modified_instance_fields
         instance.save(update_fields=update_fields)
 
@@ -333,7 +342,7 @@ class DraftOrderUpdate(
             release_voucher_code_usage(voucher_code, old_voucher, user_email)
 
     @classmethod
-    def handle_shipping(cls, cleaned_input, instance, manager):
+    def handle_shipping(cls, cleaned_input, instance: models.Order, manager):
         if "shipping_method" not in cleaned_input:
             return
 
