@@ -53,6 +53,20 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         support_meta_field = True
         support_private_meta_field = True
 
+    FIELDS_TO_TRACK = [
+        "external_reference",
+        "is_preorder",
+        "metadata",
+        "name",
+        "preorder_end_date",
+        "preorder_global_threshold",
+        "private_metadata",
+        "quantity_limit_per_customer",
+        "sku",
+        "track_inventory",
+        "weight",
+    ]
+
     @classmethod
     def validate_duplicated_attribute_values(
         cls, attributes_data, used_attribute_values, instance=None
@@ -200,7 +214,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
         instance = cast(models.ProductVariant, instance)
-        instance_tracker = InstanceTracker(instance=instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
         cleaned_input = cls.clean_input(info, instance, input)
 
