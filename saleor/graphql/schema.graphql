@@ -18159,7 +18159,7 @@ type Mutation {
   """
   requestPasswordReset(
     """
-    Slug of a channel which will be used for notify user. It is needed for customers, if not provided the notify may not happen. Please note that mutation will not fail if the channel is not provided.
+    Slug of a channel which will be used to notify the user. It is needed for customers, if not provided, the notification may not happen. Please note that mutation will not fail if the channel is not provided.
     """
     channel: String
 
