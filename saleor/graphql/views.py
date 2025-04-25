@@ -370,7 +370,7 @@ class GraphQLView(View):
                 result = ExecutionResult(errors=cost_errors, invalid=True)
                 error_description = self.format_span_error_description(result)
                 span.set_status(status=StatusCode.ERROR, description=error_description)
-                error_type = cost_errors[0].__class__.__name__
+                error_type = cost_errors[0].__class__.__name__ if cost_errors else None
                 record_graphql_query_count(
                     operation_name=operation_name,
                     operation_identifier=operation_identifier,
@@ -384,7 +384,8 @@ class GraphQLView(View):
                     operation_type=operation_type,
                     error_type=error_type,
                 )
-                query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
+                if error_type:
+                    query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
                 return set_query_cost_on_result(result, query_cost)
 
             extra_options: dict[str, Any | None] = {}
