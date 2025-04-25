@@ -301,3 +301,16 @@ def test_clean_image_file_with_captialized_extension():
 
     # when & then
     clean_image_file({field: img}, field, ProductErrorCode)
+
+
+def test_clean_image_file_in_avif_format():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="AVIF")
+    field = "image"
+
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/avif")
+
+    # when & then
+    clean_image_file({field: img}, field, ProductErrorCode)
