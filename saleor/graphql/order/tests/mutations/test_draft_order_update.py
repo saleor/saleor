@@ -3328,6 +3328,7 @@ def test_draft_order_update_emit_events(
     order.redirect_url = "https://www.example.com"
     order.external_reference = "some_reference_string"
     order.language_code = "pl"
+    order.channel = None
     order.save()
 
     shipping_method_id = graphene.Node.to_global_id(
@@ -3383,8 +3384,6 @@ def test_draft_order_update_emit_events(
         if key not in non_base_model_fields:
             save_order_mock.assert_called()
         call_event_mock.assert_called()
-
-
 
 
 def test_zedziora(

@@ -74,8 +74,10 @@ class DraftOrderUpdate(
     FIELDS_TO_TRACK = list(
         {
             "base_shipping_price_amount",
+            "billing_address",
             "channel",
             "collection_point",
+            "collection_point_name",
             "customer_note",
             "display_gross_prices",
             "draft_save_billing_address",
@@ -86,7 +88,11 @@ class DraftOrderUpdate(
             "private_metadata",
             "redirect_url",
             "search_vector",
+            "shipping_address",
             "shipping_method",
+            "shipping_method_name",
+            "shipping_price_gross_amount",
+            "shipping_price_net_amount",
             "shipping_tax_class",
             "shipping_tax_class_metadata",
             "shipping_tax_class_name",
@@ -247,66 +253,46 @@ class DraftOrderUpdate(
     @classmethod
     def _save(
         cls,
-        info: ResolveInfo,
         instance_tracker: InstanceTracker,
         cleaned_input,
-        old_voucher,
-        old_voucher_code,
-    ):
+    ) -> bool:
         instance = instance_tracker.instance
-        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
-            # Process addresses
+            # TODO zedzior: compare addresses
             if modified_address_fields := save_addresses(instance, cleaned_input):
                 update_order_display_gross_prices(instance)
-
-            # Process shipping
-            if "shipping_method" in cleaned_input:
-                method = cleaned_input["shipping_method"]
-                if method is None:
-                    ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
-                else:
-                    ShippingMethodUpdateMixin.process_shipping_method(
-                        instance, method, manager, update_shipping_discount=True
-                    )
-
-            if instance.undiscounted_base_shipping_price_amount is None:
-                instance.undiscounted_base_shipping_price_amount = (
-                    instance.base_shipping_price_amount
-                )
-
-            # Process voucher
-            if "voucher" in cleaned_input:
-                cls.handle_order_voucher(
-                    cleaned_input,
-                    instance,
-                    old_voucher,
-                    old_voucher_code,
-                )
 
             # In case nothing change, do not perform post-process actions;
             # do not call the `DRAFT_ORDER_UPDATED` event.
             modified_instance_fields = instance_tracker.get_modified_fields()
             modified_instance_fields.extend(modified_address_fields)
             if not modified_instance_fields:
-                return
+                return False
 
             # Post-process the results
             update_order_search_vector(instance, save=False)
-            modified_instance_fields.extend(["search_vector", "updated_at"])
+            modified_instance_fields.extend(["search_vector"])
             if cls.should_invalidate_prices(modified_instance_fields):
                 invalidate_order_prices(instance)
                 modified_instance_fields.extend(["should_refresh_prices"])
 
             # Save instance
-            instance.save(update_fields=modified_instance_fields)
+            cls._save_variant_instance(instance, modified_instance_fields)
 
-            # Call event
-            call_order_event(
-                manager,
-                WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
-                instance,
-            )
+            return True
+
+    @classmethod
+    def _save_variant_instance(cls, instance, modified_instance_fields):
+        update_fields = ["updated_at"] + modified_instance_fields
+        instance.save(update_fields=update_fields)
+
+    @classmethod
+    def _post_save_action(cls, instance, manager):
+        call_order_event(
+            manager,
+            WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
+            instance,
+        )
 
     @classmethod
     def handle_order_voucher(
@@ -316,6 +302,9 @@ class DraftOrderUpdate(
         old_voucher,
         old_voucher_code,
     ):
+        if "voucher" not in cleaned_input:
+            return
+
         voucher = cleaned_input["voucher"]
         if voucher is None and old_voucher is None:
             return
@@ -344,6 +333,23 @@ class DraftOrderUpdate(
             # handle removing voucher
             voucher_code = VoucherCode.objects.filter(code=old_voucher_code).first()
             release_voucher_code_usage(voucher_code, old_voucher, user_email)
+
+    @classmethod
+    def handle_shipping(cls, cleaned_input, instance, manager):
+        if "shipping_method" not in cleaned_input:
+            return
+
+        method = cleaned_input["shipping_method"]
+        if method is None:
+            ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
+        else:
+            ShippingMethodUpdateMixin.process_shipping_method(
+                instance, method, manager, update_shipping_discount=True
+            )
+        if instance.undiscounted_base_shipping_price_amount is None:
+            instance.undiscounted_base_shipping_price_amount = (
+                instance.base_shipping_price_amount
+            )
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -378,7 +384,15 @@ class DraftOrderUpdate(
         )
         cls.clean_instance(info, instance)
 
-        cls._save(info, instance_tracker, cleaned_input, old_voucher, old_voucher_code)
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.handle_shipping(cleaned_input, instance, manager)
+        cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
+
+        order_modified = cls._save(instance_tracker, cleaned_input)
+
+        if order_modified:
+            cls._post_save_action(instance, manager)
+
         cls._save_m2m(info, instance, cleaned_input)
 
         return DraftOrderUpdate(order=SyncWebhookControlContext(node=instance))
