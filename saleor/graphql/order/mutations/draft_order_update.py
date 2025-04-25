@@ -1,9 +1,12 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.update_mutation_manager import InstanceTracker
 from ....discount.models import VoucherCode
 from ....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
@@ -68,6 +71,44 @@ class DraftOrderUpdate(
         support_meta_field = True
         support_private_meta_field = True
 
+    FIELDS_TO_TRACK = list(
+        {
+            "base_shipping_price_amount",
+            "channel",
+            "collection_point",
+            "customer_note",
+            "display_gross_prices",
+            "draft_save_billing_address",
+            "draft_save_shipping_address",
+            "external_reference",
+            "language_code",
+            "metadata",
+            "private_metadata",
+            "redirect_url",
+            "search_vector",
+            "shipping_method",
+            "shipping_tax_class",
+            "shipping_tax_class_metadata",
+            "shipping_tax_class_name",
+            "shipping_tax_class_private_metadata",
+            "shipping_tax_rate",
+            "should_refresh_prices",
+            "subtotal_gross_amount",
+            "subtotal_net_amount",
+            "total_gross_amount",
+            "total_net_amount",
+            "undiscounted_base_shipping_price_amount",
+            "undiscounted_total_gross_amount",
+            "undiscounted_total_net_amount",
+            "user",
+            "user_email",
+            "voucher",
+            "voucher_code",
+            "weight",
+        }
+        | set(SHIPPING_METHOD_UPDATE_FIELDS)
+    )
+
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
         instance = super().get_instance(
@@ -86,13 +127,14 @@ class DraftOrderUpdate(
         return instance
 
     @classmethod
-    def should_invalidate_prices(cls, cleaned_input, *args) -> bool:
+    def should_invalidate_prices(cls, modified_fields, *args) -> bool:
         return any(
-            field in cleaned_input
+            field in modified_fields
             for field in [
                 "shipping_address",
                 "billing_address",
                 "shipping_method",
+                "voucher_code",
                 "voucher",
             ]
         )
@@ -206,19 +248,19 @@ class DraftOrderUpdate(
     def _save(
         cls,
         info: ResolveInfo,
-        instance,
+        instance_tracker: InstanceTracker,
         cleaned_input,
         old_voucher,
         old_voucher_code,
-        changed_fields,
     ):
-        updated_fields = changed_fields
+        instance = instance_tracker.instance
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             # Process addresses
-            address_fields = save_addresses(instance, cleaned_input)
-            updated_fields.extend(address_fields)
+            if modified_address_fields := save_addresses(instance, cleaned_input):
+                update_order_display_gross_prices(instance)
 
+            # Process shipping
             if "shipping_method" in cleaned_input:
                 method = cleaned_input["shipping_method"]
                 if method is None:
@@ -227,14 +269,13 @@ class DraftOrderUpdate(
                     ShippingMethodUpdateMixin.process_shipping_method(
                         instance, method, manager, update_shipping_discount=True
                     )
-                updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             if instance.undiscounted_base_shipping_price_amount is None:
                 instance.undiscounted_base_shipping_price_amount = (
                     instance.base_shipping_price_amount
                 )
-                updated_fields.append("undiscounted_base_shipping_price_amount")
 
+            # Process voucher
             if "voucher" in cleaned_input:
                 cls.handle_order_voucher(
                     cleaned_input,
@@ -243,33 +284,24 @@ class DraftOrderUpdate(
                     old_voucher_code,
                 )
 
-            # In case nothing change, do not update perform post-process actions;
+            # In case nothing change, do not perform post-process actions;
             # do not call the `DRAFT_ORDER_UPDATED` event.
-            if not updated_fields:
+            modified_instance_fields = instance_tracker.get_modified_fields()
+            modified_instance_fields.extend(modified_address_fields)
+            if not modified_instance_fields:
                 return
 
-            if (
-                "shipping_address" in updated_fields
-                or "billing_address" in updated_fields
-            ):
-                update_order_display_gross_prices(instance)
-                updated_fields.append("display_gross_prices")
-
-            update_order_search_vector(instance, save=False)
             # Post-process the results
-            updated_fields.extend(
-                [
-                    "search_vector",
-                    "updated_at",
-                ]
-            )
-
-            if cls.should_invalidate_prices(cleaned_input):
+            update_order_search_vector(instance, save=False)
+            modified_instance_fields.extend(["search_vector", "updated_at"])
+            if cls.should_invalidate_prices(modified_instance_fields):
                 invalidate_order_prices(instance)
-                updated_fields.extend(["should_refresh_prices"])
+                modified_instance_fields.extend(["should_refresh_prices"])
 
-            instance.save(update_fields=updated_fields)
+            # Save instance
+            instance.save(update_fields=modified_instance_fields)
 
+            # Call event
             call_order_event(
                 manager,
                 WebhookEventAsyncType.DRAFT_ORDER_UPDATED,
@@ -320,7 +352,9 @@ class DraftOrderUpdate(
 
         cls.check_channel_permissions(info, [channel_id])
 
-        old_instance_data = instance.serialize_for_comparison()
+        instance = cast(models.Order, instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
+
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
         data = data["input"]
@@ -343,15 +377,8 @@ class DraftOrderUpdate(
             instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, instance)
-        new_instance_data = instance.serialize_for_comparison()
-        changed_fields = cls.diff_instance_data_fields(
-            instance.comparison_fields,
-            old_instance_data,
-            new_instance_data,
-        )
-        cls._save(
-            info, instance, cleaned_input, old_voucher, old_voucher_code, changed_fields
-        )
+
+        cls._save(info, instance_tracker, cleaned_input, old_voucher, old_voucher_code)
         cls._save_m2m(info, instance, cleaned_input)
 
         return DraftOrderUpdate(order=SyncWebhookControlContext(node=instance))
