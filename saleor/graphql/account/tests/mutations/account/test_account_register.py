@@ -2,6 +2,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 from django.test import override_settings
 
 from ......account import events as account_events
@@ -251,3 +252,45 @@ def test_customer_register_no_channel_email_confirmation_unset(
     assert not data["errors"]
     assert data["user"]["email"].lower()
     mocked_notify.assert_not_called()
+
+
+@patch("saleor.account.models.User.save")
+def test_account_register_race_condition(
+    mocked_user_save, api_client, site_settings, customer_user
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
+    email_to_create = "test-user@example.com"
+
+    variables = {
+        "input": {
+            "email": email_to_create,
+            "password": "Password",
+            "firstName": "John",
+            "lastName": "Doe",
+        }
+    }
+
+    # Mock that first save() call raises IntegrityError
+    mocked_user_save.side_effect = IntegrityError(
+        "User with this Email already exists."
+    )
+
+    # Make sure User.objects.get raises DoesNotExist to bypass the race condition check
+    with patch("saleor.account.models.User.objects.get") as mocked_user_get:
+        mocked_user_get.return_value = customer_user
+
+        # when
+        response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+
+        # then
+        content = get_graphql_content(response)
+        errors_list = content["data"]["accountRegister"]["errors"]
+
+        # Should reraise IntegrityError
+        assert len(errors_list) == 1
+        assert errors_list[0]["field"] == "email"
+        assert errors_list[0]["code"] == AccountErrorCode.UNIQUE.name
+        assert errors_list[0]["message"] == "User with this Email already exists."

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from .....account import events as account_events
 from .....account import models, notifications, search
@@ -158,7 +159,30 @@ class AccountRegister(ModelMutation):
 
         with traced_atomic_transaction():
             user.is_confirmed = False
-            user.save()
+            try:
+                user.save()
+            except IntegrityError:
+                try:
+                    # Verify if object already exists in DB.
+                    # If yes, it means we have a race-condition
+                    # This eventually leads to ValidationError because this user
+                    # already exists
+                    models.User.objects.get(email=user.email)
+
+                    raise ValidationError(
+                        {
+                            # This validation error mimics built-in validation error
+                            # So graphQL response is the same
+                            "email": ValidationError(
+                                "User with this Email already exists.",
+                                code=AccountErrorCode.UNIQUE.value,
+                            )
+                        }
+                    )
+                except user.DoesNotExist:
+                    pass
+                raise
+
             if site.settings.enable_account_confirmation_by_email:
                 # Notifications will be deprecated in the future
                 token = default_token_generator.make_token(user)
