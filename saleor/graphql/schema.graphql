@@ -29977,6 +29977,7 @@ type Subscription @doc(category: "Miscellaneous") {
     List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
+    requires: [Requirement!]
   ): CheckoutUpdated @doc(category: "Checkout")
 
   """
@@ -30006,6 +30007,15 @@ type Subscription @doc(category: "Miscellaneous") {
     """
     channels: [String!]
   ): CheckoutMetadataUpdated @doc(category: "Checkout")
+
+  """
+  Event sent when taxes are calculated.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  calculateTaxes(requires: [Requirement!]): CalculateTaxes @doc(category: "Taxes")
 }
 
 interface Event {
@@ -30332,6 +30342,13 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
   checkout: Checkout
 }
 
+enum Requirement {
+  HAS_SHIPPING_ADDRESS
+  HAS_BILLING_ADDRESS
+  HAS_LINES
+  HAS_DELIVERY_METHOD
+}
+
 """
 Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
 """
@@ -30369,6 +30386,103 @@ type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
   """The checkout the event relates to."""
   checkout: Checkout
 }
+
+"""Synchronous webhook for calculating checkout/order taxes."""
+type CalculateTaxes implements Event @doc(category: "Taxes") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  taxBase: TaxableObject!
+}
+
+"""Taxable object."""
+type TaxableObject @doc(category: "Taxes") {
+  """The source object related to this tax object."""
+  sourceObject: TaxSourceObject!
+
+  """Determines if prices contain entered tax.."""
+  pricesEnteredWithTax: Boolean!
+
+  """The currency of the object."""
+  currency: String!
+
+  """
+  The price of shipping method, includes shipping voucher discount if applied.
+  """
+  shippingPrice: Money!
+
+  """The address data."""
+  address: Address
+
+  """List of discounts."""
+  discounts: [TaxableObjectDiscount!]!
+
+  """List of lines assigned to the object."""
+  lines: [TaxableObjectLine!]!
+  channel: Channel!
+}
+
+"""Taxable object discount."""
+type TaxableObjectDiscount @doc(category: "Taxes") {
+  """The name of the discount."""
+  name: String
+
+  """The amount of the discount."""
+  amount: Money!
+
+  """
+  Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
+  """
+  type: TaxableObjectDiscountTypeEnum!
+}
+
+"""
+Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
+"""
+enum TaxableObjectDiscountTypeEnum @doc(category: "Taxes") {
+  SUBTOTAL
+  SHIPPING
+}
+
+type TaxableObjectLine @doc(category: "Taxes") {
+  """The source line related to this tax line."""
+  sourceLine: TaxSourceLine!
+
+  """Number of items."""
+  quantity: Int!
+
+  """Determines if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
+
+  """The product name."""
+  productName: String!
+
+  """The variant name."""
+  variantName: String!
+
+  """The product sku."""
+  productSku: String
+
+  """
+  Price of the single item in the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
+  """
+  unitPrice: Money!
+
+  """
+  Price of the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
+  """
+  totalPrice: Money!
+}
+
+union TaxSourceLine = CheckoutLine | OrderLine
 
 enum DistanceUnitsEnum {
   MM
@@ -33145,103 +33259,6 @@ type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") 
   """Shipping methods that can be used with this checkout."""
   shippingMethods: [ShippingMethod!]
 }
-
-"""Synchronous webhook for calculating checkout/order taxes."""
-type CalculateTaxes implements Event @doc(category: "Taxes") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-  taxBase: TaxableObject!
-}
-
-"""Taxable object."""
-type TaxableObject @doc(category: "Taxes") {
-  """The source object related to this tax object."""
-  sourceObject: TaxSourceObject!
-
-  """Determines if prices contain entered tax.."""
-  pricesEnteredWithTax: Boolean!
-
-  """The currency of the object."""
-  currency: String!
-
-  """
-  The price of shipping method, includes shipping voucher discount if applied.
-  """
-  shippingPrice: Money!
-
-  """The address data."""
-  address: Address
-
-  """List of discounts."""
-  discounts: [TaxableObjectDiscount!]!
-
-  """List of lines assigned to the object."""
-  lines: [TaxableObjectLine!]!
-  channel: Channel!
-}
-
-"""Taxable object discount."""
-type TaxableObjectDiscount @doc(category: "Taxes") {
-  """The name of the discount."""
-  name: String
-
-  """The amount of the discount."""
-  amount: Money!
-
-  """
-  Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
-  """
-  type: TaxableObjectDiscountTypeEnum!
-}
-
-"""
-Indicates which part of the order the discount should affect: SUBTOTAL or SHIPPING.
-"""
-enum TaxableObjectDiscountTypeEnum @doc(category: "Taxes") {
-  SUBTOTAL
-  SHIPPING
-}
-
-type TaxableObjectLine @doc(category: "Taxes") {
-  """The source line related to this tax line."""
-  sourceLine: TaxSourceLine!
-
-  """Number of items."""
-  quantity: Int!
-
-  """Determines if taxes are being charged for the product."""
-  chargeTaxes: Boolean!
-
-  """The product name."""
-  productName: String!
-
-  """The variant name."""
-  variantName: String!
-
-  """The product sku."""
-  productSku: String
-
-  """
-  Price of the single item in the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
-  """
-  unitPrice: Money!
-
-  """
-  Price of the order line. The price includes catalogue promotions, specific product and applied once per order voucher discounts. The price does not include the entire order discount.
-  """
-  totalPrice: Money!
-}
-
-union TaxSourceLine = CheckoutLine | OrderLine
 
 """Event sent when user wants to initialize the payment gateway."""
 type PaymentGatewayInitializeSession implements Event @doc(category: "Payments") {

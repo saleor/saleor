@@ -64,6 +64,38 @@ class SubscriptionQuery:
                 break
         return channels
 
+    def get_requires_fields(self) -> list[str]:
+        """Get filterable tax fields from the subscription.
+
+        Subscription is filterable if it has arguments provided that can be used to
+        filter out records. If arguments are not provided, the subscription is not
+        filterable, then needs to be treated as normal subscription.
+        """
+        if not self.is_valid:
+            return []
+        subscription = self._get_subscription(self.ast)
+        # subscription is not optional as validation from init already passed
+        subscription = cast(OperationDefinition, subscription)
+
+        field_names = [
+            selection.name.value for selection in subscription.selection_set.selections
+        ]
+        # Skip if there is non-filterable subscription
+        if len(field_names) > 1 or set(field_names) == {"event"}:
+            return []
+
+        selection = subscription.selection_set.selections[0]
+        if not selection.arguments:
+            return []
+        requires = []
+        for arg in selection.arguments:
+            argument_name = arg.name.value
+            argument_values = getattr(arg.value, "values", [])
+            if argument_name == "requires":
+                requires = [value.value for value in argument_values]
+                break
+        return requires
+
     def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
         """Check if subscription selects only one top field.
 
