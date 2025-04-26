@@ -2594,7 +2594,15 @@ class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
         description = "Event sent when warehouse metadata is updated."
 
 
+def default_resolver(root, info, requires=None):
+    return Observable.from_([root])
+
+
 def default_channel_filterable_resolver(root, info, channels=None):
+    return Observable.from_([root])
+
+
+def checkout_updated_resolver(root, info, channels=None, requires=None):
     return Observable.from_([root])
 
 
@@ -2607,6 +2615,13 @@ channels_argument = graphene.Argument(
         f"{MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT} items."
     ),
 )
+
+
+class Requirement(graphene.Enum):
+    HAS_SHIPPING_ADDRESS = "HAS_SHIPPING_ADDRESS"
+    HAS_BILLING_ADDRESS = "HAS_BILLING_ADDRESS"
+    HAS_LINES = "HAS_LINES"
+    HAS_DELIVERY_METHOD = "HAS_DELIVERY_METHOD"
 
 
 class Subscription(SubscriptionObjectType):
@@ -2768,8 +2783,9 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when checkout is updated." + ADDED_IN_321 + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=checkout_updated_resolver,
         channels=channels_argument,
+        requires=graphene.Argument(NonNullList(Requirement)),
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_fully_paid = BaseField(
@@ -2791,6 +2807,15 @@ class Subscription(SubscriptionObjectType):
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
+    )
+
+    calculate_taxes = BaseField(
+        CalculateTaxes,
+        description=(
+            "Event sent when taxes are calculated." + ADDED_IN_321 + PREVIEW_FEATURE
+        ),
+        resolver=default_resolver,
+        requires=graphene.Argument(NonNullList(Requirement)),
     )
 
     class Meta:

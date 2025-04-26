@@ -11,6 +11,8 @@ from django.conf import settings
 from django.template.defaultfilters import truncatechars
 from pydantic import ValidationError
 
+from saleor.graphql.webhook.subscription_query import SubscriptionQuery
+
 from ...app.models import App
 from ...channel.models import Channel
 from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -2099,6 +2101,33 @@ class WebhookPlugin(BasePlugin):
         if webhooks := self._get_webhooks_for_checkout_events(
             event_type, checkout, webhooks
         ):
+            webhooks_to_trigger = []
+            for webhook in webhooks:
+                if not webhook.subscription_query:
+                    webhooks_to_trigger.append(webhook)
+                subscription_query = SubscriptionQuery(webhook.subscription_query)
+                to_skipped = False
+                requires_fields = subscription_query.get_requires_fields()
+                if requires_fields:
+                    if "HAS_SHIPPING_ADDRESS" in requires_fields:
+                        if not checkout.shipping_address_id:
+                            to_skipped = True
+                            print("Skipped as no shipping address")
+                    if "HAS_BILLING_ADDRESS" in requires_fields:
+                        if not checkout.billing_address_id:
+                            to_skipped = True
+                            print("Skipped as no billing address")
+                    if "HAS_LINES" in requires_fields:
+                        if not checkout.lines.exists():
+                            to_skipped = True
+                            print("Skipped as no lines")
+                    if "HAS_DELIVERY_METHOD" in requires_fields:
+                        if not checkout.shipping_method_id:
+                            to_skipped = True
+                            print("Skipped as no delivery method")
+                if not to_skipped:
+                    webhooks_to_trigger.append(webhook)
+
             checkout_data_generator = partial(
                 generate_checkout_payload,
                 checkout,
@@ -2107,7 +2136,7 @@ class WebhookPlugin(BasePlugin):
             self.trigger_webhooks_async(
                 None,
                 event_type,
-                webhooks,
+                webhooks_to_trigger,
                 checkout,
                 self.requestor,
                 legacy_data_generator=checkout_data_generator,
@@ -3461,6 +3490,26 @@ class WebhookPlugin(BasePlugin):
             msg = "Configured tax app's webhook for taxes calculation doesn't exists."
             logger.warning(msg)
             raise TaxDataError(msg)
+        if webhook.subscription_query and isinstance(subscriptable_object, Checkout):
+            subscription_query = SubscriptionQuery(webhook.subscription_query)
+            filterable_tax_fields = subscription_query.get_requires_fields()
+            if filterable_tax_fields:
+                if "HAS_SHIPPING_ADDRESS" in filterable_tax_fields:
+                    if not subscriptable_object.shipping_address_id:
+                        print("Skipped as no shipping address")
+                        raise TaxDataError("SKIP")
+                if "HAS_BILLING_ADDRESS" in filterable_tax_fields:
+                    if not subscriptable_object.billing_address_id:
+                        print("Skipped as no billing address")
+                        raise TaxDataError("SKIP")
+                if "HAS_LINES" in filterable_tax_fields:
+                    if not subscriptable_object.lines.exists():
+                        print("Skipped as no lines")
+                        raise TaxDataError("SKIP")
+                if "HAS_DELIVERY_METHOD" in filterable_tax_fields:
+                    if not subscriptable_object.shipping_method_id:
+                        print("Skipped as no delivery method")
+                        raise TaxDataError("SKIP")
 
         request_context = initialize_request(
             self.requestor,
