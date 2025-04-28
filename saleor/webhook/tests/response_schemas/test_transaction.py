@@ -6,7 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from pydantic import ValidationError
 
-from ....payment import TransactionEventType
+from ....payment import TransactionAction, TransactionEventType
 from ...response_schemas.transaction import (
     TransactionCancelRequestedResponse,
     TransactionChargeRequestedResponse,
@@ -24,8 +24,8 @@ def test_transaction_response_valid_full_data():
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
-        "result": "CHARGE_SUCCESS",
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
     }
 
     # when
@@ -52,12 +52,12 @@ def test_transaction_response_valid_full_data():
             "externalUrl": None,
             "message": None,
             "actions": None,
-            "result": "CHARGE_ACTION_REQUIRED",
+            "result": TransactionEventType.CHARGE_ACTION_REQUIRED.upper(),
         },
         # Only required fields with values
         {
             "amount": Decimal("100.50"),
-            "result": "CHARGE_ACTION_REQUIRED",
+            "result": TransactionEventType.CHARGE_ACTION_REQUIRED.upper(),
         },
     ],
 )
@@ -85,7 +85,7 @@ def test_transaction_response_with_various_amount_types(amount):
     data = {
         "pspReference": "psp-123",
         "amount": amount,
-        "result": "CHARGE_SUCCESS",
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
     }
 
     # when
@@ -136,18 +136,26 @@ def test_transaction_response_time_valid(time, time_parser):
     [
         # Valid actions
         (
-            ["CHARGE", "REFUND", "CANCEL"],
-            ["charge", "refund", "cancel"],
+            [
+                TransactionAction.CHARGE.upper(),
+                TransactionAction.REFUND.upper(),
+                TransactionAction.CANCEL.upper(),
+            ],
+            [
+                TransactionAction.CHARGE,
+                TransactionAction.REFUND,
+                TransactionAction.CANCEL,
+            ],
         ),
         # Just one action
         (
-            ["CANCEL"],
-            ["cancel"],
+            [TransactionAction.CANCEL.upper()],
+            [TransactionAction.CANCEL],
         ),
         # Invalid actions (should skip invalid ones)
         (
-            ["INVALID", "REFUND"],
-            ["refund"],
+            ["INVALID", TransactionAction.REFUND.upper()],
+            [TransactionAction.REFUND],
         ),
         # Empty actions list
         (
@@ -184,13 +192,13 @@ def test_transaction_response_actions_validation(actions, expected_actions):
         {
             "pspReference": "123",
             "amount": Decimal("100.00"),
-            "result": "CHARGE_SUCCESS",
+            "result": TransactionEventType.CHARGE_SUCCESS.upper(),
             "time": "invalid-time",
         },
         # Invalid external URL
         {
             "amount": "100.50",
-            "result": "CHARGE_SUCCESS",
+            "result": TransactionEventType.CHARGE_SUCCESS.upper(),
             "externalUrl": "invalid-url",
         },
     ],
@@ -244,7 +252,7 @@ def test_transaction_charge_requested_response_valid(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
     }
 
@@ -272,7 +280,7 @@ def test_transaction_charge_requested_response_invalid(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
     }
 
@@ -299,7 +307,7 @@ def test_transaction_cancel_requested_response_valid(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
     }
 
@@ -327,7 +335,7 @@ def test_transaction_cancel_requested_response_invalid(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
     }
 
@@ -354,7 +362,7 @@ def test_transaction_refund_requested_response_valid(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
     }
 
@@ -382,7 +390,7 @@ def test_transaction_refund_requested_response_invalid(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
     }
 
@@ -415,7 +423,7 @@ def test_transaction_session_response_valid_result(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
         "data": "test-data",
     }
@@ -444,7 +452,7 @@ def test_transaction_session_response_invalid_result(result):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
         "data": "data",
     }
@@ -486,7 +494,7 @@ def test_transaction_session_response_valid_data(data):
         "time": "2023-01-01T12:00:00+00:00",
         "externalUrl": "https://example.com/",
         "message": "Transaction completed successfully.",
-        "actions": ["CHARGE", "REFUND"],
+        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": TransactionEventType.AUTHORIZATION_SUCCESS.upper(),
         "data": data,
     }
