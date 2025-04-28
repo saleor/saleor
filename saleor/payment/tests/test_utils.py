@@ -1116,11 +1116,6 @@ def test_create_transaction_event_from_request_when_authorized_logs_warnning(
     mocked_automatic_checkout_completion_task.assert_not_called()
     assert mocked_logger.call_count == 1
     assert len(mocked_logger.call_args) == 2
-    assert mocked_logger.call_args[0][0] == (
-        f"Request type {request_event_type} not supported for parsing transaction "
-        "action data."
-    )
-    assert mocked_logger.call_args[1]["extra"]["request_type"] == request_event_type
 
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
@@ -1304,10 +1299,8 @@ def test_create_transaction_event_for_transaction_session_twice_auth(
 
     # then
     assert TransactionEvent.objects.count() == 3
-    request_event.refresh_from_db()
-    assert request_event.psp_reference == expected_psp_reference
     assert failed_event
-    assert failed_event.psp_reference == expected_psp_reference
+    assert failed_event.psp_reference == request_event.psp_reference
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
 
 

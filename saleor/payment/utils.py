@@ -1168,6 +1168,7 @@ def create_transaction_event_for_transaction_session(
         return create_failed_transaction_event(request_event, cause=error_msg or "")
 
     event = None
+    request_event_update_fields = []
     response_event = transaction_request_response.event
     if response_event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
@@ -1178,8 +1179,8 @@ def create_transaction_event_for_transaction_session(
         request_event.psp_reference = response_event.psp_reference
         request_event.include_in_calculations = True
         request_event.app = app
-        request_event.save(
-            update_fields=[
+        request_event_update_fields.extend(
+            [
                 "type",
                 "amount_value",
                 "psp_reference",
@@ -1189,9 +1190,6 @@ def create_transaction_event_for_transaction_session(
         )
         event = request_event
     else:
-        if psp_reference := response_event.psp_reference:
-            request_event.psp_reference = psp_reference
-            request_event.save(update_fields=["psp_reference"])
         event, error_message = _create_event_from_response(
             response_event,
             app=app,
@@ -1202,6 +1200,10 @@ def create_transaction_event_for_transaction_session(
             return create_failed_transaction_event(
                 request_event, cause=error_message or ""
             )
+        request_event.psp_reference = event.psp_reference
+        request_event_update_fields.append("psp_reference")
+    if request_event_update_fields:
+        request_event.save(update_fields=request_event_update_fields)
 
     transaction_item = event.transaction
     if event.type in [
