@@ -1,5 +1,6 @@
+import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from typing import Annotated, Any, Literal, TypeVar
@@ -10,6 +11,7 @@ from pydantic import (
     BaseModel,
     Field,
     HttpUrl,
+    Json,
     ValidationError,
     ValidatorFunctionWrapHandler,
     WrapValidator,
@@ -24,7 +26,7 @@ from ...payment import (
     TransactionAction,
     TransactionEventType,
 )
-from .annotations import DefaultIfNone
+from .annotations import DatetimeUTC, DefaultIfNone
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +74,7 @@ class TransactionResponse(BaseModel):
         Decimal, Field(description="Decimal amount of the processed action")
     ]
     time: Annotated[
-        DefaultIfNone[datetime],
+        DefaultIfNone[DatetimeUTC],
         Field(
             description="Time of the action in ISO 8601 format",
             default_factory=timezone.now,
@@ -131,13 +133,15 @@ class TransactionResponse(BaseModel):
     @field_validator("time", mode="before")
     @classmethod
     def clean_time(cls, time: Any) -> datetime | None:
-        try:
-            time = datetime.fromisoformat(time).replace(tzinfo=UTC) if time else None
-        except ValueError as e:
-            raise ValidationError(
-                f"Incorrect value for field: time, value: {time} in "
-                "response of transaction action webhook."
-            ) from e
+        # pydantic do not support all ISO 8601 formats so in case of string
+        # we need to parse it manually; different types are handled by pydantic
+        if isinstance(time, str):
+            try:
+                time = datetime.fromisoformat(time)
+            except ValueError as e:
+                raise ValueError(
+                    "Invalid value for field 'time': {time}. Expected ISO 8601 format."
+                ) from e
 
         return time
 
@@ -229,9 +233,20 @@ class TransactionSessionResponse(TransactionResponse):
         Field(description="Result of the action"),
     ]
     data: Annotated[
-        DefaultIfNone[dict],
+        DefaultIfNone[Json],
         Field(
             description="The JSON data that will be returned to storefront",
             default=None,
         ),
     ]
+
+    @field_validator("data", mode="before")
+    @classmethod
+    def validate_data(cls, value: Any) -> str:
+        # parse input value to raw JSON string
+        try:
+            return json.dumps(value)
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"Invalid value for field 'data': {value}. Expected JSON format."
+            ) from e

@@ -1,6 +1,8 @@
+from datetime import UTC, datetime
 from typing import Annotated, Any, TypeVar
 
 from pydantic import (
+    AfterValidator,
     BeforeValidator,
 )
 from pydantic_core import PydanticUseDefault
@@ -27,3 +29,5 @@ def default_if_none(value: Any) -> Any:
 
 T = TypeVar("T")
 DefaultIfNone = Annotated[T, BeforeValidator(default_if_none)]
+
+DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.replace(tzinfo=UTC))]
