@@ -230,7 +230,6 @@ class I18nMixin:
             False otherwise.
 
         """
-        # TODO zedzior: check if address data = {}
         if address_data is None or not instance:
             return False
 

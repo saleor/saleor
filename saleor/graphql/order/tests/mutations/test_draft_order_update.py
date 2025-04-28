@@ -3401,3 +3401,66 @@ def test_draft_order_update_emit_events(
         if key not in non_base_model_fields:
             save_order_mock.assert_called()
         call_event_mock.assert_called()
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+def test_draft_order_update_address_not_changed_save_flag_changed(
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    address,
+):
+    """Address input doesn't introduce any changes, but address save flag has changed."""
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    order.shipping_address = address
+    order.billing_address = address
+    order.draft_save_billing_address = False
+    order.draft_save_shipping_address = False
+    order.save(
+        update_fields=[
+            "shipping_address",
+            "billing_address",
+            "draft_save_billing_address",
+            "draft_save_shipping_address",
+        ]
+    )
+
+    address_input = {
+        snake_to_camel_case(key): value for key, value in address.as_data().items()
+    }
+    address_input.pop("privateMetadata")
+    skip_validation = address_input.pop("validationSkipped")
+    address_input["skipValidation"] = skip_validation
+
+    input = {
+        "billingAddress": address_input,
+        "saveBillingAddress": True,
+        "shippingAddress": address_input,
+        "saveShippingAddress": True,
+    }
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order.refresh_from_db()
+    assert order.draft_save_billing_address is True
+    assert order.draft_save_shipping_address is True
+    call_event_mock.assert_called()

@@ -27,9 +27,7 @@ from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.mutations import (
-    ModelWithExtRefMutation,
-)
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import OrderError
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -209,15 +207,15 @@ class DraftOrderUpdate(
     def clean_addresses(
         cls,
         info: ResolveInfo,
-        instance,
-        cleaned_input,
-        shipping_address,
-        billing_address,
+        instance: models.Order,
+        cleaned_input: dict,
+        shipping_address_input: dict | None,
+        billing_address_input: dict | None,
     ):
         save_shipping_address = cleaned_input.get("save_shipping_address", None)
         save_billing_address = cleaned_input.get("save_billing_address", None)
 
-        if save_shipping_address is not None and not shipping_address:
+        if save_shipping_address is not None and not shipping_address_input:
             raise ValidationError(
                 {
                     "save_shipping_address": ValidationError(
@@ -228,7 +226,7 @@ class DraftOrderUpdate(
                 }
             )
 
-        if save_billing_address is not None and not billing_address:
+        if save_billing_address is not None and not billing_address_input:
             raise ValidationError(
                 {
                     "save_billing_address": ValidationError(
@@ -239,47 +237,33 @@ class DraftOrderUpdate(
                 }
             )
 
-        # do not process shipping address if it hasn't changed
-        shipping_address_modified = cls.is_address_modified(
-            instance.shipping_address, shipping_address
-        )
-        if shipping_address_modified:
-            if shipping_address:
-                shipping_address = cls.validate_address(
-                    shipping_address,
+        if shipping_address_input:
+            # do not process shipping address if it hasn't changed
+            if cls.is_address_modified(
+                instance.shipping_address, shipping_address_input
+            ):
+                shipping_address_instance = cls.validate_address(
+                    shipping_address_input,
                     address_type=AddressType.SHIPPING,
                     instance=instance.shipping_address,
                     info=info,
                 )
-                cleaned_input["shipping_address"] = shipping_address
-                cleaned_input["draft_save_shipping_address"] = (
-                    save_shipping_address or False
-                )
-        else:
-            pass
-            # TODO zedzior: check this
-            # cleaned_input.pop("save_shipping_address", None)
+                cleaned_input["shipping_address"] = shipping_address_instance
+            cleaned_input["draft_save_shipping_address"] = (
+                save_shipping_address or False
+            )
 
         # do not process billing address if it hasn't changed
-        billing_address_modified = cls.is_address_modified(
-            instance.billing_address, billing_address
-        )
-        if billing_address_modified:
-            if billing_address:
-                billing_address = cls.validate_address(
-                    billing_address,
+        if billing_address_input:
+            if cls.is_address_modified(instance.billing_address, billing_address_input):
+                billing_address_instance = cls.validate_address(
+                    billing_address_input,
                     address_type=AddressType.BILLING,
                     instance=instance.billing_address,
                     info=info,
                 )
-                cleaned_input["billing_address"] = billing_address
-                cleaned_input["draft_save_billing_address"] = (
-                    save_billing_address or False
-                )
-        else:
-            pass
-            # TODO zedzior: check this
-            # cleaned_input.pop("save_billing_address")
+                cleaned_input["billing_address"] = billing_address_instance
+            cleaned_input["draft_save_billing_address"] = save_billing_address or False
 
     @classmethod
     def _save(
