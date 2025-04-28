@@ -197,8 +197,16 @@ class DraftOrderUpdate(
             )
             shipping_method_input["shipping_method"] = shipping_method
 
-            # do not process shipping method if it is already associated with the order
-            if shipping_method and shipping_method.id == instance.shipping_method_id:
+            # Do not process shipping method if it is already associated with the order
+            # and shipping price is already set. Shipping price can be unset together
+            # with shipping method when it is added to the order without lines or with
+            # lines that do not require shipping.
+            shipping_update_required = (
+                shipping_method
+                and shipping_method.id != instance.shipping_method_id
+                or instance.base_shipping_price_amount <= 0
+            )
+            if not shipping_update_required:
                 shipping_method_input = {}
 
         return shipping_method_input
