@@ -191,6 +191,41 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         return instance
 
     @classmethod
+    def _post_save_action(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        variant_modified: bool,
+        attribute_modified: bool,
+        metadata_modified: bool,
+    ):
+        if variant_modified or attribute_modified or metadata_modified:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.product_variant_updated, instance)
+
+            if metadata_modified:
+                cls.call_event(manager.product_variant_metadata_updated, instance)
+
+            super().post_save_action(info, instance, cleaned_input)
+
+    @classmethod
+    def handle_metadata(cls, instance, cleaned_input):
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -218,21 +253,9 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
 
         cleaned_input = cls.clean_input(info, instance, input)
 
-        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
-        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
-            "private_metadata", None
-        )
-        metadata_collection = cls.create_metadata_from_graphql_input(
-            metadata_list, error_field_name="metadata"
-        )
-        private_metadata_collection = cls.create_metadata_from_graphql_input(
-            private_metadata_list, error_field_name="private_metadata"
-        )
+        cls.handle_metadata(instance, cleaned_input)
 
         cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(
-            instance, metadata_collection, private_metadata_collection
-        )
         cls.clean_instance(info, instance)
 
         variant_modified, attribute_modified, metadata_modified = cls._save(
@@ -249,22 +272,3 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         )
 
         return cls.success_response(instance)
-
-    @classmethod
-    def _post_save_action(
-        cls,
-        info: ResolveInfo,
-        instance,
-        cleaned_input,
-        variant_modified: bool,
-        attribute_modified: bool,
-        metadata_modified: bool,
-    ):
-        if variant_modified or attribute_modified or metadata_modified:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.product_variant_updated, instance)
-
-            if metadata_modified:
-                cls.call_event(manager.product_variant_metadata_updated, instance)
-
-            super().post_save_action(info, instance, cleaned_input)
