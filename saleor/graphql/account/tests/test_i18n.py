@@ -431,14 +431,15 @@ def test_is_address_modified_metadata_changed(address):
     key2 = "another key"
     value1 = "some value"
     value2 = "another value"
+    address.metadata = {key2: value2, key1: value1}
+    address.save(update_fields=["metadata"])
+
     address_data = {
         "metadata": [
             MetadataItem(key=key1, value=value1),
             MetadataItem(key=key2, value="new value"),
         ]
     }
-    address.metadata = {key2: value2, key1: value1}
-    address.save(update_fields=["metadata"])
 
     # when
     is_modified = I18nMixin.is_address_modified(address, address_data)
@@ -447,20 +448,23 @@ def test_is_address_modified_metadata_changed(address):
     assert is_modified is True
 
 
-def test_is_address_modified_metadata_not_changed(address):
+@pytest.mark.parametrize(
+    "metadata_input",
+    [
+        [
+            MetadataItem(key="some key", value="some value"),
+            MetadataItem(key="another key", value="another value"),
+        ],
+        [MetadataItem(key="some key", value="some value")],
+        [],
+    ],
+)
+def test_is_address_modified_metadata_not_changed(metadata_input, address):
     # given
-    key1 = "some key"
-    key2 = "another key"
-    value1 = "some value"
-    value2 = "another value"
-    address_data = {
-        "metadata": [
-            MetadataItem(key=key1, value=value1),
-            MetadataItem(key=key2, value=value2),
-        ]
-    }
-    address.metadata = {key2: value2, key1: value1}
+    address.metadata = {"some key": "some value", "another key": "another value"}
     address.save(update_fields=["metadata"])
+
+    address_data = {"metadata": metadata_input}
 
     # when
     is_modified = I18nMixin.is_address_modified(address, address_data)

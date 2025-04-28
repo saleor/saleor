@@ -240,8 +240,12 @@ class I18nMixin:
 
         for key, value in address_data.items():
             if key == "metadata":
-                value = cls._metadata_input_as_dict(value)
-            if value != address_as_dict.get(key):
+                metadata_input = cls._metadata_input_as_dict(value)
+                existing_metadata = address_as_dict.get("metadata", {})
+                for meta_key, meta_value in metadata_input.items():
+                    if existing_metadata.get(meta_key) != meta_value:
+                        return True
+            elif value != address_as_dict.get(key):
                 return True
 
         return False
@@ -250,7 +254,6 @@ class I18nMixin:
     def _metadata_input_as_dict(
         cls, metadata_input: list[MetadataItem]
     ) -> dict[str, str]:
-        # TODO zedzior check how to delete metadata
         if not metadata_input:
             return {}
 
