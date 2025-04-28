@@ -3220,8 +3220,8 @@ def test_draft_order_update_nothing_changed(
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
-    graphql_address_data,
     voucher,
+    address,
 ):
     # given
     order = order_with_lines
@@ -3231,8 +3231,13 @@ def test_draft_order_update_nothing_changed(
 
     key = "some_key"
     value = "some_value"
+    address.metadata = {key: value}
+    address.save(update_fields=["metadata"])
+
     order.metadata = {key: value}
     order.private_metadata = {key: value}
+    order.shipping_address = address
+    order.billing_address = address
     order.draft_save_billing_address = True
     order.draft_save_shipping_address = True
     order.voucher = voucher
@@ -3248,6 +3253,14 @@ def test_draft_order_update_nothing_changed(
     )
     user_id = graphene.Node.to_global_id("User", order.user_id)
 
+    address_input = {
+        snake_to_camel_case(key): value for key, value in address.as_data().items()
+    }
+    address_input["metadata"] = [{"key": key, "value": value}]
+    address_input.pop("privateMetadata")
+    skip_validation = address_input.pop("validationSkipped")
+    address_input["skipValidation"] = skip_validation
+
     input_fields = [
         snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
     ]
@@ -3258,17 +3271,12 @@ def test_draft_order_update_nothing_changed(
     input_fields.remove("voucher")
     # `channel` can't be updated when is not None
     input_fields.remove("channelId")
-    # TODO zedzior: compare addresses
-    input_fields.remove("billingAddress")
-    input_fields.remove("saveBillingAddress")
-    input_fields.remove("shippingAddress")
-    input_fields.remove("saveShippingAddress")
 
     input = {
-        # "billingAddress": graphql_address_data,
-        # "saveBillingAddress": True,
-        # "shippingAddress": graphql_address_data,
-        # "saveShippingAddress": True,
+        "billingAddress": address_input,
+        "saveBillingAddress": True,
+        "shippingAddress": address_input,
+        "saveShippingAddress": True,
         "shippingMethod": shipping_method_id,
         "user": user_id,
         "userEmail": order.user_email,
@@ -3333,7 +3341,6 @@ def test_draft_order_update_emit_events(
     order.redirect_url = "https://www.example.com"
     order.external_reference = "some_reference_string"
     order.language_code = "pl"
-    order.channel = None
     order.save()
 
     shipping_method_id = graphene.Node.to_global_id(
@@ -3351,12 +3358,17 @@ def test_draft_order_update_emit_events(
     input_fields.remove("voucher")
     # `channel` can't be updated when is not None
     input_fields.remove("channelId")
+    # `saveBillingAddress` can't be provided without billingAddress
+    input_fields.remove("saveBillingAddress")
+    # `saveShippingAddress` can't be provided without shippingAddress
+    input_fields.remove("saveShippingAddress")
+
+    assert graphql_address_data["lastName"] != order.shipping_address.last_name
+    assert graphql_address_data["lastName"] != order.billing_address.last_name
 
     input = {
         "billingAddress": graphql_address_data,
-        "saveBillingAddress": True,
         "shippingAddress": graphql_address_data,
-        "saveShippingAddress": True,
         "shippingMethod": shipping_method_id,
         "user": user_id,
         "userEmail": order.user_email,
@@ -3389,80 +3401,3 @@ def test_draft_order_update_emit_events(
         if key not in non_base_model_fields:
             save_order_mock.assert_called()
         call_event_mock.assert_called()
-
-
-def test_zedziora(
-    staff_api_client,
-    permission_group_manage_orders,
-    order_with_lines,
-    graphql_address_data,
-    voucher,
-):
-    # given
-    order = order_with_lines
-    order.status = OrderStatus.DRAFT
-    order.save(update_fields=["status"])
-    order_id = graphene.Node.to_global_id("Order", order.id)
-
-    key = "some_key"
-    value = "some_value"
-    order.metadata = {key: value}
-    order.private_metadata = {key: value}
-    order.draft_save_billing_address = True
-    order.draft_save_shipping_address = True
-    order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
-    order.customer_note = "some note"
-    order.redirect_url = "https://www.example.com"
-    order.external_reference = "some_reference_string"
-    order.language_code = "pl"
-    order.save()
-
-    shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", order.shipping_method_id
-    )
-    user_id = graphene.Node.to_global_id("User", order.user_id)
-
-    input_fields = [
-        snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
-    ]
-
-    # `discount` field is unused and deprecated
-    input_fields.remove("discount")
-    # `voucher` and `voucherCode` fields can't be combined
-    input_fields.remove("voucher")
-    # `channel` can't be updated when is not None
-    input_fields.remove("channelId")
-
-    input = {
-        # "billingAddress": graphql_address_data,
-        # "saveBillingAddress": True,
-        # "shippingAddress": graphql_address_data,
-        # "saveShippingAddress": True,
-        "shippingMethod": shipping_method_id,
-        "user": user_id,
-        "userEmail": order.user_email,
-        "voucherCode": order.voucher_code,
-        "customerNote": order.customer_note,
-        "redirectUrl": order.redirect_url,
-        "externalReference": order.external_reference,
-        "metadata": [{"key": key, "value": value}],
-        "privateMetadata": [{"key": key, "value": value}],
-        "languageCode": "PL",
-    }
-
-    variables = {"id": order_id, "input": input}
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-
-    # when
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_UPDATE_MUTATION,
-        variables,
-    )
-    response = staff_api_client.post_graphql(
-        DRAFT_ORDER_UPDATE_MUTATION,
-        variables,
-    )
-    content = get_graphql_content(response)
-
-    # then

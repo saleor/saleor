@@ -214,20 +214,10 @@ class DraftOrderUpdate(
         shipping_address,
         billing_address,
     ):
-        save_shipping_address = cleaned_input.get("save_shipping_address")
-        save_billing_address = cleaned_input.get("save_billing_address")
-        if shipping_address:
-            shipping_address = cls.validate_address(
-                shipping_address,
-                address_type=AddressType.SHIPPING,
-                instance=instance.shipping_address,
-                info=info,
-            )
-            cleaned_input["shipping_address"] = shipping_address
-            cleaned_input["draft_save_shipping_address"] = (
-                save_shipping_address or False
-            )
-        elif save_shipping_address is not None:
+        save_shipping_address = cleaned_input.get("save_shipping_address", None)
+        save_billing_address = cleaned_input.get("save_billing_address", None)
+
+        if save_shipping_address is not None and not shipping_address:
             raise ValidationError(
                 {
                     "save_shipping_address": ValidationError(
@@ -237,16 +227,8 @@ class DraftOrderUpdate(
                     )
                 }
             )
-        if billing_address:
-            billing_address = cls.validate_address(
-                billing_address,
-                address_type=AddressType.BILLING,
-                instance=instance.billing_address,
-                info=info,
-            )
-            cleaned_input["billing_address"] = billing_address
-            cleaned_input["draft_save_billing_address"] = save_billing_address or False
-        elif save_billing_address is not None:
+
+        if save_billing_address is not None and not billing_address:
             raise ValidationError(
                 {
                     "save_billing_address": ValidationError(
@@ -257,6 +239,48 @@ class DraftOrderUpdate(
                 }
             )
 
+        # do not process shipping address if it hasn't changed
+        shipping_address_modified = cls.is_address_modified(
+            instance.shipping_address, shipping_address
+        )
+        if shipping_address_modified:
+            if shipping_address:
+                shipping_address = cls.validate_address(
+                    shipping_address,
+                    address_type=AddressType.SHIPPING,
+                    instance=instance.shipping_address,
+                    info=info,
+                )
+                cleaned_input["shipping_address"] = shipping_address
+                cleaned_input["draft_save_shipping_address"] = (
+                    save_shipping_address or False
+                )
+        else:
+            pass
+            # TODO zedzior: check this
+            # cleaned_input.pop("save_shipping_address", None)
+
+        # do not process billing address if it hasn't changed
+        billing_address_modified = cls.is_address_modified(
+            instance.billing_address, billing_address
+        )
+        if billing_address_modified:
+            if billing_address:
+                billing_address = cls.validate_address(
+                    billing_address,
+                    address_type=AddressType.BILLING,
+                    instance=instance.billing_address,
+                    info=info,
+                )
+                cleaned_input["billing_address"] = billing_address
+                cleaned_input["draft_save_billing_address"] = (
+                    save_billing_address or False
+                )
+        else:
+            pass
+            # TODO zedzior: check this
+            # cleaned_input.pop("save_billing_address")
+
     @classmethod
     def _save(
         cls,
@@ -265,7 +289,6 @@ class DraftOrderUpdate(
     ) -> bool:
         instance = instance_tracker.instance
         with traced_atomic_transaction():
-            # TODO zedzior: compare addresses
             if modified_address_fields := save_addresses(instance, cleaned_input):
                 update_order_display_gross_prices(instance)
 

@@ -250,6 +250,7 @@ class I18nMixin:
     def _metadata_input_as_dict(
         cls, metadata_input: list[MetadataItem]
     ) -> dict[str, str]:
+        # TODO zedzior check how to delete metadata
         if not metadata_input:
             return {}
 
