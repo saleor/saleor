@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from ....account.models import Address
 from ....checkout import AddressType
+from ....core.utils.metadata_manager import MetadataItem
 from ...tests.utils import get_graphql_content
 from ..i18n import I18nMixin
 
@@ -361,3 +362,108 @@ def test_address_validation_no_logging(
     assert data["errors"][0]["code"] == "INVALID"
     assert data["errors"][0]["field"] == "countryArea"
     assert "Invalid address input" not in caplog.text
+
+
+def test_is_address_modified(address):
+    # given
+    address_data = {"last_name": None}
+    assert address.last_name is not None
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is True
+
+
+def test_is_address_modified_no_changes_all_fields_included_in_the_input(address):
+    # given
+    address_data = address.as_data()
+    address_data.pop("private_metadata")
+    skip_validation = address_data.pop("validation_skipped")
+    address_data["skip_validation"] = skip_validation
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is False
+
+
+def test_is_address_modified_no_changes_single_field_in_input(address):
+    # given
+    address_data = {"last_name": address.last_name}
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is False
+
+
+def test_is_address_modified_skip_validation_changed(address):
+    # given
+    address_data = {"skip_validation": True}
+    assert address.validation_skipped is False
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is True
+
+
+def test_is_address_modified_skip_validation_not_changed(address):
+    # given
+    address_data = {"skip_validation": False}
+    assert address.validation_skipped is False
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is False
+
+
+def test_is_address_modified_metadata_changed(address):
+    # given
+    key1 = "some key"
+    key2 = "another key"
+    value1 = "some value"
+    value2 = "another value"
+    address_data = {
+        "metadata": [
+            MetadataItem(key=key1, value=value1),
+            MetadataItem(key=key2, value="new value"),
+        ]
+    }
+    address.metadata = {key2: value2, key1: value1}
+    address.save(update_fields=["metadata"])
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is True
+
+
+def test_is_address_modified_metadata_not_changed(address):
+    # given
+    key1 = "some key"
+    key2 = "another key"
+    value1 = "some value"
+    value2 = "another value"
+    address_data = {
+        "metadata": [
+            MetadataItem(key=key1, value=value1),
+            MetadataItem(key=key2, value=value2),
+        ]
+    }
+    address.metadata = {key2: value2, key1: value1}
+    address.save(update_fields=["metadata"])
+
+    # when
+    is_modified = I18nMixin.is_address_modified(address, address_data)
+
+    # then
+    assert is_modified is False
