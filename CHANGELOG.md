@@ -115,3 +115,5 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixes incorrect gift card balances after covering the full order total - #17566 by @korycins
 - Fixes tax class not clearing when selecting a shipping method without a tax class - #17560 by @korycins
 - The prices for draft orders created in `OrderBulkCreate` now are properly calculated - #17583 by @IKarbowiak
+- Fixes incorrect stock deallocation when multiple order lines share the same ProductVariant - #17657 by @korycins
+- Decrease allocations for lines with inventory tracking disabled, if allocations exist - #17657 by @korycins
