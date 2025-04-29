@@ -294,8 +294,11 @@ class ChannelCreate(DeprecatedModelMutation):
             cleaned_input["slug"] = slugify(slug)
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
-        if order_settings := cleaned_input.get("order_settings"):
-            clean_input_order_settings(order_settings, cleaned_input, instance)
+
+        order_settings = cleaned_input.get("order_settings") or {
+            "use_legacy_line_discount_propagation_for_order": False
+        }
+        clean_input_order_settings(order_settings, cleaned_input, instance)
 
         if checkout_settings := cleaned_input.get("checkout_settings"):
             clean_input_checkout_settings(checkout_settings, cleaned_input)
