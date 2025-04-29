@@ -143,6 +143,19 @@ class ProductVariantCreate(DeprecatedModelMutation):
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
+        cls.clean_weight(cleaned_input)
+        cls.clean_quantity_limit(cleaned_input)
+        if stocks := cleaned_input.get("stocks"):
+            cls.check_for_duplicates_in_stocks(stocks)
+        cls.clean_attributes(cleaned_input, instance)
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+        cls.clean_preorder_settings(cleaned_input)
+
+        return cleaned_input
+
+    @classmethod
+    def clean_weight(cls, cleaned_input):
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
             raise ValidationError(
@@ -154,6 +167,8 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 }
             )
 
+    @classmethod
+    def clean_quantity_limit(cls, cleaned_input):
         quantity_limit_per_customer = cleaned_input.get("quantity_limit_per_customer")
         if quantity_limit_per_customer is not None and quantity_limit_per_customer < 1:
             raise ValidationError(
@@ -168,15 +183,8 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 }
             )
 
-        stocks = cleaned_input.get("stocks")
-        if stocks:
-            cls.check_for_duplicates_in_stocks(stocks)
-
-        cls.clean_attributes(cleaned_input, instance)
-
-        if "sku" in cleaned_input:
-            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-
+    @classmethod
+    def clean_preorder_settings(cls, cleaned_input):
         preorder_settings = cleaned_input.get("preorder")
         if preorder_settings:
             cleaned_input["is_preorder"] = True
@@ -185,11 +193,9 @@ class ProductVariantCreate(DeprecatedModelMutation):
             )
             cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
-        return cleaned_input
-
     @classmethod
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
-        product = cls.get_product(cleaned_input, instance)
+        product = cls.get_product(cleaned_input)
         product_type = product.product_type
         used_attribute_values = get_used_variants_attribute_values(product)
 
@@ -246,7 +252,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 )
 
     @classmethod
-    def get_product(cls, cleaned_input: dict, instance) -> models.Product:
+    def get_product(cls, cleaned_input: dict) -> models.Product:
         product = cleaned_input["product"]
         if not product:
             raise ValidationError(
