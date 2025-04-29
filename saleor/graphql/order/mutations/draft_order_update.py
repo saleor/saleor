@@ -206,7 +206,7 @@ class DraftOrderUpdate(
                 and shipping_method.id != instance.shipping_method_id
                 or instance.base_shipping_price_amount <= 0
             )
-            if not shipping_update_required:
+            if not shipping_update_required and shipping_method is not None:
                 shipping_method_input = {}
 
         return shipping_method_input

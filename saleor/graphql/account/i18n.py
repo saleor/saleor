@@ -230,7 +230,10 @@ class I18nMixin:
             False otherwise.
 
         """
-        if address_data is None or not instance:
+        if not instance:
+            return True
+
+        if not address_data:
             return False
 
         address_as_dict = instance.as_data()

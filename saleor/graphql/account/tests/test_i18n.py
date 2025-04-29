@@ -471,3 +471,22 @@ def test_is_address_modified_metadata_not_changed(metadata_input, address):
 
     # then
     assert is_modified is False
+
+
+def test_is_address_modified_no_instance():
+    # given
+    address_data = {"last_name": "Some Name"}
+
+    # when
+    is_modified = I18nMixin.is_address_modified(None, address_data)
+
+    # then
+    assert is_modified is True
+
+
+def test_is_address_modified_empty_input(address):
+    # when
+    is_modified = I18nMixin.is_address_modified(address, {})
+
+    # then
+    assert is_modified is False
