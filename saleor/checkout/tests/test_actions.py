@@ -571,7 +571,7 @@ def test_get_checkout_refundable_with_multiple_active_transactions(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_incorrect_webhook_event(
@@ -611,7 +611,7 @@ def test_call_checkout_event_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -664,13 +664,9 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -709,7 +705,7 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -761,13 +757,9 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -803,7 +795,7 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_event_skip_sync_webhooks_when_async_missing(
@@ -841,7 +833,7 @@ def test_call_checkout_event_skip_sync_webhooks_when_async_missing(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -882,13 +874,9 @@ def test_call_checkout_event_only_async_when_sync_missing(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_called_once_with(
@@ -899,7 +887,7 @@ def test_call_checkout_event_only_async_when_sync_missing(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_incorrect_webhook_event(
@@ -948,7 +936,7 @@ def test_call_checkout_info_event_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1012,13 +1000,9 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1057,7 +1041,7 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1120,13 +1104,9 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1162,7 +1142,7 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1213,13 +1193,9 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_called_once_with(
@@ -1230,7 +1206,7 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_info_event_skip_sync_webhooks_when_async_missing(
@@ -1282,7 +1258,7 @@ def test_call_checkout_info_event_skip_sync_webhooks_when_async_missing(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1342,13 +1318,9 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_fully_paid_delivery.id,
+            "app_id": checkout_fully_paid_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1388,7 +1360,7 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_events_incorrect_webhook_event(
@@ -1428,7 +1400,7 @@ def test_call_checkout_events_incorrect_webhook_event(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1484,13 +1456,9 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1534,7 +1502,7 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1589,13 +1557,9 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1636,7 +1600,7 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_checkout_events_skip_sync_webhooks_when_async_missing(
@@ -1677,7 +1641,7 @@ def test_call_checkout_events_skip_sync_webhooks_when_async_missing(
 @freeze_time("2023-05-31 12:00:01")
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @patch(
     "saleor.checkout.actions.call_event_including_protected_events",
@@ -1721,13 +1685,9 @@ def test_call_checkout_events_only_async_when_sync_missing(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_create_delivery.id,
+            "app_id": checkout_create_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     mocked_call_event_including_protected_events.assert_has_calls(

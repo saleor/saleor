@@ -16,7 +16,7 @@ from .payloads import generate_payment_payload
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_trigger_webhooks_async(
     mocked_send_webhook_request,
@@ -37,13 +37,9 @@ def test_trigger_webhooks_async(
         assert (
             mock.call(
                 kwargs={
-                    "event_delivery_id": delivery.id,
+                    "app_id": delivery.webhook.app_id,
                     "telemetry_context": mock.ANY,
                 },
-                queue=None,
-                bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
             in mocked_send_webhook_request.mock_calls
         )
@@ -53,7 +49,7 @@ def test_trigger_webhooks_async(
     "saleor.webhook.transport.asynchronous.transport.MAX_WEBHOOK_EVENTS_IN_DB_BULK", 2
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_trigger_webhooks_async_for_multiple_objects(
     mocked_send_webhook_request,
@@ -102,20 +98,16 @@ def test_trigger_webhooks_async_for_multiple_objects(
         assert (
             mock.call(
                 kwargs={
-                    "event_delivery_id": delivery.id,
+                    "app_id": delivery.webhook.app_id,
                     "telemetry_context": mock.ANY,
                 },
-                queue=None,
-                bind=True,
-                retry_backoff=10,
-                retry_kwargs={"max_retries": 5},
             )
             in mocked_send_webhook_request.mock_calls
         )
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.create_deliveries_for_subscriptions"
