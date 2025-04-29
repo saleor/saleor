@@ -8,7 +8,7 @@ from ..core.telemetry import MetricType, Scope, Unit, meter, saleor_attributes
 
 # Initialize metrics
 METRIC_GRAPHQL_QUERY_COUNT = meter.create_metric(
-    "saleor.graphql.query_count",
+    "saleor.graphql.operation.count",
     scope=Scope.SERVICE,
     type=MetricType.COUNTER,
     unit=Unit.REQUEST,
@@ -16,15 +16,15 @@ METRIC_GRAPHQL_QUERY_COUNT = meter.create_metric(
 )
 
 METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
-    "saleor.graphql.query_duration",
+    "saleor.graphql.operation.duration",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
-    unit=Unit.MILLISECOND,
+    unit=Unit.SECOND,
     description="Duration of GraphQL queries.",
 )
 
 METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
-    "saleor.graphql.query_cost",
+    "saleor.graphql.operation.cost",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.REQUEST,

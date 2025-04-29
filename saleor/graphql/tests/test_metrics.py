@@ -77,7 +77,7 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
     view(request)
 
     # then
-    # check that saleor.graphql.query_count is recorded
+    # check that saleor.graphql.operation.count is recorded
     mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COUNT,
         1,
@@ -89,7 +89,7 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         },
     )
 
-    # check that saleor.graphql.query_cost is recorded
+    # check that saleor.graphql.operation.cost is recorded
     mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COST,
         5,
@@ -101,7 +101,7 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         },
     )
 
-    # check that saleor.graphql.query_duration is recorded and has correct attributes
+    # check that saleor.graphql.operation.duration is recorded and has correct attributes
     mock_meter.record_duration.assert_called_once_with(
         METRIC_GRAPHQL_QUERY_DURATION,
         attributes={
@@ -245,7 +245,7 @@ def test_graphql_query_record_metrics_cost_exceeded(
     api_client.post_graphql(query, variables)
 
     # then
-    # check that saleor.graphql.query_count is recorded
+    # check that saleor.graphql.operation.count is recorded
     mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COUNT,
         1,
@@ -270,7 +270,7 @@ def test_graphql_query_record_metrics_cost_exceeded(
         },
     )
 
-    # check that saleor.graphql.query_duration is recorded and has correct attributes
+    # check that saleor.graphql.operation.duration is recorded and has correct attributes
     mock_meter.record_duration.assert_called_once_with(
         METRIC_GRAPHQL_QUERY_DURATION,
         attributes={
