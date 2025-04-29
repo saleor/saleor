@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import cast
 
 import graphene
@@ -15,7 +14,6 @@ from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.utils import (
     AttributeAssignmentMixin,
     AttrValuesInput,
-    get_values_from_attribute_values_input,
     has_input_modified_attribute_values,
 )
 from ....channel import ChannelContext
@@ -28,6 +26,7 @@ from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 from ...utils import clean_variant_sku, get_used_variants_attribute_values
+from . import product_variant_cleaner as cleaner
 from .product_variant_create import ProductVariantInput
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
@@ -126,12 +125,12 @@ class ProductVariantUpdate(DeprecatedModelMutation):
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        cls.clean_weight(cleaned_input)
-        cls.clean_quantity_limit(cleaned_input)
+        cleaner.clean_weight(cleaned_input)
+        cleaner.clean_quantity_limit(cleaned_input)
         attribute_modified = cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-        cls.clean_preorder_settings(cleaned_input)
+        cleaner.clean_preorder_settings(cleaned_input)
 
         return cleaned_input, attribute_modified
 
@@ -176,7 +175,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                         instance, cleaned_attributes
                     )
                     if attribute_modified:
-                        cls.validate_duplicated_attribute_values(
+                        cleaner.validate_duplicated_attribute_values(
                             cleaned_attributes, used_attribute_values
                         )
                     cleaned_input["attributes"] = cleaned_attributes
@@ -191,62 +190,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                 )
 
         return attribute_modified
-
-    @classmethod
-    def validate_duplicated_attribute_values(
-        cls, attributes_data, used_attribute_values
-    ):
-        attribute_values: defaultdict[str, list[str]] = defaultdict(list)
-        for attr, attr_data in attributes_data:
-            values = get_values_from_attribute_values_input(attr, attr_data)
-            attribute_values[attr_data.global_id].extend(values)
-
-        if attribute_values in used_attribute_values:
-            raise ValidationError(
-                "Duplicated attribute values for product variant.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                params={"attributes": attribute_values.keys()},
-            )
-        used_attribute_values.append(attribute_values)
-
-    @classmethod
-    def clean_weight(cls, cleaned_input):
-        weight = cleaned_input.get("weight")
-        if weight and weight.value < 0:
-            raise ValidationError(
-                {
-                    "weight": ValidationError(
-                        "Product variant can't have negative weight.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def clean_quantity_limit(cls, cleaned_input):
-        quantity_limit_per_customer = cleaned_input.get("quantity_limit_per_customer")
-        if quantity_limit_per_customer is not None and quantity_limit_per_customer < 1:
-            raise ValidationError(
-                {
-                    "quantity_limit_per_customer": ValidationError(
-                        (
-                            "Product variant can't have "
-                            "quantity_limit_per_customer lower than 1."
-                        ),
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def clean_preorder_settings(cls, cleaned_input):
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
-            )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
     @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
@@ -269,15 +212,10 @@ class ProductVariantUpdate(DeprecatedModelMutation):
     ) -> tuple[bool, bool]:
         instance = instance_tracker.instance
         modified_instance_fields = instance_tracker.get_modified_fields()
-        metadata_changed = (
+        metadata_modified = (
             "metadata" in modified_instance_fields
             or "private_metadata" in modified_instance_fields
         )
-        attribute_changed = False
-        if attributes_data := cleaned_input.get("attributes"):
-            attribute_changed = has_input_modified_attribute_values(
-                instance, attributes_data
-            )
 
         refresh_product_search_index = False
         with traced_atomic_transaction():
@@ -291,7 +229,8 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     refresh_product_search_index = True
 
             # handle attributes
-            if attribute_changed:
+            if attribute_modified:
+                attributes_data = cleaned_input.get("attributes")
                 AttributeAssignmentMixin.save(instance, attributes_data)
                 refresh_product_search_index = True
 
@@ -307,7 +246,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            return bool(modified_instance_fields), metadata_changed
+            return bool(modified_instance_fields), metadata_modified
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:

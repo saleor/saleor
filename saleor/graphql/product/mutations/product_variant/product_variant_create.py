@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -14,7 +12,6 @@ from ....attribute.types import AttributeValueInput
 from ....attribute.utils import (
     AttributeAssignmentMixin,
     AttrValuesInput,
-    get_values_from_attribute_values_input,
 )
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -34,6 +31,7 @@ from ...utils import (
     get_used_variants_attribute_values,
 )
 from ..product.product_create import StockInput
+from . import product_variant_cleaner as cleaner
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
@@ -143,58 +141,19 @@ class ProductVariantCreate(DeprecatedModelMutation):
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        cls.clean_weight(cleaned_input)
-        cls.clean_quantity_limit(cleaned_input)
+        cleaner.clean_weight(cleaned_input)
+        cleaner.clean_quantity_limit(cleaned_input)
         if stocks := cleaned_input.get("stocks"):
             cls.check_for_duplicates_in_stocks(stocks)
-        cls.clean_attributes(cleaned_input, instance)
+        cls.clean_attributes(cleaned_input)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-        cls.clean_preorder_settings(cleaned_input)
+        cleaner.clean_preorder_settings(cleaned_input)
 
         return cleaned_input
 
     @classmethod
-    def clean_weight(cls, cleaned_input):
-        weight = cleaned_input.get("weight")
-        if weight and weight.value < 0:
-            raise ValidationError(
-                {
-                    "weight": ValidationError(
-                        "Product variant can't have negative weight.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def clean_quantity_limit(cls, cleaned_input):
-        quantity_limit_per_customer = cleaned_input.get("quantity_limit_per_customer")
-        if quantity_limit_per_customer is not None and quantity_limit_per_customer < 1:
-            raise ValidationError(
-                {
-                    "quantity_limit_per_customer": ValidationError(
-                        (
-                            "Product variant can't have "
-                            "quantity_limit_per_customer lower than 1."
-                        ),
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
-    @classmethod
-    def clean_preorder_settings(cls, cleaned_input):
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
-            )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
-
-    @classmethod
-    def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
+    def clean_attributes(cls, cleaned_input: dict):
         product = cls.get_product(cleaned_input)
         product_type = product.product_type
         used_attribute_values = get_used_variants_attribute_values(product)
@@ -228,7 +187,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
                     cleaned_attributes: T_INPUT_MAP = (
                         AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
                     )
-                    cls.validate_duplicated_attribute_values(
+                    cleaner.validate_duplicated_attribute_values(
                         cleaned_attributes, used_attribute_values
                     )
                     cleaned_input["attributes"] = cleaned_attributes
@@ -260,23 +219,6 @@ class ProductVariantCreate(DeprecatedModelMutation):
                 }
             )
         return product
-
-    @classmethod
-    def validate_duplicated_attribute_values(
-        cls, attributes_data, used_attribute_values
-    ):
-        attribute_values: defaultdict[str, list[str]] = defaultdict(list)
-        for attr, attr_data in attributes_data:
-            values = get_values_from_attribute_values_input(attr, attr_data)
-            attribute_values[attr_data.global_id].extend(values)
-
-        if attribute_values in used_attribute_values:
-            raise ValidationError(
-                "Duplicated attribute values for product variant.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                params={"attributes": attribute_values.keys()},
-            )
-        used_attribute_values.append(attribute_values)
 
     @classmethod
     def check_for_duplicates_in_stocks(cls, stocks_data):
