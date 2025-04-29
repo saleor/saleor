@@ -1635,12 +1635,14 @@ def test_channel_update_default_transaction_flow_strategy_with_payment_permissio
 @pytest.mark.parametrize(
     ("use_legacy_input", "expected_result", "current_value_on_db"),
     [
-        (True, True, True),
-        (True, True, False),
-        (False, False, True),
-        (False, False, False),
+        ({"useLegacyLineDiscountPropagation": True}, True, True),
+        ({"useLegacyLineDiscountPropagation": True}, True, False),
+        ({"useLegacyLineDiscountPropagation": False}, False, True),
+        ({"useLegacyLineDiscountPropagation": False}, False, False),
         (None, True, True),
         (None, False, False),
+        ({"allowUnpaidOrders": False}, False, False),
+        ({"allowUnpaidOrders": True}, True, True),
     ],
 )
 def test_channel_update_set_use_legacy_line_discount_propagation(
@@ -1659,7 +1661,7 @@ def test_channel_update_set_use_legacy_line_discount_propagation(
     variables = {
         "id": channel_id,
         "input": {
-            "orderSettings": {"useLegacyLineDiscountPropagation": use_legacy_input},
+            "orderSettings": use_legacy_input,
         },
     }
 

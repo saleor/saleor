@@ -899,7 +899,12 @@ def test_channel_create_set_allow_unpaid_orders(
 
 @pytest.mark.parametrize(
     ("use_legacy_input", "expected_result"),
-    [(True, True), (False, False), (None, False)],
+    [
+        ({"useLegacyLineDiscountPropagation": True}, True),
+        ({"useLegacyLineDiscountPropagation": False}, False),
+        (None, False),
+        ({"allowUnpaidOrders": False}, False),
+    ],
 )
 def test_channel_create_set_use_legacy_line_discount_propagation(
     use_legacy_input,
@@ -918,7 +923,7 @@ def test_channel_create_set_use_legacy_line_discount_propagation(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "orderSettings": {"useLegacyLineDiscountPropagation": use_legacy_input},
+            "orderSettings": use_legacy_input,
         }
     }
 
