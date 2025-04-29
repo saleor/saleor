@@ -53,7 +53,7 @@ def clean_preorder_settings(cleaned_input: dict):
 
 def validate_duplicated_attribute_values(
     attributes_data: T_INPUT_MAP,
-    used_attribute_values,
+    used_attribute_values: list[dict[str, list[str]]],
 ):
     attribute_values: defaultdict[str, list[str]] = defaultdict(list)
     for attr, attr_data in attributes_data:

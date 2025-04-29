@@ -50,7 +50,7 @@ class AttrValuesForSelectableFieldInput:
 
 @dataclass
 class AttrValuesInput:
-    global_id: str | None = None
+    global_id: str
     external_reference: str | None = None
     values: list[str] | None = None
     dropdown: AttrValuesForSelectableFieldInput | None = None
