@@ -4,7 +4,6 @@ from ...account.forms import get_address_form
 from ...account.models import Address
 from ...account.validators import validate_possible_number
 from ...core.exceptions import PermissionDenied
-from ...core.utils.metadata_manager import MetadataItem
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     AccountPermissions,
@@ -53,6 +52,23 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
         AuthorizationFilters.AUTHENTICATED_APP,
     ],
 }
+
+ADDRESS_TRACKING_FIELDS = [
+    "city",
+    "city_area",
+    "company_name",
+    "country",
+    "country_area",
+    "first_name",
+    "last_name",
+    "metadata",
+    "phone",
+    "postal_code",
+    "private_metadata",
+    "street_address_1",
+    "street_address_2",
+    "validation_skipped",
+]
 
 
 class I18nMixin:
@@ -214,53 +230,3 @@ class I18nMixin:
                 f"To skip address validation, you need following permissions: "
                 f"{', '.join(perm.name for perm in required_permissions)}.",
             )
-
-    @classmethod
-    def is_address_modified(
-        cls, instance: Address | None, address_data: dict | None
-    ) -> bool:
-        """Compare address instance with address input.
-
-        Args:
-            instance: Address model instance
-            address_data: Address input data with snake case keys
-
-        Return:
-            True, if at least one field has changed.
-            False otherwise.
-
-        """
-        if not instance:
-            return True
-
-        if not address_data:
-            return False
-
-        address_as_dict = instance.as_data()
-        skip_validation = address_as_dict.pop("validation_skipped")
-        address_as_dict["skip_validation"] = skip_validation
-
-        for key, value in address_data.items():
-            if key == "metadata":
-                metadata_input = cls._metadata_input_as_dict(value)
-                existing_metadata = address_as_dict.get("metadata", {})
-                for meta_key, meta_value in metadata_input.items():
-                    if existing_metadata.get(meta_key) != meta_value:
-                        return True
-            elif value != address_as_dict.get(key):
-                return True
-
-        return False
-
-    @classmethod
-    def _metadata_input_as_dict(
-        cls, metadata_input: list[MetadataItem]
-    ) -> dict[str, str]:
-        if not metadata_input:
-            return {}
-
-        metadata_dict = {}
-        for item in metadata_input:
-            metadata_dict[item.key] = item.value
-
-        return metadata_dict

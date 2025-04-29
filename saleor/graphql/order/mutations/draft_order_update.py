@@ -19,11 +19,10 @@ from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     invalidate_order_prices,
-    update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
-from ...account.i18n import I18nMixin
+from ...account.i18n import ADDRESS_TRACKING_FIELDS, I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -38,7 +37,8 @@ from .draft_order_create import DraftOrderInput
 from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
-    save_addresses,
+    save_billing_address,
+    save_shipping_address,
 )
 
 
@@ -246,43 +246,49 @@ class DraftOrderUpdate(
             )
 
         if shipping_address_input:
-            # do not process shipping address if it hasn't changed
-            if cls.is_address_modified(
-                instance.shipping_address, shipping_address_input
-            ):
-                shipping_address_instance = cls.validate_address(
-                    shipping_address_input,
-                    address_type=AddressType.SHIPPING,
-                    instance=instance.shipping_address,
-                    info=info,
-                )
-                cleaned_input["shipping_address"] = shipping_address_instance
+            shipping_address_instance = cls.validate_address(
+                shipping_address_input,
+                address_type=AddressType.SHIPPING,
+                instance=instance.shipping_address,
+                info=info,
+            )
+            cleaned_input["shipping_address"] = shipping_address_instance
             cleaned_input["draft_save_shipping_address"] = (
                 save_shipping_address or False
             )
 
-        # do not process billing address if it hasn't changed
         if billing_address_input:
-            if cls.is_address_modified(instance.billing_address, billing_address_input):
-                billing_address_instance = cls.validate_address(
-                    billing_address_input,
-                    address_type=AddressType.BILLING,
-                    instance=instance.billing_address,
-                    info=info,
-                )
-                cleaned_input["billing_address"] = billing_address_instance
+            billing_address_instance = cls.validate_address(
+                billing_address_input,
+                address_type=AddressType.BILLING,
+                instance=instance.billing_address,
+                info=info,
+            )
+            cleaned_input["billing_address"] = billing_address_instance
             cleaned_input["draft_save_billing_address"] = save_billing_address or False
 
     @classmethod
     def _save(
         cls,
         instance_tracker: InstanceTracker,
-        cleaned_input,
+        shipping_address_tracker: InstanceTracker | None,
+        billing_address_tracker: InstanceTracker | None,
+        cleaned_input: dict,
     ) -> bool:
         instance = instance_tracker.instance
         with traced_atomic_transaction():
-            if modified_address_fields := save_addresses(instance, cleaned_input):
-                update_order_display_gross_prices(instance)
+            modified_address_fields: list[str] = []
+            if (
+                shipping_address_tracker
+                and shipping_address_tracker.get_modified_fields()
+            ):
+                save_shipping_address(instance, cleaned_input, modified_address_fields)
+
+            if (
+                billing_address_tracker
+                and billing_address_tracker.get_modified_fields()
+            ):
+                save_billing_address(instance, cleaned_input, modified_address_fields)
 
             # In case nothing change, do not perform post-process actions;
             # do not call the `DRAFT_ORDER_UPDATED` event.
@@ -399,6 +405,17 @@ class DraftOrderUpdate(
         instance = cast(models.Order, instance)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
+        shipping_address_tracker = None
+        if instance.shipping_address:
+            shipping_address_tracker = InstanceTracker(
+                instance.shipping_address, ADDRESS_TRACKING_FIELDS
+            )
+        billing_address_tracker = None
+        if instance.billing_address:
+            billing_address_tracker = InstanceTracker(
+                instance.billing_address, ADDRESS_TRACKING_FIELDS
+            )
+
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
         data = data["input"]
@@ -415,7 +432,12 @@ class DraftOrderUpdate(
         cls.handle_shipping(cleaned_input, instance, manager)
         cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
 
-        order_modified = cls._save(instance_tracker, cleaned_input)
+        order_modified = cls._save(
+            instance_tracker,
+            shipping_address_tracker,
+            billing_address_tracker,
+            cleaned_input,
+        )
 
         if order_modified:
             cls._post_save_action(instance, manager)
