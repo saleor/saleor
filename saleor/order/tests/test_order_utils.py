@@ -74,6 +74,7 @@ def test_change_quantity_generates_proper_event(
         new_quantity,
         order_with_lines,
         get_plugins_manager(allow_replica=False),
+        allocate_stock=order_with_lines.is_unconfirmed(),
     )
 
     if removed_count:
