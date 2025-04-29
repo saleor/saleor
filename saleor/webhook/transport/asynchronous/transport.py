@@ -345,10 +345,6 @@ def trigger_webhooks_async_for_multiple_objects(
 
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
 
-    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(event_type, {}).get(
-        "is_deferred_payload", False
-    )
-
     # List of deliveries with payloads.
     deliveries: list[EventDelivery] = []
 
@@ -386,7 +382,10 @@ def trigger_webhooks_async_for_multiple_objects(
             webhook_payload_data.subscribable_object
             for webhook_payload_data in webhook_payloads_data
         ]
-        if is_deferred_payload:
+        contains_bulk_entries = any(
+            isinstance(obj, list) for obj in subscribable_objects
+        )
+        if not contains_bulk_entries:
             deferred_deliveries_per_object = (
                 create_deliveries_for_deferred_payload_subscriptions(
                     event_type=event_type,
@@ -572,22 +571,11 @@ def generate_deferred_payloads(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
     for delivery in event_deliveries_for_bulk_update:
-        # Trigger webhook delivery task when the payload is ready.
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
+        send_webhooks_async_for_app.apply_async(
             kwargs={
-                "event_delivery_id": delivery.pk,
-                # Propagate received telemetry context
+                "app_id": delivery.webhook.app_id,
                 "telemetry_context": telemetry_context.to_dict(),
             },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            bind=True,
-            retry_backoff=10,
-            retry_kwargs={"max_retries": 5},
         )
 
 

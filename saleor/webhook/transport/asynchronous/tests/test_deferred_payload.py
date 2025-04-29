@@ -74,10 +74,10 @@ def test_call_trigger_webhook_async_deferred_payload(
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_generate_deferred_payload(
-    mocked_send_webhook_request_async,
+    mocked_send_webhook_request_async_for_app,
     checkout_with_item,
     setup_checkout_webhooks,
     staff_user,
@@ -124,9 +124,9 @@ def test_generate_deferred_payload(
         data["checkout"]["totalPrice"]["gross"]["amount"] == checkout.total_gross_amount
     )
 
-    assert mocked_send_webhook_request_async.call_count == 1
-    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
-    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+    assert mocked_send_webhook_request_async_for_app.call_count == 1
+    call_kwargs = mocked_send_webhook_request_async_for_app.call_args.kwargs
+    assert call_kwargs["kwargs"]["app_id"] == delivery.webhook.app_id
 
 
 def test_generate_deferred_payload_model_pk_does_not_exist(
