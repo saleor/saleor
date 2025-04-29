@@ -229,14 +229,10 @@ class ProductVariantCreate(DeprecatedModelMutation):
                         AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
                     )
                     cls.validate_duplicated_attribute_values(
-                        cleaned_attributes, used_attribute_values, instance
+                        cleaned_attributes, used_attribute_values
                     )
                     cleaned_input["attributes"] = cleaned_attributes
-                # elif not instance.pk and not attributes:
-                elif not instance.pk and (
-                    not attributes
-                    and product_type.variant_attributes.filter(value_required=True)
-                ):
+                elif product_type.variant_attributes.filter(value_required=True):
                     # if attributes were not provided on creation
                     raise ValidationError(
                         "All required attributes must take a value.",
@@ -267,7 +263,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
 
     @classmethod
     def validate_duplicated_attribute_values(
-        cls, attributes_data, used_attribute_values, instance=None
+        cls, attributes_data, used_attribute_values
     ):
         attribute_values: defaultdict[str, list[str]] = defaultdict(list)
         for attr, attr_data in attributes_data:

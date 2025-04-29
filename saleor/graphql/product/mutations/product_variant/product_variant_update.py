@@ -128,15 +128,16 @@ class ProductVariantUpdate(DeprecatedModelMutation):
 
         cls.clean_weight(cleaned_input)
         cls.clean_quantity_limit(cleaned_input)
-        cls.clean_attributes(cleaned_input, instance)
+        attribute_modified = cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
         cls.clean_preorder_settings(cleaned_input)
 
-        return cleaned_input
+        return cleaned_input, attribute_modified
 
     @classmethod
     def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
+        attribute_modified = False
         product = instance.product
         product_type = product.product_type
         used_attribute_values = get_used_variants_attribute_values(product)
@@ -170,20 +171,16 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     cleaned_attributes: T_INPUT_MAP = (
                         AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
                     )
-                    cls.validate_duplicated_attribute_values(
-                        cleaned_attributes, used_attribute_values, instance
+                    # if assigned attributes is getting updated run duplicated attribute validation
+                    attribute_modified = has_input_modified_attribute_values(
+                        instance, cleaned_attributes
                     )
+                    if attribute_modified:
+                        cls.validate_duplicated_attribute_values(
+                            cleaned_attributes, used_attribute_values
+                        )
                     cleaned_input["attributes"] = cleaned_attributes
-                # elif not instance.pk and not attributes:
-                elif not instance.pk and (
-                    not attributes
-                    and product_type.variant_attributes.filter(value_required=True)
-                ):
-                    # if attributes were not provided on creation
-                    raise ValidationError(
-                        "All required attributes must take a value.",
-                        ProductErrorCode.REQUIRED.value,
-                    )
+
             except ValidationError as e:
                 raise ValidationError({"attributes": e}) from e
         else:
@@ -192,6 +189,25 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                     "Cannot assign attributes for product type without variants",
                     ProductErrorCode.INVALID.value,
                 )
+
+        return attribute_modified
+
+    @classmethod
+    def validate_duplicated_attribute_values(
+        cls, attributes_data, used_attribute_values
+    ):
+        attribute_values: defaultdict[str, list[str]] = defaultdict(list)
+        for attr, attr_data in attributes_data:
+            values = get_values_from_attribute_values_input(attr, attr_data)
+            attribute_values[attr_data.global_id].extend(values)
+
+        if attribute_values in used_attribute_values:
+            raise ValidationError(
+                "Duplicated attribute values for product variant.",
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                params={"attributes": attribute_values.keys()},
+            )
+        used_attribute_values.append(attribute_values)
 
     @classmethod
     def clean_weight(cls, cleaned_input):
@@ -233,27 +249,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
     @classmethod
-    def validate_duplicated_attribute_values(
-        cls, attributes_data, used_attribute_values, instance=None
-    ):
-        # if assigned attributes is getting updated run duplicated attribute validation
-        if not has_input_modified_attribute_values(instance, attributes_data):
-            return
-
-        attribute_values: defaultdict[str, list[str]] = defaultdict(list)
-        for attr, attr_data in attributes_data:
-            values = get_values_from_attribute_values_input(attr, attr_data)
-            attribute_values[attr_data.global_id].extend(values)
-
-        if attribute_values in used_attribute_values:
-            raise ValidationError(
-                "Duplicated attribute values for product variant.",
-                code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                params={"attributes": attribute_values.keys()},
-            )
-        used_attribute_values.append(attribute_values)
-
-    @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
         track_inventory = cleaned_input.get("track_inventory")
         if track_inventory is not None:
@@ -266,8 +261,12 @@ class ProductVariantUpdate(DeprecatedModelMutation):
 
     @classmethod
     def _save(
-        cls, info: ResolveInfo, instance_tracker: InstanceTracker, cleaned_input
-    ) -> tuple[bool, bool, bool]:
+        cls,
+        info: ResolveInfo,
+        instance_tracker: InstanceTracker,
+        cleaned_input,
+        attribute_modified: bool,
+    ) -> tuple[bool, bool]:
         instance = instance_tracker.instance
         modified_instance_fields = instance_tracker.get_modified_fields()
         metadata_changed = (
@@ -308,7 +307,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            return bool(modified_instance_fields), attribute_changed, metadata_changed
+            return bool(modified_instance_fields), metadata_changed
 
     @classmethod
     def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:
@@ -388,15 +387,15 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         instance = cast(models.ProductVariant, instance)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
-        cleaned_input = cls.clean_input(info, instance, input)
+        cleaned_input, attribute_modified = cls.clean_input(info, instance, input)
 
         cls.handle_metadata(instance, cleaned_input)
 
         cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
 
-        variant_modified, attribute_modified, metadata_modified = cls._save(
-            info, instance_tracker, cleaned_input
+        variant_modified, metadata_modified = cls._save(
+            info, instance_tracker, cleaned_input, attribute_modified
         )
         cls._save_m2m(info, instance, cleaned_input)
         cls._post_save_action(
