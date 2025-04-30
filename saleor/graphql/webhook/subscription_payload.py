@@ -67,7 +67,7 @@ def get_event_payload(event):
 
 def _process_payload_instance(payload_instance):
     """Process a payload instance to extract data."""
-    for payload_key in payload_instance.data.keys():
+    for payload_key in payload_instance.data:
         extracted_payload = get_event_payload(payload_instance.data.get(payload_key))
         payload_instance.data[payload_key] = extracted_payload
     if "event" in payload_instance.data or not payload_instance.data:
