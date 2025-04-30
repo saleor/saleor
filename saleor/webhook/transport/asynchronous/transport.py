@@ -596,6 +596,8 @@ def send_webhook_request_async(
     webhook = delivery.webhook
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
+    response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
+    payload_size = 0
 
     try:
         if not delivery.payload:
@@ -624,7 +626,6 @@ def send_webhook_request_async(
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
 
-        record_external_request(webhook.target_url, response, payload_size)
         if response.status == EventDeliveryStatus.FAILED:
             attempt_update(attempt, response)
             handle_webhook_retry(self, webhook, response, delivery, attempt)
@@ -641,9 +642,11 @@ def send_webhook_request_async(
             # update attempt without save to provide proper data in observability
             attempt_update(attempt, response, with_save=False)
     except ValueError as e:
-        response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
+        response.content = str(e)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+    finally:
+        record_external_request(webhook.target_url, response, payload_size)
 
     observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)

@@ -32,11 +32,8 @@ METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH = meter.create_metric(
 
 def record_external_request(
     target_url: str, webhook_response: WebhookResponse, payload_size: int
-):
-    attributes = {}
-    parsed_url = urlparse(target_url)
-    if parsed_url.hostname:
-        attributes[server_attributes.SERVER_ADDRESS] = parsed_url.hostname
+) -> None:
+    attributes = {server_attributes.SERVER_ADDRESS: urlparse(target_url).hostname or ""}
     if webhook_response.status == EventDeliveryStatus.FAILED:
         attributes[error_attributes.ERROR_TYPE] = "request_error"
     meter.record(METRIC_EXTERNAL_REQUEST_COUNT, 1, Unit.REQUEST, attributes=attributes)

@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
 from opentelemetry.trace import StatusCode
 
 from .....core.models import EventDeliveryStatus
@@ -156,6 +157,99 @@ def test_send_webhook_request_sync_record_external_request_when_delivery_attempt
     assert external_request_duration.attributes == attributes
     assert external_request_duration.count == 1
     assert external_request_duration.sum == webhook_response_failed.duration
+
+    external_request_content_length = get_metric_data_points(
+        metrics_data, METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH
+    )
+    assert external_request_content_length.attributes == attributes
+    assert external_request_content_length.count == 1
+    assert external_request_content_length.sum == payload_size
+
+
+@patch("saleor.webhook.transport.synchronous.transport.send_webhook_using_http")
+def test_send_webhook_request_sync_record_external_request_with_invalid_json_response(
+    mock_send_webhook_using_http,
+    webhook_response,
+    event_delivery_payload_in_database,
+    get_test_metrics_data,
+):
+    # given
+    webhook_response.content = "Invalid JSON"
+    mock_send_webhook_using_http.return_value = webhook_response
+    payload_size = len(
+        event_delivery_payload_in_database.payload.get_payload().encode("utf-8")
+    )
+    global_attributes = {"global.attr": "value"}
+
+    # when
+    with set_global_attributes(global_attributes):
+        _send_webhook_request_sync(event_delivery_payload_in_database)
+
+    # then
+    attributes = {
+        "server.address": "www.example.com",
+        "error.type": "request_error",
+        **global_attributes,
+    }
+    metrics_data = get_test_metrics_data()
+    external_request_count = get_metric_data_points(
+        metrics_data, METRIC_EXTERNAL_REQUEST_COUNT
+    )
+    assert external_request_count.value == 1
+    assert external_request_count.attributes == attributes
+
+    external_request_duration = get_metric_data_points(
+        metrics_data, METRIC_EXTERNAL_REQUEST_DURATION
+    )
+    assert external_request_duration.attributes == attributes
+    assert external_request_duration.count == 1
+    assert external_request_duration.sum == webhook_response.duration
+
+    external_request_content_length = get_metric_data_points(
+        metrics_data, METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH
+    )
+    assert external_request_content_length.attributes == attributes
+    assert external_request_content_length.count == 1
+    assert external_request_content_length.sum == payload_size
+
+
+def test_send_webhook_request_sync_record_external_request_with_unknown_webhook_scheme(
+    event_delivery_payload_in_database,
+    get_test_metrics_data,
+):
+    # given
+    event_delivery_payload_in_database.webhook.target_url = (
+        "unknown://www.example.com/test"
+    )
+    payload_size = len(
+        event_delivery_payload_in_database.payload.get_payload().encode("utf-8")
+    )
+    global_attributes = {"global.attr": "value"}
+
+    # when
+    with set_global_attributes(global_attributes):
+        with pytest.raises(ValueError, match=r"Unknown webhook scheme: 'unknown'"):
+            _send_webhook_request_sync(event_delivery_payload_in_database)
+
+    # then
+    attributes = {
+        "server.address": "www.example.com",
+        "error.type": "request_error",
+        **global_attributes,
+    }
+    metrics_data = get_test_metrics_data()
+    external_request_count = get_metric_data_points(
+        metrics_data, METRIC_EXTERNAL_REQUEST_COUNT
+    )
+    assert external_request_count.value == 1
+    assert external_request_count.attributes == attributes
+
+    external_request_duration = get_metric_data_points(
+        metrics_data, METRIC_EXTERNAL_REQUEST_DURATION
+    )
+    assert external_request_duration.attributes == attributes
+    assert external_request_duration.count == 1
+    assert external_request_duration.sum == 0
 
     external_request_content_length = get_metric_data_points(
         metrics_data, METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH

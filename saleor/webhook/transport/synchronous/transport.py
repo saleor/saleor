@@ -113,9 +113,12 @@ def _send_webhook_request_sync(
     message = data.encode("utf-8")
     payload_size = len(message)
     signature = signature_for_payload(message, webhook.secret_key)
+    response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
+    response_data = None
 
     if parts.scheme.lower() not in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         delivery_update(delivery, EventDeliveryStatus.FAILED)
+        record_external_request(webhook.target_url, response, payload_size)
         raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
     logger.debug(
@@ -125,8 +128,6 @@ def _send_webhook_request_sync(
     )
     if attempt is None:
         attempt = create_attempt(delivery=delivery, task_id=None, with_save=False)
-    response = WebhookResponse(content="")
-    response_data = None
 
     with webhooks_otel_trace(
         delivery.event_type, payload_size, sync=True, app=webhook.app
@@ -169,8 +170,8 @@ def _send_webhook_request_sync(
         finally:
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
+            record_external_request(webhook.target_url, response, payload_size)
 
-    record_external_request(webhook.target_url, response, payload_size)
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
     observability.report_event_delivery_attempt(attempt)
