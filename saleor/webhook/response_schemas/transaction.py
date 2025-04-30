@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Annotated, Any, Literal, TypeVar
+from typing import Annotated, Any, Literal
 
 from django.conf import settings
 from django.utils import timezone
@@ -12,13 +12,9 @@ from pydantic import (
     Field,
     HttpUrl,
     Json,
-    ValidationError,
-    ValidatorFunctionWrapHandler,
-    WrapValidator,
     field_validator,
     model_validator,
 )
-from pydantic_core import PydanticOmit
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import (
@@ -26,30 +22,9 @@ from ...payment import (
     TransactionAction,
     TransactionEventType,
 )
-from .annotations import DatetimeUTC, DefaultIfNone
+from .annotations import DatetimeUTC, DefaultIfNone, OnErrorSkipLiteral
 
 logger = logging.getLogger(__name__)
-
-
-T = TypeVar("T")
-
-
-def skip_invalid_literal(value: Any, handler: ValidatorFunctionWrapHandler) -> Any:
-    try:
-        return handler(value)
-    except ValidationError as err:
-        logger.warning("Skipping invalid literal value: %s", err)
-        raise PydanticOmit() from err
-
-
-OnErrorSkipLiteral = Annotated[T, WrapValidator(skip_invalid_literal)]
-
-
-# Use TransactionAction instead
-class PossibleAction(Enum):
-    CHARGE = "charge"
-    REFUND = "refund"
-    CANCEL = "cancel"
 
 
 TransactionActionEnum = Enum(  # type: ignore[misc]
