@@ -53,23 +53,6 @@ SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     ],
 }
 
-ADDRESS_TRACKING_FIELDS = [
-    "city",
-    "city_area",
-    "company_name",
-    "country",
-    "country_area",
-    "first_name",
-    "last_name",
-    "metadata",
-    "phone",
-    "postal_code",
-    "private_metadata",
-    "street_address_1",
-    "street_address_2",
-    "validation_skipped",
-]
-
 
 class I18nMixin:
     """A mixin providing methods necessary to fulfill the internationalization process.

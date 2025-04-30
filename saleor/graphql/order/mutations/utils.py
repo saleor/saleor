@@ -23,23 +23,6 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
-SHIPPING_METHOD_UPDATE_FIELDS = [
-    "currency",
-    "shipping_method",
-    "shipping_price_net_amount",
-    "shipping_price_gross_amount",
-    "base_shipping_price_amount",
-    "undiscounted_base_shipping_price_amount",
-    "shipping_method_name",
-    "shipping_tax_class",
-    "shipping_tax_class_name",
-    "shipping_tax_class_private_metadata",
-    "shipping_tax_class_metadata",
-    "shipping_tax_rate",
-    "should_refresh_prices",
-    "updated_at",
-]
-
 
 class EditableOrderValidationMixin:
     class Meta:

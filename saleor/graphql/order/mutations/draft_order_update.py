@@ -22,7 +22,8 @@ from ....order.utils import (
 )
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
-from ...account.i18n import ADDRESS_TRACKING_FIELDS, I18nMixin
+from ...account import ADDRESS_UPDATE_FIELDS
+from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -32,10 +33,13 @@ from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
-from . import draft_order_cleaner
+from . import (
+    DRAFT_ORDER_UPDATE_FIELDS,
+    SHIPPING_METHOD_UPDATE_FIELDS,
+    draft_order_cleaner,
+)
 from .draft_order_create import DraftOrderInput
 from .utils import (
-    SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
     save_billing_address,
     save_shipping_address,
@@ -67,49 +71,7 @@ class DraftOrderUpdate(
         support_meta_field = True
         support_private_meta_field = True
 
-    FIELDS_TO_TRACK = list(
-        {
-            "base_shipping_price_amount",
-            "billing_address",
-            "channel",
-            "collection_point",
-            "collection_point_name",
-            "customer_note",
-            "display_gross_prices",
-            "draft_save_billing_address",
-            "draft_save_shipping_address",
-            "external_reference",
-            "language_code",
-            "metadata",
-            "private_metadata",
-            "redirect_url",
-            "search_vector",
-            "shipping_address",
-            "shipping_method",
-            "shipping_method_name",
-            "shipping_price_gross_amount",
-            "shipping_price_net_amount",
-            "shipping_tax_class",
-            "shipping_tax_class_metadata",
-            "shipping_tax_class_name",
-            "shipping_tax_class_private_metadata",
-            "shipping_tax_rate",
-            "should_refresh_prices",
-            "subtotal_gross_amount",
-            "subtotal_net_amount",
-            "total_gross_amount",
-            "total_net_amount",
-            "undiscounted_base_shipping_price_amount",
-            "undiscounted_total_gross_amount",
-            "undiscounted_total_net_amount",
-            "user",
-            "user_email",
-            "voucher",
-            "voucher_code",
-            "weight",
-        }
-        | set(SHIPPING_METHOD_UPDATE_FIELDS)
-    )
+    FIELDS_TO_TRACK = list(DRAFT_ORDER_UPDATE_FIELDS | SHIPPING_METHOD_UPDATE_FIELDS)
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
@@ -407,10 +369,10 @@ class DraftOrderUpdate(
         instance = cast(models.Order, instance)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
         shipping_address_tracker = InstanceTracker(
-            instance.shipping_address, ADDRESS_TRACKING_FIELDS
+            instance.shipping_address, ADDRESS_UPDATE_FIELDS
         )
         billing_address_tracker = InstanceTracker(
-            instance.billing_address, ADDRESS_TRACKING_FIELDS
+            instance.billing_address, ADDRESS_UPDATE_FIELDS
         )
 
         old_voucher = instance.voucher
