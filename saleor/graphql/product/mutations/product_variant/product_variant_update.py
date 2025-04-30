@@ -210,7 +210,7 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         cleaned_input,
         attribute_modified: bool,
     ) -> tuple[bool, bool]:
-        instance = instance_tracker.instance
+        instance = cast(models.ProductVariant, instance_tracker.instance)
         modified_instance_fields = instance_tracker.get_modified_fields()
         metadata_modified = (
             "metadata" in modified_instance_fields
