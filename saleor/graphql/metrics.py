@@ -31,6 +31,22 @@ METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
     description="Cost of GraphQL queries.",
 )
 
+METRIC_REQUEST_COUNT = meter.create_metric(
+    "saleor.request.count",
+    scope=Scope.SERVICE,
+    type=MetricType.COUNTER,
+    unit=Unit.REQUEST,
+    description="Number of API requests.",
+)
+
+METRIC_REQUEST_DURATION = meter.create_metric(
+    "saleor.request.duration",
+    scope=Scope.SERVICE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.SECOND,
+    description="Duration of API requests.",
+)
+
 
 # Helper functions
 def record_graphql_query_count(
@@ -78,3 +94,18 @@ def record_graphql_query_cost(
     if error_type:
         attributes[error_attributes.ERROR_TYPE] = error_type
     meter.record(METRIC_GRAPHQL_QUERY_COST, cost, Unit.REQUEST, attributes=attributes)
+
+
+def record_request_count(
+    amount: int = 1,
+    error_type: str | None = None,
+) -> None:
+    attributes = {}
+    if error_type:
+        attributes[error_attributes.ERROR_TYPE] = error_type
+    meter.record(METRIC_REQUEST_COUNT, amount, Unit.REQUEST, attributes=attributes)
+
+
+def record_request_duration() -> AbstractContextManager[dict[str, AttributeValue]]:
+    attributes: dict[str, AttributeValue] = {}
+    return meter.record_duration(METRIC_REQUEST_DURATION, attributes=attributes)
