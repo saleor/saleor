@@ -27,7 +27,7 @@ METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
     "saleor.graphql.operation.cost",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
-    unit=Unit.REQUEST,
+    unit=Unit.COST,
     description="Cost of GraphQL queries.",
 )
 
@@ -93,7 +93,7 @@ def record_graphql_query_cost(
     }
     if error_type:
         attributes[error_attributes.ERROR_TYPE] = error_type
-    meter.record(METRIC_GRAPHQL_QUERY_COST, cost, Unit.REQUEST, attributes=attributes)
+    meter.record(METRIC_GRAPHQL_QUERY_COST, cost, Unit.COST, attributes=attributes)
 
 
 def record_request_count(

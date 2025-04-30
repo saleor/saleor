@@ -95,7 +95,7 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
     mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COST,
         5,
-        Unit.REQUEST,
+        Unit.COST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
             graphql_attributes.GRAPHQL_OPERATION_NAME: "productsQuery",
@@ -184,7 +184,7 @@ def test_graphql_query_record_metrics_invalid_query(
     mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COST,
         1,
-        Unit.REQUEST,
+        Unit.COST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
             graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name,
@@ -263,7 +263,7 @@ def test_graphql_query_record_metrics_cost_exceeded(
     mock_meter.record.assert_any_call(
         METRIC_GRAPHQL_QUERY_COST,
         20,
-        Unit.REQUEST,
+        Unit.COST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
             graphql_attributes.GRAPHQL_OPERATION_NAME: "",
