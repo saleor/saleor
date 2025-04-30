@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, NamedTuple, cast
 from uuid import UUID
 
 from django.db import transaction
-from django.db.models import F, QuerySet, Sum
+from django.db.models import F, Sum
 from django.db.models.expressions import Exists, OuterRef
 from django.db.models.functions import Coalesce
 
@@ -35,7 +35,6 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
-    from ..order.models import Order
 
 
 class StockData(NamedTuple):
@@ -704,8 +703,9 @@ def get_order_lines_to_deallocate(
 
 
 @traced_atomic_transaction()
-def _deallocate_stock_for_lines(lines: QuerySet["OrderLine"], manager: PluginsManager):
-    """Remove all allocations for given order lines."""
+def deallocate_stock_for_orders(orders_ids: list[UUID], manager: PluginsManager):
+    """Remove all allocations for given orders."""
+    lines = OrderLine.objects.filter(order_id__in=orders_ids)
     allocations = allocation_with_stock_qs_select_for_update().filter(
         Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
     )
@@ -723,20 +723,6 @@ def _deallocate_stock_for_lines(lines: QuerySet["OrderLine"], manager: PluginsMa
 
     allocations.update(quantity_allocated=0)
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
-
-
-@traced_atomic_transaction()
-def deallocate_stock_for_order(order: "Order", manager: PluginsManager):
-    """Remove all allocations for given order."""
-    lines = OrderLine.objects.filter(order_id=order.id)
-    _deallocate_stock_for_lines(lines, manager)
-
-
-@traced_atomic_transaction()
-def deallocate_stock_for_orders(orders_id, manager: PluginsManager):
-    """Remove all allocations for given order."""
-    lines = OrderLine.objects.filter(order_id__in=orders_id)
-    _deallocate_stock_for_lines(lines, manager)
 
 
 @traced_atomic_transaction()

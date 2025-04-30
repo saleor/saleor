@@ -11,11 +11,10 @@ from ...order.models import OrderLine
 from ...plugins.manager import get_plugins_manager
 from ...warehouse.models import Stock
 from ..management import (
-    _deallocate_stock_for_lines,
     allocate_preorders,
     allocate_stocks,
     deallocate_stock,
-    deallocate_stock_for_order,
+    deallocate_stock_for_orders,
     decrease_allocations,
     decrease_stock,
     increase_allocations,
@@ -1086,11 +1085,13 @@ def test_decrease_stock_insufficient_stock(allocation):
     assert allocation.quantity_allocated == 80
 
 
-def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
+def test_deallocate_stock_for_orders(order_line_with_allocation_in_many_stocks):
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
 
-    deallocate_stock_for_order(order, manager=get_plugins_manager(allow_replica=False))
+    deallocate_stock_for_orders(
+        [order.id], manager=get_plugins_manager(allow_replica=False)
+    )
 
     allocations = order_line.allocations.all()
     assert (
@@ -1105,7 +1106,7 @@ def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
     )
 
 
-def test_deallocate_stock_for_order_with_multiple_allocations_from_the_same_stock(
+def test_deallocate_stock_for_orders_with_multiple_allocations_from_the_same_stock(
     allocations,
 ):
     # given
@@ -1136,8 +1137,8 @@ def test_deallocate_stock_for_order_with_multiple_allocations_from_the_same_stoc
     assert first_allocation.stock_id == second_allocation.stock_id
 
     # when
-    _deallocate_stock_for_lines(
-        order.lines.all(), manager=get_plugins_manager(allow_replica=False)
+    deallocate_stock_for_orders(
+        [order.id], manager=get_plugins_manager(allow_replica=False)
     )
 
     # then

@@ -37,7 +37,7 @@ from ..plugins.manager import PluginsManager
 from ..shipping.models import ShippingMethodChannelListing
 from ..warehouse.management import (
     deallocate_stock,
-    deallocate_stock_for_order,
+    deallocate_stock_for_orders,
     decrease_stock,
 )
 from ..warehouse.models import Stock
@@ -418,7 +418,7 @@ def cancel_order(
     # transaction ensures proper allocation and event triggering
     with traced_atomic_transaction():
         events.order_canceled_event(order=order, user=user, app=app)
-        deallocate_stock_for_order(order, manager)
+        deallocate_stock_for_orders([order.id], manager)
         order.status = OrderStatus.CANCELED
         order.save(update_fields=["status", "updated_at"])
         if not webhook_event_map:
