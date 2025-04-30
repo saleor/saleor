@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import datetime
 from decimal import Decimal
@@ -11,7 +10,6 @@ from pydantic import (
     BaseModel,
     Field,
     HttpUrl,
-    Json,
     field_validator,
     model_validator,
 )
@@ -22,7 +20,7 @@ from ...payment import (
     TransactionAction,
     TransactionEventType,
 )
-from .annotations import DatetimeUTC, DefaultIfNone, OnErrorSkipLiteral
+from .annotations import DatetimeUTC, DefaultIfNone, JsonData, OnErrorSkipLiteral
 
 logger = logging.getLogger(__name__)
 
@@ -206,20 +204,13 @@ class TransactionSessionResponse(TransactionResponse):
         Field(description="Result of the action"),
     ]
     data: Annotated[
-        DefaultIfNone[Json],
+        DefaultIfNone[JsonData],
         Field(
             description="The JSON data that will be returned to storefront",
             default=None,
         ),
     ]
 
-    @field_validator("data", mode="before")
-    @classmethod
-    def validate_data(cls, value: Any) -> str:
-        # parse input value to raw JSON string
-        try:
-            return json.dumps(value)
-        except (TypeError, ValueError) as e:
-            raise ValueError(
-                f"Invalid value for field 'data': {value}. Expected JSON format."
-            ) from e
+
+class PaymentGatewayInitializeSessionResponse(BaseModel):
+    data: JsonData

@@ -9,6 +9,7 @@ from pydantic import ValidationError
 
 from ....payment import TransactionAction, TransactionEventType
 from ...response_schemas.transaction import (
+    PaymentGatewayInitializeSessionResponse,
     TransactionCancelRequestedResponse,
     TransactionChargeRequestedResponse,
     TransactionRefundRequestedResponse,
@@ -543,6 +544,68 @@ def test_transaction_session_response_invalid_data(data_value):
     # when
     with pytest.raises(ValidationError) as exc_info:
         TransactionSessionResponse.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("data",)
+
+
+@pytest.mark.parametrize(
+    "data_value",
+    [
+        # Valid data
+        {"key": "value", "another_key": "another_value"},
+        # Empty data
+        {},
+        # Data with special characters
+        {"key": "!@#$%^&*()_+"},
+        # Data with nested structure
+        {"nested": {"key": "value"}},
+        # Data with list
+        {"list": ["item1", "item2", "item3"]},
+        # Data as None
+        None,
+        # Data as string
+        "string_data",
+        # Data as integer
+        123,
+    ],
+)
+def test_payment_gateway_initialize_response_valid_data(data_value):
+    # given
+    data = {
+        "data": data_value,
+    }
+
+    # when
+    response = PaymentGatewayInitializeSessionResponse.model_validate(data)
+
+    # then
+    assert response.data == data_value
+
+
+@pytest.mark.parametrize(
+    "data_value",
+    [
+        # Non-serializable object
+        object(),
+        # Set - not JSON serializable
+        {1, 2, 3},
+        # Function
+        lambda x: x,
+        # File handle
+        open,
+    ],
+)
+def test_payment_gateway_initialize_response_invalid_data(data_value):
+    # given
+    data = {
+        "data": data_value,
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        PaymentGatewayInitializeSessionResponse.model_validate(data)
 
     # then
     assert len(exc_info.value.errors()) == 1
