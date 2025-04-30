@@ -156,12 +156,14 @@ def print_object_directives(type_) -> str:
 
 
 def print_field_directives_for_category(field, name) -> str:
-    # Get doc_category for `type Query` fields.
-    doc_category = getattr(field.resolver, "doc_category", None)
-
-    # Get doc_category for `type Mutation` fields.
-    if not doc_category and hasattr(field.type, "graphene_type"):
+    doc_category = None
+    # Get doc_category for `type Mutation` & `type Subscription` fields.
+    if hasattr(field.type, "graphene_type"):
         doc_category = getattr(field.type.graphene_type, "doc_category", None)
+
+    if not doc_category:
+        # Get doc_category for `type Query` fields.
+        doc_category = getattr(field.resolver, "doc_category", None)
 
     return f' @doc(category: "{doc_category}")' if doc_category else ""
 
@@ -457,15 +459,17 @@ def print_block_string(value: str, minimize: bool = False) -> str:
 
 
 def print_description(
-    def_: GraphQLArgument
-    | GraphQLDirective
-    | GraphQLEnumType
-    | GraphQLEnumValue
-    | GraphQLInputObjectType
-    | GraphQLInterfaceType
-    | GraphQLObjectType
-    | GraphQLScalarType
-    | GraphQLUnionType,
+    def_: (
+        GraphQLArgument
+        | GraphQLDirective
+        | GraphQLEnumType
+        | GraphQLEnumValue
+        | GraphQLInputObjectType
+        | GraphQLInterfaceType
+        | GraphQLObjectType
+        | GraphQLScalarType
+        | GraphQLUnionType
+    ),
     indentation: str = "",
     first_in_block: bool = True,
 ) -> str:

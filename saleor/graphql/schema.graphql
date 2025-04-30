@@ -29752,7 +29752,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   draftOrderCreated(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): DraftOrderCreated @doc(category: "Orders")
@@ -29766,7 +29766,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   draftOrderUpdated(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): DraftOrderUpdated @doc(category: "Orders")
@@ -29780,7 +29780,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   draftOrderDeleted(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): DraftOrderDeleted @doc(category: "Orders")
@@ -29794,7 +29794,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderCreated(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderCreated @doc(category: "Orders")
@@ -29808,7 +29808,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderUpdated(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderUpdated @doc(category: "Orders")
@@ -29822,7 +29822,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderConfirmed(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderConfirmed @doc(category: "Orders")
@@ -29836,7 +29836,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderPaid(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderPaid @doc(category: "Orders")
@@ -29850,7 +29850,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderFullyPaid(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderFullyPaid @doc(category: "Orders")
@@ -29864,7 +29864,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderRefunded(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderRefunded @doc(category: "Orders")
@@ -29878,7 +29878,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderFullyRefunded(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderFullyRefunded @doc(category: "Orders")
@@ -29892,7 +29892,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderFulfilled(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderFulfilled @doc(category: "Orders")
@@ -29906,7 +29906,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderCancelled(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderCancelled @doc(category: "Orders")
@@ -29920,7 +29920,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderExpired(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderExpired @doc(category: "Orders")
@@ -29934,7 +29934,7 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderMetadataUpdated(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderMetadataUpdated @doc(category: "Orders")
@@ -29948,10 +29948,66 @@ type Subscription @doc(category: "Miscellaneous") {
   """
   orderBulkCreated(
     """
-    List of channel slugs. The event will be sent only if the order belongs to one of the provided channels. If the channel slug list is empty, orders that belong to any channel will be sent. Maximally 500 items.
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
     """
     channels: [String!]
   ): OrderBulkCreated @doc(category: "Orders")
+
+  """
+  Event sent when new checkout is created.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutCreated(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutCreated @doc(category: "Checkout")
+
+  """
+  Event sent when checkout is updated.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutUpdated(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutUpdated @doc(category: "Checkout")
+
+  """
+  Event sent when checkout is fully-paid.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutFullyPaid(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutFullyPaid @doc(category: "Checkout")
+
+  """
+  Event sent when checkout metadata is updated.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutMetadataUpdated(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutMetadataUpdated @doc(category: "Checkout")
 }
 
 interface Event {
@@ -30240,6 +30296,80 @@ type OrderBulkCreated implements Event @doc(category: "Orders") {
 
   """The orders the event relates to."""
   orders: [Order!]
+}
+
+"""Event sent when new checkout is created."""
+type CheckoutCreated implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""Event sent when checkout is updated."""
+type CheckoutUpdated implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
+"""
+type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""Event sent when checkout metadata is updated."""
+type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
 }
 
 enum DistanceUnitsEnum {
@@ -32012,80 +32142,6 @@ type CollectionMetadataUpdated implements Event @doc(category: "Products") {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Collection
-}
-
-"""Event sent when new checkout is created."""
-type CheckoutCreated implements Event @doc(category: "Checkout") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The checkout the event relates to."""
-  checkout: Checkout
-}
-
-"""Event sent when checkout is updated."""
-type CheckoutUpdated implements Event @doc(category: "Checkout") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The checkout the event relates to."""
-  checkout: Checkout
-}
-
-"""
-Event sent when checkout is fully paid with transactions. The checkout is considered as fully paid when the checkout `charge_status` is `FULL` or `OVERCHARGED`. The event is not sent when the checkout authorization flow strategy is used.
-"""
-type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The checkout the event relates to."""
-  checkout: Checkout
-}
-
-"""Event sent when checkout metadata is updated."""
-type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """The checkout the event relates to."""
-  checkout: Checkout
 }
 
 """Event sent when new page is created."""
