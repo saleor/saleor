@@ -1,3 +1,4 @@
+import math
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -186,30 +187,46 @@ def test_transaction_response_actions_validation(actions, expected_actions):
 
 
 @pytest.mark.parametrize(
-    "data",
+    ("data", "invalid_field"),
     [
         # Time as a string value
-        {
-            "pspReference": "123",
-            "amount": Decimal("100.00"),
-            "result": TransactionEventType.CHARGE_SUCCESS.upper(),
-            "time": "invalid-time",
-        },
+        (
+            {
+                "pspReference": "123",
+                "amount": Decimal("100.00"),
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+                "time": "invalid-time",
+            },
+            "time",
+        ),
         # Invalid external URL
-        {
-            "amount": "100.50",
-            "result": TransactionEventType.CHARGE_SUCCESS.upper(),
-            "externalUrl": "invalid-url",
-        },
+        (
+            {
+                "amount": "100.50",
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+                "externalUrl": "invalid-url",
+            },
+            "externalUrl",
+        ),
+        # Infinitive amount
+        (
+            {
+                "pspReference": "123",
+                "amount": math.inf,
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+            },
+            "amount",
+        ),
     ],
 )
-def test_transaction_response_invalid(data):
+def test_transaction_response_invalid(data, invalid_field):
     # when
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(ValidationError) as exc_info:
         TransactionResponse.model_validate(data)
 
     # then
-    assert len(error.value.errors()) == 1
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == (invalid_field,)
 
 
 @pytest.mark.parametrize(
@@ -231,10 +248,10 @@ def test_transaction_response_time_missing_psp_reference(result):
     }
 
     # when/then
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(ValidationError) as exc_info:
         TransactionResponse.model_validate(data)
 
-    assert len(error.value.errors()) == 1
+    assert len(exc_info.value.errors()) == 1
 
 
 @pytest.mark.parametrize(
@@ -290,6 +307,7 @@ def test_transaction_charge_requested_response_invalid(result):
 
     # then
     assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("result",)
 
 
 @pytest.mark.parametrize(
@@ -345,6 +363,7 @@ def test_transaction_cancel_requested_response_invalid(result):
 
     # then
     assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("result",)
 
 
 @pytest.mark.parametrize(
@@ -400,6 +419,7 @@ def test_transaction_refund_requested_response_invalid(result):
 
     # then
     assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("result",)
 
 
 @pytest.mark.parametrize(
@@ -449,12 +469,7 @@ def test_transaction_session_response_invalid_result(result):
     data = {
         "pspReference": "psp-123",
         "amount": Decimal("100.50"),
-        "time": "2023-01-01T12:00:00+00:00",
-        "externalUrl": "https://example.com/",
-        "message": "Transaction completed successfully.",
-        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": result.upper(),
-        "data": "data",
     }
 
     # when
@@ -463,10 +478,11 @@ def test_transaction_session_response_invalid_result(result):
 
     # then
     assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("result",)
 
 
 @pytest.mark.parametrize(
-    "data",
+    "data_value",
     [
         # Valid data
         {"key": "value", "another_key": "another_value"},
@@ -486,21 +502,48 @@ def test_transaction_session_response_invalid_result(result):
         123,
     ],
 )
-def test_transaction_session_response_valid_data(data):
+def test_transaction_session_response_valid_data(data_value):
     # given
-    input_data = {
+    data = {
         "pspReference": "psp-123",
         "amount": Decimal("100.50"),
-        "time": "2023-01-01T12:00:00+00:00",
-        "externalUrl": "https://example.com/",
-        "message": "Transaction completed successfully.",
-        "actions": [TransactionAction.CHARGE.upper(), TransactionAction.REFUND.upper()],
         "result": TransactionEventType.AUTHORIZATION_SUCCESS.upper(),
-        "data": data,
+        "data": data_value,
     }
 
     # when
-    transaction = TransactionSessionResponse.model_validate(input_data)
+    transaction = TransactionSessionResponse.model_validate(data)
 
     # then
-    assert transaction.data == data
+    assert transaction.data == data_value
+
+
+@pytest.mark.parametrize(
+    "data_value",
+    [
+        # Non-serializable object
+        object(),
+        # Set - not JSON serializable
+        {1, 2, 3},
+        # Function
+        lambda x: x,
+        # File handle
+        open,
+    ],
+)
+def test_transaction_session_response_invalid_data(data_value):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "data": data_value,
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        TransactionSessionResponse.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("data",)

@@ -101,8 +101,6 @@ class TransactionResponse(BaseModel):
     @classmethod
     def clean_amount(cls, amount: Decimal) -> Decimal:
         amount = amount.quantize(Decimal(10) ** (-settings.DEFAULT_DECIMAL_PLACES))
-        if not amount.is_finite():
-            raise ValueError("Amount is not finite.")
         return amount
 
     @field_validator("time", mode="before")
