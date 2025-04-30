@@ -156,8 +156,8 @@ def print_object_directives(type_) -> str:
 
 
 def print_field_directives_for_category(field, name) -> str:
+    doc_category = None
     # Get doc_category for `type Mutation` & `type Subscription` fields.
-    doc_category = getattr(field.resolver, "doc_category", None)
     if hasattr(field.type, "graphene_type"):
         doc_category = getattr(field.type.graphene_type, "doc_category", None)
 
