@@ -7,7 +7,7 @@ from opentelemetry.trace import StatusCode
 from .....core.models import EventDeliveryStatus
 from .....tests.utils import get_metric_data_points
 from ...metrics import (
-    METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH,
+    METRIC_EXTERNAL_REQUEST_BODY_SIZE,
     METRIC_EXTERNAL_REQUEST_COUNT,
     METRIC_EXTERNAL_REQUEST_DURATION,
 )
@@ -90,7 +90,7 @@ def test_send_webhook_request_async_record_external_request(
     assert external_request_duration.sum == webhook_response.duration
 
     external_request_content_length = get_metric_data_points(
-        metrics_data, METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH
+        metrics_data, METRIC_EXTERNAL_REQUEST_BODY_SIZE
     )
     assert external_request_content_length.attributes == attributes
     assert external_request_content_length.count == 1
@@ -138,7 +138,7 @@ def test_send_webhook_request_async_record_external_request_when_delivery_attemp
     assert external_request_duration.count == 1
     assert external_request_duration.sum == webhook_response_failed.duration
     external_request_content_length = get_metric_data_points(
-        metrics_data, METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH
+        metrics_data, METRIC_EXTERNAL_REQUEST_BODY_SIZE
     )
     assert external_request_content_length.attributes == attributes
     assert external_request_content_length.count == 1
@@ -186,7 +186,7 @@ def test_send_webhook_request_async_record_external_request_with_unknown_webhook
     assert external_request_duration.count == 1
     assert external_request_duration.sum == 0
     external_request_content_length = get_metric_data_points(
-        metrics_data, METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH
+        metrics_data, METRIC_EXTERNAL_REQUEST_BODY_SIZE
     )
     assert external_request_content_length.attributes == attributes
     assert external_request_content_length.count == 1

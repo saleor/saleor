@@ -8,21 +8,21 @@ from .utils import WebhookResponse
 
 # Initialize metrics
 METRIC_EXTERNAL_REQUEST_COUNT = meter.create_metric(
-    "saleor.external_request_count",
+    "saleor.external_request.count",
     scope=Scope.SERVICE,
     type=MetricType.COUNTER,
     unit=Unit.REQUEST,
     description="",
 )
 METRIC_EXTERNAL_REQUEST_DURATION = meter.create_metric(
-    "saleor.external_request_duration",
+    "saleor.external_request.duration",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.SECOND,
     description="",
 )
-METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH = meter.create_metric(
-    "saleor.external_request_content_length",
+METRIC_EXTERNAL_REQUEST_BODY_SIZE = meter.create_metric(
+    "saleor.external_request.body.size",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.BYTE,
@@ -38,7 +38,7 @@ def record_external_request(
         attributes[error_attributes.ERROR_TYPE] = "request_error"
     meter.record(METRIC_EXTERNAL_REQUEST_COUNT, 1, Unit.REQUEST, attributes=attributes)
     meter.record(
-        METRIC_EXTERNAL_REQUEST_CONTENT_LENGTH,
+        METRIC_EXTERNAL_REQUEST_BODY_SIZE,
         payload_size,
         Unit.BYTE,
         attributes=attributes,
