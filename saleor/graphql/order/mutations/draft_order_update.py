@@ -198,7 +198,7 @@ class DraftOrderUpdate(
             shipping_method_input["shipping_method"] = shipping_method
 
             # Do not process shipping method if it is already associated with the order
-            # and shipping price is already set. Shipping price can be unset together
+            # and shipping price is already set. Shipping price can be not set together
             # with shipping method when it is added to the order without lines or with
             # lines that do not require shipping.
             shipping_update_required = (
@@ -271,24 +271,26 @@ class DraftOrderUpdate(
     def _save(
         cls,
         instance_tracker: InstanceTracker,
-        shipping_address_tracker: InstanceTracker | None,
-        billing_address_tracker: InstanceTracker | None,
+        shipping_address_tracker: InstanceTracker,
+        billing_address_tracker: InstanceTracker,
         cleaned_input: dict,
     ) -> bool:
         instance = instance_tracker.instance
         with traced_atomic_transaction():
             modified_address_fields: list[str] = []
-            if (
-                shipping_address_tracker
-                and shipping_address_tracker.get_modified_fields()
-            ):
-                save_shipping_address(instance, cleaned_input, modified_address_fields)
+            if shipping_address_instance := cleaned_input.get("shipping_address"):
+                shipping_address_tracker.instance = shipping_address_instance
+                if shipping_address_tracker.get_modified_fields():
+                    save_shipping_address(
+                        instance, cleaned_input, modified_address_fields
+                    )
 
-            if (
-                billing_address_tracker
-                and billing_address_tracker.get_modified_fields()
-            ):
-                save_billing_address(instance, cleaned_input, modified_address_fields)
+            if billing_address_instance := cleaned_input.get("billing_address"):
+                billing_address_tracker.instance = billing_address_instance
+                if billing_address_tracker.get_modified_fields():
+                    save_billing_address(
+                        instance, cleaned_input, modified_address_fields
+                    )
 
             # In case nothing change, do not perform post-process actions;
             # do not call the `DRAFT_ORDER_UPDATED` event.
@@ -404,17 +406,12 @@ class DraftOrderUpdate(
 
         instance = cast(models.Order, instance)
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
-
-        shipping_address_tracker = None
-        if instance.shipping_address:
-            shipping_address_tracker = InstanceTracker(
-                instance.shipping_address, ADDRESS_TRACKING_FIELDS
-            )
-        billing_address_tracker = None
-        if instance.billing_address:
-            billing_address_tracker = InstanceTracker(
-                instance.billing_address, ADDRESS_TRACKING_FIELDS
-            )
+        shipping_address_tracker = InstanceTracker(
+            instance.shipping_address, ADDRESS_TRACKING_FIELDS
+        )
+        billing_address_tracker = InstanceTracker(
+            instance.billing_address, ADDRESS_TRACKING_FIELDS
+        )
 
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
