@@ -275,7 +275,7 @@ class DraftOrderUpdate(
         billing_address_tracker: InstanceTracker,
         cleaned_input: dict,
     ) -> bool:
-        instance = instance_tracker.instance
+        instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
             modified_address_fields: list[str] = []
             if shipping_address_instance := cleaned_input.get("shipping_address"):
