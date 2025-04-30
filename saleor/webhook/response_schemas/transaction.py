@@ -10,6 +10,7 @@ from pydantic import (
     BaseModel,
     Field,
     HttpUrl,
+    JsonValue,
     field_validator,
     model_validator,
 )
@@ -20,7 +21,7 @@ from ...payment import (
     TransactionAction,
     TransactionEventType,
 )
-from .annotations import DatetimeUTC, DefaultIfNone, JsonData, OnErrorSkipLiteral
+from .annotations import DatetimeUTC, DefaultIfNone, OnErrorSkipLiteral
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +205,7 @@ class TransactionSessionResponse(TransactionResponse):
         Field(description="Result of the action"),
     ]
     data: Annotated[
-        DefaultIfNone[JsonData],
+        DefaultIfNone[JsonValue],
         Field(
             description="The JSON data that will be returned to storefront",
             default=None,
@@ -213,4 +214,4 @@ class TransactionSessionResponse(TransactionResponse):
 
 
 class PaymentGatewayInitializeSessionResponse(BaseModel):
-    data: JsonData
+    data: JsonValue

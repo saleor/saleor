@@ -1,4 +1,3 @@
-import json
 import logging
 from datetime import UTC, datetime
 from typing import Annotated, Any, TypeVar
@@ -6,7 +5,6 @@ from typing import Annotated, Any, TypeVar
 from pydantic import (
     AfterValidator,
     BeforeValidator,
-    Json,
     ValidationError,
     ValidatorFunctionWrapHandler,
     WrapValidator,
@@ -49,17 +47,3 @@ def skip_invalid_literal(value: T, handler: ValidatorFunctionWrapHandler) -> T:
 
 
 OnErrorSkipLiteral = Annotated[T, WrapValidator(skip_invalid_literal)]
-
-
-def parse_to_raw_string(value: Any) -> str:
-    """Ensure the value is serialized into a JSON string.
-
-    Allow proper pydantic validation.
-    """
-    try:
-        return json.dumps(value)
-    except (TypeError, ValueError) as e:
-        raise ValueError(f"Invalid value: {value}. Expected JSON format.") from e
-
-
-JsonData = Annotated[Json, BeforeValidator(parse_to_raw_string)]
