@@ -12,21 +12,21 @@ METRIC_EXTERNAL_REQUEST_COUNT = meter.create_metric(
     scope=Scope.SERVICE,
     type=MetricType.COUNTER,
     unit=Unit.REQUEST,
-    description="",
+    description="Number of webhook events.",
 )
 METRIC_EXTERNAL_REQUEST_DURATION = meter.create_metric(
     "saleor.external_request.duration",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.SECOND,
-    description="",
+    description="Duration of webhook event delivery.",
 )
 METRIC_EXTERNAL_REQUEST_BODY_SIZE = meter.create_metric(
     "saleor.external_request.body.size",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.BYTE,
-    description="",
+    description="Size of webhook event payloads.",
 )
 
 
