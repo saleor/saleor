@@ -6,6 +6,10 @@ from django.db.models import Model
 T = TypeVar("T", bound=Model)
 
 
+class InstanceTrackerError(Exception):
+    """Base class for tracker errors."""
+
+
 class InstanceTracker:
     """Instance with modifications tracker.
 
@@ -29,7 +33,7 @@ class InstanceTracker:
         Raise exception when instance is None.
         """
         if self.instance is None:
-            raise Exception("Instance cannot be None")
+            raise InstanceTrackerError("Instance cannot be None")
 
         modified_instance_values: dict[str, Any] = self.get_field_values()
         return [
