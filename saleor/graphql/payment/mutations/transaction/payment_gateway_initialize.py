@@ -90,7 +90,7 @@ class PaymentGatewayInitialize(TransactionSessionBase):
             app_identifier = identifier
             payment_gateway_response = payment_gateways_response_dict.get(identifier)
             if payment_gateway_response:
-                response_data = payment_gateway_response.data
+                data_to_return = payment_gateway_response.data
                 errors = []
                 if payment_gateway_response.error:
                     code = common_types.PaymentGatewayConfigErrorCode.INVALID.value
@@ -103,7 +103,7 @@ class PaymentGatewayInitialize(TransactionSessionBase):
                     ]
 
             else:
-                response_data = None
+                data_to_return = None
                 code = common_types.PaymentGatewayConfigErrorCode.NOT_FOUND.value
                 msg = (
                     "Active app with `HANDLE_PAYMENT` permissions or "
@@ -116,7 +116,6 @@ class PaymentGatewayInitialize(TransactionSessionBase):
                         "code": code,
                     }
                 ]
-            data_to_return = response_data.get("data") if response_data else None
             response.append(
                 PaymentGatewayConfig(
                     id=app_identifier, data=data_to_return, errors=errors
