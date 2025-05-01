@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Annotated, Any, TypeVar
+from typing import Annotated, TypeVar
 
 from graphql.error import GraphQLError
 from prices import Money
@@ -8,39 +8,22 @@ from pydantic import (
     BaseModel,
     Field,
     RootModel,
-    ValidationError,
     ValidationInfo,
-    ValidatorFunctionWrapHandler,
-    WrapValidator,
     field_validator,
 )
-from pydantic_core import PydanticOmit
 
 from ...app.models import App
 from ...graphql.core.utils import from_global_id_or_error
 from ...shipping.models import ShippingMethod
 from ..const import APP_ID_PREFIX
 from ..transport.shipping_helpers import to_shipping_app_id
-from .annotations import DefaultIfNone, Metadata
+from .annotations import DefaultIfNone, Metadata, OnErrorSkip
 
 logger = logging.getLogger(__name__)
 
 name_max_length = ShippingMethod._meta.get_field("name").max_length
 
 T = TypeVar("T")
-
-
-def skip_invalid_shipping_method(
-    value: Any, handler: ValidatorFunctionWrapHandler
-) -> Any:
-    try:
-        return handler(value)
-    except ValidationError as err:
-        logger.warning("Skipping invalid shipping method: %s", err)
-        raise PydanticOmit() from err
-
-
-OnErrorSkipShippingMethod = Annotated[T, WrapValidator(skip_invalid_shipping_method)]
 
 
 class ShippingMethodSchema(BaseModel):
@@ -67,7 +50,7 @@ class ShippingMethodSchema(BaseModel):
 
 
 class ListShippingMethodsSchema(RootModel):
-    root: DefaultIfNone[list[OnErrorSkipShippingMethod[ShippingMethodSchema]]] = []
+    root: DefaultIfNone[list[OnErrorSkip[ShippingMethodSchema]]] = []
 
 
 class ExcludedShippingMethodSchema(BaseModel):
@@ -93,5 +76,5 @@ class ExcludedShippingMethodSchema(BaseModel):
 
 class FilterShippingMethodsSchema(BaseModel):
     excluded_methods: DefaultIfNone[
-        list[OnErrorSkipShippingMethod[ExcludedShippingMethodSchema]]
+        list[OnErrorSkip[ExcludedShippingMethodSchema]]
     ] = []

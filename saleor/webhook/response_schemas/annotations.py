@@ -1,13 +1,20 @@
+import logging
 from typing import Annotated, Any, TypeVar
 
 from pydantic import (
     BeforeValidator,
+    ValidationError,
+    ValidationInfo,
+    ValidatorFunctionWrapHandler,
+    WrapValidator,
 )
-from pydantic_core import PydanticUseDefault
+from pydantic_core import PydanticOmit, PydanticUseDefault
 
 from ...core.utils.metadata_manager import metadata_is_valid
 
 M = TypeVar("M")
+
+logger = logging.getLogger(__name__)
 
 
 def skip_invalid_metadata(value: M) -> M:
@@ -27,3 +34,28 @@ def default_if_none(value: Any) -> Any:
 
 T = TypeVar("T")
 DefaultIfNone = Annotated[T, BeforeValidator(default_if_none)]
+
+
+def skip_invalid(
+    value: Any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo
+) -> Any:
+    try:
+        return handler(value)
+    except ValidationError as err:
+        context = info.context or {}
+        custom_message = context.get("custom_message", "Skipping invalid value")
+        app = context.get("app")
+        logger.warning(
+            "%s; value: %s error: %s",
+            custom_message,
+            value,
+            str(err),
+            extra={
+                "app": app.id if app else None,
+                "value": value,
+            },
+        )
+        raise PydanticOmit() from err
+
+
+OnErrorSkip = Annotated[T, WrapValidator(skip_invalid)]
