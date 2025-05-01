@@ -92,7 +92,7 @@ from ...webhook.payloads import (
     generate_translation_payload,
 )
 from ...webhook.response_schemas.transaction import (
-    PaymentGatewayInitializeSessionResponse,
+    PaymentGatewayInitializeSessionSchema,
 )
 from ...webhook.transport.asynchronous.transport import (
     WebhookPayloadData,
@@ -3095,9 +3095,7 @@ class WebhookPlugin(BasePlugin):
         if response_data:
             try:
                 response_data_model = (
-                    PaymentGatewayInitializeSessionResponse.model_validate(
-                        response_data
-                    )
+                    PaymentGatewayInitializeSessionSchema.model_validate(response_data)
                 )
             except ValidationError as e:
                 response_data = None

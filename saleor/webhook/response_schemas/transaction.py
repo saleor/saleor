@@ -32,7 +32,7 @@ TransactionActionEnum = Enum(  # type: ignore[misc]
 )
 
 
-class TransactionResponse(BaseModel):
+class TransactionSchema(BaseModel):
     psp_reference: Annotated[
         DefaultIfNone[str],
         Field(
@@ -160,7 +160,7 @@ TransactionEventTypeEnum = Enum(  # type: ignore[misc]
 )
 
 
-class TransactionChargeRequestedResponse(TransactionResponse):
+class TransactionChargeRequestedSchema(TransactionSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[
             TransactionEventTypeEnum.CHARGE_SUCCESS.name,
@@ -170,7 +170,7 @@ class TransactionChargeRequestedResponse(TransactionResponse):
     ]
 
 
-class TransactionCancelRequestedResponse(TransactionResponse):
+class TransactionCancelRequestedSchema(TransactionSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[
             TransactionEventTypeEnum.CANCEL_SUCCESS.name,
@@ -180,7 +180,7 @@ class TransactionCancelRequestedResponse(TransactionResponse):
     ]
 
 
-class TransactionRefundRequestedResponse(TransactionResponse):
+class TransactionRefundRequestedSchema(TransactionSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[
             TransactionEventTypeEnum.REFUND_SUCCESS.name,
@@ -190,7 +190,7 @@ class TransactionRefundRequestedResponse(TransactionResponse):
     ]
 
 
-class TransactionSessionResponse(TransactionResponse):
+class TransactionSessionSchema(TransactionSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[
             TransactionEventTypeEnum.AUTHORIZATION_SUCCESS.name,
@@ -213,5 +213,5 @@ class TransactionSessionResponse(TransactionResponse):
     ]
 
 
-class PaymentGatewayInitializeSessionResponse(BaseModel):
+class PaymentGatewayInitializeSessionSchema(BaseModel):
     data: JsonValue

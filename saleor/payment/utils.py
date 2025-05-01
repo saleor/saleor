@@ -38,10 +38,10 @@ from ..order.utils import (
 )
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from ..webhook.response_schemas.transaction import (
-    TransactionCancelRequestedResponse,
-    TransactionChargeRequestedResponse,
-    TransactionRefundRequestedResponse,
-    TransactionSessionResponse,
+    TransactionCancelRequestedSchema,
+    TransactionChargeRequestedSchema,
+    TransactionRefundRequestedSchema,
+    TransactionSessionSchema,
 )
 from . import (
     OPTIONAL_PSP_REFERENCE_EVENTS,
@@ -886,10 +886,10 @@ def parse_transaction_action_data(
 
     response_data_model = None
     request_type_to_schema_map = {
-        TransactionEventType.CHARGE_REQUEST: TransactionChargeRequestedResponse,
-        TransactionEventType.REFUND_REQUEST: TransactionRefundRequestedResponse,
-        TransactionEventType.CANCEL_REQUEST: TransactionCancelRequestedResponse,
-        SESSION_REQUEST_EVENT_TYPE: TransactionSessionResponse,
+        TransactionEventType.CHARGE_REQUEST: TransactionChargeRequestedSchema,
+        TransactionEventType.REFUND_REQUEST: TransactionRefundRequestedSchema,
+        TransactionEventType.CANCEL_REQUEST: TransactionCancelRequestedSchema,
+        SESSION_REQUEST_EVENT_TYPE: TransactionSessionSchema,
     }
 
     request_schema = request_type_to_schema_map.get(request_type)
