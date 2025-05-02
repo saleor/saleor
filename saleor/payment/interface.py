@@ -105,7 +105,7 @@ class PaymentMethodData:
     supported_payment_flows: list[str] = field(default_factory=list)
     credit_card_info: PaymentMethodCreditCardInfo | None = None
     name: str | None = None
-    data: JSONType | None = None
+    data: JSONValue | None = None
 
 
 @dataclass

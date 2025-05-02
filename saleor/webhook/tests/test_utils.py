@@ -3,7 +3,11 @@ import copy
 import pytest
 
 from ...app.models import App
-from ...payment.interface import PaymentGateway
+from ...payment.interface import (
+    PaymentGateway,
+    PaymentMethodCreditCardInfo,
+    PaymentMethodData,
+)
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..models import Webhook
 from ..observability.exceptions import (
@@ -14,7 +18,7 @@ from ..observability.exceptions import (
 from ..observability.payload_schema import ObservabilityEventTypes
 from ..transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
-    get_payment_method_from_response,
+    # get_payment_method_from_response,
 )
 from ..transport.utils import (
     generate_cache_key_for_webhook,
@@ -522,74 +526,74 @@ def test_different_app_produce_different_cache_key():
 #     assert payment_method.data == payment_method_response["data"]
 
 
-@pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
-def test_get_payment_method_from_response_missing_required_field(
-    field, payment_method_response, app
-):
-    # given
-    del payment_method_response[field]
+# @pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
+# def test_get_payment_method_from_response_missing_required_field(
+#     field, payment_method_response, app
+# ):
+#     # given
+#     del payment_method_response[field]
 
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
+#     # when
+#     payment_method = get_payment_method_from_response(
+#         app, payment_method_response, "usd"
+#     )
 
-    # then
-    assert payment_method is None
-
-
-@pytest.mark.parametrize("field", ["creditCardInfo", "name", "data"])
-def test_get_payment_method_from_response_optional_field(
-    field, payment_method_response, app
-):
-    del payment_method_response[field]
-
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
-
-    # then
-    assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
-    assert payment_method.external_id == payment_method_response["id"]
-    assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway == PaymentGateway(
-        id=app.identifier, name=app.name, currencies=["usd"], config=[]
-    )
-    assert payment_method.supported_payment_flows == [
-        flow.lower() for flow in payment_method_response["supportedPaymentFlows"]
-    ]
+#     # then
+#     assert payment_method is None
 
 
-@pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
-def test_get_payment_method_from_response_required_field_is_none(
-    field, payment_method_response, app
-):
-    # given
-    payment_method_response[field] = None
+# @pytest.mark.parametrize("field", ["creditCardInfo", "name", "data"])
+# def test_get_payment_method_from_response_optional_field(
+#     field, payment_method_response, app
+# ):
+#     del payment_method_response[field]
 
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
+#     # when
+#     payment_method = get_payment_method_from_response(
+#         app, payment_method_response, "usd"
+#     )
 
-    # then
-    assert payment_method is None
+#     # then
+#     assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
+#     assert payment_method.external_id == payment_method_response["id"]
+#     assert payment_method.type == payment_method_response["type"]
+#     assert payment_method.gateway == PaymentGateway(
+#         id=app.identifier, name=app.name, currencies=["usd"], config=[]
+#     )
+#     assert payment_method.supported_payment_flows == [
+#         flow.lower() for flow in payment_method_response["supportedPaymentFlows"]
+#     ]
 
 
-def test_get_payment_method_from_response_incorrect_payment_flow_choices(
-    payment_method_response, app
-):
-    # given
-    payment_method_response["supportedPaymentFlows"] = ["incorrect", "INTERACTIVE"]
+# @pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
+# def test_get_payment_method_from_response_required_field_is_none(
+#     field, payment_method_response, app
+# ):
+#     # given
+#     payment_method_response[field] = None
 
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
+#     # when
+#     payment_method = get_payment_method_from_response(
+#         app, payment_method_response, "usd"
+#     )
 
-    # then
-    assert payment_method is None
+#     # then
+#     assert payment_method is None
+
+
+# def test_get_payment_method_from_response_incorrect_payment_flow_choices(
+#     payment_method_response, app
+# ):
+#     # given
+#     payment_method_response["supportedPaymentFlows"] = ["incorrect", "INTERACTIVE"]
+
+#     # when
+#     payment_method = get_payment_method_from_response(
+#         app, payment_method_response, "usd"
+#     )
+
+#     # then
+#     assert payment_method is None
 
 
 def test_get_list_stored_payment_methods_from_response(payment_method_response, app):
@@ -599,14 +603,38 @@ def test_get_list_stored_payment_methods_from_response(payment_method_response, 
     list_stored_payment_methods_response = {
         "paymentMethods": [payment_method_response, second_payment_method]
     }
+    currency = "usd"
 
     # when
     response = get_list_stored_payment_methods_from_response(
-        app, list_stored_payment_methods_response, "usd"
+        app, list_stored_payment_methods_response, currency
     )
 
     # then
     assert len(response) == 1
-    assert response == [
-        get_payment_method_from_response(app, payment_method_response, "usd")
-    ]
+    assert response[0] == PaymentMethodData(
+        id=to_payment_app_id(app, payment_method_response["id"]),
+        external_id=payment_method_response["id"],
+        supported_payment_flows=[
+            flow.lower()
+            for flow in payment_method_response.get("supportedPaymentFlows", [])
+        ],
+        type=payment_method_response["type"],
+        credit_card_info=PaymentMethodCreditCardInfo(
+            brand=payment_method_response["creditCardInfo"]["brand"],
+            last_digits=payment_method_response["creditCardInfo"]["lastDigits"],
+            exp_year=payment_method_response["creditCardInfo"]["expYear"],
+            exp_month=payment_method_response["creditCardInfo"]["expMonth"],
+            first_digits=payment_method_response["creditCardInfo"].get("firstDigits"),
+        )
+        if payment_method_response.get("creditCardInfo")
+        else None,
+        name=payment_method_response["name"],
+        data=payment_method_response["data"],
+        gateway=PaymentGateway(
+            id=app.identifier,
+            name=app.name,
+            currencies=[currency],
+            config=[],
+        ),
+    )

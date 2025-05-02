@@ -59,3 +59,13 @@ def skip_invalid(
 
 
 OnErrorSkip = Annotated[T, WrapValidator(skip_invalid)]
+
+
+def default_if_invalid(value: Any, handler: ValidatorFunctionWrapHandler) -> Any:
+    try:
+        return handler(value)
+    except ValidationError as err:
+        raise PydanticUseDefault() from err
+
+
+OnErrorDefault = Annotated[T, WrapValidator(default_if_invalid)]

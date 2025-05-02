@@ -1,11 +1,11 @@
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, JsonValue, field_validator
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
-from .annotations import DefaultIfNone, OnErrorSkip
+from .annotations import DefaultIfNone, OnErrorDefault, OnErrorSkip
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
     "TokenizedPaymentFlowEnum",
@@ -15,21 +15,44 @@ TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
 
 class CreditCardInfoSchema(BaseModel):
     brand: Annotated[str, Field(description="Brand of the credit card.")]
-    last_digits: Annotated[str, Field(description="Last 4 digits of the credit card.")]
-    exp_year: Annotated[int, Field(description="Expiration year of the credit card.")]
-    exp_month: Annotated[int, Field(description="Expiration month of the credit card.")]
+    last_digits: Annotated[
+        str,
+        Field(
+            validation_alias="lastDigits", description="Last digits of the credit card."
+        ),
+    ]
+    exp_year: Annotated[
+        int,
+        Field(
+            validation_alias="expYear",
+            description="Expiration year of the credit card.",
+        ),
+    ]
+    exp_month: Annotated[
+        int,
+        Field(
+            validation_alias="expMonth",
+            description="Expiration month of the credit card.",
+        ),
+    ]
     first_digits: Annotated[
         DefaultIfNone[str],
         Field(
-            description="First 6 digits of the credit card.",
+            validation_alias="firstDigits",
+            description="First digits of the credit card.",
             default=None,
         ),
     ]
 
+    @field_validator("last_digits", "first_digits", mode="before")
+    @classmethod
+    def clean_digits(cls, value: Any) -> str | None:
+        return str(value) if value is not None else None
+
 
 class StoredPaymentMethodSchema(BaseModel):
     id: Annotated[str, Field(description="ID of stored payment method.")]
-    supported_payment_flows: Annotated[
+    supported_payment_flows: Annotated[  # type: ignore[name-defined]
         DefaultIfNone[list[Literal[TokenizedPaymentFlowEnum.INTERACTIVE.name,]]],
         Field(
             validation_alias="supportedPaymentFlows",
@@ -56,8 +79,9 @@ class StoredPaymentMethodSchema(BaseModel):
         ),
     ]
     credit_card_info: Annotated[
-        DefaultIfNone[OnErrorSkip[CreditCardInfoSchema]],
+        OnErrorDefault[CreditCardInfoSchema],
         Field(
+            validation_alias="creditCardInfo",
             description="Credit card information.",
             default=None,
         ),
