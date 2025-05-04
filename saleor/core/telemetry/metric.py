@@ -1,6 +1,6 @@
 import logging
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from enum import Enum
 from threading import Lock
@@ -70,14 +70,19 @@ class Meter:
         type: MetricType,
         unit: Unit,
         description: str,
+        explicit_bucket_boundaries_advisory: Sequence[float] | None = None,
     ) -> Synchronous:
-        kwargs = {"unit": unit.value, "description": description}
         if type == MetricType.COUNTER:
-            return otel_meter.create_counter(name, **kwargs)
+            return otel_meter.create_counter(name, unit.value, description)
         if type == MetricType.UP_DOWN_COUNTER:
-            return otel_meter.create_up_down_counter(name, **kwargs)
+            return otel_meter.create_up_down_counter(name, unit.value, description)
         if type == MetricType.HISTOGRAM:
-            return otel_meter.create_histogram(name, **kwargs)
+            return otel_meter.create_histogram(
+                name,
+                unit.value,
+                description,
+                explicit_bucket_boundaries_advisory=explicit_bucket_boundaries_advisory,
+            )
         raise AttributeError(f"Unsupported instrument type: {type}")
 
     def create_metric(
@@ -88,6 +93,7 @@ class Meter:
         unit: Unit,
         scope: Scope = Scope.CORE,
         description: str = "",
+        explicit_bucket_boundaries_advisory: Sequence[float] | None = None,
     ) -> str:
         """Create a new metric with specified parameters.
 
@@ -97,6 +103,7 @@ class Meter:
             unit: Unit of the metric
             scope: The scope of the metric, defaults to Scope.CORE
             description: Optional description of the metric
+            explicit_bucket_boundaries_advisory: For MetricType.HISTOGRAM metrics, optional explicit bucket boundaries advisory
 
         Returns:
             str: The name of the created metric
@@ -178,12 +185,14 @@ class MeterProxy(Meter):
         unit: Unit,
         scope: Scope = Scope.CORE,
         description: str = "",
+        explicit_bucket_boundaries_advisory: Sequence[float] | None = None,
     ) -> str:
         kwargs = {
             "type": type,
             "unit": unit,
             "scope": scope,
             "description": description,
+            "explicit_bucket_boundaries_advisory": explicit_bucket_boundaries_advisory,
         }
         if self._meter:
             return self._meter.create_metric(
