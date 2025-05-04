@@ -2,7 +2,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from opentelemetry.metrics import Synchronous
+from opentelemetry.sdk.metrics.export import HistogramDataPoint
 
+from ....tests.utils import get_metric_data
+from .. import meter
 from ..metric import (
     DuplicateMetricError,
     Meter,
@@ -68,9 +71,7 @@ def test_meter_create_counter():
 
     # then
     mock_otel_meter.create_counter.assert_called_once_with(
-        "counter_metric",
-        unit=Unit.REQUEST.value,
-        description="Counter description",
+        "counter_metric", Unit.REQUEST.value, "Counter description"
     )
     assert instrument == mock_counter
 
@@ -92,9 +93,7 @@ def test_meter_create_up_down_counter():
 
     # then
     mock_otel_meter.create_up_down_counter.assert_called_once_with(
-        "updown_counter_metric",
-        unit=Unit.REQUEST.value,
-        description="UpDownCounter description",
+        "updown_counter_metric", Unit.REQUEST.value, "UpDownCounter description"
     )
     assert instrument == mock_updown_counter
 
@@ -117,8 +116,9 @@ def test_meter_create_histogram():
     # then
     mock_otel_meter.create_histogram.assert_called_once_with(
         "histogram_metric",
-        unit=Unit.SECOND.value,
-        description="Histogram description",
+        Unit.SECOND.value,
+        "Histogram description",
+        explicit_bucket_boundaries_advisory=None,
     )
     assert instrument == mock_histogram
 
@@ -299,6 +299,7 @@ def test_meter_proxy_initialize():
         unit=Unit.REQUEST,
         scope=Scope.CORE,
         description="Test metric description",
+        bucket_boundaries=None,
     )
 
     # Initialize again should log a warning
@@ -375,6 +376,7 @@ def test_meter_proxy_create_metric_with_meter():
         unit=Unit.REQUEST,
         scope=Scope.CORE,
         description="Test metric description",
+        bucket_boundaries=None,
     )
     assert metric_name == "test_metric"
 
@@ -400,3 +402,45 @@ def test_meter_proxy_record_with_meter():
         unit=Unit.REQUEST,
         attributes={"attr1": "value1"},
     )
+
+
+def test_meter_create_histogram_with_explicit_bucket_boundaries(get_test_metrics_data):
+    # given
+    name = "test_histogram_metric"
+    unit = Unit.SECOND
+    description = "Test histogram metric description"
+    attributes = {"attr1": "value1"}
+    bucket_boundaries = (0.1, 0.25, 0.5, 1, 10)
+    meter.create_metric(
+        name,
+        type=MetricType.HISTOGRAM,
+        unit=unit,
+        description=description,
+        bucket_boundaries=bucket_boundaries,
+    )
+
+    # when
+    # Record values at each bucket boundary to validate bucket assignment
+    # Each value should fall into different buckets based on boundary definitions
+    meter.record(name, 0.1, unit=Unit.SECOND, attributes=attributes)
+    meter.record(name, 0.25, unit=Unit.SECOND, attributes=attributes)
+    meter.record(name, 0.5, unit=Unit.SECOND, attributes=attributes)
+    meter.record(name, 1, unit=Unit.SECOND, attributes=attributes)
+    meter.record(name, 10, unit=Unit.SECOND, attributes=attributes)
+    # Record a value outside the defined buckets to verify overflow handling
+    meter.record(name, 20, unit=Unit.SECOND, attributes=attributes)
+
+    # then
+    metric_data = get_metric_data(get_test_metrics_data(), name)
+    assert metric_data.name == name
+    assert metric_data.unit == unit.value
+    assert metric_data.description == description
+    data_point = metric_data.data.data_points[0]
+    assert isinstance(data_point, HistogramDataPoint)
+    assert data_point.attributes == attributes
+    assert data_point.explicit_bounds == bucket_boundaries
+    assert data_point.count == 6  # Total number of recorded values
+    assert data_point.bucket_counts == (1, 1, 1, 1, 1, 1)  # One value in each bucket
+    assert data_point.min == 0.1  # Smallest recorded value
+    assert data_point.max == 20  # Largest recorded value
+    assert data_point.sum == 31.85  # Sum of all recorded values

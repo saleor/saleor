@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import connections
-from opentelemetry.sdk.metrics.export import MetricsData
+from opentelemetry.sdk.metrics.export import DataPointT, Metric, MetricsData
 
 from ..core.db.connection import allow_writer
 
@@ -69,14 +69,19 @@ def round_up(price: Decimal) -> Decimal:
     return Decimal(math.ceil(price * 100)) / 100
 
 
-def get_metric_data_points(metrics_data: MetricsData, metric_name: str):
+def get_metric_data(metrics_data: MetricsData, metric_name: str) -> Metric:
     for resource in metrics_data.resource_metrics:
         for scope_metrics in resource.scope_metrics:
             for metric in scope_metrics.metrics:
                 if metric.name == metric_name:
-                    datapoints_count = len(metric.data.data_points)
-                    assert datapoints_count == 1, (
-                        f"For metric {metric_name} found {datapoints_count} instead of 1"
-                    )
-                    return metric.data.data_points[0]
+                    return metric
     raise KeyError(f"Metric {metric_name} not found in metrics data")
+
+
+def get_metric_data_point(metrics_data: MetricsData, metric_name: str) -> DataPointT:
+    metric_data = get_metric_data(metrics_data, metric_name)
+    datapoints_count = len(metric_data.data.data_points)
+    assert datapoints_count == 1, (
+        f"For metric {metric_name} found {datapoints_count} instead of 1"
+    )
+    return metric_data.data.data_points[0]
