@@ -31,7 +31,7 @@ def get_list_stored_payment_methods_from_response(
         stored_payment_methods_model = ListStoredPaymentMethodsSchema.model_validate(
             response_data,
             context={
-                "custom_message": "Skipping stored payment method.",
+                "custom_message": "Skipping invalid stored payment method",
                 "app": app,
             },
         )
@@ -40,6 +40,7 @@ def get_list_stored_payment_methods_from_response(
             "Skipping stored payment methods from app %s. Error: %s",
             app.id,
             str(e),
+            extra={"app": app.id},
         )
         return []
 

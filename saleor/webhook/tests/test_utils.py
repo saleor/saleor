@@ -1,4 +1,5 @@
 import copy
+from unittest.mock import patch
 
 import pytest
 
@@ -16,8 +17,10 @@ from ..observability.exceptions import (
     TruncationError,
 )
 from ..observability.payload_schema import ObservabilityEventTypes
+from ..response_schemas.annotations import logger as annotations_logger
 from ..transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
+    logger,
 )
 from ..transport.utils import (
     generate_cache_key_for_webhook,
@@ -338,7 +341,10 @@ def test_different_app_produce_different_cache_key():
     assert cache_key_1 != cache_key_2
 
 
-def test_get_list_stored_payment_methods_from_response(payment_method_response, app):
+@patch.object(annotations_logger, "warning")
+def test_get_list_stored_payment_methods_from_response(
+    mocked_logger, payment_method_response, app
+):
     # given
     # invalid second payment method due to to missing id
     second_payment_method = copy.deepcopy(payment_method_response)
@@ -382,6 +388,10 @@ def test_get_list_stored_payment_methods_from_response(payment_method_response, 
             config=[],
         ),
     )
+    assert mocked_logger.call_count == 1
+    error_msg = mocked_logger.call_args[0][1]
+    assert error_msg == "Skipping invalid stored payment method"
+    assert mocked_logger.call_args[1]["extra"]["app"] == app.id
 
 
 def test_get_list_stored_payment_methods_from_response_only_required_fields(app):
@@ -414,3 +424,24 @@ def test_get_list_stored_payment_methods_from_response_only_required_fields(app)
             config=[],
         ),
     )
+
+
+@patch.object(logger, "warning")
+def test_get_list_stored_payment_methods_from_response_invalid_input_data(
+    mocked_logger, app
+):
+    # given
+    list_stored_payment_methods_response = None
+    currency = "usd"
+
+    # when
+    response = get_list_stored_payment_methods_from_response(
+        app, list_stored_payment_methods_response, currency
+    )
+
+    # then
+    assert response == []
+    assert mocked_logger.call_count == 1
+    error_msg = mocked_logger.call_args[0][0]
+    assert "Skipping stored payment methods from app" in error_msg
+    assert mocked_logger.call_args[1]["extra"]["app"] == app.id

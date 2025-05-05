@@ -46,13 +46,12 @@ def skip_invalid(
         custom_message = context.get("custom_message", "Skipping invalid value")
         app = context.get("app")
         logger.warning(
-            "%s; value: %s error: %s",
+            "%s Value: %s Error: %s",
             custom_message,
             value,
             str(err),
             extra={
                 "app": app.id if app else None,
-                "value": value,
             },
         )
         raise PydanticOmit() from err
