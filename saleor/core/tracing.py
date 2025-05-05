@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from django.db import transaction
 
+from ..app.models import App
 from ..core.telemetry import Link, Scope, SpanKind, saleor_attributes, tracer
 
 
@@ -23,11 +24,10 @@ def otel_trace(span_name, component_name):
 
 @contextmanager
 def webhooks_otel_trace(
-    span_name,
-    domain,
+    event_type: str,
     payload_size: int,
     sync=False,
-    app=None,
+    app: App | None = None,
     span_links: Sequence[Link] | None = None,
 ):
     """Context manager for tracing webhooks.
@@ -35,7 +35,7 @@ def webhooks_otel_trace(
     :param payload_size: size of the payload in bytes
     """
     with tracer.start_as_current_span(
-        f"webhooks.{span_name}",
+        f"webhooks.{event_type}",
         scope=Scope.SERVICE,
         kind=SpanKind.CLIENT,
         links=span_links,

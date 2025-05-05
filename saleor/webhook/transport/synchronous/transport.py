@@ -43,6 +43,7 @@ from ...event_types import WebhookEventSyncType
 from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
 from .. import signature_for_payload
+from ..metrics import record_external_request
 from ..utils import (
     WebhookResponse,
     WebhookSchemes,
@@ -112,9 +113,12 @@ def _send_webhook_request_sync(
     message = data.encode("utf-8")
     payload_size = len(message)
     signature = signature_for_payload(message, webhook.secret_key)
+    response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
+    response_data = None
 
     if parts.scheme.lower() not in [WebhookSchemes.HTTP, WebhookSchemes.HTTPS]:
         delivery_update(delivery, EventDeliveryStatus.FAILED)
+        record_external_request(webhook.target_url, response, payload_size)
         raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
     logger.debug(
@@ -124,11 +128,9 @@ def _send_webhook_request_sync(
     )
     if attempt is None:
         attempt = create_attempt(delivery=delivery, task_id=None, with_save=False)
-    response = WebhookResponse(content="")
-    response_data = None
 
     with webhooks_otel_trace(
-        delivery.event_type, domain, payload_size, sync=True, app=webhook.app
+        delivery.event_type, payload_size, sync=True, app=webhook.app
     ) as span:
         try:
             response = send_webhook_using_http(
@@ -168,6 +170,7 @@ def _send_webhook_request_sync(
         finally:
             if response.status == EventDeliveryStatus.FAILED:
                 span.set_status(StatusCode.ERROR)
+            record_external_request(webhook.target_url, response, payload_size)
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
