@@ -1,11 +1,12 @@
 from enum import Enum
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, JsonValue, field_validator
+from pydantic import AfterValidator, BaseModel, Field, JsonValue, field_validator
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
 from .annotations import DefaultIfNone, OnErrorDefault, OnErrorSkip
+from .validators import lower_values
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
     "TokenizedPaymentFlowEnum",
@@ -59,6 +60,7 @@ class StoredPaymentMethodSchema(BaseModel):
             description="Supported flows that can be performed with this payment method.",
             default_factory=list,
         ),
+        AfterValidator(lower_values),
     ]
     type: Annotated[
         str,
@@ -86,17 +88,6 @@ class StoredPaymentMethodSchema(BaseModel):
             default=None,
         ),
     ]
-
-    @field_validator("supported_payment_flows", mode="after")
-    @classmethod
-    def clean_supported_payment_flows(
-        cls, supported_payment_flows: list[str] | None
-    ) -> list[str] | None:
-        return (
-            [flow.lower() for flow in supported_payment_flows]
-            if supported_payment_flows
-            else supported_payment_flows
-        )
 
 
 class ListStoredPaymentMethodsSchema(BaseModel):
