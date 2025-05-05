@@ -776,18 +776,17 @@ class WebhookPlugin(BasePlugin):
         )
         return previous_value
 
-    def _get_webhooks_for_order_events(
+    def _get_webhooks_for_channel_events(
         self,
         event_type: str,
-        order: "Order",
+        channel_slug: str,
         webhooks: Iterable["Webhook"] | None = None,
     ) -> Iterable["Webhook"]:
-        """Get webhooks for order events.
+        """Get webhooks for channel-based events.
 
         Fetch all valid webhooks and filter out the ones that have a subscription query
-        with filter that doesn't match to the order.
+        with filter that doesn't match to the channel.
         """
-        order_channel_slug = order.channel.slug
         if webhooks is None:
             webhooks = get_webhooks_for_event(event_type)
         filtered_webhooks = []
@@ -799,7 +798,7 @@ class WebhookPlugin(BasePlugin):
             if not filterable_channel_slugs:
                 filtered_webhooks.append(webhook)
                 continue
-            if order_channel_slug in filterable_channel_slugs:
+            if channel_slug in filterable_channel_slugs:
                 filtered_webhooks.append(webhook)
         return filtered_webhooks
 
@@ -809,7 +808,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CREATED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -909,7 +910,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CONFIRMED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -930,7 +933,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULLY_PAID
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -949,7 +954,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_PAID
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -970,7 +977,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_REFUNDED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -991,7 +1000,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1012,7 +1023,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_UPDATED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1033,7 +1046,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_EXPIRED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1353,7 +1368,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_CANCELLED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1374,7 +1391,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_FULFILLED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1395,7 +1414,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.ORDER_METADATA_UPDATED
-        webhooks = self._get_webhooks_for_order_events(event_type, order, webhooks)
+        webhooks = self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        )
         self._trigger_metadata_updated_event(
             event_type,
             order,
@@ -1460,7 +1481,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_CREATED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1481,7 +1504,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_UPDATED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -1502,7 +1527,9 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.DRAFT_ORDER_DELETED
-        if webhooks := self._get_webhooks_for_order_events(event_type, order, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, order.channel.slug, webhooks
+        ):
             order_data_generator = partial(
                 generate_order_payload, order, self.requestor
             )
@@ -2042,9 +2069,13 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_CREATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, checkout.channel.slug, webhooks
+        ):
             checkout_data_generator = partial(
-                generate_checkout_payload, checkout, self.requestor
+                generate_checkout_payload,
+                checkout,
+                self.requestor,
             )
             self.trigger_webhooks_async(
                 None,
@@ -2063,9 +2094,13 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, checkout.channel.slug, webhooks
+        ):
             checkout_data_generator = partial(
-                generate_checkout_payload, checkout, self.requestor
+                generate_checkout_payload,
+                checkout,
+                self.requestor,
             )
             self.trigger_webhooks_async(
                 None,
@@ -2084,9 +2119,13 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, checkout.channel.slug, webhooks
+        ):
             checkout_data_generator = partial(
-                generate_checkout_payload, checkout, self.requestor
+                generate_checkout_payload,
+                checkout,
+                self.requestor,
             )
             self.trigger_webhooks_async(
                 None,
@@ -2104,9 +2143,13 @@ class WebhookPlugin(BasePlugin):
     ) -> None:
         if not self.active:
             return previous_value
-        self._trigger_metadata_updated_event(
-            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout, webhooks=webhooks
-        )
+        event_type = WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, checkout.channel.slug, webhooks
+        ):
+            self._trigger_metadata_updated_event(
+                event_type, checkout, webhooks=webhooks
+            )
         return previous_value
 
     def notify(

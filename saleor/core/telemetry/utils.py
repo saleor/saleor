@@ -33,6 +33,7 @@ class Unit(Enum):
     MILLISECOND = "ms"
     NANOSECOND = "ns"
     REQUEST = "{request}"
+    BYTE = "By"
     COST = "{cost}"
 
 

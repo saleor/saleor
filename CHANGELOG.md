@@ -70,6 +70,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose line-level discounts through the `OrderLineDiscount` type, retrievable via the `OrderLine.discounts` API field - #17510 by @korycins
 - Introduce total field in OrderDiscount to replace the amount field, with OrderDiscount.amount now deprecated - #17510 by @korycins
 - Introduce `useLegacyLineVoucherPropagation` flag to control legacy propagation behavior for specific voucher types - #17587 - by @korycins
+- Add filterable subscriptions for checkout events (`checkoutCreated`, `checkoutUpdated`, `checkoutFullyPaid`, `checkoutMetadataUpdated`) - #17647 by @korycins
 
 ### Webhooks
 
