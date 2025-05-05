@@ -341,7 +341,10 @@ def test_stored_payment_method_schema_invalid(data, invalid_field):
     assert exc_info.value.errors()[0]["loc"][0] == invalid_field
 
 
-def test_stored_payment_method_schema_invalid_credit_card_info_skipped():
+@patch.object(annotations_logger, "warning")
+def test_stored_payment_method_schema_invalid_credit_card_info_skipped(
+    mocked_logger, app
+):
     # given
     id = "method-1"
     type = "Credit Card"
@@ -358,13 +361,21 @@ def test_stored_payment_method_schema_invalid_credit_card_info_skipped():
                 "expMonth": 12,
                 "firstDigits": "123456",
             },
-        }
+        },
+        context={
+            "app": app,
+        },
     )
 
     # then
     assert schema.credit_card_info is None
     assert schema.id == id
     assert schema.type == type
+    assert mocked_logger.call_count == 1
+    error_msg = mocked_logger.call_args[0][0]
+    assert "Skipping invalid value" in error_msg
+    assert mocked_logger.call_args[1]["extra"]["app"] == app.id
+    assert mocked_logger.call_args[1]["extra"]["field_name"] == "credit_card_info"
 
 
 @pytest.mark.parametrize(
