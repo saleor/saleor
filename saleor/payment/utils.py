@@ -1643,6 +1643,12 @@ def handle_transaction_initialize_session(
                 "currency": transaction_item.currency,
                 "amount_value": amount,
                 "idempotency_key": idempotency_key,
+                # This event is created event if app returns different one. It is confusing,
+                # so we add an extra message here. It's not perfect, because it will be fixed
+                # string in English. Eventually we should add some flags to the TransactionEvent model,
+                # to mark it as created by Saleor, and Dashboard can display it properly.
+                # https://linear.app/saleor/issue/EXT-2234/add-created-by-saleor-flag-to-transaction-events
+                "message": "Automatically created by Saleor",
             },
         )
     except IntegrityError as e:
