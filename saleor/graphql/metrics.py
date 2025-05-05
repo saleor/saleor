@@ -15,12 +15,14 @@ METRIC_GRAPHQL_QUERY_COUNT = meter.create_metric(
     description="Number of GraphQL queries.",
 )
 
+buckets = (0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10)
 METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
     "saleor.graphql.operation.duration",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.SECOND,
     description="Duration of GraphQL queries.",
+    bucket_boundaries=buckets,
 )
 
 METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
