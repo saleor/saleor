@@ -396,8 +396,11 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     )
 
 
+@mock.patch.object(annotations_logger, "warning")
 @mock.patch.object(schema_logger, "warning")
-def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
+def test_parse_excluded_shipping_methods_response(
+    mocked_schema_logger, mocked_annotations_logger, app
+):
     # given
     external_id = to_shipping_app_id(app, "test-1234")
     response = {
@@ -433,7 +436,10 @@ def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
     assert excluded_methods[0].id == "2"
     assert excluded_methods[1].id == external_id
     # 2 warning for each invalid data
-    assert mocked_schema_logger.call_count == 6
+    # warning for malformed id
+    assert mocked_schema_logger.call_count == 3
+    # warning for skipping shipping method
+    assert mocked_annotations_logger.call_count == 3
 
 
 @mock.patch.object(annotations_logger, "warning")
@@ -1287,7 +1293,7 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
     mocked_parse.assert_called_once_with([])
 
 
-@mock.patch.object(schema_logger, "warning")
+@mock.patch.object(annotations_logger, "warning")
 def test_parse_list_shipping_methods_response_response_incorrect_format(
     mocked_logger, app
 ):
