@@ -88,6 +88,24 @@ class NonParsableObject:
             },
             "lastDigits",
         ),
+        # Missing `expYear` field
+        (
+            {
+                "brand": "visa",
+                "expMonth": 12,
+                "lastDigits": "1234",
+            },
+            "expYear",
+        ),
+        # Missing `expMonth` field
+        (
+            {
+                "brand": "visa",
+                "expYear": 2023,
+                "lastDigits": "1234",
+            },
+            "expMonth",
+        ),
         # Not parsable `expYear`
         (
             {
@@ -106,6 +124,28 @@ class NonParsableObject:
                 "lastDigits": "1234",
                 "expYear": 2023,
                 "expMonth": "ABC",
+                "firstDigits": "123456",
+            },
+            "expMonth",
+        ),
+        # Empty string as `expYear`
+        (
+            {
+                "brand": "visa",
+                "lastDigits": "1234",
+                "expYear": "",
+                "expMonth": 12,
+                "firstDigits": "123456",
+            },
+            "expYear",
+        ),
+        # Empty string as `expMonth`
+        (
+            {
+                "brand": "visa",
+                "lastDigits": "1234",
+                "expYear": 2023,
+                "expMonth": "",
                 "firstDigits": "123456",
             },
             "expMonth",
@@ -152,7 +192,36 @@ def test_credit_card_info_schema_invalid(data, invalid_field):
 
     # then
     assert len(exc_info.value.errors()) == 1
-    assert exc_info.value.errors()[0]["loc"] == (invalid_field,)
+    assert exc_info.value.errors()[0]["loc"][0] == invalid_field
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "brand",
+        "lastDigits",
+        "expYear",
+        "expMonth",
+    ],
+)
+def test_credit_card_info_schema_required_field_is_none(field):
+    # given
+    data = {
+        "brand": "visa",
+        "lastDigits": "1234",
+        "expYear": 2023,
+        "expMonth": 12,
+        "firstDigits": "123456",
+    }
+    data[field] = None
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        CreditCardInfoSchema.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"][0] == field
 
 
 @pytest.mark.parametrize(

@@ -37,12 +37,9 @@ def get_list_stored_payment_methods_from_response(
         )
     except ValidationError as e:
         logger.warning(
-            "Skipping stored payment methods from app %s",
+            "Skipping stored payment methods from app %s. Error: %s",
             app.id,
-            extra={
-                "app": app,
-                "error": str(e),
-            },
+            str(e),
         )
         return []
 
