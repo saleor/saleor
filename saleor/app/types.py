@@ -22,6 +22,7 @@ class AppExtensionMount:
     NAVIGATION_DISCOUNTS = "navigation_discounts"
     NAVIGATION_TRANSLATIONS = "navigation_translations"
     NAVIGATION_PAGES = "navigation_pages"
+    NAVIGATION_EXTENSIONS = "navigation_extensions"
 
     ORDER_DETAILS_MORE_ACTIONS = "order_details_more_actions"
     ORDER_OVERVIEW_CREATE = "order_overview_create"
@@ -40,6 +41,7 @@ class AppExtensionMount:
         (NAVIGATION_DISCOUNTS, "navigation_discounts"),
         (NAVIGATION_TRANSLATIONS, "navigation_translations"),
         (NAVIGATION_PAGES, "navigation_pages"),
+        (NAVIGATION_EXTENSIONS, "navigation_extensions"),
         (ORDER_DETAILS_MORE_ACTIONS, "order_details_more_actions"),
         (ORDER_OVERVIEW_CREATE, "order_overview_create"),
         (ORDER_OVERVIEW_MORE_ACTIONS, "order_overview_more_actions"),
