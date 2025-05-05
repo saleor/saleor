@@ -29,10 +29,11 @@ def load_object(python_path: str) -> Any:
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
 
-    otel_auto_instrumentation_initialize()
-
     # To avoid circular imports.
     from ... import __version__ as saleor_version
+
+    if settings.TELEMETRY_OTEL_INITIALIZE:
+        otel_auto_instrumentation_initialize()
 
     tracer_cls = load_object(settings.TELEMETRY_TRACER_CLASS)
     if not issubclass(tracer_cls, Tracer):
