@@ -44,6 +44,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - `DraftOrderUpdate` do not call `DRAFT_ORDER_UPDATED` anymore in case nothing changed - #17532 by @IKarbowiak
 - `OrderUpdate` mutation do not call `ORDER_UPDATED` anymore in case nothing changed - #17507 by @IKarbowiak
 - The `transactionId` argument of `OrderGrantRefundCreateInput` is now required - #17635 by @IKarbowiak
+- Google Cloud Platform (GCP): the environment variable for private storage (e.g., webhook event delivery payloads) was renamed from `GS_MEDIA_BUCKET_NAME` to `GS_MEDIA_PRIVATE_BUCKET_NAME` - #17660 by @bnkwines
 
 ### GraphQL API
 
