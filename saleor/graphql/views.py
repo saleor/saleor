@@ -40,6 +40,8 @@ from .metrics import (
     record_graphql_query_cost,
     record_graphql_query_count,
     record_graphql_query_duration,
+    record_request_count,
+    record_request_duration,
 )
 from .query_cost_map import COST_MAP, QUERY_COST_FAILED_OPERATION
 from .utils import (
@@ -158,9 +160,12 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with tracer.start_as_current_span(
-            request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER
-        ) as span:
+        with (
+            tracer.start_as_current_span(
+                request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER
+            ) as span,
+            record_request_duration() as request_duration_attrs,
+        ):
             span.set_attribute(saleor_attributes.COMPONENT, "http")
             span.set_attribute(saleor_attributes.OPERATION_NAME, "http")
             span.set_attribute(http_attributes.HTTP_REQUEST_METHOD, request.method)  # type: ignore[arg-type]
@@ -208,6 +213,14 @@ class GraphQLView(View):
                 incubating_http_attributes.HTTP_RESPONSE_BODY_SIZE,
                 len(response.content),
             )
+
+            error_type = (
+                str(response.status_code) if response.status_code >= 500 else None
+            )
+            record_request_count(error_type=error_type)
+            if error_type:
+                request_duration_attrs[error_attributes.ERROR_TYPE] = error_type
+
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
                 api_call.report()

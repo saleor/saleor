@@ -34,6 +34,7 @@ class Unit(Enum):
     NANOSECOND = "ns"
     REQUEST = "{request}"
     BYTE = "By"
+    COST = "{cost}"
 
 
 UNIT_CONVERSIONS: dict[tuple[Unit, Unit], float] = {
