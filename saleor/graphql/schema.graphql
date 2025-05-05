@@ -1981,7 +1981,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_METADATA_UPDATED
 
   """User notification triggered."""
-  NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation")
+  NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user")
 
   """A new page is created."""
   PAGE_CREATED
@@ -2543,7 +2543,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   CHECKOUT_METADATA_UPDATED
 
   """User notification triggered."""
-  NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation")
+  NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user")
 
   """A new page is created."""
   PAGE_CREATED
@@ -28507,7 +28507,7 @@ type Manifest @doc(category: "Apps") {
   configurationUrl: String @deprecated(reason: "Use `appUrl` instead.")
 
   """
-  Endpoint used during process of app installation, [see installing an app.](https://docs.saleor.io/docs/3.x/developer/extending/apps/installing-apps#installing-an-app)
+  Endpoint used during process of app installation, [see installing an app.](https://docs.saleor.io/developer/extending/apps/installing-apps#installing-an-app)
   """
   tokenTargetUrl: String
 
@@ -28524,7 +28524,7 @@ type Manifest @doc(category: "Apps") {
   supportUrl: String
 
   """
-  List of extensions that will be mounted in Saleor's dashboard. For details, please [see the extension section.](https://docs.saleor.io/docs/3.x/developer/extending/apps/extending-dashboard-with-apps#key-concepts)
+  List of extensions that will be mounted in Saleor's dashboard. For details, please [see the extension section.](https://docs.saleor.io/developer/extending/apps/extending-dashboard-with-apps#key-concepts)
   """
   extensions: [AppManifestExtension!]!
 
