@@ -1,6 +1,8 @@
+import json
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
+from opentelemetry.attributes import BoundedAttributes
 from opentelemetry.trace import Link, SpanContext, TraceFlags
 from opentelemetry.util.types import AttributeValue
 
@@ -168,6 +170,45 @@ def test_telemetry_task_context_to_dict():
     assert data["links"][0]["context"]["trace_flags"] == 1
     assert data["links"][0]["attributes"] == {"link_attr": "link_value"}
     assert data["global_attributes"] == global_attrs
+
+
+def test_telemetry_task_context_to_dict_is_json_serializable():
+    # given
+    trace_id, span_id, trace_flags = 12345, 67890, 1
+    span_attributes = {"link_attr": "link_value"}
+    global_attrs = {"global_key": "global_value"}
+    span_context = SpanContext(
+        trace_id=trace_id,
+        span_id=span_id,
+        is_remote=True,
+        trace_flags=TraceFlags(trace_flags),
+    )
+    link = Link(
+        context=span_context, attributes=BoundedAttributes(attributes=span_attributes)
+    )
+
+    # when
+    context = TelemetryTaskContext(links=[link], global_attributes=global_attrs)
+
+    # then
+    data = context.to_dict()
+    assert data == {
+        "global_attributes": global_attrs,
+        "links": [
+            {
+                "context": {
+                    "trace_id": 12345,
+                    "span_id": 67890,
+                    "trace_flags": 1,
+                },
+                "attributes": span_attributes,
+            }
+        ],
+    }
+    try:
+        json.dumps(data)
+    except Exception as e:
+        pytest.fail(f"Failed to serialize telemetry context to JSON: {e}")
 
 
 def test_telemetry_task_context_from_dict():

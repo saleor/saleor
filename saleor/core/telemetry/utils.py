@@ -98,7 +98,7 @@ class TelemetryTaskContext:
                         "span_id": link.context.span_id,
                         "trace_flags": int(link.context.trace_flags),
                     },
-                    "attributes": link.attributes,
+                    "attributes": dict(link.attributes) if link.attributes else {},
                 }
                 for link in (self.links or [])
             ],
