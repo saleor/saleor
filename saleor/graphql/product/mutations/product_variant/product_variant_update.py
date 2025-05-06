@@ -168,7 +168,9 @@ class ProductVariantUpdate(DeprecatedModelMutation):
                 if attributes:
                     attributes_qs = product_type.variant_attributes.all()
                     cleaned_attributes: T_INPUT_MAP = (
-                        AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
+                        AttributeAssignmentMixin.clean_input(
+                            attributes, attributes_qs, creation=False
+                        )
                     )
                     # if assigned attributes is getting updated run duplicated attribute validation
                     attribute_modified = has_input_modified_attribute_values(
