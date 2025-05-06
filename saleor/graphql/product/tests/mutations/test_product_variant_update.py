@@ -2776,5 +2776,7 @@ def test_update_product_variant_emit_event(
         # then
         assert not content["data"]["productVariantUpdate"]["errors"]
         call_event_mock.assert_called()
+        call_event_mock.reset_mock()
         if key not in non_variant_instance_fields:
             save_variant_mock.assert_called()
+            save_variant_mock.reset_mock()
