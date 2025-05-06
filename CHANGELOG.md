@@ -72,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce total field in OrderDiscount to replace the amount field, with OrderDiscount.amount now deprecated - #17510 by @korycins
 - Introduce `useLegacyLineVoucherPropagation` flag to control legacy propagation behavior for specific voucher types - #17587 - by @korycins
 - Add filterable subscriptions for checkout events (`checkoutCreated`, `checkoutUpdated`, `checkoutFullyPaid`, `checkoutMetadataUpdated`) - #17647 by @korycins
+- Now when App queries `Order.fulfillments`, the fulfillment with status `CANCELED` will be properly returned. Previously, it was skipped and resolved only for staff users - #17677 by @lkostrowski
 
 ### Webhooks
 
