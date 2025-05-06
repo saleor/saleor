@@ -16,9 +16,13 @@ from .payloads import generate_payment_payload
 
 
 @mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_trigger_webhooks_async(
+    mocked_send_webhook_for_app,
     mocked_send_webhook_request,
     webhook,
     subscription_order_created_webhook,
@@ -33,16 +37,22 @@ def test_trigger_webhooks_async(
     assert deliveries.count() == 2
     assert deliveries[0].webhook == subscription_order_created_webhook
     assert deliveries[1].webhook == webhook
-    for delivery in deliveries:
-        assert (
-            mock.call(
-                kwargs={
-                    "app_id": delivery.webhook.app_id,
-                    "telemetry_context": mock.ANY,
-                },
-            )
-            in mocked_send_webhook_request.mock_calls
-        )
+    mocked_send_webhook_for_app.assert_called_once_with(
+        kwargs={
+            "app_id": subscription_order_created_webhook.app_id,
+            "telemetry_context": mock.ANY,
+        },
+    )
+    mocked_send_webhook_request.assert_called_once_with(
+        kwargs={
+            "event_delivery_id": deliveries[1].pk,
+            "telemetry_context": mock.ANY,
+        },
+        queue=None,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
+    )
 
 
 @mock.patch(

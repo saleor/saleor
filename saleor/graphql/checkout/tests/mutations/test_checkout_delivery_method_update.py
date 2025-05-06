@@ -1231,11 +1231,11 @@ def test_checkout_delivery_method_update_from_cc_to_all_warehouses_disabled_cc(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhook_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
@@ -1276,15 +1276,11 @@ def test_checkout_delivery_method_update_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhook_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "app_id": checkout_update_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
@@ -1321,11 +1317,11 @@ def test_checkout_delivery_method_update_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_checkout_delivery_method_update_cc_triggers_webhooks(
-    mocked_send_webhook_request_async,
+    mocked_send_webhook_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
@@ -1372,15 +1368,11 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhook_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "app_id": checkout_update_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # Shipping sync webhooks are called twice - first call before saving the changes in
@@ -1421,7 +1413,7 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 @patch(
@@ -1430,7 +1422,7 @@ def test_checkout_delivery_method_update_cc_triggers_webhooks(
 )
 def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     mock_clean_delivery,
-    mocked_send_webhook_request_async,
+    mocked_send_webhook_async_for_app,
     mocked_send_webhook_request_sync,
     wrapped_call_checkout_info_event,
     setup_checkout_webhooks,
@@ -1485,15 +1477,11 @@ def test_checkout_delivery_method_update_external_shipping_triggers_webhooks(
     checkout_update_delivery = EventDelivery.objects.get(
         webhook_id=checkout_updated_webhook.id
     )
-    mocked_send_webhook_request_async.assert_called_once_with(
+    mocked_send_webhook_async_for_app.assert_called_once_with(
         kwargs={
-            "event_delivery_id": checkout_update_delivery.id,
+            "app_id": checkout_update_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery
