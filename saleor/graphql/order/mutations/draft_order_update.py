@@ -397,10 +397,7 @@ class DraftOrderUpdate(
             billing_address_tracker,
             cleaned_input,
         )
-
         if order_modified:
             cls._post_save_action(instance, manager)
-
-        cls._save_m2m(info, instance, cleaned_input)
 
         return DraftOrderUpdate(order=SyncWebhookControlContext(node=instance))
