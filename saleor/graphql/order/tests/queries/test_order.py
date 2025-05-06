@@ -32,6 +32,35 @@ from ....tests.utils import (
     get_graphql_content_from_response,
 )
 
+
+@pytest.fixture
+def fulfilled_order_with_canceled_fulfillment(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.CANCELED
+
+    fulfillment.save()
+
+    return fulfilled_order
+
+
+USER_ORDER = """
+query OrdersQuery {
+    me {
+        orders(first: 1) {
+        edges {
+            node {
+                fulfillments {
+                   status
+                }
+            }
+        }
+    }
+    }
+}
+
+"""
+
+
 ORDERS_FULL_QUERY = """
 query OrdersQuery {
     orders(first: 1) {
@@ -145,6 +174,7 @@ query OrdersQuery {
                 }
                 fulfillments {
                     fulfillmentOrder
+                    status
                 }
                 payments{
                     id
@@ -2110,17 +2140,9 @@ def test_order_query_canceled_fulfillment_visible_for_staff(
     staff_api_client,
     permission_group_manage_orders,
     permission_group_manage_shipping,
-    fulfilled_order,
+    fulfilled_order_with_canceled_fulfillment,
 ):
     # given
-    fulfilled_order.fulfillments.create(
-        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
-    )
-
-    fulfilled_order.fulfillments[0].status = FulfillmentStatus.CANCELED
-
-    fulfilled_order.save()
-
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     permission_group_manage_shipping.user_set.add(staff_api_client.user)
 
@@ -2131,54 +2153,41 @@ def test_order_query_canceled_fulfillment_visible_for_staff(
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
 
-    # TODO Assert fulfillment to exist
+    assert order_data["fulfillments"][0]["status"] == "CANCELED"
 
 
 def test_order_query_canceled_fulfillment_not_visible_for_normal_user(
-    api_client,
+    user_api_client,
     permission_group_manage_orders,
     permission_group_manage_shipping,
-    fulfilled_order,
+    fulfilled_order_with_canceled_fulfillment,
 ):
     # given
-    fulfilled_order.fulfillments.create(
-        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
-    )
-
-    fulfilled_order.fulfillments[0].status = FulfillmentStatus.CANCELED
-
-    fulfilled_order.save()
-
-    permission_group_manage_orders.user_set.add(api_client.user)
-    permission_group_manage_shipping.user_set.add(api_client.user)
+    fulfilled_order_with_canceled_fulfillment.user = user_api_client.user
 
     # when
-    response = api_client.post_graphql(ORDERS_FULL_QUERY)
+    response = user_api_client.post_graphql(USER_ORDER)
     content = get_graphql_content(response)
 
     # then
-    order_data = content["data"]["orders"]["edges"][0]["node"]
+    order_data = content["data"]["me"]["orders"]["edges"][0]["node"]
 
-    # TODO Assert fulfillment to NOT exist
+    # User can't see his/her fulfillent of type CANCEL, so the listy is empty
+    assert order_data["fulfillments"] == []
 
 
 def test_order_query_canceled_fulfillment_visible_for_app(
     app_api_client,
     permission_group_manage_orders,
     permission_group_manage_shipping,
-    fulfilled_order,
+    fulfilled_order_with_canceled_fulfillment,
+    permission_manage_orders,
+    permission_manage_shipping,
 ):
     # given
-    fulfilled_order.fulfillments.create(
-        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
-    )
 
-    fulfilled_order.fulfillments[0].status = FulfillmentStatus.CANCELED
-
-    fulfilled_order.save()
-
-    permission_group_manage_orders.user_set.add(app_api_client.user)
-    permission_group_manage_shipping.user_set.add(app_api_client.user)
+    app = app_api_client.app
+    app.permissions.add(*[permission_manage_orders, permission_manage_shipping])
 
     # when
     response = app_api_client.post_graphql(ORDERS_FULL_QUERY)
@@ -2187,4 +2196,4 @@ def test_order_query_canceled_fulfillment_visible_for_app(
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
 
-    # TODO Assert fulfillment to be visible
+    assert order_data["fulfillments"][0]["status"] == "CANCELED"
