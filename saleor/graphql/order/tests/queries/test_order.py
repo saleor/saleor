@@ -8,7 +8,7 @@ from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountType
-from .....order import OrderOrigin, OrderStatus
+from .....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from .....order.events import transaction_event
 from .....order.models import Order, OrderGrantedRefund
 from .....order.utils import (
@@ -2104,3 +2104,87 @@ def test_order_payment_status_with_transaction_and_without_granted_refunds(
     assert data["paymentStatusDisplay"] == dict(ChargeStatus.CHOICES).get(
         expected_payment_status.value
     )
+
+
+def test_order_query_canceled_fulfillment_visible_for_staff(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    fulfilled_order.fulfillments.create(
+        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
+    )
+
+    fulfilled_order.fulfillments[0].status = FulfillmentStatus.CANCELED
+
+    fulfilled_order.save()
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_shipping.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # TODO Assert fulfillment to exist
+
+
+def test_order_query_canceled_fulfillment_not_visible_for_normal_user(
+    api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    fulfilled_order.fulfillments.create(
+        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
+    )
+
+    fulfilled_order.fulfillments[0].status = FulfillmentStatus.CANCELED
+
+    fulfilled_order.save()
+
+    permission_group_manage_orders.user_set.add(api_client.user)
+    permission_group_manage_shipping.user_set.add(api_client.user)
+
+    # when
+    response = api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # TODO Assert fulfillment to NOT exist
+
+
+def test_order_query_canceled_fulfillment_visible_for_app(
+    app_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order,
+):
+    # given
+    fulfilled_order.fulfillments.create(
+        tracking_number="123", total_refund_amount=fulfilled_order.total.gross.amount
+    )
+
+    fulfilled_order.fulfillments[0].status = FulfillmentStatus.CANCELED
+
+    fulfilled_order.save()
+
+    permission_group_manage_orders.user_set.add(app_api_client.user)
+    permission_group_manage_shipping.user_set.add(app_api_client.user)
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    # TODO Assert fulfillment to be visible
