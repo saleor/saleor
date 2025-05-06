@@ -2500,7 +2500,7 @@ def test_create_transaction_event_for_transaction_session_request_events_as_resp
         transaction_webhook_response=response,
     )
 
-    # then the response event should be updated th request event with updated values
+    # then the response event should update the request event with the values
     # from the response
     assert response_event.id == request_event.id
     assert response_event.type == response_result

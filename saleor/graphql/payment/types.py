@@ -21,6 +21,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     ADDED_IN_314,
     ADDED_IN_315,
+    ADDED_IN_320,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
@@ -348,6 +349,10 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         description="Idempotency key assigned to the event." + ADDED_IN_314,
         required=False,
     )
+    created_automatically = graphene.Boolean(
+        description="Determines if the event was created automatically." + ADDED_IN_320,
+        required=True,
+    )
 
     class Meta:
         description = "Represents transaction's event."
@@ -406,6 +411,15 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         if root.user_id:
             return UserByUserIdLoader(info.context).load(root.user_id)
         return None
+
+    @staticmethod
+    def resolve_created_automatically(root: models.TransactionEvent, info):
+        """Resolve createdAutomatically.
+
+        The `include_in_calculations` set to `False` means that the event was created
+        automatically by Saleor.
+        """
+        return not root.include_in_calculations
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):

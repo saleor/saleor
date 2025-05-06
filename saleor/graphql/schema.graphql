@@ -13240,6 +13240,13 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   Added in Saleor 3.14.
   """
   idempotencyKey: String
+
+  """
+  Determines if the event was created automatically.
+  
+  Added in Saleor 3.20.
+  """
+  createdAutomatically: Boolean!
 }
 
 """
