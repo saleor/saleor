@@ -162,7 +162,7 @@ def test_generate_deferred_payload_model_pk_does_not_exist(
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
@@ -196,8 +196,9 @@ def test_pass_queue_to_send_webhook_request_async(
     call_kwargs_generate_payloads = mocked_generate_deferred_payloads.call_args.kwargs
     assert "queue" not in call_kwargs_generate_payloads
     assert call_kwargs_generate_payloads["kwargs"]["send_webhook_queue"] == queue
-
-    call_kwargs_send_webhook_request = (
-        mocked_send_webhook_request_async.call_args.kwargs
+    mocked_send_webhook_request_async.assert_called_once_with(
+        kwargs={
+            "app_id": checkout_updated_webhook.app_id,
+            "telemetry_context": mock.ANY,
+        },
     )
-    assert call_kwargs_send_webhook_request["queue"] == queue
