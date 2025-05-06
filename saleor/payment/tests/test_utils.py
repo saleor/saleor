@@ -2468,6 +2468,50 @@ def test_create_transaction_event_for_transaction_session_failure_doesnt_set_act
     assert transaction.available_actions == ["charge"]
 
 
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_REQUEST,
+    ],
+)
+def test_create_transaction_event_for_transaction_session_request_events_as_response(
+    response_result,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+
+    # when the response event is the `*_REQUEST` event
+    response_event = create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then the response event should be updated th request event with updated values
+    # from the response
+    assert response_event.id == request_event.id
+    assert response_event.type == response_result
+    assert response_event.include_in_calculations is True
+    assert response_event.amount_value == expected_amount
+    assert response_event.message == response["message"]
+    assert response_event.external_url == response["externalUrl"]
+    assert response_event.created_at == datetime.fromisoformat(response["time"])
+    assert response_event.psp_reference == response["pspReference"]
+
+
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_and_webhook_updates_modified_at(
     transaction_item_generator,
