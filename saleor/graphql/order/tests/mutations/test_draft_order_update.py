@@ -21,6 +21,7 @@ from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....order.utils import update_discount_for_order_line
 from .....payment.model_helpers import get_subtotal
+from .....shipping.models import ShippingMethod
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -3226,7 +3227,6 @@ def test_draft_order_update_nothing_changed(
     # given
     order = order_with_lines
     order.status = OrderStatus.DRAFT
-    order.save(update_fields=["status"])
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     key = "some_key"
@@ -3326,7 +3326,6 @@ def test_draft_order_update_emit_events(
     # given
     order = order_with_lines
     order.status = OrderStatus.DRAFT
-    order.save(update_fields=["status"])
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     key = "some_key"
@@ -3338,15 +3337,24 @@ def test_draft_order_update_emit_events(
     order.voucher = voucher
     order.voucher_code = voucher.codes.first().code
     order.customer_note = "some note"
-    order.redirect_url = "https://www.example.com"
+    order.redirect_url = "http://localhost:8000/redirect"
     order.external_reference = "some_reference_string"
-    order.language_code = "pl"
+    order.language_code = "de"
     order.save()
 
-    shipping_method_id = graphene.Node.to_global_id(
-        "ShippingMethod", order.shipping_method_id
+    new_shipping_method = ShippingMethod.objects.create(
+        shipping_zone=order.shipping_method.shipping_zone,
+        name="new_method",
     )
-    user_id = graphene.Node.to_global_id("User", order.user_id)
+    new_shipping_method.channel_listings.create(
+        channel=order.channel, currency=order.currency
+    )
+    new_shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", new_shipping_method.id
+    )
+
+    assert order.user_id != staff_api_client.user.id
+    user_id = graphene.Node.to_global_id("User", staff_api_client.user.id)
 
     input_fields = [
         snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
@@ -3369,15 +3377,15 @@ def test_draft_order_update_emit_events(
     input = {
         "billingAddress": graphql_address_data,
         "shippingAddress": graphql_address_data,
-        "shippingMethod": shipping_method_id,
+        "shippingMethod": new_shipping_method_id,
         "user": user_id,
-        "userEmail": order.user_email,
-        "voucherCode": order.voucher_code,
-        "customerNote": order.customer_note,
-        "redirectUrl": order.redirect_url,
-        "externalReference": order.external_reference,
-        "metadata": [{"key": key, "value": value}],
-        "privateMetadata": [{"key": key, "value": value}],
+        "userEmail": "new_" + order.user_email,
+        "voucherCode": voucher.codes.last().code,
+        "customerNote": order.customer_note + "_new",
+        "redirectUrl": "https://www.example.com",
+        "externalReference": order.external_reference + "_new",
+        "metadata": [{"key": key, "value": "new_value"}],
+        "privateMetadata": [{"key": "new_key", "value": value}],
         "languageCode": "PL",
     }
     assert set(input_fields) == set(input.keys())
@@ -3400,7 +3408,9 @@ def test_draft_order_update_emit_events(
         assert not content["data"]["draftOrderUpdate"]["errors"]
         if key not in non_base_model_fields:
             save_order_mock.assert_called()
+            save_order_mock.reset_mock()
         call_event_mock.assert_called()
+        call_event_mock.reset_mock()
 
 
 @patch(
@@ -3418,7 +3428,6 @@ def test_draft_order_update_address_not_changed_save_flag_changed(
     # given
     order = order_with_lines
     order.status = OrderStatus.DRAFT
-    order.save(update_fields=["status"])
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     order.shipping_address = address
@@ -3431,6 +3440,7 @@ def test_draft_order_update_address_not_changed_save_flag_changed(
             "billing_address",
             "draft_save_billing_address",
             "draft_save_shipping_address",
+            "status",
         ]
     )
 
