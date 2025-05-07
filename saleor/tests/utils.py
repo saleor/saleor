@@ -89,11 +89,17 @@ def get_metric_data_point(metrics_data: MetricsData, metric_name: str) -> DataPo
     return metric_data.data.data_points[0]
 
 
+def filter_spans_by_name(
+    spans: tuple[ReadableSpan, ...], name
+) -> tuple[ReadableSpan, ...]:
+    return tuple(span for span in spans if span.name == name)
+
+
 def get_span_by_name(spans: tuple[ReadableSpan, ...], name: str) -> ReadableSpan:
     __tracebackhide__ = True
-    filtered = tuple(span for span in spans if span.name == name)
-    if not filtered:
+    spans = filter_spans_by_name(spans, name)
+    if not spans:
         pytest.fail(f"No span with name '{name}' found")
-    if len(filtered) > 1:
+    if len(spans) > 1:
         pytest.fail(f"Multiple '{name}' spans")
-    return filtered[0]
+    return spans[0]
