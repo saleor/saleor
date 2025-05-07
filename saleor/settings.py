@@ -1033,7 +1033,6 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
     os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
 )
 
-TELEMETRY_OTEL_INITIALIZE: bool = get_bool_from_env("TELEMETRY_OTEL_INITIALIZE", True)
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # Whether to raise or log exceptions for telemetry unit conversion errors
