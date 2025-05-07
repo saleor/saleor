@@ -8,7 +8,7 @@ from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountType
-from .....order import OrderOrigin, OrderStatus
+from .....order import FulfillmentStatus, OrderOrigin, OrderStatus
 from .....order.events import transaction_event
 from .....order.models import Order, OrderGrantedRefund
 from .....order.utils import (
@@ -31,6 +31,35 @@ from ....tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+
+
+@pytest.fixture
+def fulfilled_order_with_canceled_fulfillment(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    fulfillment.status = FulfillmentStatus.CANCELED
+
+    fulfillment.save()
+
+    return fulfilled_order
+
+
+USER_ORDER = """
+query OrdersQuery {
+    me {
+        orders(first: 1) {
+        edges {
+            node {
+                fulfillments {
+                   status
+                }
+            }
+        }
+    }
+    }
+}
+
+"""
+
 
 ORDERS_FULL_QUERY = """
 query OrdersQuery {
@@ -145,6 +174,7 @@ query OrdersQuery {
                 }
                 fulfillments {
                     fulfillmentOrder
+                    status
                 }
                 payments{
                     id
@@ -2104,3 +2134,66 @@ def test_order_payment_status_with_transaction_and_without_granted_refunds(
     assert data["paymentStatusDisplay"] == dict(ChargeStatus.CHOICES).get(
         expected_payment_status.value
     )
+
+
+def test_order_query_canceled_fulfillment_visible_for_staff(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order_with_canceled_fulfillment,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    permission_group_manage_shipping.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    assert order_data["fulfillments"][0]["status"] == "CANCELED"
+
+
+def test_order_query_canceled_fulfillment_not_visible_for_normal_user(
+    user_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order_with_canceled_fulfillment,
+):
+    # given
+    fulfilled_order_with_canceled_fulfillment.user = user_api_client.user
+
+    # when
+    response = user_api_client.post_graphql(USER_ORDER)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["me"]["orders"]["edges"][0]["node"]
+
+    # User can't see his/her fulfillent of type CANCEL, so the listy is empty
+    assert order_data["fulfillments"] == []
+
+
+def test_order_query_canceled_fulfillment_visible_for_app(
+    app_api_client,
+    permission_group_manage_orders,
+    permission_group_manage_shipping,
+    fulfilled_order_with_canceled_fulfillment,
+    permission_manage_orders,
+    permission_manage_shipping,
+):
+    # given
+
+    app = app_api_client.app
+    app.permissions.add(*[permission_manage_orders, permission_manage_shipping])
+
+    # when
+    response = app_api_client.post_graphql(ORDERS_FULL_QUERY)
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+
+    assert order_data["fulfillments"][0]["status"] == "CANCELED"
