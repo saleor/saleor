@@ -23,23 +23,6 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
-SHIPPING_METHOD_UPDATE_FIELDS = [
-    "currency",
-    "shipping_method",
-    "shipping_price_net_amount",
-    "shipping_price_gross_amount",
-    "base_shipping_price_amount",
-    "undiscounted_base_shipping_price_amount",
-    "shipping_method_name",
-    "shipping_tax_class",
-    "shipping_tax_class_name",
-    "shipping_tax_class_private_metadata",
-    "shipping_tax_class_metadata",
-    "shipping_tax_rate",
-    "should_refresh_prices",
-    "updated_at",
-]
-
 
 class EditableOrderValidationMixin:
     class Meta:
@@ -262,15 +245,27 @@ def get_variant_rule_info_map(
 
 
 def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
-    update_fields = []
+    update_fields: list[str] = []
+    save_shipping_address(instance, cleaned_input, update_fields)
+    save_billing_address(instance, cleaned_input, update_fields)
+    return update_fields
+
+
+def save_shipping_address(
+    instance: models.Order, cleaned_input: dict, update_fields: list[str]
+):
     shipping_address = cleaned_input.get("shipping_address")
     if shipping_address:
         shipping_address.save()
         instance.shipping_address = shipping_address
         update_fields.append("shipping_address")
+
+
+def save_billing_address(
+    instance: models.Order, cleaned_input: dict, update_fields: list[str]
+):
     billing_address = cleaned_input.get("billing_address")
     if billing_address:
         billing_address.save()
         instance.billing_address = billing_address
         update_fields.append("billing_address")
-    return update_fields

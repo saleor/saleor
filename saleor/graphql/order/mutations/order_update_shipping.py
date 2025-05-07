@@ -18,11 +18,8 @@ from ...core.types import BaseInputObjectType, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
-from .utils import (
-    SHIPPING_METHOD_UPDATE_FIELDS,
-    EditableOrderValidationMixin,
-    ShippingMethodUpdateMixin,
-)
+from . import SHIPPING_METHOD_UPDATE_FIELDS
+from .utils import EditableOrderValidationMixin, ShippingMethodUpdateMixin
 
 
 class OrderUpdateShippingInput(BaseInputObjectType):
