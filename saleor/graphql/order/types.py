@@ -35,7 +35,7 @@ from ...order.utils import (
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import get_last_payment, get_total_authorized
-from ...permission.auth_filters import AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters, is_app, is_staff_user
 from ...permission.enums import (
     AccountPermissions,
     AppPermission,
@@ -1945,8 +1945,11 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     def resolve_fulfillments(root: models.Order, info):
         def _resolve_fulfillments(fulfillments):
-            user = info.context.user
-            if user and user.is_staff:
+            return_all_fulfillments = is_staff_user(info.context) or is_app(
+                info.context
+            )
+
+            if return_all_fulfillments:
                 return fulfillments
             return filter(
                 lambda fulfillment: fulfillment.status != FulfillmentStatus.CANCELED,
