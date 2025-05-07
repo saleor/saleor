@@ -151,7 +151,7 @@ package-mode = false
   django-stubs = { version = "^4.2.7", extras = ["compatible-mypy"] }
   fakeredis = "^2.26"
   freezegun = "^1"
-  mypy-extensions = "^1.0.0"
+  mypy-extensions = "^1.1.0"
   openpyxl = "^3.1.5"
   pre-commit = "^4.0"
   pytest = "^8.3.2"
