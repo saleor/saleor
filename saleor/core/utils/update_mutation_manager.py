@@ -16,10 +16,26 @@ class InstanceTracker:
     It is used to determine modified fields of the instance.
     """
 
-    def __init__(self, instance: T | None, fields_to_track: list[str]):
+    def __init__(
+        self,
+        instance: T | None,
+        fields_to_track: list[str],
+        foreign_fields_to_track: dict[str, list[str]] | None = None,
+    ):
         self.instance = instance
         self.fields_to_track = fields_to_track
         self.initial_instance_values: dict[str, Any] = deepcopy(self.get_field_values())
+        self.foreign_instance_relation: dict[str, InstanceTracker] = {}
+        self.create = instance is None
+
+        if foreign_fields_to_track:
+            for lookup, fields in foreign_fields_to_track.items():
+                foreign_instance = getattr(instance, lookup, None)
+                self.foreign_instance_relation[lookup] = InstanceTracker(
+                    foreign_instance,
+                    fields,
+                    None,
+                )
 
     def get_field_values(self) -> dict[str, Any]:
         """Create a dict of tracked fields with related instance values."""
@@ -32,8 +48,8 @@ class InstanceTracker:
 
         Raise exception when instance is None.
         """
-        if self.instance is None:
-            raise InstanceTrackerError("Instance cannot be None")
+        if not self.instance:
+            return self.fields_to_track
 
         modified_instance_values: dict[str, Any] = self.get_field_values()
         return [
@@ -42,3 +58,11 @@ class InstanceTracker:
             if self.initial_instance_values.get(field)
             != modified_instance_values.get(field)
         ]
+
+    def get_foreign_modified_fields(self) -> dict[str, list[str]]:
+        modified_fields = {}
+        for lookup, tracker in self.foreign_instance_relation.items():
+            foreign_modified = tracker.get_modified_fields()
+            if foreign_modified:
+                modified_fields[lookup] = foreign_modified
+        return modified_fields

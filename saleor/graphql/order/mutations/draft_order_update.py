@@ -41,8 +41,6 @@ from . import (
 from .draft_order_create import DraftOrderInput
 from .utils import (
     ShippingMethodUpdateMixin,
-    save_billing_address,
-    save_shipping_address,
 )
 
 
@@ -233,31 +231,33 @@ class DraftOrderUpdate(
     def _save(
         cls,
         instance_tracker: InstanceTracker,
-        shipping_address_tracker: InstanceTracker,
-        billing_address_tracker: InstanceTracker,
         cleaned_input: dict,
     ) -> bool:
         instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
-            modified_address_fields: list[str] = []
-            if shipping_address_instance := cleaned_input.get("shipping_address"):
-                shipping_address_tracker.instance = shipping_address_instance
-                if shipping_address_tracker.get_modified_fields():
-                    save_shipping_address(
-                        instance, cleaned_input, modified_address_fields
-                    )
+            modified_foreign_fields = instance_tracker.get_foreign_modified_fields()
+            if (
+                "shipping_address" in modified_foreign_fields
+                and "shipping_address" in cleaned_input
+            ):
+                instance.shipping_address = cleaned_input["shipping_address"]
+                cls._save_address(
+                    cleaned_input["shipping_address"],
+                    modified_foreign_fields["shipping_address"],
+                )
 
-            if billing_address_instance := cleaned_input.get("billing_address"):
-                billing_address_tracker.instance = billing_address_instance
-                if billing_address_tracker.get_modified_fields():
-                    save_billing_address(
-                        instance, cleaned_input, modified_address_fields
-                    )
+            if (
+                "billing_address" in modified_foreign_fields
+                and "billing_address" in cleaned_input
+            ):
+                instance.billing_address = cleaned_input["billing_address"]
+                cls._save_address(
+                    cleaned_input["billing_address"],
+                    modified_foreign_fields["billing_address"],
+                )
 
-            # In case nothing change, do not perform post-process actions;
-            # do not call the `DRAFT_ORDER_UPDATED` event.
             modified_instance_fields = instance_tracker.get_modified_fields()
-            modified_instance_fields.extend(modified_address_fields)
+            modified_instance_fields.extend(modified_foreign_fields)
             if not modified_instance_fields:
                 return False
 
@@ -277,6 +277,13 @@ class DraftOrderUpdate(
     def _save_order_instance(cls, instance, modified_instance_fields):
         update_fields = ["updated_at"] + modified_instance_fields
         instance.save(update_fields=update_fields)
+
+    @classmethod
+    def _save_address(cls, address_instance, modified_fields):
+        if address_instance.pk is None:
+            address_instance.save()
+        else:
+            address_instance.save(update_fields=modified_fields)
 
     @classmethod
     def _post_save_action(cls, instance, manager):
@@ -367,12 +374,13 @@ class DraftOrderUpdate(
         cls.check_channel_permissions(info, [channel_id])
 
         instance = cast(models.Order, instance)
-        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
-        shipping_address_tracker = InstanceTracker(
-            instance.shipping_address, ADDRESS_UPDATE_FIELDS
-        )
-        billing_address_tracker = InstanceTracker(
-            instance.billing_address, ADDRESS_UPDATE_FIELDS
+        instance_tracker = InstanceTracker(
+            instance,
+            cls.FIELDS_TO_TRACK,
+            foreign_fields_to_track={
+                "shipping_address": ADDRESS_UPDATE_FIELDS,
+                "billing_address": ADDRESS_UPDATE_FIELDS,
+            },
         )
 
         old_voucher = instance.voucher
@@ -391,12 +399,7 @@ class DraftOrderUpdate(
         cls.handle_shipping(cleaned_input, instance, manager)
         cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
 
-        order_modified = cls._save(
-            instance_tracker,
-            shipping_address_tracker,
-            billing_address_tracker,
-            cleaned_input,
-        )
+        order_modified = cls._save(instance_tracker, cleaned_input)
         if order_modified:
             cls._post_save_action(instance, manager)
 
