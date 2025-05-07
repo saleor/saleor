@@ -74,7 +74,6 @@ TRANSACTION_QUERY = """
                         id
                     }
                 }
-                createdAutomatically
             }
             name
             message
@@ -637,7 +636,6 @@ def test_transaction_event_by_user(
     assert event_data["amount"]["currency"] == event.currency
     assert event_data["type"] == event.type.upper()
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
-    assert event_data["createdAutomatically"] is True
 
 
 def test_transaction_event_by_app(
@@ -690,7 +688,6 @@ def test_transaction_event_by_app(
     assert event_data["amount"]["currency"] == event.currency
     assert event_data["type"] == event.type.upper()
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
-    assert event_data["createdAutomatically"] is False
 
 
 def test_transaction_event_by_reinstalled_app(
