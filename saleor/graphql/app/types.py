@@ -392,7 +392,7 @@ class Manifest(BaseObjectType):
     token_target_url = graphene.String(
         description=(
             "Endpoint used during process of app installation, [see installing an app.]"
-            "(https://docs.saleor.io/docs/3.x/developer/extending/apps/installing-apps#installing-an-app)"
+            "(https://docs.saleor.io/developer/extending/apps/installing-apps#installing-an-app)"
         )
     )
     data_privacy = graphene.String(
@@ -410,7 +410,7 @@ class Manifest(BaseObjectType):
         description=(
             "List of extensions that will be mounted in Saleor's dashboard. "
             "For details, please [see the extension section.]"
-            "(https://docs.saleor.io/docs/3.x/developer/extending/apps/extending-dashboard-with-apps#key-concepts)"
+            "(https://docs.saleor.io/developer/extending/apps/extending-dashboard-with-apps#key-concepts)"
         ),
     )
     webhooks = NonNullList(
