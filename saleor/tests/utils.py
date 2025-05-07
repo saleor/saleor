@@ -2,9 +2,11 @@ import json
 import math
 from decimal import Decimal
 
+import pytest
 from django.conf import settings
 from django.db import connections
 from opentelemetry.sdk.metrics.export import DataPointT, Metric, MetricsData
+from opentelemetry.sdk.trace import ReadableSpan
 
 from ..core.db.connection import allow_writer
 
@@ -85,3 +87,13 @@ def get_metric_data_point(metrics_data: MetricsData, metric_name: str) -> DataPo
         f"For metric {metric_name} found {datapoints_count} instead of 1"
     )
     return metric_data.data.data_points[0]
+
+
+def get_span_by_name(spans: tuple[ReadableSpan, ...], name: str) -> ReadableSpan:
+    __tracebackhide__ = True
+    filtered = tuple(span for span in spans if span.name == name)
+    if not filtered:
+        pytest.fail(f"No span with name '{name}' found")
+    if len(filtered) > 1:
+        pytest.fail(f"Multiple '{name}' spans")
+    return filtered[0]
