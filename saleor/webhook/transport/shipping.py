@@ -32,7 +32,11 @@ def parse_list_shipping_methods_response(
 ) -> list["ShippingMethodData"]:
     try:
         list_shipping_method_model = ListShippingMethodsSchema.model_validate(
-            response_data, context={"app": app}
+            response_data,
+            context={
+                "app": app,
+                "custom_message": "Skipping invalid shipping method (ListShippingMethodsSchema)",
+            },
         )
     except ValidationError:
         logger.warning("Skipping invalid shipping method response: %s", response_data)
@@ -162,7 +166,10 @@ def get_excluded_shipping_methods_from_response(
     excluded_methods = []
     try:
         filter_methods_schema = FilterShippingMethodsSchema.model_validate(
-            response_data
+            response_data,
+            context={
+                "custom_message": "Skipping invalid shipping method (FilterShippingMethodsSchema)"
+            },
         )
         excluded_methods.extend(filter_methods_schema.excluded_methods)
     except ValidationError:

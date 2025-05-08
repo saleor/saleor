@@ -1,9 +1,14 @@
 import copy
+from unittest.mock import patch
 
 import pytest
 
 from ...app.models import App
-from ...payment.interface import PaymentGateway
+from ...payment.interface import (
+    PaymentGateway,
+    PaymentMethodCreditCardInfo,
+    PaymentMethodData,
+)
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..models import Webhook
 from ..observability.exceptions import (
@@ -12,10 +17,10 @@ from ..observability.exceptions import (
     TruncationError,
 )
 from ..observability.payload_schema import ObservabilityEventTypes
+from ..response_schemas.annotations import logger as annotations_logger
 from ..transport.list_stored_payment_methods import (
-    get_credit_card_info,
     get_list_stored_payment_methods_from_response,
-    get_payment_method_from_response,
+    logger,
 )
 from ..transport.utils import (
     generate_cache_key_for_webhook,
@@ -336,278 +341,107 @@ def test_different_app_produce_different_cache_key():
     assert cache_key_1 != cache_key_2
 
 
-def test_get_credit_card_info(app):
-    # given
-    brand = "VISA"
-    last_digits = "1234"
-    exp_year = "2023"
-    exp_month = 1
-    first_digits = "4321"
-
-    credit_card_info = {
-        "brand": brand,
-        "lastDigits": last_digits,
-        "expYear": exp_year,
-        "expMonth": exp_month,
-        "firstDigits": first_digits,
-    }
-
-    # when
-    response = get_credit_card_info(app, credit_card_info)
-
-    # then
-    assert response.brand == brand
-    assert response.last_digits == last_digits
-    assert response.exp_year == int(exp_year)
-    assert response.exp_month == exp_month
-    assert response.first_digits == first_digits
-
-
-def test_get_credit_card_info_without_first_digits_field(app):
-    # given
-    brand = "VISA"
-    last_digits = "1234"
-    exp_year = 2023
-    exp_month = 1
-
-    credit_card_info = {
-        "brand": brand,
-        "lastDigits": last_digits,
-        "expYear": exp_year,
-        "expMonth": exp_month,
-    }
-
-    # when
-    response = get_credit_card_info(app, credit_card_info)
-
-    # then
-    assert response.brand == brand
-    assert response.last_digits == last_digits
-    assert response.exp_year == exp_year
-    assert response.exp_month == exp_month
-    assert response.first_digits is None
-
-
-@pytest.mark.parametrize(
-    "field",
-    [
-        "brand",
-        "lastDigits",
-        "expYear",
-        "expMonth",
-    ],
-)
-def test_get_credit_card_info_missing_required_field(field, app):
-    # given
-    brand = "VISA"
-    last_digits = "1234"
-    exp_year = 2023
-    exp_month = 1
-    first_digits = "4321"
-
-    credit_card_info = {
-        "brand": brand,
-        "lastDigits": last_digits,
-        "expYear": exp_year,
-        "expMonth": exp_month,
-        "firstDigits": first_digits,
-    }
-    del credit_card_info[field]
-
-    # when
-    response = get_credit_card_info(app, credit_card_info)
-
-    # then
-    assert response is None
-
-
-@pytest.mark.parametrize(
-    "field",
-    [
-        "brand",
-        "lastDigits",
-        "expYear",
-        "expMonth",
-    ],
-)
-def test_get_credit_card_info_required_field_is_none(field, app):
-    # given
-    brand = "VISA"
-    last_digits = "1234"
-    exp_year = 2023
-    exp_month = 1
-    first_digits = "4321"
-
-    credit_card_info = {
-        "brand": brand,
-        "lastDigits": last_digits,
-        "expYear": exp_year,
-        "expMonth": exp_month,
-        "firstDigits": first_digits,
-    }
-    credit_card_info[field] = None
-
-    # when
-    response = get_credit_card_info(app, credit_card_info)
-
-    # then
-    assert response is None
-
-
-@pytest.mark.parametrize("exp_year", [None, "", "str"])
-def test_get_credit_card_info_incorrect_exp_year(exp_year, app):
-    # given
-    brand = "VISA"
-    last_digits = "1234"
-    exp_month = 1
-    first_digits = "4321"
-
-    credit_card_info = {
-        "brand": brand,
-        "lastDigits": last_digits,
-        "expYear": exp_year,
-        "expMonth": exp_month,
-        "firstDigits": first_digits,
-    }
-
-    # when
-    response = get_credit_card_info(app, credit_card_info)
-
-    # then
-    assert response is None
-
-
-@pytest.mark.parametrize("exp_month", [None, "", "str"])
-def test_get_credit_card_info_incorrect_exp_month(exp_month, app):
-    # given
-    brand = "VISA"
-    last_digits = "1234"
-    exp_year = 2023
-    first_digits = "4321"
-
-    credit_card_info = {
-        "brand": brand,
-        "lastDigits": last_digits,
-        "expYear": exp_year,
-        "expMonth": exp_month,
-        "firstDigits": first_digits,
-    }
-
-    # when
-    response = get_credit_card_info(app, credit_card_info)
-
-    # then
-    assert response is None
-
-
-def test_get_payment_method_from_response(payment_method_response, app):
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
-
-    # then
-    assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
-    assert payment_method.external_id == payment_method_response["id"]
-    assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway == PaymentGateway(
-        id=app.identifier, name=app.name, currencies=["usd"], config=[]
-    )
-    assert payment_method.supported_payment_flows == [
-        flow.lower() for flow in payment_method_response["supportedPaymentFlows"]
-    ]
-    assert payment_method.credit_card_info == get_credit_card_info(
-        app, payment_method_response["creditCardInfo"]
-    )
-    assert payment_method.name == payment_method_response["name"]
-    assert payment_method.data == payment_method_response["data"]
-
-
-@pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
-def test_get_payment_method_from_response_missing_required_field(
-    field, payment_method_response, app
+@patch.object(annotations_logger, "warning")
+def test_get_list_stored_payment_methods_from_response(
+    mocked_logger, payment_method_response, app
 ):
     # given
-    del payment_method_response[field]
-
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
-
-    # then
-    assert payment_method is None
-
-
-@pytest.mark.parametrize("field", ["creditCardInfo", "name", "data"])
-def test_get_payment_method_from_response_optional_field(
-    field, payment_method_response, app
-):
-    del payment_method_response[field]
-
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
-
-    # then
-    assert payment_method.id == to_payment_app_id(app, payment_method_response["id"])
-    assert payment_method.external_id == payment_method_response["id"]
-    assert payment_method.type == payment_method_response["type"]
-    assert payment_method.gateway == PaymentGateway(
-        id=app.identifier, name=app.name, currencies=["usd"], config=[]
-    )
-    assert payment_method.supported_payment_flows == [
-        flow.lower() for flow in payment_method_response["supportedPaymentFlows"]
-    ]
-
-
-@pytest.mark.parametrize("field", ["id", "type", "supportedPaymentFlows"])
-def test_get_payment_method_from_response_required_field_is_none(
-    field, payment_method_response, app
-):
-    # given
-    payment_method_response[field] = None
-
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
-
-    # then
-    assert payment_method is None
-
-
-def test_get_payment_method_from_response_incorrect_payment_flow_choices(
-    payment_method_response, app
-):
-    # given
-    payment_method_response["supportedPaymentFlows"] = ["incorrect", "INTERACTIVE"]
-
-    # when
-    payment_method = get_payment_method_from_response(
-        app, payment_method_response, "usd"
-    )
-
-    # then
-    assert payment_method is None
-
-
-def test_get_list_stored_payment_methods_from_response(payment_method_response, app):
-    # given
+    # invalid second payment method due to to missing id
     second_payment_method = copy.deepcopy(payment_method_response)
     del second_payment_method["id"]
+
     list_stored_payment_methods_response = {
         "paymentMethods": [payment_method_response, second_payment_method]
     }
+    currency = "usd"
 
     # when
     response = get_list_stored_payment_methods_from_response(
-        app, list_stored_payment_methods_response, "usd"
+        app, list_stored_payment_methods_response, currency
     )
 
     # then
     assert len(response) == 1
-    assert response == [
-        get_payment_method_from_response(app, payment_method_response, "usd")
-    ]
+    assert response[0] == PaymentMethodData(
+        id=to_payment_app_id(app, payment_method_response["id"]),
+        external_id=payment_method_response["id"],
+        supported_payment_flows=[
+            flow.lower()
+            for flow in payment_method_response.get("supportedPaymentFlows", [])
+        ],
+        type=payment_method_response["type"],
+        credit_card_info=PaymentMethodCreditCardInfo(
+            brand=payment_method_response["creditCardInfo"]["brand"],
+            last_digits=payment_method_response["creditCardInfo"]["lastDigits"],
+            exp_year=payment_method_response["creditCardInfo"]["expYear"],
+            exp_month=payment_method_response["creditCardInfo"]["expMonth"],
+            first_digits=payment_method_response["creditCardInfo"].get("firstDigits"),
+        )
+        if payment_method_response.get("creditCardInfo")
+        else None,
+        name=payment_method_response["name"],
+        data=payment_method_response["data"],
+        gateway=PaymentGateway(
+            id=app.identifier,
+            name=app.name,
+            currencies=[currency],
+            config=[],
+        ),
+    )
+    assert mocked_logger.call_count == 1
+    error_msg = mocked_logger.call_args[0][1]
+    assert error_msg == "Skipping invalid stored payment method"
+    assert mocked_logger.call_args[1]["extra"]["app"] == app.id
+
+
+def test_get_list_stored_payment_methods_from_response_only_required_fields(app):
+    # given
+    payment_method_response = {
+        "id": "method-1",
+        "type": "Credit Card",
+    }
+
+    list_stored_payment_methods_response = {"paymentMethods": [payment_method_response]}
+    currency = "usd"
+
+    # when
+    response = get_list_stored_payment_methods_from_response(
+        app, list_stored_payment_methods_response, currency
+    )
+
+    # then
+    assert len(response) == 1
+    assert response[0] == PaymentMethodData(
+        id=to_payment_app_id(app, payment_method_response["id"]),
+        external_id=payment_method_response["id"],
+        supported_payment_flows=[],
+        type=payment_method_response["type"],
+        credit_card_info=None,
+        gateway=PaymentGateway(
+            id=app.identifier,
+            name=app.name,
+            currencies=[currency],
+            config=[],
+        ),
+    )
+
+
+@patch.object(logger, "warning")
+def test_get_list_stored_payment_methods_from_response_invalid_input_data(
+    mocked_logger, app
+):
+    # given
+    list_stored_payment_methods_response = None
+    currency = "usd"
+
+    # when
+    response = get_list_stored_payment_methods_from_response(
+        app, list_stored_payment_methods_response, currency
+    )
+
+    # then
+    assert response == []
+    assert mocked_logger.call_count == 1
+    error_msg = mocked_logger.call_args[0][0]
+    assert "Skipping stored payment methods from app" in error_msg
+    assert mocked_logger.call_args[1]["extra"]["app"] == app.id

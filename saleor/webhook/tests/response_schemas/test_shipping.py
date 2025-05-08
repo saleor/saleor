@@ -6,6 +6,7 @@ import graphene
 import pytest
 from pydantic import ValidationError
 
+from ...response_schemas.annotations import logger as annotations_logger
 from ...response_schemas.shipping import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
@@ -242,7 +243,7 @@ def test_list_shipping_methods_schema_skipped_values(data, app):
     assert list_methods.root == []
 
 
-@patch.object(logger, "warning")
+@patch.object(annotations_logger, "warning")
 def test_list_shipping_methods_schema_invalid_element_skipped(mocked_logger, app):
     """Test when the provided input has 2 elements, one valid and one invalid."""
     # given a list with one valid and one invalid shipping method
@@ -367,7 +368,12 @@ def test_filter_shipping_methods_schema_invalid_element_skipped(mocked_logger):
     }
 
     # when
-    schema = FilterShippingMethodsSchema.model_validate(data)
+    schema = FilterShippingMethodsSchema.model_validate(
+        data,
+        context={
+            "custom_message": "Custom error while validating stored payment methods"
+        },
+    )
 
     # then only the valid shipping method should be included
     assert len(schema.excluded_methods) == 2
