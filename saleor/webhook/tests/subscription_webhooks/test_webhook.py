@@ -61,8 +61,12 @@ def test_trigger_webhooks_async(
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
 def test_trigger_webhooks_async_for_multiple_objects(
     mocked_send_webhook_request,
+    mocked_send_webhook_for_app,
     webhook,
     subscription_order_created_webhook,
     order_with_lines,
@@ -104,7 +108,21 @@ def test_trigger_webhooks_async_for_multiple_objects(
         generated_payload = delivery.payload.get_payload()
         assert any(order_id in generated_payload for order_id in order_ids)
 
-    for delivery in deliveries:
+    for delivery in simple_webhook_deliveries:
+        assert (
+            mock.call(
+                kwargs={
+                    "event_delivery_id": delivery.id,
+                    "telemetry_context": mock.ANY,
+                },
+                queue=None,
+                bind=True,
+                retry_backoff=10,
+                retry_kwargs={"max_retries": 5},
+            )
+            in mocked_send_webhook_request.mock_calls
+        )
+    for delivery in subscription_webhook:
         assert (
             mock.call(
                 kwargs={
@@ -112,7 +130,7 @@ def test_trigger_webhooks_async_for_multiple_objects(
                     "telemetry_context": mock.ANY,
                 },
             )
-            in mocked_send_webhook_request.mock_calls
+            in mocked_send_webhook_for_app.mock_calls
         )
 
 
