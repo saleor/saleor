@@ -1,7 +1,6 @@
 from dataclasses import asdict
 
 import graphene
-from celery.exceptions import Retry
 from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
 
@@ -9,7 +8,6 @@ from ....app.models import App
 from ....core import EventDeliveryStatus
 from ....core import models as core_models
 from ....core.telemetry import get_task_context
-from ....core.utils.events import get_is_deferred_payload
 from ....discount import models as discount_models
 from ....graphql.utils import get_user_or_app_from_context
 from ....permission.auth_filters import AuthorizationFilters
@@ -17,9 +15,7 @@ from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
 from ....webhook.transport.asynchronous.transport import (
-    create_deliveries_for_subscriptions,
     generate_deferred_payloads,
-    send_webhook_request_async,
 )
 from ....webhook.transport.utils import prepare_deferred_payload_data
 from ...core import ResolveInfo
@@ -166,39 +162,22 @@ class WebhookTrigger(BaseMutation):
             ]:
                 object = [object]
 
-            is_deferred_payload = get_is_deferred_payload(event_type)
-            if is_deferred_payload:
-                delivery = core_models.EventDelivery(
-                    status=EventDeliveryStatus.PENDING,
-                    event_type=event_type,
-                    webhook=webhook,
-                )
-                delivery.save()
-                deferred_payload_data = prepare_deferred_payload_data(
-                    object, requestor, info.context.request_time
-                )
-                generate_deferred_payloads.apply_async(
-                    kwargs={
-                        "event_delivery_ids": [delivery.pk],
-                        "deferred_payload_data": asdict(deferred_payload_data),
-                        "telemetry_context": get_task_context().to_dict(),
-                    },
-                    bind=True,
-                )
-            else:
-                deliveries = create_deliveries_for_subscriptions(
-                    event_type, object, [webhook]
-                )
-                if deliveries:
-                    delivery = deliveries[0]
-                    try:
-                        send_webhook_request_async(
-                            delivery.id,
-                            telemetry_context=get_task_context().to_dict(),
-                        )
-                        return WebhookTrigger(delivery=delivery)
-                    except Retry:
-                        delivery.status = EventDeliveryStatus.FAILED
-                        delivery.save(update_fields=["status"])
+            delivery = core_models.EventDelivery(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                webhook=webhook,
+            )
+            delivery.save()
+            deferred_payload_data = prepare_deferred_payload_data(
+                object, requestor, info.context.request_time
+            )
+            generate_deferred_payloads.apply_async(
+                kwargs={
+                    "event_delivery_ids": [delivery.pk],
+                    "deferred_payload_data": asdict(deferred_payload_data),
+                    "telemetry_context": get_task_context().to_dict(),
+                },
+                bind=True,
+            )
 
         return WebhookTrigger(delivery=delivery)

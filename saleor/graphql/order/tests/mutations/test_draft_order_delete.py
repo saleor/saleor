@@ -298,7 +298,7 @@ def test_draft_order_delete_release_voucher_codes_single_use(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_delete_do_not_trigger_sync_webhooks(
@@ -339,9 +339,13 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
 
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "app_id": draft_order_deleted_delivery.webhook.app_id,
+            "event_delivery_id": draft_order_deleted_delivery.id,
             "telemetry_context": ANY,
         },
+        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+        bind=True,
+        retry_backoff=10,
+        retry_kwargs={"max_retries": 5},
     )
     assert not mocked_send_webhook_request_sync.called
     assert wrapped_call_order_event.called
