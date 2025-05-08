@@ -82,14 +82,14 @@ def test_line_calculate_taxes_schema_valid(data):
         # Invalid total_gross_amount (greater than MAXIMUM_PRICE)
         {
             "tax_rate": Decimal("20.00"),
-            "total_gross_amount": 100000000000,
+            "total_gross_amount": 100000000000000000000,
             "total_net_amount": Decimal("80.00"),
         },
         # Invalid total_net_amount (greater than MAXIMUM_PRICE)
         {
             "tax_rate": Decimal("20.00"),
             "total_gross_amount": Decimal("100.00"),
-            "total_net_amount": Decimal("10000000000"),
+            "total_net_amount": Decimal("100000000000000000000"),
         },
     ],
 )
