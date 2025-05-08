@@ -7,6 +7,7 @@ from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
 from .utils.annotations import DefaultIfNone, OnErrorDefault, OnErrorSkip
 from .utils.validators import lower_values
+from ...payment.interface import StoredPaymentMethodRequestDeleteResult
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
     "TokenizedPaymentFlowEnum",
@@ -97,5 +98,26 @@ class ListStoredPaymentMethodsSchema(BaseModel):
             validation_alias="paymentMethods",
             default_factory=list,
             description="List of stored payment methods.",
+        ),
+    ]
+
+
+class StoredPaymentMethodDeleteRequestedSchema(BaseModel):
+    result: Annotated[  # type: ignore[name-defined]
+        Literal[
+            StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED.name,
+            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
+            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
+        ],
+        Field(
+            description="Result of the request to delete the stored payment method.",
+        ),
+        AfterValidator(lower_values),
+    ]
+    error: Annotated[
+        str | None,
+        Field(
+            description="Error message if the request to delete the stored payment method failed that will be passed to the frontend.",
+            default=None,
         ),
     ]

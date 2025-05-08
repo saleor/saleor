@@ -304,10 +304,8 @@ def test_stored_payment_method_request_delete_incorrect_result_response_from_web
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
     assert not EventDelivery.objects.exists()
 
-    assert response == StoredPaymentMethodRequestDeleteResponseData(
-        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-        error="Missing or incorrect `result` in response.",
-    )
+    assert response.result == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
+    assert response.error
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -353,10 +351,8 @@ def test_stored_payment_method_request_delete_missing_result_in_response_from_we
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
     assert not EventDelivery.objects.exists()
 
-    assert response == StoredPaymentMethodRequestDeleteResponseData(
-        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-        error="Missing or incorrect `result` in response.",
-    )
+    assert response.result == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
+    assert response.error
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.delete")
