@@ -91,6 +91,9 @@ from ...webhook.payloads import (
     generate_transaction_session_payload,
     generate_translation_payload,
 )
+from ...webhook.response_schemas.transaction import (
+    PaymentGatewayInitializeSessionSchema,
+)
 from ...webhook.transport.asynchronous.transport import (
     WebhookPayloadData,
     send_webhook_request_async,
@@ -3130,9 +3133,20 @@ class WebhookPlugin(BasePlugin):
         error_msg = None
         if response_data is None:
             error_msg = "Unable to process a payment gateway response."
+
+        response_data_model = None
+        if response_data:
+            try:
+                response_data_model = (
+                    PaymentGatewayInitializeSessionSchema.model_validate(response_data)
+                )
+            except ValidationError as e:
+                response_data = None
+                error_msg = str(e)
+
         response_gateway[webhook.app.identifier] = PaymentGatewayData(
             app_identifier=webhook.app.identifier,
-            data=response_data,
+            data=response_data_model.data if response_data_model else None,
             error=error_msg,
         )
 

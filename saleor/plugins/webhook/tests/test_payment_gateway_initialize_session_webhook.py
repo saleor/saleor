@@ -95,7 +95,9 @@ def test_gateway_initialize_checkout_without_request_data_and_static_payload(
 ):
     # given
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -130,7 +132,9 @@ def test_gateway_initialize_checkout_with_request_data_and_static_payload(
     # given
     data = {"some": "request-data"}
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -167,7 +171,9 @@ def test_gateway_initialize_checkout_without_request_data(
 ):
     # given
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -204,7 +210,9 @@ def test_gateway_initialize_checkout_with_request_data(
     # given
     data = {"some": "request-data"}
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -274,7 +282,9 @@ def test_gateway_initialize_order_without_request_data_static_payload(
 ):
     # given
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -309,7 +319,9 @@ def test_gateway_initialize_order_with_request_data_static_payload(
     # given
     data = {"some": "request-data"}
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -346,7 +358,9 @@ def test_gateway_initialize_session_for_order_without_request_data(
 ):
     # given
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"
@@ -384,7 +398,9 @@ def test_gateway_initialize_session_for_order_with_request_data(
     # given
     data = {"some": "request-data"}
     expected_data = {"some": "json data"}
-    mock_request.return_value = expected_data
+    mock_request.return_value = {
+        "data": expected_data,
+    }
     plugin = webhook_plugin()
 
     webhook_app.identifier = "app.identifier"

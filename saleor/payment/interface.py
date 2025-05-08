@@ -147,7 +147,7 @@ class TransactionData:
 @dataclass
 class PaymentGatewayData:
     app_identifier: str
-    data: dict[Any, Any] | None = None
+    data: JSONValue | None = None
     error: str | None = None
 
 

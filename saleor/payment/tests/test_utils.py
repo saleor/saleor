@@ -28,6 +28,7 @@ from ..utils import (
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
     get_transaction_event_amount,
+    logger,
     parse_transaction_action_data,
     recalculate_refundable_for_checkout,
     try_void_or_refund_inactive_payment,
@@ -566,10 +567,6 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
             TransactionEventType.CANCEL_REQUEST,
             TransactionEventType.CANCEL_SUCCESS,
         ),
-        (
-            TransactionEventType.AUTHORIZATION_REQUEST,
-            TransactionEventType.AUTHORIZATION_SUCCESS,
-        ),
     ],
 )
 def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_reference_invalid_event(
@@ -607,10 +604,13 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.transaction_id == transaction.id
-    error_msg = f"Providing `pspReference` is required for {result_event_type.upper()}."
-    assert event.message == error_msg
+    error_msg = (
+        f"Providing `pspReference` is required for {result_event_type.upper()} "
+        "action result."
+    )
+    assert error_msg in event.message
     assert caplog.records[0].levelno == logging.WARNING
-    assert caplog.records[0].message == error_msg
+    assert error_msg in caplog.records[0].message
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -892,6 +892,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
     app,
     order_with_lines,
     django_capture_on_commit_callbacks,
+    plugins_manager,
 ):
     # given
     order = order_with_lines
@@ -916,8 +917,8 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        create_transaction_event_from_request_and_webhook_response(
-            request_event, app, response_data
+        create_transaction_event_for_transaction_session(
+            request_event, app, plugins_manager, response_data
         )
 
     # then
@@ -929,7 +930,7 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_authorized
 
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_updates_order_authorize(
-    transaction_item_generator, app, order_with_lines
+    transaction_item_generator, app, order_with_lines, plugins_manager
 ):
     # given
     order = order_with_lines
@@ -953,8 +954,8 @@ def test_create_transaction_event_from_request_updates_order_authorize(
     }
 
     # when
-    create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
+    create_transaction_event_for_transaction_session(
+        request_event, app, plugins_manager, response_data
     )
 
     # then
@@ -1062,11 +1063,13 @@ def test_create_transaction_event_from_request_when_paid(
     mocked_automatic_checkout_completion_task.assert_not_called()
 
 
+@patch.object(logger, "error")
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
-def test_create_transaction_event_from_request_when_authorized(
+def test_create_transaction_event_from_request_when_authorized_logs_warnning(
     mocked_checkout_fully_paid,
     mocked_automatic_checkout_completion_task,
+    mocked_logger,
     transaction_item_generator,
     app,
     checkout_with_prices,
@@ -1078,9 +1081,10 @@ def test_create_transaction_event_from_request_when_authorized(
     channel = checkout.channel
     assert channel.automatically_complete_fully_paid_checkouts is False
 
+    request_event_type = TransactionEventType.AUTHORIZATION_REQUEST
     transaction = transaction_item_generator(checkout_id=checkout.pk)
     request_event = TransactionEvent.objects.create(
-        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        type=request_event_type,
         amount_value=checkout.total.gross.amount,
         currency="USD",
         transaction_id=transaction.id,
@@ -1104,10 +1108,14 @@ def test_create_transaction_event_from_request_when_authorized(
         )
 
     # then
+    # the `create_transaction_event_from_request_and_webhook_response` should never
+    # be called for `AUTHORIZATION_REQUEST` event type
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
     checkout.refresh_from_db()
-    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_checkout_fully_paid.assert_not_called()
     mocked_automatic_checkout_completion_task.assert_not_called()
+    assert mocked_logger.call_count == 1
+    assert len(mocked_logger.call_args) == 2
 
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
@@ -1166,7 +1174,7 @@ def test_create_transaction_event_from_request_when_paid_triggers_checkout_compl
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
-def test_create_transaction_event_from_request_when_authorized_triggers_checkout_completion(
+def test_create_transaction_event_from_session_when_authorized_triggers_checkout_completion(
     mocked_checkout_fully_paid,
     mocked_automatic_checkout_completion_task,
     transaction_item_generator,
@@ -1205,8 +1213,8 @@ def test_create_transaction_event_from_request_when_authorized_triggers_checkout
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        create_transaction_event_from_request_and_webhook_response(
-            request_event, app, response_data
+        create_transaction_event_for_transaction_session(
+            request_event, app, plugins_manager, response_data
         )
 
     # then
@@ -1249,9 +1257,10 @@ def test_create_transaction_event_from_request_and_webhook_response_incorrect_da
 
 
 @freeze_time("2018-05-31 12:00:01")
-def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
+def test_create_transaction_event_for_transaction_session_twice_auth(
     transaction_item_generator,
     app,
+    plugins_manager,
 ):
     # given
     transaction = transaction_item_generator()
@@ -1284,17 +1293,14 @@ def test_create_transaction_event_from_request_and_webhook_response_twice_auth(
     }
 
     # when
-    failed_event = create_transaction_event_from_request_and_webhook_response(
-        request_event, app, response_data
+    failed_event = create_transaction_event_for_transaction_session(
+        request_event, app, plugins_manager, response_data
     )
 
     # then
     assert TransactionEvent.objects.count() == 3
-    request_event.refresh_from_db()
-    assert request_event.psp_reference == expected_psp_reference
-    assert request_event.include_in_calculations is True
     assert failed_event
-    assert failed_event.psp_reference == expected_psp_reference
+    assert failed_event.psp_reference == request_event.psp_reference
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
 
 
@@ -1312,7 +1318,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
     # given
     expected_psp_reference = "psp:122:222"
     event_amount = first_event_amount
-    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_type = TransactionEventType.CHARGE_SUCCESS
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
 
@@ -1325,7 +1331,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
     )
 
     request_event = TransactionEvent.objects.create(
-        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=second_event_amount,
         currency="USD",
         transaction_id=transaction.id,
@@ -1409,7 +1415,7 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
     # given
     expected_psp_reference = "psp:122:222"
     authorize_event_amount = Decimal(12.00)
-    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+    event_type = TransactionEventType.CHARGE_SUCCESS
     event_time = "2022-11-18T13:25:58.169685+00:00"
     event_url = "http://localhost:3000/event/ref123"
 
@@ -1423,7 +1429,7 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
 
     second_authorize_event_amount = Decimal(33.00)
     request_event = TransactionEvent.objects.create(
-        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        type=TransactionEventType.CHARGE_REQUEST,
         amount_value=second_authorize_event_amount,
         currency="USD",
         transaction_id=transaction.id,
@@ -1449,7 +1455,7 @@ def test_create_transaction_event_from_request_and_webhook_response_different_am
     assert request_event.include_in_calculations is True
     assert failed_event
     assert failed_event.psp_reference == expected_psp_reference
-    assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
+    assert failed_event.type == TransactionEventType.CHARGE_FAILURE
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -2222,11 +2228,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     [
         (
             TransactionEventType.AUTHORIZATION_SUCCESS,
-            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS.",
+            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS action result.",
         ),
         (
             TransactionEventType.CHARGE_SUCCESS,
-            "Providing `pspReference` is required for CHARGE_SUCCESS.",
+            "Providing `pspReference` is required for CHARGE_SUCCESS action result.",
         ),
         (
             TransactionEventType.CHARGE_FAILURE,
@@ -2234,11 +2240,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
         ),
         (
             TransactionEventType.CHARGE_REQUEST,
-            "Providing `pspReference` is required for CHARGE_REQUEST.",
+            "Providing `pspReference` is required for CHARGE_REQUEST action result.",
         ),
         (
             TransactionEventType.AUTHORIZATION_REQUEST,
-            "Providing `pspReference` is required for AUTHORIZATION_REQUEST.",
+            "Providing `pspReference` is required for AUTHORIZATION_REQUEST action result.",
         ),
     ],
 )
@@ -2274,7 +2280,7 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     # then
     assert response_event.amount_value == expected_amount
     assert response_event.type == TransactionEventType.CHARGE_FAILURE
-    assert response_event.message == message
+    assert message in response_event.message
     transaction.refresh_from_db()
     assert transaction.authorized_value == Decimal("0")
     assert transaction.charged_value == Decimal("0")

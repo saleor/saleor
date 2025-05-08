@@ -1,13 +1,20 @@
+import logging
+from datetime import UTC, datetime
 from typing import Annotated, Any, TypeVar
 
 from pydantic import (
+    AfterValidator,
     BeforeValidator,
+    ValidationError,
+    ValidatorFunctionWrapHandler,
+    WrapValidator,
 )
-from pydantic_core import PydanticUseDefault
+from pydantic_core import PydanticOmit, PydanticUseDefault
 
 from ...core.utils.metadata_manager import metadata_is_valid
 
 M = TypeVar("M")
+logger = logging.getLogger(__name__)
 
 
 def skip_invalid_metadata(value: M) -> M:
@@ -27,3 +34,16 @@ def default_if_none(value: Any) -> Any:
 
 T = TypeVar("T")
 DefaultIfNone = Annotated[T, BeforeValidator(default_if_none)]
+
+DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.replace(tzinfo=UTC))]
+
+
+def skip_invalid_literal(value: T, handler: ValidatorFunctionWrapHandler) -> T:
+    try:
+        return handler(value)
+    except ValidationError as err:
+        logger.warning("Skipping invalid literal value: %s", err)
+        raise PydanticOmit() from err
+
+
+OnErrorSkipLiteral = Annotated[T, WrapValidator(skip_invalid_literal)]
