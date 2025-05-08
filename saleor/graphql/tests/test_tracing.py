@@ -4,24 +4,13 @@ from unittest.mock import MagicMock, patch
 import graphene
 import pytest
 from django.test import override_settings
-from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.trace import StatusCode
 
 from ...core.telemetry import saleor_attributes
 from ...graphql.api import backend, schema
+from ...tests.utils import filter_spans_by_name, get_span_by_name
 from ..views import GraphQLView
-
-
-def get_spans_by_name(spans, name) -> tuple[ReadableSpan, ...]:
-    return tuple(span for span in spans if span.name == name)
-
-
-def get_span_by_name(spans, name) -> ReadableSpan:
-    filtered = get_spans_by_name(spans, name)
-    assert filtered, f"No span with name '{name}' found"
-    assert len(filtered) == 1, f"Multiple '{name}' spans"
-    return filtered[0]
 
 
 def test_tracing_query_hashing(
@@ -126,7 +115,7 @@ def test_tracing_query_hashing_different_vars_same_checksum(
     # then
     fingerprints = [
         span.attributes[saleor_attributes.GRAPHQL_DOCUMENT_FINGERPRINT]
-        for span in get_spans_by_name(get_test_spans(), query)
+        for span in filter_spans_by_name(get_test_spans(), query)
     ]
     assert len(fingerprints) == QUERIES
     assert len(set(fingerprints)) == 1
