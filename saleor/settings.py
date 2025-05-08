@@ -30,6 +30,7 @@ from . import PatchedSubscriberExecutionContext, __version__
 from .account.i18n_rules_override import i18n_rules_override
 from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
+from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
 from .graphql.promise import patch_promise
@@ -61,6 +62,13 @@ def get_url_from_env(name, *, schemes=None) -> str | None:
         return value
     return None
 
+
+# Possibility to set memory limits for the process. Function `validate_and_set_rlimit` set the
+# maximum size of the process's heap(`resource.RLIMIT_DATA`). If you set the memory limit and process will try to
+# allocate more memory than the limit, it will raise `MemoryError`.
+SOFT_MEMORY_LIMIT_IN_MB = os.environ.get("SOFT_MEMORY_LIMIT_IN_MB", None)
+HARD_MEMORY_LIMIT_IN_MB = os.environ.get("HARD_MEMORY_LIMIT_IN_MB", None)
+validate_and_set_rlimit(SOFT_MEMORY_LIMIT_IN_MB, HARD_MEMORY_LIMIT_IN_MB)
 
 DEBUG = get_bool_from_env("DEBUG", True)
 
