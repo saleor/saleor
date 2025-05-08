@@ -17,6 +17,7 @@ from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from ..app.models import App
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..core.utils.update_mutation_manager import InstanceTracker
 from ..order.models import Order
 from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
 from ..permission.models import Permission, PermissionsMixin, _user_has_perm
@@ -55,6 +56,7 @@ AddressManager = models.Manager.from_queryset(AddressQueryset)
 
 
 class Address(ModelWithMetadata):
+    tracker = InstanceTracker()
     first_name = models.CharField(max_length=256, blank=True)
     last_name = models.CharField(max_length=256, blank=True)
     company_name = models.CharField(max_length=256, blank=True)

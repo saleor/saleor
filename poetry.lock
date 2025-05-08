@@ -1268,6 +1268,21 @@ django-appconf = ">=1.0.2"
 measurement = ">=1.6,<4.0"
 
 [[package]]
+name = "django-model-utils"
+version = "5.0.0"
+description = "Django model mixins and utilities"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "django_model_utils-5.0.0-py3-none-any.whl", hash = "sha256:fec78e6c323d565a221f7c4edc703f4567d7bb1caeafe1acd16a80c5ff82056b"},
+    {file = "django_model_utils-5.0.0.tar.gz", hash = "sha256:041cdd6230d2fbf6cd943e1969318bce762272077f4ecd333ab2263924b4e5eb"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+
+[[package]]
 name = "django-mptt"
 version = "0.17.0"
 description = "Utilities for implementing Modified Preorder Tree Traversal with your Django Models and working with trees of Model instances."
@@ -6075,4 +6090,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "a2966ac99d67ca4e09da5c508aaf0e1961a96c0a90768f491143f99c8a42e183"
+content-hash = "e10d7a713f2ba0b611b11ba4ba5c04680afd0d65990c6b8493c135879f3d23bc"

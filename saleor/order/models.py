@@ -24,6 +24,7 @@ from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.taxes import TAX_ERROR_FIELD_LENGTH
 from ..core.units import WeightUnits
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..core.utils.update_mutation_manager import InstanceTracker
 from ..core.weight import zero_weight
 from ..discount import DiscountValueType
 from ..discount.models import Voucher
@@ -109,6 +110,7 @@ def get_order_number():
 
 
 class Order(ModelWithMetadata, ModelWithExternalReference):
+    tracker = InstanceTracker()
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)

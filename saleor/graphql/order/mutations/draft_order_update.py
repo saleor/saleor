@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
-from ....core.utils.update_mutation_manager import InstanceTracker
 from ....discount.models import VoucherCode
 from ....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
@@ -93,11 +92,11 @@ class DraftOrderUpdate(
         return any(
             field in modified_fields
             for field in [
-                "shipping_address",
-                "billing_address",
-                "shipping_method",
+                "shipping_address_id",
+                "billing_address_id",
+                "shipping_method_id",
                 "voucher_code",
-                "voucher",
+                "voucher_id",
             ]
         )
 
@@ -213,6 +212,7 @@ class DraftOrderUpdate(
                 info=info,
             )
             cleaned_input["shipping_address"] = shipping_address_instance
+            instance.shipping_address = shipping_address_instance
             cleaned_input["draft_save_shipping_address"] = (
                 save_shipping_address or False
             )
@@ -225,38 +225,44 @@ class DraftOrderUpdate(
                 info=info,
             )
             cleaned_input["billing_address"] = billing_address_instance
+            instance.billing_address = billing_address_instance
             cleaned_input["draft_save_billing_address"] = save_billing_address or False
 
     @classmethod
     def _save(
         cls,
-        instance_tracker: InstanceTracker,
+        instance: models.Order,
         cleaned_input: dict,
     ) -> bool:
-        instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
-            modified_foreign_fields = instance_tracker.get_foreign_modified_fields()
-            if (
-                "shipping_address" in modified_foreign_fields
-                and "shipping_address" in cleaned_input
-            ):
-                instance.shipping_address = cleaned_input["shipping_address"]
-                cls._save_address(
-                    cleaned_input["shipping_address"],
-                    modified_foreign_fields["shipping_address"],
+            modified_foreign_fields = []
+            if instance.shipping_address:
+                modified_shipping_address_fields = (
+                    instance.shipping_address.tracker.changed_fields(
+                        ADDRESS_UPDATE_FIELDS
+                    )
                 )
+                if modified_shipping_address_fields:
+                    cls._save_address(
+                        instance.shipping_address, modified_shipping_address_fields
+                    )
+                    modified_foreign_fields.append("shipping_address_id")
 
-            if (
-                "billing_address" in modified_foreign_fields
-                and "billing_address" in cleaned_input
-            ):
-                instance.billing_address = cleaned_input["billing_address"]
-                cls._save_address(
-                    cleaned_input["billing_address"],
-                    modified_foreign_fields["billing_address"],
+            if instance.billing_address:
+                modified_billing_address_fields = (
+                    instance.billing_address.tracker.changed_fields(
+                        ADDRESS_UPDATE_FIELDS
+                    )
                 )
+                if modified_billing_address_fields:
+                    cls._save_address(
+                        instance.billing_address, modified_billing_address_fields
+                    )
+                    modified_foreign_fields.append("billing_address_id")
 
-            modified_instance_fields = instance_tracker.get_modified_fields()
+            modified_instance_fields = instance.tracker.changed_fields(
+                cls.FIELDS_TO_TRACK
+            )
             modified_instance_fields.extend(modified_foreign_fields)
             if not modified_instance_fields:
                 return False
@@ -279,7 +285,7 @@ class DraftOrderUpdate(
         instance.save(update_fields=update_fields)
 
     @classmethod
-    def _save_address(cls, address_instance, modified_fields):
+    def _save_address(cls, address_instance, modified_fields: list[str]):
         if address_instance.pk is None:
             address_instance.save()
         else:
@@ -374,14 +380,6 @@ class DraftOrderUpdate(
         cls.check_channel_permissions(info, [channel_id])
 
         instance = cast(models.Order, instance)
-        instance_tracker = InstanceTracker(
-            instance,
-            cls.FIELDS_TO_TRACK,
-            foreign_fields_to_track={
-                "shipping_address": ADDRESS_UPDATE_FIELDS,
-                "billing_address": ADDRESS_UPDATE_FIELDS,
-            },
-        )
 
         old_voucher = instance.voucher
         old_voucher_code = instance.voucher_code
@@ -399,7 +397,7 @@ class DraftOrderUpdate(
         cls.handle_shipping(cleaned_input, instance, manager)
         cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
 
-        order_modified = cls._save(instance_tracker, cleaned_input)
+        order_modified = cls._save(instance, cleaned_input)
         if order_modified:
             cls._post_save_action(instance, manager)
 
