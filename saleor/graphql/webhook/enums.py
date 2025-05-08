@@ -243,7 +243,7 @@ def deprecation_reason(enum):
     if enum.value == WebhookEventAsyncType.NOTIFY_USER:
         return (
             "See the docs for more details about migrating from NOTIFY_USER to other events: "
-            "https://docs.saleor.io/docs/next/upgrade-guides/notify-user-deprecation"
+            "https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user"
         )
     if enum.value == WebhookEventAsyncType.ANY:
         return DEFAULT_DEPRECATION_REASON

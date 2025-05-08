@@ -8729,7 +8729,7 @@
           {
             "id": "IwwtFzGF2A",
             "data": {
-              "text": "3 We enable developers to <a href=\"https://docs.saleor.io/docs/3.x/developer/extending/apps/key-concepts\">extend Saleor</a> easily via [Saleor Apps](https://github.com/saleor/saleor-app-template), a robust tally of async/sync webhooks, and a composable Dashboard. "
+              "text": "3 We enable developers to <a href=\"https://docs.saleor.io/developer/extending/apps/overview\">extend Saleor</a> easily via [Saleor Apps](https://github.com/saleor/saleor-app-template), a robust tally of async/sync webhooks, and a composable Dashboard. "
             },
             "type": "paragraph"
           },

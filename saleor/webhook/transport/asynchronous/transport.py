@@ -37,6 +37,9 @@ from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
+from ..metrics import (
+    record_external_request,
+)
 from ..utils import (
     DeferredPayloadData,
     RequestorModelName,
@@ -593,6 +596,8 @@ def send_webhook_request_async(
     webhook = delivery.webhook
     domain = get_domain()
     attempt = create_attempt(delivery, self.request.id)
+    response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
+    payload_size = 0
 
     try:
         if not delivery.payload:
@@ -606,7 +611,6 @@ def send_webhook_request_async(
         payload_size = len(data)
         with webhooks_otel_trace(
             delivery.event_type,
-            domain,
             payload_size,
             app=webhook.app,
             span_links=telemetry_context.links,
@@ -638,9 +642,11 @@ def send_webhook_request_async(
             # update attempt without save to provide proper data in observability
             attempt_update(attempt, response, with_save=False)
     except ValueError as e:
-        response = WebhookResponse(content=str(e), status=EventDeliveryStatus.FAILED)
+        response.content = str(e)
         attempt_update(attempt, response)
         delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+    finally:
+        record_external_request(webhook.target_url, response, payload_size)
 
     observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)

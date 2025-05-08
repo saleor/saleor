@@ -44,6 +44,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - `DraftOrderUpdate` do not call `DRAFT_ORDER_UPDATED` anymore in case nothing changed - #17532 by @IKarbowiak
 - `OrderUpdate` mutation do not call `ORDER_UPDATED` anymore in case nothing changed - #17507 by @IKarbowiak
 - The `transactionId` argument of `OrderGrantRefundCreateInput` is now required - #17635 by @IKarbowiak
+- Google Cloud Platform (GCP): the environment variable for private storage (e.g., webhook event delivery payloads) was renamed from `GS_MEDIA_BUCKET_NAME` to `GS_MEDIA_PRIVATE_BUCKET_NAME` - #17660 by @bnkwines
 
 ### GraphQL API
 
@@ -75,7 +76,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Webhooks
 
 - Fixed webhookTrigger payload type for events related to ProductVariant - #16956 by @delemeator
-- Truncate lenghty responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
+- Truncate lengthy responses in `EventDeliveryAttempt` objects - #17044 by @wcislo-saleor
 - Webhooks `CHECKOUT_FILTER_SHIPPING_METHODS` & `ORDER_FILTER_SHIPPING_METHODS` are no longer executed when not needed (no available shipping methods, e.g. due to lack of shipping address) - #17328 by @lkostrowski
 - New feature: sync webhooks circuit breaker - #16658 by @tomaszszymanski129
 - Fixed webhook `PRODUCT_VARIANT_METADATA_UPDATED` not being sent when `productVariantUpdate` mutation was called. Now, when `metadata` or `privateMetadata` is included in `ProductVariantUpdateInput`, both `PRODUCT_VARIANT_METADATA_UPDATED` and `PRODUCT_VARIANT_UPDATED` will be emitted (if subscribed) - #17406 by @lkostrowski
@@ -83,6 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update editable Order shipping via `orderUpdateShipping` will emit `ORDER_UPDATED` webhook when `shippingMethod` will be cleared (by passing `null` to graphQL input). - #17480 by @lkostrowski
 
 ### Other changes
+- Fixed outdated documentation links - #17675 by @krzysztofwolski
 - Added support for numeric and lower-case boolean environment variables - #16313 by @NyanKiyoshi
 - Fixed a potential crash when Checkout metadata is accessed with high concurrency - #16411 by @patrys
 - Add slugs to product/category/collection/page translations. Allow to query by translated slug - #16449 by @delemeator
