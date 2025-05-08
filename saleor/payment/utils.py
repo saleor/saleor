@@ -1178,7 +1178,12 @@ def create_transaction_event_for_transaction_session(
         request_event.amount_value = response_event.amount
         request_event.psp_reference = response_event.psp_reference
         request_event.include_in_calculations = True
+        if response_event.time:
+            request_event.created_at = response_event.time
         request_event.app = app
+        request_event.message = response_event.message
+        if response_event.external_url:
+            request_event.external_url = response_event.external_url
         request_event_update_fields.extend(
             [
                 "type",
@@ -1186,6 +1191,9 @@ def create_transaction_event_for_transaction_session(
                 "psp_reference",
                 "include_in_calculations",
                 "app",
+                "message",
+                "created_at",
+                "external_url",
             ]
         )
         event = request_event
