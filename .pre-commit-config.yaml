@@ -60,7 +60,7 @@ repos:
         name: Check for uncreated migrations.
         entry: sh -c "./manage.py makemigrations --check --dry-run"
         files: "models\\.py$"
-        stages: [commit]
+        stages: [pre-commit]
 
   - repo: local
     hooks:
@@ -68,4 +68,4 @@ repos:
         language: system
         name: Check GraphQL schema is up to date.
         entry: sh -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
-        stages: [commit]
+        stages: [pre-commit]
