@@ -1779,7 +1779,7 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
                 "itemCode": "SKU_B",
             },
             {
-                "lineAmount": 8368725697628976.1300,
+                "lineAmount": 83689989725697628976.1300,
                 "quantity": 1.0,
                 "itemCode": "Shipping",
             },
