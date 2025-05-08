@@ -205,7 +205,7 @@ def test_validate_tax_data_price_overflow(lines_info, caplog):
     assert len(lines_info) == 2
 
     tax_data = TaxData(
-        shipping_price_net_amount=Decimal("9999999999999999"),
+        shipping_price_net_amount=Decimal("9999999999999999999999"),
         shipping_price_gross_amount=Decimal("1.5"),
         shipping_tax_rate=Decimal("50"),
         lines=[

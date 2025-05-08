@@ -1647,7 +1647,7 @@ def test_fetch_order_data_tax_data_with_price_overflow(
         shipping_tax_rate=Decimal("50"),
         lines=[
             TaxLineData(
-                total_net_amount=Decimal("99999999999"),
+                total_net_amount=Decimal("999999999999999999"),
                 total_gross_amount=Decimal("3"),
                 tax_rate=Decimal("50"),
             ),
@@ -1760,7 +1760,7 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
                 "itemCode": "SKU_B",
             },
             {
-                "lineAmount": 8368725697628976.1300,
+                "lineAmount": 998368725697628976.1300,
                 "quantity": 1.0,
                 "itemCode": "Shipping",
             },
