@@ -114,7 +114,7 @@ class TransactionActionData:
     transaction: TransactionItem
     event: "TransactionEvent"
     transaction_app_owner: Optional["App"]
-    action_value: Decimal | None = None
+    action_value: Decimal
     granted_refund: Optional["OrderGrantedRefund"] = None
 
 

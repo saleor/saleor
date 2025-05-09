@@ -11,6 +11,7 @@ from pydantic import (
     Field,
     HttpUrl,
     JsonValue,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
@@ -45,7 +46,11 @@ class TransactionSchema(BaseModel):
         ),
     ]
     amount: Annotated[
-        Decimal, Field(description="Decimal amount of the processed action")
+        DefaultIfNone[Decimal],
+        Field(
+            description="Decimal amount of the processed action",
+            default=None,
+        ),
     ]
     time: Annotated[
         DefaultIfNone[DatetimeUTC],
@@ -85,20 +90,33 @@ class TransactionSchema(BaseModel):
         | None
     ) = None
     result: Annotated[
-        str,
+        DefaultIfNone[str],
         Field(description="Result of the action"),
     ]
 
     @model_validator(mode="after")
-    def clean_psp_reference(self):
-        if not self.psp_reference and self.result not in OPTIONAL_PSP_REFERENCE_EVENTS:
+    def clean_event(self, info: ValidationInfo):
+        is_event_optional = (
+            info.context.get("is_event_optional", False) if info.context else False
+        )
+
+        if self.result is None:
+            if not is_event_optional:
+                raise ValueError("Providing `result` is required.")
+            if not self.psp_reference:
+                raise ValueError("Providing `pspReference` is required.")
+        elif (
+            not self.psp_reference and self.result not in OPTIONAL_PSP_REFERENCE_EVENTS
+        ):
             error_msg = f"Providing `pspReference` is required for {self.result.upper()} action result."
             raise ValueError(error_msg)
         return self
 
     @field_validator("amount", mode="after")
     @classmethod
-    def clean_amount(cls, amount: Decimal) -> Decimal:
+    def clean_amount(cls, amount: Decimal | None) -> Decimal | None:
+        if amount is None:
+            return None
         amount = amount.quantize(Decimal(10) ** (-settings.DEFAULT_DECIMAL_PLACES))
         return amount
 
@@ -150,7 +168,9 @@ class TransactionSchema(BaseModel):
 
     @field_validator("result", mode="after")
     @classmethod
-    def clean_result(cls, result: str) -> str:
+    def clean_result(cls, result: str | None) -> str | None:
+        if result is None:
+            return None
         return result.lower()
 
 
@@ -166,7 +186,7 @@ class TransactionChargeRequestedSchema(TransactionSchema):
             TransactionEventTypeEnum.CHARGE_SUCCESS.name,
             TransactionEventTypeEnum.CHARGE_FAILURE.name,
         ],
-        Field(description="Result of the action"),
+        Field(description="Result of the action", default=None),
     ]
 
 
@@ -176,7 +196,7 @@ class TransactionCancelRequestedSchema(TransactionSchema):
             TransactionEventTypeEnum.CANCEL_SUCCESS.name,
             TransactionEventTypeEnum.CANCEL_FAILURE.name,
         ],
-        Field(description="Result of the action"),
+        Field(description="Result of the action", default=None),
     ]
 
 
@@ -186,7 +206,7 @@ class TransactionRefundRequestedSchema(TransactionSchema):
             TransactionEventTypeEnum.REFUND_SUCCESS.name,
             TransactionEventTypeEnum.REFUND_FAILURE.name,
         ],
-        Field(description="Result of the action"),
+        Field(description="Result of the action", default=None),
     ]
 
 

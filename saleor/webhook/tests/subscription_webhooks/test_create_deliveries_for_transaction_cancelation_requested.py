@@ -72,6 +72,7 @@ def test_order_transaction_cancel_request(
         action_type=TransactionAction.CANCEL,
         event=request_event,
         transaction_app_owner=None,
+        action_value=authorized_value,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -100,7 +101,11 @@ def test_order_transaction_cancel_request(
             },
             "checkout": None,
         },
-        "action": {"actionType": "CANCEL", "amount": None, "currency": order.currency},
+        "action": {
+            "actionType": "CANCEL",
+            "amount": quantize_price(authorized_value, "USD"),
+            "currency": order.currency,
+        },
     }
 
 
@@ -143,6 +148,7 @@ def test_checkout_transaction_cancel_request(
         action_type=TransactionAction.CANCEL,
         event=request_event,
         transaction_app_owner=None,
+        action_value=authorized_value,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -182,5 +188,9 @@ def test_checkout_transaction_cancel_request(
                 },
             },
         },
-        "action": {"actionType": "CANCEL", "amount": None, "currency": "USD"},
+        "action": {
+            "actionType": "CANCEL",
+            "amount": quantize_price(authorized_value, "USD"),
+            "currency": "USD",
+        },
     }

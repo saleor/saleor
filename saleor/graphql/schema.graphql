@@ -15384,7 +15384,7 @@ type Mutation {
     actionType: TransactionActionEnum!
 
     """
-    Transaction request amount. If empty for refund or capture, maximal possible amount will be used.
+    Transaction request amount. If empty, maximal possible amount will be used.
     """
     amount: PositiveDecimal
 
@@ -33029,8 +33029,8 @@ type TransactionAction @doc(category: "Payments") {
   """Determines the action type."""
   actionType: TransactionActionEnum!
 
-  """Transaction request amount. Null when action type is VOID."""
-  amount: PositiveDecimal
+  """Transaction request amount."""
+  amount: PositiveDecimal!
 
   """Currency code."""
   currency: String!
