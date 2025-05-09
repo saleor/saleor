@@ -971,7 +971,7 @@ def _get_stock_for_preorder_allocation(
 
     if shipping_method_id is not None:
         warehouse = Warehouse.objects.filter(
-            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore[misc,union-attr]
+            shipping_zones__id=order.shipping_method.shipping_zone_id  # type: ignore[union-attr]
         ).first()
     else:
         from ..order.utils import get_order_country

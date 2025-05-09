@@ -237,7 +237,7 @@ def _order_assigned_attr_values(
         assignment_model.objects.filter(
             Exists(values_qs.filter(id=OuterRef("value_id"))),
             **instance_field_kwarg,
-        ).iterator()
+        ).iterator(chunk_size=1000)
     )
     for value in assigned_values:
         attribute_id = value_id_to_attribute_id[value.value_id]
