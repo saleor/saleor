@@ -382,7 +382,10 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
     # then
     assert parsed_data is None
-    assert isinstance(error_msg, str)
+    assert (
+        error_msg
+        == f"Incorrect value ({response_data['result']}) for field: result. Error: Input should be '{TransactionEventType.REFUND_SUCCESS.upper()}' or '{TransactionEventType.REFUND_FAILURE.upper()}'."
+    )
 
 
 @freeze_time("2018-05-31 12:00:01")

@@ -3,12 +3,12 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
-from ...response_schemas.annotations import logger as annotations_logger
 from ...response_schemas.payment import (
     CreditCardInfoSchema,
     ListStoredPaymentMethodsSchema,
     StoredPaymentMethodSchema,
 )
+from ...response_schemas.utils.annotations import logger as annotations_logger
 
 
 @pytest.mark.parametrize(

@@ -6,7 +6,6 @@ import graphene
 import pytest
 from pydantic import ValidationError
 
-from ...response_schemas.annotations import logger as annotations_logger
 from ...response_schemas.shipping import (
     ExcludedShippingMethodSchema,
     FilterShippingMethodsSchema,
@@ -14,6 +13,7 @@ from ...response_schemas.shipping import (
     ShippingMethodSchema,
     logger,
 )
+from ...response_schemas.utils.annotations import logger as annotations_logger
 from ...transport.shipping_helpers import to_shipping_app_id
 
 

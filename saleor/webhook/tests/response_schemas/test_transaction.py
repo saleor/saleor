@@ -109,7 +109,7 @@ def test_transaction_schema_with_various_amount_types(amount):
         # ISO 8601 format with week-based date
         ("2023-W01-1T12:00:00", datetime.fromisoformat),
         # Time as integer
-        (1672531200, datetime.fromtimestamp),
+        (1672531200, lambda t: datetime.fromtimestamp(t, tz=UTC)),
         # No time provided (should use current time)
         (None, None),
     ],

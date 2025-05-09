@@ -17,7 +17,7 @@ from ...graphql.core.utils import from_global_id_or_error
 from ...shipping.models import ShippingMethod
 from ..const import APP_ID_PREFIX
 from ..transport.shipping_helpers import to_shipping_app_id
-from .annotations import DefaultIfNone, Metadata, OnErrorSkip
+from .utils.annotations import DefaultIfNone, Metadata, OnErrorSkip
 
 logger = logging.getLogger(__name__)
 
