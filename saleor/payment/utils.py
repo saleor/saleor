@@ -820,7 +820,7 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
     return type_map.get(request_type, [])
 
 
-error_msg = str
+ErrorMsg = str
 
 
 def parse_transaction_action_data(
@@ -828,7 +828,7 @@ def parse_transaction_action_data(
     request_type: str,
     request_event_amount: Decimal,
     event_is_optional: bool = True,
-) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
+) -> tuple[Optional["TransactionRequestResponse"], ErrorMsg | None]:
     """Parse response from transaction action webhook.
 
     It takes the recieved response from sync webhook and
@@ -874,10 +874,25 @@ def parse_transaction_action_data(
             None,
         )
     except ValidationError as error:
-        error_msg_response = str(error)
+        error_msg_response = parse_validation_error(error)
         logger.warning(error_msg_response)
         error_msg_response = truncate_transaction_event_message(error_msg_response)
         return None, error_msg_response
+
+
+def parse_validation_error(error: ValidationError) -> ErrorMsg:
+    """Parse pydantic ValidationError to a human-readable message."""
+    errors = error.errors()
+    error_msg: list[str] = []
+    for error_data in errors:
+        field = ""
+        loc_data = error_data["loc"]
+        if loc_data:
+            field = str(loc_data[0])
+        error_msg.append(
+            f"Incorrect value ({error_data['input']}) for field: {field}. Error: {error_data['msg']}."
+        )
+    return "\n\n".join(error_msg)
 
 
 def parse_available_actions(available_actions):
@@ -985,7 +1000,7 @@ def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | No
 
 def deduplicate_event(
     event: TransactionEvent, app: App
-) -> tuple[TransactionEvent, error_msg | None]:
+) -> tuple[TransactionEvent, ErrorMsg | None]:
     """Deduplicate the TransactionEvent.
 
     In case of having an existing event with the same type, psp reference
@@ -1036,7 +1051,7 @@ def _create_event_from_response(
     transaction_id: int,
     currency: str,
     related_granted_refund_id: int | None = None,
-) -> tuple[TransactionEvent | None, error_msg | None]:
+) -> tuple[TransactionEvent | None, ErrorMsg | None]:
     app_identifier = None
     if app and app.identifier:
         app_identifier = app.identifier
@@ -1073,7 +1088,7 @@ def _get_parsed_transaction_action_data(
     event_type: str,
     request_event_amount: Decimal,
     event_is_optional: bool = True,
-) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
+) -> tuple[Optional["TransactionRequestResponse"], ErrorMsg | None]:
     if transaction_webhook_response is None:
         return None, "Failed to delivery request."
 

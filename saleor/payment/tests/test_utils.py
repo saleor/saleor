@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
+from pydantic import BaseModel, ValidationError
 
 from ...checkout import CheckoutAuthorizeStatus
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -30,6 +31,7 @@ from ..utils import (
     get_transaction_event_amount,
     logger,
     parse_transaction_action_data,
+    parse_validation_error,
     recalculate_refundable_for_checkout,
     try_void_or_refund_inactive_payment,
 )
@@ -382,7 +384,10 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
     # then
     assert parsed_data is None
-    assert isinstance(error_msg, str)
+    assert (
+        error_msg
+        == f"Incorrect value ({response_data['result']}) for field: result. Error: Input should be '{TransactionEventType.REFUND_SUCCESS.upper()}' or '{TransactionEventType.REFUND_FAILURE.upper()}'."
+    )
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -3708,3 +3713,41 @@ def test_deduplicate_event_authorization_already_exists(
     )
     assert caplog.records[0].levelno == logging.WARNING
     assert caplog.records[0].message == err_msg
+
+
+class TestSchema(BaseModel):
+    field1: int
+    field2: str
+
+
+def test_parse_validation_error_single_error():
+    # given
+    invalid_data = {"field1": "not_an_int", "field2": "valid_string"}
+
+    # when
+    try:
+        TestSchema.model_validate(invalid_data)
+    except ValidationError as error:
+        error_msg = parse_validation_error(error)
+
+    # then
+    assert error_msg == (
+        f"Incorrect value ({invalid_data['field1']}) for field: field1. Error: Input should be a valid integer, unable to parse string as an integer."
+    )
+
+
+def test_parse_validation_error_multiple_errors():
+    # given
+    invalid_data = {"field1": "not_an_int", "field2": 123}
+
+    # when
+    try:
+        TestSchema.model_validate(invalid_data)
+    except ValidationError as error:
+        error_msg = parse_validation_error(error)
+
+    # then
+    assert error_msg == (
+        f"Incorrect value ({invalid_data['field1']}) for field: field1. Error: Input should be a valid integer, unable to parse string as an integer.\n\n"
+        f"Incorrect value ({invalid_data['field2']}) for field: field2. Error: Input should be a valid string."
+    )
