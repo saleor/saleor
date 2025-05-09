@@ -168,6 +168,9 @@ def request_cancelation_action(
     app: App | None,
     action: str,
 ):
+    if cancel_value is None:
+        cancel_value = transaction.authorized_value
+
     transaction_action_data = _create_transaction_data(
         transaction=transaction,
         action_type=action,
@@ -195,7 +198,7 @@ def request_cancelation_action(
 def _create_transaction_data(
     transaction: TransactionItem,
     action_type: str,
-    action_value: Decimal | None,
+    action_value: Decimal,
     request_event: TransactionEvent,
     granted_refund: OrderGrantedRefund | None = None,
 ):
