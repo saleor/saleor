@@ -43,6 +43,7 @@ from ..webhook.response_schemas.transaction import (
     TransactionSchema,
     TransactionSessionSchema,
 )
+from ..webhook.response_schemas.utils.helpers import parse_validation_error
 from . import (
     ChargeStatus,
     GatewayError,
@@ -878,21 +879,6 @@ def parse_transaction_action_data(
         logger.warning(error_msg_response)
         error_msg_response = truncate_transaction_event_message(error_msg_response)
         return None, error_msg_response
-
-
-def parse_validation_error(error: ValidationError) -> ErrorMsg:
-    """Parse pydantic ValidationError to a human-readable message."""
-    errors = error.errors()
-    error_msg: list[str] = []
-    for error_data in errors:
-        field = ""
-        loc_data = error_data["loc"]
-        if loc_data:
-            field = str(loc_data[0])
-        error_msg.append(
-            f"Incorrect value ({error_data['input']}) for field: {field}. Error: {error_data['msg']}."
-        )
-    return "\n\n".join(error_msg)
 
 
 def parse_available_actions(available_actions):

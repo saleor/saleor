@@ -22,7 +22,7 @@ from ...payment import (
     TransactionAction,
     TransactionEventType,
 )
-from .annotations import DatetimeUTC, DefaultIfNone, OnErrorSkipLiteral
+from .utils.annotations import DatetimeUTC, DefaultIfNone, OnErrorSkipLiteral
 
 logger = logging.getLogger(__name__)
 

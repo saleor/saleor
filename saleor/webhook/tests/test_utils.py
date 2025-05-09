@@ -17,7 +17,7 @@ from ..observability.exceptions import (
     TruncationError,
 )
 from ..observability.payload_schema import ObservabilityEventTypes
-from ..response_schemas.annotations import logger as annotations_logger
+from ..response_schemas.utils.annotations import logger as annotations_logger
 from ..transport.list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
     logger,

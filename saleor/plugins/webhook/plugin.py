@@ -94,6 +94,7 @@ from ...webhook.payloads import (
 from ...webhook.response_schemas.transaction import (
     PaymentGatewayInitializeSessionSchema,
 )
+from ...webhook.response_schemas.utils.helpers import parse_validation_error
 from ...webhook.transport.asynchronous.transport import (
     WebhookPayloadData,
     send_webhook_request_async,
@@ -3504,7 +3505,7 @@ class WebhookPlugin(BasePlugin):
                 str(e),
                 extra={"errors": errors},
             )
-            error_msg = truncatechars(str(e), TAX_ERROR_FIELD_LENGTH)
+            error_msg = truncatechars(parse_validation_error(e), TAX_ERROR_FIELD_LENGTH)
             raise TaxDataError(error_msg, errors=errors) from e
         return tax_data
 

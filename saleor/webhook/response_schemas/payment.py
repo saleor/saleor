@@ -5,8 +5,8 @@ from pydantic import AfterValidator, BaseModel, Field, JsonValue, field_validato
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
-from .annotations import DefaultIfNone, OnErrorDefault, OnErrorSkip
-from .validators import lower_values
+from .utils.annotations import DefaultIfNone, OnErrorDefault, OnErrorSkip
+from .utils.validators import lower_values
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
     "TokenizedPaymentFlowEnum",
