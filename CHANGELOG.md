@@ -73,6 +73,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce `useLegacyLineVoucherPropagation` flag to control legacy propagation behavior for specific voucher types - #17587 - by @korycins
 - Add filterable subscriptions for checkout events (`checkoutCreated`, `checkoutUpdated`, `checkoutFullyPaid`, `checkoutMetadataUpdated`) - #17647 by @korycins
 
+
 ### Webhooks
 
 - Fixed webhookTrigger payload type for events related to ProductVariant - #16956 by @delemeator
@@ -82,6 +83,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed webhook `PRODUCT_VARIANT_METADATA_UPDATED` not being sent when `productVariantUpdate` mutation was called. Now, when `metadata` or `privateMetadata` is included in `ProductVariantUpdateInput`, both `PRODUCT_VARIANT_METADATA_UPDATED` and `PRODUCT_VARIANT_UPDATED` will be emitted (if subscribed) - #17406 by @lkostrowski
 - Update Draft Order shipping via `orderUpdateShipping` will emit `DRAFT_ORDER_UPDATED` webhook. Previously it was `ORDER_UPDATED` - #17480 by @lkostrowski
 - Update editable Order shipping via `orderUpdateShipping` will emit `ORDER_UPDATED` webhook when `shippingMethod` will be cleared (by passing `null` to graphQL input). - #17480 by @lkostrowski
+- Webhook `TRANSACTION_CANCELATION_REQUESTED` now provides a decimal value in the action.amount field instead of null - #17690 by @korycins
+- `TransactionAction.amount` field in subscription payload for webhooks: `TransactionRefundRequested`, `TransactionChargeRequested`, `TransactionCancelationRequested`, is now a non-null field - #17690 by @korycins
+- Field `amount` in the response for synchronous webhooks: `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED`, `TRANSACTION_INITIALIZE_SESSION`, `TRANSACTION_PROCESS_SESSION` is now optional field. If omitted, the system will default to using the `action.amount` specified in the payload. - #17690 by @korycins
 
 ### Other changes
 - Fixed outdated documentation links - #17675 by @krzysztofwolski
