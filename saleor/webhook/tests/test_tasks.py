@@ -642,12 +642,15 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     app,
 ):
     # given
-    expected_psp_reference = "psp:123:111"
     mocked_webhook_response.text = json.dumps(
-        {"pspReference": expected_psp_reference, "amount": 12.00}
+        {
+            "result": TransactionEventType.REFUND_REQUEST.upper(),
+        }
     )
     mocked_webhook_response.content = json.dumps(
-        {"pspReference": expected_psp_reference, "amount": 12.00}
+        {
+            "result": TransactionEventType.REFUND_REQUEST.upper(),
+        }
     )
     mocked_post_request.return_value = mocked_webhook_response
 
