@@ -85,7 +85,7 @@ def default_if_invalid(
 
 OnErrorDefault = Annotated[T, WrapValidator(default_if_invalid)]
 
-DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.replace(tzinfo=UTC))]
+DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.astimezone(UTC))]
 
 
 def skip_invalid_literal(value: T, handler: ValidatorFunctionWrapHandler) -> T:

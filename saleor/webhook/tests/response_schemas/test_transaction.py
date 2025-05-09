@@ -98,24 +98,27 @@ def test_transaction_schema_with_various_amount_types(amount):
 
 
 @pytest.mark.parametrize(
-    ("time", "time_parser"),
+    ("time", "expected_datetime"),
     [
         # ISO 8601 format with timezone
-        ("2023-01-01T12:00:00+00:00", datetime.fromisoformat),
+        ("2023-05-05T12:00:00+02:00", datetime(2023, 5, 5, 10, 0, 0, tzinfo=UTC)),
         # ISO 8601 format without timezone
-        ("2023-01-01T12:00:00", datetime.fromisoformat),
+        ("2023-02-04T10:15:22", datetime(2023, 2, 4, 10, 15, 22, tzinfo=UTC)),
         # ISO 8601 format with milliseconds
-        ("2023-01-01T12:00:00.123+00:00", datetime.fromisoformat),
+        (
+            "2023-01-01T12:00:00.123+00:00",
+            datetime(2023, 1, 1, 12, 0, 0, 123000, tzinfo=UTC),
+        ),
         # ISO 8601 format with week-based date
-        ("2023-W01-1T12:00:00", datetime.fromisoformat),
+        ("2023-W02-1T12:00:00", datetime(2023, 1, 9, 12, 0, tzinfo=UTC)),
         # Time as integer
-        (1672531200, lambda t: datetime.fromtimestamp(t, tz=UTC)),
+        (1672531400, datetime(2023, 1, 1, 0, 3, 20, tzinfo=UTC)),
         # No time provided (should use current time)
-        (None, None),
+        (None, datetime(2023, 1, 1, 12, 0, 0, tzinfo=UTC)),
     ],
 )
 @freeze_time("2023-01-01T12:00:00+00:00")
-def test_transaction_schema_time_valid(time, time_parser):
+def test_transaction_schema_time_valid(time, expected_datetime):
     # given
     data = {
         "pspReference": "123",
@@ -128,9 +131,7 @@ def test_transaction_schema_time_valid(time, time_parser):
     transaction = TransactionSchema.model_validate(data)
 
     # then
-    time = data.get("time")
-    parsed_time = time_parser(time) if time else timezone.now()
-    assert transaction.time == parsed_time.replace(tzinfo=UTC)
+    assert transaction.time == expected_datetime
 
 
 @pytest.mark.parametrize(
