@@ -2783,10 +2783,8 @@ def test_update_product_variant_with_existing_metadata_and_event_when_write_diff
     metadata_value = "mv"
 
     variant.name = "Name"
-    variant.metadata = {"key": metadata_key, "value": metadata_value}
-
-    variant.private_metadata = {"key": metadata_key, "value": metadata_value}
-
+    variant.metadata = {metadata_key: metadata_value}
+    variant.private_metadata = {metadata_key: metadata_value}
     variant.save()
 
     # When
