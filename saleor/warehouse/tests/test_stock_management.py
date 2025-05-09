@@ -14,7 +14,8 @@ from ..management import (
     allocate_preorders,
     allocate_stocks,
     deallocate_stock,
-    deallocate_stock_for_order,
+    deallocate_stock_for_orders,
+    decrease_allocations,
     decrease_stock,
     increase_allocations,
     increase_stock,
@@ -656,6 +657,77 @@ def test_increase_allocations(quantity, allocation):
     )
 
 
+@pytest.mark.parametrize(
+    ("first_quantity", "second_quantity"),
+    [(9, 20), (2, 19)],
+)
+def test_increase_allocations_with_multiple_allocations_for_the_same_stock(
+    first_quantity, second_quantity, allocations
+):
+    # given
+    first_allocation = allocations[0]
+    second_allocation = allocations[1]
+
+    # make sure that we have only two allocations for the same stock
+    Allocation.objects.exclude(
+        pk__in=[first_allocation.pk, second_allocation.pk]
+    ).delete()
+
+    first_order_line = first_allocation.order_line
+    first_order_line_info = OrderLineInfo(
+        line=first_order_line,
+        quantity=first_quantity,
+        variant=first_order_line.variant,
+        warehouse_pk=first_allocation.stock.warehouse.pk,
+    )
+
+    second_order_line = second_allocation.order_line
+    second_order_line_info = OrderLineInfo(
+        line=second_order_line,
+        quantity=second_quantity,
+        variant=second_order_line.variant,
+        warehouse_pk=second_allocation.stock.warehouse.pk,
+    )
+
+    assert first_order_line.variant == second_order_line.variant
+    assert first_allocation.stock_id == second_allocation.stock_id
+
+    stock = first_allocation.stock
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+
+    initially_allocated_in_single_allocation = stock.quantity_allocated / 2
+    first_allocation.quantity_allocated = initially_allocated_in_single_allocation
+    first_allocation.save(update_fields=["quantity_allocated"])
+    second_allocation.quantity_allocated = initially_allocated_in_single_allocation
+    second_allocation.save(update_fields=["quantity_allocated"])
+
+    # when
+    increase_allocations(
+        [first_order_line_info, second_order_line_info],
+        first_order_line.order.channel,
+        manager=get_plugins_manager(allow_replica=False),
+    )
+
+    stock.refresh_from_db()
+    assert stock.quantity == 100
+
+    # Check that both allocations are properly accounted for
+    first_allocated = first_order_line.allocations.all().aggregate(
+        Sum("quantity_allocated")
+    )["quantity_allocated__sum"]
+    second_allocated = second_order_line.allocations.all().aggregate(
+        Sum("quantity_allocated")
+    )["quantity_allocated__sum"]
+
+    assert (
+        first_allocated + second_allocated
+        == stock.quantity_allocated
+        == 80 + first_quantity + second_quantity
+    )
+
+
 def test_increase_allocation_insufficient_stock(allocation):
     order_line = allocation.order_line
     order_line_info = OrderLineInfo(
@@ -737,7 +809,7 @@ def test_decrease_stock(allocation):
 
 
 @pytest.mark.parametrize(("quantity", "expected_allocated"), [(50, 30), (200, 0)])
-def test_decrease_stock_without_stock_update(quantity, expected_allocated, allocation):
+def test_decrease_allocations(quantity, expected_allocated, allocation):
     stock = allocation.stock
     stock.quantity = 100
     stock.quantity_allocated = 80
@@ -746,7 +818,7 @@ def test_decrease_stock_without_stock_update(quantity, expected_allocated, alloc
     allocation.save(update_fields=["quantity_allocated"])
     warehouse_pk = allocation.stock.warehouse.pk
 
-    decrease_stock(
+    decrease_allocations(
         [
             OrderLineInfo(
                 line=allocation.order_line,
@@ -756,7 +828,6 @@ def test_decrease_stock_without_stock_update(quantity, expected_allocated, alloc
             )
         ],
         manager=get_plugins_manager(allow_replica=False),
-        update_stocks=False,
     )
 
     stock.refresh_from_db()
@@ -1014,11 +1085,13 @@ def test_decrease_stock_insufficient_stock(allocation):
     assert allocation.quantity_allocated == 80
 
 
-def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
+def test_deallocate_stock_for_orders(order_line_with_allocation_in_many_stocks):
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
 
-    deallocate_stock_for_order(order, manager=get_plugins_manager(allow_replica=False))
+    deallocate_stock_for_orders(
+        [order.id], manager=get_plugins_manager(allow_replica=False)
+    )
 
     allocations = order_line.allocations.all()
     assert (
@@ -1031,6 +1104,51 @@ def test_deallocate_stock_for_order(order_line_with_allocation_in_many_stocks):
         == allocations[1].stock.quantity_allocated
         == 0
     )
+
+
+def test_deallocate_stock_for_orders_with_multiple_allocations_from_the_same_stock(
+    allocations,
+):
+    # given
+    first_allocation = allocations[0]
+    second_allocation = allocations[1]
+
+    # make sure that we have only two allocations for the same stock
+    Allocation.objects.exclude(
+        pk__in=[first_allocation.pk, second_allocation.pk]
+    ).delete()
+
+    stock = first_allocation.stock
+    stock.quantity = 100
+    stock.quantity_allocated = (
+        first_allocation.quantity_allocated + second_allocation.quantity_allocated
+    )
+
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+
+    first_order_line = first_allocation.order_line
+    second_order_line = second_allocation.order_line
+    order = first_order_line.order
+
+    second_order_line.order = order
+    second_order_line.save(update_fields=["order"])
+
+    assert first_order_line.variant == second_order_line.variant
+    assert first_allocation.stock_id == second_allocation.stock_id
+
+    # when
+    deallocate_stock_for_orders(
+        [order.id], manager=get_plugins_manager(allow_replica=False)
+    )
+
+    # then
+    first_allocation.refresh_from_db()
+    second_allocation.refresh_from_db()
+    stock.refresh_from_db()
+
+    assert stock.quantity_allocated == 0
+    assert first_allocation.quantity_allocated == 0
+    assert second_allocation.quantity_allocated == 0
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")

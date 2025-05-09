@@ -375,14 +375,14 @@ def add_variant_to_order(
 
     Returns an order line the variant was added to.
     """
-    channel = order.channel
-
     is_new_line = not line_data.line_id
     if not is_new_line:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
-        line_info = OrderLineInfo(line=line, quantity=old_quantity)
+        line_info = OrderLineInfo(
+            line=line, variant=line_data.variant, quantity=old_quantity
+        )
         update_fields: list[str] = []
         if new_quantity and line_data.price_override is not None:
             update_line_base_unit_prices_with_custom_price(
@@ -399,24 +399,11 @@ def add_variant_to_order(
             manager=manager,
             send_event=False,
             update_fields=update_fields,
+            allocate_stock=allocate_stock,
         )
 
         if update_fields:
             line.save(update_fields=update_fields)
-
-        if allocate_stock:
-            increase_allocations(
-                [
-                    OrderLineInfo(
-                        line=line,
-                        quantity=line_data.quantity,
-                        variant=line_data.variant,
-                        warehouse_pk=None,
-                    )
-                ],
-                channel,
-                manager=manager,
-            )
 
         return line
 
@@ -550,10 +537,9 @@ def _update_allocations_for_line(
     if old_quantity == new_quantity:
         return
 
-    if not get_order_lines_with_track_inventory([line_info]):
-        return
-
     if old_quantity < new_quantity:
+        if not get_order_lines_with_track_inventory([line_info]):
+            return
         line_info.quantity = new_quantity - old_quantity
         increase_allocations([line_info], channel, manager)
     else:
@@ -571,13 +557,14 @@ def change_order_line_quantity(
     manager: "PluginsManager",
     send_event: bool = True,
     update_fields: list[str] | None = None,
+    allocate_stock: bool = False,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
     channel = order.channel
     currency = channel.currency_code
     if new_quantity:
-        if line.order.is_unconfirmed():
+        if allocate_stock:
             _update_allocations_for_line(
                 line_info, old_quantity, new_quantity, channel, manager
             )

@@ -37,9 +37,8 @@ from ..plugins.manager import PluginsManager
 from ..shipping.models import ShippingMethodChannelListing
 from ..warehouse.management import (
     deallocate_stock,
-    deallocate_stock_for_order,
+    deallocate_stock_for_orders,
     decrease_stock,
-    get_order_lines_with_track_inventory,
 )
 from ..warehouse.models import Stock
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -419,7 +418,7 @@ def cancel_order(
     # transaction ensures proper allocation and event triggering
     with traced_atomic_transaction():
         events.order_canceled_event(order=order, user=user, app=app)
-        deallocate_stock_for_order(order, manager)
+        deallocate_stock_for_orders([order.id], manager)
         order.status = OrderStatus.CANCELED
         order.save(update_fields=["status", "updated_at"])
         if not webhook_event_map:
@@ -900,7 +899,11 @@ def approve_fulfillment(
         if insufficient_stocks:
             raise InsufficientStock(insufficient_stocks)
 
-        _decrease_stocks(lines_to_fulfill, manager, allow_stock_to_be_exceeded)
+        decrease_stock(
+            lines_to_fulfill,
+            manager,
+            allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+        )
         order.refresh_from_db()
         order_fulfilled(
             [fulfillment],
@@ -1032,16 +1035,6 @@ def clean_mark_order_as_paid(order: "Order"):
         )
 
 
-def _decrease_stocks(order_lines_info, manager, allow_stock_to_be_exceeded=False):
-    lines_to_decrease_stock = get_order_lines_with_track_inventory(order_lines_info)
-    if lines_to_decrease_stock:
-        decrease_stock(
-            lines_to_decrease_stock,
-            manager,
-            allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
-        )
-
-
 def _increase_order_line_quantity(order_lines_info):
     order_lines = []
     for line_info in order_lines_info:
@@ -1061,7 +1054,11 @@ def fulfill_order_lines(
     # transaction ensures that there is a consistency between quantities in order line
     # and stocks
     with traced_atomic_transaction():
-        _decrease_stocks(order_lines_info, manager, allow_stock_to_be_exceeded)
+        decrease_stock(
+            order_lines_info,
+            manager,
+            allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+        )
         _increase_order_line_quantity(order_lines_info)
 
 
@@ -1136,7 +1133,7 @@ def _create_fulfillment_lines(
     channel_slug: str,
     gift_card_lines_info: list[GiftCardLineData],
     manager: "PluginsManager",
-    decrease_stock: bool = True,
+    should_decrease_stock: bool = True,
     allow_stock_to_be_exceeded: bool = False,
 ) -> list[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
@@ -1157,7 +1154,7 @@ def _create_fulfillment_lines(
         gift_card_lines_info (List): List with information required
             to create gift cards.
         manager (PluginsManager): Plugin manager from given context
-        decrease_stock (Bool): Stocks will get decreased if this is True.
+        should_decrease_stock (Bool): Stocks will get decreased if this is True.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
             Default value is set to `False`.
 
@@ -1239,8 +1236,13 @@ def _create_fulfillment_lines(
         raise InsufficientStock(insufficient_stocks)
 
     if lines_info:
-        if decrease_stock:
-            _decrease_stocks(lines_info, manager, allow_stock_to_be_exceeded)
+        if should_decrease_stock:
+            decrease_stock(
+                lines_info,
+                manager,
+                allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+            )
+
         _increase_order_line_quantity(lines_info)
 
     return fulfillment_lines
@@ -1338,7 +1340,7 @@ def create_fulfillments(
                     order.channel.slug,
                     gift_card_lines_info,
                     manager,
-                    decrease_stock=auto_approved,
+                    should_decrease_stock=auto_approved,
                     allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                 )
             )
