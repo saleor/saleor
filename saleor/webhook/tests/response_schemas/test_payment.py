@@ -521,6 +521,14 @@ def test_stored_payment_method_delete_requested_schema_valid(data):
             },
             "result",
         ),
+        # Lower value for `result`
+        (
+            {
+                "result": "successfully_deleted",
+                "error": "Some error occurred",
+            },
+            "result",
+        ),
         # Invalid `result` value
         (
             {

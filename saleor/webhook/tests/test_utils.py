@@ -9,11 +9,6 @@ from ..observability.exceptions import (
     TruncationError,
 )
 from ..observability.payload_schema import ObservabilityEventTypes
-from ..response_schemas.utils.annotations import logger as annotations_logger
-from ..transport.list_stored_payment_methods import (
-    get_list_stored_payment_methods_from_response,
-    logger,
-)
 from ..transport.utils import (
     generate_cache_key_for_webhook,
 )
