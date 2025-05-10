@@ -108,6 +108,15 @@ class Mutation(
     pass
 
 
+WebhookRequiredFieldDirective = graphql.GraphQLDirective(
+    name="webhookRequiredField",
+    description="Webhook required field",
+    locations=[
+        graphql.DirectiveLocation.FIELD,
+        graphql.DirectiveLocation.OBJECT,
+    ],
+)
+
 GraphQLDocDirective = graphql.GraphQLDirective(
     name="doc",
     description="Groups fields and operations into named groups.",
@@ -179,7 +188,11 @@ schema = build_federated_schema(
     types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
     directives=graphql.specified_directives
-    + [GraphQLDocDirective, GraphQLWebhookEventsInfoDirective],
+    + [
+        GraphQLDocDirective,
+        GraphQLWebhookEventsInfoDirective,
+        WebhookRequiredFieldDirective,
+    ],
 )
 
 

@@ -19,6 +19,9 @@ directive @webhookEventsInfo(
   syncEvents: [WebhookEventTypeSyncEnum!]!
 ) on FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT
 
+"""Webhook required field"""
+directive @webhookRequiredField on FIELD | OBJECT
+
 type Query {
   """
   Look up a webhook by ID. Requires one of the following permissions: MANAGE_APPS, OWNER.

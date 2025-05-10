@@ -96,6 +96,134 @@ def test_subscription_query_with_meta(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_with_webhook_required_field_and_lack_of_required_fields(
+    customer_user, channel_USD, subscription_account_confirmation_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_confirmation_requested_webhook]
+    webhooks[
+        0
+    ].subscription_query = """
+    subscription{
+		event{
+			...on AccountConfirmationRequested{
+				user{
+					metadata @webhookRequiredField {
+						key
+					}
+					privateMetadata {
+						value @webhookRequiredField
+					}
+				}
+			}
+		}
+	}
+    """
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    assert not deliveries
+
+
+def test_with_webhook_required_field_and_with_values_in_required_fields(
+    customer_user, channel_USD, subscription_account_confirmation_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_confirmation_requested_webhook]
+    webhooks[
+        0
+    ].subscription_query = """
+    subscription{
+		event{
+			...on AccountConfirmationRequested{
+				user{
+					metadata @webhookRequiredField {
+						key
+					}
+				}
+			}
+		}
+	}
+    """
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+
+    customer_user.metadata = {"M1Key": "M1Value"}
+    customer_user.save(update_fields=["metadata"])
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+
+    assert deliveries[0].payload.get_payload() == json.dumps(
+        {"user": {"metadata": [{"key": "M1Key"}]}}
+    )
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_with_webhook_required_field_with_lack_of_required_fields_foreign_rel(
+    customer_user, channel_USD, subscription_account_confirmation_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_confirmation_requested_webhook]
+    webhooks[
+        0
+    ].subscription_query = """
+    subscription{
+		event{
+			...on AccountConfirmationRequested{
+				user{
+					defaultShippingAddress @webhookRequiredField {
+						id
+					}
+				}
+			}
+		}
+	}
+    """
+    customer_user.default_shipping_address = None
+    customer_user.save(update_fields=["default_shipping_address"])
+
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    assert not deliveries
+
+
 def test_account_confirmation_requested(
     customer_user, channel_USD, subscription_account_confirmation_requested_webhook
 ):

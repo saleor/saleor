@@ -19,6 +19,7 @@ from ...webhook.models import Webhook
 from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 from ..utils import format_error
+from ..webhook.subscription_query import SubscriptionQuery
 
 logger = get_task_logger(__name__)
 
@@ -65,11 +66,19 @@ def get_event_payload(event):
     return event
 
 
-def _process_payload_instance(payload_instance):
+def _process_payload_instance(payload_instance, required_fields_map):
     """Process a payload instance to extract data."""
     for payload_key in payload_instance.data.keys():
         extracted_payload = get_event_payload(payload_instance.data.get(payload_key))
         payload_instance.data[payload_key] = extracted_payload
+
+    payload_is_valid = all_required_fields_are_present(
+        payload_instance.data, required_fields_map
+    )
+    if not payload_is_valid:
+        logger.warning("Payload is missing required fields: %s", required_fields_map)
+        return None
+
     if "event" in payload_instance.data or not payload_instance.data:
         event_payload = payload_instance.data.get("event") or {}
     else:
@@ -111,6 +120,9 @@ def generate_payload_promise_from_subscription(
         schema,
         ast,
     )
+    ss = SubscriptionQuery(subscription_query)
+    required_fields_map = ss.extract_required_fields()
+
     app_id = app.pk if app else None
     request.app = app
     results_promise = document.execute(
@@ -142,7 +154,7 @@ def generate_payload_promise_from_subscription(
             return None
 
         payload_instance = payload[0]
-        event_payload = _process_payload_instance(payload_instance)
+        event_payload = _process_payload_instance(payload_instance, required_fields_map)
 
         def check_errors(event_payload, payload_instance=payload_instance):
             if payload_instance.errors:
@@ -160,6 +172,27 @@ def generate_payload_promise_from_subscription(
         return results_promise.then(return_payload_promise)
     result = return_payload_promise(results_promise)
     return Promise.resolve(result)
+
+
+def all_required_fields_are_present(
+    payload: dict[str, Any], required_fields_map: dict[str, Any]
+) -> bool:
+    if not required_fields_map:
+        return True
+    for field_path in required_fields_map.keys():
+        if field_path not in payload:
+            # FIXME: temporary logger. It do not take into account the whole path.
+            logger.warning("Field %s is missing.", field_path)
+            return False
+        if payload[field_path] is None:
+            # FIXME: temporary logger. It do not take into account the whole path.
+            logger.warning("Field %s is null.", field_path)
+            return False
+        if not all_required_fields_are_present(
+            payload[field_path], required_fields_map[field_path]
+        ):
+            return False
+    return True
 
 
 def generate_payload_from_subscription(
@@ -190,6 +223,11 @@ def generate_payload_from_subscription(
 
     graphql_backend = get_default_backend()
     ast = parse(subscription_query)
+
+    # FIXME: Unify the logic. We could use SubscriptionQuery to handle generation.
+    ss = SubscriptionQuery(subscription_query)
+    required_fields_map = ss.extract_required_fields()
+
     document = graphql_backend.document_from_string(
         schema,
         ast,
@@ -220,7 +258,7 @@ def generate_payload_from_subscription(
         return None
 
     payload_instance = payload[0]
-    event_payload = _process_payload_instance(payload_instance)
+    event_payload = _process_payload_instance(payload_instance, required_fields_map)
     if payload_instance.errors:
         event_payload["errors"] = [
             format_error(error, (GraphQLError, PermissionDenied))

@@ -1,5 +1,5 @@
 from enum import Flag
-from typing import cast
+from typing import Any, cast
 
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_snake_case
@@ -12,6 +12,7 @@ from graphql.language.ast import (
     FragmentSpread,
     InlineFragment,
     OperationDefinition,
+    SelectionSet,
 )
 
 from ...webhook.error_codes import WebhookErrorCode
@@ -95,6 +96,63 @@ class SubscriptionQuery:
                 requires = [value.value for value in argument_values]
                 break
         return requires
+
+    def extract_required_fields(self) -> dict[str, Any]:
+        """Extract required fields from the subscription."""
+        if not self.is_valid:
+            return {}
+
+        subscription = self._get_subscription(self.ast)
+        subscription = cast(OperationDefinition, subscription)
+
+        top_field_selection = [
+            selection.name.value for selection in subscription.selection_set.selections
+        ]
+        event_selected = "event" in top_field_selection
+
+        def _get_required_directive_in_selection_set(
+            selection_set: SelectionSet | None, parent_name: str | None = None
+        ) -> None | dict[str, Any]:
+            inter_required_field_map = {}
+            if not selection_set:
+                return {}
+            if not selection_set or not hasattr(selection_set, "selections"):
+                return {}
+
+            for selection in selection_set.selections:
+                # FIXME: FragmentSpread is not handled
+                # FIXME: max depth for recursion
+                # FIXME: How do we want to handle list of objects?  Getting list
+                #  of objects when one of them do not match condition?
+                # {user: {orders: [{shippingMethod: null}, {shippingMethod: {...}}]}}
+
+                if isinstance(selection, InlineFragment):
+                    recu_response = _get_required_directive_in_selection_set(
+                        selection.selection_set, parent_name
+                    )
+                    if recu_response:
+                        inter_required_field_map[parent_name] = recu_response
+                    continue
+
+                if isinstance(selection, Field) and selection.directives:
+                    for directive in selection.directives:
+                        if directive.name.value == "webhookRequiredField":
+                            inter_required_field_map[selection.name.value] = {}
+
+                if getattr(selection, "selection_set", None):
+                    recu_response = _get_required_directive_in_selection_set(
+                        selection.selection_set, parent_name=selection.name.value
+                    )
+                    if parent_name is None and event_selected:
+                        return recu_response
+                    if recu_response:
+                        inter_required_field_map[selection.name.value] = recu_response
+
+            return inter_required_field_map
+
+        return _get_required_directive_in_selection_set(
+            subscription.selection_set, None
+        )
 
     def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
         """Check if subscription selects only one top field.
