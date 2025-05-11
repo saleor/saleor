@@ -2,6 +2,7 @@ import os.path
 import secrets
 from collections.abc import Collection, Iterable
 from enum import Enum
+from io import BytesIO
 from itertools import chain
 from typing import Any, TypeVar, cast, overload
 from uuid import UUID
@@ -24,6 +25,7 @@ from ...core.db.connection import allow_writer
 from ...core.exceptions import PermissionDenied
 from ...core.utils import metadata_manager
 from ...core.utils.events import call_event
+from ...core.utils.svg_sanititzer import sanitize_svg
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import BasePermissionEnum
 from ...permission.utils import (
@@ -1182,6 +1184,19 @@ class FileUpload(BaseMutation):
         if not file_data.file:
             raise ValidationError("Received an empty file.")
 
+        # Sanitize SVG files
+        if file_data.content_type == "image/svg+xml":
+            svg_bytes = file_data.read()
+            sanitized_svg = sanitize_svg(svg_bytes)
+            file_data = UploadedFile(
+                file=BytesIO(sanitized_svg),
+                name=file_data.name,
+                content_type=file_data.content_type,
+                size=len(sanitized_svg),
+                charset=file_data.charset,
+                content_type_extra=file_data.content_type_extra,
+            )
+
         # add unique text fragment to the file name to prevent file overriding
         file_name, format = os.path.splitext(file_data.name or "")
 
@@ -1191,7 +1206,8 @@ class FileUpload(BaseMutation):
 
         hash = secrets.token_hex(nbytes=4)
         new_name = f"file_upload/{file_name}_{hash}{format}"
-
+        if not file_data.file:
+            raise GraphQLError("Received an empty file.")
         path = default_storage.save(new_name, file_data.file)
 
         return FileUpload(
