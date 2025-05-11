@@ -76,6 +76,35 @@ def test_page_delete_trigger_webhook(
     )
 
 
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_page_delete_trigger_webhook_with_page_type(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    page,
+    permission_manage_pages,
+    settings,
+):
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    variables = {"id": graphene.Node.to_global_id("Page", page.id)}
+    response = staff_api_client.post_graphql(
+        PAGE_DELETE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["pageDelete"]
+    assert data["page"]["title"] == page.title
+    with pytest.raises(page._meta.model.DoesNotExist):
+        page.refresh_from_db()
+
+    mocked_webhook_trigger.assert_called_once()
+    sent_page = mocked_webhook_trigger.call_args.args[3]
+
+    assert sent_page.page_type is not None
+
+
 def test_page_delete_with_file_attribute(
     staff_api_client,
     page,
