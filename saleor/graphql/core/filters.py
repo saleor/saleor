@@ -281,7 +281,7 @@ class CharWhereFilter(WhereFilter):
 
 
 class EnumWhereFilter(CharWhereFilter):
-    """Wheer filter class for Graphene enum object.
+    """Where filter class for Graphene enum object.
 
     enum_class needs to be passed explicitly as well as the method.
     """

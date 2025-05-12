@@ -447,7 +447,6 @@ def filter_variants_by_stock_availability(qs, stock_availability, channel_slug):
     stocks = _get_positive_stocks_considering_allocations_and_reservations(
         qs.db, channel_slug
     )
-
     if stock_availability == StockAvailability.IN_STOCK:
         qs = qs.filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
     if stock_availability == StockAvailability.OUT_OF_STOCK:
@@ -1326,7 +1325,7 @@ class ProductVariantFilter(MetadataFilterBase):
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range
     )
-    stock_availability = EnumWhereFilter(
+    stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
         help_text="Filter by variant product stock status.",
