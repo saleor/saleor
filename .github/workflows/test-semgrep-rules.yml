@@ -21,9 +21,12 @@ jobs:
             .semgrep
 
       - name: Install Dependencies
-        # Note: cannot be updated to '>1.52.0' due to Saleor depending on
-        #       urllib3 v1.x (https://github.com/saleor/saleor/issues/17130)
-        run: python3 -m pip install semgrep==1.52.0
+        # Note: cannot use v1.51.0 due to 'regex-fix' groups feature being broken.
+        #       The issue was fixed in v1.86.0, however we cannot update to
+        #       to '>=1.86.0' due to Saleor depending on urllib3 v1.x
+        #       (https://github.com/saleor/saleor/issues/17130 - urllib3 v2.x is required
+        #       in Semgrep since v1.53.0)
+        run: python3 -m pip install semgrep==1.50.0
 
       - name: Run Tests
         working-directory: .semgrep

@@ -167,9 +167,13 @@ package-mode = false
   pytest-xdist = "^3.0.2"
   pywatchman = "^2.0.0"
   ruff = "^0.9.1"
-  # Note: cannot be updated to '>1.52.0' due to Saleor depending on
-  # urllib3 v1.x (https://github.com/saleor/saleor/issues/17130)
-  semgrep = ">=1.34.0"
+  # Notes for Semgrep:
+  # - Cannot use v1.51.0 due to 'regex-fix' groups feature being broken.
+  #   The issue was fixed in v1.86.0, however we cannot update to
+  #   to '>=1.86.0' due to Saleor depending on urllib3 v1.x
+  #   (https://github.com/saleor/saleor/issues/17130 - urllib3 v2.x is required
+  #   in Semgrep since v1.53.0)
+  semgrep = "<=1.50.0 || >=1.86.0"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"
   types-mock = "^5.0.0.5"
