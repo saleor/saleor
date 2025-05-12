@@ -2,11 +2,11 @@ import logging
 from typing import cast
 from urllib.parse import urlencode
 
-from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
+from ..core.tokens import token_generator
 from ..core.utils.events import call_event
 from ..core.utils.url import prepare_url
 from ..graphql.plugins.dataloaders import get_plugin_manager_promise
@@ -54,7 +54,7 @@ def trigger_send_password_reset_notification(
         staff=user.is_staff,
     )
 
-    token = default_token_generator.make_token(user)
+    token = token_generator.make_token(user)
     redirect_params = _prepare_redirect_url(user, redirect_url, token)
 
     if user.is_staff:
@@ -98,7 +98,7 @@ def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
 
     if site.settings.enable_account_confirmation_by_email:
         # Notifications will be deprecated in the future
-        token = default_token_generator.make_token(user)
+        token = token_generator.make_token(user)
         notifications.send_account_confirmation(
             user=user,
             redirect_url=redirect_url,
