@@ -201,13 +201,13 @@ def test_get_response_for_stored_payment_method_request_delete_valid_response(
         (
             {"error": "Missing result"},
             StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
-            "validation error for StoredPaymentMethodDeleteRequestedSchema",
+            "Incorrect value ({'error': 'Missing result'}) for field: result. Error: Field required.",
         ),
         # Invalid `result` value
         (
             {"result": "INVALID_RESULT", "error": "Invalid result value"},
             StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-            "validation error for StoredPaymentMethodDeleteRequestedSchema",
+            "Incorrect value (INVALID_RESULT) for field: result. Error: Value error, Enum name not found: INVALID_RESULT.",
         ),
     ],
 )

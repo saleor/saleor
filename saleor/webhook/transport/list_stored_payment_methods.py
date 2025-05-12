@@ -22,6 +22,7 @@ from ..response_schemas.payment import (
     ListStoredPaymentMethodsSchema,
     StoredPaymentMethodDeleteRequestedSchema,
 )
+from ..response_schemas.utils.helpers import parse_validation_error
 from .utils import generate_cache_key_for_webhook, to_payment_app_id
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ def get_response_for_stored_payment_method_request_delete(
             error = delete_requested_model.error
         except ValidationError as e:
             result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
-            error = str(e)
+            error = parse_validation_error(e)
 
     return StoredPaymentMethodRequestDeleteResponseData(
         result=result,
