@@ -137,88 +137,69 @@ def test_get_list_stored_payment_methods_from_response_invalid_input_data(
 
 
 @pytest.mark.parametrize(
-    ("response_data", "expected_result", "expected_error"),
+    "response_data",
     [
         # Response with SUCCESSFULLY_DELETED result
-        (
-            {
-                "result": StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED.name,
-                "error": None,
-            },
-            StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED,
-            None,
-        ),
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED.name,
+            "error": None,
+        },
         # Response with FAILED_TO_DELETE result and error
-        (
-            {
-                "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
-                "error": "Some error occurred",
-            },
-            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-            "Some error occurred",
-        ),
-        # Response with FAILED_TO_DELETE result and error
-        (
-            {
-                "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
-                "error": "Some error occurred",
-            },
-            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
-            "Some error occurred",
-        ),
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
+            "error": "Some error occurred",
+        },
+        # Response with FAILED_TO_DELIVER result and error
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
+            "error": "Some error occurred",
+        },
         # Response with FAILED_TO_DELETE result no error
-        (
-            {"result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name},
-            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-            None,
-        ),
+        {"result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name},
         # Response with FAILED_TO_DELETE result error as None
-        (
-            {
-                "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
-                "error": None,
-            },
-            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
-            None,
-        ),
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
+            "error": None,
+        },
     ],
 )
 def test_get_response_for_stored_payment_method_request_delete_valid_response(
-    response_data, expected_result, expected_error
+    response_data,
 ):
     # when
     response = get_response_for_stored_payment_method_request_delete(response_data)
 
     # then
-    assert response.result == expected_result
-    assert expected_error == response.error
+    assert response.result.name == response_data["result"]
+    assert response.error == response_data.get("error")
 
 
 @pytest.mark.parametrize(
-    ("response_data", "expected_result", "expected_error"),
+    ("response_data", "expected_error"),
     [
         # Missing `result` in response
         (
             {"error": "Missing result"},
-            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER,
             "Incorrect value ({'error': 'Missing result'}) for field: result. Error: Field required.",
         ),
         # Invalid `result` value
         (
             {"result": "INVALID_RESULT", "error": "Invalid result value"},
-            StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
             "Incorrect value (INVALID_RESULT) for field: result. Error: Value error, Enum name not found: INVALID_RESULT.",
         ),
     ],
 )
 def test_get_response_for_stored_payment_method_request_delete_invalid_response(
-    response_data, expected_result, expected_error
+    response_data, expected_error
 ):
     # when
     response = get_response_for_stored_payment_method_request_delete(response_data)
 
     # then
-    assert response.result == expected_result
+    assert (
+        response.result.name
+        == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name
+    )
     assert expected_error in response.error
 
 
