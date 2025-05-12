@@ -1,12 +1,12 @@
 import graphene
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from .....account import events as account_events
 from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....core.db.connection import allow_writer
+from .....core.tokens import token_generator
 from .....order.utils import match_orders_with_new_user
 from ....core import ResolveInfo
 from ....core.context import disallow_replica_in_context
@@ -59,7 +59,7 @@ class SetPassword(CreateToken):
             error = True
             user = models.User()
 
-        valid_token = default_token_generator.check_token(user, token)
+        valid_token = token_generator.check_token(user, token)
         if not valid_token or error:
             raise ValidationError(
                 {

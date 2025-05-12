@@ -1017,6 +1017,8 @@ ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
 TRANSACTION_ITEMS_LIMIT = 100
 
 
+TOKEN_GENERATOR_CLASS = "django.contrib.auth.tokens.PasswordResetTokenGenerator"
+
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)

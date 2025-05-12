@@ -124,3 +124,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - The prices for draft orders created in `OrderBulkCreate` now are properly calculated - #17583 by @IKarbowiak
 - Fixes incorrect stock deallocation when multiple order lines share the same ProductVariant - #17657 by @korycins
 - Decrease allocations for lines with inventory tracking disabled, if allocations exist - #17657 by @korycins
+- Make token generator class configurable - #17701 by @wcislo-saleor
