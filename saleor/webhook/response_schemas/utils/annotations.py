@@ -110,9 +110,14 @@ class EnumName:
     def __get_pydantic_core_schema__(
         self, enum_cls: type[Enum], _handler: GetCoreSchemaHandler
     ):
+        name_enum = Enum(  # type: ignore[misc]
+            "name_enum", {member.name: member.name for member in enum_cls}
+        )
+
         def enum_or_name(value: Enum | str) -> Enum:
             if isinstance(value, enum_cls):
                 return value
+
             if isinstance(value, str):
                 try:
                     if self.ignore_case:
@@ -131,7 +136,7 @@ class EnumName:
         return core_schema.no_info_plain_validator_function(
             enum_or_name,
             json_schema_input_schema=core_schema.enum_schema(
-                enum_cls, [member.name for member in enum_cls]
+                enum_cls, list(name_enum.__members__.values())
             ),
             ref=enum_cls.__name__,
             serialization=core_schema.plain_serializer_function_ser_schema(
