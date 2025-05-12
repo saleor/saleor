@@ -167,6 +167,8 @@ package-mode = false
   pytest-xdist = "^3.0.2"
   pywatchman = "^2.0.0"
   ruff = "^0.9.1"
+  # Note: cannot be updated to '>1.52.0' due to Saleor depending on
+  # urllib3 v1.x (https://github.com/saleor/saleor/issues/17130)
   semgrep = ">=1.34.0"
   types-certifi = "^2021.10.8"
   types-freezegun = "^1.1.7"

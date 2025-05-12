@@ -21,7 +21,9 @@ jobs:
             .semgrep
 
       - name: Install Dependencies
-        run: python3 -m pip install semgrep==1.39.0
+        # Note: cannot be updated to '>1.52.0' due to Saleor depending on
+        #       urllib3 v1.x (https://github.com/saleor/saleor/issues/17130)
+        run: python3 -m pip install semgrep==1.52.0
 
       - name: Run Tests
         working-directory: .semgrep
