@@ -94,7 +94,7 @@ def remove_apps_task():
 
     # Saleor needs to remove app by app to prevent timeouts
     # on database when removing many deliveries.
-    for app in apps.iterator():
+    for app in apps.iterator(chunk_size=1000):
         webhooks = Webhook.objects.filter(app_id=app.id)
 
         # Saleor uses batch size here to prevent timeouts on database.

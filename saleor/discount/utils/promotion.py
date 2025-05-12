@@ -522,7 +522,7 @@ def get_variants_to_promotion_rules_map(
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 
-    for promotion_rule_variant in promotion_rule_variants.iterator():
+    for promotion_rule_variant in promotion_rule_variants.iterator(chunk_size=1000):
         rule_id = promotion_rule_variant.promotionrule_id
         rule = rules_in_bulk.get(rule_id)
         # there is no rule when it is a part of inactive promotion
@@ -563,7 +563,7 @@ def fetch_promotion_rules_for_checkout_or_order(
     qs = instance._meta.model.objects.using(database_connection_name).filter(  # type: ignore[attr-defined] # noqa: E501
         pk=instance.pk
     )
-    for rule in rules.iterator():
+    for rule in rules.iterator(chunk_size=1000):
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if channel_id not in rule_channel_ids:
             continue
@@ -819,7 +819,7 @@ def _handle_gift_reward(
         (
             line_discount,
             discount_created,
-        ) = discount_model.objects.get_or_create(  # type: ignore[attr-defined]
+        ) = discount_model.objects.get_or_create(
             type=DiscountType.ORDER_PROMOTION,
             line=line,
             defaults=asdict(line_discount_data),
@@ -868,7 +868,7 @@ def _handle_gift_reward(
             line_info for line_info in lines_info if line_info.line.pk == line.id
         )
         line_info.line = line
-        line_info.discounts = [line_discount]
+        line_info.discounts = [line_discount]  # type: ignore[assignment]
 
 
 def get_active_catalogue_promotion_rules(

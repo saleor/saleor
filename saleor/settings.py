@@ -842,7 +842,7 @@ for entry_point in installed_plugins:
             INSTALLED_APPS.append(entry_point.name)
         EXTERNAL_PLUGINS.append(plugin_path)
 
-PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
+PLUGINS: list[str] = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
 
 # When `True`, HTTP requests made from arbitrary URLs will be rejected (e.g., webhooks).
 # if they try to access private IP address ranges, and loopback ranges (unless
