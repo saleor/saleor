@@ -19,7 +19,6 @@ from opentelemetry.semconv._incubating.attributes import (
     http_attributes as incubating_http_attributes,
 )
 from opentelemetry.semconv.attributes import (
-    client_attributes,
     error_attributes,
     http_attributes,
     url_attributes,
@@ -31,7 +30,6 @@ from requests_hardened.ip_filter import InvalidIPAddress
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
 from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
-from ..core.utils import is_valid_ipv4, is_valid_ipv6
 from ..webhook import observability
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
@@ -183,23 +181,6 @@ class GraphQLView(View):
                 request.headers.get("user-agent", ""),
             )
             span.set_attribute(saleor_attributes.SPAN_TYPE, "web")
-
-            main_ip_header = settings.REAL_IP_ENVIRON[0]
-            additional_ip_headers = settings.REAL_IP_ENVIRON[1:]
-
-            request_ips = request.META.get(main_ip_header, "")
-            for ip in request_ips.split(","):
-                if is_valid_ipv4(ip) or is_valid_ipv6(ip):
-                    span.set_attribute(client_attributes.CLIENT_ADDRESS, ip)
-                else:
-                    continue
-                break
-            for additional_ip_header in additional_ip_headers:
-                if request_ips := request.META.get(additional_ip_header):
-                    span.set_attribute(
-                        f"{http_attributes.HTTP_REQUEST_HEADER_TEMPLATE}.{additional_ip_header}",
-                        request_ips[:100],
-                    )
 
             response = self._handle_query(request)
             span.set_attribute(
