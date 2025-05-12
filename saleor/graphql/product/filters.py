@@ -387,9 +387,9 @@ def filter_products_by_collections(qs, collection_pks):
     return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
+def _get_positive_stocks_considering_allocations_and_reservations(db, channel_slug):
     allocations = (
-        Allocation.objects.using(qs.db)
+        Allocation.objects.using(db)
         .values("stock_id")
         .filter(quantity_allocated__gt=0, stock_id=OuterRef("pk"))
         .values_list(Sum("quantity_allocated"))
@@ -397,7 +397,7 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     allocated_subquery = Subquery(queryset=allocations, output_field=IntegerField())
 
     reservations = (
-        Reservation.objects.using(qs.db)
+        Reservation.objects.using(db)
         .values("stock_id")
         .filter(
             quantity_reserved__gt=0,
@@ -407,19 +407,28 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .values_list(Sum("quantity_reserved"))
     )
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
+
     warehouse_pks = list(
-        Warehouse.objects.using(qs.db)
+        Warehouse.objects.using(db)
         .for_channel_with_active_shipping_zone_or_cc(channel_slug)
         .values_list("pk", flat=True)
     )
     stocks = (
-        Stock.objects.using(qs.db)
+        Stock.objects.using(db)
         .filter(
             warehouse_id__in=warehouse_pks,
             quantity__gt=Coalesce(allocated_subquery, 0)
             + Coalesce(reservation_subquery, 0),
         )
         .values("product_variant_id")
+    )
+
+    return stocks
+
+
+def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
+    stocks = _get_positive_stocks_considering_allocations_and_reservations(
+        qs.db, channel_slug
     )
 
     variants = (
@@ -431,6 +440,18 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
     if stock_availability == StockAvailability.OUT_OF_STOCK:
         qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs
+
+
+def filter_variants_by_stock_availability(qs, stock_availability, channel_slug):
+    stocks = _get_positive_stocks_considering_allocations_and_reservations(
+        qs.db, channel_slug
+    )
+
+    if stock_availability == StockAvailability.IN_STOCK:
+        qs = qs.filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
+    if stock_availability == StockAvailability.OUT_OF_STOCK:
+        qs = qs.filter(~Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
     return qs
 
 
@@ -619,6 +640,13 @@ def _filter_stock_availability(qs, _, value, channel_slug):
     return qs
 
 
+def _filter_variant_stock_availability(qs, _, value, filter_data):
+    if value:
+        channel_slug = get_channel_slug_from_filter_data(filter_data)
+        qs = filter_variants_by_stock_availability(qs, value, channel_slug)
+    return qs
+
+
 def filter_search(qs, _, value):
     return search_products(qs, value)
 
@@ -785,7 +813,7 @@ class ProductFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
-        help_text="Filter by variants having specific stock status.",
+        help_text="Filter by specific product stock status (considering all variant stocks combined).",
     )
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput,
@@ -1044,6 +1072,13 @@ def where_filter_stock_availability(qs, _, value, channel_slug):
     return qs.none()
 
 
+def where_filter_variant_stock_availability(qs, _, value, filter_data):
+    if value:
+        channel_slug = get_channel_slug_from_filter_data(filter_data)
+        return filter_variants_by_stock_availability(qs, value, channel_slug)
+    return qs.none()
+
+
 def where_filter_gift_card(qs, _, value):
     if value is None:
         return qs.none()
@@ -1147,7 +1182,7 @@ class ProductWhere(MetadataWhereFilterBase):
     stock_availability = EnumWhereFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
-        help_text="Filter by variants having specific stock status.",
+        help_text="Filter by specific product stock status (considering all variant stocks combined).",
     )
     stocks = ObjectTypeWhereFilter(
         input_class=ProductStockFilterInput,
@@ -1291,6 +1326,11 @@ class ProductVariantFilter(MetadataFilterBase):
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range
     )
+    stock_availability = EnumWhereFilter(
+        input_class=StockAvailability,
+        method="filter_stock_availability",
+        help_text="Filter by variant product stock status.",
+    )
 
     class Meta:
         model = ProductVariant
@@ -1306,13 +1346,25 @@ class ProductVariantFilter(MetadataFilterBase):
         qs |= Q(Exists(products.filter(variants=OuterRef("pk"))))
         return queryset.filter(qs)
 
+    def filter_stock_availability(self, queryset, name, value):
+        return _filter_variant_stock_availability(queryset, name, value, self.data)
+
 
 class ProductVariantWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("ProductVariant"))
 
+    stock_availability = EnumWhereFilter(
+        input_class=StockAvailability,
+        method="filter_stock_availability",
+        help_text="Filter by variant product stock status.",
+    )
+
     class Meta:
         model = ProductVariant
         fields = []
+
+    def filter_stock_availability(self, queryset, name, value):
+        return where_filter_variant_stock_availability(queryset, name, value, self.data)
 
 
 class CollectionFilter(MetadataFilterBase):
