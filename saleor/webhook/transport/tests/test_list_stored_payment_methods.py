@@ -5,6 +5,7 @@ import pytest
 
 from ....payment.interface import (
     PaymentGateway,
+    PaymentGatewayInitializeTokenizationResult,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
     StoredPaymentMethodRequestDeleteResult,
@@ -12,6 +13,7 @@ from ....payment.interface import (
 from ...response_schemas.utils.annotations import logger as annotations_logger
 from ..list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
+    get_response_for_payment_gateway_initialize_tokenization,
     get_response_for_stored_payment_method_request_delete,
     logger,
 )
@@ -185,7 +187,8 @@ def test_get_response_for_stored_payment_method_request_delete_valid_response(
         # Invalid `result` value
         (
             {"result": "INVALID_RESULT", "error": "Invalid result value"},
-            "Incorrect value (INVALID_RESULT) for field: result. Error: Value error, Enum name not found: INVALID_RESULT.",
+            "Incorrect value (INVALID_RESULT) for field: result. Error: Value error, "
+            "Enum name not found: INVALID_RESULT.",
         ),
     ],
 )
@@ -209,4 +212,85 @@ def test_get_response_for_stored_payment_method_request_delete_response_is_none(
 
     # then
     assert response.result == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER
+    assert response.error == "Failed to delivery request."
+
+
+@pytest.mark.parametrize(
+    ("response_data"),
+    [
+        # Response with SUCCESSFULLY_INITIALIZED result and data
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED.name,
+            "data": {"foo": "bar"},
+        },
+        # Response with SUCCESSFULLY_INITIALIZED result and no data
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED.name,
+        },
+        # Response with FAILED_TO_INITIALIZE result and error
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE.name,
+            "error": "Some error occurred",
+        },
+        # Response with FAILED_TO_DELIVER result, error and data as None
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER.name,
+            "error": None,
+            "data": None,
+        },
+    ],
+)
+def test_get_response_for_payment_gateway_initialize_tokenization_valid_response(
+    response_data,
+):
+    # when
+    response = get_response_for_payment_gateway_initialize_tokenization(response_data)
+
+    # then
+    assert (
+        response.result.name
+        == response_data["result"]
+    )
+    assert response.error == response_data.get("error")
+    assert response.data == response_data.get("data")
+
+
+@pytest.mark.parametrize(
+    ("response_data", "expected_error"),
+    [
+        # Missing `result` in response
+        (
+            {"error": "Missing result"},
+            "Incorrect value ({'error': 'Missing result'}) for field: result. Error: Field required.",
+        ),
+        # Invalid `result` value
+        (
+            {"result": "INVALID_RESULT", "error": "Invalid result value"},
+            "Incorrect value (INVALID_RESULT) for field: result. Error: Value error, "
+            "Enum name not found: INVALID_RESULT.",
+        ),
+    ],
+)
+def test_get_response_for_payment_gateway_initialize_tokenization_invalid_response(
+    response_data, expected_error
+):
+    # when
+    response = get_response_for_payment_gateway_initialize_tokenization(response_data)
+
+    # then
+    assert (
+        response.result
+        == PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
+    )
+    assert response.error == expected_error
+
+
+def test_get_response_for_payment_gateway_initialize_tokenization_response_is_none():
+    # when
+    response = get_response_for_payment_gateway_initialize_tokenization(None)
+
+    # then
+    assert (
+        response.result == PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER
+    )
     assert response.error == "Failed to delivery request."

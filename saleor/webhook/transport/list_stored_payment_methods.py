@@ -119,6 +119,7 @@ def get_response_for_payment_gateway_initialize_tokenization(
     response_data: dict | None,
 ) -> "PaymentGatewayInitializeTokenizationResponseData":
     data = None
+    error: str | None = None
     if response_data is None:
         result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER
         error = "Failed to delivery request."
@@ -130,8 +131,8 @@ def get_response_for_payment_gateway_initialize_tokenization(
                 )
             )
             result = gateway_initialize_model.result
-            error = gateway_initialize_model.result
-            data = gateway_initialize_model.error
+            error = gateway_initialize_model.error
+            data = gateway_initialize_model.data
         except ValidationError as e:
             result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
             error = parse_validation_error(e)
