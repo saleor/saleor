@@ -20,6 +20,7 @@ from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..response_schemas.payment import (
     ListStoredPaymentMethodsSchema,
+    PaymentGatewayInitializeTokenizationSessionSchema,
     StoredPaymentMethodDeleteRequestedSchema,
 )
 from ..response_schemas.utils.helpers import parse_validation_error
@@ -123,13 +124,17 @@ def get_response_for_payment_gateway_initialize_tokenization(
         error = "Failed to delivery request."
     else:
         try:
-            response_result = response_data.get("result") or ""
-            result = PaymentGatewayInitializeTokenizationResult[response_result]
-            error = response_data.get("error", None)
-            data = response_data.get("data", None)
-        except KeyError:
+            gateway_initialize_model = (
+                PaymentGatewayInitializeTokenizationSessionSchema.model_validate(
+                    response_data
+                )
+            )
+            result = gateway_initialize_model.result
+            error = gateway_initialize_model.result
+            data = gateway_initialize_model.error
+        except ValidationError as e:
             result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
-            error = "Missing or incorrect `result` in response."
+            error = parse_validation_error(e)
 
     return PaymentGatewayInitializeTokenizationResponseData(
         result=result, error=error, data=data
