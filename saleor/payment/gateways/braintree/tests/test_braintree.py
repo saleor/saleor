@@ -315,7 +315,7 @@ def sandbox_braintree_gateway_config(gateway_config):
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_authorize_one_time(
     payment_dummy, sandbox_braintree_gateway_config, braintree_success_response
 ):
@@ -338,7 +338,7 @@ def test_authorize_one_time(
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_authorize_and_save_customer_id(
     payment_dummy, sandbox_braintree_gateway_config
 ):
@@ -356,7 +356,7 @@ def test_authorize_and_save_customer_id(
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_authorize_with_customer_id(payment_dummy, sandbox_braintree_gateway_config):
     CUSTOMER_ID = "810066863"  # retrieved from sandbox
     payment = payment_dummy
@@ -372,7 +372,7 @@ def test_authorize_with_customer_id(payment_dummy, sandbox_braintree_gateway_con
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_refund(payment_txn_captured, sandbox_braintree_gateway_config):
     amount = Decimal("10.00")
     TRANSACTION_ID = "rjfqmf3r"
@@ -401,7 +401,7 @@ def test_refund_incorrect_token(payment_txn_captured, sandbox_braintree_gateway_
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_capture(payment_txn_preauth, sandbox_braintree_gateway_config):
     payment = payment_txn_preauth
     amount = Decimal("80.00")
@@ -426,7 +426,7 @@ def test_capture_incorrect_token(payment_txn_preauth, sandbox_braintree_gateway_
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_void(payment_txn_preauth, sandbox_braintree_gateway_config):
     payment = payment_txn_preauth
     payment_info = create_payment_information(payment, "narvpy2m")
@@ -449,7 +449,7 @@ def test_void_incorrect_token(payment_txn_preauth, sandbox_braintree_gateway_con
 
 
 @pytest.mark.integration
-@pytest.mark.vcr(filter_headers=["authorization"])
+@pytest.mark.vcr(filter_headers=["authorization"], decode_compressed_response=True)
 def test_list_customer_sources(sandbox_braintree_gateway_config):
     CUSTOMER_ID = "595109854"  # retrieved from sandbox
     expected_credit_card = PaymentMethodInfo(
