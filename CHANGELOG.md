@@ -2,6 +2,12 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
+# 3.22.0 [Unreleased]
+
+### Other Changes
+
+- deps: upgraded urllib3 from v1.x to v2.x - #17707 by @NyanKiyoshi
+
 # 3.21.0 [Unreleased]
 
 ### Highlights
