@@ -3,13 +3,13 @@ from urllib.parse import urlencode
 import graphene
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
 from .....account import events as account_events
 from .....account import models, notifications, search
 from .....account.error_codes import AccountErrorCode
+from .....core.tokens import token_generator
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.url import prepare_url, validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
@@ -185,7 +185,7 @@ class AccountRegister(ModelMutation):
 
             if site.settings.enable_account_confirmation_by_email:
                 # Notifications will be deprecated in the future
-                token = default_token_generator.make_token(user)
+                token = token_generator.make_token(user)
                 notifications.send_account_confirmation(
                     user,
                     redirect_url,
@@ -197,7 +197,7 @@ class AccountRegister(ModelMutation):
                     params = urlencode(
                         {
                             "email": user.email,
-                            "token": token or default_token_generator.make_token(user),
+                            "token": token or token_generator.make_token(user),
                         }
                     )
                     redirect_url = prepare_url(params, redirect_url)

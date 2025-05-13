@@ -2,13 +2,13 @@ from urllib.parse import urlencode
 
 import graphene
 from django.conf import settings
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .....account.error_codes import AccountErrorCode
 from .....account.notifications import send_password_reset_notification
 from .....account.utils import retrieve_user_by_email
+from .....core.tokens import token_generator
 from .....core.utils.url import prepare_url, validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel, validate_channel
@@ -112,7 +112,7 @@ class RequestPasswordReset(BaseMutation):
         redirect_url = data["redirect_url"]
         user = cls.clean_user(email, redirect_url, info)
         channel_slug = data.get("channel")
-        token = default_token_generator.make_token(user)
+        token = token_generator.make_token(user)
         params = urlencode({"email": user.email, "token": token})
 
         if not user.is_staff:

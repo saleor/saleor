@@ -1023,6 +1023,8 @@ ENABLE_DEPRECATED_MANAGER_PERFORM_MUTATION = get_bool_from_env(
 )
 
 
+TOKEN_GENERATOR_CLASS = "django.contrib.auth.tokens.PasswordResetTokenGenerator"
+
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)

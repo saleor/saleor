@@ -1,7 +1,6 @@
 from unittest.mock import patch
 from urllib.parse import urlencode
 
-from django.contrib.auth.tokens import default_token_generator
 from django.db import IntegrityError
 from django.test import override_settings
 
@@ -12,6 +11,7 @@ from ......account.notifications import get_default_user_payload
 from ......account.search import generate_user_fields_search_document_value
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
+from ......core.tokens import token_generator
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
 
@@ -39,7 +39,7 @@ ACCOUNT_REGISTER_MUTATION = """
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.account.notifications.token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_register(
     mocked_notify,
@@ -157,7 +157,7 @@ def test_customer_register_generates_valid_token(
     assert called_kwargs["channel_slug"] == channel_PLN.slug
 
     assert not data["errors"]
-    assert default_token_generator.check_token(new_user, token)
+    assert token_generator.check_token(new_user, token)
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
