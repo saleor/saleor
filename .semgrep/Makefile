@@ -7,4 +7,5 @@ scan:
 		--disable-version-check \
 		--error \
 		-c . \
+		--exclude ../.semgrep/ \
 		../
