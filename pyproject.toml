@@ -175,7 +175,7 @@ package-mode = false
   types-redis = "^4.6.0"
   types-requests = "^2.32.0"
   types-six = "^1.16.17"
-  # vcrpy v7.0.0 requires urllib3 v1.x on PyPy but urllib3 and PyPy are incompatible
+  # vcrpy v7.0.0 requires urllib3 v1.x on PyPy but urllib3 v1.x & PyPy are incompatible
   # with our project. We cannot tell Poetry that we only support CPython,
   # thus we can only trick it using a marker in order to match marker
   # 'urllib3; platform_python_implementation != "PyPy" and python_version >= "3.10"'
