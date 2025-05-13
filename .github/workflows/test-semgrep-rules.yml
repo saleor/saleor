@@ -12,6 +12,7 @@ on:
 jobs:
   main:
     runs-on: ubuntu-22.04
+    container: python:3.12
 
     steps:
       - name: Checkout
@@ -21,7 +22,10 @@ jobs:
             .semgrep
 
       - name: Install Dependencies
-        run: python3 -m pip install semgrep==1.39.0
+        run: |
+          pip install poetry==2.1.3
+          poetry config virtualenvs.create false --local
+          poetry install --only semgrep
 
       - name: Run Tests
         working-directory: .semgrep
