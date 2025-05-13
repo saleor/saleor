@@ -2,7 +2,6 @@ from collections import defaultdict
 from urllib.parse import urlencode
 
 import graphene
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import events as account_events
@@ -11,6 +10,7 @@ from ....account.notifications import send_set_password_notification
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
+from ....core.tokens import token_generator
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import prepare_url, validate_storefront_url
 from ....giftcard.search import mark_gift_cards_search_index_as_dirty
@@ -362,7 +362,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 manager,
                 channel_slug,
             )
-            token = default_token_generator.make_token(instance)
+            token = token_generator.make_token(instance)
             params = urlencode({"email": instance.email, "token": token})
             cls.call_event(
                 manager.account_set_password_requested,
