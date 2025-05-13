@@ -247,10 +247,7 @@ def test_get_response_for_payment_gateway_initialize_tokenization_valid_response
     response = get_response_for_payment_gateway_initialize_tokenization(response_data)
 
     # then
-    assert (
-        response.result.name
-        == response_data["result"]
-    )
+    assert response.result.name == response_data["result"]
     assert response.error == response_data.get("error")
     assert response.data == response_data.get("data")
 

@@ -3,10 +3,14 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
-from ....payment.interface import StoredPaymentMethodRequestDeleteResult
+from ....payment.interface import (
+    PaymentGatewayInitializeTokenizationResult,
+    StoredPaymentMethodRequestDeleteResult,
+)
 from ...response_schemas.payment import (
     CreditCardInfoSchema,
     ListStoredPaymentMethodsSchema,
+    PaymentGatewayInitializeTokenizationSessionSchema,
     StoredPaymentMethodDeleteRequestedSchema,
     StoredPaymentMethodSchema,
 )
@@ -551,6 +555,110 @@ def test_stored_payment_method_delete_requested_schema_invalid(data, invalid_fie
     # when
     with pytest.raises(ValidationError) as exc_info:
         StoredPaymentMethodDeleteRequestedSchema.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"][0] == invalid_field
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        # Successfully initialize
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED.name,
+            "error": None,
+            "data": {"key": "value"},
+        },
+        # Successfully initialize data as string
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED.name,
+            "data": "Successfully initialized",
+        },
+        # Failed to initialize with error message
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE.name,
+            "error": "Some error occurred",
+            "data": None,
+        },
+        # Failed to deliver with error message
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER.name,
+            "error": "Delivery failed due to network issues",
+        },
+        # Failed to initialize no error message
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE.name,
+            "data": None,
+            "error": None,
+        },
+        # Failed to deliver no error message
+        {
+            "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER.name,
+        },
+    ],
+)
+def test_payment_gateway_initizlize_tokenization_session_schema_valid(data):
+    # when
+    schema = PaymentGatewayInitializeTokenizationSessionSchema.model_validate(data)
+
+    # then
+    assert schema.result == data["result"].lower()
+    assert schema.data == data.get("data")
+    assert schema.error == data.get("error")
+
+
+@pytest.mark.parametrize(
+    ("data", "invalid_field"),
+    [
+        # Missing `result` field
+        (
+            {
+                "error": "Some error occurred",
+            },
+            "result",
+        ),
+        # Lower value for `result`
+        (
+            {
+                "result": PaymentGatewayInitializeTokenizationResult.SUCCESSFULLY_INITIALIZED.value,
+                "error": "Some error occurred",
+            },
+            "result",
+        ),
+        # Invalid `result` value
+        (
+            {
+                "result": "INVALID_RESULT",
+                "error": "Invalid result value",
+            },
+            "result",
+        ),
+        # Invalid `error` type
+        (
+            {
+                "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE.name,
+                "error": 123,  # Should be a string or None
+            },
+            "error",
+        ),
+        # Not parsable `data`
+        (
+            {
+                "result": PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE.name,
+                "error": "error",
+                "data": object(),
+            },
+            "data",
+        ),
+    ],
+)
+def test_payment_gateway_initizlize_tokenization_session_schema_invalid(
+    data, invalid_field
+):
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        PaymentGatewayInitializeTokenizationSessionSchema.model_validate(data)
 
     # then
     assert len(exc_info.value.errors()) == 1
