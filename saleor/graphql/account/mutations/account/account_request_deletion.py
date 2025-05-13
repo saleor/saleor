@@ -66,7 +66,7 @@ class AccountRequestDeletion(BaseMutation):
             )
         channel_slug = clean_channel(channel, error_class=AccountErrorCode).slug
         manager = get_plugin_manager_promise(info.context).get()
-        token = account_delete_token_generator.make_token(user)  # type: ignore
+        token = account_delete_token_generator.make_token(user)
 
         # Notifications will be deprecated in the future
         notifications.send_account_delete_confirmation_notification(

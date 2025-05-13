@@ -11,7 +11,6 @@ import graphene
 import pytest
 from celery.exceptions import MaxRetriesExceededError
 from celery.exceptions import Retry as CeleryTaskRetryError
-from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.models import Site
 from django.core.serializers import serialize
 from django.utils import timezone
@@ -31,6 +30,7 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify import NotifyEventType
+from ....core.tokens import token_generator
 from ....core.utils.url import prepare_url
 from ....discount import RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
@@ -1718,7 +1718,7 @@ def test_notify_user(
     redirect_url = "http://redirect.com/"
     send_account_confirmation(customer_user, redirect_url, manager, channel_USD.slug)
 
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     confirm_url = prepare_url(params, redirect_url)
 
