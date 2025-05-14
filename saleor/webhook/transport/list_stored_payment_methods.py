@@ -197,4 +197,15 @@ def _validate_payment_method_response(response_data: dict, app):
                 response_data, context=context
             )
         case _:
-            raise ValueError("Missing or invalid `result` in response.")
+            possible_values = ", ".join(
+                [value.name for value in PaymentMethodTokenizationResult]
+            )
+            logger.warning(
+                "Invalid value for `result`: %s. Possible values: %s.",
+                response_data.get("result"),
+                possible_values,
+                extra={"app": app.id},
+            )
+            raise ValueError(
+                f"Missing or invalid value for `result`: {response_data.get('result')}. Possible values: {possible_values}."
+            )

@@ -356,7 +356,8 @@ def test_get_response_for_payment_gateway_initialize_tokenization_response_is_no
         (
             {"result": "INVALID_RESULT"},
             PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE,
-            "Missing or invalid `result` in response.",
+            "Missing or invalid value for `result`: INVALID_RESULT. Possible values: "
+            f"{', '.join([value.name for value in PaymentMethodTokenizationResult])}.",
             None,
             None,
         ),
@@ -425,11 +426,15 @@ def test_get_response_for_payment_method_tokenization_validation_error(
 
 def test_get_response_for_payment_method_tokenization_value_error(app):
     # given
-    response_data = {"result": "INVALID_RESULT"}
+    result = "INVALID_RESULT"
+    response_data = {"result": result}
 
     # when
     response = get_response_for_payment_method_tokenization(response_data, app)
 
     # then
     assert response.result == PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
-    assert "missing or invalid `result`" in response.error.lower()
+    assert (
+        f"Missing or invalid value for `result`: {result}. Possible values: "
+        in response.error
+    )
