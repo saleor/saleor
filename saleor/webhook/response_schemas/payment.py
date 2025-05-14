@@ -166,7 +166,7 @@ def clean_result(result: str):
     return PaymentMethodTokenizationResult[result]
 
 
-class PaymentMethodTokenizationSchema(BaseModel):
+class PaymentMethodTokenizationSuccessSchema(BaseModel):
     id: Annotated[str, Field(description="ID of the payment method.")]
     result: Annotated[  # type: ignore[name-defined]
         Literal[
@@ -182,13 +182,6 @@ class PaymentMethodTokenizationSchema(BaseModel):
         DefaultIfNone[JsonValue],
         Field(
             description="A data passes to the client.",
-            default=None,
-        ),
-    ]
-    error: Annotated[
-        str | None,
-        Field(
-            description="Error message that will be passed to the frontend.",
             default=None,
         ),
     ]

@@ -14,7 +14,7 @@ from ...response_schemas.payment import (
     PaymentGatewayInitializeTokenizationSessionSchema,
     PaymentMethodTokenizationFailedSchema,
     PaymentMethodTokenizationPendingSchema,
-    PaymentMethodTokenizationSchema,
+    PaymentMethodTokenizationSuccessSchema,
     StoredPaymentMethodDeleteRequestedSchema,
     StoredPaymentMethodSchema,
 )
@@ -566,8 +566,6 @@ def test_stored_payment_method_delete_requested_schema_invalid(data, invalid_fie
     assert exc_info.value.errors()[0]["loc"][0] == invalid_field
 
 
-
-
 @pytest.mark.parametrize(
     "data",
     [
@@ -680,28 +678,43 @@ def test_payment_gateway_initialize_tokenization_session_schema_invalid(
             "id": "123",
             "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
         },
-        # ADDITIONAL_ACTION_REQUIRED with data and error as none
+        # ADDITIONAL_ACTION_REQUIRED with data
         {
             "id": "456",
             "result": PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED.name,
             "data": {"action": "verify"},
-            "error": None,
-        },
-        # SUCCESSFULLY_TOKENIZED with no data and no error
-        {
-            "id": "789",
-            "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
         },
     ],
 )
 def test_payment_method_tokenization_schema_valid(data, app):
     # when
-    schema = PaymentMethodTokenizationSchema.model_validate(data, context={"app": app})
+    schema = PaymentMethodTokenizationSuccessSchema.model_validate(
+        data, context={"app": app}
+    )
 
     # then
     assert schema.result == PaymentMethodTokenizationResult[data["result"]]
     assert schema.data == data.get("data")
-    assert schema.error == data.get("error")
+    assert schema.id == to_payment_app_id(app, data["id"])
+
+
+def test_payment_method_tokenization_schema_valid_extra_data_in_input(app):
+    # given
+    data = {
+        "id": "123",
+        "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
+        "error": "extra error value",
+        "data": {"key": "value"},
+    }
+
+    # when
+    schema = PaymentMethodTokenizationSuccessSchema.model_validate(
+        data, context={"app": app}
+    )
+
+    # then
+    assert schema.result == PaymentMethodTokenizationResult[data["result"]]
+    assert schema.data == data.get("data")
     assert schema.id == to_payment_app_id(app, data["id"])
 
 
@@ -743,22 +756,14 @@ def test_payment_method_tokenization_schema_valid(data, app):
             },
             "id",
         ),
-        # `error` field with wrong type
-        (
-            {
-                "id": "123",
-                "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
-                "data": {"key": "value"},
-                "error": 123,
-            },
-            "error",
-        ),
     ],
 )
-def test_payment_method_tokenization_schema_invalid(data, expected_error_field):
+def test_payment_method_tokenization_schema_invalid(data, expected_error_field, app):
     # when
     with pytest.raises(ValidationError) as exc_info:
-        PaymentMethodTokenizationSchema.model_validate(data)
+        PaymentMethodTokenizationSuccessSchema.model_validate(
+            data, context={"app": app}
+        )
 
     # then
     assert len(exc_info.value.errors()) == 1

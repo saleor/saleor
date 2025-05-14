@@ -23,7 +23,7 @@ from ..response_schemas.payment import (
     PaymentGatewayInitializeTokenizationSessionSchema,
     PaymentMethodTokenizationFailedSchema,
     PaymentMethodTokenizationPendingSchema,
-    PaymentMethodTokenizationSchema,
+    PaymentMethodTokenizationSuccessSchema,
     StoredPaymentMethodDeleteRequestedSchema,
 )
 from ..response_schemas.utils.helpers import parse_validation_error
@@ -182,7 +182,7 @@ def _validate_payment_method_response(response_data: dict, app):
             PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name
             | PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED.name
         ):
-            return PaymentMethodTokenizationSchema.model_validate(
+            return PaymentMethodTokenizationSuccessSchema.model_validate(
                 response_data, context=context
             )
         case PaymentMethodTokenizationResult.PENDING.name:
