@@ -3,9 +3,11 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
+from ....payment.interface import StoredPaymentMethodRequestDeleteResult
 from ...response_schemas.payment import (
     CreditCardInfoSchema,
     ListStoredPaymentMethodsSchema,
+    StoredPaymentMethodDeleteRequestedSchema,
     StoredPaymentMethodSchema,
 )
 from ...response_schemas.utils.annotations import logger as annotations_logger
@@ -470,3 +472,86 @@ def test_list_stored_payment_methods_schema_invalid_element_skipped(mocked_logge
     assert schema.payment_methods[0].id == data["paymentMethods"][0]["id"]
     assert schema.payment_methods[0].name == data["paymentMethods"][0]["name"]
     assert mocked_logger.call_count == 1
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        # Successfully deleted
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.SUCCESSFULLY_DELETED.name,
+            "error": None,
+        },
+        # Failed to delete with error message
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
+            "error": "Some error occurred",
+        },
+        # Failed to deliver with error message
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
+            "error": "Delivery failed due to network issues",
+        },
+        # Failed to delete no error message
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
+        },
+        # Failed to deliver no error message
+        {
+            "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER.name,
+        },
+    ],
+)
+def test_stored_payment_method_delete_requested_schema_valid(data):
+    # when
+    schema = StoredPaymentMethodDeleteRequestedSchema.model_validate(data)
+
+    # then
+    assert schema.result == data["result"].lower()
+    assert schema.error == data.get("error")
+
+
+@pytest.mark.parametrize(
+    ("data", "invalid_field"),
+    [
+        # Missing `result` field
+        (
+            {
+                "error": "Some error occurred",
+            },
+            "result",
+        ),
+        # Lower value for `result`
+        (
+            {
+                "result": "successfully_deleted",
+                "error": "Some error occurred",
+            },
+            "result",
+        ),
+        # Invalid `result` value
+        (
+            {
+                "result": "INVALID_RESULT",
+                "error": "Invalid result value",
+            },
+            "result",
+        ),
+        # Invalid `error` type
+        (
+            {
+                "result": StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE.name,
+                "error": 123,  # Should be a string or None
+            },
+            "error",
+        ),
+    ],
+)
+def test_stored_payment_method_delete_requested_schema_invalid(data, invalid_field):
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        StoredPaymentMethodDeleteRequestedSchema.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"][0] == invalid_field

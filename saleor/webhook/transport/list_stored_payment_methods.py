@@ -18,7 +18,11 @@ from ...payment.interface import (
 )
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_event
-from ..response_schemas.payment import ListStoredPaymentMethodsSchema
+from ..response_schemas.payment import (
+    ListStoredPaymentMethodsSchema,
+    StoredPaymentMethodDeleteRequestedSchema,
+)
+from ..response_schemas.utils.helpers import parse_validation_error
 from .utils import generate_cache_key_for_webhook, to_payment_app_id
 
 logger = logging.getLogger(__name__)
@@ -69,17 +73,20 @@ def get_list_stored_payment_methods_from_response(
 def get_response_for_stored_payment_method_request_delete(
     response_data: dict | None,
 ) -> "StoredPaymentMethodRequestDeleteResponseData":
+    error: str | None = None
     if response_data is None:
         result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER
         error = "Failed to delivery request."
     else:
         try:
-            response_result = response_data.get("result") or ""
-            result = StoredPaymentMethodRequestDeleteResult[response_result]
-            error = response_data.get("error", None)
-        except KeyError:
+            delete_requested_model = (
+                StoredPaymentMethodDeleteRequestedSchema.model_validate(response_data)
+            )
+            result = delete_requested_model.result
+            error = delete_requested_model.error
+        except ValidationError as e:
             result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
-            error = "Missing or incorrect `result` in response."
+            error = parse_validation_error(e)
 
     return StoredPaymentMethodRequestDeleteResponseData(
         result=result,

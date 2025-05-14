@@ -1,11 +1,18 @@
 from enum import Enum
 from typing import Annotated, Any, Literal
 
-from pydantic import AfterValidator, BaseModel, Field, JsonValue, field_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    Field,
+    JsonValue,
+    field_validator,
+)
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
-from .utils.annotations import DefaultIfNone, OnErrorDefault, OnErrorSkip
+from ...payment.interface import StoredPaymentMethodRequestDeleteResult
+from .utils.annotations import DefaultIfNone, EnumByName, OnErrorDefault, OnErrorSkip
 from .utils.validators import lower_values
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
@@ -97,5 +104,21 @@ class ListStoredPaymentMethodsSchema(BaseModel):
             validation_alias="paymentMethods",
             default_factory=list,
             description="List of stored payment methods.",
+        ),
+    ]
+
+
+class StoredPaymentMethodDeleteRequestedSchema(BaseModel):
+    result: Annotated[
+        EnumByName[StoredPaymentMethodRequestDeleteResult],
+        Field(
+            description="Result of the request to delete the stored payment method.",
+        ),
+    ]
+    error: Annotated[
+        str | None,
+        Field(
+            description="Error message if the request to delete the stored payment method failed that will be passed to the frontend.",
+            default=None,
         ),
     ]
