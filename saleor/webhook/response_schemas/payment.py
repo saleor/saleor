@@ -11,7 +11,10 @@ from pydantic import (
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
-from ...payment.interface import StoredPaymentMethodRequestDeleteResult
+from ...payment.interface import (
+    PaymentGatewayInitializeTokenizationResult,
+    StoredPaymentMethodRequestDeleteResult,
+)
 from .utils.annotations import DefaultIfNone, EnumByName, OnErrorDefault, OnErrorSkip
 from .utils.validators import lower_values
 
@@ -119,6 +122,29 @@ class StoredPaymentMethodDeleteRequestedSchema(BaseModel):
         str | None,
         Field(
             description="Error message if the request to delete the stored payment method failed that will be passed to the frontend.",
+            default=None,
+        ),
+    ]
+
+
+class PaymentGatewayInitializeTokenizationSessionSchema(BaseModel):
+    result: Annotated[
+        EnumByName[PaymentGatewayInitializeTokenizationResult],
+        Field(
+            description="Result of the payment gateway initialization.",
+        ),
+    ]
+    data: Annotated[
+        DefaultIfNone[JsonValue],
+        Field(
+            description="A data required to finalize the initialization.",
+            default=None,
+        ),
+    ]
+    error: Annotated[
+        str | None,
+        Field(
+            description="Error message that will be passed to the frontend.",
             default=None,
         ),
     ]
