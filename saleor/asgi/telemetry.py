@@ -5,10 +5,7 @@ from asgiref.typing import (
     Scope,
 )
 
-from ..core.telemetry import (
-    saleor_attributes,
-    set_global_attributes,
-)
+from ..core.telemetry import saleor_attributes, set_global_attributes
 
 
 def get_hostname(scope: Scope) -> str:

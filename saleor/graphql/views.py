@@ -161,10 +161,7 @@ class GraphQLView(View):
         with (
             tracer.extract_context(request.headers) as context,
             tracer.start_as_current_span(
-                request.path,
-                scope=Scope.SERVICE,
-                kind=SpanKind.SERVER,
-                context=context,
+                request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER, context=context
             ) as span,
             record_request_duration() as request_duration_attrs,
         ):
