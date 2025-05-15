@@ -62,7 +62,6 @@ class Tracer:
             name: The name of the span
             scope: The scope of the span, defaults to Scope.CORE
             kind: The SpanKind of the span
-            context: An optional Context containing the span's parent
             attributes: Initial attributes for the span
             links: Links to other spans
             start_time: Optional start time for the span in nanoseconds
