@@ -127,6 +127,8 @@ package-mode = false
   opentelemetry-sdk = "^1.32.1"
   opentelemetry-semantic-conventions = "^0.53b1"
   opentelemetry-distro = {extras = ["otlp"], version = "^0.53b1"}
+  opentelemetry-instrumentation-asgi = "^0.53b1"
+  opentelemetry-instrumentation-requests = "^0.53b1"
 
     [tool.poetry.dependencies.celery]
     version = ">=4.4.5,<6.0.0"

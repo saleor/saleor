@@ -1,7 +1,8 @@
+import os
 from importlib import import_module
 from typing import Any
 
-from django.conf import settings
+from opentelemetry.instrumentation.auto_instrumentation import initialize
 from opentelemetry.util.types import Attributes
 
 from .metric import Meter, MeterProxy, MetricType
@@ -25,6 +26,11 @@ def load_object(python_path: str) -> Any:
 
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
+    if os.environ.get("TELEMETRY_OTEL_INSTRUMENT", "").lower() == "true":
+        initialize()
+
+    # To avoid importing Django before instrumenting libs
+    from django.conf import settings
 
     # To avoid circular imports.
     from ... import __version__ as saleor_version
