@@ -2,7 +2,9 @@ import os
 from importlib import import_module
 from typing import Any
 
-from opentelemetry.instrumentation.auto_instrumentation import initialize
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.instrumentation.version import __version__
+from opentelemetry.sdk._configuration import _OTelSDKConfigurator
 from opentelemetry.util.types import Attributes
 
 from .metric import Meter, MeterProxy, MetricType
@@ -24,10 +26,26 @@ def load_object(python_path: str) -> Any:
     return getattr(import_module(module), obj)
 
 
+TELEMETRY_OTEL_INSTRUMENT = (
+    os.environ.get("TELEMETRY_OTEL_INSTRUMENT", "").lower() == "true"
+)
+
+
+def otel_configure_sdk():
+    configurator = _OTelSDKConfigurator()
+    configurator.configure(auto_instrumentation_version=__version__)
+
+
+def otel_instrument():
+    # ASGI is instrumented separately in saleor.asgi.telemetry
+    RequestsInstrumentor().instrument()
+
+
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
-    if os.environ.get("TELEMETRY_OTEL_INSTRUMENT", "").lower() == "true":
-        initialize()
+    if TELEMETRY_OTEL_INSTRUMENT:
+        otel_configure_sdk()
+        otel_instrument()
 
     # To avoid importing Django before instrumenting libs
     from django.conf import settings
