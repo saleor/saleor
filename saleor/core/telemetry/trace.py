@@ -232,3 +232,8 @@ class TracerProxy(Tracer):
         if self._tracer is None:
             return INVALID_SPAN
         return self._tracer.get_current_span()
+
+    def inject_context(self, carrier: Mapping[str, str | list[str]]):
+        if self._tracer:
+            return self._tracer.inject_context(carrier)
+        return None
