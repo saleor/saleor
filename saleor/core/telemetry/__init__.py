@@ -1,9 +1,7 @@
-import os
 from importlib import import_module
 from typing import Any
 
-from opentelemetry.instrumentation.version import __version__
-from opentelemetry.sdk._configuration import _OTelSDKConfigurator
+from django.conf import settings
 from opentelemetry.util.types import Attributes
 
 from .metric import Meter, MeterProxy, MetricType
@@ -25,18 +23,8 @@ def load_object(python_path: str) -> Any:
     return getattr(import_module(module), obj)
 
 
-def otel_configure_sdk():
-    configurator = _OTelSDKConfigurator()
-    configurator.configure(auto_instrumentation_version=__version__)
-
-
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
-    if os.environ.get("TELEMETRY_CONFIGURE_OTEL_SDK", "").lower() == "true":
-        otel_configure_sdk()
-
-    # To avoid importing Django before instrumenting libs
-    from django.conf import settings
 
     # To avoid circular imports.
     from ... import __version__ as saleor_version

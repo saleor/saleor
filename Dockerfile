@@ -51,7 +51,6 @@ RUN SECRET_KEY=dummy STATIC_URL=${STATIC_URL} python3 manage.py collectstatic --
 
 EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
-ENV TELEMETRY_CONFIGURE_OTEL_SDK=True
 
 LABEL org.opencontainers.image.title="saleor/saleor" \
   org.opencontainers.image.description="The commerce engine for modern software development teams." \
