@@ -25,11 +25,6 @@ def load_object(python_path: str) -> Any:
     return getattr(import_module(module), obj)
 
 
-TELEMETRY_OTEL_INSTRUMENT = (
-    os.environ.get("TELEMETRY_OTEL_INSTRUMENT", "").lower() == "true"
-)
-
-
 def otel_configure_sdk():
     configurator = _OTelSDKConfigurator()
     configurator.configure(auto_instrumentation_version=__version__)
@@ -37,7 +32,7 @@ def otel_configure_sdk():
 
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
-    if TELEMETRY_OTEL_INSTRUMENT:
+    if os.environ.get("TELEMETRY_CONFIGURE_OTEL_SDK", "").lower() == "true":
         otel_configure_sdk()
 
     # To avoid importing Django before instrumenting libs

@@ -158,10 +158,12 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        context = tracer.extract_context(request.headers)
         with (
             tracer.start_as_current_span(
-                request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER, context=context
+                request.path,
+                scope=Scope.SERVICE,
+                kind=SpanKind.SERVER,
+                context_carrier=request.headers,
             ) as span,
             record_request_duration() as request_duration_attrs,
         ):
