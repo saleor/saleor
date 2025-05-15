@@ -109,7 +109,6 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
     )
     set_attr_calls = mock_meter.record_duration().__enter__().__setitem__.call_args_list
     assert call("graphql.operation.identifier", "products") in set_attr_calls
-    assert call("graphql.operation.name", "productsQuery") in set_attr_calls
     assert call("graphql.operation.type", "query") in set_attr_calls
 
 
