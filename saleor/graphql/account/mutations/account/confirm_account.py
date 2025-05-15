@@ -1,9 +1,9 @@
 import graphene
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from .....account import models
 from .....account.error_codes import AccountErrorCode
+from .....core.tokens import token_generator
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....webhook.event_types import WebhookEventAsyncType
@@ -59,7 +59,7 @@ class ConfirmAccount(BaseMutation):
                 }
             )
 
-        if not default_token_generator.check_token(user, data["token"]):
+        if not token_generator.check_token(user, data["token"]):
             raise ValidationError(
                 {
                     "token": ValidationError(
