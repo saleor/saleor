@@ -8,12 +8,14 @@ from ....payment.interface import (
     PaymentGatewayInitializeTokenizationResult,
     PaymentMethodCreditCardInfo,
     PaymentMethodData,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResult,
 )
 from ...response_schemas.utils.annotations import logger as annotations_logger
 from ..list_stored_payment_methods import (
     get_list_stored_payment_methods_from_response,
     get_response_for_payment_gateway_initialize_tokenization,
+    get_response_for_payment_method_tokenization,
     get_response_for_stored_payment_method_request_delete,
     logger,
 )
@@ -182,7 +184,7 @@ def test_get_response_for_stored_payment_method_request_delete_valid_response(
         # Missing `result` in response
         (
             {"error": "Missing result"},
-            "Incorrect value ({'error': 'Missing result'}) for field: result. Error: Field required.",
+            "Missing value for field: result. Input: {'error': 'Missing result'}.",
         ),
         # Invalid `result` value
         (
@@ -258,7 +260,7 @@ def test_get_response_for_payment_gateway_initialize_tokenization_valid_response
         # Missing `result` in response
         (
             {"error": "Missing result"},
-            "Incorrect value ({'error': 'Missing result'}) for field: result. Error: Field required.",
+            "Missing value for field: result. Input: {'error': 'Missing result'}.",
         ),
         # Invalid `result` value
         (
@@ -291,3 +293,148 @@ def test_get_response_for_payment_gateway_initialize_tokenization_response_is_no
         response.result == PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER
     )
     assert response.error == "Failed to delivery request."
+
+
+@pytest.mark.parametrize(
+    (
+        "response_data",
+        "expected_result",
+        "expected_error",
+        "expected_id",
+        "expected_data",
+    ),
+    [
+        # Successfully tokenized
+        (
+            {
+                "id": "123",
+                "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
+                "data": {"key": "value"},
+                "error": None,
+            },
+            PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
+            None,
+            "123",
+            {"key": "value"},
+        ),
+        # Additional action required
+        (
+            {
+                "id": "456",
+                "result": PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED.name,
+                "data": {"action": "verify"},
+                "error": None,
+            },
+            PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED,
+            None,
+            "456",
+            {"action": "verify"},
+        ),
+        # Pending
+        (
+            {
+                "result": PaymentMethodTokenizationResult.PENDING.name,
+                "data": {"status": "pending"},
+            },
+            PaymentMethodTokenizationResult.PENDING,
+            None,
+            None,
+            {"status": "pending"},
+        ),
+        # Failed to tokenize
+        (
+            {
+                "result": PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE.name,
+                "error": "Tokenization failed",
+            },
+            PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE,
+            "Tokenization failed",
+            None,
+            None,
+        ),
+        # Invalid result
+        (
+            {"result": "INVALID_RESULT"},
+            PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE,
+            "Missing or invalid value for `result`: INVALID_RESULT. Possible values: "
+            f"{', '.join([value.name for value in PaymentMethodTokenizationResult])}.",
+            None,
+            None,
+        ),
+        # No response data
+        (
+            None,
+            PaymentMethodTokenizationResult.FAILED_TO_DELIVER,
+            "Failed to delivery request.",
+            None,
+            None,
+        ),
+    ],
+)
+def test_get_response_for_payment_method_tokenization(
+    response_data, expected_result, expected_error, expected_id, expected_data, app
+):
+    # when
+    response = get_response_for_payment_method_tokenization(response_data, app)
+
+    # then
+    assert response.result == expected_result
+    assert response.error == expected_error
+    assert response.id == (to_payment_app_id(app, expected_id) if expected_id else None)
+    assert response.data == expected_data
+
+
+@pytest.mark.parametrize(
+    ("response_data", "error_msg"),
+    [
+        # Missing `id` in success response
+        (
+            {
+                "result": PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
+                "data": {"key": "value"},
+            },
+            "Missing value for field: id. Input: ",
+        ),
+        # `id` as int for pending response
+        (
+            {
+                "result": PaymentMethodTokenizationResult.PENDING.name,
+                "id": 123,
+            },
+            "Incorrect value (123) for field: id. Error: Input should be a valid string.",
+        ),
+        # Invalid `error` in failed response
+        (
+            {
+                "result": PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE.name,
+                "error": 123,
+            },
+            "Incorrect value (123) for field: error. Error: Input should be a valid string.",
+        ),
+    ],
+)
+def test_get_response_for_payment_method_tokenization_validation_error(
+    response_data, error_msg, app
+):
+    # when
+    response = get_response_for_payment_method_tokenization(response_data, app)
+
+    # then
+    assert response.result == PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
+    assert error_msg in response.error
+
+
+def test_get_response_for_payment_method_tokenization_value_error(app):
+    # given
+    result = "INVALID_RESULT"
+    response_data = {"result": result}
+
+    # when
+    response = get_response_for_payment_method_tokenization(response_data, app)
+
+    # then
+    assert response.result == PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
+    assert (
+        f"Missing or invalid value for `result`: {result}. Possible values: "
+        in response.error
+    )

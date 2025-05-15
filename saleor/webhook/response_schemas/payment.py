@@ -6,15 +6,20 @@ from pydantic import (
     BaseModel,
     Field,
     JsonValue,
+    ValidationInfo,
     field_validator,
+    model_validator,
 )
 
+from ...app.models import App
 from ...graphql.core.utils import str_to_enum
 from ...payment import TokenizedPaymentFlow
 from ...payment.interface import (
     PaymentGatewayInitializeTokenizationResult,
+    PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResult,
 )
+from ..transport.utils import to_payment_app_id
 from .utils.annotations import DefaultIfNone, EnumByName, OnErrorDefault, OnErrorSkip
 from .utils.validators import lower_values
 
@@ -137,9 +142,95 @@ class PaymentGatewayInitializeTokenizationSessionSchema(BaseModel):
     data: Annotated[
         DefaultIfNone[JsonValue],
         Field(
+            default=None,
             description="A data required to finalize the initialization.",
+        ),
+    ]
+    error: Annotated[
+        str | None,
+        Field(
+            description="Error message that will be passed to the frontend.",
             default=None,
         ),
+    ]
+
+
+def clean_id(payment_method_id: str, info: ValidationInfo) -> str:
+    app: App | None = info.context.get("app", None) if info.context else None
+    if not app:
+        raise RuntimeError("Missing app in context")
+    return to_payment_app_id(app, payment_method_id)
+
+
+def clean_result(result: str):
+    return PaymentMethodTokenizationResult[result]
+
+
+class PaymentMethodTokenizationSuccessSchema(BaseModel):
+    id: Annotated[str, Field(description="ID of the payment method.")]
+    result: Annotated[  # type: ignore[name-defined]
+        Literal[
+            PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name,
+            PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED.name,
+        ],
+        Field(
+            description="Result of the payment method tokenization.",
+        ),
+        AfterValidator(clean_result),
+    ]
+    data: Annotated[
+        DefaultIfNone[JsonValue],
+        Field(
+            description="A data passes to the client.",
+            default=None,
+        ),
+    ]
+
+    @model_validator(mode="after")
+    def clean_id(self, info: ValidationInfo):
+        payment_method_id = self.id
+        self.id = clean_id(payment_method_id, info)
+        return self
+
+
+class PaymentMethodTokenizationPendingSchema(BaseModel):
+    id: Annotated[
+        str | None, Field(description="ID of the payment method.", default=None)
+    ]
+    result: Annotated[  # type: ignore[name-defined]
+        Literal[PaymentMethodTokenizationResult.PENDING.name],
+        Field(
+            description="Result of the payment method tokenization.",
+        ),
+        AfterValidator(clean_result),
+    ]
+    data: Annotated[
+        DefaultIfNone[JsonValue],
+        Field(
+            description="A data passes to the client.",
+            default=None,
+        ),
+    ]
+
+    @model_validator(mode="after")
+    def clean_id(self, info: ValidationInfo):
+        payment_method_id = self.id
+        if payment_method_id is None:
+            return self
+        self.id = clean_id(payment_method_id, info)
+        return self
+
+
+class PaymentMethodTokenizationFailedSchema(BaseModel):
+    result: Annotated[  # type: ignore[name-defined]
+        Literal[
+            PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE.name,
+            PaymentMethodTokenizationResult.FAILED_TO_DELIVER.name,
+        ],
+        Field(
+            description="Result of the payment method tokenization.",
+        ),
+        AfterValidator(clean_result),
     ]
     error: Annotated[
         str | None,

@@ -356,10 +356,7 @@ def test_stored_payment_method_request_delete_missing_result_in_response_from_we
     assert not EventDelivery.objects.exists()
 
     assert response.result == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
-    assert (
-        response.error
-        == "Incorrect value ({}) for field: result. Error: Field required."
-    )
+    assert response.error == "Missing value for field: result. Input: {}."
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.delete")
