@@ -12,4 +12,4 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other Changes
 
-- deps: upgraded urllib3 from v1.x to v2.x - #17707 by @NyanKiyoshi
+- deps: upgraded urllib3 from v1.x to v2.x
