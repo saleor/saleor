@@ -599,3 +599,38 @@ def test_graphql_query_span_set_status_error_cost_exceeded(
     mock_span.set_status.assert_called_once_with(
         status=StatusCode.ERROR, description=expected_error_message
     )
+
+
+def test_trace_context_propagation(
+    trace_context_propagation, user_api_client, get_test_spans
+):
+    # given
+    formated_trace_id = "d30f57682d56377acf27bbef17042d9a"
+    formated_parent_span_id = "b63e859130b3cabf"
+    trace_state = "rojo=00f067aa0ba902b7"
+    query = """
+        shop {
+          name
+        }
+    """
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        headers={
+            "traceparent": f"00-{formated_trace_id}-{formated_parent_span_id}-01",
+            "tracestate": trace_state,
+        },
+    )
+
+    # then
+    span = get_span_by_name(get_test_spans(), "/graphql/")
+    assert format(span.context.trace_id, "032x") == formated_trace_id
+    assert format(span.parent.span_id, "016x") == formated_parent_span_id
+    assert "traceparent" in response.headers
+    assert "tracestate" in response.headers
+    assert (
+        response.headers["traceparent"]
+        == f"00-{formated_trace_id}-{format(span.context.span_id, '016x')}-01"
+    )
+    assert response.headers["tracestate"] == trace_state
