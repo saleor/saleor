@@ -204,318 +204,397 @@ class WebhookEventAsyncType:
         ACCOUNT_CONFIRMATION_REQUESTED: {
             "name": "Account confirmation requested",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ACCOUNT_CHANGE_EMAIL_REQUESTED: {
             "name": "Account change email requested",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ACCOUNT_EMAIL_CHANGED: {
             "name": "Account email changed",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ACCOUNT_SET_PASSWORD_REQUESTED: {
             "name": "Account set password requested",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ACCOUNT_CONFIRMED: {
             "name": "Account confirmed",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ACCOUNT_DELETE_REQUESTED: {
             "name": "Account delete requested",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ACCOUNT_DELETED: {
             "name": "Account delete confirmed",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": False,
         },
         ADDRESS_CREATED: {
             "name": "Address created",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ADDRESS_UPDATED: {
             "name": "Address updated",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         ADDRESS_DELETED: {
             "name": "Address deleted",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": False,
         },
         APP_INSTALLED: {
             "name": "App created",
             "permission": AppPermission.MANAGE_APPS,
+            "is_deferred_payload": True,
         },
         APP_UPDATED: {
             "name": "App updated",
             "permission": AppPermission.MANAGE_APPS,
+            "is_deferred_payload": True,
         },
         APP_DELETED: {
             "name": "App deleted",
             "permission": AppPermission.MANAGE_APPS,
+            "is_deferred_payload": False,
         },
         APP_STATUS_CHANGED: {
             "name": "App status changed",
             "permission": AppPermission.MANAGE_APPS,
+            "is_deferred_payload": True,
         },
         ATTRIBUTE_CREATED: {
             "name": "Attribute created",
             "permission": None,
+            "is_deferred_payload": True,
         },
         ATTRIBUTE_UPDATED: {
             "name": "Attribute updated",
             "permission": None,
+            "is_deferred_payload": True,
         },
         ATTRIBUTE_DELETED: {
             "name": "Attribute deleted",
             "permission": None,
+            "is_deferred_payload": False,
         },
         ATTRIBUTE_VALUE_CREATED: {
             "name": "Attribute value created",
             "permission": None,
+            "is_deferred_payload": True,
         },
         ATTRIBUTE_VALUE_UPDATED: {
             "name": "Attribute value updated",
             "permission": None,
+            "is_deferred_payload": True,
         },
         ATTRIBUTE_VALUE_DELETED: {
             "name": "Attribute value deleted",
             "permission": None,
+            "is_deferred_payload": False,
         },
         CATEGORY_CREATED: {
             "name": "Category created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         CATEGORY_UPDATED: {
             "name": "Category updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         CATEGORY_DELETED: {
             "name": "Category deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": False,
         },
         CHANNEL_CREATED: {
             "name": "Channel created",
             "permission": ChannelPermissions.MANAGE_CHANNELS,
+            "is_deferred_payload": True,
         },
         CHANNEL_UPDATED: {
             "name": "Channel updated",
             "permission": ChannelPermissions.MANAGE_CHANNELS,
+            "is_deferred_payload": True,
         },
         CHANNEL_DELETED: {
             "name": "Channel deleted",
             "permission": ChannelPermissions.MANAGE_CHANNELS,
+            "is_deferred_payload": False,
         },
         CHANNEL_STATUS_CHANGED: {
             "name": "Channel status changed",
             "permission": ChannelPermissions.MANAGE_CHANNELS,
+            "is_deferred_payload": True,
         },
         CHANNEL_METADATA_UPDATED: {
             "name": "Channel metadata updated",
             "permission": ChannelPermissions.MANAGE_CHANNELS,
+            "is_deferred_payload": True,
         },
         GIFT_CARD_CREATED: {
             "name": "Gift card created",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": True,
         },
         GIFT_CARD_UPDATED: {
             "name": "Gift card updated",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": True,
         },
         GIFT_CARD_DELETED: {
             "name": "Gift card deleted",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": False,
         },
         GIFT_CARD_SENT: {
             "name": "Gift card sent",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": True,
         },
         GIFT_CARD_STATUS_CHANGED: {
             "name": "Gift card status changed",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": True,
         },
         GIFT_CARD_METADATA_UPDATED: {
             "name": "Gift card metadata updated",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": True,
         },
         GIFT_CARD_EXPORT_COMPLETED: {
             "name": "Gift card export completed",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
+            "is_deferred_payload": True,
         },
         MENU_CREATED: {
             "name": "Menu created",
             "permission": MenuPermissions.MANAGE_MENUS,
+            "is_deferred_payload": True,
         },
         MENU_UPDATED: {
             "name": "Menu updated",
             "permission": MenuPermissions.MANAGE_MENUS,
+            "is_deferred_payload": True,
         },
         MENU_DELETED: {
             "name": "Menu deleted",
             "permission": MenuPermissions.MANAGE_MENUS,
+            "is_deferred_payload": False,
         },
         MENU_ITEM_CREATED: {
             "name": "Menu item created",
             "permission": MenuPermissions.MANAGE_MENUS,
+            "is_deferred_payload": True,
         },
         MENU_ITEM_UPDATED: {
             "name": "Menu item updated",
             "permission": MenuPermissions.MANAGE_MENUS,
+            "is_deferred_payload": True,
         },
         MENU_ITEM_DELETED: {
             "name": "Menu item deleted",
             "permission": MenuPermissions.MANAGE_MENUS,
+            "is_deferred_payload": False,
         },
         ORDER_CREATED: {
             "name": "Order created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_CONFIRMED: {
             "name": "Order confirmed",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_PAID: {
             "name": "Order paid",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_FULLY_PAID: {
             "name": "Order fully paid",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_REFUNDED: {
             "name": "Order refunded",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_FULLY_REFUNDED: {
             "name": "Order fully refunded",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_UPDATED: {
             "name": "Order updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_CANCELLED: {
             "name": "Order cancelled",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_EXPIRED: {
             "name": "Order expired",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_FULFILLED: {
             "name": "Order fulfilled",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_METADATA_UPDATED: {
             "name": "Order metadata updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         ORDER_BULK_CREATED: {
             "name": "Order bulk created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_CREATED: {
             "name": "Fulfillment created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_CANCELED: {
             "name": "Fulfillment cancelled",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_APPROVED: {
             "name": "Fulfillment approved",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_METADATA_UPDATED: {
             "name": "Fulfillment metadata updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         FULFILLMENT_TRACKING_NUMBER_UPDATED: {
             "name": "Fulfillment tracking number updated.",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         DRAFT_ORDER_CREATED: {
             "name": "Draft order created",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         DRAFT_ORDER_UPDATED: {
             "name": "Draft order updated",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         DRAFT_ORDER_DELETED: {
             "name": "Draft order deleted",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": False,
         },
         SALE_CREATED: {
             "name": "Sale created",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         SALE_UPDATED: {
             "name": "Sale updated",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         SALE_DELETED: {
             "name": "Sale deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": False,
         },
         SALE_TOGGLE: {
             "name": "Sale toggle",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_CREATED: {
             "name": "Promotion created",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_UPDATED: {
             "name": "Promotion updated",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_DELETED: {
             "name": "Promotion deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": False,
         },
         PROMOTION_STARTED: {
             "name": "Promotion started",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_ENDED: {
             "name": "Promotion ended",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_RULE_CREATED: {
             "name": "Promotion rule created",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_RULE_UPDATED: {
             "name": "Promotion rule updated",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         PROMOTION_RULE_DELETED: {
             "name": "Promotion rule deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": False,
         },
         INVOICE_REQUESTED: {
             "name": "Invoice requested",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         INVOICE_DELETED: {
             "name": "Invoice deleted",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": False,
         },
         INVOICE_SENT: {
             "name": "Invoice sent",
             "permission": OrderPermissions.MANAGE_ORDERS,
+            "is_deferred_payload": True,
         },
         CUSTOMER_CREATED: {
             "name": "Customer created",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         CUSTOMER_UPDATED: {
             "name": "Customer updated",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         CUSTOMER_DELETED: {
             "name": "Customer deleted",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": False,
         },
         CUSTOMER_METADATA_UPDATED: {
             "name": "Customer metadata updated",
@@ -524,246 +603,307 @@ class WebhookEventAsyncType:
         COLLECTION_CREATED: {
             "name": "Collection created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         COLLECTION_UPDATED: {
             "name": "Collection updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         COLLECTION_DELETED: {
             "name": "Collection deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": False,
         },
         COLLECTION_METADATA_UPDATED: {
             "name": "Collection metadata updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_CREATED: {
             "name": "Product created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_UPDATED: {
             "name": "Product updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_DELETED: {
             "name": "Product deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": False,
         },
         PRODUCT_METADATA_UPDATED: {
             "name": "Product metadata updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_EXPORT_COMPLETED: {
             "name": "Product export completed",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_MEDIA_CREATED: {
             "name": "Product media created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_MEDIA_UPDATED: {
             "name": "Product media updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_MEDIA_DELETED: {
             "name": "Product media deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": False,
         },
         PRODUCT_VARIANT_CREATED: {
             "name": "Product variant created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_VARIANT_UPDATED: {
             "name": "Product variant updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_VARIANT_DELETED: {
             "name": "Product variant deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": False,
         },
         PRODUCT_VARIANT_METADATA_UPDATED: {
             "name": "Product variant metadata updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_VARIANT_OUT_OF_STOCK: {
             "name": "Product variant stock changed",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_VARIANT_BACK_IN_STOCK: {
             "name": "Product variant back in stock",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_VARIANT_STOCK_UPDATED: {
             "name": "Product variant stock updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_CREATED: {
             "name": "Checkout created",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_UPDATED: {
             "name": "Checkout updated",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_FULLY_PAID: {
             "name": "Checkout fully paid",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_METADATA_UPDATED: {
             "name": "Checkout metadata updated",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         NOTIFY_USER: {
             "name": "Notify user",
             "permission": AccountPermissions.MANAGE_USERS,
+            "is_deferred_payload": True,
         },
         PAGE_CREATED: {
             "name": "Page created",
             "permission": PagePermissions.MANAGE_PAGES,
+            "is_deferred_payload": True,
         },
         PAGE_UPDATED: {
             "name": "Page updated",
             "permission": PagePermissions.MANAGE_PAGES,
+            "is_deferred_payload": True,
         },
         PAGE_DELETED: {
             "name": "Page deleted",
             "permission": PagePermissions.MANAGE_PAGES,
+            "is_deferred_payload": False,
         },
         PAGE_TYPE_CREATED: {
             "name": "Page type created",
             "permission": PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+            "is_deferred_payload": True,
         },
         PAGE_TYPE_UPDATED: {
             "name": "Page type updated",
             "permission": PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+            "is_deferred_payload": True,
         },
         PAGE_TYPE_DELETED: {
             "name": "Page type deleted",
             "permission": PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+            "is_deferred_payload": False,
         },
         PERMISSION_GROUP_CREATED: {
             "name": "Permission group created",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": True,
         },
         PERMISSION_GROUP_UPDATED: {
             "name": "Permission group updated",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": True,
         },
         PERMISSION_GROUP_DELETED: {
             "name": "Permission group deleted",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": False,
         },
         SHIPPING_PRICE_CREATED: {
             "name": "Shipping price created",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": True,
         },
         SHIPPING_PRICE_UPDATED: {
             "name": "Shipping price updated",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": True,
         },
         SHIPPING_PRICE_DELETED: {
             "name": "Shipping price deleted",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": False,
         },
         SHIPPING_ZONE_CREATED: {
             "name": "Shipping zone created",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": True,
         },
         SHIPPING_ZONE_UPDATED: {
             "name": "Shipping zone updated",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": True,
         },
         SHIPPING_ZONE_DELETED: {
             "name": "Shipping zone deleted",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": False,
         },
         SHIPPING_ZONE_METADATA_UPDATED: {
             "name": "Shipping zone metadata updated",
             "permission": ShippingPermissions.MANAGE_SHIPPING,
+            "is_deferred_payload": True,
         },
         STAFF_CREATED: {
             "name": "Staff created",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": True,
         },
         STAFF_UPDATED: {
             "name": "Staff updated",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": True,
         },
         STAFF_DELETED: {
             "name": "Staff deleted",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": False,
         },
         STAFF_SET_PASSWORD_REQUESTED: {
             "name": "Setting a password for a staff is requested",
             "permission": AccountPermissions.MANAGE_STAFF,
+            "is_deferred_payload": True,
         },
         TRANSACTION_ITEM_METADATA_UPDATED: {
             "name": "Transaction item metadata updated",
             "permission": PaymentPermissions.HANDLE_PAYMENTS,
+            "is_deferred_payload": True,
         },
         TRANSLATION_CREATED: {
             "name": "Translation created",
             "permission": SitePermissions.MANAGE_TRANSLATIONS,
+            "is_deferred_payload": True,
         },
         TRANSLATION_UPDATED: {
             "name": "Translation updated",
             "permission": SitePermissions.MANAGE_TRANSLATIONS,
+            "is_deferred_payload": True,
         },
         WAREHOUSE_CREATED: {
             "name": "Warehouse created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         WAREHOUSE_UPDATED: {
             "name": "Warehouse updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         WAREHOUSE_DELETED: {
             "name": "Warehouse deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": False,
         },
         WAREHOUSE_METADATA_UPDATED: {
             "name": "Warehouse metadata updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         VOUCHER_CREATED: {
             "name": "Voucher created",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         VOUCHER_UPDATED: {
             "name": "Voucher updated",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         VOUCHER_DELETED: {
             "name": "Voucher deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": False,
         },
         VOUCHER_CODES_CREATED: {
             "name": "Voucher codes created",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         VOUCHER_CODES_DELETED: {
             "name": "Voucher codes deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": False,
         },
         VOUCHER_METADATA_UPDATED: {
             "name": "Voucher metadata updated",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         VOUCHER_CODE_EXPORT_COMPLETED: {
             "name": "Voucher code export completed",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+            "is_deferred_payload": True,
         },
         OBSERVABILITY: {
             "name": "Observability",
             "permission": AppPermission.MANAGE_OBSERVABILITY,
+            "is_deferred_payload": True,
         },
         THUMBNAIL_CREATED: {
             "name": "Thumbnail created",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         SHOP_METADATA_UPDATED: {
             "name": "Shop metadata updated",
             "permission": SitePermissions.MANAGE_SETTINGS,
+            "is_deferred_payload": True,
         },
     }
 

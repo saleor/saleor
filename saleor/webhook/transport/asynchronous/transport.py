@@ -570,6 +570,7 @@ def generate_deferred_payloads(
                 EventDelivery.objects.bulk_update(
                     event_deliveries_for_bulk_update, ["payload"]
                 )
+
     for delivery in event_deliveries_for_bulk_update:
         send_webhooks_async_for_app.apply_async(
             kwargs={
