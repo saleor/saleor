@@ -246,23 +246,15 @@ class DraftOrderUpdate(
         instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
             modified_foreign_fields = instance_tracker.get_foreign_modified_fields()
-            if (
-                "shipping_address" in modified_foreign_fields
-                and "shipping_address" in cleaned_input
-            ):
-                instance.shipping_address = cleaned_input["shipping_address"]
+            if "shipping_address" in modified_foreign_fields:
                 cls._save_address(
-                    cleaned_input["shipping_address"],
+                    instance.shipping_address,
                     modified_foreign_fields["shipping_address"],
                 )
 
-            if (
-                "billing_address" in modified_foreign_fields
-                and "billing_address" in cleaned_input
-            ):
-                instance.billing_address = cleaned_input["billing_address"]
+            if "billing_address" in modified_foreign_fields:
                 cls._save_address(
-                    cleaned_input["billing_address"],
+                    instance.billing_address,
                     modified_foreign_fields["billing_address"],
                 )
 
@@ -290,7 +282,7 @@ class DraftOrderUpdate(
 
     @classmethod
     def _save_address(cls, address_instance, modified_fields):
-        if address_instance.pk is None:
+        if address_instance._state.adding:
             address_instance.save()
         else:
             address_instance.save(update_fields=modified_fields)
