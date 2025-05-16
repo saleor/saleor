@@ -60,11 +60,13 @@ class InstanceTracker:
             != modified_instance_values.get(field)
         ]
 
-    def get_foreign_modified_fields(self) -> dict[str, list[str]]:
-        modified_fields = {}
+    def get_foreign_modifications(self) -> dict[str, tuple[T, list[str], bool]]:
+        modifications = {}
         for lookup, tracker in self.foreign_instance_relation.items():
             tracker.instance = getattr(self.instance, lookup, None)
-            foreign_modified = tracker.get_modified_fields()
-            if foreign_modified:
-                modified_fields[lookup] = foreign_modified
-        return modified_fields
+            if tracker.instance is None:
+                continue
+            if modified_fields := tracker.get_modified_fields():
+                is_created = tracker.initial_instance_values == {}
+                modifications[lookup] = (tracker.instance, modified_fields, is_created)
+        return modifications

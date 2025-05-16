@@ -71,11 +71,15 @@ def test_instance_tracker_foreign_relation(order_with_lines):
 
     # when
     modified_fields = tracker.get_modified_fields()
-    foreign_modified_fields = tracker.get_foreign_modified_fields()
+    foreign_modifications = tracker.get_foreign_modifications()
 
     # then
     assert modified_fields == ["status", "shipping_address"]
-    assert foreign_modified_fields["shipping_address"] == ["last_name"]
+    assert foreign_modifications["shipping_address"] == (
+        shipping_address,
+        ["last_name"],
+        False,
+    )
 
 
 def test_instance_tracker_foreign_relation_new_instance(order_with_lines):
@@ -96,8 +100,12 @@ def test_instance_tracker_foreign_relation_new_instance(order_with_lines):
 
     # when
     modified_fields = tracker.get_modified_fields()
-    foreign_modified_fields = tracker.get_foreign_modified_fields()
+    foreign_modifications = tracker.get_foreign_modifications()
 
     # then
     assert modified_fields == ["status", "shipping_address"]
-    assert foreign_modified_fields["shipping_address"] == foreign_fields_to_track
+    assert foreign_modifications["shipping_address"] == (
+        order.shipping_address,
+        foreign_fields_to_track,
+        True,
+    )

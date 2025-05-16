@@ -1,9 +1,10 @@
-from typing import cast
+from typing import TypeVar, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Model
 
-from ....account.models import User
+from ....account.models import Address, User
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.update_mutation_manager import InstanceTracker
@@ -41,6 +42,8 @@ from .utils import (
     SHIPPING_METHOD_UPDATE_FIELDS,
     ShippingMethodUpdateMixin,
 )
+
+T = TypeVar("T", bound=Model)
 
 
 class DraftOrderUpdate(
@@ -238,28 +241,24 @@ class DraftOrderUpdate(
             )
 
     @classmethod
-    def _save(
-        cls,
-        instance_tracker: InstanceTracker,
-        cleaned_input: dict,
-    ) -> bool:
+    def _save(cls, instance_tracker: InstanceTracker) -> bool:
         instance = cast(models.Order, instance_tracker.instance)
         with traced_atomic_transaction():
-            modified_foreign_fields = instance_tracker.get_foreign_modified_fields()
-            if "shipping_address" in modified_foreign_fields:
-                cls._save_address(
-                    instance.shipping_address,
-                    modified_foreign_fields["shipping_address"],
-                )
-
-            if "billing_address" in modified_foreign_fields:
-                cls._save_address(
-                    instance.billing_address,
-                    modified_foreign_fields["billing_address"],
-                )
+            foreign_modifications: dict[str, tuple[Address, list[str], bool]] = (
+                instance_tracker.get_foreign_modifications()
+            )
+            for (
+                foreign_instance,
+                modified_fields,
+                is_created,
+            ) in foreign_modifications.values():
+                if is_created:
+                    foreign_instance.save()
+                else:
+                    foreign_instance.save(update_fields=modified_fields)
 
             modified_instance_fields = instance_tracker.get_modified_fields()
-            modified_instance_fields.extend(modified_foreign_fields)
+            modified_instance_fields.extend(foreign_modifications)
             if not modified_instance_fields:
                 return False
 
@@ -279,13 +278,6 @@ class DraftOrderUpdate(
     def _save_order_instance(cls, instance, modified_instance_fields):
         update_fields = ["updated_at"] + modified_instance_fields
         instance.save(update_fields=update_fields)
-
-    @classmethod
-    def _save_address(cls, address_instance, modified_fields):
-        if address_instance._state.adding:
-            address_instance.save()
-        else:
-            address_instance.save(update_fields=modified_fields)
 
     @classmethod
     def _post_save_action(cls, instance, manager):
@@ -397,7 +389,7 @@ class DraftOrderUpdate(
         cls.handle_shipping(cleaned_input, instance, manager)
         cls.handle_order_voucher(cleaned_input, instance, old_voucher, old_voucher_code)
 
-        order_modified = cls._save(instance_tracker, cleaned_input)
+        order_modified = cls._save(instance_tracker)
         if order_modified:
             cls._post_save_action(instance, manager)
 
