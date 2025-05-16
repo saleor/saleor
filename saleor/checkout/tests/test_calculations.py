@@ -21,6 +21,7 @@ from ...core.taxes import (
     TaxLineData,
     zero_taxed_money,
 )
+from ...giftcard.models import GiftCard
 from ...graphql.core.utils import to_global_id_or_none
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.avatax.plugin import AvataxPlugin
@@ -39,6 +40,9 @@ from ..calculations import (
     _apply_tax_data,
     _calculate_and_add_tax,
     _set_checkout_base_prices,
+    calculate_checkout_total_with_gift_cards,
+    checkout_line_total,
+    checkout_line_unit_price,
     fetch_checkout_data,
     logger,
 )
@@ -64,6 +68,23 @@ def tax_data(checkout_with_items, checkout_lines):
             )
             for line in lines
         ],
+    )
+
+
+@pytest.fixture
+def checkout_with_item_and_gift_card(checkout_with_item, gift_card):
+    # Add the gift card to the checkout
+    checkout = checkout_with_item
+    checkout.gift_cards.add(gift_card)
+    checkout.save()
+    return checkout
+
+
+def gift_card(db):
+    return GiftCard.objects.create(
+        balance=Money(50, "USD"),
+        currency="USD",
+        is_active=True,
     )
 
 
@@ -1156,3 +1177,93 @@ def test_fetch_checkout_with_prior_price_none(
     line.refresh_from_db()
     assert line.prior_unit_price_amount is None
     assert line.currency is not None
+
+
+def test_calculate_checkout_total_with_gift_card(
+    checkout_with_item_and_gift_card,  # fixture that includes a gift card applied
+):
+    # given
+    checkout = checkout_with_item_and_gift_card
+    manager = get_plugins_manager(allow_replica=False)
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines_info, manager)
+
+    # Add a gift card balance greater than total
+    checkout.get_total_gift_cards_balance = lambda db_name: TaxedMoney(
+        net=Money("100.00", checkout.currency), gross=Money("100.00", checkout.currency)
+    )
+
+    # when
+    total = calculate_checkout_total_with_gift_cards(
+        manager,
+        checkout_info,
+        lines_info,
+        checkout_info.shipping_address or checkout_info.billing_address,
+    )
+
+    # then
+    assert total == zero_taxed_money(checkout.currency)
+
+
+def test_checkout_line_total_returns_plugin_value(checkout_with_item):
+    # given
+    checkout = checkout_with_item
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = lines[0]
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # mocked plugin return value
+    expected_total = TaxedMoney(
+        net=Money("20.00", checkout.currency),
+        gross=Money("24.00", checkout.currency),
+    )
+
+    manager.calculate_checkout_line_total = Mock(return_value=expected_total)
+
+    # when
+    result = checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=checkout_line_info,
+    )
+
+    # then
+    assert result == expected_total
+    assert manager.calculate_checkout_line_total.call_count >= 1
+
+
+def test_checkout_line_unit_price_matches_total_divided_by_quantity(checkout_with_item):
+    # given
+    checkout = checkout_with_item
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_line_info = lines[0]
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    line = checkout_line_info.line
+    line.quantity = 3
+
+    # set known total and quantity
+    price = TaxedMoney(
+        net=Money("30.00", checkout.currency),
+        gross=Money("36.00", checkout.currency),
+    )
+
+    manager.calculate_checkout_line_total = Mock(return_value=price)
+
+    # when
+    result = checkout_line_unit_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=checkout_line_info,
+    )
+
+    # then
+    expected = TaxedMoney(
+        net=Money("10.00", checkout.currency),
+        gross=Money("12.00", checkout.currency),
+    )
+    assert result == expected
