@@ -158,16 +158,28 @@ class DraftOrderUpdate(
             shipping_method_input["shipping_method"] = shipping_method
 
             # Do not process shipping method if it is already associated with the order
-            # and shipping price is already set. Shipping price can be not set together
+            # and shipping price is properly set. Shipping price can be not set together
             # with shipping method when it is added to the order without lines or with
             # lines that do not require shipping.
-            shipping_update_required = (
-                shipping_method
-                and shipping_method.id != instance.shipping_method_id
-                or instance.base_shipping_price_amount <= 0
-            )
-            if not shipping_update_required and shipping_method is not None:
-                shipping_method_input = {}
+            if shipping_method is not None:
+                method_channel_listing = shipping_method.channel_listings.filter(
+                    channel=instance.channel
+                ).first()
+                shipping_price = (
+                    method_channel_listing.price if method_channel_listing else 0
+                )
+                shipping_price_update_required = (
+                    shipping_method.id == instance.shipping_method_id
+                    and instance.undiscounted_base_shipping_price != shipping_price
+                )
+                shipping_method_update_required = (
+                    shipping_method.id != instance.shipping_method_id
+                )
+                shipping_update_required = (
+                    shipping_method_update_required or shipping_price_update_required
+                )
+                if not shipping_update_required:
+                    shipping_method_input = {}
 
         return shipping_method_input
 
