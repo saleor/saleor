@@ -17,8 +17,7 @@ from ..account.models import Address, Group, StaffNotificationRecipient
 from ..core import JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
-from ..core.telemetry import initialize_telemetry
-from ..core.telemetry.tests import TestMeter, TestTracer
+from ..core.telemetry import initialize_telemetry, meter, tracer
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import PromotionEvents
@@ -103,27 +102,27 @@ def initialize_test_telemetry():
 
 @pytest.fixture
 def trace_context_propagation(initialize_test_telemetry):
-    TestTracer._inject_context = True
+    tracer._tracer._inject_context = True
     yield
-    TestTracer._inject_context = False
+    tracer._tracer._inject_context = False
 
 
 @pytest.fixture
 def get_test_spans(initialize_test_telemetry):
     # Clear any existing spans from the buffer before test execution
-    TestTracer.span_exporter.clear()
-    yield TestTracer.span_exporter.get_finished_spans
+    tracer._tracer.span_exporter.clear()
+    yield tracer._tracer.span_exporter.get_finished_spans
     # Clean up by clearing the buffer after test completion
-    TestTracer.span_exporter.clear()
+    tracer._tracer.span_exporter.clear()
 
 
 @pytest.fixture
 def get_test_metrics_data(initialize_test_telemetry):
     # Clear any existing metrics data from the buffer before test execution
-    TestMeter.metric_reader.get_metrics_data()
-    yield TestMeter.metric_reader.get_metrics_data
+    meter._meter.metric_reader.get_metrics_data()
+    yield meter._meter.metric_reader.get_metrics_data
     # Clean up by clearing the buffer after test completion
-    TestMeter.metric_reader.get_metrics_data()
+    meter._meter.metric_reader.get_metrics_data()
 
 
 @pytest.fixture
