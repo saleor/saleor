@@ -23,7 +23,6 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
-
 DRAFT_ORDER_UPDATE_FIELDS = {
     "base_shipping_price_amount",
     "billing_address",

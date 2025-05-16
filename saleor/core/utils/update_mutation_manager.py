@@ -6,10 +6,6 @@ from django.db.models import Model
 T = TypeVar("T", bound=Model)
 
 
-class InstanceTrackerError(Exception):
-    """Base class for tracker errors."""
-
-
 class InstanceTracker:
     """Instance with modifications tracker.
 
@@ -24,7 +20,9 @@ class InstanceTracker:
     ):
         self.instance = instance
         self.fields_to_track = fields_to_track
-        self.initial_instance_values: dict[str, Any] = deepcopy(self.get_field_values())
+        self.initial_instance_values: dict[str, Any] = (
+            deepcopy(self.get_field_values()) if instance else {}
+        )
         self.foreign_instance_relation: dict[str, InstanceTracker] = {}
         self.create = instance is None
 
@@ -39,22 +37,25 @@ class InstanceTracker:
 
     def get_field_values(self) -> dict[str, Any]:
         """Create a dict of tracked fields with related instance values."""
-        return {
-            field: getattr(self.instance, field, None) for field in self.fields_to_track
-        }
+        if not self.instance:
+            return {}
+
+        return {field: getattr(self.instance, field) for field in self.fields_to_track}
 
     def get_modified_fields(self) -> list[str]:
         """Compare updated instance values with initial ones.
 
         Raise exception when instance is None.
         """
-        if not self.instance:
-            return self.fields_to_track
+        if not self.initial_instance_values:
+            if self.instance:
+                return self.fields_to_track
+            return []
 
         modified_instance_values: dict[str, Any] = self.get_field_values()
         return [
             field
-            for field in self.initial_instance_values.keys()
+            for field in self.initial_instance_values
             if self.initial_instance_values.get(field)
             != modified_instance_values.get(field)
         ]
@@ -62,6 +63,7 @@ class InstanceTracker:
     def get_foreign_modified_fields(self) -> dict[str, list[str]]:
         modified_fields = {}
         for lookup, tracker in self.foreign_instance_relation.items():
+            tracker.instance = getattr(self.instance, lookup, None)
             foreign_modified = tracker.get_modified_fields()
             if foreign_modified:
                 modified_fields[lookup] = foreign_modified

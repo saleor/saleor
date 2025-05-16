@@ -372,8 +372,8 @@ class DraftOrderUpdate(
             instance,
             cls.FIELDS_TO_TRACK,
             foreign_fields_to_track={
-                "shipping_address": ADDRESS_UPDATE_FIELDS,
-                "billing_address": ADDRESS_UPDATE_FIELDS,
+                "shipping_address": list(ADDRESS_UPDATE_FIELDS),
+                "billing_address": list(ADDRESS_UPDATE_FIELDS),
             },
         )
 
