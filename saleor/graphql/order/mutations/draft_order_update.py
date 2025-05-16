@@ -108,7 +108,7 @@ class DraftOrderUpdate(
         cls.clean_channel_id(instance, data)
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
-        redirect_url = data.pop("redirect_url", "")
+        redirect_url = data.pop("redirect_url", None)
 
         shipping_method_input = cls.clean_shipping_method(instance, data)
 
