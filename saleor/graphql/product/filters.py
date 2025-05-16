@@ -1328,7 +1328,7 @@ class ProductVariantFilter(MetadataFilterBase):
     stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
-        help_text="Filter by variant product stock status.",
+        help_text="Filter by product variant stock status.",
     )
 
     class Meta:
@@ -1355,7 +1355,7 @@ class ProductVariantWhere(MetadataWhereFilterBase):
     stock_availability = EnumWhereFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
-        help_text="Filter by variant product stock status.",
+        help_text="Filter by variant stock status.",
     )
 
     class Meta:
