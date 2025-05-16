@@ -977,7 +977,7 @@ def _create_staff_user(staff_password, email=None, superuser=False):
     if not email:
         email = get_email(first_name, last_name)
 
-    staff_user = User.objects.filter(email=email).first()
+    staff_user = User.objects.filter(email=email, is_staff=True).first()
     if staff_user:
         return staff_user
 
