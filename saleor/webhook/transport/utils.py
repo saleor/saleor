@@ -35,6 +35,7 @@ from ...core.models import (
 )
 from ...core.tasks import delete_files_from_private_storage_task
 from ...core.taxes import TaxData, TaxLineData
+from ...core.telemetry import tracer
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import sanitize_url_for_logging
 from ...payment.interface import (
@@ -167,6 +168,7 @@ def send_webhook_using_http(
         AppHeaders.SIGNATURE: signature,
         AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
+    tracer.inject_context(headers)
 
     if custom_headers:
         headers.update(custom_headers)

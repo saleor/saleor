@@ -159,8 +159,9 @@ class GraphQLView(View):
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
         with (
+            tracer.extract_context(request.headers) as context,
             tracer.start_as_current_span(
-                request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER
+                request.path, scope=Scope.SERVICE, kind=SpanKind.SERVER, context=context
             ) as span,
             record_request_duration() as request_duration_attrs,
         ):
@@ -183,6 +184,7 @@ class GraphQLView(View):
             span.set_attribute(saleor_attributes.SPAN_TYPE, "web")
 
             response = self._handle_query(request)
+            tracer.inject_context(response.headers)
             span.set_attribute(
                 http_attributes.HTTP_RESPONSE_STATUS_CODE, response.status_code
             )
