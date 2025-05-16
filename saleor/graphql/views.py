@@ -328,9 +328,6 @@ class GraphQLView(View):
                 span.set_attribute(
                     graphql_attributes.GRAPHQL_OPERATION_NAME, operation_name
                 )
-                query_duration_attrs[graphql_attributes.GRAPHQL_OPERATION_NAME] = (
-                    operation_name
-                )
 
             span.set_attribute(
                 saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER, operation_identifier
