@@ -1979,7 +1979,7 @@ def test_with_active_problems_flow(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async",
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async",
     wraps=send_webhook_request_async.apply_async,
 )
 @patch(
