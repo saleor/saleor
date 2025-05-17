@@ -39,6 +39,10 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 cataloguePredicate
                 orderPredicate
                 giftIds
+                customerGroups {
+                    id
+                    name
+                }
             }
             errors {
                 field
@@ -1931,3 +1935,69 @@ def test_promotion_rule_create_invalid_promotion_id(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "promotion"
     assert data["errors"][0]["code"] == PromotionRuleCreateErrorCode.GRAPHQL_ERROR.name
+
+
+@patch("saleor.plugins.manager.PluginsManager.promotion_rule_created")
+def test_promotion_rule_create_with_customer_group_restriction(
+    promotion_rule_created_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    product,
+    catalogue_promotion,
+    customer_group_list,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion = catalogue_promotion
+
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+    catalogue_predicate = {
+        "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
+    }
+    name = "test promotion rule"
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    rules_count = promotion.rules.count()
+
+    customer_group_ids = [
+        graphene.Node.to_global_id("CustomerGroup", customer_group.pk)
+        for customer_group in customer_group_list
+    ]
+
+    variables = {
+        "input": {
+            "name": name,
+            "promotion": promotion_id,
+            "description": description_json,
+            "channels": channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+            "gifts": None,
+            "limitToCustomerGroups": True,
+            "customerGroups": customer_group_ids,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    rule_data = data["promotionRule"]
+
+    assert not data["errors"]
+    assert {group["id"] for group in rule_data["customerGroups"]} == set(
+        customer_group_ids
+    )
+    assert promotion.rules.count() == rules_count + 1
+    rule = promotion.rules.last()
+    promotion_rule_created_mock.assert_called_once_with(rule)

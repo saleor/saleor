@@ -465,7 +465,9 @@ def fetch_checkout_lines(
         )
         translation_language_code = checkout.language_code
         rules_info = (
-            fetch_variant_rules_info(variant_channel_listing, translation_language_code)
+            fetch_variant_rules_info(
+                variant_channel_listing, translation_language_code, checkout.user
+            )
             if not line.is_gift
             else []
         )

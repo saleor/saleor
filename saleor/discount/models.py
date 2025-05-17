@@ -383,6 +383,9 @@ class PromotionRule(models.Model):
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
+    customer_groups = models.ManyToManyField(
+        "account.CustomerGroup", blank=True, related_name="promotion_rules"
+    )
     catalogue_predicate = models.JSONField(
         blank=True, default=dict, encoder=CustomJsonEncoder
     )

@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, NamedTuple, Optional
 
+from django.db.models import Q
+
+from ..account.models import User
 from . import DiscountType, DiscountValueType
 from .models import PromotionRule, Voucher
 
@@ -79,12 +82,17 @@ class VariantPromotionRuleInfo(NamedTuple):
 def fetch_variant_rules_info(
     variant_channel_listing: Optional["ProductVariantChannelListing"],
     translation_language_code: str,
+    user: User | None = None,
 ) -> list[VariantPromotionRuleInfo]:
-    listings_rules = (
-        variant_channel_listing.variantlistingpromotionrule.all()
-        if variant_channel_listing
-        else []
-    )
+    listings_rules = []
+    if variant_channel_listing:
+        if user:
+            listings_rules = variant_channel_listing.variantlistingpromotionrule.filter(
+                Q(promotion_rule__customer_groups__in=user.customer_groups.all())
+                | Q(promotion_rule__customer_groups__isnull=True)
+            )
+        else:
+            listings_rules = variant_channel_listing.variantlistingpromotionrule.all()
 
     rules_info = []
     if listings_rules:

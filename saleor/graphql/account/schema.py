@@ -47,6 +47,7 @@ from .mutations.authentication import (
     SetPassword,
     VerifyToken,
 )
+from .mutations.customer_group import CustomerGroupCreate, CustomerGroupUpdate
 from .mutations.permission_group import (
     PermissionGroupCreate,
     PermissionGroupDelete,
@@ -316,3 +317,6 @@ class AccountMutations(graphene.ObjectType):
     permission_group_create = PermissionGroupCreate.Field()
     permission_group_update = PermissionGroupUpdate.Field()
     permission_group_delete = PermissionGroupDelete.Field()
+
+    customer_group_create = CustomerGroupCreate.Field()
+    customer_group_update = CustomerGroupUpdate.Field()

@@ -33494,7 +33494,23 @@ type PaymentMethodProcessTokenizationSession implements Event @doc(category: "Pa
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
+union _Entity = App | Address | User | Group | CustomerGroup | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
+
+"""Represents customer group data."""
+type CustomerGroup implements Node {
+  """The ID of the customer group."""
+  id: ID!
+
+  """The name of the customer group."""
+  name: String!
+
+  """
+  List of customers in group
+  
+  Requires one of the following permissions: MANAGE_USERS.
+  """
+  customers: UserCountableConnection
+}
 
 """_Service manifest as defined by Federation spec."""
 type _Service {

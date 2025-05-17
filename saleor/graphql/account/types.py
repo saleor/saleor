@@ -1028,3 +1028,45 @@ class GroupCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         node = Group
+
+
+class CustomerGroupInput(BaseInputObjectType):
+    name = graphene.String(description="Customer group name.")
+
+
+class CustomerGroupUpdateInput(BaseInputObjectType):
+    name = graphene.String(
+        description="Name of the customer group. Must be unique.",
+    )
+    add_customers = NonNullList(
+        graphene.ID,
+        description="List of customer IDs to add to the group.",
+    )
+    remove_customers = NonNullList(
+        graphene.ID,
+        description="List of customer IDs to remove from the group.",
+    )
+
+
+@federated_entity("id")
+class CustomerGroup(ModelObjectType[models.CustomerGroup]):
+    id = graphene.GlobalID(required=True, description="The ID of the customer group.")
+    name = graphene.String(required=True, description="The name of the customer group.")
+    customers = ConnectionField(
+        UserCountableConnection,
+        description="List of customers in group",
+        permissions=[
+            AccountPermissions.MANAGE_USERS,
+        ],
+    )
+
+    class Meta:
+        description = "Represents customer group data."
+        interfaces = [relay.Node]
+        model = models.CustomerGroup
+
+    @staticmethod
+    def resolve_customers(root: models.CustomerGroup, info: ResolveInfo, **kwargs):
+        database_connection_name = get_database_connection_name(info.context)
+        qs = root.customers.using(database_connection_name)
+        return create_connection_slice(qs, info, kwargs, UserCountableConnection)

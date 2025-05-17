@@ -7,6 +7,7 @@ from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
+from ....account.types import CustomerGroup
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -79,6 +80,13 @@ class PromotionRuleCreate(DeprecatedModelMutation):
         )
         cleaned_input["promotion"] = promotion
         promotion_type = promotion.type  # type: ignore[union-attr]
+
+        if data.get("limitToCustomerGroups"):
+            data["customerGroups"] = cls.get_nodes_or_error(
+                data["limitToCustomerGroups"], "customer_groups", CustomerGroup
+            )
+        else:
+            data["customerGroups"] = []
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         clean_promotion_rule(
