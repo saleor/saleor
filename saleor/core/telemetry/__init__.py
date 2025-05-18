@@ -1,8 +1,10 @@
 import os
+import uuid
 from importlib import import_module
 from typing import Any
 
 from opentelemetry.sdk._configuration import _OTelSDKConfigurator
+from opentelemetry.sdk.resources import SERVICE_INSTANCE_ID
 from opentelemetry.util.types import Attributes
 
 from .metric import Meter, MeterProxy, MetricType
@@ -26,7 +28,7 @@ def load_object(python_path: str) -> Any:
 
 def otel_configure_sdk():
     configurator = _OTelSDKConfigurator()
-    configurator.configure()
+    configurator.configure(resource_attributes={SERVICE_INSTANCE_ID: str(uuid.uuid4())})
 
 
 TELEMETRY_DISABLE_AUTO_CONFIGURE = (
