@@ -612,8 +612,10 @@ def test_trace_context_propagation(
     formatted_parent_span_id = "b63e859130b3cabf"
     trace_state = "rojo=00f067aa0ba902b7"
     query = """
-        shop {
-          name
+        {
+          shop {
+            name
+          }
         }
     """
 
