@@ -6,6 +6,7 @@ from opentelemetry import context as otel_context
 from opentelemetry.propagate import extract, inject
 from opentelemetry.trace import (
     INVALID_SPAN,
+    INVALID_SPAN_CONTEXT,
     Link,
     Span,
     SpanKind,
@@ -46,7 +47,10 @@ class Tracer:
         self, carrier: Mapping[str, str | list[str]] | None = None
     ) -> Iterator[otel_context.Context | None]:
         token = context = None
-        if carrier is not None and self.get_current_span() is INVALID_SPAN:
+        if (
+            carrier is not None
+            and self.get_current_span().get_span_context() is INVALID_SPAN_CONTEXT
+        ):
             context = extract(carrier)
             token = otel_context.attach(context)
         try:
@@ -168,6 +172,16 @@ class TracerProxy(Tracer):
         if self._tracer is not None:
             logger.warning("Tracer already initialized")
         self._tracer = tracer_cls(instrumentation_version)
+
+    @contextmanager
+    def extract_context(
+        self, carrier: Mapping[str, str | list[str]] | None = None
+    ) -> Iterator[otel_context.Context | None]:
+        if self._tracer is None:
+            yield None
+        else:
+            with self._tracer.extract_context(carrier) as context:
+                yield context
 
     @contextmanager
     def start_as_current_span(
