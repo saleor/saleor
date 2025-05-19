@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
@@ -10,7 +9,11 @@ from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...core.utils.country import get_active_country
 from ..models import TaxClassCountryRate
-from ..utils import get_tax_rate_for_country, normalize_tax_rate_for_db
+from ..utils import (
+    get_shipping_tax_rate_for_checkout,
+    get_tax_rate_for_country,
+    normalize_tax_rate_for_db,
+)
 from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
@@ -42,12 +45,14 @@ def update_checkout_prices_with_flat_rates(
     for line_info in lines:
         line = line_info.line
         tax_class = line_info.tax_class
+
         tax_rate = get_tax_rate_for_country(
             tax_class.country_rates.all() if tax_class else [],
             default_tax_rate,
             country_code,
         )
-        line_total_price = calculate_checkout_line_total(
+
+        line_total_price = _calculate_checkout_line_total(
             checkout_info,
             lines,
             line_info,
@@ -58,21 +63,14 @@ def update_checkout_prices_with_flat_rates(
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
     # Calculate shipping details.
-    shipping_tax_rates: Iterable[TaxClassCountryRate] = []
-    if shipping_method := checkout_info.shipping_method:
-        # external shipping methods do not have a way to provide tax-class
-        tax_class_id = shipping_method.tax_class_id
-        if tax_class_id:
-            shipping_tax_rates = TaxClassCountryRate.objects.using(
-                database_connection_name
-            ).filter(tax_class_id=tax_class_id)
-
-    shipping_tax_rate = get_tax_rate_for_country(
-        shipping_tax_rates,
+    shipping_tax_rate = get_shipping_tax_rate_for_checkout(
+        checkout_info,
+        lines,
         default_tax_rate,
         country_code,
+        database_connection_name=database_connection_name,
     )
-    shipping_price = calculate_checkout_shipping(
+    shipping_price = _calculate_checkout_shipping(
         checkout_info, lines, shipping_tax_rate, prices_entered_with_tax
     )
     checkout.shipping_price = shipping_price
@@ -86,7 +84,7 @@ def update_checkout_prices_with_flat_rates(
     checkout.total = subtotal + shipping_price
 
 
-def calculate_checkout_shipping(
+def _calculate_checkout_shipping(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     tax_rate: Decimal,
@@ -101,7 +99,7 @@ def calculate_checkout_shipping(
     return quantize_price(shipping_price_taxed, shipping_price_taxed.currency)
 
 
-def calculate_checkout_line_total(
+def _calculate_checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
