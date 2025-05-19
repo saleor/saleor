@@ -27,6 +27,10 @@ def _test_field_resolvers(tax_configuration: TaxConfiguration, data: dict):
     assert data["displayGrossPrices"] == tax_configuration.display_gross_prices
     assert data["pricesEnteredWithTax"] == tax_configuration.prices_entered_with_tax
     assert data["taxAppId"] == tax_configuration.tax_app_id
+    assert (
+        data["useWeightedTaxForShipping"]
+        == tax_configuration.use_weighted_tax_for_shipping
+    )
     assert len(data["countries"]) == len(country_exceptions)
     assert data["countries"][0]["country"]["code"] == country_exception.country.code
     assert data["countries"][0]["chargeTaxes"] == country_exception.charge_taxes
@@ -35,6 +39,10 @@ def _test_field_resolvers(tax_configuration: TaxConfiguration, data: dict):
         == country_exception.display_gross_prices
     )
     assert data["countries"][0]["taxAppId"] == country_exception.tax_app_id
+    assert (
+        data["countries"][0]["useWeightedTaxForShipping"]
+        == country_exception.use_weighted_tax_for_shipping
+    )
 
 
 def test_tax_configuration_query_no_permissions(channel_USD, user_api_client):
