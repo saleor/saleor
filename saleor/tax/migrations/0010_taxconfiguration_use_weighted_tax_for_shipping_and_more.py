@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
             ALTER COLUMN use_weighted_tax_for_shipping
             SET DEFAULT false;
             """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
         migrations.RunSQL(
             """
@@ -32,5 +33,6 @@ class Migration(migrations.Migration):
             ALTER COLUMN use_weighted_tax_for_shipping
             SET DEFAULT false;
             """,
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]
