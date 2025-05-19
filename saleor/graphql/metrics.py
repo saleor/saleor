@@ -58,7 +58,6 @@ def record_graphql_query_count(
 ) -> None:
     attributes = {
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier or "",
-        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name or "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type or "",
     }
     if error_type:
@@ -72,7 +71,6 @@ def record_graphql_query_duration() -> AbstractContextManager[
     dict[str, AttributeValue]
 ]:
     attributes: dict[str, AttributeValue] = {
-        graphql_attributes.GRAPHQL_OPERATION_NAME: "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
     }
@@ -88,7 +86,6 @@ def record_graphql_query_cost(
 ) -> None:
     attributes = {
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier or "",
-        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name or "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type or "",
     }
     if error_type:

@@ -33,7 +33,6 @@ def test_record_graphql_query_count(mock_meter):
         1,
         Unit.REQUEST,
         attributes={
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "name",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "identifier",
         },
@@ -51,7 +50,6 @@ def test_record_graphql_query_duration(mock_meter):
 
     # then
     call_attributes = {
-        graphql_attributes.GRAPHQL_OPERATION_NAME: "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
     }
@@ -86,7 +84,6 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         Unit.REQUEST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "productsQuery",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
         },
     )
@@ -98,7 +95,6 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         Unit.COST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "products",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "productsQuery",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
         },
     )
@@ -108,13 +104,11 @@ def test_graphql_query_record_metrics(mock_meter, rf, channel_USD, product_list)
         METRIC_GRAPHQL_QUERY_DURATION,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         },
     )
     set_attr_calls = mock_meter.record_duration().__enter__().__setitem__.call_args_list
     assert call("graphql.operation.identifier", "products") in set_attr_calls
-    assert call("graphql.operation.name", "productsQuery") in set_attr_calls
     assert call("graphql.operation.type", "query") in set_attr_calls
 
 
@@ -175,7 +169,6 @@ def test_graphql_query_record_metrics_invalid_query(
         Unit.REQUEST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
-            graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name,
             graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
             error_attributes.ERROR_TYPE: error_type,
         },
@@ -187,7 +180,6 @@ def test_graphql_query_record_metrics_invalid_query(
         Unit.COST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier,
-            graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name,
             graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type,
             error_attributes.ERROR_TYPE: error_type,
         },
@@ -197,7 +189,6 @@ def test_graphql_query_record_metrics_invalid_query(
         METRIC_GRAPHQL_QUERY_DURATION,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         },
     )
@@ -254,7 +245,6 @@ def test_graphql_query_record_metrics_cost_exceeded(
         Unit.REQUEST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
             error_attributes.ERROR_TYPE: "QueryCostError",
         },
@@ -266,7 +256,6 @@ def test_graphql_query_record_metrics_cost_exceeded(
         Unit.COST,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "productVariant",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "query",
             error_attributes.ERROR_TYPE: "QueryCostError",
         },
@@ -277,7 +266,6 @@ def test_graphql_query_record_metrics_cost_exceeded(
         METRIC_GRAPHQL_QUERY_DURATION,
         attributes={
             saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
-            graphql_attributes.GRAPHQL_OPERATION_NAME: "",
             graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         },
     )
