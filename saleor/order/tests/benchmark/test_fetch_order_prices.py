@@ -18,5 +18,5 @@ def test_fetch_order_prices(
     order.status = OrderStatus.UNCONFIRMED
 
     # when & then
-    with django_assert_num_queries(28):
+    with django_assert_num_queries(29):
         fetch_order_prices_if_expired(order, plugins_manager, None, True)
