@@ -28,6 +28,7 @@ from ..core import JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.telemetry import initialize_telemetry
+from ..core.telemetry.tests import TestTracer
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import PromotionEvents
@@ -113,6 +114,13 @@ def in_memory_span_exporter():
     trace_api.set_tracer_provider(provider)
     initialize_telemetry()
     return span_exporter
+
+
+@pytest.fixture
+def trace_context_propagation(in_memory_span_exporter):
+    TestTracer._inject_context = True
+    yield
+    TestTracer._inject_context = False
 
 
 @pytest.fixture
