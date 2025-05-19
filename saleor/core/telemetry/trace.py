@@ -10,6 +10,7 @@ from opentelemetry.trace import (
     Link,
     Span,
     SpanKind,
+    TracerProvider,
     get_current_span,
     get_tracer,
 )
@@ -38,9 +39,15 @@ class Tracer:
 
     """
 
+    tracer_provider: TracerProvider | None = None
+
     def __init__(self, instrumentation_version: str):
-        self._core_tracer = get_tracer(Scope.CORE.value, instrumentation_version)
-        self._service_tracer = get_tracer(Scope.SERVICE.value, instrumentation_version)
+        self._core_tracer = get_tracer(
+            Scope.CORE.value, instrumentation_version, self.tracer_provider
+        )
+        self._service_tracer = get_tracer(
+            Scope.SERVICE.value, instrumentation_version, self.tracer_provider
+        )
 
     @contextmanager
     def extract_context(

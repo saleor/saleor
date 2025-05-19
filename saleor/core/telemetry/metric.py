@@ -6,7 +6,7 @@ from enum import Enum
 from threading import Lock
 
 from opentelemetry.metrics import Meter as OtelMeter
-from opentelemetry.metrics import Synchronous, get_meter
+from opentelemetry.metrics import MeterProvider, Synchronous, get_meter
 from opentelemetry.util.types import Attributes, AttributeValue
 
 from .utils import (
@@ -77,9 +77,15 @@ class Meter:
 
     """
 
+    meter_provider: MeterProvider | None = None
+
     def __init__(self, instrumentation_version: str):
-        self._core_tracer = get_meter(Scope.CORE.value, instrumentation_version)
-        self._service_tracer = get_meter(Scope.SERVICE.value, instrumentation_version)
+        self._core_tracer = get_meter(
+            Scope.CORE.value, instrumentation_version, self.meter_provider
+        )
+        self._service_tracer = get_meter(
+            Scope.SERVICE.value, instrumentation_version, self.meter_provider
+        )
         self._instruments: dict[str, tuple[Unit, Synchronous]] = {}
         self._lock = Lock()
 
