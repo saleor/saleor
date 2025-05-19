@@ -12,7 +12,7 @@ from .. import forms, i18n
 from ..i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from ..models import User
 from ..validators import validate_possible_number
-
+from saleor.account.models import Address, User
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
 def test_address_form_for_country(country):
@@ -389,21 +389,8 @@ def test_substitute_invalid_values(country_area_input, country_area_output, is_v
     else:
         assert not errors
 
-@pytest.fixture
-def address(db):
-    return Address.objects.create(
-        first_name="John",
-        last_name="Doe",
-        street_address_1="Tęczowa 7",
-        city="WROCŁAW",
-        postal_code="53-601",
-        country="PL",
-        phone="+48713988102",
-        company_name="Mirumee Software"
-    )
-
 def test_address_form_with_metadata():
-    # Prepare form data including metadata
+    # given
     data = {
         "first_name": "Meta",
         "last_name": "Data",
@@ -414,16 +401,16 @@ def test_address_form_with_metadata():
         "metadata": {"key": "value"},
     }
 
-    # Get the address form for country PL
+    # when
     form = forms.get_address_form(data, country_code="PL")
 
-    # Verify that the form is valid and metadata is retained
+    # then
     assert form.is_valid()
     assert form.cleaned_data.get("metadata") == {"key": "value"}
 
 
 def test_address_form_with_unknown_country_code():
-    # Prepare form data with an invalid country code
+    # given
     data = {
         "first_name": "Unknown",
         "last_name": "Nation",
@@ -433,21 +420,18 @@ def test_address_form_with_unknown_country_code():
         "country": "XX",
     }
 
-    # Get the form using an unknown country code
+    # when
     form = forms.get_address_form(data, country_code="XX")
     errors = form.errors
 
-    # Form should be invalid and return an error for the country field
+    # then
     assert not form.is_valid()
     assert "country" in errors
 
 
-from saleor.account.models import Address, User
-from ...checkout.utils import get_user_checkout
-
 @pytest.mark.django_db
 def test_deleting_default_address_clears_it_from_user():
-    # Create a user and an address instance
+    # given
     user = User.objects.create_user(email="user@example.com", password="1234")
     address = Address.objects.create(
         first_name="John",
@@ -457,23 +441,16 @@ def test_deleting_default_address_clears_it_from_user():
         postal_code="12345",
         country="US"
     )
-
-    # Assign the address as both default shipping and billing address
     user.default_shipping_address = address
     user.default_billing_address = address
     user.save()
     user.addresses.add(address)
 
-    # Verify address is correctly set
-    user.refresh_from_db()
-    assert user.default_shipping_address == address
-    assert user.default_billing_address == address
-
-    # Remove the address from user's address list before deleting
+    # when
     user.addresses.remove(address)
     address.delete()
-
-    # Reload the user and ensure default addresses are cleared
     user.refresh_from_db()
+
+    # then
     assert user.default_shipping_address is None
     assert user.default_billing_address is None
