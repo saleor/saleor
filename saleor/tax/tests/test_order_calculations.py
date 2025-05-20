@@ -62,8 +62,8 @@ def test_calculations_calculate_order_total(
     [
         ("80.00", "90.40", False, False),
         ("71.35", "80.00", True, False),
-        ("80.00", "89.34", False, True),
-        ("72.18", "80.00", True, True),
+        ("80.00", "89.26", False, True),
+        ("72.25", "80.00", True, True),
     ],
 )
 def test_calculate_order_total_with_multiple_tax_rates(
@@ -158,8 +158,8 @@ def test_calculate_order_shipping_with_not_weighted_taxes(
         "expected_shipping_tax_rate",
     ),
     [
-        ("10.00", "11.24", False, "0.1245"),
-        ("8.96", "10.00", True, "0.1157"),
+        ("10.00", "11.16", False, "0.1157"),
+        ("9.03", "10.00", True, "0.1072"),
     ],
 )
 def test_calculate_order_shipping_with_weighted_taxes(
@@ -195,10 +195,10 @@ def test_calculate_order_shipping_with_weighted_taxes(
 
     # then
     weighted_tax_amount = sum(
-        line.total_price.gross.amount * line.tax_rate for line in lines
+        line.total_price.net.amount * line.tax_rate for line in lines
     )
     weighted_tax_amount = weighted_tax_amount / sum(
-        line.total_price.gross.amount for line in lines
+        line.total_price.net.amount for line in lines
     )
     assert (
         order.shipping_tax_rate
