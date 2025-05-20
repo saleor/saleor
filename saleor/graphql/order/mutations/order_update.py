@@ -11,9 +11,7 @@ from ....core.utils.update_mutation_manager import InstanceTracker
 from ....order import OrderStatus, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
-from ....order.search import (
-    update_order_search_vector,
-)
+from ....order.search import update_order_search_vector
 from ....order.utils import invalidate_order_prices
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
@@ -108,7 +106,7 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
         return instance
 
     @classmethod
-    def should_invalidate_prices(cls, modified_fields: list[str], *args) -> bool:
+    def should_invalidate_prices(cls, modified_fields: list[str]) -> bool:
         return any(
             field in modified_fields
             for field in ["shipping_address", "billing_address"]

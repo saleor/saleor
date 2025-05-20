@@ -1007,3 +1007,44 @@ def test_order_update_emit_events(
             save_order_mock.reset_mock()
         call_event_mock.assert_called()
         call_event_mock.reset_mock()
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update.call_order_event",
+    wraps=call_order_event,
+)
+def test_order_update_address_not_set(
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    order = order_with_lines
+    order.shipping_address = None
+    order.billing_address = None
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    input = {
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+    order.refresh_from_db()
+    assert order.shipping_address
+    assert order.billing_address
+    call_event_mock.assert_called()
