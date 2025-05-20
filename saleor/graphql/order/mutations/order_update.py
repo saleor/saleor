@@ -186,6 +186,7 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
             instance.shipping_address = cls.validate_address(
                 shipping_address_data,
                 address_type=AddressType.SHIPPING,
+                instance=instance.shipping_address,
                 info=info,
             )
 
@@ -193,6 +194,7 @@ class OrderUpdate(AddressMetadataMixin, ModelWithExtRefMutation, I18nMixin):
             instance.billing_address = cls.validate_address(
                 billing_address_data,
                 address_type=AddressType.BILLING,
+                instance=instance.billing_address,
                 info=info,
             )
 
