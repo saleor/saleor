@@ -1981,7 +1981,6 @@ def test_promotion_rule_create_with_customer_group_restriction(
             "rewardValue": reward_value,
             "cataloguePredicate": catalogue_predicate,
             "gifts": None,
-            "limitToCustomerGroups": True,
             "customerGroups": customer_group_ids,
         }
     }

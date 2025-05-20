@@ -153,10 +153,6 @@ class PromotionRuleUpdate(DeprecatedModelMutation):
                 {"addCustomerGroups": error, "removeCustomerGroups": error}
             )
 
-        limit_to_customer_groups = data.get("limitToCustomerGroups")
-        if limit_to_customer_groups is None:
-            limit_to_customer_groups = instance.customer_groups is not None
-
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_input = clean_promotion_rule(
@@ -182,18 +178,10 @@ class PromotionRuleUpdate(DeprecatedModelMutation):
                 instance.gifts.remove(*remove_gifts)
             if add_gifts := cleaned_data.get("add_gifts"):
                 instance.gifts.add(*add_gifts)
-
-            limit_to_customer_groups = cleaned_data.get("limitToCustomerGroups")
-            if limit_to_customer_groups is None:
-                limit_to_customer_groups = instance.customer_groups.exists()
-
-            if limit_to_customer_groups:
-                if remove_customer_groups := cleaned_data.get("remove_customer_groups"):
-                    instance.customer_groups.remove(*remove_customer_groups)
-                if add_customer_groups := cleaned_data.get("add_customer_groups"):
-                    instance.customer_groups.add(*add_customer_groups)
-            else:
-                instance.customer_groups.clear()
+            if remove_customer_groups := cleaned_data.get("remove_customer_groups"):
+                instance.customer_groups.remove(*remove_customer_groups)
+            if add_customer_groups := cleaned_data.get("add_customer_groups"):
+                instance.customer_groups.add(*add_customer_groups)
 
     @classmethod
     def post_save_actions(

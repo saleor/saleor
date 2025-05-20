@@ -81,12 +81,10 @@ class PromotionRuleCreate(DeprecatedModelMutation):
         cleaned_input["promotion"] = promotion
         promotion_type = promotion.type  # type: ignore[union-attr]
 
-        if data.get("limitToCustomerGroups"):
+        if data.get("customerGroups"):
             data["customerGroups"] = cls.get_nodes_or_error(
-                data["limitToCustomerGroups"], "customer_groups", CustomerGroup
+                data["customerGroups"], "customer_groups", CustomerGroup
             )
-        else:
-            data["customerGroups"] = []
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         clean_promotion_rule(

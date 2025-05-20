@@ -107,10 +107,3 @@ class PromotionRuleBaseInput(BaseInputObjectType):
         + ADDED_IN_319
         + PREVIEW_FEATURE
     )
-    limit_to_customer_groups = graphene.Boolean(
-        description=(
-            "If true, the rule will be limited to customer groups defined in the "
-            "`customerGroups` field. If false, the rule will be applied to all customers."
-        ),
-        default_value=False,
-    )
