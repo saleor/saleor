@@ -240,7 +240,7 @@ def _get_weighted_tax_rate_for_shipping(
     for line in lines:
         # tax_rate is stored as fractional values in the database
         tax_rate = line.tax_rate or Decimal(0)
-        tax_rates_with_weights[tax_rate * 100] += line.total_price.gross.amount
+        tax_rates_with_weights[tax_rate * 100] += line.total_price.net.amount
     if not tax_rates_with_weights:
         return default_tax_rate
 

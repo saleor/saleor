@@ -369,12 +369,10 @@ def test_fetch_checkout_data_flat_rates_with_weighted_shipping_tax(
     lines = checkout.lines.all()
 
     mocked_update_checkout_prices_with_flat_rates.assert_called_once()
-    total_weighted = sum(
-        line.total_price.gross.amount * line.tax_rate for line in lines
-    )
+    total_weighted = sum(line.total_price.net.amount * line.tax_rate for line in lines)
 
     assert checkout.shipping_tax_rate == (
-        total_weighted / sum(line.total_price.gross.amount for line in lines)
+        total_weighted / sum(line.total_price.net.amount for line in lines)
     ).quantize(Decimal("0.0001"))
 
 
