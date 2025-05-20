@@ -13,3 +13,4 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other Changes
 
 - deps: upgraded urllib3 from v1.x to v2.x
+- Use calculation logic to build PaymmentLinesData for plugins - #17728 by @korycins
