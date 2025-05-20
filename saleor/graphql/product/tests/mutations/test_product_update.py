@@ -7,6 +7,7 @@ from django.conf import settings
 from django.utils.html import strip_tags
 from django.utils.text import slugify
 from freezegun import freeze_time
+from measurement.measures import Weight
 
 from .....attribute import AttributeInputType
 from .....attribute.models import (
@@ -26,7 +27,10 @@ from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product
+from .....tests.utils import dummy_editorjs
 from ....attribute.utils import AttributeInputErrors
+from ....core.utils import snake_to_camel_case
+from ...mutations.product.product_create import ProductInput
 
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
@@ -3190,3 +3194,202 @@ def test_update_product_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == ProductErrorCode.UNIQUE.name
     assert error["message"] == "Product with this External reference already exists."
+
+
+# @patch(
+#     "saleor.graphql.product.mutations.product.ProductUpdate.call_event"
+# )
+# @patch(
+#     "saleor.graphql.product.mutations.product.ProductUpdate._save_variant_instance"
+# )
+def test_product_update_nothing_changed(
+    # save_product_mock,
+    # call_event_mock,
+    staff_api_client,
+    product,
+    product_type,
+    collection,
+    permission_manage_products,
+    numeric_attribute,
+    color_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product.name = "some_name"
+    product.sku = "some_sku"
+    product.external_reference = "some-ext-ref"
+    product.charge_taxes = True
+    product.collections.add(collection)
+    product.weight = Weight(kg=10)
+    product.rating = 10
+    description_plane_text = "Test description."
+    product.description = dummy_editorjs(description_plane_text)
+    product.description_plaintext = description_plane_text
+    product.seo_description = description_plane_text
+    product.seo_title = product.name
+    key = "some_key"
+    value = "some_value"
+    product.metadata = {key: value}
+    product.private_metadata = {key: value}
+    product.save()
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    category_id = graphene.Node.to_global_id("Category", product.category_id)
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+    tax_class_id = graphene.Node.to_global_id("TaxClass", product.tax_class_id)
+
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    numeric_attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_type.product_attributes.add(numeric_attribute)
+    product_type.product_attributes.add(color_attribute)
+    color_value_1 = color_attribute.values.first()
+    color_value_2 = color_attribute.values.last()
+    numeric_value = numeric_attribute.values.first()
+
+    associate_attribute_values_to_instance(
+        product, {color_attribute.id: [color_value_1, color_value_2]}
+    )
+    associate_attribute_values_to_instance(
+        product, {numeric_attribute.id: [numeric_value]}
+    )
+
+    input_fields = [
+        snake_to_camel_case(key) for key in ProductInput._meta.fields.keys()
+    ]
+    # `taxCode` field is deprecated
+    input_fields.remove("taxCode")
+
+    input = {
+        "attributes": [
+            {"id": color_attribute_id, "values": [color_value_1.slug]},
+            {"id": color_attribute_id, "values": [color_value_2.slug]},
+            {"id": numeric_attribute_id, "values": [numeric_value.slug]},
+        ],
+        "category": category_id,
+        "chargeTaxes": product.charge_taxes,
+        "collections": [collection_id],
+        "name": product.name,
+        "slug": product.slug,
+        "externalReference": product.external_reference,
+        "description": dummy_editorjs(description_plane_text, json_format=True),
+        "taxClass": tax_class_id,
+        "seo": {"title": product.seo_title, "description": product.seo_description},
+        "weight": 10,
+        "rating": 10,
+        "metadata": [{"key": key, "value": value}],
+        "privateMetadata": [{"key": key, "value": value}],
+    }
+    assert set(input_fields) == set(input.keys())
+
+    variables = {"productId": product_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(MUTATION_UPDATE_PRODUCT, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["productUpdate"]["errors"]
+    product.refresh_from_db()
+    # call_event_mock.assert_not_called()
+    # save_product_mock.assert_not_called()
+
+
+# @patch(
+#     "saleor.graphql.product.mutations.product.ProductUpdate.call_event"
+# )
+# @patch(
+#     "saleor.graphql.product.mutations.product.ProductUpdate._save_variant_instance"
+# )
+def test_product_update_emit_event(
+    # save_product_mock,
+    # call_event_mock,
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+    color_attribute,
+    category_list,
+    collection_list,
+    tax_classes,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product.name = "some_name"
+    product.sku = "some_sku"
+    product.external_reference = "some-ext-ref"
+    product.charge_taxes = True
+    product.collections.add(collection_list[-1])
+    product.category = category_list[-1]
+    product.weight = Weight(kg=10)
+    product.rating = 10
+    description_plane_text = "Test description."
+    product.description = dummy_editorjs(description_plane_text)
+    product.description_plaintext = description_plane_text
+    product.seo_description = description_plane_text
+    product.seo_title = product.name
+    key = "some_key"
+    value = "some_value"
+    product.metadata = {key: value}
+    product.private_metadata = {key: value}
+    product.save()
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    new_category_id = graphene.Node.to_global_id("Category", category_list[0].pk)
+    new_collection_id = graphene.Node.to_global_id("Collection", collection_list[0].pk)
+    new_tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
+
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    product_type.product_attributes.add(color_attribute)
+    assert product.attributevalues.get().value == color_attribute.values.first()
+    new_color_value = color_attribute.values.last()
+
+    input_fields = [
+        snake_to_camel_case(key) for key in ProductInput._meta.fields.keys()
+    ]
+    # `taxCode` field is deprecated
+    input_fields.remove("taxCode")
+
+    input = {
+        "attributes": [
+            {"id": color_attribute_id, "values": [new_color_value.slug]},
+        ],
+        "category": new_category_id,
+        "chargeTaxes": not product.charge_taxes,
+        "collections": [new_collection_id],
+        "name": product.name + "_new",
+        "slug": product.slug + "_new",
+        "externalReference": product.external_reference + "_new",
+        "description": dummy_editorjs(
+            description_plane_text + "_new", json_format=True
+        ),
+        "taxClass": new_tax_class_id,
+        "seo": {
+            "title": product.seo_title + "_new",
+            "description": product.seo_description + "_new",
+        },
+        "weight": 11,
+        "rating": 11,
+        "metadata": [{"key": key + "_new", "value": value}],
+        "privateMetadata": [{"key": key, "value": value + "_new"}],
+    }
+    assert set(input_fields) == set(input.keys())
+
+    # fields making changes to related models (other than variant)
+    non_product_instance_fields = ["attributes"]
+
+    for key, value in input.items():
+        variables = {"productId": product_id, "input": {key: value}}
+
+        # when
+        response = staff_api_client.post_graphql(MUTATION_UPDATE_PRODUCT, variables)
+        content = get_graphql_content(response)
+
+        # then
+        assert not content["data"]["productUpdate"]["errors"]
+        # call_event_mock.assert_called()
+        # call_event_mock.reset_mock()
+        # if key not in non_variant_instance_fields:
+        #     save_product_mock.assert_called()
+        #     save_product_mock.reset_mock()
