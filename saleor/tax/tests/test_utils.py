@@ -219,7 +219,7 @@ def test_get_shipping_tax_rate_for_checkout_weighted_tax_with_multiple_tax_rates
     # then
     total_weighted = sum(
         [
-            line.line.total_price.gross.amount * line.line.tax_rate * 100
+            line.line.total_price.net.amount * line.line.tax_rate * 100
             for line in checkout_lines_info
         ]
     )
@@ -227,10 +227,10 @@ def test_get_shipping_tax_rate_for_checkout_weighted_tax_with_multiple_tax_rates
     # Expected: (110*10 + 105*5 + 1000*0 + 120*20) / (110 + 105 + 100 + 120) = 4025 / 435 = 9.2529
     expected_rate = (
         total_weighted
-        / sum([line.line.total_price.gross.amount for line in checkout_lines_info])
+        / sum([line.line.total_price.net.amount for line in checkout_lines_info])
     ).quantize(Decimal(".0001"))
 
-    assert shipping_tax_rate == expected_rate == Decimal("9.2529")
+    assert shipping_tax_rate == expected_rate == Decimal("8.7500")
 
 
 def test_get_shipping_tax_rate_for_checkout_when_weighted_tax_is_disabled(
@@ -363,9 +363,9 @@ def test_get_shipping_tax_rate_for_order_weighted_tax_with_multiple_tax_rates(
     # then
     # Calculate the expected weighted rate
     total_weighted = sum(
-        [line.total_price.gross.amount * line.tax_rate * 100 for line in lines]
+        [line.total_price.net.amount * line.tax_rate * 100 for line in lines]
     )
-    total_gross = sum([line.total_price.gross.amount for line in lines])
+    total_gross = sum([line.total_price.net.amount for line in lines])
     expected_weighted_rate = (total_weighted / total_gross).quantize(Decimal(".0001"))
 
     # Verify that the weighted rate is correctly calculated and used

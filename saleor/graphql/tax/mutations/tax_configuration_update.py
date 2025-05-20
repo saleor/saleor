@@ -183,7 +183,10 @@ class TaxConfigurationUpdate(DeprecatedModelMutation):
         instance: models.TaxConfiguration | models.TaxConfigurationPerCountry,
         data: dict[str, Any],
     ):
-        if data.get("use_weighted_tax_for_shipping"):
+        use_weighted_tax_for_shipping = data.get("use_weighted_tax_for_shipping")
+        if use_weighted_tax_for_shipping is None:
+            use_weighted_tax_for_shipping = instance.use_weighted_tax_for_shipping
+        if use_weighted_tax_for_shipping:
             current_tax_strategy = (
                 data.get("tax_calculation_strategy")
                 or instance.tax_calculation_strategy
@@ -223,6 +226,7 @@ class TaxConfigurationUpdate(DeprecatedModelMutation):
                 country_data["country_code"]: country_data
                 for country_data in update_countries_configuration
             }
+
             for country_exception in country_exceptions:
                 try:
                     cls._clean_use_weighted_tax_for_shipping(
@@ -320,10 +324,12 @@ class TaxConfigurationUpdate(DeprecatedModelMutation):
             obj.display_gross_prices = data["display_gross_prices"]
             obj.tax_calculation_strategy = data.get("tax_calculation_strategy")
             obj.tax_app_id = data.get("tax_app_id")
-            obj.use_weighted_tax_for_shipping = (
-                data.get("use_weighted_tax_for_shipping")
-                or obj.use_weighted_tax_for_shipping
-            )
+
+            if data.get("use_weighted_tax_for_shipping") is not None:
+                obj.use_weighted_tax_for_shipping = data[
+                    "use_weighted_tax_for_shipping"
+                ]
+
             updated_countries.append(obj.country.code)
 
         models.TaxConfigurationPerCountry.objects.bulk_update(

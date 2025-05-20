@@ -103,8 +103,8 @@ def test_calculate_checkout_total(
     [
         ("80.00", "92.40", False, False),
         ("69.78", "80.00", True, False),
-        ("80.00", "91.63", False, True),
-        ("70.39", "80.00", True, True),
+        ("80.00", "91.54", False, True),
+        ("70.46", "80.00", True, True),
     ],
 )
 def test_calculate_checkout_total_with_multiple_tax_rates(
@@ -217,8 +217,8 @@ def test_calculate_checkout_shipping_with_not_weighted_taxes(
         "prices_entered_with_tax",
     ),
     [
-        ("10.00", "11.53", False),
-        ("8.74", "10.00", True),
+        ("10.00", "11.44", False),
+        ("8.81", "10.00", True),
     ],
 )
 def test_calculate_checkout_shipping_with_weighted_taxes(
@@ -263,11 +263,11 @@ def test_calculate_checkout_shipping_with_weighted_taxes(
 
     # then
     weighted_tax_amount = sum(
-        line_info.line.total_price.gross.amount * line_info.line.tax_rate
+        line_info.line.total_price.net.amount * line_info.line.tax_rate
         for line_info in lines
     )
     weighted_tax_amount = weighted_tax_amount / sum(
-        line_info.line.total_price.gross.amount for line_info in lines
+        line_info.line.total_price.net.amount for line_info in lines
     )
     assert checkout.shipping_tax_rate == Decimal(weighted_tax_amount).quantize(
         Decimal("0.0001")
