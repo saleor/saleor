@@ -4,6 +4,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 # 3.22.0 [Unreleased]
 
+
+### GraphQL API
+- You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
+  - Use `search` to perform full-text search across relevant fields.
+
 ### Other Changes
 
 - deps: upgraded urllib3 from v1.x to v2.x - #17707 by @NyanKiyoshi
