@@ -4,6 +4,7 @@ from graphql import GraphQLError
 
 from ...core.exceptions import PermissionDenied
 from ...order import models
+from ...order.search import search_orders
 from ...permission.enums import OrderPermissions
 from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
@@ -215,7 +216,10 @@ class OrderQueries(graphene.ObjectType):
             kwargs["sort_by"] = product_type.create_container(
                 {"direction": "-", "field": ["search_rank", "id"]}
             )
+        search = kwargs.get("search")
         qs = resolve_orders(info, channel)
+        if search:
+            qs = search_orders(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )

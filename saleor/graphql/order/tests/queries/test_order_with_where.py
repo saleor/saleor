@@ -6,17 +6,21 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....core.postgres import FlatConcatSearchVector
 from .....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
+from .....order.search import (
+    prepare_order_search_vector_value,
+)
 from .....payment import ChargeStatus
 from .....payment.models import Payment
 from ....payment.enums import PaymentChargeStatusEnum
 from ....tests.utils import get_graphql_content
 
 ORDERS_WHERE_QUERY = """
-    query($where: OrderWhereInput!) {
-      orders(first: 10, where: $where) {
+    query($where: OrderWhereInput!, $search: String) {
+      orders(first: 10, search: $search, where: $where) {
         edges {
           node {
             id
@@ -1240,4 +1244,52 @@ def test_order_filter_gift_card_bought_none(
     orders_data = content["data"]["orders"]["edges"]
     assert gift_card_order_id not in {
         order_data["node"]["id"] for order_data in orders_data
+    }
+
+
+def test_order_filter_with_search_and_charge_status(
+    staff_api_client,
+    permission_group_manage_orders,
+    orders,
+    customer_user,
+):
+    # given
+    customer_user.first_name = "Search test Saleor"
+    customer_user.save()
+    for order in orders[:-1]:
+        order.user = customer_user
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+
+    order_full_charge_1 = orders[0]
+    order_full_charge_1.charge_status = OrderChargeStatus.FULL
+    order_full_charge_2 = orders[2]
+    order_full_charge_2.charge_status = OrderChargeStatus.FULL
+    order_partial_charge = orders[1]
+    order_partial_charge.charge_status = OrderChargeStatus.PARTIAL
+    order_full_charge_not_included_in_search = orders[-1]
+    order_full_charge_not_included_in_search.charge_status = OrderChargeStatus.FULL
+
+    Order.objects.bulk_update(orders, ["search_vector", "user", "charge_status"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "search": "test",
+        "where": {
+            "chargeStatus": {"eq": OrderChargeStatus.FULL.upper()},
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 2
+    returned_numbers = {node["node"]["number"] for node in orders}
+    assert returned_numbers == {
+        str(order_full_charge_1.number),
+        str(order_full_charge_2.number),
     }
