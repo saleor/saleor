@@ -84,23 +84,28 @@ def fetch_variant_rules_info(
     translation_language_code: str,
     user: User | None = None,
 ) -> list[VariantPromotionRuleInfo]:
-    listings_rules = []
+    relevant_listings_rules = []
     if variant_channel_listing:
-        if user:
-            listings_rules = variant_channel_listing.variantlistingpromotionrule.filter(
-                Q(promotion_rule__customer_groups__in=user.customer_groups.all())
-                | Q(promotion_rule__customer_groups__isnull=True)
-            )
-        else:
-            listings_rules = variant_channel_listing.variantlistingpromotionrule.all()
+        listings_rules = variant_channel_listing.variantlistingpromotionrule.all()
+
+        for rule in listings_rules:
+            rule_group_ids = {
+                group.id for group in rule.promotion_rule.customer_groups.all()
+            }
+            if len(rule_group_ids) == 0:
+                relevant_listings_rules.append(rule)
+            elif user:
+                user_group_ids = {group.id for group in user.customer_groups.all()}
+                if len(user_group_ids.intersection(rule_group_ids)) > 0:
+                    relevant_listings_rules.append(rule)
 
     rules_info = []
-    if listings_rules:
+    if len(relevant_listings_rules) > 0:
         # Before introducing unique_type on discount models, there was possibility
         # to have multiple catalogue discount associated with single line. In such a
         # case, we should pick the best discount (with the highest discount amount)
         listing_promotion_rule = max(
-            list(listings_rules),
+            relevant_listings_rules,
             key=lambda x: x.discount_amount,
         )
         promotion = listing_promotion_rule.promotion_rule.promotion

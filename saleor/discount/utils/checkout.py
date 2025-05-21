@@ -135,7 +135,7 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
 
         # check if the line price is discounted by catalogue promotion
         discounted_line = is_discounted_line_by_catalogue_promotion(
-            line_info.channel_listing
+            line_info.rules_info
         )
 
         # delete all existing discounts if the line is not discounted or it is a gift

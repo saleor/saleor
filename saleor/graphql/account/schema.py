@@ -18,7 +18,12 @@ from .bulk_mutations import (
     UserBulkSetActive,
 )
 from .enums import CountryCodeEnum
-from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
+from .filters import (
+    CustomerFilter,
+    CustomerGroupFilter,
+    PermissionGroupFilter,
+    StaffUserFilter,
+)
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -80,6 +85,7 @@ from .sorters import PermissionGroupSortingInput, UserSortingInput
 from .types import (
     Address,
     AddressValidationData,
+    CustomerGroupCountableConnection,
     Group,
     GroupCountableConnection,
     User,
@@ -91,6 +97,12 @@ class CustomerFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerFilter
+
+
+class CustomerGroupFilterInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        filterset_class = CustomerGroupFilter
 
 
 class PermissionGroupFilterInput(FilterInputObjectType):
@@ -132,6 +144,15 @@ class AccountQueries(graphene.ObjectType):
         + message_one_of_permissions_required(
             [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
         ),
+        doc_category=DOC_CATEGORY_USERS,
+    )
+    customer_groups = FilterConnectionField(
+        CustomerGroupCountableConnection,
+        filter=PermissionGroupFilterInput(
+            description="Filtering options for customer groups."
+        ),
+        description="List of customer groups.",
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
         doc_category=DOC_CATEGORY_USERS,
     )
     customers = FilterConnectionField(

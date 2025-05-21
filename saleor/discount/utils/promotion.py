@@ -159,20 +159,13 @@ def get_product_discount_on_promotion(
 
 
 def is_discounted_line_by_catalogue_promotion(
-    variant_channel_listing: "ProductVariantChannelListing",
+    rules_info: list["VariantPromotionRuleInfo"],
 ) -> bool:
     """Return True when the price is discounted by catalogue promotion."""
-    price_amount = variant_channel_listing.price_amount
-    discounted_price_amount = variant_channel_listing.discounted_price_amount
 
-    if (
-        price_amount is None
-        or discounted_price_amount is None
-        or price_amount == discounted_price_amount
-    ):
-        return False
+    any_catalogue_rule = rules_info is not None and len(rules_info) > 0
 
-    return True
+    return any_catalogue_rule
 
 
 def _get_rule_discount_amount(

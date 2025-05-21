@@ -1070,3 +1070,23 @@ class CustomerGroup(ModelObjectType[models.CustomerGroup]):
         database_connection_name = get_database_connection_name(info.context)
         qs = root.customers.using(database_connection_name)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
+
+    @staticmethod
+    def __resolve_references(roots: list["Group"], info: ResolveInfo):
+        from .resolvers import resolve_permission_groups
+
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor or not requestor.has_perm(
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER
+        ):
+            qs = models.CustomerGroup.objects.none()
+        else:
+            qs = resolve_permission_groups(info)
+
+        return resolve_federation_references(CustomerGroup, roots, qs)
+
+
+class CustomerGroupCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        node = CustomerGroup
