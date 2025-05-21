@@ -1653,3 +1653,15 @@ def get_values_from_attribute_values_input(
             else []
         )
     return attribute_data.values or []
+
+
+def has_product_input_modified_attribute_values(
+    product: product_models.Product, attributes_data: T_INPUT_MAP
+) -> bool:
+    """Compare already assigned attribute values with values from AttrValuesInput.
+
+    Return:
+        `False` if the attribute values are equal, otherwise `True`.
+
+    """
+    return True

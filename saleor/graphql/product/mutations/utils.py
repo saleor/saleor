@@ -30,6 +30,8 @@ PRODUCT_UPDATE_FIELDS = {
     "tax_class",
     "metadata",
     "private_metadata",
+    "seo_description",
+    "seo_title",
 }
 
 

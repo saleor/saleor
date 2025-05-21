@@ -9,7 +9,11 @@ from .....core.utils.update_mutation_manager import InstanceTracker
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
-from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
+from ....attribute.utils import (
+    AttrValuesInput,
+    ProductAttributeAssignmentMixin,
+    has_product_input_modified_attribute_values,
+)
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.mutations import ModelWithExtRefMutation
@@ -60,6 +64,7 @@ class ProductUpdate(ModelWithExtRefMutation):
             qs = cls.Meta.model.objects.prefetch_related(
                 "product_type__product_attributes__values",
                 "product_type__attributeproduct",
+                "attributevalues",
             )
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
 
@@ -72,20 +77,21 @@ class ProductUpdate(ModelWithExtRefMutation):
         cleaner.clean_description(cleaned_input)
         cleaner.clean_weight(cleaned_input)
         cleaner.clean_slug(cleaned_input, instance)
-        cls.clean_attributes(cleaned_input, instance)
+        attributes_modified = cls.clean_attributes(cleaned_input, instance)
         clean_tax_code(cleaned_input)
         clean_seo_fields(cleaned_input)
 
-        return cleaned_input
+        return cleaned_input, attributes_modified
 
     @classmethod
-    def clean_attributes(cls, cleaned_input, instance):
+    def clean_attributes(cls, cleaned_input: dict, instance: models.Product) -> bool:
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
         attributes = cleaned_input.get("attributes")
         product_type = instance.product_type
+        attributes_modified = True
         if attributes and product_type:
             try:
                 attributes_qs = product_type.product_attributes.all()
@@ -94,8 +100,13 @@ class ProductUpdate(ModelWithExtRefMutation):
                         attributes, attributes_qs, creation=False
                     )
                 )
+                attributes_modified = has_product_input_modified_attribute_values(
+                    instance, cleaned_input["attributes"]
+                )
+
             except ValidationError as e:
                 raise ValidationError({"attributes": e}) from e
+        return attributes_modified
 
     @classmethod
     def handle_metadata(cls, instance, cleaned_input):
@@ -114,18 +125,25 @@ class ProductUpdate(ModelWithExtRefMutation):
         )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance_tracker: InstanceTracker, cleaned_input):
+    def _save(
+        cls,
+        instance_tracker: InstanceTracker,
+        cleaned_input: dict,
+        attributes_modified: bool,
+    ):
+        instance = cast(models.Product, instance_tracker.instance)
+        modified_instance_fields = instance_tracker.get_modified_fields()
         with traced_atomic_transaction():
-            instance = cast(models.Product, instance_tracker.instance)
-            modified_instance_fields = instance_tracker.get_modified_fields()
             if modified_instance_fields:
                 instance.search_index_dirty = True
                 modified_instance_fields.append("search_index_dirty")
                 cls._save_product_instance(instance, modified_instance_fields)
 
             attributes = cleaned_input.get("attributes")
-            if attributes:
+            if attributes and attributes_modified:
                 ProductAttributeAssignmentMixin.save(instance, attributes)
+
+        return bool(modified_instance_fields)
 
     @classmethod
     def _save_product_instance(cls, instance, modified_instance_fields):
@@ -160,7 +178,7 @@ class ProductUpdate(ModelWithExtRefMutation):
         instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
         data = data.get("input")
-        cleaned_input = cls.clean_input(info, instance, data)
+        cleaned_input, attributes_modified = cls.clean_input(info, instance, data)
 
         cls.handle_metadata(instance, cleaned_input)
 
@@ -168,7 +186,12 @@ class ProductUpdate(ModelWithExtRefMutation):
 
         cls.clean_instance(info, instance)
 
-        cls.save(info, instance_tracker, cleaned_input)
+        product_modified = cls._save(
+            instance_tracker, cleaned_input, attributes_modified
+        )
         cls._save_m2m(info, instance, cleaned_input)
-        cls._post_save_action(info, instance)
+
+        if product_modified or attributes_modified:
+            cls._post_save_action(info, instance)
+
         return cls.success_response(instance)
