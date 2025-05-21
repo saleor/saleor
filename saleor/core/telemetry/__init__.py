@@ -1,4 +1,3 @@
-import os
 import uuid
 from importlib import import_module
 from typing import Any
@@ -31,15 +30,9 @@ def otel_configure_sdk():
     configurator.configure(resource_attributes={SERVICE_INSTANCE_ID: str(uuid.uuid4())})
 
 
-TELEMETRY_DISABLE_AUTO_CONFIGURE = (
-    os.environ.get("TELEMETRY_DISABLE_AUTO_CONFIGURE", "").lower() == "true"
-)
-
-
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
-    if not TELEMETRY_DISABLE_AUTO_CONFIGURE:
-        otel_configure_sdk()
+    otel_configure_sdk()
 
     # To avoid importing Django before instrumenting libs
     from django.conf import settings
