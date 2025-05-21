@@ -271,7 +271,8 @@ def test_stored_payment_method_request_delete_incorrect_result_response_from_web
     channel_USD,
 ):
     # given
-    mock_request.return_value = {"result": "incorrect_result"}
+    value = "incorrect_result"
+    mock_request.return_value = {"result": value}
 
     webhook = stored_payment_method_request_delete_app.webhooks.first()
     webhook.subscription_query = STORED_PAYMENT_METHOD_DELETE_REQUESTED
@@ -304,9 +305,10 @@ def test_stored_payment_method_request_delete_incorrect_result_response_from_web
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
     assert not EventDelivery.objects.exists()
 
-    assert response == StoredPaymentMethodRequestDeleteResponseData(
-        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-        error="Missing or incorrect `result` in response.",
+    assert response.result == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
+    assert (
+        response.error
+        == f"Incorrect value ({value}) for field: result. Error: Value error, Enum name not found: {value}."
     )
 
 
@@ -353,10 +355,8 @@ def test_stored_payment_method_request_delete_missing_result_in_response_from_we
     assert mock_request.mock_calls[0].kwargs["timeout"] == WEBHOOK_SYNC_TIMEOUT
     assert not EventDelivery.objects.exists()
 
-    assert response == StoredPaymentMethodRequestDeleteResponseData(
-        result=StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE,
-        error="Missing or incorrect `result` in response.",
-    )
+    assert response.result == StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
+    assert response.error == "Missing value for field: result. Input: {}."
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.cache.delete")

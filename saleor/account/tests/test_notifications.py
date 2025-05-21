@@ -104,7 +104,7 @@ def test_send_email_changed_notification(
 
 
 @pytest.mark.parametrize("is_staff", [True, False])
-@mock.patch("saleor.account.notifications.default_token_generator.make_token")
+@mock.patch("saleor.account.notifications.token_generator.make_token")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_password_reset_notification(
     mocked_notify, mocked_generator, is_staff, site_settings, customer_user, channel_PLN

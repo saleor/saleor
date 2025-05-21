@@ -185,7 +185,7 @@ class PaymentMethodTokenizationBaseRequestData:
 @dataclass
 class PaymentMethodTokenizationBaseResponseData:
     error: str | None
-    data: dict | None
+    data: JSONValue | None
 
 
 @dataclass

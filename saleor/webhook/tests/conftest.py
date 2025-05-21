@@ -27,3 +27,21 @@ def mocked_fetch_order():
         new=Mock(side_effect=mocked_fetch_side_effect),
     ) as mocked_fetch:
         yield mocked_fetch
+
+
+@pytest.fixture
+def payment_method_response():
+    return {
+        "id": "method-1",
+        "supportedPaymentFlows": ["INTERACTIVE"],
+        "type": "Credit Card",
+        "creditCardInfo": {
+            "brand": "visa",
+            "lastDigits": "1234",
+            "expMonth": 1,
+            "expYear": 2023,
+            "firstDigits": "123456",
+        },
+        "name": "***1234",
+        "data": {"some": "data"},
+    }

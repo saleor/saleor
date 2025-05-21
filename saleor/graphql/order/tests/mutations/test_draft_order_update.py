@@ -21,8 +21,11 @@ from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from .....order.utils import update_discount_for_order_line
 from .....payment.model_helpers import get_subtotal
+from .....shipping.models import ShippingMethod
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...mutations.draft_order_create import DraftOrderInput
 
 DRAFT_ORDER_UPDATE_MUTATION = """
         mutation draftUpdate(
@@ -3259,3 +3262,359 @@ def test_draft_order_update_with_language_code(
     order.refresh_from_db()
 
     assert order.language_code == "pl"
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.DraftOrderUpdate._save_order_instance"
+)
+def test_draft_order_update_no_changes(
+    save_order_mock,
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    voucher,
+    address,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    key = "some_key"
+    value = "some_value"
+    address.metadata = {key: value}
+    address.save(update_fields=["metadata"])
+
+    order.metadata = {key: value}
+    order.private_metadata = {key: value}
+    order.shipping_address = address
+    order.billing_address = address
+    order.draft_save_billing_address = True
+    order.draft_save_shipping_address = True
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.customer_note = "some note"
+    order.redirect_url = "https://www.example.com"
+    order.external_reference = "some_reference_string"
+    order.language_code = "pl"
+    order.save()
+
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", order.shipping_method_id
+    )
+    user_id = graphene.Node.to_global_id("User", order.user_id)
+
+    address_input = {
+        snake_to_camel_case(key): value for key, value in address.as_data().items()
+    }
+    address_input["metadata"] = [{"key": key, "value": value}]
+    address_input.pop("privateMetadata")
+    skip_validation = address_input.pop("validationSkipped")
+    address_input["skipValidation"] = skip_validation
+
+    input_fields = [
+        snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
+    ]
+
+    # `discount` field is unused and deprecated
+    input_fields.remove("discount")
+    # `voucher` and `voucherCode` fields can't be combined
+    input_fields.remove("voucher")
+    # `channel` can't be updated when is not None
+    input_fields.remove("channelId")
+
+    input = {
+        "billingAddress": address_input,
+        "saveBillingAddress": True,
+        "shippingAddress": address_input,
+        "saveShippingAddress": True,
+        "shippingMethod": shipping_method_id,
+        "user": user_id,
+        "userEmail": order.user_email,
+        "voucherCode": order.voucher_code,
+        "customerNote": order.customer_note,
+        "redirectUrl": order.redirect_url,
+        "externalReference": order.external_reference,
+        "metadata": [{"key": key, "value": value}],
+        "privateMetadata": [{"key": key, "value": value}],
+        "languageCode": "PL",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order.refresh_from_db()
+    save_order_mock.assert_not_called()
+    call_event_mock.assert_not_called()
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.DraftOrderUpdate._save_order_instance"
+)
+def test_draft_order_update_emit_events(
+    save_order_mock,
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+    voucher,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    key = "some_key"
+    value = "some_value"
+    order.metadata = {key: value}
+    order.private_metadata = {key: value}
+    order.draft_save_billing_address = True
+    order.draft_save_shipping_address = True
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.first().code
+    order.customer_note = "some note"
+    order.redirect_url = "http://localhost:8000/redirect"
+    order.external_reference = "some_reference_string"
+    order.language_code = "de"
+    order.save()
+
+    new_shipping_method = ShippingMethod.objects.create(
+        shipping_zone=order.shipping_method.shipping_zone,
+        name="new_method",
+    )
+    new_shipping_method.channel_listings.create(
+        channel=order.channel, currency=order.currency
+    )
+    new_shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", new_shipping_method.id
+    )
+
+    assert order.user_id != staff_api_client.user.id
+    user_id = graphene.Node.to_global_id("User", staff_api_client.user.id)
+
+    input_fields = [
+        snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
+    ]
+
+    # `discount` field is unused and deprecated
+    input_fields.remove("discount")
+    # `voucher` and `voucherCode` fields can't be combined
+    input_fields.remove("voucher")
+    # `channel` can't be updated when is not None
+    input_fields.remove("channelId")
+    # `saveBillingAddress` can't be provided without billingAddress
+    input_fields.remove("saveBillingAddress")
+    # `saveShippingAddress` can't be provided without shippingAddress
+    input_fields.remove("saveShippingAddress")
+
+    assert graphql_address_data["lastName"] != order.shipping_address.last_name
+    assert graphql_address_data["lastName"] != order.billing_address.last_name
+
+    input = {
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+        "shippingMethod": new_shipping_method_id,
+        "user": user_id,
+        "userEmail": "new_" + order.user_email,
+        "voucherCode": voucher.codes.last().code,
+        "customerNote": order.customer_note + "_new",
+        "redirectUrl": "https://www.example.com",
+        "externalReference": order.external_reference + "_new",
+        "metadata": [{"key": key, "value": "new_value"}],
+        "privateMetadata": [{"key": "new_key", "value": value}],
+        "languageCode": "PL",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    # fields making changes to related models (other than order)
+    non_base_model_fields = ["billingAddress", "shippingAddress"]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    for key, value in input.items():
+        variables = {"id": order_id, "input": {key: value}}
+
+        # when
+        response = staff_api_client.post_graphql(
+            DRAFT_ORDER_UPDATE_MUTATION,
+            variables,
+        )
+        content = get_graphql_content(response)
+
+        # then
+        assert not content["data"]["draftOrderUpdate"]["errors"]
+        if key not in non_base_model_fields:
+            save_order_mock.assert_called()
+            save_order_mock.reset_mock()
+        call_event_mock.assert_called()
+        call_event_mock.reset_mock()
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+def test_draft_order_update_address_not_changed_save_flag_changed(
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    address,
+):
+    """Address input doesn't introduce any changes, but address save flag has changed."""
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    order.shipping_address = address
+    order.billing_address = address
+    order.draft_save_billing_address = False
+    order.draft_save_shipping_address = False
+    order.save(
+        update_fields=[
+            "shipping_address",
+            "billing_address",
+            "draft_save_billing_address",
+            "draft_save_shipping_address",
+            "status",
+        ]
+    )
+
+    address_input = {
+        snake_to_camel_case(key): value for key, value in address.as_data().items()
+    }
+    address_input.pop("privateMetadata")
+    skip_validation = address_input.pop("validationSkipped")
+    address_input["skipValidation"] = skip_validation
+
+    input = {
+        "billingAddress": address_input,
+        "saveBillingAddress": True,
+        "shippingAddress": address_input,
+        "saveShippingAddress": True,
+    }
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order.refresh_from_db()
+    assert order.draft_save_billing_address is True
+    assert order.draft_save_shipping_address is True
+    call_event_mock.assert_called()
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+def test_draft_order_update_address_not_set(
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.shipping_address = None
+    order.billing_address = None
+    order.save(update_fields=["shipping_address", "billing_address", "status"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    input = {
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order.refresh_from_db()
+    assert order.shipping_address
+    assert order.billing_address
+    call_event_mock.assert_called()
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
+    wraps=call_order_event,
+)
+def test_draft_order_update_same_shipping_method_no_shipping_price_set(
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+):
+    """The shipping price may not be set even when the shipping method has been added.
+
+    It can happen when shipping method is added to the order without lines
+    or with lines that do not require shipping.
+
+    In such a case we should process shipping method no matter it hasn't changed.
+    """
+
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.undiscounted_base_shipping_price_amount = 0
+    order.save(update_fields=["undiscounted_base_shipping_price_amount", "status"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", order.shipping_method_id
+    )
+    input = {"shippingMethod": shipping_method_id}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderUpdate"]["errors"]
+    order.refresh_from_db()
+    assert order.undiscounted_base_shipping_price_amount != 0
+    call_event_mock.assert_called()

@@ -422,11 +422,6 @@ class DraftOrderCreate(
                         instance, method, manager, update_shipping_discount=False
                     )
 
-            if instance.undiscounted_base_shipping_price_amount is None:
-                instance.undiscounted_base_shipping_price_amount = (
-                    instance.base_shipping_price_amount
-                )
-
             if "voucher" in cleaned_input:
                 cls.handle_order_voucher(
                     cleaned_input,

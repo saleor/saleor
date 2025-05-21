@@ -35,7 +35,7 @@ repos:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.89.0
+    rev: v1.121.0
     hooks:
     - id: semgrep
       exclude_types:
