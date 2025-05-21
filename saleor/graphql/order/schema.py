@@ -29,7 +29,7 @@ from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
 from .bulk_mutations.order_bulk_create import OrderBulkCreate
-from .filters import DraftOrderFilter, OrderFilter
+from .filters import DraftOrderFilter, OrderFilter, OrderWhereInput
 from .mutations.draft_order_complete import DraftOrderComplete
 from .mutations.draft_order_create import DraftOrderCreate
 from .mutations.draft_order_delete import DraftOrderDelete
@@ -122,9 +122,11 @@ class OrderQueries(graphene.ObjectType):
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
+        where=OrderWhereInput(description="Where filtering options for draft orders."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        search=graphene.String(description="Search orders."),
         description=(
             "List of orders. The query will not initiate any external requests, "
             "including filtering available shipping methods, or performing external "
