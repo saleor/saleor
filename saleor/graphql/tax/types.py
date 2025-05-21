@@ -5,7 +5,7 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_319
+from ..core.descriptions import ADDED_IN_319, ADDED_IN_321
 from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -61,6 +61,13 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
         ),
         required=False,
     )
+    use_weighted_tax_for_shipping = graphene.Boolean(
+        description=(
+            "Determines whether to use weighted tax for shipping. When set to true, "
+            "the tax rate for shipping will be calculated based on the weighted average "
+            "of tax rates from the order or checkout lines." + ADDED_IN_321
+        ),
+    )
 
     class Meta:
         description = "Channel-specific tax configuration."
@@ -76,6 +83,12 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
         return TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
             root.pk
         )
+
+    @staticmethod
+    def resolve_use_weighted_tax_for_shipping(
+        root: models.TaxConfiguration, info: ResolveInfo
+    ):
+        return root.use_weighted_tax_for_shipping
 
 
 class TaxConfigurationCountableConnection(CountableConnection):
@@ -117,6 +130,13 @@ class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCount
         ),
         required=False,
     )
+    use_weighted_tax_for_shipping = graphene.Boolean(
+        description=(
+            "Determines whether to use weighted tax for shipping. When set to true, "
+            "the tax rate for shipping will be calculated based on the weighted average "
+            "of tax rates from the order or checkout lines." + ADDED_IN_321
+        ),
+    )
 
     class Meta:
         description = "Country-specific exceptions of a channel's tax configuration."
@@ -126,6 +146,12 @@ class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCount
     @staticmethod
     def resolve_country(root: models.TaxConfigurationPerCountry, _info: ResolveInfo):
         return CountryDisplay(code=root.country.code, country=root.country.name)
+
+    @staticmethod
+    def resolve_use_weighted_tax_for_shipping(
+        root: models.TaxConfiguration, info: ResolveInfo
+    ):
+        return root.use_weighted_tax_for_shipping
 
 
 class TaxClass(ModelObjectType[models.TaxClass]):
