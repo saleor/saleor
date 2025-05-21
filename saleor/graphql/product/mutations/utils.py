@@ -17,6 +17,22 @@ PRODUCT_VARIANT_UPDATE_FIELDS = {
 }
 
 
+PRODUCT_UPDATE_FIELDS = {
+    "category",
+    "collections",
+    "name",
+    "slug",
+    "external_reference",
+    "description",
+    "description_plaintext",
+    "weight",
+    "rating",
+    "tax_class",
+    "metadata",
+    "private_metadata",
+}
+
+
 def clean_tax_code(cleaned_input: dict):
     """Clean deprecated `taxCode` field.
 

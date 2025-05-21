@@ -1,8 +1,11 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import InstanceTracker
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
@@ -15,7 +18,7 @@ from ....core.validators import clean_seo_fields
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
-from ..utils import clean_tax_code
+from ..utils import PRODUCT_UPDATE_FIELDS, clean_tax_code
 from . import product_cleaner as cleaner
 from .product_create import ProductInput
 
@@ -42,6 +45,8 @@ class ProductUpdate(ModelWithExtRefMutation):
         error_type_field = "product_errors"
         support_meta_field = True
         support_private_meta_field = True
+
+    FIELDS_TO_TRACK = list(PRODUCT_UPDATE_FIELDS)
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -109,13 +114,23 @@ class ProductUpdate(ModelWithExtRefMutation):
         )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance_tracker: InstanceTracker, cleaned_input):
         with traced_atomic_transaction():
-            instance.search_index_dirty = True
-            instance.save()
+            instance = cast(models.Product, instance_tracker.instance)
+            modified_instance_fields = instance_tracker.get_modified_fields()
+            if modified_instance_fields:
+                instance.search_index_dirty = True
+                modified_instance_fields.append("search_index_dirty")
+                cls._save_product_instance(instance, modified_instance_fields)
+
             attributes = cleaned_input.get("attributes")
             if attributes:
                 ProductAttributeAssignmentMixin.save(instance, attributes)
+
+    @classmethod
+    def _save_product_instance(cls, instance, modified_instance_fields):
+        update_fields = ["updated_at"] + modified_instance_fields
+        instance.save(update_fields=update_fields)
 
     @classmethod
     def _save_m2m(cls, _info: ResolveInfo, instance, cleaned_data):
@@ -125,14 +140,13 @@ class ProductUpdate(ModelWithExtRefMutation):
 
     @classmethod
     def _post_save_action(cls, info: ResolveInfo, instance):
-        product = models.Product.objects.get(pk=instance.pk)
         channel_ids = set(
-            product.channel_listings.all().values_list("channel_id", flat=True)
+            instance.channel_listings.all().values_list("channel_id", flat=True)
         )
         cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.product_updated, product)
+        cls.call_event(manager.product_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -142,6 +156,9 @@ class ProductUpdate(ModelWithExtRefMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
+        instance = cast(models.Product, instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
+
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
@@ -151,7 +168,7 @@ class ProductUpdate(ModelWithExtRefMutation):
 
         cls.clean_instance(info, instance)
 
-        cls.save(info, instance, cleaned_input)
+        cls.save(info, instance_tracker, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         cls._post_save_action(info, instance)
         return cls.success_response(instance)

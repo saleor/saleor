@@ -3196,15 +3196,11 @@ def test_update_product_with_non_unique_external_reference(
     assert error["message"] == "Product with this External reference already exists."
 
 
-# @patch(
-#     "saleor.graphql.product.mutations.product.ProductUpdate.call_event"
-# )
-# @patch(
-#     "saleor.graphql.product.mutations.product.ProductUpdate._save_variant_instance"
-# )
+@patch("saleor.graphql.product.mutations.product.ProductUpdate.call_event")
+@patch("saleor.graphql.product.mutations.product.ProductUpdate._save_product_instance")
 def test_product_update_nothing_changed(
-    # save_product_mock,
-    # call_event_mock,
+    save_product_mock,
+    call_event_mock,
     staff_api_client,
     product,
     product_type,
@@ -3219,7 +3215,6 @@ def test_product_update_nothing_changed(
     product.name = "some_name"
     product.sku = "some_sku"
     product.external_reference = "some-ext-ref"
-    product.charge_taxes = True
     product.collections.add(collection)
     product.weight = Weight(kg=10)
     product.rating = 10
@@ -3259,6 +3254,8 @@ def test_product_update_nothing_changed(
     ]
     # `taxCode` field is deprecated
     input_fields.remove("taxCode")
+    # `chargeTaxes` field is deprecated
+    input_fields.remove("chargeTaxes")
 
     input = {
         "attributes": [
@@ -3267,7 +3264,6 @@ def test_product_update_nothing_changed(
             {"id": numeric_attribute_id, "values": [numeric_value.slug]},
         ],
         "category": category_id,
-        "chargeTaxes": product.charge_taxes,
         "collections": [collection_id],
         "name": product.name,
         "slug": product.slug,
@@ -3291,19 +3287,15 @@ def test_product_update_nothing_changed(
     # then
     assert not content["data"]["productUpdate"]["errors"]
     product.refresh_from_db()
-    # call_event_mock.assert_not_called()
-    # save_product_mock.assert_not_called()
+    call_event_mock.assert_not_called()
+    save_product_mock.assert_not_called()
 
 
-# @patch(
-#     "saleor.graphql.product.mutations.product.ProductUpdate.call_event"
-# )
-# @patch(
-#     "saleor.graphql.product.mutations.product.ProductUpdate._save_variant_instance"
-# )
+@patch("saleor.graphql.product.mutations.product.ProductUpdate.call_event")
+@patch("saleor.graphql.product.mutations.product.ProductUpdate._save_product_instance")
 def test_product_update_emit_event(
-    # save_product_mock,
-    # call_event_mock,
+    save_product_mock,
+    call_event_mock,
     staff_api_client,
     product,
     product_type,
@@ -3377,7 +3369,7 @@ def test_product_update_emit_event(
     assert set(input_fields) == set(input.keys())
 
     # fields making changes to related models (other than variant)
-    non_product_instance_fields = ["attributes"]
+    non_product_instance_fields = ["attributes", "collections"]
 
     for key, value in input.items():
         variables = {"productId": product_id, "input": {key: value}}
@@ -3388,8 +3380,8 @@ def test_product_update_emit_event(
 
         # then
         assert not content["data"]["productUpdate"]["errors"]
-        # call_event_mock.assert_called()
-        # call_event_mock.reset_mock()
-        # if key not in non_variant_instance_fields:
-        #     save_product_mock.assert_called()
-        #     save_product_mock.reset_mock()
+        call_event_mock.assert_called()
+        call_event_mock.reset_mock()
+        if key not in non_product_instance_fields:
+            save_product_mock.assert_called()
+            save_product_mock.reset_mock()
