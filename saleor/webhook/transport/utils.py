@@ -531,31 +531,13 @@ def attempt_update(
 
 @allow_writer()
 def clear_successful_delivery(delivery: "EventDelivery"):
-    if not delivery.id or delivery.status != EventDeliveryStatus.SUCCESS:
-        return
-
-    payload_id = delivery.payload_id
-    delivery.delete()
-    if payload_id:
-        payloads_to_delete = EventPayload.objects.filter(
-            pk=payload_id, deliveries__isnull=True
-        )
-        files_to_delete = [
-            event_payload.payload_file.name
-            for event_payload in payloads_to_delete.using(
-                settings.DATABASE_CONNECTION_REPLICA_NAME
-            )
-            if event_payload.payload_file
-        ]
-        payloads_to_delete.delete()
-        delete_files_from_private_storage_task(files_to_delete)
+    clear_successful_deliveries([delivery])
 
 
 @allow_writer()
 def clear_successful_deliveries(deliveries: list["EventDelivery"]):
     delivery_ids_to_delete = []
     payload_ids_to_delete = []
-    files_to_delete = []
     for delivery in deliveries:
         # skip deliveries that cannot be deleted
         if not delivery.id or delivery.status != EventDeliveryStatus.SUCCESS:
@@ -571,19 +553,21 @@ def clear_successful_deliveries(deliveries: list["EventDelivery"]):
                 pk=payload_id, deliveries__isnull=True
             )
 
-            files_to_delete += [
-                event_payload.payload_file.name
-                for event_payload in payloads_to_delete.using(
-                    settings.DATABASE_CONNECTION_REPLICA_NAME
-                )
-                if event_payload.payload_file
-            ]
-
-    if payload_ids_to_delete:
-        EventPayload.objects.filter(pk__in=payload_ids_to_delete).delete()
-        delete_files_from_private_storage_task(files_to_delete)
     if delivery_ids_to_delete:
         EventDelivery.objects.filter(pk__in=delivery_ids_to_delete).delete()
+    if payload_ids_to_delete:
+        payloads_to_delete = EventPayload.objects.filter(
+            pk__in=payload_ids_to_delete, deliveries__isnull=True
+        )
+        files_to_delete = [
+            event_payload.payload_file.name
+            for event_payload in payloads_to_delete.using(
+                settings.DATABASE_CONNECTION_REPLICA_NAME
+            )
+            if event_payload.payload_file
+        ]
+        payloads_to_delete.delete()
+        delete_files_from_private_storage_task(files_to_delete)
 
 
 @allow_writer()
