@@ -647,3 +647,49 @@ def test_customer_confirm_assign_gift_cards_and_orders(
 
     order.refresh_from_db()
     assert order.user == customer_user
+
+
+UPDATE_CUSTOMER_ADD_CUSTOMER_GROUP = """
+    mutation UpdateCustomer(
+        $id: ID!, $customerGroupId: ID!) {
+            customerUpdate(id: $id, input: {
+            addCustomerGroups: [$customerGroupId],
+        }) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_customer_add_customer_group(
+    staff_api_client,
+    staff_user,
+    customer_user,
+    address,
+    customer_group_list,
+    permission_manage_users,
+):
+    # given
+    query = UPDATE_CUSTOMER_ADD_CUSTOMER_GROUP
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    customer_group = customer_group_list[0]
+    customer_group_id = graphene.Node.to_global_id("CustomerGroup", customer_group.id)
+    assert customer_user.customer_groups.count() == 0
+
+    variables = {
+        "id": user_id,
+        "customerGroupId": customer_group_id,
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.customer_groups.count() == 1
