@@ -64,6 +64,17 @@ SHIPPING_METHOD_UPDATE_FIELDS = {
     "updated_at",
 }
 
+ORDER_UPDATE_FIELDS = {
+    "billing_address",
+    "external_reference",
+    "language_code",
+    "metadata",
+    "private_metadata",
+    "shipping_address",
+    "user",
+    "user_email",
+}
+
 
 class EditableOrderValidationMixin:
     class Meta:
