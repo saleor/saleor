@@ -483,6 +483,10 @@ class User(ModelObjectType[models.User]):
             required=True,
         ),
     )
+    customer_groups = NonNullList(
+        "saleor.graphql.account.types.CustomerGroup",
+        description="List of customer groups assigned to the user.",
+    )
 
     class Meta:
         description = "Represents user data."
