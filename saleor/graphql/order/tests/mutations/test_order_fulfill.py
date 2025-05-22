@@ -189,11 +189,13 @@ def test_order_fulfill_no_channel_access(
     assert_no_permission(response)
 
 
+@pytest.mark.parametrize("input_tracking_number", [None, "", "test_tracking_number"])
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill_with_tracking_number(
     mock_create_fulfillments,
     fulfillment_auto_approve,
+    input_tracking_number,
     staff_api_client,
     staff_user,
     order_with_lines,
@@ -225,7 +227,7 @@ def test_order_fulfill_with_tracking_number(
                     "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
                 },
             ],
-            "trackingNumber": "test_tracking_number",
+            "trackingNumber": input_tracking_number,
         },
     }
     response = staff_api_client.post_graphql(query, variables)
@@ -239,6 +241,7 @@ def test_order_fulfill_with_tracking_number(
             {"order_line": order_line2, "quantity": 2},
         ]
     }
+    expected_tracking_number = input_tracking_number or ""
     mock_create_fulfillments.assert_called_once_with(
         staff_user,
         None,
@@ -249,7 +252,7 @@ def test_order_fulfill_with_tracking_number(
         notify_customer=True,
         allow_stock_to_be_exceeded=False,
         auto_approved=fulfillment_auto_approve,
-        tracking_number="test_tracking_number",
+        tracking_number=expected_tracking_number,
     )
 
 

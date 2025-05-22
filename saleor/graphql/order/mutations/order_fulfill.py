@@ -278,7 +278,7 @@ class OrderFulfill(BaseMutation):
             "allow_stock_to_be_exceeded", False
         )
         approved = site.settings.fulfillment_auto_approve
-        tracking_number = cleaned_input.get("tracking_number", "")
+        tracking_number = cleaned_input.get("tracking_number") or ""
         try:
             fulfillments = create_fulfillments(
                 user,
