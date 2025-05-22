@@ -597,6 +597,12 @@ class User(ModelObjectType[models.User]):
         return root.groups.using(get_database_connection_name(info.context)).all()
 
     @staticmethod
+    def resolve_customer_groups(root: models.User, info: ResolveInfo):
+        return root.customer_groups.using(
+            get_database_connection_name(info.context)
+        ).all()
+
+    @staticmethod
     def resolve_editable_groups(root: models.User, info: ResolveInfo):
         database_connection_name = get_database_connection_name(info.context)
         return get_groups_which_user_can_manage(root, database_connection_name)
