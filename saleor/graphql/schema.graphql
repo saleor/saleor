@@ -6634,7 +6634,10 @@ input AttributeInput @doc(category: "Attributes") {
   """Internal representation of an attribute name."""
   slug: String!
 
-  """Internal representation of a value (unique per attribute)."""
+  """Names of the values."""
+  valueNames: [String!]
+
+  """Slugs of the values."""
   values: [String!]
 
   """The range that the returned values should be in."""
