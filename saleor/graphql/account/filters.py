@@ -77,6 +77,7 @@ class CustomerFilter(MetadataFilterBase):
 
 
 class CustomerGroupFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_search)
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id(account_types.CustomerGroup))
 
 

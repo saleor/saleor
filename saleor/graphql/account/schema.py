@@ -148,7 +148,7 @@ class AccountQueries(graphene.ObjectType):
     )
     customer_groups = FilterConnectionField(
         CustomerGroupCountableConnection,
-        filter=PermissionGroupFilterInput(
+        filter=CustomerGroupFilterInput(
             description="Filtering options for customer groups."
         ),
         description="List of customer groups.",
