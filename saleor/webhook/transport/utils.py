@@ -545,8 +545,7 @@ def clear_successful_deliveries(deliveries: list["EventDelivery"]):
 
         delivery_ids_to_delete.append(delivery.id)
 
-        payload_id = delivery.payload_id
-        if payload_id:
+        if payload_id := delivery.payload_id:
             payload_ids_to_delete.append(payload_id)
 
             payloads_to_delete = EventPayload.objects.filter(

@@ -9,7 +9,7 @@ METRIC_FIRST_EVENT_DELIVERY_ATTEMPT_DELAY = meter.create_metric(
     scope=Scope.CORE,
     type=MetricType.HISTOGRAM,
     unit=Unit.MILLISECOND,
-    description="Delay for the first attempt of delivering async webhook event after creation of EventDeliver.",
+    description="Delay for the first attempt of delivering async webhook event after creation of EventDelivery.",
 )
 
 METRIC_ASYNC_WEBHOOK_CALLS = meter.create_metric(
