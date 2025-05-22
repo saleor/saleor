@@ -152,7 +152,10 @@ class AccountQueries(graphene.ObjectType):
             description="Filtering options for customer groups."
         ),
         description="List of customer groups.",
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
         doc_category=DOC_CATEGORY_USERS,
     )
     customers = FilterConnectionField(

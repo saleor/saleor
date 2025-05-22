@@ -1076,8 +1076,9 @@ class CustomerGroup(ModelObjectType[models.CustomerGroup]):
         from .resolvers import resolve_permission_groups
 
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor or not requestor.has_perm(
-            AuthorizationFilters.AUTHENTICATED_STAFF_USER
+        if not requestor or (
+            not requestor.has_perm(AuthorizationFilters.AUTHENTICATED_STAFF_USER)
+            and not requestor.has_perm(AuthorizationFilters.AUTHENTICATED_APP)
         ):
             qs = models.CustomerGroup.objects.none()
         else:

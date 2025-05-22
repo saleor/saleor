@@ -1466,6 +1466,32 @@ type Query {
   ): Address @doc(category: "Users")
 
   """
+  List of customer groups.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  customerGroups(
+    """Filtering options for customer groups."""
+    filter: PermissionGroupFilterInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CustomerGroupCountableConnection @doc(category: "Users")
+
+  """
   List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.
   
   Requires one of the following permissions: MANAGE_ORDERS, MANAGE_USERS.
@@ -13244,6 +13270,13 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   channels: [Channel!]
 
   """
+  List of customer groups to which the rule applies.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  customerGroups: [CustomerGroup!]
+
+  """
   The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
   
   Added in Saleor 3.19.
@@ -13308,6 +13341,55 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   giftsLimit: Int
+}
+
+"""Represents customer group data."""
+type CustomerGroup implements Node {
+  """The ID of the customer group."""
+  id: ID!
+
+  """The name of the customer group."""
+  name: String!
+
+  """
+  List of customers in group
+  
+  Requires one of the following permissions: MANAGE_USERS.
+  """
+  customers(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): UserCountableConnection
+}
+
+type UserCountableConnection @doc(category: "Users") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [UserCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type UserCountableEdge @doc(category: "Users") {
+  """The item at the end of the edge."""
+  node: User!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 enum RewardValueTypeEnum @doc(category: "Discounts") {
@@ -13935,21 +14017,26 @@ type ChoiceValue {
   verbose: String
 }
 
-type UserCountableConnection @doc(category: "Users") {
+type CustomerGroupCountableConnection @doc(category: "Users") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
-  edges: [UserCountableEdge!]!
+  edges: [CustomerGroupCountableEdge!]!
 
   """A total count of items in the collection."""
   totalCount: Int
 }
 
-type UserCountableEdge @doc(category: "Users") {
+type CustomerGroupCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
-  node: User!
+  node: CustomerGroup!
 
   """A cursor for use in pagination."""
   cursor: String!
+}
+
+input PermissionGroupFilterInput @doc(category: "Users") {
+  search: String
+  ids: [ID!]
 }
 
 input CustomerFilterInput @doc(category: "Users") {
@@ -14007,11 +14094,6 @@ type GroupCountableEdge @doc(category: "Users") {
 
   """A cursor for use in pagination."""
   cursor: String!
-}
-
-input PermissionGroupFilterInput @doc(category: "Users") {
-  search: String
-  ids: [ID!]
 }
 
 input PermissionGroupSortingInput @doc(category: "Users") {
@@ -18688,6 +18770,30 @@ type Mutation {
     """ID of the group to delete."""
     id: ID!
   ): PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_DELETED], syncEvents: [])
+
+  """
+  Create a new customer group.
+  
+  Requires MANAGE_USERS permission.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_GROUP_CREATED (sync)
+  """
+  customerGroupCreate(input: CustomerGroupInput!): CustomerGroupCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [], syncEvents: [])
+
+  """
+  Update customer group assignments.
+  
+  Requires MANAGE_USERS permission.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_GROUP_UPDATED (sync)
+  """
+  customerGroupUpdate(
+    """ID of the customer group."""
+    id: ID!
+    input: CustomerGroupUpdateInput!
+  ): CustomerGroupUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [], syncEvents: [])
 }
 
 """
@@ -25697,6 +25803,9 @@ input PromotionRuleInput @doc(category: "Discounts") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   gifts: [ID!]
+
+  """List of customer group ids to which the rule should apply to."""
+  customerGroups: [ID!]
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -25927,6 +26036,9 @@ input PromotionRuleCreateInput {
   """
   gifts: [ID!]
 
+  """List of customer group ids to which the rule should apply to."""
+  customerGroups: [ID!]
+
   """The ID of the promotion that rule belongs to."""
   promotion: ID!
 }
@@ -26042,6 +26154,12 @@ input PromotionRuleUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeGifts: [ID!]
+
+  """List of customer group IDs to add."""
+  addCustomerGroups: [ID!]
+
+  """List of customer group IDs to remove."""
+  removeCustomerGroups: [ID!]
 }
 
 """
@@ -29737,6 +29855,69 @@ type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvent
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [PermissionGroupError!]!
   group: Group
+}
+
+"""
+Create a new customer group.
+
+Requires MANAGE_USERS permission.
+
+Triggers the following webhook events:
+- CUSTOMER_GROUP_CREATED (sync)
+"""
+type CustomerGroupCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [], syncEvents: []) {
+  """A customer group instance."""
+  customerGroup: CustomerGroup
+  customerGroupErrors: [CustomerGroupError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [CustomerGroupError!]!
+}
+
+type CustomerGroupError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerGroupErrorCode!
+}
+
+enum CustomerGroupErrorCode {
+  UNIQUE
+}
+
+input CustomerGroupInput {
+  """Customer group name."""
+  name: String
+}
+
+"""
+Update customer group assignments.
+
+Requires MANAGE_USERS permission.
+
+Triggers the following webhook events:
+- CUSTOMER_GROUP_UPDATED (sync)
+"""
+type CustomerGroupUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [], syncEvents: []) {
+  """A customer group instance."""
+  customerGroup: CustomerGroup
+  customerGroupErrors: [CustomerGroupError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [CustomerGroupError!]!
+}
+
+input CustomerGroupUpdateInput {
+  """Name of the customer group. Must be unique."""
+  name: String
+
+  """List of customer IDs to add to the group."""
+  addCustomers: [ID!]
+
+  """List of customer IDs to remove from the group."""
+  removeCustomers: [ID!]
 }
 
 type Subscription @doc(category: "Miscellaneous") {
@@ -33495,22 +33676,6 @@ scalar _Any
 
 """_Entity union as defined by Federation spec."""
 union _Entity = App | Address | User | Group | CustomerGroup | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
-
-"""Represents customer group data."""
-type CustomerGroup implements Node {
-  """The ID of the customer group."""
-  id: ID!
-
-  """The name of the customer group."""
-  name: String!
-
-  """
-  List of customers in group
-  
-  Requires one of the following permissions: MANAGE_USERS.
-  """
-  customers: UserCountableConnection
-}
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
