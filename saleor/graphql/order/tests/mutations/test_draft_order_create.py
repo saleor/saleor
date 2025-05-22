@@ -3703,7 +3703,7 @@ def test_draft_order_create_voucher_with_usage_limit(
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_create_triggers_webhooks(
@@ -3718,7 +3718,6 @@ def test_draft_order_create_triggers_webhooks(
     product_available_in_many_channels,
     channel_PLN,
     graphql_address_data,
-    settings,
 ):
     # given
     mocked_send_webhook_request_sync.return_value = []
@@ -3771,13 +3770,9 @@ def test_draft_order_create_triggers_webhooks(
     )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
-            "event_delivery_id": draft_order_created_delivery.id,
+            "app_id": draft_order_created_delivery.webhook.app_id,
             "telemetry_context": ANY,
         },
-        queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
     )
 
     # confirm each sync webhook was called without saving event delivery

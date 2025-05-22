@@ -357,7 +357,7 @@ def test_webhook_trigger_for_removed_app(
 
 
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
@@ -405,4 +405,4 @@ def test_webhook_trigger_for_deferred_payload(
 
     assert mocked_send_webhook_request_async.called
     send_webhook_kwargs = mocked_send_webhook_request_async.call_args.kwargs["kwargs"]
-    assert send_webhook_kwargs["event_delivery_id"] == delivery_pk
+    assert send_webhook_kwargs["app_id"] == subscription_checkout_updated_webhook.app_id
