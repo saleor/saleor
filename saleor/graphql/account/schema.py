@@ -75,6 +75,7 @@ from .mutations.staff import (
 from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
+    resolve_customer_groups,
     resolve_customers,
     resolve_permission_group,
     resolve_permission_groups,
@@ -241,6 +242,16 @@ class AccountQueries(graphene.ObjectType):
             qs, kwargs, allow_replica=info.context.allow_replica
         )
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
+
+    @staticmethod
+    def resolve_customer_groups(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_customer_groups(info)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(
+            qs, info, kwargs, CustomerGroupCountableConnection
+        )
 
     @staticmethod
     def resolve_permission_groups(_root, info: ResolveInfo, **kwargs):
