@@ -360,7 +360,7 @@ def _fetch_checkout_prices_if_expired(
 
     tax_configuration = checkout_info.tax_configuration
     tax_calculation_strategy = get_tax_calculation_strategy_for_checkout(
-        checkout_info, lines, database_connection_name=database_connection_name
+        checkout_info, database_connection_name=database_connection_name
     )
 
     if (
@@ -371,11 +371,11 @@ def _fetch_checkout_prices_if_expired(
 
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(
-        checkout_info, lines, database_connection_name=database_connection_name
+        checkout_info, database_connection_name=database_connection_name
     )
     should_charge_tax = charge_taxes and not checkout.tax_exemption
     tax_app_identifier = get_tax_app_identifier_for_checkout(
-        checkout_info, lines, database_connection_name
+        checkout_info, database_connection_name
     )
 
     lines = cast(list, lines)
@@ -387,9 +387,12 @@ def _fetch_checkout_prices_if_expired(
     )
 
     checkout.tax_error = None
-    if prices_entered_with_tax:
-        # If prices are entered with tax, we need to always calculate it anyway, to
-        # display the tax rate to the user.
+
+    no_need_to_calculate_taxes = not prices_entered_with_tax and not should_charge_tax
+    if no_need_to_calculate_taxes:
+        # Calculate net prices without taxes.
+        _set_checkout_base_prices(checkout, checkout_info, lines)
+    else:
         try:
             _calculate_and_add_tax(
                 tax_calculation_strategy,
@@ -416,36 +419,6 @@ def _fetch_checkout_prices_if_expired(
             # If charge_taxes is disabled or checkout is exempt from taxes, remove the
             # tax from the original gross prices.
             _remove_tax(checkout, lines)
-
-    else:
-        # Prices are entered without taxes.
-        if should_charge_tax:
-            # Calculate taxes if charge_taxes is enabled and checkout is not exempt
-            # from taxes.
-            try:
-                _calculate_and_add_tax(
-                    tax_calculation_strategy,
-                    tax_app_identifier,
-                    checkout,
-                    manager,
-                    checkout_info,
-                    lines,
-                    prices_entered_with_tax,
-                    address,
-                    database_connection_name=database_connection_name,
-                    pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-                )
-            except TaxDataError as e:
-                if str(e) != TaxDataErrorMessage.EMPTY:
-                    extra = checkout_info_for_logs(checkout_info, lines)
-                    if e.errors:
-                        extra["errors"] = e.errors
-                    logger.warning(str(e), extra=extra)
-                _set_checkout_base_prices(checkout, checkout_info, lines)
-                checkout.tax_error = str(e)
-        else:
-            # Calculate net prices without taxes.
-            _set_checkout_base_prices(checkout, checkout_info, lines)
 
     checkout_update_fields = [
         "voucher_code",
@@ -503,38 +476,8 @@ def _calculate_and_add_tax(
 ):
     if pregenerated_subscription_payloads is None:
         pregenerated_subscription_payloads = {}
-    if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
-        # If taxAppId is not configured run all active plugins and tax apps.
-        # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
-        # configured with Avatax plugin identifier.
-        if not tax_app_identifier:
-            # Call the tax plugins.
-            _apply_tax_data_from_plugins(
-                checkout, manager, checkout_info, lines, address
-            )
-            # Get the taxes calculated with apps and apply to checkout.
-            # We should allow empty tax_data in case any tax webhook has not been
-            # configured - handled by `allowed_empty_tax_data`
-            tax_data = _get_taxes_for_checkout(
-                checkout_info,
-                lines,
-                tax_app_identifier,
-                manager,
-                pregenerated_subscription_payloads,
-                allowed_empty_tax_data=True,
-            )
-            _apply_tax_data(checkout, lines, tax_data)
-        else:
-            _call_plugin_or_tax_app(
-                tax_app_identifier,
-                checkout,
-                manager,
-                checkout_info,
-                lines,
-                address,
-                pregenerated_subscription_payloads,
-            )
-    else:
+
+    if tax_calculation_strategy != TaxCalculationStrategy.TAX_APP:
         # Get taxes calculated with flat rates and apply to checkout.
         update_checkout_prices_with_flat_rates(
             checkout,
@@ -543,6 +486,36 @@ def _calculate_and_add_tax(
             prices_entered_with_tax,
             address,
             database_connection_name=database_connection_name,
+        )
+        return
+
+    # If taxAppId is not configured run all active plugins and tax apps.
+    # If taxAppId is provided run tax plugin or Tax App. taxAppId can be
+    # configured with Avatax plugin identifier.
+    if not tax_app_identifier:
+        # Call the tax plugins.
+        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
+        # Get the taxes calculated with apps and apply to checkout.
+        # We should allow empty tax_data in case any tax webhook has not been
+        # configured - handled by `allowed_empty_tax_data`
+        tax_data = _get_taxes_for_checkout(
+            checkout_info,
+            lines,
+            tax_app_identifier,
+            manager,
+            pregenerated_subscription_payloads,
+            allowed_empty_tax_data=True,
+        )
+        _apply_tax_data(checkout, lines, tax_data)
+    else:
+        _call_plugin_or_tax_app(
+            tax_app_identifier,
+            checkout,
+            manager,
+            checkout_info,
+            lines,
+            address,
+            pregenerated_subscription_payloads,
         )
 
 
