@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Added support for filtering products by attribute value names. The `AttributeInput` now includes a `valueNames` field, enabling filtering by the names of attribute values, in addition to the existing filtering by value slugs.
 
 ### Webhooks
 
