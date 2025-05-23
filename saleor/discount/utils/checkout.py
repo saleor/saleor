@@ -35,17 +35,20 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     lines_info: list["CheckoutLineInfo"],
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
-    create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+    create_checkout_line_discount_objects_for_catalogue_promotions(
+        checkout_info, lines_info
+    )
     create_checkout_discount_objects_for_order_promotions(
         checkout_info, lines_info, database_connection_name=database_connection_name
     )
 
 
 def create_checkout_line_discount_objects_for_catalogue_promotions(
+    checkout_info: "CheckoutInfo",
     lines_info: list["CheckoutLineInfo"],
 ):
     discount_data = prepare_checkout_line_discount_objects_for_catalogue_promotions(
-        lines_info
+        checkout_info, lines_info
     )
     if not discount_data or not lines_info:
         return
@@ -62,9 +65,10 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
         with transaction.atomic():
             # Protect against potential thread race. CheckoutLine object can have only
             # single catalogue discount applied.
-            checkout_id = lines_info[0].line.checkout_id
             _checkout_lock = list(
-                Checkout.objects.filter(pk=checkout_id).select_for_update(of=(["self"]))
+                Checkout.objects.filter(pk=checkout_info.checkout.pk).select_for_update(
+                    of=(["self"])
+                )
             )
 
             if discount_ids_to_remove := [
@@ -94,6 +98,7 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
 
 
 def prepare_checkout_line_discount_objects_for_catalogue_promotions(
+    checkout_info: "CheckoutInfo",
     lines_info: list["CheckoutLineInfo"],
 ) -> (
     tuple[list[dict], list[CheckoutLineDiscount], list[CheckoutLineDiscount], list[str]]
@@ -133,18 +138,28 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
+        relevant_rules = [
+            rule_info
+            for rule_info in line_info.rules_info
+            if rule_info.rule.is_user_applicable(checkout_info.user)
+        ]
+
         # check if the line price is discounted by catalogue promotion
-        discounted_line = is_discounted_line_by_catalogue_promotion(
-            line_info.rules_info
-        )
+        discounted_line = is_discounted_line_by_catalogue_promotion(relevant_rules)
 
         # delete all existing discounts if the line is not discounted or it is a gift
         if not discounted_line or line.is_gift:
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        if line_info.rules_info:
-            rule_info = line_info.rules_info[0]
+        if len(relevant_rules) > 0:
+            rule_info = sorted(
+                relevant_rules,
+                key=lambda x: x.variant_listing_promotion_rule.discount_amount
+                if x.variant_listing_promotion_rule
+                else 0,
+                reverse=True,
+            )[0]
             rule = rule_info.rule
             rule_discount_amount = _get_rule_discount_amount(
                 line, rule_info, line_info.channel

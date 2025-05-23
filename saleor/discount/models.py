@@ -439,6 +439,14 @@ class PromotionRule(models.Model):
             )
             return cursor.fetchall()
 
+    def is_user_applicable(self, user):
+        if not user:
+            return not self.customer_groups.exists()
+
+        user_group_ids = {group.id for group in user.customer_groups.all()}
+        rule_group_ids = {group.id for group in self.customer_groups.all()}
+        return len(user_group_ids.intersection(rule_group_ids)) > 0
+
 
 class PromotionRule_Variants(models.Model):
     id = models.BigAutoField(primary_key=True, editable=False, unique=True)
