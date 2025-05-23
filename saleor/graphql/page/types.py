@@ -144,10 +144,19 @@ class Page(ModelObjectType[models.Page]):
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")
+    attribute = graphene.Field(
+        SelectedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description="Get a single attribute attached to page by attribute slug.",
+    )
     attributes = NonNullList(
         SelectedAttribute,
         required=True,
-        description="List of attributes assigned to this product.",
+        description="List of attributes assigned to this page.",
     )
 
     class Meta:
@@ -186,6 +195,33 @@ class Page(ModelObjectType[models.Page]):
             return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
         return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
             root.id
+        )
+
+    @staticmethod
+    def resolve_attribute(root: models.Page, info: ResolveInfo, slug: str):
+        def get_selected_attribute_by_slug(
+            attributes: list[SelectedAttribute],
+        ) -> SelectedAttribute | None:
+            return next(
+                (atr for atr in attributes if atr["attribute"].slug == slug),
+                None,
+            )
+
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return (
+                SelectedAttributesAllByPageIdLoader(info.context)
+                .load(root.id)
+                .then(get_selected_attribute_by_slug)
+            )
+        return (
+            SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
+            .load(root.id)
+            .then(get_selected_attribute_by_slug)
         )
 
 

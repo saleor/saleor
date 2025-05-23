@@ -322,7 +322,7 @@ def test_get_page_with_sorted_attribute_values(
     ]
 
 
-def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
+def test_page_attributes_not_visible_in_storefront_for_customer_is_not_returned(
     user_api_client, page
 ):
     # given
@@ -357,7 +357,7 @@ def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
     assert attr_data == {}
 
 
-def test_page_attribute_visible_in_storefront_for_customer_is_returned(
+def test_page_attributes_visible_in_storefront_for_customer_is_returned(
     user_api_client, page
 ):
     # given
@@ -394,7 +394,7 @@ def test_page_attribute_visible_in_storefront_for_customer_is_returned(
 
 
 @pytest.mark.parametrize("visible_in_storefront", [False, True])
-def test_page_attribute_visible_in_storefront_for_staff_is_always_returned(
+def test_page_attributes_visible_in_storefront_for_staff_is_always_returned(
     visible_in_storefront,
     staff_api_client,
     page,
@@ -454,3 +454,150 @@ def test_page_query_by_translated_slug(user_api_client, page, page_translation_f
 
     assert page_data is not None
     assert page_data["title"] == page.title
+
+
+QUERY_PAGE_WITH_ATTRIBUTE = """
+query Page($id: ID!, $slug: String!) {
+    page(id: $id) {
+        attribute(slug: $slug) {
+            attribute {
+                id
+                slug
+            }
+        }
+        attributes {
+            attribute {
+                id
+                slug
+            }
+        }
+    }
+}
+"""
+
+
+def test_page_attribute_field_filtering(staff_api_client, page):
+    # given
+    slug = page.page_type.page_attributes.first().slug
+
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGE_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    expected_slug = slug
+    content = get_graphql_content(response)
+    queried_slug = content["data"]["page"]["attribute"]["attribute"]["slug"]
+    assert queried_slug == expected_slug
+
+
+def test_page_attribute_field_filtering_not_found(staff_api_client, page):
+    # given
+    slug = ""
+
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGE_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["page"]["attribute"] is None
+
+
+def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
+    user_api_client, page
+):
+    # given
+    attribute = page.page_type.page_attributes.first()
+    attribute.visible_in_storefront = False
+    attribute.save(update_fields=["visible_in_storefront"])
+    visible_attrs_count = page.page_type.page_attributes.filter(
+        visible_in_storefront=True
+    ).count()
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": attribute.slug,
+    }
+    response = user_api_client.post_graphql(
+        QUERY_PAGE_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["page"]["attribute"] is None
+    assert len(content["data"]["page"]["attributes"]) == visible_attrs_count
+    attr_data = {
+        "attribute": {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "slug": attribute.slug,
+        }
+    }
+    assert attr_data not in content["data"]["page"]["attributes"]
+
+
+def test_page_attribute_visible_in_storefront_for_customer_is_returned(
+    user_api_client, page
+):
+    # given
+    attribute = page.page_type.page_attributes.first()
+    attribute.visible_in_storefront = True
+    attribute.save(update_fields=["visible_in_storefront"])
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": attribute.slug,
+    }
+    response = user_api_client.post_graphql(
+        QUERY_PAGE_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["page"]["attribute"]["attribute"]["slug"] == attribute.slug
+
+
+@pytest.mark.parametrize("visible_in_storefront", [False, True])
+def test_page_attribute_visible_in_storefront_for_staff_is_always_returned(
+    visible_in_storefront,
+    staff_api_client,
+    page,
+    permission_manage_pages,
+):
+    # given
+    attribute = page.page_type.page_attributes.first()
+    attribute.visible_in_storefront = visible_in_storefront
+    attribute.save(update_fields=["visible_in_storefront"])
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": attribute.slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(
+        QUERY_PAGE_WITH_ATTRIBUTE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["page"]["attribute"]["attribute"]["slug"] == attribute.slug
