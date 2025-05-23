@@ -8,6 +8,9 @@ from django.utils import timezone
 from freezegun import freeze_time
 from graphene import Node
 from prices import Money, TaxedMoney
+from saleor.checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from saleor.plugins.manager import get_plugins_manager
+from saleor.giftcard.models import GiftCard
 
 from ...checkout.utils import (
     add_promo_code_to_checkout,
@@ -40,6 +43,7 @@ from ..calculations import (
     _calculate_and_add_tax,
     _set_checkout_base_prices,
     fetch_checkout_data,
+    calculate_checkout_total_with_gift_cards,
     logger,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
@@ -1156,3 +1160,54 @@ def test_fetch_checkout_with_prior_price_none(
     line.refresh_from_db()
     assert line.prior_unit_price_amount is None
     assert line.currency is not None
+
+
+@pytest.fixture
+def gift_card(db):
+    return GiftCard.objects.create(
+        balance=Money(20, "USD"),
+        currency="USD",
+        is_active=True,
+    )
+
+
+@pytest.mark.django_db
+def test_checkout_total_with_gift_card_and_voucher(
+    checkout_with_item,
+    voucher_percentage,
+    gift_card,
+):
+    # Given
+    checkout = checkout_with_item
+    manager = get_plugins_manager(allow_replica=False)
+
+    # Apply voucher: 10% off
+    voucher = voucher_percentage
+    voucher.discount_value = 10
+    voucher.save()
+    checkout.voucher_code = voucher.code
+    checkout.save()
+
+    # Apply gift card
+    checkout.gift_cards.add(gift_card)
+
+    # Load checkout info and lines
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines_info, manager)
+
+    # Calculate expected total
+    subtotal = checkout.get_subtotal().gross.amount
+    voucher_discount = subtotal * Decimal("0.10")
+    expected_total = subtotal - voucher_discount - Decimal("20.00")
+
+    # When
+    total = calculate_checkout_total_with_gift_cards(
+        manager,
+        checkout_info,
+        lines_info,
+        checkout_info.shipping_address or checkout_info.billing_address,
+    )
+
+    # Then
+    assert total.gross.amount == pytest.approx(max(expected_total, 0), 0.01)
+    assert total.gross.amount >= 0
