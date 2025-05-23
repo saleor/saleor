@@ -224,7 +224,7 @@ def test_file_upload_sanitizes_svg(staff_api_client, media_root):
     svg_file = SimpleUploadedFile(
         file_name, MALICIOUS_SVG, content_type="image/svg+xml"
     )
-    variables = {"file": file_name}
+    variables = {"image": file_name}
     body = get_multipart_request_body(
         FILE_UPLOAD_MUTATION, variables, svg_file, file_name
     )
@@ -249,7 +249,7 @@ def test_file_upload_preserves_safe_svg(staff_api_client, media_root):
     # Upload a clean SVG with no malicious code
     file_name = "clean.svg"
     svg_file = SimpleUploadedFile(file_name, SAFE_SVG, content_type="image/svg+xml")
-    variables = {"file": file_name}
+    variables = {"image": file_name}
     body = get_multipart_request_body(
         FILE_UPLOAD_MUTATION, variables, svg_file, file_name
     )
