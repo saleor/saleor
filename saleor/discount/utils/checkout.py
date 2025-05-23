@@ -97,6 +97,19 @@ def create_checkout_line_discount_objects_for_catalogue_promotions(
     )
 
 
+def filter_relevant_rules(
+    rules_info,
+    user_groups_ids,
+):
+    relevant_rules = []
+    for rule_info in rules_info:
+        rule_group_ids = {group.id for group in rule_info.rule.customer_groups.all()}
+        if len(rule_group_ids) == 0 or len(rule_group_ids & user_groups_ids) > 0:
+            relevant_rules.append(rule_info)
+
+    return relevant_rules
+
+
 def prepare_checkout_line_discount_objects_for_catalogue_promotions(
     checkout_info: "CheckoutInfo",
     lines_info: list["CheckoutLineInfo"],
@@ -108,6 +121,12 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
     line_discounts_to_update: list[CheckoutLineDiscount] = []
     line_discounts_to_remove: list[CheckoutLineDiscount] = []
     updated_fields: list[str] = []
+
+    user = checkout_info.user
+    user_groups_ids = set()
+    if user:
+        user_groups = user.customer_groups.all()
+        user_groups_ids = {group.id for group in user_groups}
 
     if not lines_info:
         return None
@@ -138,11 +157,11 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             line_discounts_to_remove.extend(discounts_to_update)
             continue
 
-        relevant_rules = [
-            rule_info
-            for rule_info in line_info.rules_info
-            if rule_info.rule.is_user_applicable(checkout_info.user)
-        ]
+        relevant_rules = filter_relevant_rules(
+            line_info.rules_info,
+            user_groups_ids,
+        )
+        # filter out rules that are not applicable to the user
 
         # check if the line price is discounted by catalogue promotion
         discounted_line = is_discounted_line_by_catalogue_promotion(relevant_rules)

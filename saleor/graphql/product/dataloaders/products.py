@@ -692,15 +692,9 @@ class VariantChannelListingPromotionRuleByListingIdLoader(DataLoader):
     context_key = "variant_channel_listing_promotion_rule_by_listing_id"
 
     def batch_load(self, keys):
-        user = self.context.user
-
-        listing_promotion_rules = (
-            VariantChannelListingPromotionRule.objects.using(
-                self.database_connection_name
-            )
-            .filter(variant_channel_listing_id__in=keys)
-            .all()
-        )
+        listing_promotion_rules = VariantChannelListingPromotionRule.objects.using(
+            self.database_connection_name
+        ).filter(variant_channel_listing_id__in=keys)
 
         channel_listing_to_channel_rules_map = defaultdict(list)
         for listing_rule in listing_promotion_rules:

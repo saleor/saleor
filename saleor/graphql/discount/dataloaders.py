@@ -376,8 +376,13 @@ class PromotionRuleByIdLoader(DataLoader[int, PromotionRule]):
     context_key = "promotion_rule_by_id"
 
     def batch_load(self, keys):
-        rules = PromotionRule.objects.using(self.database_connection_name).in_bulk(keys)
-        return [rules.get(id) for id in keys]
+        qs = (
+            PromotionRule.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
+            .prefetch_related("customer_groups", "translations")
+        )
+        rules = {rule.id: rule for rule in qs}
+        return Promise.resolve([rules.get(id) for id in keys])
 
 
 class PromotionByRuleIdLoader(DataLoader[int, Promotion]):

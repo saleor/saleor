@@ -511,7 +511,6 @@ def fetch_checkout_lines(
                 voucher_code=None,
             )
         )
-
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
             voucher, _ = get_voucher_for_checkout(
