@@ -486,6 +486,7 @@ def _get_defaults_for_gift_line(
 
 def get_variants_to_promotion_rules_map(
     variant_qs: "ProductVariantQueryset",
+    customer_group_qs=None,
 ) -> dict[int, list[PromotionRuleInfo]]:
     """Return map of variant ids to the list of promotion rules that can be applied.
 
@@ -512,6 +513,12 @@ def get_variants_to_promotion_rules_map(
         Exists(promotions.filter(id=OuterRef("promotion_id"))),
         Exists(promotion_rule_variants.filter(promotionrule_id=OuterRef("pk"))),
     )
+
+    if customer_group_qs:
+        rules.filter(
+            Q(customer_groups__isnull=True)
+            | Q(Exists(customer_group_qs.filter(id=OuterRef("customer_groups__id"))))
+        )
 
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
