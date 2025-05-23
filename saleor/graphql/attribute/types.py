@@ -384,8 +384,11 @@ class SelectedAttribute(BaseObjectType):
 
 class AttributeInput(BaseInputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
+    value_names = NonNullList(
+        graphene.String, required=False, description="Names of the values."
+    )
     values = NonNullList(
-        graphene.String, required=False, description=AttributeValueDescriptions.SLUG
+        graphene.String, required=False, description="Slugs of the values."
     )
     values_range = graphene.Field(
         IntRangeInput,
