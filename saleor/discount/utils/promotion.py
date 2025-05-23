@@ -87,6 +87,20 @@ def calculate_discounted_price_for_rules(
     return max(price - total_discount, zero_money(currency))
 
 
+def filter_public_rules(
+    rules_info: list[PromotionRuleInfo] | None,
+) -> list[PromotionRuleInfo]:
+    """Filter out rules that are not public."""
+    if not rules_info:
+        return []
+
+    return [
+        rule_info
+        for rule_info in rules_info
+        if not rule_info.rule.customer_groups.exists()
+    ]
+
+
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
@@ -96,7 +110,8 @@ def calculate_discounted_price_for_promotions(
 ) -> tuple[UUID, Money] | None:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discount = None
-    rules_info_for_variant = rules_info_per_variant.get(variant_id)
+    rules_info_for_variant = filter_public_rules(rules_info_per_variant.get(variant_id))
+
     if rules_info_for_variant:
         applied_discount = get_best_promotion_discount(
             price, rules_info_for_variant, channel
