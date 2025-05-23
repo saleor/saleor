@@ -1,16 +1,41 @@
-from django.apps import apps as registry
-from django.db import migrations
-from django.db.models.signals import post_migrate
+from django.db import migrations, transaction
+from django.db.models import Exists, OuterRef
 
-from .tasks.saleor3_21 import migrate_orders_with_waiting_for_approval_fulfillment_task
+# The batch of size 250 takes ~0.2 second and consumes ~15MB memory at peak
+BATCH_SIZE = 250
 
 
 def migrate_orders_with_waiting_for_approval_fulfillment(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        migrate_orders_with_waiting_for_approval_fulfillment_task.delay()
+    Order = apps.get_model("order", "Order")
+    Fulfillment = apps.get_model("order", "Fulfillment")
 
-    sender = registry.get_app_config("order")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    waiting_for_approval_fulfillments = Fulfillment.objects.filter(
+        status="waiting_for_approval"
+    )
+    fulfilled_fulfillments = Fulfillment.objects.filter(status="fulfilled")
+    # get orders that has at least one waiting for approval fulfillment and not
+    # fulfilled fulfillment
+    qs = Order.objects.filter(
+        Exists(waiting_for_approval_fulfillments.filter(order_id=OuterRef("id"))),
+        ~Exists(fulfilled_fulfillments.filter(order_id=OuterRef("id"))),
+        status="partially fulfilled",
+    ).order_by("pk")
+    for ids in queryset_in_batches(qs):
+        orders = Order.objects.filter(id__in=ids).order_by("pk")
+        with transaction.atomic():
+            _orders_lock = list(orders.select_for_update(of=(["self"])))
+            orders.update(status="unfulfilled")
+
+
+def queryset_in_batches(queryset):
+    start_pk = 0
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+        if not pks:
+            break
+        yield pks
+        start_pk = pks[-1]
 
 
 class Migration(migrations.Migration):
