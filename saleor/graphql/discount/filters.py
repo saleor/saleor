@@ -42,7 +42,7 @@ from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
     filter_range_field,
-    filter_where_by_string_field,
+    filter_where_by_value_field,
     filter_where_range_field,
 )
 from .enums import (
@@ -200,7 +200,7 @@ class PromotionWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_promotion_name(qs, _, value):
-        return filter_where_by_string_field(qs, "name", value)
+        return filter_where_by_value_field(qs, "name", value)
 
     @staticmethod
     def filter_end_date_range(qs, _, value):
@@ -216,7 +216,7 @@ class PromotionWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_type(qs, _, value):
-        return filter_where_by_string_field(qs, "type", value)
+        return filter_where_by_value_field(qs, "type", value)
 
 
 class PromotionWhereInput(WhereInputObjectType):

@@ -1,5 +1,6 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from django.utils import timezone
 
@@ -85,8 +86,11 @@ def filter_where_range_field(qs, field, value):
     return qs.none()
 
 
-def filter_where_by_string_field(
-    qs: "QuerySet", field: str, value: dict[str, str | list[str]]
+ValueT = str | UUID
+
+
+def filter_where_by_value_field(
+    qs: "QuerySet", field: str, value: dict[str, ValueT | list[ValueT]]
 ):
     if value is None:
         return qs.none()

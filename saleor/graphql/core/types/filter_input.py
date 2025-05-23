@@ -7,7 +7,7 @@ from graphene import Argument, InputField, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ...core.scalars import DateTime, Decimal
+from ...core.scalars import UUID, DateTime, Decimal
 from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
@@ -223,3 +223,15 @@ class GlobalIDFilterInput(graphene.InputObjectType):
 
     class Meta:
         description = "Define the filtering options for foreign key fields."
+
+
+class UUIDFilterInput(graphene.InputObjectType):
+    eq = UUID(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        UUID,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        description = "Define the filtering options for string fields."

@@ -502,6 +502,8 @@ def test_order_query_with_filter_is_click_and_collect_false(
     staff_api_client,
     permission_group_manage_orders,
     order_list_with_cc_orders,
+    channel_PLN,
+    channel_USD,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
