@@ -54,6 +54,10 @@ class Channel(ModelWithMetadata):
         default=24, null=True, blank=True
     )
 
+    # line lvl discounts for orders created from checkout are stored as
+    # OrderLineDiscount. This flag controls how we should return it via API.
+    use_legacy_line_discount_propagation_for_order = models.BooleanField(default=True)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"

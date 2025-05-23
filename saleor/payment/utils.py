@@ -1,5 +1,3 @@
-import datetime
-import decimal
 import json
 import logging
 from decimal import Decimal
@@ -13,6 +11,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
 from django.utils import timezone
+from pydantic import ValidationError
 
 from ..account.models import User
 from ..app.models import App
@@ -37,8 +36,15 @@ from ..order.utils import (
     updates_amounts_for_order,
 )
 from ..plugins.manager import PluginsManager, get_plugins_manager
+from ..webhook.response_schemas.transaction import (
+    TransactionCancelRequestedSchema,
+    TransactionChargeRequestedSchema,
+    TransactionRefundRequestedSchema,
+    TransactionSchema,
+    TransactionSessionSchema,
+)
+from ..webhook.response_schemas.utils.helpers import parse_validation_error
 from . import (
-    OPTIONAL_PSP_REFERENCE_EVENTS,
     ChargeStatus,
     GatewayError,
     PaymentError,
@@ -75,6 +81,7 @@ ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 TRANSACTION_EVENT_MSG_MAX_LENGTH: int = TransactionEvent._meta.get_field(  # type: ignore[assignment]
     "message"
 ).max_length
+SESSION_REQUEST_EVENT_TYPE = "session-request"
 
 
 def _recalculate_last_refund_success_for_transaction(
@@ -814,145 +821,67 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
     return type_map.get(request_type, [])
 
 
-def parse_transaction_event_amount(
-    amount_data: str | int | float | None,
-    parsed_event_data: dict,
-    error_field_msg: list[str],
-    invalid_msg: str,
-    missing_msg: str,
-):
-    if amount_data is not None:
-        amount_valid = True
-        try:
-            amount = decimal.Decimal(amount_data).quantize(
-                decimal.Decimal(10) ** (-settings.DEFAULT_DECIMAL_PLACES)
-            )
-            parsed_event_data["amount"] = amount
-            if not amount.is_finite():
-                amount_valid = False
-        except decimal.DecimalException:
-            amount_valid = False
-
-        if not amount_valid:
-            logger.warning(invalid_msg, "amount", amount_data)
-            error_field_msg.append(invalid_msg % ("amount", amount_data))
-    else:
-        logger.warning(missing_msg, "amount")
-        error_field_msg.append(missing_msg % "amount")
-
-
-def parse_transaction_event_data(
-    event_data: dict,
-    parsed_event_data: dict,
-    error_field_msg: list[str],
-    psp_reference: str | None,
-    request_type: str,
-    event_is_optional: bool = True,
-):
-    if (
-        event_is_optional
-        and event_data.get("amount") is None
-        and not event_data.get("result")
-    ):
-        return
-    missing_msg = (
-        "Missing value for field: %s in response of transaction action webhook."
-    )
-    invalid_msg = (
-        "Incorrect value for field: %s, value: %s in "
-        "response of transaction action webhook."
-    )
-
-    parsed_event_data["psp_reference"] = psp_reference
-
-    possible_event_types = {
-        str_to_enum(event_result): event_result
-        for event_result in get_correct_event_types_based_on_request_type(request_type)
-    }
-
-    result = event_data.get("result")
-    if result:
-        if result in possible_event_types:
-            parsed_event_data["type"] = possible_event_types[result]
-        else:
-            possible_types = ",".join(possible_event_types.keys())
-            msg = (
-                "Incorrect value: %s for field: `result` in the response. Request: %s "
-                "can accept only types: %s"
-            )
-            logger.warning(msg, result, request_type.upper(), possible_types)
-            error_field_msg.append(msg % (result, request_type.upper(), possible_types))
-    else:
-        logger.warning(missing_msg, "result")
-        error_field_msg.append(missing_msg % "result")
-
-    parsed_event_data["message"] = _clean_message(event_data)
-
-    amount_data = event_data.get("amount")
-    parse_transaction_event_amount(
-        amount_data,
-        parsed_event_data=parsed_event_data,
-        error_field_msg=error_field_msg,
-        invalid_msg=invalid_msg,
-        missing_msg=missing_msg,
-    )
-
-    if event_time_data := event_data.get("time"):
-        try:
-            parsed_event_data["time"] = (
-                datetime.datetime.fromisoformat(event_time_data).replace(
-                    tzinfo=datetime.UTC
-                )
-                if event_time_data
-                else None
-            )
-        except ValueError:
-            logger.warning(invalid_msg, "time", event_time_data)
-            error_field_msg.append(invalid_msg % ("time", event_time_data))
-    else:
-        parsed_event_data["time"] = timezone.now()
-
-    parsed_event_data["external_url"] = event_data.get("externalUrl", "")
-
-
-def _clean_message(event_data):
-    message = event_data.get("message") or ""
-    try:
-        message = str(message)
-    except (UnicodeEncodeError, TypeError, ValueError):
-        invalid_err_msg = (
-            "Incorrect value for field: %s in response of transaction action webhook."
-        )
-        logger.warning(invalid_err_msg, "message")
-        message = ""
-
-    if message and len(message) > TRANSACTION_EVENT_MSG_MAX_LENGTH:
-        message = truncate_transaction_event_message(message)
-        field_limit_exceeded_msg = (
-            "Value for field: %s in response of transaction action webhook "
-            "exceeds the character field limit. Message has been truncated."
-        )
-        logger.warning(field_limit_exceeded_msg, "message")
-
-    return message
-
-
-error_msg = str
+ErrorMsg = str
 
 
 def parse_transaction_action_data(
     response_data: Any,
     request_type: str,
+    request_event_amount: Decimal,
     event_is_optional: bool = True,
-) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
+) -> tuple[Optional["TransactionRequestResponse"], ErrorMsg | None]:
     """Parse response from transaction action webhook.
 
     It takes the recieved response from sync webhook and
     returns TransactionRequestResponse with all details.
     If unable to parse, None will be returned.
     """
-    psp_reference: str = response_data.get("pspReference")
-    available_actions = response_data.get("actions", None)
+
+    request_type_to_schema_map: dict[str, type[TransactionSchema]] = {
+        TransactionEventType.CHARGE_REQUEST: TransactionChargeRequestedSchema,
+        TransactionEventType.REFUND_REQUEST: TransactionRefundRequestedSchema,
+        TransactionEventType.CANCEL_REQUEST: TransactionCancelRequestedSchema,
+        SESSION_REQUEST_EVENT_TYPE: TransactionSessionSchema,
+    }
+
+    request_schema = request_type_to_schema_map.get(request_type)
+    if not request_schema:
+        logger.error(
+            "Request type %s not supported for parsing transaction action data.",
+            request_type,
+            extra={"request_type": request_type},
+        )
+        return None, "Request type not supported"
+
+    error_msg_response = None
+    try:
+        response_data_model = request_schema.model_validate(
+            response_data, context={"is_event_optional": event_is_optional}
+        )
+        event = TransactionRequestEventResponse(
+            psp_reference=response_data_model.psp_reference,
+            type=response_data_model.result,
+            amount=response_data_model.amount or request_event_amount,
+            time=response_data_model.time,
+            external_url=str(response_data_model.external_url),
+            message=response_data_model.message,
+        )
+        return (
+            TransactionRequestResponse(
+                psp_reference=response_data_model.psp_reference,
+                available_actions=response_data_model.actions,
+                event=event if response_data_model.result else None,
+            ),
+            None,
+        )
+    except ValidationError as error:
+        error_msg_response = parse_validation_error(error)
+        logger.warning(error_msg_response)
+        error_msg_response = truncate_transaction_event_message(error_msg_response)
+        return None, error_msg_response
+
+
+def parse_available_actions(available_actions):
     if available_actions is not None:
         possible_actions = {
             str_to_enum(event_action): event_action
@@ -963,43 +892,7 @@ def parse_transaction_action_data(
             for action in available_actions
             if action in possible_actions
         ]
-
-    parsed_event_data: dict = {}
-    error_field_msg: list[str] = []
-    parse_transaction_event_data(
-        event_data=response_data,
-        parsed_event_data=parsed_event_data,
-        error_field_msg=error_field_msg,
-        psp_reference=psp_reference,
-        request_type=request_type,
-        event_is_optional=event_is_optional,
-    )
-
-    if error_field_msg:
-        # error field msg can contain details of the value returned by payment app
-        # which means that we need to confirm that we don't exceed the field limit.
-        msg = "\n".join(error_field_msg)
-        msg = truncate_transaction_event_message(msg)
-        return None, msg
-
-    request_event_type = parsed_event_data.get("type", request_type)
-    if not psp_reference and request_event_type not in OPTIONAL_PSP_REFERENCE_EVENTS:
-        msg = f"Providing `pspReference` is required for {request_event_type.upper()}."
-        logger.warning(msg)
-        return None, msg
-
-    return (
-        TransactionRequestResponse(
-            psp_reference=psp_reference,
-            available_actions=available_actions,
-            event=(
-                TransactionRequestEventResponse(**parsed_event_data)
-                if parsed_event_data
-                else None
-            ),
-        ),
-        None,
-    )
+    return available_actions
 
 
 def truncate_transaction_event_message(message: str):
@@ -1093,7 +986,7 @@ def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | No
 
 def deduplicate_event(
     event: TransactionEvent, app: App
-) -> tuple[TransactionEvent, error_msg | None]:
+) -> tuple[TransactionEvent, ErrorMsg | None]:
     """Deduplicate the TransactionEvent.
 
     In case of having an existing event with the same type, psp reference
@@ -1144,7 +1037,7 @@ def _create_event_from_response(
     transaction_id: int,
     currency: str,
     related_granted_refund_id: int | None = None,
-) -> tuple[TransactionEvent | None, error_msg | None]:
+) -> tuple[TransactionEvent | None, ErrorMsg | None]:
     app_identifier = None
     if app and app.identifier:
         app_identifier = app.identifier
@@ -1179,14 +1072,16 @@ def _create_event_from_response(
 def _get_parsed_transaction_action_data(
     transaction_webhook_response: dict[str, Any] | None,
     event_type: str,
+    request_event_amount: Decimal,
     event_is_optional: bool = True,
-) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
+) -> tuple[Optional["TransactionRequestResponse"], ErrorMsg | None]:
     if transaction_webhook_response is None:
         return None, "Failed to delivery request."
 
     transaction_request_response, error_msg = parse_transaction_action_data(
         transaction_webhook_response,
         event_type,
+        request_event_amount=request_event_amount,
         event_is_optional=event_is_optional,
     )
     if not transaction_request_response:
@@ -1217,11 +1112,10 @@ def create_transaction_event_for_transaction_session(
     manager: "PluginsManager",
     transaction_webhook_response: dict[str, Any] | None = None,
 ):
-    request_event_type = "session-request"
-
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
-        event_type=request_event_type,
+        event_type=SESSION_REQUEST_EVENT_TYPE,
+        request_event_amount=request_event.amount_value,
         event_is_optional=False,
     )
     if not transaction_request_response or not transaction_request_response.event:
@@ -1238,7 +1132,12 @@ def create_transaction_event_for_transaction_session(
         request_event.amount_value = response_event.amount
         request_event.psp_reference = response_event.psp_reference
         request_event.include_in_calculations = True
+        if response_event.time:
+            request_event.created_at = response_event.time
         request_event.app = app
+        request_event.message = response_event.message
+        if response_event.external_url:
+            request_event.external_url = response_event.external_url
         request_event_update_fields.extend(
             [
                 "type",
@@ -1246,6 +1145,9 @@ def create_transaction_event_for_transaction_session(
                 "psp_reference",
                 "include_in_calculations",
                 "app",
+                "message",
+                "created_at",
+                "external_url",
             ]
         )
         event = request_event
@@ -1342,6 +1244,7 @@ def create_transaction_event_from_request_and_webhook_response(
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event.type,
+        request_event_amount=request_event.amount_value,
     )
     transaction_item = request_event.transaction
     if not transaction_request_response:

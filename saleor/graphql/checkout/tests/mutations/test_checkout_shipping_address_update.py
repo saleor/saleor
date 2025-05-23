@@ -1,6 +1,6 @@
 import datetime
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import pytest
 from django.test import override_settings
@@ -1179,7 +1179,10 @@ def test_checkout_shipping_address_update_triggers_webhooks(
         webhook_id=checkout_updated_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_update_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

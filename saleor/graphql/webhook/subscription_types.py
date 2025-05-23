@@ -47,6 +47,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -1766,7 +1767,8 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         description="Determines the action type.",
     )
     amount = PositiveDecimal(
-        description="Transaction request amount. Null when action type is VOID.",
+        description="Transaction request amount.",
+        required=True,
     )
     currency = graphene.String(
         description="Currency code.",
@@ -1778,9 +1780,7 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
 
     @staticmethod
     def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
-        if root.action_value is not None:
-            return quantize_price(root.action_value, root.transaction.currency)
-        return None
+        return quantize_price(root.action_value, root.transaction.currency)
 
     @staticmethod
     def resolve_currency(root: TransactionActionData, _info: ResolveInfo):
@@ -2593,16 +2593,16 @@ class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
         description = "Event sent when warehouse metadata is updated."
 
 
-def default_order_resolver(root, info, channels=None):
+def default_channel_filterable_resolver(root, info, channels=None):
     return Observable.from_([root])
 
 
 channels_argument = graphene.Argument(
     NonNullList(graphene.String),
     description=(
-        "List of channel slugs. The event will be sent only if the order "
+        "List of channel slugs. The event will be sent only if the object "
         "belongs to one of the provided channels. If the channel slug list is "
-        "empty, orders that belong to any channel will be sent. Maximally "
+        "empty, objects that belong to any channel will be sent. Maximally "
         f"{MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT} items."
     ),
 )
@@ -2620,7 +2620,7 @@ class Subscription(SubscriptionObjectType):
             + ADDED_IN_320
             + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2629,7 +2629,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2638,7 +2638,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2647,7 +2647,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2656,7 +2656,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2665,7 +2665,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2676,7 +2676,7 @@ class Subscription(SubscriptionObjectType):
             + ADDED_IN_320
             + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2685,7 +2685,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2695,14 +2695,14 @@ class Subscription(SubscriptionObjectType):
             "The order received a refund. The order may be partially or fully "
             "refunded." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_fully_refunded = BaseField(
         OrderFullyRefunded,
         description=("The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2711,7 +2711,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2720,7 +2720,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2729,7 +2729,7 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when order becomes expired." + ADDED_IN_320 + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2740,7 +2740,7 @@ class Subscription(SubscriptionObjectType):
             + ADDED_IN_320
             + PREVIEW_FEATURE
         ),
-        resolver=default_order_resolver,
+        resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2751,6 +2751,45 @@ class Subscription(SubscriptionObjectType):
         ),
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
+    )
+
+    checkout_created = BaseField(
+        CheckoutCreated,
+        description=(
+            "Event sent when new checkout is created." + ADDED_IN_321 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
+    )
+    checkout_updated = BaseField(
+        CheckoutUpdated,
+        description=(
+            "Event sent when checkout is updated." + ADDED_IN_321 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
+    )
+    checkout_fully_paid = BaseField(
+        CheckoutFullyPaid,
+        description=(
+            "Event sent when checkout is fully-paid." + ADDED_IN_321 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
+    )
+    checkout_metadata_updated = BaseField(
+        CheckoutMetadataUpdated,
+        description=(
+            "Event sent when checkout metadata is updated."
+            + ADDED_IN_321
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
     )
 
     class Meta:

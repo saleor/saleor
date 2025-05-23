@@ -150,6 +150,26 @@ class OrderSettingsInput(BaseInputObjectType):
         ),
     )
 
+    use_legacy_line_discount_propagation = graphene.Boolean(
+        required=False,
+        description=(
+            "This flag only affects orders created from checkout and applies "
+            "specifically to vouchers of the types: `SPECIFIC_PRODUCT` and "
+            "`ENTIRE_ORDER` with `applyOncePerOrder` enabled."
+            "\n- When legacy propagation is enabled, discounts from these "
+            "vouchers are represented as `OrderDiscount` objects, attached to "
+            "the order and returned in the `Order.discounts` field. "
+            "Additionally, percentage-based vouchers are converted to "
+            "fixed-value discounts."
+            "\n- When legacy propagation is disabled, discounts are represented "
+            "as `OrderLineDiscount` objects, attached to individual lines and "
+            "returned in the `OrderLine.discounts` field. In this case, "
+            "percentage-based vouchers retain their original type."
+            "\nIn future releases, `OrderLineDiscount` will become the default "
+            "behavior, and this flag will be deprecated and removed." + ADDED_IN_321
+        ),
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
 
@@ -274,8 +294,11 @@ class ChannelCreate(DeprecatedModelMutation):
             cleaned_input["slug"] = slugify(slug)
         if stock_settings := cleaned_input.get("stock_settings"):
             cleaned_input["allocation_strategy"] = stock_settings["allocation_strategy"]
-        if order_settings := cleaned_input.get("order_settings"):
-            clean_input_order_settings(order_settings, cleaned_input, instance)
+
+        order_settings = cleaned_input.get("order_settings") or {
+            "use_legacy_line_discount_propagation_for_order": False
+        }
+        clean_input_order_settings(order_settings, cleaned_input, instance)
 
         if checkout_settings := cleaned_input.get("checkout_settings"):
             clean_input_checkout_settings(checkout_settings, cleaned_input)

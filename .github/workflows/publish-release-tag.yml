@@ -14,7 +14,7 @@ jobs:
       SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
 
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs:
       - publish
     steps:

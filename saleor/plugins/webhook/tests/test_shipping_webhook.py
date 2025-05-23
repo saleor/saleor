@@ -18,6 +18,7 @@ from ....webhook.payloads import (
     generate_excluded_shipping_methods_for_order_payload,
 )
 from ....webhook.response_schemas.shipping import logger as schema_logger
+from ....webhook.response_schemas.utils.annotations import logger as annotations_logger
 from ....webhook.transport.shipping import (
     get_excluded_shipping_methods_from_response,
     get_excluded_shipping_methods_or_fetch,
@@ -395,8 +396,11 @@ def test_multiple_webhooks_on_the_same_app_with_excluded_shipping_methods_for_or
     )
 
 
+@mock.patch.object(annotations_logger, "warning")
 @mock.patch.object(schema_logger, "warning")
-def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
+def test_parse_excluded_shipping_methods_response(
+    mocked_schema_logger, mocked_annotations_logger, app
+):
     # given
     external_id = to_shipping_app_id(app, "test-1234")
     response = {
@@ -432,7 +436,44 @@ def test_parse_excluded_shipping_methods_response(mocked_schema_logger, app):
     assert excluded_methods[0].id == "2"
     assert excluded_methods[1].id == external_id
     # 2 warning for each invalid data
-    assert mocked_schema_logger.call_count == 6
+    # warning for malformed id
+    assert mocked_schema_logger.call_count == 3
+    # warning for skipping shipping method
+    assert mocked_annotations_logger.call_count == 3
+
+
+@mock.patch.object(annotations_logger, "warning")
+@mock.patch.object(schema_logger, "warning")
+def test_parse_excluded_shipping_methods_response_invalid(
+    mocked_schema_logger, mocked_annotations_logger, app
+):
+    # given
+    response = {
+        "excluded_methods": [
+            {
+                "id": "not-an-id",
+            },
+        ]
+    }
+    webhook = Webhook.objects.create(
+        name="shipping-webhook-1",
+        app=app,
+        target_url="https://shipping-gateway.com/apiv2/",
+    )
+
+    # when
+    excluded_methods = get_excluded_shipping_methods_from_response(response, webhook)
+
+    # then
+    assert not excluded_methods
+    assert mocked_schema_logger.call_count == 1
+    assert (
+        "Malformed ShippingMethod id was provided:"
+        in mocked_schema_logger.call_args[0][0]
+    )
+    assert mocked_annotations_logger.call_count == 1
+    error_msg = mocked_annotations_logger.call_args[0][1]
+    assert "Skipping invalid shipping method (FilterShippingMethodsSchema)" in error_msg
 
 
 @mock.patch(
@@ -1252,7 +1293,7 @@ def test_get_excluded_shipping_methods_or_fetch_invalid_response_type(
     mocked_parse.assert_called_once_with([])
 
 
-@mock.patch.object(schema_logger, "warning")
+@mock.patch.object(annotations_logger, "warning")
 def test_parse_list_shipping_methods_response_response_incorrect_format(
     mocked_logger, app
 ):
@@ -1266,6 +1307,8 @@ def test_parse_list_shipping_methods_response_response_incorrect_format(
     assert result == []
     # Ensure the warning about invalit method data wa logged
     assert mocked_logger.call_count == len(response_data_with_incorrect_format)
+    error_msg = mocked_logger.call_args[0][1]
+    assert error_msg == "Skipping invalid shipping method (ListShippingMethodsSchema)"
 
 
 def test_parse_list_shipping_methods_with_metadata(app):

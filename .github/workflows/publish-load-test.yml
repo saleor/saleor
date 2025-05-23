@@ -8,7 +8,7 @@ on:
 jobs:
   init:
     if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'load test')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'load test')) }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.variables.outputs.version }}
     steps:
@@ -35,7 +35,7 @@ jobs:
       SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
 
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs:
       - publish
     steps:

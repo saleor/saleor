@@ -664,7 +664,9 @@ def test_update_order_line_discount_old_id(
 
     assert discount_data["value"] == str(value)
     assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
-    assert discount_data["amount_value"] == str(unit_discount.amount)
+    assert discount_data["amount_value"] == str(
+        quantize_price(unit_discount.amount, order.currency)
+    )
 
 
 ORDER_LINE_DISCOUNT_REMOVE = """
@@ -672,6 +674,11 @@ mutation OrderLineDiscountRemove($orderLineId: ID!){
   orderLineDiscountRemove(orderLineId: $orderLineId){
     orderLine{
       id
+      unitPrice{
+        net{
+          amount
+        }
+      }
     }
     errors{
       field

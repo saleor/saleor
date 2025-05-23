@@ -656,6 +656,7 @@ def test_transaction_event_by_app(
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
         app_identifier=app_api_client.app.identifier,
         app=app_api_client.app,
+        include_in_calculations=True,
     )
 
     variables = {

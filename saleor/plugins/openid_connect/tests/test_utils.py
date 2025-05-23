@@ -63,7 +63,7 @@ def test_fetch_jwks_raises_error(monkeypatch, error):
         fetch_jwks(jwks_url)
 
 
-@pytest.mark.vcr
+@pytest.mark.vcr(decode_compressed_response=True)
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
 def test_fetch_jwks(mocked_cache_set):
     jwks_url = "https://saleor.io/.well-known/jwks.json"

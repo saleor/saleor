@@ -211,6 +211,26 @@ class OrderSettings(ObjectType):
         ),
     )
 
+    use_legacy_line_discount_propagation = graphene.Boolean(
+        required=True,
+        description=(
+            "This flag only affects orders created from checkout and applies "
+            "specifically to vouchers of the types: `SPECIFIC_PRODUCT` and "
+            "`ENTIRE_ORDER` with `applyOncePerOrder` enabled."
+            "\n- When legacy propagation is enabled, discounts from these "
+            "vouchers are represented as `OrderDiscount` objects, attached to "
+            "the order and returned in the `Order.discounts` field. "
+            "Additionally, percentage-based vouchers are converted to "
+            "fixed-value discounts."
+            "\n- When legacy propagation is disabled, discounts are represented "
+            "as `OrderLineDiscount` objects, attached to individual lines and "
+            "returned in the `OrderLine.discounts` field. In this case, "
+            "percentage-based vouchers retain their original type."
+            "\nIn future releases, `OrderLineDiscount` will become the default "
+            "behavior, and this flag will be deprecated and removed." + ADDED_IN_321
+        ),
+    )
+
     class Meta:
         description = "Represents the channel-specific order settings."
         doc_category = DOC_CATEGORY_ORDERS
@@ -509,6 +529,9 @@ class Channel(ModelObjectType):
             allow_unpaid_orders=root.allow_unpaid_orders,
             draft_order_line_price_freeze_period=(
                 root.draft_order_line_price_freeze_period
+            ),
+            use_legacy_line_discount_propagation=(
+                root.use_legacy_line_discount_propagation_for_order
             ),
         )
 

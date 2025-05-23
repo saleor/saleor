@@ -51,6 +51,9 @@ This query will have cost of 200 (100 x 2 for each product):
 { products(first: 100) { complexity } }
 """
 
+# GraphQL operations that fail before cost can be calculated have a fixed cost of 1.
+QUERY_COST_FAILED_OPERATION = 1
+
 COST_MAP = {
     "Query": {
         "address": {"complexity": 1},

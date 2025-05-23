@@ -48,6 +48,7 @@ CHANNEL_UPDATE_MUTATION = """
                     allowUnpaidOrders
                     includeDraftOrderInVoucherUsage
                     draftOrderLinePriceFreezePeriod
+                    useLegacyLineDiscountPropagation
                 }
             }
             errors{
@@ -1629,3 +1630,56 @@ def test_channel_update_default_transaction_flow_strategy_with_payment_permissio
         channel_USD.default_transaction_flow_strategy
         == TransactionFlowStrategyEnum.AUTHORIZATION.value
     )
+
+
+@pytest.mark.parametrize(
+    ("use_legacy_input", "expected_result", "current_value_on_db"),
+    [
+        ({"useLegacyLineDiscountPropagation": True}, True, True),
+        ({"useLegacyLineDiscountPropagation": True}, True, False),
+        ({"useLegacyLineDiscountPropagation": False}, False, True),
+        ({"useLegacyLineDiscountPropagation": False}, False, False),
+        (None, True, True),
+        (None, False, False),
+        ({"allowUnpaidOrders": False}, False, False),
+        ({"allowUnpaidOrders": True}, True, True),
+    ],
+)
+def test_channel_update_set_use_legacy_line_discount_propagation(
+    use_legacy_input,
+    expected_result,
+    current_value_on_db,
+    permission_manage_channels,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_USD.use_legacy_line_discount_propagation_for_order = current_value_on_db
+    channel_USD.save()
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": use_legacy_input,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert (
+        channel_data["orderSettings"]["useLegacyLineDiscountPropagation"]
+        == expected_result
+    )
+    assert channel_USD.use_legacy_line_discount_propagation_for_order == expected_result

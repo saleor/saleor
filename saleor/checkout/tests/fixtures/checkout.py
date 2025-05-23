@@ -30,6 +30,7 @@ def checkout_JPY(channel_JPY):
         currency=channel_JPY.currency_code, channel=channel_JPY
     )
     checkout.set_country("JP", commit=True)
+    CheckoutMetadata.objects.create(checkout=checkout)
     return checkout
 
 

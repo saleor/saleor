@@ -74,10 +74,11 @@ class OrderLineUpdate(
     def save(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
 
+        order_is_unconfirmed = instance.order.is_unconfirmed()
         line_allocation = instance.allocations.first()
         warehouse_pk = (
             line_allocation.stock.warehouse.pk
-            if line_allocation and instance.order.is_unconfirmed()
+            if line_allocation and order_is_unconfirmed
             else None
         )
         app = get_app_promise(info.context).get()
@@ -98,6 +99,7 @@ class OrderLineUpdate(
                     instance.quantity,
                     order,
                     manager,
+                    allocate_stock=order_is_unconfirmed,
                 )
             except InsufficientStock as e:
                 raise ValidationError(

@@ -4,14 +4,17 @@ on:
     paths:
       - .semgrep/**
       - .github/workflows/test-semgrep-rules.yml
+      - .pre-commit-config.yaml
   pull_request:
     paths:
       - .semgrep/**
       - .github/workflows/test-semgrep-rules.yml
+      - .pre-commit-config.yaml
 
 jobs:
   main:
     runs-on: ubuntu-22.04
+    container: python:3.12-slim
 
     steps:
       - name: Checkout
@@ -19,9 +22,23 @@ jobs:
         with:
           sparse-checkout: |
             .semgrep
+            .pre-commit-config.yaml
+
+      - name: Install Runtime Dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends yq make
 
       - name: Install Dependencies
-        run: python3 -m pip install semgrep==1.39.0
+        run: |
+          # Greps the semgrep version from the pre-commit configuration
+          # (ensures a single source of truth and a single source to update)
+          semgrep_version=$(
+            yq -r '.repos[] | select( .repo == "https://github.com/returntocorp/semgrep" ) | .rev' .pre-commit-config.yaml \
+            `# remove the 'v' character, e.g., 'v1.89.0' -> '1.89.0'` \
+            | tr -d v
+          )
+          pip install semgrep=="$semgrep_version"
 
       - name: Run Tests
         working-directory: .semgrep

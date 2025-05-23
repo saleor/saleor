@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 from django.contrib.sites.models import Site
@@ -39,7 +41,9 @@ PRODUCT_TYPE_QUERY = """
 """
 
 
+@patch.object(PluginsManager, "_PluginsManager__run_method_on_plugins")
 def test_product_type_query(
+    mocked_run_on_method_plugins,
     user_api_client,
     staff_api_client,
     product_type,
@@ -49,10 +53,9 @@ def test_product_type_query(
     monkeypatch,
     channel_USD,
 ):
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(code="123", description="Standard Taxes"),
+    mocked_manager_instance = PluginsManager([])
+    mocked_run_on_method_plugins.return_value = TaxType(
+        code="123", description="Standard Taxes"
     )
 
     query = PRODUCT_TYPE_QUERY
@@ -72,7 +75,13 @@ def test_product_type_query(
         "channel": channel_USD.slug,
     }
 
-    response = user_api_client.post_graphql(query, variables)
+    with patch.object(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        wraps=mocked_manager_instance.get_tax_code_from_object_meta,
+    ) as mocked_get_tax_code_from_object_meta:
+        response = user_api_client.post_graphql(query, variables)
+
     content = get_graphql_content(response)
     data = content["data"]
     assert data["productType"]["products"]["totalCount"] == no_products - 1
@@ -85,6 +94,7 @@ def test_product_type_query(
     assert data["productType"]["taxType"]["taxCode"] == "123"
     assert data["productType"]["taxType"]["description"] == "Standard Taxes"
     assert len(data["productType"]["variantAttributes"]) == variant_attributes_count
+    assert mocked_get_tax_code_from_object_meta.called
 
 
 def test_product_type_query_invalid_id(
@@ -139,7 +149,9 @@ def test_product_type_query_with_invalid_object_type(
         VariantAttributeScope.NOT_VARIANT_SELECTION.name,
     ],
 )
+@patch.object(PluginsManager, "_PluginsManager__run_method_on_plugins")
 def test_product_type_query_only_variant_selections_value_set(
+    mocked_run_on_method_plugins,
     variant_selection,
     user_api_client,
     staff_api_client,
@@ -152,10 +164,9 @@ def test_product_type_query_only_variant_selections_value_set(
     monkeypatch,
     channel_USD,
 ):
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(code="123", description="Standard Taxes"),
+    mocked_manager_instance = PluginsManager([])
+    mocked_run_on_method_plugins.return_value = TaxType(
+        code="123", description="Standard Taxes"
     )
     query = PRODUCT_TYPE_QUERY
 
@@ -176,7 +187,12 @@ def test_product_type_query_only_variant_selections_value_set(
         "channel": channel_USD.slug,
     }
 
-    response = user_api_client.post_graphql(query, variables)
+    with patch.object(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        wraps=mocked_manager_instance.get_tax_code_from_object_meta,
+    ) as mocked_get_tax_code_from_object_meta:
+        response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]
     assert data["productType"]["products"]["totalCount"] == no_products - 1
@@ -208,6 +224,7 @@ def test_product_type_query_only_variant_selections_value_set(
             len(data["productType"]["variantAttributes"])
             == product_type.variant_attributes.count()
         )
+    assert mocked_get_tax_code_from_object_meta.called
 
 
 PRODUCT_TYPE_QUERY_ASSIGNED_VARIANT_ATTRIBUTES = """
@@ -247,7 +264,9 @@ PRODUCT_TYPE_QUERY_ASSIGNED_VARIANT_ATTRIBUTES = """
         VariantAttributeScope.NOT_VARIANT_SELECTION.name,
     ],
 )
+@patch.object(PluginsManager, "_PluginsManager__run_method_on_plugins")
 def test_product_type_query_only_assigned_variant_selections_value_set(
+    mocked_run_on_method_plugins,
     variant_selection,
     user_api_client,
     staff_api_client,
@@ -260,11 +279,11 @@ def test_product_type_query_only_assigned_variant_selections_value_set(
     monkeypatch,
     channel_USD,
 ):
-    monkeypatch.setattr(
-        PluginsManager,
-        "get_tax_code_from_object_meta",
-        lambda self, x: TaxType(code="123", description="Standard Taxes"),
+    mocked_manager_instance = PluginsManager([])
+    mocked_run_on_method_plugins.return_value = TaxType(
+        code="123", description="Standard Taxes"
     )
+
     query = PRODUCT_TYPE_QUERY_ASSIGNED_VARIANT_ATTRIBUTES
 
     no_products = Product.objects.count()
@@ -284,7 +303,13 @@ def test_product_type_query_only_assigned_variant_selections_value_set(
         "channel": channel_USD.slug,
     }
 
-    response = user_api_client.post_graphql(query, variables)
+    with patch.object(
+        PluginsManager,
+        "get_tax_code_from_object_meta",
+        wraps=mocked_manager_instance.get_tax_code_from_object_meta,
+    ) as mocked_get_tax_code_from_object_meta:
+        response = user_api_client.post_graphql(query, variables)
+
     content = get_graphql_content(response)
     data = content["data"]
     assert data["productType"]["products"]["totalCount"] == no_products - 1
@@ -325,6 +350,7 @@ def test_product_type_query_only_assigned_variant_selections_value_set(
             len(data["productType"]["assignedVariantAttributes"])
             == product_type.variant_attributes.count()
         )
+    assert mocked_get_tax_code_from_object_meta.called
 
 
 QUERY_AVAILABLE_ATTRIBUTES = """

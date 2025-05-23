@@ -1,31 +1,39 @@
-from collections import defaultdict
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 
-from .....attribute import AttributeInputType
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import InstanceTracker
+from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
+from .....product.error_codes import ProductErrorCode
 from .....product.utils.variants import generate_and_set_variant_name
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils import (
+    AttributeAssignmentMixin,
+    AttrValuesInput,
+    has_input_modified_attribute_values,
+)
+from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.mutations import ModelWithExtRefMutation
+from ....core.mutations import DeprecatedModelMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
-from ...utils import get_used_attribute_values_for_variant
-from .product_variant_create import ProductVariantCreate, ProductVariantInput
+from ...utils import clean_variant_sku, get_used_variants_attribute_values
+from ..utils import PRODUCT_VARIANT_UPDATE_FIELDS
+from . import product_variant_cleaner as cleaner
+from .product_variant_create import ProductVariantInput
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
+class ProductVariantUpdate(DeprecatedModelMutation):
     class Arguments:
         id = graphene.ID(required=False, description="ID of a product to update.")
         external_reference = graphene.String(
@@ -51,41 +59,7 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         support_meta_field = True
         support_private_meta_field = True
 
-    @classmethod
-    def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
-    ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes.all()
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, creation=False
-        )
-        return attributes
-
-    @classmethod
-    def validate_duplicated_attribute_values(
-        cls, attributes_data, used_attribute_values, instance=None
-    ):
-        # Check if the variant is getting updated,
-        # and the assigned attributes do not change
-        if instance.product_id is not None:
-            assigned_attributes = get_used_attribute_values_for_variant(instance)
-            input_attribute_values = defaultdict(list)
-            for attr, attr_data in attributes_data:
-                if attr.input_type == AttributeInputType.FILE:
-                    values = (
-                        [slugify(attr_data.file_url.split("/")[-1])]
-                        if attr_data.file_url
-                        else []
-                    )
-                else:
-                    values = attr_data.values
-                input_attribute_values[attr_data.global_id].extend(values)
-            if input_attribute_values == assigned_attributes:
-                return
-        # if assigned attributes is getting updated run duplicated attribute validation
-        super().validate_duplicated_attribute_values(
-            attributes_data, used_attribute_values
-        )
+    FIELDS_TO_TRACK = list(PRODUCT_VARIANT_UPDATE_FIELDS)
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data) -> models.ProductVariant | None:
@@ -131,34 +105,126 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         return None
 
     @classmethod
+    def clean_input(
+        cls,
+        info: ResolveInfo,
+        instance: models.ProductVariant,
+        data: dict,
+        **kwargs,
+    ):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
+
+        cleaner.clean_weight(cleaned_input)
+        cleaner.clean_quantity_limit(cleaned_input)
+        attribute_modified = cls.clean_attributes(cleaned_input, instance)
+        if "sku" in cleaned_input:
+            cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
+        cleaner.clean_preorder_settings(cleaned_input)
+
+        return cleaned_input, attribute_modified
+
+    @classmethod
+    def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
+        attribute_modified = False
+        product = instance.product
+        product_type = product.product_type
+        used_attribute_values = get_used_variants_attribute_values(product)
+
+        variant_attributes_ids = {
+            graphene.Node.to_global_id("Attribute", attr_id)
+            for attr_id in list(
+                product_type.variant_attributes.all().values_list("pk", flat=True)
+            )
+        }
+
+        attributes = cleaned_input.get("attributes")
+        attributes_ids = {attr["id"] for attr in attributes or []}
+        invalid_attributes = attributes_ids - variant_attributes_ids
+        if len(invalid_attributes) > 0:
+            raise ValidationError(
+                "Given attributes are not a variant attributes.",
+                code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value,
+                params={"attributes": invalid_attributes},
+            )
+
+        # Run the validation only if product type is configurable
+        if product_type.has_variants:
+            # Attributes are provided as list of `AttributeValueInput` objects.
+            # We need to transform them into the format they're stored in the
+            # `Product` model, which is HStore field that maps attribute's PK to
+            # the value's PK.
+            try:
+                if attributes:
+                    attributes_qs = product_type.variant_attributes.all()
+                    cleaned_attributes: T_INPUT_MAP = (
+                        AttributeAssignmentMixin.clean_input(
+                            attributes, attributes_qs, creation=False
+                        )
+                    )
+                    # if assigned attributes is getting updated run duplicated attribute validation
+                    attribute_modified = has_input_modified_attribute_values(
+                        instance, cleaned_attributes
+                    )
+                    if attribute_modified:
+                        cleaner.validate_duplicated_attribute_values(
+                            cleaned_attributes, used_attribute_values
+                        )
+                    cleaned_input["attributes"] = cleaned_attributes
+
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
+        else:
+            if attributes:
+                raise ValidationError(
+                    "Cannot assign attributes for product type without variants",
+                    ProductErrorCode.INVALID.value,
+                )
+
+        return attribute_modified
+
+    @classmethod
     def set_track_inventory(cls, _info, instance, cleaned_input):
         track_inventory = cleaned_input.get("track_inventory")
         if track_inventory is not None:
             instance.track_inventory = track_inventory
 
     @classmethod
-    def _save_variant_instance(cls, instance, changed_fields):
-        update_fields = ["updated_at"] + changed_fields
+    def _save_variant_instance(cls, instance, modified_instance_fields):
+        update_fields = ["updated_at"] + modified_instance_fields
         instance.save(update_fields=update_fields)
 
     @classmethod
-    def _save(cls, info: ResolveInfo, instance, cleaned_input, changed_fields) -> bool:
-        metadata_changed = (
-            "metadata" in changed_fields or "private_metadata" in changed_fields
+    def _save(
+        cls,
+        instance_tracker: InstanceTracker,
+        cleaned_input,
+        attribute_modified: bool,
+    ) -> tuple[bool, bool]:
+        instance = cast(models.ProductVariant, instance_tracker.instance)
+        modified_instance_fields = instance_tracker.get_modified_fields()
+        metadata_modified = (
+            "metadata" in modified_instance_fields
+            or "private_metadata" in modified_instance_fields
         )
 
         refresh_product_search_index = False
         with traced_atomic_transaction():
-            if changed_fields:
-                cls._save_variant_instance(instance, changed_fields)
-                if "sku" in changed_fields or "name" in changed_fields:
+            # handle product variant
+            if modified_instance_fields:
+                cls._save_variant_instance(instance, modified_instance_fields)
+                if (
+                    "sku" in modified_instance_fields
+                    or "name" in modified_instance_fields
+                ):
                     refresh_product_search_index = True
-            if stocks := cleaned_input.get("stocks"):
-                cls.create_variant_stocks(instance, stocks)
-            if attributes := cleaned_input.get("attributes"):
-                AttributeAssignmentMixin.save(instance, attributes)
+
+            # handle attributes
+            if attribute_modified:
+                attributes_data = cleaned_input.get("attributes")
+                AttributeAssignmentMixin.save(instance, attributes_data)
                 refresh_product_search_index = True
 
+            # handle product
             if refresh_product_search_index:
                 instance.product.search_index_dirty = True
                 product_update_fields = ["updated_at", "search_index_dirty"]
@@ -170,24 +236,58 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
             if product_update_fields:
                 instance.product.save(update_fields=product_update_fields)
 
-            if changed_fields or stocks or attributes:
-                manager = get_plugin_manager_promise(info.context).get()
-                cls.call_event(manager.product_variant_updated, instance)
-
-                if metadata_changed:
-                    cls.call_event(manager.product_variant_metadata_updated, instance)
-
-                return True
-
-            return False
+            return bool(modified_instance_fields), metadata_modified
 
     @classmethod
-    def construct_instance(cls, instance, cleaned_input) -> ProductVariant:
+    def construct_instance(cls, instance, cleaned_input) -> models.ProductVariant:
         instance = super().construct_instance(instance, cleaned_input)
         cls.set_track_inventory(None, instance, cleaned_input)
         if not instance.name:
             generate_and_set_variant_name(instance, cleaned_input.get("sku"))
         return instance
+
+    @classmethod
+    def _post_save_action(
+        cls,
+        info: ResolveInfo,
+        instance,
+        variant_modified: bool,
+        attribute_modified: bool,
+        metadata_modified: bool,
+    ):
+        if variant_modified or attribute_modified or metadata_modified:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.product_variant_updated, instance)
+
+            if metadata_modified:
+                cls.call_event(manager.product_variant_metadata_updated, instance)
+
+            channel_ids = models.ProductChannelListing.objects.filter(
+                product_id=instance.product_id
+            ).values_list("channel_id", flat=True)
+            # This will recalculate discounted prices for products.
+            cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
+
+    @classmethod
+    def handle_metadata(cls, instance, cleaned_input):
+        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
+        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
+            "private_metadata", None
+        )
+        metadata_collection = cls.create_metadata_from_graphql_input(
+            metadata_list, error_field_name="metadata"
+        )
+        private_metadata_collection = cls.create_metadata_from_graphql_input(
+            private_metadata_list, error_field_name="private_metadata"
+        )
+        cls.validate_and_update_metadata(
+            instance, metadata_collection, private_metadata_collection
+        )
+
+    @classmethod
+    def success_response(cls, instance):
+        instance = ChannelContext(node=instance, channel_slug=None)
+        return super().success_response(instance)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -212,43 +312,26 @@ class ProductVariantUpdate(ProductVariantCreate, ModelWithExtRefMutation):
         instance = cls.get_instance(
             info, id=id, sku=sku, external_reference=external_reference, input=input
         )
-        old_instance_data = instance.serialize_for_comparison()  # type: ignore[union-attr]
-        cleaned_input = cls.clean_input(info, instance, input)  # type: ignore[arg-type]
-        metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
-        private_metadata_list: list[MetadataInput] = cleaned_input.pop(
-            "private_metadata", None
-        )
+        instance = cast(models.ProductVariant, instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
 
-        metadata_collection = cls.create_metadata_from_graphql_input(
-            metadata_list, error_field_name="metadata"
-        )
-        private_metadata_collection = cls.create_metadata_from_graphql_input(
-            private_metadata_list, error_field_name="private_metadata"
-        )
+        cleaned_input, attribute_modified = cls.clean_input(info, instance, input)
 
-        new_instance = cls.construct_instance(instance, cleaned_input)
-        cls.validate_and_update_metadata(
-            new_instance, metadata_collection, private_metadata_collection
-        )
-        cls.clean_instance(info, new_instance)
-        new_instance_data = new_instance.serialize_for_comparison()
+        cls.handle_metadata(instance, cleaned_input)
 
-        changed_fields = cls.diff_instance_data_fields(
-            new_instance.comparison_fields,
-            old_instance_data,
-            new_instance_data,
-        )
+        cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(info, instance)
 
-        variant_modified = cls._save(info, instance, cleaned_input, changed_fields)
+        variant_modified, metadata_modified = cls._save(
+            instance_tracker, cleaned_input, attribute_modified
+        )
         cls._save_m2m(info, instance, cleaned_input)
-
-        if variant_modified:
-            # add to cleaned_input popped metadata to allow running post save events
-            # that depends on the metadata inputs
-            if metadata_list:
-                cleaned_input["metadata"] = metadata_list
-            if private_metadata_list:
-                cleaned_input["private_metadata"] = private_metadata_list
-            cls.post_save_action(info, instance, cleaned_input)
+        cls._post_save_action(
+            info,
+            instance,
+            variant_modified,
+            attribute_modified,
+            metadata_modified,
+        )
 
         return cls.success_response(instance)

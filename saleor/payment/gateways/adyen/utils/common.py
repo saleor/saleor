@@ -5,8 +5,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional
 
 import Adyen
-import opentracing
-import opentracing.tags
 from Adyen.httpclient import HTTPClient
 from django.conf import settings
 from django_countries.fields import Country
@@ -25,6 +23,7 @@ from .....checkout.fetch import (
 )
 from .....checkout.models import Checkout
 from .....checkout.utils import get_checkout_metadata, is_shipping_required
+from .....core.telemetry import saleor_attributes, tracer
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
@@ -445,10 +444,8 @@ def call_refund(
         merchant_account=merchant_account,
         token=token,
     )
-    with opentracing.global_tracer().start_active_span("adyen.payment.refund") as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "adyen")
+    with tracer.start_as_current_span("adyen.payment.refund") as span:
+        span.set_attribute(saleor_attributes.COMPONENT, "payment")
         return api_call(request, adyen_client.payment.refund)
 
 
@@ -465,12 +462,8 @@ def call_capture(
         merchant_account=merchant_account,
         token=token,
     )
-    with opentracing.global_tracer().start_active_span(
-        "adyen.payment.capture"
-    ) as scope:
-        span = scope.span
-        span.set_tag(opentracing.tags.COMPONENT, "payment")
-        span.set_tag("service.name", "adyen")
+    with tracer.start_as_current_span("adyen.payment.capture") as span:
+        span.set_attribute(saleor_attributes.COMPONENT, "payment")
         return api_call(request, adyen_client.payment.capture)
 
 

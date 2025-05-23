@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 import pytest
@@ -718,7 +718,7 @@ def test_order_update_shipping_triggers_webhooks(
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id},
+        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -801,7 +801,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook(
     assert order_delivery.event_type == WebhookEventAsyncType.DRAFT_ORDER_UPDATED
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id},
+        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -856,7 +856,7 @@ def test_draft_order_update_shipping_triggers_proper_updated_webhook_for_null_sh
     assert order_delivery.event_type == WebhookEventAsyncType.DRAFT_ORDER_UPDATED
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id},
+        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -913,7 +913,7 @@ def test_editable_order_update_shipping_triggers_proper_updated_webhook_for_null
     assert order_delivery.event_type == WebhookEventAsyncType.ORDER_UPDATED
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id},
+        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

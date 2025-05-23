@@ -23,7 +23,31 @@ from ....shipping.utils import convert_to_shipping_method_data
 from ....webhook.event_types import WebhookEventAsyncType
 from ..utils import get_shipping_method_availability_error
 
-SHIPPING_METHOD_UPDATE_FIELDS = [
+DRAFT_ORDER_UPDATE_FIELDS = {
+    "base_shipping_price_amount",
+    "billing_address",
+    "channel",
+    "collection_point",
+    "collection_point_name",
+    "customer_note",
+    "display_gross_prices",
+    "draft_save_billing_address",
+    "draft_save_shipping_address",
+    "external_reference",
+    "language_code",
+    "metadata",
+    "private_metadata",
+    "redirect_url",
+    "search_vector",
+    "shipping_address",
+    "user",
+    "user_email",
+    "voucher",
+    "voucher_code",
+    "weight",
+}
+
+SHIPPING_METHOD_UPDATE_FIELDS = {
     "currency",
     "shipping_method",
     "shipping_price_net_amount",
@@ -38,7 +62,18 @@ SHIPPING_METHOD_UPDATE_FIELDS = [
     "shipping_tax_rate",
     "should_refresh_prices",
     "updated_at",
-]
+}
+
+ORDER_UPDATE_FIELDS = {
+    "billing_address",
+    "external_reference",
+    "language_code",
+    "metadata",
+    "private_metadata",
+    "shipping_address",
+    "user",
+    "user_email",
+}
 
 
 class EditableOrderValidationMixin:

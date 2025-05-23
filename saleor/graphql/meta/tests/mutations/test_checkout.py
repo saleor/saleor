@@ -1,5 +1,5 @@
 import datetime
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 from django.test import override_settings
@@ -419,7 +419,10 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
         webhook_id=checkout_updated_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_update_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_update_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -513,7 +516,10 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
         webhook_id=checkout_metadata_updated_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_metadata_updated_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_metadata_updated_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=None,
         bind=True,
         retry_backoff=10,

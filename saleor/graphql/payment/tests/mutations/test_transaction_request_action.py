@@ -553,7 +553,7 @@ def test_transaction_request_cancelation_for_order(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CANCEL,
-            action_value=None,
+            action_value=transaction.authorized_value,
             event=request_event,
             transaction_app_owner=transaction_request_webhook.app,
         ),
@@ -567,7 +567,7 @@ def test_transaction_request_cancelation_for_order(
     assert TransactionEvent.objects.get(
         transaction=transaction,
         type=TransactionEventType.CANCEL_REQUEST,
-        amount_value=0,
+        amount_value=transaction.authorized_value,
     )
 
 
@@ -587,14 +587,14 @@ def test_transaction_request_cancelation_for_checkout(
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
     )
-
+    expected_amount = Decimal("10")
     transaction = TransactionItem.objects.create(
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["charge", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=expected_amount,
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -623,7 +623,7 @@ def test_transaction_request_cancelation_for_checkout(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CANCEL,
-            action_value=None,
+            action_value=expected_amount,
             event=request_event,
             transaction_app_owner=transaction_request_webhook.app,
         ),
@@ -633,7 +633,7 @@ def test_transaction_request_cancelation_for_checkout(
     assert TransactionEvent.objects.get(
         transaction=transaction,
         type=TransactionEventType.CANCEL_REQUEST,
-        amount_value=0,
+        amount_value=expected_amount,
     )
 
 

@@ -28,12 +28,9 @@ from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.order import (
     create_order_line_discount_objects_for_catalogue_promotions,
     update_catalogue_promotion_discount_amount_for_order,
+    update_unit_discount_data_on_order_line,
 )
-from ..discount.utils.promotion import (
-    delete_gift_lines_qs,
-    get_sale_id,
-    prepare_promotion_discount_reason,
-)
+from ..discount.utils.promotion import delete_gift_lines_qs, get_sale_id
 from ..discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
     create_or_update_line_discount_objects_from_voucher,
@@ -325,31 +322,13 @@ def create_order_line(
     )
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
-    if unit_discount.gross:
-        if rules_info:
-            line_discounts = (
-                create_order_line_discount_objects_for_catalogue_promotions(
-                    line, rules_info, channel
-                )
-            )
-            promotion = rules_info[0].promotion
-            line.sale_id = get_sale_id(promotion)
-            line.unit_discount_reason = (
-                prepare_promotion_discount_reason(rules_info[0].promotion)
-                if line_discounts
-                else None
-            )
-
-        tax_configuration = channel.tax_configuration
-        prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-
-        if prices_entered_with_tax:
-            discount_amount = unit_discount.gross
-        else:
-            discount_amount = unit_discount.net
-        line.unit_discount = discount_amount
-        line.unit_discount_type = DiscountValueType.FIXED
-        line.unit_discount_value = discount_amount.amount
+    if unit_discount.gross and rules_info:
+        line_discounts = create_order_line_discount_objects_for_catalogue_promotions(
+            line, rules_info, channel
+        )
+        promotion = rules_info[0].promotion
+        line.sale_id = get_sale_id(promotion)
+        update_unit_discount_data_on_order_line(line, line_discounts)
 
         line.save(
             update_fields=[
@@ -396,14 +375,14 @@ def add_variant_to_order(
 
     Returns an order line the variant was added to.
     """
-    channel = order.channel
-
     is_new_line = not line_data.line_id
     if not is_new_line:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity
         new_quantity = old_quantity + line_data.quantity
-        line_info = OrderLineInfo(line=line, quantity=old_quantity)
+        line_info = OrderLineInfo(
+            line=line, variant=line_data.variant, quantity=old_quantity
+        )
         update_fields: list[str] = []
         if new_quantity and line_data.price_override is not None:
             update_line_base_unit_prices_with_custom_price(
@@ -420,24 +399,11 @@ def add_variant_to_order(
             manager=manager,
             send_event=False,
             update_fields=update_fields,
+            allocate_stock=allocate_stock,
         )
 
         if update_fields:
             line.save(update_fields=update_fields)
-
-        if allocate_stock:
-            increase_allocations(
-                [
-                    OrderLineInfo(
-                        line=line,
-                        quantity=line_data.quantity,
-                        variant=line_data.variant,
-                        warehouse_pk=None,
-                    )
-                ],
-                channel,
-                manager=manager,
-            )
 
         return line
 
@@ -571,10 +537,9 @@ def _update_allocations_for_line(
     if old_quantity == new_quantity:
         return
 
-    if not get_order_lines_with_track_inventory([line_info]):
-        return
-
     if old_quantity < new_quantity:
+        if not get_order_lines_with_track_inventory([line_info]):
+            return
         line_info.quantity = new_quantity - old_quantity
         increase_allocations([line_info], channel, manager)
     else:
@@ -592,13 +557,14 @@ def change_order_line_quantity(
     manager: "PluginsManager",
     send_event: bool = True,
     update_fields: list[str] | None = None,
+    allocate_stock: bool = False,
 ):
     """Change the quantity of ordered items in a order line."""
     line = line_info.line
     channel = order.channel
     currency = channel.currency_code
     if new_quantity:
-        if line.order.is_unconfirmed():
+        if allocate_stock:
             _update_allocations_for_line(
                 line_info, old_quantity, new_quantity, channel, manager
             )
@@ -909,123 +875,124 @@ def update_discount_for_order_line(
     value: Decimal | None,
 ):
     """Update discount fields for order line. Apply discount to the price."""
-    current_value = order_line.unit_discount_value
-    current_value_type = order_line.unit_discount_type
-    value = value or current_value
-    value_type = value_type or current_value_type
-    fields_to_update = []
-    if reason is not None:
-        order_line.unit_discount_reason = reason
-        fields_to_update.append("unit_discount_reason")
+    line_discounts = list(order_line.discounts.all())
+    _remove_invalid_discounts_for_adding_manual(line_discounts)
+    manual_line_discount = _get_manual_order_line_discount(line_discounts)
+    if not manual_line_discount:
+        current_value = None
+        current_value_type = None
+        manual_line_discount = OrderLineDiscount.objects.create(
+            line=order_line,
+            type=DiscountType.MANUAL,
+            currency=order.currency,
+            unique_type=DiscountType.MANUAL,
+        )
+        line_discounts.append(manual_line_discount)
+    else:
+        current_value = manual_line_discount.value
+        current_value_type = manual_line_discount.value_type
+
+    value = value or current_value or Decimal(0)
+    value_type = value_type or current_value_type or DiscountValueType.FIXED
+
+    undiscounted_base_unit_price = order_line.undiscounted_base_unit_price
+    currency = undiscounted_base_unit_price.currency
+
+    _update_order_line_discount_object(
+        value,
+        value_type,
+        reason,
+        order_line.quantity,
+        undiscounted_base_unit_price,
+        manual_line_discount,
+    )
 
     if current_value != value or current_value_type != value_type:
-        undiscounted_base_unit_price = order_line.undiscounted_base_unit_price
-        currency = undiscounted_base_unit_price.currency
         base_unit_price = apply_discount_to_value(
             value, value_type, currency, undiscounted_base_unit_price
         )
-
-        order_line.unit_discount = undiscounted_base_unit_price - base_unit_price
-
-        order_line.unit_price = TaxedMoney(base_unit_price, base_unit_price)
         order_line.base_unit_price = base_unit_price
 
-        order_line.unit_discount_type = value_type
-        order_line.unit_discount_value = value
-        # TODO: should we save those values?
-        order_line.total_price = order_line.unit_price * order_line.quantity
-        order_line.undiscounted_unit_price = (
-            order_line.unit_price + order_line.unit_discount
-        )
-        order_line.undiscounted_total_price = (
-            order_line.quantity * order_line.undiscounted_unit_price
-        )
-        fields_to_update.extend(
-            [
-                "tax_rate",
-                "unit_discount_value",
-                "unit_discount_amount",
-                "unit_discount_type",
-                "unit_discount_reason",
-                "unit_price_gross_amount",
-                "unit_price_net_amount",
-                "total_price_net_amount",
-                "total_price_gross_amount",
-                "base_unit_price_amount",
-                "undiscounted_unit_price_gross_amount",
-                "undiscounted_unit_price_net_amount",
-                "undiscounted_total_price_gross_amount",
-                "undiscounted_total_price_net_amount",
-            ]
-        )
-
-    # Save lines before calculating the taxes as some plugin can fetch all order data
-    # from db
-    order_line.save(update_fields=fields_to_update)
-
-    _update_manual_order_line_discount_object(
-        value, value_type, reason, order_line, order.currency
-    )
+        update_unit_discount_data_on_order_line(order_line, line_discounts)
+        fields_to_update = [
+            "unit_discount_value",
+            "unit_discount_amount",
+            "unit_discount_type",
+            "unit_discount_reason",
+            "base_unit_price_amount",
+        ]
+        order_line.save(update_fields=fields_to_update)
 
 
-def _update_manual_order_line_discount_object(
-    value, value_type, reason, order_line, currency
+def _remove_invalid_discounts_for_adding_manual(
+    order_line_discounts: list[OrderLineDiscount],
 ):
-    discount_to_update = None
-    discount_to_delete_ids = []
-    discounts = order_line.discounts.all()
-    for discount in discounts:
-        if discount.type == DiscountType.MANUAL and not discount_to_update:
-            discount_to_update = discount
+    """Remove all line discounts except the single manual line discount."""
+    discount_to_delete = []
+    current_manual_discount = None
+    for discount in order_line_discounts:
+        if discount.type == DiscountType.MANUAL and not current_manual_discount:
+            current_manual_discount = discount
         else:
-            discount_to_delete_ids.append(discount.pk)
+            discount_to_delete.append(discount)
 
-    if discount_to_delete_ids:
-        OrderLineDiscount.objects.filter(id__in=discount_to_delete_ids).delete()
+    if discount_to_delete:
+        for discount in discount_to_delete:
+            order_line_discounts.remove(discount)
+        OrderLineDiscount.objects.filter(
+            id__in=[discount.id for discount in discount_to_delete]
+        ).delete()
 
-    amount_value = quantize_price(
-        order_line.unit_discount.amount * order_line.quantity, currency
-    )
-    if not discount_to_update:
-        order_line.discounts.create(
-            type=DiscountType.MANUAL,
-            value_type=value_type,
-            value=value,
-            amount_value=amount_value,
-            currency=currency,
-            reason=reason,
-            unique_type=DiscountType.MANUAL,
+
+def _get_manual_order_line_discount(
+    order_line_discounts: list[OrderLineDiscount],
+) -> OrderLineDiscount | None:
+    discount_to_update = None
+    for discount in order_line_discounts:
+        if discount.type == DiscountType.MANUAL:
+            discount_to_update = discount
+            break
+    return discount_to_update
+
+
+def _update_order_line_discount_object(
+    value: Decimal,
+    value_type: str,
+    reason: str | None,
+    quantity: int,
+    base_unit_price: Money,
+    line_discount: OrderLineDiscount,
+):
+    update_fields = []
+    if line_discount.value_type != value_type:
+        line_discount.value_type = value_type
+        update_fields.append("value_type")
+    if line_discount.value != value:
+        line_discount.value = value
+        update_fields.append("value")
+    if reason is not None and line_discount.reason != reason:
+        line_discount.reason = reason
+        update_fields.append("reason")
+
+    if {"value", "value_type"}.intersection(update_fields):
+        discounted_base_unit = apply_discount_to_value(
+            line_discount.value,
+            line_discount.value_type,
+            base_unit_price.currency,
+            base_unit_price,
         )
-    else:
-        update_fields = []
-        if discount_to_update.value_type != value_type:
-            discount_to_update.value_type = value_type
-            update_fields.append("value_type")
-        if discount_to_update.value != value:
-            discount_to_update.value = value
-            discount_to_update.amount_value = amount_value
-            update_fields.extend(["value", "amount_value"])
-        if discount_to_update.reason != reason:
-            discount_to_update.reason = reason
-            update_fields.append("reason")
-        discount_to_update.save(update_fields=update_fields)
+        line_base_total = base_unit_price * quantity
+        discounted_base_total = discounted_base_unit * quantity
+        line_discount.amount = line_base_total - discounted_base_total
+        update_fields.append("amount_value")
+    line_discount.save(update_fields=update_fields)
 
 
 def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
-    order_line.unit_price = TaxedMoney(
-        net=order_line.undiscounted_base_unit_price,
-        gross=order_line.undiscounted_base_unit_price,
-    )
+    order_line.discounts.all().delete()
+    update_unit_discount_data_on_order_line(order_line, [])
     order_line.base_unit_price = order_line.undiscounted_base_unit_price
-    order_line.undiscounted_unit_price = TaxedMoney(
-        net=order_line.undiscounted_base_unit_price,
-        gross=order_line.undiscounted_base_unit_price,
-    )
-    order_line.unit_discount_amount = Decimal(0)
-    order_line.unit_discount_value = Decimal(0)
-    order_line.unit_discount_reason = ""
-    order_line.total_price = order_line.unit_price * order_line.quantity
     order_line.save(
         update_fields=[
             "unit_discount_value",
@@ -1039,7 +1006,6 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
             "tax_rate",
         ]
     )
-    order_line.discounts.all().delete()
 
     # Manual discounts take precedence over vouchers, overriding them when applied.
     # However, this does not entirely dissociate the voucher from the order.

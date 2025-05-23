@@ -65,6 +65,19 @@ def get_event_payload(event):
     return event
 
 
+def _process_payload_instance(payload_instance):
+    """Process a payload instance to extract data."""
+    for payload_key in payload_instance.data:
+        extracted_payload = get_event_payload(payload_instance.data.get(payload_key))
+        payload_instance.data[payload_key] = extracted_payload
+    if "event" in payload_instance.data or not payload_instance.data:
+        event_payload = payload_instance.data.get("event") or {}
+    else:
+        event_payload = {"data": payload_instance.data}
+
+    return event_payload
+
+
 def generate_payload_promise_from_subscription(
     event_type: str,
     subscribable_object,
@@ -129,7 +142,7 @@ def generate_payload_promise_from_subscription(
             return None
 
         payload_instance = payload[0]
-        event_payload = payload_instance.data.get("event") or {}
+        event_payload = _process_payload_instance(payload_instance)
 
         def check_errors(event_payload, payload_instance=payload_instance):
             if payload_instance.errors:
@@ -207,15 +220,7 @@ def generate_payload_from_subscription(
         return None
 
     payload_instance = payload[0]
-    payload_data_keys = payload_instance.data.keys()
-    for key in payload_data_keys:
-        extracted_payload = get_event_payload(payload_instance.data.get(key))
-        payload_instance.data[key] = extracted_payload
-    if "event" in payload_instance.data or not payload_instance.data:
-        event_payload = payload_instance.data.get("event") or {}
-    else:
-        event_payload = {"data": payload_instance.data}
-
+    event_payload = _process_payload_instance(payload_instance)
     if payload_instance.errors:
         event_payload["errors"] = [
             format_error(error, (GraphQLError, PermissionDenied))

@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import graphene
 from django.test import override_settings
@@ -9,7 +9,9 @@ from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....product.models import ProductVariant
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
+from ...mutations.order_update import OrderUpdateInput
 
 ORDER_UPDATE_MUTATION = """
     mutation orderUpdate(
@@ -590,7 +592,7 @@ def test_order_update_triggers_webhooks(
     # confirm that event delivery was generated for each async webhook.
     order_delivery = EventDelivery.objects.get(webhook_id=order_webhook.id)
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": order_delivery.id},
+        kwargs={"event_delivery_id": order_delivery.id, "telemetry_context": ANY},
         queue=settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -870,3 +872,179 @@ def test_order_update_with_language_code(
     order.refresh_from_db()
     assert order.language_code == "pl"
     order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.graphql.order.mutations.order_update.OrderUpdate._save_order_instance")
+def test_order_update_no_changes(
+    save_order_mock,
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    address,
+):
+    # given
+    order = order_with_lines
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    key = "some_key"
+    value = "some_value"
+    address.metadata = {key: value}
+    address.save(update_fields=["metadata"])
+
+    order.metadata = {key: value}
+    order.private_metadata = {key: value}
+    order.shipping_address = address
+    order.billing_address = address
+    order.external_reference = "some_reference_string"
+    order.language_code = "pl"
+    order.save()
+
+    address_input = {
+        snake_to_camel_case(key): value for key, value in address.as_data().items()
+    }
+    address_input["metadata"] = [{"key": key, "value": value}]
+    address_input.pop("privateMetadata")
+    skip_validation = address_input.pop("validationSkipped")
+    address_input["skipValidation"] = skip_validation
+
+    input_fields = [
+        snake_to_camel_case(key) for key in OrderUpdateInput._meta.fields.keys()
+    ]
+
+    input = {
+        "billingAddress": address_input,
+        "shippingAddress": address_input,
+        "userEmail": order.user_email,
+        "externalReference": order.external_reference,
+        "metadata": [{"key": key, "value": value}],
+        "privateMetadata": [{"key": key, "value": value}],
+        "languageCode": "PL",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+    order.refresh_from_db()
+    save_order_mock.assert_not_called()
+    call_event_mock.assert_not_called()
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update.call_order_event",
+    wraps=call_order_event,
+)
+@patch("saleor.graphql.order.mutations.order_update.OrderUpdate._save_order_instance")
+def test_order_update_emit_events(
+    save_order_mock,
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    order = order_with_lines
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    meta_key = "some_key"
+    meta_value = "some_value"
+    order.metadata = {meta_key: meta_value}
+    order.private_metadata = {meta_key: meta_value}
+    order.customer_note = "some note"
+    order.redirect_url = "https://www.example.com"
+    order.external_reference = "some_reference_string"
+    order.language_code = "de"
+    order.save()
+
+    input_fields = [
+        snake_to_camel_case(key) for key in OrderUpdateInput._meta.fields.keys()
+    ]
+
+    assert graphql_address_data["lastName"] != order.shipping_address.last_name
+    assert graphql_address_data["lastName"] != order.billing_address.last_name
+
+    input = {
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+        "userEmail": "new_" + order.user_email,
+        "externalReference": order.external_reference + "_new",
+        "metadata": [{"key": meta_key, "value": "new_value"}],
+        "privateMetadata": [{"key": meta_key, "value": "new_value"}],
+        "languageCode": "PL",
+    }
+    assert set(input_fields) == set(input.keys())
+
+    # fields making changes to related models (other than order)
+    non_base_model_fields = ["billingAddress", "shippingAddress"]
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    for key, value in input.items():
+        variables = {"id": order_id, "input": {key: value}}
+
+        # when
+        response = staff_api_client.post_graphql(
+            ORDER_UPDATE_MUTATION,
+            variables,
+        )
+        content = get_graphql_content(response)
+
+        # then
+        assert not content["data"]["orderUpdate"]["errors"]
+        if key not in non_base_model_fields:
+            save_order_mock.assert_called()
+            save_order_mock.reset_mock()
+        call_event_mock.assert_called()
+        call_event_mock.reset_mock()
+
+
+@patch(
+    "saleor.graphql.order.mutations.order_update.call_order_event",
+    wraps=call_order_event,
+)
+def test_order_update_address_not_set(
+    call_event_mock,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    order = order_with_lines
+    order.shipping_address = None
+    order.billing_address = None
+    order.save(update_fields=["shipping_address", "billing_address"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    input = {
+        "billingAddress": graphql_address_data,
+        "shippingAddress": graphql_address_data,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": order_id, "input": input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+    order.refresh_from_db()
+    assert order.shipping_address
+    assert order.billing_address
+    call_event_mock.assert_called()

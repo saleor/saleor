@@ -2,11 +2,7 @@ import pytest
 
 from .....product.tasks import recalculate_discounted_price_for_products_task
 from ...product.utils.preparing_product import prepare_products
-from ...sales.utils import (
-    create_sale,
-    create_sale_channel_listing,
-    sale_catalogues_add,
-)
+from ...sales.utils import create_sale, create_sale_channel_listing, sale_catalogues_add
 from ...shop.utils import prepare_default_shop
 from ...utils import assign_permissions
 from ...vouchers.utils import create_voucher, create_voucher_channel_listing
@@ -87,8 +83,14 @@ def prepare_voucher(
     return voucher_discount_value, voucher_code
 
 
+@pytest.mark.parametrize(
+    ("legacy_discount_propagation", "entire_voucher_discount_reason"),
+    [(True, "Entire order voucher code: VOUCHER001"), (False, "")],
+)
 @pytest.mark.e2e
 def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_CORE_0114(
+    legacy_discount_propagation,
+    entire_voucher_discount_reason,
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
@@ -103,7 +105,12 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_default_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(
+        e2e_staff_api_client,
+        channel_order_settings={
+            "useLegacyLineDiscountPropagation": legacy_discount_propagation
+        },
+    )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
@@ -459,9 +466,9 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     assert order_data["discounts"][0]["value"] == calculated_discount
 
     assert order_line1["quantity"] == product2_new_quantity
-    assert order_line1["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+    assert entire_voucher_discount_reason in order_line1["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line1["unitDiscountReason"]
+
     assert (
         order_line1["undiscountedUnitPrice"]["gross"]["amount"]
         == product2_variant_price
@@ -470,13 +477,20 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     assert order_line1["unitPrice"]["gross"]["amount"] == round(
         calculated_line1_total / product2_new_quantity, 2
     )
-    assert order_line1["unitDiscount"]["amount"] == round(
-        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+
+    unit_discount1 = line1_discount
+    unit_discount1 += (
+        calculated_line1_discount / product2_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line1["unitDiscount"]["amount"] == round(unit_discount1, 2)
+
     assert order_line2["quantity"] == product3_new_quantity
-    assert order_line2["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+
+    assert entire_voucher_discount_reason in order_line2["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line2["unitDiscountReason"]
+
     assert (
         order_line2["undiscountedUnitPrice"]["gross"]["amount"]
         == product3_variant_price
@@ -485,14 +499,21 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     assert order_line2["unitPrice"]["gross"]["amount"] == round(
         calculated_line2_total / product3_new_quantity, 2
     )
-    assert order_line2["unitDiscount"]["amount"] == round(
-        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    unit_discount2 = line2_discount
+    unit_discount2 += (
+        calculated_line2_discount / product3_new_quantity
+        if legacy_discount_propagation
+        else 0
+    )
+    assert order_line2["unitPrice"]["gross"]["amount"] == round(
+        calculated_line2_total / product3_new_quantity, 2
     )
 
     assert order_line3["quantity"] == product4_quantity
-    assert order_line3["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code}"
-    )
+
+    line_reason3 = order_line3["unitDiscountReason"] or ""
+    assert entire_voucher_discount_reason in line_reason3
+
     assert (
         order_line3["undiscountedUnitPrice"]["gross"]["amount"]
         == product4_variant_price
@@ -501,11 +522,19 @@ def test_checkout_calculate_discount_for_percentage_sale_and_percentage_voucher_
     assert order_line3["unitPrice"]["gross"]["amount"] == round(
         calculated_line3_total / product4_quantity, 2
     )
-    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+    unit_discount3 = 0
+    unit_discount3 += calculated_line3_discount if legacy_discount_propagation else 0
+    assert order_line3["unitDiscount"]["amount"] == unit_discount3
 
 
+@pytest.mark.parametrize(
+    ("legacy_discount_propagation", "entire_voucher_discount_reason"),
+    [(True, "Entire order voucher code: VOUCHER002"), (False, "")],
+)
 @pytest.mark.e2e
 def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
+    legacy_discount_propagation,
+    entire_voucher_discount_reason,
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
@@ -520,7 +549,12 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_default_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(
+        e2e_staff_api_client,
+        channel_order_settings={
+            "useLegacyLineDiscountPropagation": legacy_discount_propagation
+        },
+    )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
@@ -878,9 +912,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     assert order_data["discounts"][0]["value"] == calculated_discount
 
     assert order_line1["quantity"] == product2_new_quantity
-    assert order_line1["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+    assert entire_voucher_discount_reason in order_line1["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line1["unitDiscountReason"]
+
     assert (
         order_line1["undiscountedUnitPrice"]["gross"]["amount"]
         == product2_variant_price
@@ -889,13 +923,20 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     assert order_line1["unitPrice"]["gross"]["amount"] == round(
         calculated_line1_total / product2_new_quantity, 2
     )
-    assert order_line1["unitDiscount"]["amount"] == round(
-        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+
+    unit_discount1 = line1_discount
+    unit_discount1 += (
+        calculated_line1_discount / product2_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line1["unitDiscount"]["amount"] == round(unit_discount1, 2)
+
     assert order_line2["quantity"] == product3_new_quantity
-    assert order_line2["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+
+    assert entire_voucher_discount_reason in order_line2["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line2["unitDiscountReason"]
+
     assert (
         order_line2["undiscountedUnitPrice"]["gross"]["amount"]
         == product3_variant_price
@@ -904,14 +945,19 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     assert order_line2["unitPrice"]["gross"]["amount"] == round(
         calculated_line2_total / product3_new_quantity, 2
     )
-    assert order_line2["unitDiscount"]["amount"] == round(
-        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    unit_discount2 = line2_discount
+    unit_discount2 += (
+        calculated_line2_discount / product3_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line2["unitDiscount"]["amount"] == round(unit_discount2, 2)
 
     assert order_line3["quantity"] == product4_quantity
-    assert order_line3["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code}"
-    )
+
+    line_reason3 = order_line3["unitDiscountReason"] or ""
+    assert entire_voucher_discount_reason in line_reason3
+
     assert (
         order_line3["undiscountedUnitPrice"]["gross"]["amount"]
         == product4_variant_price
@@ -920,11 +966,19 @@ def test_checkout_calculate_discount_for_fixed_sale_and_fixed_voucher_CORE_0114(
     assert order_line3["unitPrice"]["gross"]["amount"] == round(
         calculated_line3_total / product4_quantity, 2
     )
-    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+    unit_discount3 = 0
+    unit_discount3 += calculated_line3_discount if legacy_discount_propagation else 0
+    assert order_line3["unitDiscount"]["amount"] == unit_discount3
 
 
+@pytest.mark.parametrize(
+    ("legacy_discount_propagation", "entire_voucher_discount_reason"),
+    [(True, "Entire order voucher code: VOUCHER003"), (False, "")],
+)
 @pytest.mark.e2e
 def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_0114(
+    legacy_discount_propagation,
+    entire_voucher_discount_reason,
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
@@ -939,7 +993,12 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_default_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(
+        e2e_staff_api_client,
+        channel_order_settings={
+            "useLegacyLineDiscountPropagation": legacy_discount_propagation
+        },
+    )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
@@ -1296,9 +1355,9 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     assert order_data["discounts"][0]["value"] == calculated_discount
 
     assert order_line1["quantity"] == product2_new_quantity
-    assert order_line1["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+    assert entire_voucher_discount_reason in order_line1["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line1["unitDiscountReason"]
+
     assert (
         order_line1["undiscountedUnitPrice"]["gross"]["amount"]
         == product2_variant_price
@@ -1307,29 +1366,39 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     assert order_line1["unitPrice"]["gross"]["amount"] == round(
         calculated_line1_total / product2_new_quantity, 2
     )
-    assert order_line1["unitDiscount"]["amount"] == round(
-        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+    unit_discount1 = line1_discount
+    unit_discount1 += (
+        calculated_line1_discount / product2_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line1["unitDiscount"]["amount"] == round(unit_discount1, 2)
     assert order_line2["quantity"] == product3_new_quantity
-    assert order_line2["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+
+    assert entire_voucher_discount_reason in order_line2["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line2["unitDiscountReason"]
+
     assert (
         order_line2["undiscountedUnitPrice"]["gross"]["amount"]
         == product3_variant_price
     )
     assert order_line2["totalPrice"]["gross"]["amount"] == calculated_line2_total
+
     assert order_line2["unitPrice"]["gross"]["amount"] == round(
         calculated_line2_total / product3_new_quantity, 2
     )
-    assert order_line2["unitDiscount"]["amount"] == round(
-        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+    unit_discount2 = line2_discount
+    unit_discount2 += (
+        calculated_line2_discount / product3_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line2["unitDiscount"]["amount"] == round(unit_discount2, 2)
 
     assert order_line3["quantity"] == product4_quantity
-    assert order_line3["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code}"
-    )
+    line_reason3 = order_line3["unitDiscountReason"] or ""
+    assert entire_voucher_discount_reason in line_reason3
+
     assert (
         order_line3["undiscountedUnitPrice"]["gross"]["amount"]
         == product4_variant_price
@@ -1338,11 +1407,19 @@ def test_checkout_calculate_discount_for_fixed_sale_and_percentage_voucher_CORE_
     assert order_line3["unitPrice"]["gross"]["amount"] == round(
         calculated_line3_total / product4_quantity, 2
     )
-    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+    unit_discount3 = 0
+    unit_discount3 += calculated_line3_discount if legacy_discount_propagation else 0
+    assert order_line3["unitDiscount"]["amount"] == unit_discount3
 
 
+@pytest.mark.parametrize(
+    ("legacy_discount_propagation", "entire_voucher_discount_reason"),
+    [(True, "Entire order voucher code: VOUCHER004"), (False, "")],
+)
 @pytest.mark.e2e
 def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_0114(
+    legacy_discount_propagation,
+    entire_voucher_discount_reason,
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
@@ -1357,7 +1434,12 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
-    shop_data = prepare_default_shop(e2e_staff_api_client)
+    shop_data = prepare_default_shop(
+        e2e_staff_api_client,
+        channel_order_settings={
+            "useLegacyLineDiscountPropagation": legacy_discount_propagation
+        },
+    )
     channel_id = shop_data["channel"]["id"]
     channel_slug = shop_data["channel"]["slug"]
     warehouse_id = shop_data["warehouse"]["id"]
@@ -1714,9 +1796,10 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     assert order_data["discounts"][0]["value"] == calculated_discount
 
     assert order_line1["quantity"] == product2_new_quantity
-    assert order_line1["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+
+    assert entire_voucher_discount_reason in order_line1["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line1["unitDiscountReason"]
+
     assert (
         order_line1["undiscountedUnitPrice"]["gross"]["amount"]
         == product2_variant_price
@@ -1725,13 +1808,18 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     assert order_line1["unitPrice"]["gross"]["amount"] == round(
         calculated_line1_total / product2_new_quantity, 2
     )
-    assert order_line1["unitDiscount"]["amount"] == round(
-        line1_discount + (calculated_line1_discount / product2_new_quantity), 2
+    unit_discount1 = line1_discount
+    unit_discount1 += (
+        calculated_line1_discount / product2_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line1["unitDiscount"]["amount"] == round(unit_discount1, 2)
     assert order_line2["quantity"] == product3_new_quantity
-    assert order_line2["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code} & Sale: {sale_id}"
-    )
+
+    assert entire_voucher_discount_reason in order_line2["unitDiscountReason"]
+    assert f"Sale: {sale_id}" in order_line2["unitDiscountReason"]
+
     assert (
         order_line2["undiscountedUnitPrice"]["gross"]["amount"]
         == product3_variant_price
@@ -1740,14 +1828,20 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     assert order_line2["unitPrice"]["gross"]["amount"] == round(
         calculated_line2_total / product3_new_quantity, 2
     )
-    assert order_line2["unitDiscount"]["amount"] == round(
-        line2_discount + (calculated_line2_discount / product3_new_quantity), 2
+
+    unit_discount2 = line2_discount
+    unit_discount2 += (
+        calculated_line2_discount / product3_new_quantity
+        if legacy_discount_propagation
+        else 0
     )
+    assert order_line2["unitDiscount"]["amount"] == round(unit_discount2, 2)
 
     assert order_line3["quantity"] == product4_quantity
-    assert order_line3["unitDiscountReason"] == (
-        f"Entire order voucher code: {voucher_code}"
-    )
+
+    line_reason3 = order_line3["unitDiscountReason"] or ""
+    assert entire_voucher_discount_reason in line_reason3
+
     assert (
         order_line3["undiscountedUnitPrice"]["gross"]["amount"]
         == product4_variant_price
@@ -1756,4 +1850,6 @@ def test_checkout_calculate_discount_for_percentage_sale_and_fixed_voucher_CORE_
     assert order_line3["unitPrice"]["gross"]["amount"] == round(
         calculated_line3_total / product4_quantity, 2
     )
-    assert order_line3["unitDiscount"]["amount"] == calculated_line3_discount
+    unit_discount3 = 0
+    unit_discount3 += calculated_line3_discount if legacy_discount_propagation else 0
+    assert order_line3["unitDiscount"]["amount"] == unit_discount3

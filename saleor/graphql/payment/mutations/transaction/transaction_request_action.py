@@ -56,9 +56,10 @@ class TransactionRequestAction(BaseMutation):
         )
         amount = PositiveDecimal(
             description=(
-                "Transaction request amount. If empty for refund or capture, maximal "
-                "possible amount will be used."
-            )
+                "Transaction request amount. If empty, maximal possible "
+                "amount will be used."
+            ),
+            required=False,
         )
 
     class Meta:
@@ -78,12 +79,14 @@ class TransactionRequestAction(BaseMutation):
     ):
         if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
+            action_value = action_value or transaction.authorized_value
+            action_value = min(action_value, transaction.authorized_value)
             request_event = cls.create_transaction_event_requested(
-                transaction, 0, action, user=user, app=app
+                transaction, action_value, action, user=user, app=app
             )
             request_cancelation_action(
                 **action_kwargs,
-                cancel_value=None,
+                cancel_value=action_value,
                 request_event=request_event,
                 action=action,
             )

@@ -208,7 +208,7 @@ def requestor_is_superuser(requestor):
 
 
 def query_identifier(document: GraphQLDocument) -> str:
-    """Generate a fingerprint for a GraphQL query.
+    """Generate a identifier for a GraphQL query.
 
     For queries identifier is sorted set of all root objects separated by `,`.
     e.g

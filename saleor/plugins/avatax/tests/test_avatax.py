@@ -6510,7 +6510,7 @@ def test_validate_plugin_tax_data_price_overflow(lines_info, caplog):
                 "itemCode": "SKU_A",
             },
             {
-                "lineAmount": 99999999999.0000,
+                "lineAmount": 99999999999999999.0000,
                 "quantity": 2.0,
                 "itemCode": "SKU_B",
             },

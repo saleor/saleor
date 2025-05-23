@@ -2,13 +2,13 @@ import datetime
 from unittest.mock import patch
 from urllib.parse import urlencode
 
-from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ......account.notifications import get_default_user_payload
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
+from ......core.tokens import token_generator
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
 
@@ -54,7 +54,7 @@ def test_account_reset_password(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -159,7 +159,7 @@ def test_account_reset_password_with_upper_case_email(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -206,7 +206,7 @@ def test_request_password_reset_email_for_staff(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = default_token_generator.make_token(user)
+    token = token_generator.make_token(user)
     params = urlencode({"email": user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -322,7 +322,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
 
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -365,7 +365,7 @@ def test_account_reset_password_subdomain(
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
 
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -443,7 +443,7 @@ def test_account_reset_password_for_not_confirmed_user(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -471,3 +471,123 @@ def test_account_reset_password_for_not_confirmed_user(
     mocked_account_set_password_requested.assert_called_once_with(
         user, channel_PLN.slug, token, reset_url
     )
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
+@patch("saleor.account.tasks.logger.warning")
+def test_account_reset_password_no_channel_provided_multiple_channels(
+    mocked_logger_warning,
+    mocked_account_set_password_requested,
+    mocked_notify,
+    api_client,
+    customer_user,
+    channel_PLN,
+    channel_USD,
+    site_settings,
+):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+    }
+
+    # when
+    response = api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["requestPasswordReset"]
+    assert not data["errors"]
+    token = token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "reset_url": reset_url,
+        "token": token,
+        "recipient_email": customer_user.email,
+        "channel_slug": None,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] is None
+
+    customer_user.refresh_from_db()
+    assert customer_user.last_password_reset_request == timezone.now()
+
+    mocked_account_set_password_requested.assert_called_once_with(
+        customer_user, None, token, reset_url
+    )
+
+    mocked_logger_warning.assert_called_once_with(
+        "Channel slug was not provided for user %s in request password reset.",
+        customer_user.pk,
+    )
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
+@patch("saleor.account.tasks.logger.warning")
+def test_account_reset_password_no_channel_provided_one_channel(
+    mocked_logger_warning,
+    mocked_account_set_password_requested,
+    mocked_notify,
+    api_client,
+    customer_user,
+    channel_USD,
+    site_settings,
+):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+    }
+
+    # when
+    response = api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["requestPasswordReset"]
+    assert not data["errors"]
+    token = token_generator.make_token(customer_user)
+    params = urlencode({"email": customer_user.email, "token": token})
+    reset_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(customer_user),
+        "reset_url": reset_url,
+        "token": token,
+        "recipient_email": customer_user.email,
+        "channel_slug": channel_USD.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+
+    assert mocked_notify.call_count == 1
+    call_args = mocked_notify.call_args_list[0]
+    called_args = call_args.args
+    called_kwargs = call_args.kwargs
+    assert called_args[0] == NotifyEventType.ACCOUNT_PASSWORD_RESET
+    assert len(called_kwargs) == 2
+    assert called_kwargs["payload_func"]() == expected_payload
+    assert called_kwargs["channel_slug"] == channel_USD.slug
+
+    customer_user.refresh_from_db()
+    assert customer_user.last_password_reset_request == timezone.now()
+
+    mocked_account_set_password_requested.assert_called_once_with(
+        customer_user, channel_USD.slug, token, reset_url
+    )
+
+    mocked_logger_warning.assert_not_called()

@@ -16,6 +16,7 @@ from ...core.db.connection import allow_writer_in_context
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
 from ...discount import DiscountType
+from ...discount import models as discount_models
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.core.context import (
     SyncWebhookControlContext,
@@ -26,7 +27,7 @@ from ...graphql.core.federation.resolvers import resolve_federation_references
 from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
-from ...order import OrderStatus, calculations, models
+from ...order import OrderOrigin, OrderStatus, calculations, models
 from ...order.calculations import fetch_order_prices_if_expired
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -37,7 +38,7 @@ from ...order.utils import (
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import get_last_payment, get_total_authorized
-from ...permission.auth_filters import AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters, is_app, is_staff_user
 from ...permission.enums import (
     AccountPermissions,
     AppPermission,
@@ -72,6 +73,7 @@ from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
     ADDED_IN_320,
+    ADDED_IN_321,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -95,7 +97,11 @@ from ..core.types import (
 from ..core.types.sync_webhook_control import SyncWebhookControlContextModelObjectType
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
-from ..discount.dataloaders import OrderDiscountsByOrderIDLoader, VoucherByIdLoader
+from ..discount.dataloaders import (
+    OrderDiscountsByOrderIDLoader,
+    OrderLineDiscountsByOrderLineIDLoader,
+    VoucherByIdLoader,
+)
 from ..discount.enums import DiscountValueTypeEnum
 from ..discount.types import Voucher
 from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
@@ -1084,6 +1090,10 @@ class OrderLine(
     is_gift = graphene.Boolean(
         description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
+    discounts = NonNullList(
+        "saleor.graphql.discount.types.discounts.OrderLineDiscount",
+        description="List of applied discounts" + ADDED_IN_321,
+    )
 
     class Meta:
         default_resolver = (
@@ -1418,6 +1428,50 @@ class OrderLine(
     ):
         check_private_metadata_privilege(root.node, info)
         return resolve_metadata(root.node.tax_class_private_metadata)
+
+    @staticmethod
+    def resolve_discounts(root: SyncWebhookControlContext[models.OrderLine], info):
+        line = root.node
+
+        def with_manager_and_order(data):
+            manager, order = data
+
+            def handle_line_discount_from_checkout(data):
+                channel, line_discounts = data
+
+                # For legacy propagation, voucher discount was returned as OrderDiscount
+                # when legacy is disabled, return the voucher discount as
+                # OrderLineDiscount. It is a temporary solution to provide a grace
+                # period for migration
+                use_legacy = channel.use_legacy_line_discount_propagation_for_order
+                if order.origin != OrderOrigin.CHECKOUT or not use_legacy:
+                    return line_discounts
+
+                discounts_to_return = []
+                for discount in line_discounts:
+                    # voucher discount propagated on the line is represented by
+                    # OrderDiscount.
+                    if discount.type == DiscountType.VOUCHER:
+                        continue
+                    discounts_to_return.append(discount)
+
+                return discounts_to_return
+
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+            channel_loader = ChannelByIdLoader(info.context).load(order.channel_id)
+            order_line_discounts = OrderLineDiscountsByOrderLineIDLoader(
+                info.context
+            ).load(line.id)
+            return Promise.all([channel_loader, order_line_discounts]).then(
+                handle_line_discount_from_checkout
+            )
+
+        manager = get_plugin_manager_promise(info.context)
+        order = OrderByIdLoader(info.context).load(line.order_id)
+        return Promise.all([manager, order]).then(with_manager_and_order)
 
 
 @federated_entity("id")
@@ -1808,13 +1862,85 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     @staticmethod
     @prevent_sync_event_circular_query
     def resolve_discounts(root: SyncWebhookControlContext[models.Order], info):
-        @allow_writer_in_context(info.context)
-        def with_manager(manager):
-            order = root.node
-            fetch_order_prices_if_expired(
-                order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+        order = root.node
+
+        # Line-lvl voucher discounts are represented as OrderDiscount objects for order
+        # created from checkout.
+        def wrap_line_discounts_from_checkout(data):
+            channel, order_discounts = data
+
+            if order.origin != OrderOrigin.CHECKOUT:
+                return order_discounts
+
+            # voucher discount is stored as OrderLineDiscount object in DB.
+            # for backward compatibility, when legacy propagation is enabled
+            # we convert the order-line-discounts into single OrderDiscount
+            # It is a temporary solution to provide a grace period for migration
+            if not channel.use_legacy_line_discount_propagation_for_order:
+                return order_discounts
+
+            def wrap_order_line(order_lines):
+                def wrap_order_line_discount(
+                    order_line_discounts: list[list[discount_models.OrderLineDiscount]],
+                ):
+                    # This affects orders created from checkout and applies
+                    # specifically to vouchers of the types: `SPECIFIC_PRODUCT` and
+                    # `ENTIRE_ORDER` with `applyOncePerOrder` enabled.
+                    # discounts from these vouchers should be represented as
+                    # OrderDiscount, but they are stored as OrderLineDiscount in
+                    # database. To not add any breaking change, we create artifical
+                    # order discount object
+                    artificial_order_discount = None
+                    for line_discount_list in order_line_discounts:
+                        for line_discount in line_discount_list:
+                            if line_discount.type != DiscountType.VOUCHER:
+                                continue
+
+                            if artificial_order_discount is None:
+                                artificial_order_discount = (
+                                    discount_models.OrderDiscount(
+                                        id=line_discount.id,
+                                        name=line_discount.name,
+                                        type=line_discount.type,
+                                        value_type=line_discount.value_type,
+                                        value=line_discount.value,
+                                        amount_value=line_discount.amount_value,
+                                        currency=line_discount.currency,
+                                        reason=line_discount.reason,
+                                        translated_name=line_discount.translated_name,
+                                    )
+                                )
+                            else:
+                                artificial_order_discount.amount_value += (
+                                    line_discount.amount_value
+                                )
+
+                    if artificial_order_discount:
+                        return order_discounts + [artificial_order_discount]
+                    return order_discounts
+
+                return (
+                    OrderLineDiscountsByOrderLineIDLoader(info.context)
+                    .load_many([line.pk for line in order_lines])
+                    .then(wrap_order_line_discount)
+                )
+
+            return (
+                OrderLinesByOrderIdLoader(info.context)
+                .load(order.id)
+                .then(wrap_order_line)
             )
-            return OrderDiscountsByOrderIDLoader(info.context).load(order.id)
+
+        def with_manager(manager):
+            with allow_writer_in_context(info.context):
+                fetch_order_prices_if_expired(
+                    order, manager, allow_sync_webhooks=root.allow_sync_webhooks
+                )
+            channel_loader = ChannelByIdLoader(info.context).load(order.channel_id)
+            order_discounts = OrderDiscountsByOrderIDLoader(info.context).load(order.id)
+            return Promise.all([channel_loader, order_discounts]).then(
+                wrap_line_discounts_from_checkout
+            )
 
         return get_plugin_manager_promise(info.context).then(with_manager)
 
@@ -2167,8 +2293,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     @staticmethod
     def resolve_fulfillments(root: SyncWebhookControlContext[models.Order], info):
         def _resolve_fulfillments(fulfillments):
-            user = info.context.user
-            if user and user.is_staff:
+            return_all_fulfillments = is_staff_user(info.context) or is_app(
+                info.context
+            )
+
+            if return_all_fulfillments:
                 fulfillments_to_return = fulfillments
             else:
                 fulfillments_to_return = filter(
@@ -2679,7 +2808,13 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         def _resolve_total_refund(data):
             payments, transactions = data
             last_payment = get_last_payment(payments)
-            if last_payment and last_payment.is_active:
+            payment_is_active = last_payment and last_payment.is_active
+            payment_is_fully_refunded = (
+                last_payment
+                and last_payment.charge_status == ChargeStatus.FULLY_REFUNDED
+            )
+
+            if payment_is_active or payment_is_fully_refunded:
                 return (
                     TransactionByPaymentIdLoader(info.context)
                     .load(last_payment.id)

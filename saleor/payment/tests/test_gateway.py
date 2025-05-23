@@ -1217,7 +1217,7 @@ def test_request_cancelation_action_on_order(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CANCEL,
-            action_value=None,
+            action_value=transaction.authorized_value,
             event=requested_event,
             transaction_app_owner=app,
         ),
@@ -1259,7 +1259,9 @@ def test_request_cancelation_action_by_app(
         app=webhook_app,
     )
     requested_event = transaction.events.create(
-        currency=transaction.currency, type=TransactionEventType.CANCEL_REQUEST
+        currency=transaction.currency,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=transaction.authorized_value,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -1281,7 +1283,7 @@ def test_request_cancelation_action_by_app(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CANCEL,
-            action_value=None,
+            action_value=transaction.authorized_value,
             event=requested_event,
             transaction_app_owner=webhook_app,
         ),
@@ -1326,6 +1328,7 @@ def test_request_cancelation_action_on_checkout(
     requested_event = transaction.events.create(
         currency=transaction.currency,
         type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=transaction.authorized_value,
     )
     mocked_is_active.side_effect = [False, True]
 
@@ -1347,7 +1350,7 @@ def test_request_cancelation_action_on_checkout(
         TransactionActionData(
             transaction=transaction,
             action_type=TransactionAction.CANCEL,
-            action_value=None,
+            action_value=transaction.authorized_value,
             event=requested_event,
             transaction_app_owner=app,
         ),

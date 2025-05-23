@@ -3,7 +3,7 @@ from typing import NamedTuple
 import graphene
 import pytest
 
-from ....warehouse.models import Warehouse
+from ....warehouse.models import Stock, Warehouse
 from ...models import FulfillmentLine, FulfillmentStatus, Order, OrderLine
 
 
@@ -13,15 +13,39 @@ def fulfillment(fulfilled_order):
 
 
 @pytest.fixture
-def fulfillment_awaiting_approval(fulfilled_order):
+def full_fulfillment_awaiting_approval(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
     fulfillment.save(update_fields=["status"])
 
+    fulfillment_lines_to_update = []
+    order_lines_to_update = []
+    for f_line in fulfillment.lines.all():
+        order_line = f_line.order_line
+        f_line.stock.quantity = order_line.quantity
+        f_line.quantity = order_line.quantity
+        fulfillment_lines_to_update.append(f_line)
+
+        order_line.quantity_fulfilled = order_line.quantity
+        order_lines_to_update.append(order_line)
+
+    Stock.objects.bulk_update(
+        [line.stock for line in fulfillment_lines_to_update], ["quantity"]
+    )
+    FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+    OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
+
+    return fulfillment
+
+
+@pytest.fixture
+def partial_fulfillment_awaiting_approval(full_fulfillment_awaiting_approval):
+    fulfillment = full_fulfillment_awaiting_approval
     quantity = 1
     fulfillment_lines_to_update = []
     order_lines_to_update = []
     for f_line in fulfillment.lines.all():
+        f_line.stock.quantity = quantity
         f_line.quantity = quantity
         fulfillment_lines_to_update.append(f_line)
 
@@ -29,6 +53,9 @@ def fulfillment_awaiting_approval(fulfilled_order):
         order_line.quantity_fulfilled = quantity
         order_lines_to_update.append(order_line)
 
+    Stock.objects.bulk_update(
+        [line.stock for line in fulfillment_lines_to_update], ["quantity"]
+    )
     FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
     OrderLine.objects.bulk_update(order_lines_to_update, ["quantity_fulfilled"])
 

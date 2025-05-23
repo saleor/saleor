@@ -2,12 +2,11 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import Generic, TypeVar
 
-import opentracing
-import opentracing.tags
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
 from ...core.db.connection import allow_writer_in_context
+from ...core.telemetry import saleor_attributes, tracer
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -43,11 +42,10 @@ class DataLoader(BaseLoader, Generic[K, R]):
     def batch_load_fn(  # pylint: disable=method-hidden
         self, keys: Iterable[K]
     ) -> Promise[list[R]]:
-        with opentracing.global_tracer().start_active_span(
-            "dataloader.batch_load"
-        ) as scope:
-            span = scope.span
-            span.set_tag("resource.name", self.__class__.__name__)
+        with tracer.start_as_current_span(self.__class__.__name__) as span:
+            span.set_attribute(
+                saleor_attributes.OPERATION_NAME, "dataloader.batch_load"
+            )
 
             with allow_writer_in_context(self.context):
                 results = self.batch_load(keys)

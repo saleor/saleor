@@ -10,7 +10,6 @@ import dj_database_url
 import dj_email_url
 import django_cache_url
 import django_stubs_ext
-import jaeger_client.config
 import pkg_resources
 import sentry_sdk
 import sentry_sdk.utils
@@ -29,9 +28,13 @@ from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScr
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .account.i18n_rules_override import i18n_rules_override
+from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
+from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import initiated_promotion_webhook_schedule
 from .graphql.executor import patch_executor
+from .graphql.promise import patch_promise
+from .patch_local import patch_local
 
 django_stubs_ext.monkeypatch()
 
@@ -59,6 +62,13 @@ def get_url_from_env(name, *, schemes=None) -> str | None:
         return value
     return None
 
+
+# Possibility to set memory limits for the process. Function `validate_and_set_rlimit` set the
+# maximum size of the process's heap(`resource.RLIMIT_DATA`). If you set the memory limit and process will try to
+# allocate more memory than the limit, it will raise `MemoryError`.
+SOFT_MEMORY_LIMIT_IN_MB = os.environ.get("SOFT_MEMORY_LIMIT_IN_MB", None)
+HARD_MEMORY_LIMIT_IN_MB = os.environ.get("HARD_MEMORY_LIMIT_IN_MB", None)
+validate_and_set_rlimit(SOFT_MEMORY_LIMIT_IN_MB, HARD_MEMORY_LIMIT_IN_MB)
 
 DEBUG = get_bool_from_env("DEBUG", True)
 
@@ -439,7 +449,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 DEFAULT_COUNTRY: str = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_DECIMAL_PLACES = 3
-DEFAULT_MAX_DIGITS = 12
+DEFAULT_MAX_DIGITS = 20
 DEFAULT_CURRENCY_CODE_LENGTH = 3
 
 # The default max length for the display name of the
@@ -489,7 +499,7 @@ GS_BUCKET_NAME = os.environ.get("GS_BUCKET_NAME")
 GS_LOCATION = os.environ.get("GS_LOCATION", "")
 GS_CUSTOM_ENDPOINT = os.environ.get("GS_CUSTOM_ENDPOINT")
 GS_MEDIA_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
-GS_MEDIA_PRIVATE_BUCKET_NAME = os.environ.get("GS_MEDIA_BUCKET_NAME")
+GS_MEDIA_PRIVATE_BUCKET_NAME = os.environ.get("GS_MEDIA_PRIVATE_BUCKET_NAME")
 GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
 GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
@@ -850,30 +860,6 @@ HTTP_IP_FILTER_ALLOW_LOOPBACK_IPS: bool = get_bool_from_env(
 # time of the reservation in seconds.
 RESERVE_DURATION = 45
 
-# Initialize a simple and basic Jaeger Tracing integration
-# for open-tracing if enabled.
-#
-# Refer to our guide on https://docs.saleor.io/docs/next/guides/opentracing-jaeger/.
-#
-# If running locally, set:
-#   JAEGER_AGENT_HOST=localhost
-JAEGER_HOST = os.environ.get("JAEGER_AGENT_HOST")
-if JAEGER_HOST:
-    jaeger_client.Config(
-        config={
-            "sampler": {"type": "const", "param": 1},
-            "local_agent": {
-                "reporting_port": os.environ.get(
-                    "JAEGER_AGENT_PORT", jaeger_client.config.DEFAULT_REPORTING_PORT
-                ),
-                "reporting_host": JAEGER_HOST,
-            },
-            "logging": get_bool_from_env("JAEGER_LOGGING", False),
-        },
-        service_name="saleor",
-        validate=True,
-    ).initialize_tracer()
-
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
 REDIS_URL = os.environ.get("REDIS_URL")
@@ -1031,6 +1017,8 @@ ENABLE_LIMITING_WEBHOOKS_FOR_IDENTICAL_PAYLOADS = get_bool_from_env(
 TRANSACTION_ITEMS_LIMIT = 100
 
 
+TOKEN_GENERATOR_CLASS = "django.contrib.auth.tokens.PasswordResetTokenGenerator"
+
 # Disable Django warnings regarding too long cache keys being incompatible with
 # memcached to avoid leaking key values.
 warnings.filterwarnings("ignore", category=CacheKeyWarning)
@@ -1055,6 +1043,25 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
     os.environ.get("BREAKER_BOARD_DRY_RUN_SYNC_EVENTS", "")
 )
 
+TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
+TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
+# Whether to raise or log exceptions for telemetry unit conversion errors
+# Disabled by default to prevent disruptions caused by unexpected unit conversion issues
+TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False
+
 # Library `google-i18n-address` use `AddressValidationMetadata` form Google to provide address validation rules.
 # Patch `i18n` module to allows to override the default address rules.
 i18n_rules_override()
+
+# Patch Promise to remove all references that could result in reference cycles, allowing memory to be freed
+# immediately, without the need of a deep garbage collection cycle.
+patch_promise()
+
+# Patch `DatabaseClient`, `DatabaseCreation`, `DatabaseFeatures`, `DatabaseIntrospection`, `DatabaseOperations`,
+# `BaseDatabaseValidation` and `DatabaseErrorWrapper` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_db()
+
+# Patch `Local` to remove all references that could result in reference cycles,
+# allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
+patch_local()

@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from unittest.mock import call, patch
+from unittest.mock import ANY, call, patch
 
 import pytest
 from django.test import override_settings
@@ -663,7 +663,10 @@ def test_call_checkout_event_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -757,7 +760,10 @@ def test_call_checkout_event_skips_tax_webhook_when_not_expired(
         webhook_id=checkout_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -875,7 +881,10 @@ def test_call_checkout_event_only_async_when_sync_missing(
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1002,7 +1011,10 @@ def test_call_checkout_info_event_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1107,7 +1119,10 @@ def test_call_checkout_info_event_skips_tax_webhook_when_not_expired(
         webhook_id=checkout_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1197,7 +1212,10 @@ def test_call_checkout_info_event_only_async_when_sync_missing(
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1323,7 +1341,10 @@ def test_transaction_amounts_for_checkout_fully_paid_triggers_sync_webhook(
         webhook_id=checkout_fully_paid_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_fully_paid_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_fully_paid_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1462,7 +1483,10 @@ def test_call_checkout_events_triggers_sync_webhook_when_needed(
         webhook_id=checkout_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1564,7 +1588,10 @@ def test_call_checkout_events_skips_tax_webhook_when_not_expired(
         webhook_id=checkout_created_webhook.id
     )
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,
@@ -1693,7 +1720,10 @@ def test_call_checkout_events_only_async_when_sync_missing(
     checkout_create_delivery = EventDelivery.objects.get(webhook_id=webhook.id)
 
     mocked_send_webhook_request_async.assert_called_once_with(
-        kwargs={"event_delivery_id": checkout_create_delivery.id},
+        kwargs={
+            "event_delivery_id": checkout_create_delivery.id,
+            "telemetry_context": ANY,
+        },
         queue=settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
         bind=True,
         retry_backoff=10,

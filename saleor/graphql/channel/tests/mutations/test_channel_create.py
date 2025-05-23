@@ -48,6 +48,7 @@ CHANNEL_CREATE_MUTATION = """
                     allowUnpaidOrders
                     includeDraftOrderInVoucherUsage
                     draftOrderLinePriceFreezePeriod
+                    useLegacyLineDiscountPropagation
                 }
                 checkoutSettings {
                     useLegacyErrorFlow
@@ -858,9 +859,9 @@ def test_channel_create_set_automatically_complete_fully_paid_checkouts(
     assert channel.automatically_complete_fully_paid_checkouts is True
 
 
-@pytest.mark.parametrize("allowUnpaid", [True, False])
+@pytest.mark.parametrize("allow_unpaid", [True, False])
 def test_channel_create_set_allow_unpaid_orders(
-    allowUnpaid,
+    allow_unpaid,
     permission_manage_channels,
     staff_api_client,
 ):
@@ -875,7 +876,7 @@ def test_channel_create_set_allow_unpaid_orders(
             "slug": slug,
             "currencyCode": currency_code,
             "defaultCountry": default_country,
-            "orderSettings": {"allowUnpaidOrders": allowUnpaid},
+            "orderSettings": {"allowUnpaidOrders": allow_unpaid},
         }
     }
 
@@ -892,5 +893,55 @@ def test_channel_create_set_allow_unpaid_orders(
     assert not data["errors"]
     channel_data = data["channel"]
     channel = Channel.objects.get()
-    assert channel_data["orderSettings"]["allowUnpaidOrders"] == allowUnpaid
-    assert channel.allow_unpaid_orders == allowUnpaid
+    assert channel_data["orderSettings"]["allowUnpaidOrders"] == allow_unpaid
+    assert channel.allow_unpaid_orders == allow_unpaid
+
+
+@pytest.mark.parametrize(
+    ("use_legacy_input", "expected_result"),
+    [
+        ({"useLegacyLineDiscountPropagation": True}, True),
+        ({"useLegacyLineDiscountPropagation": False}, False),
+        (None, False),
+        ({"allowUnpaidOrders": False}, False),
+    ],
+)
+def test_channel_create_set_use_legacy_line_discount_propagation(
+    use_legacy_input,
+    expected_result,
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": use_legacy_input,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["orderSettings"]["useLegacyLineDiscountPropagation"]
+        == expected_result
+    )
+    assert channel.use_legacy_line_discount_propagation_for_order == expected_result
