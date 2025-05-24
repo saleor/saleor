@@ -2291,6 +2291,7 @@ def test_get_best_gift_reward_no_variants_in_channel(gift_promotion_rule, channe
 
 def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_condition(
     checkout_with_item_on_promotion,
+    checkout_info,
     plugins_manager,
 ):
     # given
@@ -2300,14 +2301,18 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
     # when
     def call_before_creating_catalogue_line_discount(*args, **kwargs):
         lines_info, _ = fetch_checkout_lines(checkout)
-        create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+        create_checkout_line_discount_objects_for_catalogue_promotions(
+            checkout_info, lines_info
+        )
 
     with race_condition.RunBefore(
         "saleor.discount.utils.checkout.prepare_checkout_line_discount_objects_for_catalogue_promotions",
         call_before_creating_catalogue_line_discount,
     ):
         lines_info, _ = fetch_checkout_lines(checkout)
-        create_checkout_line_discount_objects_for_catalogue_promotions(lines_info)
+        create_checkout_line_discount_objects_for_catalogue_promotions(
+            checkout_info, lines_info
+        )
 
     # then
     assert CheckoutLineDiscount.objects.count() == 1

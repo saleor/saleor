@@ -102,7 +102,7 @@ def recalculate_checkout_discounts(
     Update line and checkout discounts from vouchers and promotions.
     Create or remove gift line if needed.
     """
-    create_checkout_line_discount_objects_for_catalogue_promotions(lines)
+    create_checkout_line_discount_objects_for_catalogue_promotions(checkout_info, lines)
     recalculate_checkout_discount(manager, checkout_info, lines)
 
 

@@ -62,6 +62,10 @@ class PromotionRuleInput(PromotionRuleBaseInput):
         + ADDED_IN_319
         + PREVIEW_FEATURE,
     )
+    customer_groups = NonNullList(
+        graphene.ID,
+        description="List of customer group ids to which the rule should apply to.",
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS

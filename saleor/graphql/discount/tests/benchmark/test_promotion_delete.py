@@ -51,7 +51,7 @@ def test_gift_promotion_delete(
 
     # when
     staff_api_client.ensure_access_token()
-    with django_assert_num_queries(24):
+    with django_assert_num_queries(25):
         content = get_graphql_content(
             staff_api_client.post_graphql(PROMOTION_DELETE_MUTATION, variables)
         )

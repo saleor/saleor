@@ -68,3 +68,7 @@ class SendConfirmationEmailErrorCode(Enum):
     ACCOUNT_CONFIRMED = "account_confirmed"
     CONFIRMATION_ALREADY_REQUESTED = "confirmation_already_requested"
     MISSING_CHANNEL_SLUG = "missing_channel_slug"
+
+
+class CustomerGroupErrorCode(Enum):
+    UNIQUE = "unique"

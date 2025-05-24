@@ -10,7 +10,7 @@ from uuid import UUID
 import graphene
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from prices import Money
 
 from ...channel.models import Channel
@@ -87,21 +87,49 @@ def calculate_discounted_price_for_rules(
     return max(price - total_discount, zero_money(currency))
 
 
+def filter_public_rules(
+    rules_info: list[PromotionRuleInfo] | None,
+) -> tuple[list[PromotionRuleInfo], list[PromotionRuleInfo]]:
+    """Filter out rules that are not public."""
+    if not rules_info:
+        return [], []
+
+    public_rules, customer_group_rules = [], []
+
+    for rule_info in rules_info:
+        if rule_info.rule.customer_groups.exists():
+            customer_group_rules.append(rule_info)
+        else:
+            public_rules.append(rule_info)
+
+    return public_rules, customer_group_rules
+
+
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
     rules_info_per_variant: dict[int, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: int,
-) -> tuple[UUID, Money] | None:
+) -> tuple[tuple[UUID, Money] | None, list[tuple[UUID, Money]]]:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discount = None
-    rules_info_for_variant = rules_info_per_variant.get(variant_id)
-    if rules_info_for_variant:
-        applied_discount = get_best_promotion_discount(
-            price, rules_info_for_variant, channel
-        )
-    return applied_discount
+    public_rules, customer_group_rules = filter_public_rules(
+        rules_info_per_variant.get(variant_id)
+    )
+
+    if public_rules:
+        applied_discount = get_best_promotion_discount(price, public_rules, channel)
+
+    customer_group_discounts = get_product_promotion_discounts(
+        rules_info=customer_group_rules, channel=channel
+    )
+    customer_group_discounts = [
+        (rule_id, price - discount(price))
+        for rule_id, discount in customer_group_discounts
+    ]
+
+    return (applied_discount, customer_group_discounts)
 
 
 def get_best_promotion_discount(
@@ -159,20 +187,13 @@ def get_product_discount_on_promotion(
 
 
 def is_discounted_line_by_catalogue_promotion(
-    variant_channel_listing: "ProductVariantChannelListing",
+    rules_info: list["VariantPromotionRuleInfo"],
 ) -> bool:
     """Return True when the price is discounted by catalogue promotion."""
-    price_amount = variant_channel_listing.price_amount
-    discounted_price_amount = variant_channel_listing.discounted_price_amount
 
-    if (
-        price_amount is None
-        or discounted_price_amount is None
-        or price_amount == discounted_price_amount
-    ):
-        return False
+    any_catalogue_rule = rules_info is not None and len(rules_info) > 0
 
-    return True
+    return any_catalogue_rule
 
 
 def _get_rule_discount_amount(
@@ -493,6 +514,7 @@ def _get_defaults_for_gift_line(
 
 def get_variants_to_promotion_rules_map(
     variant_qs: "ProductVariantQueryset",
+    customer_group_qs=None,
 ) -> dict[int, list[PromotionRuleInfo]]:
     """Return map of variant ids to the list of promotion rules that can be applied.
 
@@ -519,6 +541,13 @@ def get_variants_to_promotion_rules_map(
         Exists(promotions.filter(id=OuterRef("promotion_id"))),
         Exists(promotion_rule_variants.filter(promotionrule_id=OuterRef("pk"))),
     )
+
+    if customer_group_qs:
+        rules.filter(
+            Q(customer_groups__isnull=True)
+            | Q(Exists(customer_group_qs.filter(id=OuterRef("customer_groups__id"))))
+        )
+
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 

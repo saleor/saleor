@@ -178,3 +178,14 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
         instance.save()
 
         cls.call_event(manager.customer_updated, instance)
+
+    @classmethod
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            add_customer_groups = cleaned_data.get("add_customer_groups")
+            if add_customer_groups:
+                instance.customer_groups.add(*add_customer_groups)
+            remove_customer_groups = cleaned_data.get("remove_customer_groups")
+            if remove_customer_groups:
+                instance.customer_groups.remove(*remove_customer_groups)
