@@ -89,16 +89,20 @@ def calculate_discounted_price_for_rules(
 
 def filter_public_rules(
     rules_info: list[PromotionRuleInfo] | None,
-) -> list[PromotionRuleInfo]:
+) -> tuple[list[PromotionRuleInfo], list[PromotionRuleInfo]]:
     """Filter out rules that are not public."""
     if not rules_info:
-        return []
+        return [], []
 
-    return [
-        rule_info
-        for rule_info in rules_info
-        if not rule_info.rule.customer_groups.exists()
-    ]
+    public_rules, customer_group_rules = [], []
+
+    for rule_info in rules_info:
+        if rule_info.rule.customer_groups.exists():
+            customer_group_rules.append(rule_info)
+        else:
+            public_rules.append(rule_info)
+
+    return public_rules, customer_group_rules
 
 
 def calculate_discounted_price_for_promotions(
@@ -107,16 +111,25 @@ def calculate_discounted_price_for_promotions(
     rules_info_per_variant: dict[int, list[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: int,
-) -> tuple[UUID, Money] | None:
+) -> tuple[tuple[UUID, Money] | None, list[tuple[UUID, Money]]]:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discount = None
-    rules_info_for_variant = filter_public_rules(rules_info_per_variant.get(variant_id))
+    public_rules, customer_group_rules = filter_public_rules(
+        rules_info_per_variant.get(variant_id)
+    )
 
-    if rules_info_for_variant:
-        applied_discount = get_best_promotion_discount(
-            price, rules_info_for_variant, channel
-        )
-    return applied_discount
+    if public_rules:
+        applied_discount = get_best_promotion_discount(price, public_rules, channel)
+
+    customer_group_discounts = get_product_promotion_discounts(
+        rules_info=customer_group_rules, channel=channel
+    )
+    customer_group_discounts = [
+        (rule_id, price - discount(price))
+        for rule_id, discount in customer_group_discounts
+    ]
+
+    return (applied_discount, customer_group_discounts)
 
 
 def get_best_promotion_discount(
