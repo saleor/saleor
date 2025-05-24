@@ -119,6 +119,7 @@ DATABASES = {
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
+        env="DATABASE_URL_REPLICA",
         default="postgres://saleor:saleor@localhost:5432/saleor",
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
