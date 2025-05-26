@@ -384,7 +384,7 @@ def test_parse_transaction_action_data_with_incorrect_result():
     assert parsed_data is None
     assert (
         error_msg
-        == f"Incorrect value ({response_data['result']}) for field: result. Error: Input should be '{TransactionEventType.REFUND_SUCCESS.upper()}' or '{TransactionEventType.REFUND_FAILURE.upper()}'."
+        == f"Missing or invalid value for `result`: {response_data['result']}. Possible values: {TransactionEventType.REFUND_SUCCESS.upper()}, {TransactionEventType.REFUND_FAILURE.upper()}."
     )
 
 
@@ -658,10 +658,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.transaction_id == transaction.id
-    error_msg = (
-        f"Providing `pspReference` is required for {result_event_type.upper()} "
-        "action result."
-    )
+    error_msg = f"Missing value for field: pspReference. Input: {response_data}."
     assert error_msg in event.message
     assert caplog.records[0].levelno == logging.WARNING
     assert error_msg in caplog.records[0].message
@@ -2447,11 +2444,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events_wit
     [
         (
             TransactionEventType.AUTHORIZATION_SUCCESS,
-            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS action result.",
+            "Missing value for field: pspReference.",
         ),
         (
             TransactionEventType.CHARGE_SUCCESS,
-            "Providing `pspReference` is required for CHARGE_SUCCESS action result.",
+            "Missing value for field: pspReference.",
         ),
         (
             TransactionEventType.CHARGE_FAILURE,
@@ -2459,11 +2456,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events_wit
         ),
         (
             TransactionEventType.CHARGE_REQUEST,
-            "Providing `pspReference` is required for CHARGE_REQUEST action result.",
+            "Missing value for field: pspReference.",
         ),
         (
             TransactionEventType.AUTHORIZATION_REQUEST,
-            "Providing `pspReference` is required for AUTHORIZATION_REQUEST action result.",
+            "Missing value for field: pspReference.",
         ),
     ],
 )
