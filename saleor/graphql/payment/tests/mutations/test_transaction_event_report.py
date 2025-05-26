@@ -3,11 +3,14 @@ from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
 
+import before_after
 import graphene
 import pytest
 import pytz
+from django.db import transaction as database_transaction
 from django.utils import timezone
 from freezegun import freeze_time
+from psycopg.errors import QueryCanceled
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
@@ -3309,3 +3312,79 @@ def test_transaction_event_report_empty_message(
     assert event.app == app_api_client.app
     assert event.user is None
     assert event.message == ""
+
+
+# transaction=True is required to ensure that the order is locked without it second context will not
+# be able to trying to acquire a lock on the order.
+@pytest.mark.django_db(transaction=True)
+def test_lock_order_during_updating_order_amounts(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    psp_reference = "111-abc"
+    amount = order.total.gross.amount
+    transaction = transaction_item_generator(
+        app=app_api_client.app,
+        order_id=order.pk,
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when & then
+    def check_if_order_is_locked(*args, **kwargs):
+        # This function will be called when the order amounts are being updated
+        # We will try to acquire a lock on the order row to check if it's locked.
+        cxn = database_transaction.get_connection()
+        new_cxn = cxn.get_new_connection(cxn.get_connection_params())
+        with new_cxn.cursor() as cursor:
+            cursor.execute("SET statement_timeout = 100")
+            with pytest.raises(QueryCanceled):
+                cursor.execute(
+                    """
+                    SELECT *
+                    FROM "order_order"
+                    WHERE "order_order"."id" = %s
+                    FOR UPDATE
+                    """,
+                    [order.pk],
+                )
+
+    with before_after.before(
+        "saleor.order.utils.update_order_charge_data",
+        check_if_order_is_locked,
+    ):
+        app_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_payments],
+            check_no_permissions=False,
+        )
