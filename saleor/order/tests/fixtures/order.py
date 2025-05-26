@@ -1089,11 +1089,11 @@ def preorders(orders, product):
             is_preorder=True,
             sku=f"Preorder product variant #{i + 1}",
         )
-        for i in range(3)
+        for i in range(4)
     ]
-    variants[0].preorder_end_date = timezone.now() + timedelta(days=1)
-    variants[1].preorder_end_date = timezone.now()
-    variants[2].preorder_end_date = timezone.now() - timedelta(days=1)
+    variants[1].preorder_end_date = timezone.now() + timedelta(days=1)
+    variants[2].preorder_end_date = timezone.now()
+    variants[3].preorder_end_date = timezone.now() - timedelta(days=1)
     ProductVariant.objects.bulk_create(variants)
 
     lines = [
