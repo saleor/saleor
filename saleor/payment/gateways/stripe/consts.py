@@ -1,5 +1,5 @@
 PLUGIN_ID = "saleor.payments.stripe"
-PLUGIN_NAME = "Stripe"
+PLUGIN_NAME = "Stripe (deprecated)"
 WEBHOOK_PATH = "webhooks/"
 
 WEBHOOK_SUCCESS_EVENT = "payment_intent.succeeded"
