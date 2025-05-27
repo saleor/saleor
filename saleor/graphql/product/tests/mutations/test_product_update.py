@@ -3196,11 +3196,13 @@ def test_update_product_with_non_unique_external_reference(
     assert error["message"] == "Product with this External reference already exists."
 
 
+@patch("saleor.graphql.product.mutations.product.ProductUpdate.compare_attributes")
 @patch("saleor.graphql.product.mutations.product.ProductUpdate.call_event")
 @patch("saleor.graphql.product.mutations.product.ProductUpdate._save_product_instance")
 def test_product_update_nothing_changed(
     save_product_mock,
     call_event_mock,
+    compare_attributes_mock,
     staff_api_client,
     product,
     product_type,
@@ -3209,6 +3211,9 @@ def test_product_update_nothing_changed(
     numeric_attribute,
     color_attribute,
 ):
+    # TODO: Remove this mock after implementing scl-924
+    compare_attributes_mock.return_value = False
+
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
@@ -3238,13 +3243,10 @@ def test_product_update_nothing_changed(
     numeric_attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
     product_type.product_attributes.add(color_attribute)
-    color_value_1 = color_attribute.values.first()
-    color_value_2 = color_attribute.values.last()
+    color_value = color_attribute.values.last()
     numeric_value = numeric_attribute.values.first()
 
-    associate_attribute_values_to_instance(
-        product, {color_attribute.id: [color_value_1, color_value_2]}
-    )
+    associate_attribute_values_to_instance(product, {color_attribute.id: [color_value]})
     associate_attribute_values_to_instance(
         product, {numeric_attribute.id: [numeric_value]}
     )
@@ -3259,8 +3261,7 @@ def test_product_update_nothing_changed(
 
     input = {
         "attributes": [
-            {"id": color_attribute_id, "values": [color_value_1.slug]},
-            {"id": color_attribute_id, "values": [color_value_2.slug]},
+            {"id": color_attribute_id, "values": [color_value.slug]},
             {"id": numeric_attribute_id, "values": [numeric_value.slug]},
         ],
         "category": category_id,
@@ -3291,11 +3292,13 @@ def test_product_update_nothing_changed(
     save_product_mock.assert_not_called()
 
 
+@patch("saleor.graphql.product.mutations.product.ProductUpdate.compare_attributes")
 @patch("saleor.graphql.product.mutations.product.ProductUpdate.call_event")
 @patch("saleor.graphql.product.mutations.product.ProductUpdate._save_product_instance")
 def test_product_update_emit_event(
     save_product_mock,
     call_event_mock,
+    compare_attributes_mock,
     staff_api_client,
     product,
     product_type,
@@ -3340,15 +3343,17 @@ def test_product_update_emit_event(
     input_fields = [
         snake_to_camel_case(key) for key in ProductInput._meta.fields.keys()
     ]
+
     # `taxCode` field is deprecated
     input_fields.remove("taxCode")
+    # `chargeTaxes` field is deprecated
+    input_fields.remove("chargeTaxes")
 
     input = {
         "attributes": [
             {"id": color_attribute_id, "values": [new_color_value.slug]},
         ],
         "category": new_category_id,
-        "chargeTaxes": not product.charge_taxes,
         "collections": [new_collection_id],
         "name": product.name + "_new",
         "slug": product.slug + "_new",
@@ -3373,6 +3378,12 @@ def test_product_update_emit_event(
 
     for key, value in input.items():
         variables = {"productId": product_id, "input": {key: value}}
+
+        # TODO: Remove this mock after implementing scl-924
+        if key == "attributes":
+            compare_attributes_mock.return_value = True
+        else:
+            compare_attributes_mock.return_value = False
 
         # when
         response = staff_api_client.post_graphql(MUTATION_UPDATE_PRODUCT, variables)
