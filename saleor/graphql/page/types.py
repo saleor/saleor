@@ -27,8 +27,10 @@ from .dataloaders import (
     PageAttributesVisibleInStorefrontByPageTypeIdLoader,
     PagesByPageTypeIdLoader,
     PageTypeByIdLoader,
+    SelectedAttributeAllByPageIdAttributeSlugLoader,
     SelectedAttributesAllByPageIdLoader,
     SelectedAttributesVisibleInStorefrontPageIdLoader,
+    SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader,
 )
 
 
@@ -199,30 +201,18 @@ class Page(ModelObjectType[models.Page]):
 
     @staticmethod
     def resolve_attribute(root: models.Page, info: ResolveInfo, slug: str):
-        def get_selected_attribute_by_slug(
-            attributes: list[SelectedAttribute],
-        ) -> SelectedAttribute | None:
-            return next(
-                (atr for atr in attributes if atr["attribute"].slug == slug),
-                None,
-            )
-
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return (
-                SelectedAttributesAllByPageIdLoader(info.context)
-                .load(root.id)
-                .then(get_selected_attribute_by_slug)
+            return SelectedAttributeAllByPageIdAttributeSlugLoader(info.context).load(
+                (root.id, slug)
             )
-        return (
-            SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
-            .load(root.id)
-            .then(get_selected_attribute_by_slug)
-        )
+        return SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(
+            info.context
+        ).load((root.id, slug))
 
 
 class PageCountableConnection(CountableConnection):
