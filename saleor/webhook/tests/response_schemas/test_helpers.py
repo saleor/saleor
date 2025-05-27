@@ -3,7 +3,7 @@ from pydantic import BaseModel, ValidationError
 from ...response_schemas.utils.helpers import parse_validation_error
 
 
-class TestSchema(BaseModel):
+class ExampleSchema(BaseModel):
     field1: int
     field2: str
 
@@ -14,7 +14,7 @@ def test_parse_validation_error_single_error():
 
     # when
     try:
-        TestSchema.model_validate(invalid_data)
+        ExampleSchema.model_validate(invalid_data)
     except ValidationError as error:
         error_msg = parse_validation_error(error)
 
@@ -30,7 +30,7 @@ def test_parse_validation_error_multiple_errors():
 
     # when
     try:
-        TestSchema.model_validate(invalid_data)
+        ExampleSchema.model_validate(invalid_data)
     except ValidationError as error:
         error_msg = parse_validation_error(error)
 
