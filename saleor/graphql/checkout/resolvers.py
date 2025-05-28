@@ -7,6 +7,7 @@ from ...permission.enums import (
     CheckoutPermissions,
     PaymentPermissions,
 )
+from ..channel.dataloaders import ChannelByIdLoader
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
@@ -42,29 +43,41 @@ def resolve_checkout(info, token, id):
     def with_checkout(checkout):
         if checkout is None:
             return None
-        # always return checkout for active channel
-        if checkout.channel.is_active:
-            return SyncWebhookControlContext(node=checkout, allow_sync_webhooks=True)
-        # resolve checkout for staff or app
-        if requester := get_user_or_app_from_context(info.context):
-            has_manage_checkout = requester.has_perm(
-                CheckoutPermissions.MANAGE_CHECKOUTS
-            )
-            has_impersonate_user = requester.has_perm(
-                AccountPermissions.IMPERSONATE_USER
-            )
-            has_handle_payments = requester.has_perm(PaymentPermissions.HANDLE_PAYMENTS)
-            if has_manage_checkout or has_impersonate_user or has_handle_payments:
+
+        def _with_channel(channel):
+            # always return checkout for active channel
+            if checkout.channel.is_active:
                 return SyncWebhookControlContext(
                     node=checkout, allow_sync_webhooks=True
                 )
+            # resolve checkout for staff or app
+            if requester := get_user_or_app_from_context(info.context):
+                has_manage_checkout = requester.has_perm(
+                    CheckoutPermissions.MANAGE_CHECKOUTS
+                )
+                has_impersonate_user = requester.has_perm(
+                    AccountPermissions.IMPERSONATE_USER
+                )
+                has_handle_payments = requester.has_perm(
+                    PaymentPermissions.HANDLE_PAYMENTS
+                )
+                if has_manage_checkout or has_impersonate_user or has_handle_payments:
+                    return SyncWebhookControlContext(
+                        node=checkout, allow_sync_webhooks=True
+                    )
 
-        raise PermissionDenied(
-            permissions=[
-                CheckoutPermissions.MANAGE_CHECKOUTS,
-                AccountPermissions.IMPERSONATE_USER,
-                PaymentPermissions.HANDLE_PAYMENTS,
-            ]
+            raise PermissionDenied(
+                permissions=[
+                    CheckoutPermissions.MANAGE_CHECKOUTS,
+                    AccountPermissions.IMPERSONATE_USER,
+                    PaymentPermissions.HANDLE_PAYMENTS,
+                ]
+            )
+
+        return (
+            ChannelByIdLoader(info.context)
+            .load(checkout.channel_id)
+            .then(_with_channel)
         )
 
     return CheckoutByTokenLoader(info.context).load(token).then(with_checkout)
