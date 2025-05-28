@@ -6634,10 +6634,16 @@ input AttributeInput @doc(category: "Attributes") {
   """Internal representation of an attribute name."""
   slug: String!
 
-  """Names of the values."""
+  """
+  Names corresponding to the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given names are returned.
+  
+  Added in Saleor 3.22.
+  """
   valueNames: [String!]
 
-  """Slugs of the values."""
+  """
+  Slugs identifying the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given slugs are returned.
+  """
   values: [String!]
 
   """The range that the returned values should be in."""

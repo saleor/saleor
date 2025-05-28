@@ -18,6 +18,7 @@ from ..core.connection import (
 )
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
+    ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -385,10 +386,15 @@ class SelectedAttribute(BaseObjectType):
 class AttributeInput(BaseInputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
     value_names = NonNullList(
-        graphene.String, required=False, description="Names of the values."
+        graphene.String,
+        required=False,
+        description="Names corresponding to the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given names are returned."
+        + ADDED_IN_322,
     )
     values = NonNullList(
-        graphene.String, required=False, description="Slugs of the values."
+        graphene.String,
+        required=False,
+        description="Slugs identifying the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given slugs are returned.",
     )
     values_range = graphene.Field(
         IntRangeInput,
