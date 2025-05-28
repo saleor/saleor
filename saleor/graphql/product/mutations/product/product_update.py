@@ -55,16 +55,22 @@ class ProductUpdate(ModelWithExtRefMutation):
     @classmethod
     def get_instance(cls, info, **data):
         """Prefetch related fields that are needed to process the mutation."""
-        # If we are updating an instance and want to update its attributes,
-        # prefetch them.
         object_id = cls.get_object_id(**data)
-        if object_id and data.get("attributes"):
-            # Prefetches needed by ProductAttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes__values",
-                "product_type__attributeproduct",
-            )
+        if object_id:
+            prefetch: list[str] = []
+            if data["input"].get("attributes"):
+                # Prefetches needed by ProductAttributeAssignmentMixin and
+                # associate_attribute_values_to_instance
+                prefetch.extend(
+                    (
+                        "product_type__product_attributes__values",
+                        "product_type__attributeproduct",
+                    )
+                )
+            if data["input"].get("collections"):
+                prefetch.append("collections")
+
+            qs = models.Product.objects.prefetch_related(*prefetch)
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
 
         return super().get_instance(info, **data)
