@@ -2489,11 +2489,17 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
 
         def _resolve_user_email(user):
             requester = get_user_or_app_from_context(info.context)
+            email_to_return = None
+            if order.user_email:
+                email_to_return = order.user_email
+            elif user:
+                email_to_return = user.email
+
             if order.use_old_id is False or is_owner_or_has_one_of_perms(
                 requester, user, OrderPermissions.MANAGE_ORDERS
             ):
-                return user.email if user else order.user_email
-            return obfuscate_email(user.email if user else order.user_email)
+                return email_to_return
+            return obfuscate_email(email_to_return)
 
         if not order.user_id:
             return _resolve_user_email(None)

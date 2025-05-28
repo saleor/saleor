@@ -4801,3 +4801,77 @@ def test_query_checkout_voucher_by_customer_no_permission(
 
     # then
     assert_no_permission(response)
+
+
+CHECKOUT_EMAIL_QUERY = """
+query getCheckout($id: ID) {
+    checkout(id: $id) {
+        email
+    }
+}
+"""
+
+
+def test_query_checkout_email_for_anonymous_user_without_email(
+    user_api_client,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.email = None
+    checkout.save(update_fields=["email", "user"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(CHECKOUT_EMAIL_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["email"] is None
+
+
+def test_query_checkout_email_for_anonymous_user(
+    user_api_client,
+    checkout_with_item,
+):
+    # given
+    expected_email = "expected@example.com"
+
+    checkout = checkout_with_item
+    assert checkout.user is None
+    checkout.email = expected_email
+    checkout.save(update_fields=["email"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(CHECKOUT_EMAIL_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["email"] == expected_email
+
+
+def test_query_checkout_email_with_explicit_email_for_authenticated_user(
+    user_api_client,
+    checkout_with_item,
+):
+    # given
+    expected_email = "expected@example.com"
+
+    checkout = checkout_with_item
+    checkout.user = user_api_client.user
+    checkout.email = expected_email
+    checkout.save(update_fields=["user", "email"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(CHECKOUT_EMAIL_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    # Return the email explicitly assigned to the user
+    assert content["data"]["checkout"]["email"] == expected_email
