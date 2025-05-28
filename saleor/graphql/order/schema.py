@@ -74,7 +74,9 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 
 
 def search_string_in_kwargs(kwargs: dict) -> bool:
-    filter_search = kwargs.get("filter", {}).get("search", "") or ""
+    filter_search = (
+        kwargs.get("filter", {}).get("search", "") or kwargs.get("search", "") or ""
+    )
     return bool(filter_search.strip())
 
 
