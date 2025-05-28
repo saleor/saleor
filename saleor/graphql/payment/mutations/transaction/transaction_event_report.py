@@ -13,10 +13,9 @@ from .....core.utils.events import call_event
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.fetch import fetch_order_info
-from .....order.search import update_order_search_vector
 from .....order.utils import (
     calculate_order_granted_refund_status,
-    updates_amounts_for_order,
+    updates_amounts_and_search_vector_for_order_with_lock,
 )
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment import models as payment_models
@@ -420,9 +419,8 @@ class TransactionEventReport(DeprecatedModelMutation):
             )
             if transaction.order_id:
                 order = cast(order_models.Order, transaction.order)
-                update_order_search_vector(order, save=False)
-                updates_amounts_for_order(order, save=False)
-                order.save(
+                order = updates_amounts_and_search_vector_for_order_with_lock(
+                    order,
                     update_fields=[
                         "total_charged_amount",
                         "charge_status",
@@ -430,7 +428,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                         "total_authorized_amount",
                         "authorize_status",
                         "search_vector",
-                    ]
+                    ],
                 )
                 order_info = fetch_order_info(order)
                 order_transaction_updated(
