@@ -10,7 +10,7 @@ from ...permission.enums import (
 )
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.models import Webhook, WebhookEvent
-from ...webhook.transport.utils import get_current_tax_app
+from ...webhook.transport.taxes import get_current_tax_app
 
 
 @pytest.fixture
