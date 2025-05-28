@@ -1,0 +1,50 @@
+{
+  "properties": {
+    "tax_rate": {
+      "anyOf": [
+        {
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Tax Rate"
+    },
+    "total_gross_amount": {
+      "anyOf": [
+        {
+          "maximum": 1e+17,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Total Gross Amount"
+    },
+    "total_net_amount": {
+      "anyOf": [
+        {
+          "maximum": 1e+17,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Total Net Amount"
+    }
+  },
+  "required": [
+    "tax_rate",
+    "total_gross_amount",
+    "total_net_amount"
+  ],
+  "title": "LineCalculateTaxesSchema",
+  "type": "object"
+}

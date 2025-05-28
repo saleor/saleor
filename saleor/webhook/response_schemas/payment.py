@@ -19,7 +19,6 @@ from ...payment.interface import (
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResult,
 )
-from ..transport.utils import to_payment_app_id
 from .utils.annotations import DefaultIfNone, EnumByName, OnErrorDefault, OnErrorSkip
 from .utils.validators import lower_values
 
@@ -156,6 +155,8 @@ class PaymentGatewayInitializeTokenizationSessionSchema(BaseModel):
 
 
 def clean_id(payment_method_id: str, info: ValidationInfo) -> str:
+    from ..transport.utils import to_payment_app_id
+
     app: App | None = info.context.get("app", None) if info.context else None
     if not app:
         raise RuntimeError("Missing app in context")

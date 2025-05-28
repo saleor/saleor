@@ -1,0 +1,35 @@
+{
+  "properties": {
+    "pspReference": {
+      "description": "Psp reference received from payment provider.",
+      "title": "Pspreference",
+      "type": "string"
+    },
+    "actions": {
+      "anyOf": [
+        {
+          "description": "List of actions available for the transaction.",
+          "items": {
+            "enum": [
+              "CHARGE",
+              "REFUND",
+              "CANCEL"
+            ],
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Actions"
+    }
+  },
+  "required": [
+    "pspReference"
+  ],
+  "title": "TransactionCancelRequestedAsyncSchema",
+  "type": "object"
+}

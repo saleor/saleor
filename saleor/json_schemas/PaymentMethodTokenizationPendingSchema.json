@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "properties": {
+    "id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "ID of the payment method.",
+      "title": "Id"
+    },
+    "result": {
+      "const": "PENDING",
+      "description": "Result of the payment method tokenization.",
+      "title": "Result",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/JsonValue",
+      "default": null,
+      "description": "A data passes to the client."
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "title": "PaymentMethodTokenizationPendingSchema",
+  "type": "object"
+}

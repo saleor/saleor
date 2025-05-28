@@ -1,0 +1,32 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "properties": {
+    "id": {
+      "description": "ID of the payment method.",
+      "title": "Id",
+      "type": "string"
+    },
+    "result": {
+      "description": "Result of the payment method tokenization.",
+      "enum": [
+        "SUCCESSFULLY_TOKENIZED",
+        "ADDITIONAL_ACTION_REQUIRED"
+      ],
+      "title": "Result",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/JsonValue",
+      "default": null,
+      "description": "A data passes to the client."
+    }
+  },
+  "required": [
+    "id",
+    "result"
+  ],
+  "title": "PaymentMethodTokenizationSuccessSchema",
+  "type": "object"
+}

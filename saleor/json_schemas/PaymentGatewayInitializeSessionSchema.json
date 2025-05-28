@@ -1,0 +1,15 @@
+{
+  "$defs": {
+    "JsonValue": {}
+  },
+  "properties": {
+    "data": {
+      "$ref": "#/$defs/JsonValue"
+    }
+  },
+  "required": [
+    "data"
+  ],
+  "title": "PaymentGatewayInitializeSessionSchema",
+  "type": "object"
+}
