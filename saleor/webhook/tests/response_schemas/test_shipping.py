@@ -97,7 +97,7 @@ def decode_id(id):
 def test_shipping_method_schema_valid(data, app):
     # when
     shipping_method_model = ShippingMethodSchema.model_validate(
-        data, context={"app": app}
+        data, context={"app": app, "currency": data["currency"]}
     )
 
     # then
@@ -130,7 +130,7 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata, app):
 
     # when
     shipping_method_model = ShippingMethodSchema.model_validate(
-        data, context={"app": app}
+        data, context={"app": app, "currency": data["currency"]}
     )
 
     # then
@@ -145,99 +145,156 @@ def test_shipping_method_schema_invalid_metadata_skipped(metadata, app):
 
 
 @pytest.mark.parametrize(
-    "data",
+    ("data", "invalid_field"),
     [
         # Missing required fields - missing id
-        {
-            "name": "Standard Shipping",
-            "amount": Decimal("10.00"),
-            "currency": "USD",
-        },
+        (
+            {
+                "name": "Standard Shipping",
+                "amount": Decimal("10.00"),
+                "currency": "USD",
+            },
+            "id",
+        ),
         # Missing required fields - missing name
-        {
-            "id": 0,
-            "amount": Decimal("10.00"),
-            "currency": "USD",
-        },
+        (
+            {
+                "id": 0,
+                "amount": Decimal("10.00"),
+                "currency": "USD",
+            },
+            "name",
+        ),
         # Missing required fields - missing amount
-        {
-            "id": 0,
-            "name": "Standard Shipping",
-            "currency": "USD",
-        },
+        (
+            {
+                "id": 0,
+                "name": "Standard Shipping",
+                "currency": "USD",
+            },
+            "amount",
+        ),
+        # Missing required fields - missing currency
+        (
+            {
+                "id": 0,
+                "amount": Decimal("10.00"),
+                "name": "Standard Shipping",
+            },
+            "currency",
+        ),
         # Invalid type for "id"
-        {
-            "id": {"invalid": "dict"},
-            "name": "Standard Shipping",
-            "amount": Decimal("10.00"),
-            "currency": "USD",
-        },
+        (
+            {
+                "id": {"invalid": "dict"},
+                "name": "Standard Shipping",
+                "amount": Decimal("10.00"),
+                "currency": "USD",
+            },
+            "id",
+        ),
         # Invalid type for "amount"
-        {
-            "id": "1",
-            "name": "Standard Shipping",
-            "amount": "invalid_amount",
-            "currency": "USD",
-        },
+        (
+            {
+                "id": "1",
+                "name": "Standard Shipping",
+                "amount": "invalid_amount",
+                "currency": "USD",
+            },
+            "amount",
+        ),
         # Negative value for "amount"
-        {
-            "id": "2",
-            "name": "Express Shipping",
-            "amount": Decimal("-10.00"),
-            "currency": "USD",
-        },
+        (
+            {
+                "id": "2",
+                "name": "Express Shipping",
+                "amount": Decimal("-10.00"),
+                "currency": "USD",
+            },
+            "amount",
+        ),
         # Invalid type for "maximum_delivery_days"
-        {
-            "id": "5",
-            "name": "International Shipping",
-            "amount": Decimal("30.00"),
-            "currency": "USD",
-            "maximum_delivery_days": "invalid_days",
-        },
+        (
+            {
+                "id": "5",
+                "name": "International Shipping",
+                "amount": Decimal("30.00"),
+                "currency": "USD",
+                "maximum_delivery_days": "invalid_days",
+            },
+            "maximum_delivery_days",
+        ),
         # Invalid type for "minimum_delivery_days"
-        {
-            "id": "5",
-            "name": "International Shipping",
-            "amount": Decimal("30.00"),
-            "currency": "USD",
-            "minimum_delivery_days": "invalid_days",
-        },
+        (
+            {
+                "id": "5",
+                "name": "International Shipping",
+                "amount": Decimal("30.00"),
+                "currency": "USD",
+                "minimum_delivery_days": "invalid_days",
+            },
+            "minimum_delivery_days",
+        ),
         # Negative value for "maximum_delivery_days"
-        {
-            "id": 6,
-            "name": "Economy Shipping",
-            "amount": Decimal("5.00"),
-            "currency": "USD",
-            "maximum_delivery_days": -1,
-        },
+        (
+            {
+                "id": 6,
+                "name": "Economy Shipping",
+                "amount": Decimal("5.00"),
+                "currency": "USD",
+                "maximum_delivery_days": -1,
+            },
+            "maximum_delivery_days",
+        ),
         # Negative value for "minimum_delivery_days"
-        {
-            "id": 6,
-            "name": "Economy Shipping",
-            "amount": Decimal("5.00"),
-            "currency": "USD",
-            "minimum_delivery_days": -1,
-        },
+        (
+            {
+                "id": 6,
+                "name": "Economy Shipping",
+                "amount": Decimal("5.00"),
+                "currency": "USD",
+                "minimum_delivery_days": -1,
+            },
+            "minimum_delivery_days",
+        ),
         # Name exceeds max length
-        {
-            "id": 7,
-            "name": "A" * 300,
-            "amount": Decimal("15.00"),
-            "currency": "USD",
-        },
+        (
+            {
+                "id": 7,
+                "name": "A" * 300,
+                "amount": Decimal("15.00"),
+                "currency": "USD",
+            },
+            "name",
+        ),
+        # Currency mismatch
+        (
+            {
+                "id": 0,
+                "amount": Decimal("10.00"),
+                "name": "Standard Shipping",
+                "currency": "PLN",
+            },
+            "currency",
+        ),
     ],
 )
-def test_shipping_method_schema_invalid(data, app):
-    with pytest.raises(ValidationError) as e:
-        ShippingMethodSchema.model_validate(data, context={"app": app})
+def test_shipping_method_schema_invalid(data, app, invalid_field):
+    with pytest.raises(ValidationError) as exc_info:
+        ShippingMethodSchema.model_validate(
+            data, context={"app": app, "currency": "USD"}
+        )
 
-    assert len(e.value.errors()) == 1
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == (invalid_field,)
 
 
 @pytest.mark.parametrize("data", [None, []])
 def test_list_shipping_methods_schema_skipped_values(data, app):
     # when
-    list_methods = ListShippingMethodsSchema.model_validate(data, context={"app": app})
+    list_methods = ListShippingMethodsSchema.model_validate(
+        data, context={"app": app, "currency": "USD"}
+    )
 
     # Then the root should be an empty list
     assert list_methods.root == []
@@ -262,18 +319,26 @@ def test_list_shipping_methods_schema_invalid_element_skipped(mocked_logger, app
             "id": "2",
             "name": "Express Shipping",
             "amount": "invalid_amount",  # Invalid amount
-            "currency": "EUR",
+            "currency": "USD",
+        },
+        {
+            "id": "2",
+            "name": "Express Shipping",
+            "amount": Decimal("10.00"),
+            "currency": "PLN",  # Currency mismatch
         },
     ]
 
     # when
-    schema = ListShippingMethodsSchema.model_validate(data, context={"app": app})
+    schema = ListShippingMethodsSchema.model_validate(
+        data, context={"app": app, "currency": "USD"}
+    )
 
     # then only the valid shipping method should be included
     assert len(schema.root) == 1
     assert schema.root[0].id == to_shipping_app_id(app, data[0]["id"])
     assert schema.root[0].name == data[0]["name"]
-    assert mocked_logger.call_count == 1
+    assert mocked_logger.call_count == 2
 
 
 @pytest.mark.parametrize(

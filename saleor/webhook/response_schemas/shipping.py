@@ -48,6 +48,20 @@ class ShippingMethodSchema(BaseModel):
             raise RuntimeError("Missing app in context")
         return to_shipping_app_id(app, shipping_method_id)
 
+    @field_validator("currency", mode="before")
+    @classmethod
+    def clean_currency(cls, value: str, info: ValidationInfo) -> str:
+        currency: str | None = (
+            info.context.get("currency", None) if info.context else None
+        )
+        if not currency:
+            raise ValueError("Missing currency in context")
+        if value != currency:
+            error_msg = "ShippingMethod currency mismatch: expected %s, got %s"
+            logger.warning(error_msg, currency, value, extra={"value": value})
+            raise ValueError(error_msg % (currency, value))
+        return value.upper()
+
 
 class ListShippingMethodsSchema(RootModel):
     root: DefaultIfNone[list[OnErrorSkip[ShippingMethodSchema]]] = []

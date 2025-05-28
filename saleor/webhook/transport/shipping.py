@@ -28,13 +28,14 @@ logger = logging.getLogger(__name__)
 
 
 def parse_list_shipping_methods_response(
-    response_data: Any, app: "App"
+    response_data: Any, app: "App", object_currency: str
 ) -> list["ShippingMethodData"]:
     try:
         list_shipping_method_model = ListShippingMethodsSchema.model_validate(
             response_data,
             context={
                 "app": app,
+                "currency": object_currency,
                 "custom_message": "Skipping invalid shipping method (ListShippingMethodsSchema)",
             },
         )

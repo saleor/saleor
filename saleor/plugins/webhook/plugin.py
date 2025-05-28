@@ -3595,7 +3595,7 @@ class WebhookPlugin(BasePlugin):
 
                 if response_data:
                     shipping_methods = parse_list_shipping_methods_response(
-                        response_data, webhook.app
+                        response_data, webhook.app, checkout.currency
                     )
                     methods.extend(shipping_methods)
         return methods
