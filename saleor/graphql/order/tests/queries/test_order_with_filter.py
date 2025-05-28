@@ -1360,3 +1360,52 @@ def test_order_query_with_filter_checkout_tokens_empty_list(
     assert len(order_data) == len(orders_from_checkout + [order])
     for o in orders_from_checkout + [order]:
         assert {"node": {"id": graphene.Node.to_global_id("Order", o.pk)}} in order_data
+
+
+def test_order_query_with_filter_search_and_search_on_top_level(
+    staff_api_client,
+    permission_group_manage_orders,
+    orders,
+    customer_user,
+):
+    # given
+    query = """
+        query ($search: String, $filter: OrderFilterInput!) {
+            orders(first: 10, search: $search, filter: $filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    variables = {
+        "search": "test",
+        "filter": {
+            "search": "Saleor",
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    customer_user.first_name = "Search test Saleor"
+    customer_user.save()
+    for order in orders[:2]:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(orders, ["search_vector"])
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"]
+    assert len(order_data) == 2
+    assert all(
+        edge["node"]["id"]
+        in {graphene.Node.to_global_id("Order", order.pk) for order in orders[:2]}
+        for edge in order_data
+    )

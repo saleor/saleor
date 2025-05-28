@@ -16,7 +16,7 @@ from .....order.search import (
 from .....payment import ChargeStatus
 from .....payment.models import Payment
 from ....payment.enums import PaymentChargeStatusEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 ORDERS_WHERE_QUERY = """
     query($where: OrderWhereInput!, $search: String) {
@@ -1293,3 +1293,43 @@ def test_order_filter_with_search_and_charge_status(
         str(order_full_charge_1.number),
         str(order_full_charge_2.number),
     }
+
+
+def test_order_query_with_filter_and_where(
+    staff_api_client,
+    permission_group_manage_orders,
+    orders,
+):
+    # given
+    query = """
+        query ($where: OrderWhereInput!, $filter: OrderFilterInput!) {
+            orders(first: 10, where: $where, filter: $filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    variables = {
+        "where": {
+            "status": {
+                "eq": OrderStatus.UNFULFILLED.upper(),
+            },
+        },
+        "filter": {
+            "search": "test",
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    error_message = "Only one filtering argument (filter or where) can be specified."
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert content["errors"][0]["message"] == error_message
+    assert not content["data"]["orders"]
