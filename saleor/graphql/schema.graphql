@@ -783,7 +783,11 @@ type Query {
     """Filtering options for orders."""
     filter: OrderFilterInput
 
-    """Where filtering options for draft orders."""
+    """
+    Where filtering options for draft orders.
+    
+    Added in Saleor 3.22.
+    """
     where: OrderWhereInput
 
     """Slug of a channel for which the data should be returned."""

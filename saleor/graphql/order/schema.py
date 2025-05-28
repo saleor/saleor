@@ -13,7 +13,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import DEFAULT_DEPRECATION_REASON
+from ..core.descriptions import ADDED_IN_322, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -123,7 +123,9 @@ class OrderQueries(graphene.ObjectType):
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
-        where=OrderWhereInput(description="Where filtering options for draft orders."),
+        where=OrderWhereInput(
+            description="Where filtering options for draft orders." + ADDED_IN_322
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
