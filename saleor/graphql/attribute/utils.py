@@ -124,7 +124,7 @@ class AttributeAssignmentMixin:
         nodes: list[attribute_models.Attribute] = list(
             qs.filter(
                 Q(pk__in=pks) | Q(external_reference__in=external_references)
-            ).iterator()
+            ).iterator(chunk_size=1000)
         )
 
         if not nodes:

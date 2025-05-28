@@ -24,7 +24,7 @@ def generate_and_set_variant_name(
         assignment__attribute__type=AttributeType.PRODUCT_TYPE,
     )
     attribute_rel: AssignedVariantAttribute
-    for attribute_rel in variant_selection_attributes.iterator():
+    for attribute_rel in variant_selection_attributes.iterator(chunk_size=1000):
         values_qs = attribute_rel.values.all()
         attributes_display.append(", ".join([str(value) for value in values_qs]))
 
@@ -58,7 +58,7 @@ def fetch_variants_for_promotion_rules(rules: QuerySet[PromotionRule]):
 
     PromotionRuleVariant = PromotionRule.variants.through
     new_rules_variants = []
-    for rule in rules.iterator():
+    for rule in rules.iterator(chunk_size=1000):
         variants = get_variants_for_catalogue_predicate(
             rule.catalogue_predicate,
             database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,

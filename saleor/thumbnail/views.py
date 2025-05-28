@@ -95,11 +95,11 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
 
     try:
         if object_type in UUID_IDENTIFIABLE_TYPES:
-            instance = model_data.model.objects.using(  # type: ignore[misc]
+            instance = model_data.model.objects.using(
                 settings.DATABASE_CONNECTION_REPLICA_NAME
-            ).get(uuid=pk)
+            ).get(uuid=pk)  # type: ignore[misc]
         else:
-            instance = model_data.model.objects.using(  # type: ignore[misc]
+            instance = model_data.model.objects.using(
                 settings.DATABASE_CONNECTION_REPLICA_NAME
             ).get(id=pk)
     except ObjectDoesNotExist:

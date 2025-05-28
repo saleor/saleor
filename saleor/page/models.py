@@ -33,7 +33,7 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
     content = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
-    objects = PageManager()  # type: ignore[assignment,misc]
+    objects = PageManager()  # type: ignore[misc]
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)

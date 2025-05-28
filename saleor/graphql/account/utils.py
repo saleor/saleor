@@ -110,7 +110,7 @@ def get_group_permission_codes(group: Group) -> "QuerySet":
     """Return group permissions in the format '<app label>.<permission codename>'."""
     return group.permissions.annotate(
         formatted_codename=Concat("content_type__app_label", Value("."), "codename")
-    ).values_list("formatted_codename", flat=True)  # type: ignore[misc]
+    ).values_list("formatted_codename", flat=True)
 
 
 def get_groups_which_user_can_manage(
@@ -131,7 +131,7 @@ def get_groups_which_user_can_manage(
     )
 
     editable_groups: list[Group] = []
-    for group in groups.iterator():
+    for group in groups.iterator(chunk_size=1000):
         out_of_scope_permissions = set(group.group_perms) - user_permission_pks
         out_of_scope_permissions.discard(None)
         if not out_of_scope_permissions:
@@ -207,7 +207,7 @@ def get_not_manageable_permissions_after_removing_users_from_group(
     After removing users from group, for each permission, there should be at least
     one staff member who can manage it (has both “manage staff” and this permission).
     """
-    group_users = group.user_set.all()  # type: ignore[attr-defined]
+    group_users = group.user_set.all()
     group_permissions = group.permissions.values_list("codename", flat=True)
     # if group has manage_staff permission and some users will stay in group
     # given users can me removed (permissions will be manageable)
@@ -293,8 +293,9 @@ def get_group_to_permissions_and_users_mapping():
                     "permissions__codename",
                 ),
                 filter=Q(permissions__isnull=False),
+                default=[],
             ),
-            users=ArrayAgg("user", filter=Q(user__is_active=True)),
+            users=ArrayAgg("user", filter=Q(user__is_active=True), default=[]),
         )
         .values("pk", "perm_codenames", "users")
     )

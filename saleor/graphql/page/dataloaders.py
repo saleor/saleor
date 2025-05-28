@@ -114,7 +114,7 @@ class BaseAttributeValuesByPageIdLoader(DataLoader[int, list[dict]]):
         attribute_values = list(
             AssignedPageAttributeValue.objects.using(self.database_connection_name)
             .filter(page_id__in=keys)
-            .iterator()
+            .iterator(chunk_size=1000)
         )
         value_ids = [a.value_id for a in attribute_values]
 

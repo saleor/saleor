@@ -254,6 +254,10 @@ def _create_order_line_discount_for_catalogue_promotion(
     line: OrderLine, rule_info: VariantPromotionRuleInfo, channel: Channel
 ):
     rule = rule_info.rule
+    if rule.reward_value_type is None or rule.reward_value is None:
+        raise ValueError(
+            "Reward value type and reward value cannot be NULL for catalogue promotions."
+        )
     rule_discount_amount = _get_rule_discount_amount(line, rule_info, channel)
     discount_name = get_discount_name(rule, rule_info.promotion)
     translated_name = get_discount_translated_name(rule_info)
