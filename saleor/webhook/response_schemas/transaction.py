@@ -224,18 +224,18 @@ class TransactionChargeRequestedSyncFailureSchema(TransactionSyncFailureSchema):
     ]
 
 
-class TransactionCancelRequestedAsyncSchema(TransactionAsyncSchema):
+class TransactionCancelationRequestedAsyncSchema(TransactionAsyncSchema):
     pass
 
 
-class TransactionCancelRequestedSyncSuccessSchema(TransactionSyncSuccessSchema):
+class TransactionCancelationRequestedSyncSuccessSchema(TransactionSyncSuccessSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[TransactionEventTypeEnum.CANCEL_SUCCESS.name,],
         Field(description="Result of the action"),
     ]
 
 
-class TransactionCancelRequestedSyncFailureSchema(TransactionSyncFailureSchema):
+class TransactionCancelationRequestedSyncFailureSchema(TransactionSyncFailureSchema):
     result: Annotated[  # type: ignore[name-defined]
         Literal[TransactionEventTypeEnum.CANCEL_FAILURE.name,],
         Field(description="Result of the action"),

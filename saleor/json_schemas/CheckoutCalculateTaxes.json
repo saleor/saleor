@@ -5,7 +5,6 @@
         "tax_rate": {
           "anyOf": [
             {
-              "maximum": 100.0,
               "minimum": 0.0,
               "type": "number"
             },
@@ -55,7 +54,6 @@
     "shipping_tax_rate": {
       "anyOf": [
         {
-          "maximum": 100.0,
           "minimum": 0.0,
           "type": "number"
         },
