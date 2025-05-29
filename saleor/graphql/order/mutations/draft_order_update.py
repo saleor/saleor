@@ -10,6 +10,7 @@ from ....core.utils.update_mutation_manager import InstanceTracker
 from ....discount.models import VoucherCode
 from ....discount.utils.voucher import (
     create_or_update_voucher_discount_objects_for_order,
+    get_customer_email_for_voucher_usage,
     increase_voucher_usage,
     release_voucher_code_usage,
 )
@@ -314,9 +315,7 @@ class DraftOrderUpdate(
         create_or_update_voucher_discount_objects_for_order(instance)
 
         # handle voucher usage
-        user_email = instance.user_email
-        if not user_email and instance.user:
-            user_email = instance.user.email
+        user_email = get_customer_email_for_voucher_usage(instance)
 
         channel = instance.channel
         if not channel.include_draft_order_in_voucher_usage:
@@ -333,7 +332,9 @@ class DraftOrderUpdate(
         elif old_voucher:
             # handle removing voucher
             voucher_code = VoucherCode.objects.filter(code=old_voucher_code).first()
-            release_voucher_code_usage(voucher_code, old_voucher, user_email)
+            # user_email is None as we do not have anything to release in terms of
+            # apply once per customer
+            release_voucher_code_usage(voucher_code, old_voucher, user_email=None)
 
     @classmethod
     def handle_shipping(cls, cleaned_input, instance: models.Order, manager):
