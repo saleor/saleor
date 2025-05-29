@@ -6649,14 +6649,14 @@ input AttributeInput @doc(category: "Attributes") {
   slug: String!
 
   """
-  Names corresponding to the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given names are returned.
+  Names corresponding to the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values.
   
   Added in Saleor 3.22.
   """
   valueNames: [String!]
 
   """
-  Slugs identifying the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given slugs are returned.
+  Slugs identifying the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values.
   """
   values: [String!]
 

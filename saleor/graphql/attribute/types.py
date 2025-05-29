@@ -380,13 +380,21 @@ class AttributeInput(BaseInputObjectType):
     value_names = NonNullList(
         graphene.String,
         required=False,
-        description="Names corresponding to the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given names are returned."
+        description=(
+            "Names corresponding to the attributeValues associated with the Attribute. "
+            "When specified, it filters the results to include only records with "
+            "one of the matching values."
+        )
         + ADDED_IN_322,
     )
     values = NonNullList(
         graphene.String,
         required=False,
-        description="Slugs identifying the attributeValues associated with the Attribute. When specified, only attributes containing one or more attributeValues with the given slugs are returned.",
+        description=(
+            "Slugs identifying the attributeValues associated with the Attribute. "
+            "When specified, it filters the results to include only records with "
+            "one of the matching values."
+        ),
     )
     values_range = graphene.Field(
         IntRangeInput,
