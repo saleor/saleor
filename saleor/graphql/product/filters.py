@@ -74,7 +74,7 @@ from ..utils.filters import (
     filter_range_field,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
-    filter_where_by_string_field,
+    filter_where_by_value_field,
     filter_where_range_field,
 )
 from ..warehouse import types as warehouse_types
@@ -1201,11 +1201,11 @@ class ProductWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_product_name(qs, _, value):
-        return filter_where_by_string_field(qs, "name", value)
+        return filter_where_by_value_field(qs, "name", value)
 
     @staticmethod
     def filter_product_slug(qs, _, value):
-        return filter_where_by_string_field(qs, "slug", value)
+        return filter_where_by_value_field(qs, "slug", value)
 
     @staticmethod
     def filter_product_type(qs, _, value):

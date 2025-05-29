@@ -783,8 +783,22 @@ type Query {
     """Filtering options for orders."""
     filter: OrderFilterInput
 
+    """
+    Where filtering options for draft orders.
+    
+    Added in Saleor 3.22.
+    """
+    where: OrderWhereInput
+
     """Slug of a channel for which the data should be returned."""
     channel: String
+
+    """
+    Search orders.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -12757,6 +12771,122 @@ enum OrderStatusFilter @doc(category: "Orders") {
   PARTIALLY_FULFILLED
   FULFILLED
   CANCELED
+}
+
+input OrderWhereInput @doc(category: "Orders") {
+  ids: [ID!]
+
+  """Filter by order number."""
+  number: IntFilterInput
+
+  """Filter by channel."""
+  channelId: GlobalIDFilterInput
+
+  """Filter order by created at date."""
+  createdAt: DateTimeFilterInput
+
+  """Filter order by updated at date."""
+  updatedAt: DateTimeFilterInput
+
+  """Filter by user."""
+  user: GlobalIDFilterInput
+
+  """Filter by user email."""
+  userEmail: StringFilterInput
+
+  """Filter by payment status."""
+  paymentStatus: PaymentStatusEnumFilterInput
+
+  """Filter by authorize status."""
+  authorizeStatus: OrderAuthorizeStatusEnumFilterInput
+
+  """Filter by charge status."""
+  chargeStatus: OrderChargeStatusEnumFilterInput
+
+  """Filter by order status."""
+  status: OrderStatusEnumFilterInput
+
+  """Filter by checkout token."""
+  checkoutToken: UUIDFilterInput
+
+  """Filter by checkout id."""
+  checkoutId: GlobalIDFilterInput
+
+  """
+  Filter by whether the order uses the click and collect delivery method.
+  """
+  isClickAndCollect: Boolean
+
+  """Filter by whether the order contains preorder items."""
+  isPreorder: Boolean
+
+  """Filter based on whether a gift card was used in the order."""
+  isGiftCardUsed: Boolean
+
+  """Filter based on whether the order includes a gift card purchase."""
+  isGiftCardBought: Boolean
+
+  """List of conditions that must be met."""
+  AND: [OrderWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [OrderWhereInput!]
+}
+
+"""Define the filtering options for integer fields."""
+input IntFilterInput {
+  """The value equal to."""
+  eq: Int
+
+  """The value included in."""
+  oneOf: [Int!]
+
+  """The value in range."""
+  range: IntRangeInput
+}
+
+input PaymentStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: PaymentChargeStatusEnum
+
+  """The value included in."""
+  oneOf: [PaymentChargeStatusEnum!]
+}
+
+"""Filter by authorize status."""
+input OrderAuthorizeStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderAuthorizeStatusEnum
+
+  """The value included in."""
+  oneOf: [OrderAuthorizeStatusEnum!]
+}
+
+"""Filter by charge status."""
+input OrderChargeStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderChargeStatusEnum
+
+  """The value included in."""
+  oneOf: [OrderChargeStatusEnum!]
+}
+
+"""Filter by order status."""
+input OrderStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: OrderStatus
+
+  """The value included in."""
+  oneOf: [OrderStatus!]
+}
+
+"""Define the filtering options for string fields."""
+input UUIDFilterInput {
+  """The value equal to."""
+  eq: UUID
+
+  """The value included in."""
+  oneOf: [UUID!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
