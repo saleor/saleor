@@ -31,6 +31,26 @@ class MetricType(Enum):
     HISTOGRAM = "histogram"
 
 
+DEFAULT_DURATION_BUCKETS = [
+    0.01,  # 10ms
+    0.025,  # 25ms
+    0.05,  # 50ms
+    0.1,  # 100ms
+    0.2,  # 200ms
+    0.3,  # 300ms
+    0.4,  # 400ms
+    0.6,  # 600ms
+    0.8,  # 800ms
+    1,  # 1s
+    1.5,  # 1.5s
+    2.5,  # 2.5s
+    4,  # 4s
+    7,  # 7s
+    18,  # 18s
+    30,  # 30s
+]
+
+
 def get_instrument_method(
     instrument: Synchronous,
 ) -> Callable[[Amount, Attributes], None]:

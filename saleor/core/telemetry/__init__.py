@@ -4,7 +4,7 @@ from typing import Any
 from django.conf import settings
 from opentelemetry.util.types import Attributes
 
-from .metric import Meter, MeterProxy, MetricType
+from .metric import DEFAULT_DURATION_BUCKETS, Meter, MeterProxy, MetricType
 from .trace import Link, SpanKind, Tracer, TracerProxy
 from .utils import (
     Scope,
@@ -63,4 +63,5 @@ __all__ = [
     "TelemetryTaskContext",
     "task_with_telemetry_context",
     "get_task_context",
+    "DEFAULT_DURATION_BUCKETS",
 ]
