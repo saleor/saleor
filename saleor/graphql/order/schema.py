@@ -131,7 +131,7 @@ class OrderQueries(graphene.ObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        search=graphene.String(description="Search orders."),
+        search=graphene.String(description="Search orders." + ADDED_IN_322),
         description=(
             "List of orders. The query will not initiate any external requests, "
             "including filtering available shipping methods, or performing external "

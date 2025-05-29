@@ -793,7 +793,11 @@ type Query {
     """Slug of a channel for which the data should be returned."""
     channel: String
 
-    """Search orders."""
+    """
+    Search orders.
+    
+    Added in Saleor 3.22.
+    """
     search: String
 
     """Return the elements in the list that come before the specified cursor."""
