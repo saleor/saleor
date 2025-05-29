@@ -8375,7 +8375,13 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
     languageCode: LanguageCodeEnum!
   ): PageTranslation
 
-  """List of attributes assigned to this product."""
+  """Get a single attribute attached to page by attribute slug."""
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute
+
+  """List of attributes assigned to this page."""
   attributes: [SelectedAttribute!]!
 }
 

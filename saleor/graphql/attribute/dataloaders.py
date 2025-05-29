@@ -12,7 +12,7 @@ class AttributeValuesByAttributeIdLoader(DataLoader[int, list[AttributeValue]]):
             self.database_connection_name
         ).filter(attribute_id__in=keys)
         attribute_to_attributevalues = defaultdict(list)
-        for attribute_value in attribute_values.iterator():
+        for attribute_value in attribute_values.iterator(chunk_size=1000):
             attribute_to_attributevalues[attribute_value.attribute_id].append(
                 attribute_value
             )

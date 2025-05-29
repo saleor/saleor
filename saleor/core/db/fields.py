@@ -40,6 +40,7 @@ class NonDatabaseFieldBase:
     blank = True
     concrete = False
     editable = False
+    generated = True
     unique = False
 
     is_relation = False

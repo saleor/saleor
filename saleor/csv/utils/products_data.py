@@ -145,7 +145,7 @@ def prepare_products_relations_data(
 
     relations_data = queryset.values(*fields)
 
-    for data in relations_data.iterator():
+    for data in relations_data.iterator(chunk_size=1000):
         pk = data.get("pk")
         collection = data.get("collections__slug")
         image = data.pop("media__image", None)
@@ -184,7 +184,7 @@ def prepare_products_relations_data(
         )
         fields_for_attrs.update(attribute_fields.values())
         relations_data = relations_data.values(*fields_for_attrs)
-        for data in relations_data.iterator():
+        for data in relations_data.iterator(chunk_size=1000):
             pk = data.get("pk")
             result_data, data = handle_attribute_data(
                 pk,
@@ -251,7 +251,7 @@ def prepare_variants_relations_data(
 
     relations_data = queryset.values(*fields)
 
-    for data in relations_data.iterator():
+    for data in relations_data.iterator(chunk_size=1000):
         pk = data.get("variants__pk")
         image = data.pop("variants__media__image", None)
 

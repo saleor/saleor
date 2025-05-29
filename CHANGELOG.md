@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
+- Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 
 ### Webhooks
 
