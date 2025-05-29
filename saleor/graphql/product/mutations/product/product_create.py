@@ -3,10 +3,8 @@ from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
-from .....core.utils.editorjs import clean_editor_js
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.error_codes import ProductErrorCode
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
 from ....channel import ChannelContext
@@ -20,11 +18,12 @@ from ....core.fields import JSONString
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
-from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
+from ....core.validators import clean_seo_fields
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from ..utils import clean_tax_code
+from . import product_cleaner as cleaner
 
 
 class ProductInput(BaseInputObjectType):
@@ -137,66 +136,36 @@ class ProductCreate(DeprecatedModelMutation):
         support_private_meta_field = True
 
     @classmethod
-    def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
-    ) -> T_INPUT_MAP:
-        attributes_qs = product_type.product_attributes.all()
-        attributes = ProductAttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs
-        )
-        return attributes
-
-    @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        if "description" in cleaned_input:
-            description = cleaned_input["description"]
-            cleaned_input["description_plaintext"] = (
-                clean_editor_js(description, to_string=True) if description else ""
-            )
+        cleaner.clean_description(cleaned_input)
+        cleaner.clean_weight(cleaned_input)
+        cleaner.clean_slug(cleaned_input, instance)
+        cls.clean_attributes(cleaned_input, instance)
+        clean_tax_code(cleaned_input)
+        clean_seo_fields(cleaned_input)
 
-        weight = cleaned_input.get("weight")
-        if weight and weight.value < 0:
-            raise ValidationError(
-                {
-                    "weight": ValidationError(
-                        "Product can't have negative weight.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
+        return cleaned_input
 
+    @classmethod
+    def clean_attributes(cls, cleaned_input, instance):
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
         # the value's PK.
-
         attributes = cleaned_input.get("attributes")
-        product_type = (
-            instance.product_type if instance.pk else cleaned_input.get("product_type")
-        )  # type: models.ProductType
-
-        try:
-            cleaned_input = validate_slug_and_generate_if_needed(
-                instance, "name", cleaned_input
-            )
-        except ValidationError as e:
-            e.code = ProductErrorCode.REQUIRED.value
-            raise ValidationError({"slug": e}) from e
-
+        product_type = cleaned_input.get("product_type")
         if attributes and product_type:
             try:
-                cleaned_input["attributes"] = cls.clean_attributes(
-                    attributes, product_type
+                attributes_qs = product_type.product_attributes.all()
+                cleaned_input["attributes"] = (
+                    ProductAttributeAssignmentMixin.clean_input(
+                        attributes, attributes_qs
+                    )
                 )
             except ValidationError as e:
                 raise ValidationError({"attributes": e}) from e
-
-        clean_tax_code(cleaned_input)
-
-        clean_seo_fields(cleaned_input)
-        return cleaned_input
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):

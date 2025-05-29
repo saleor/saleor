@@ -73,7 +73,7 @@ class CheckoutLinesByCheckoutTokenLoader(DataLoader[str, list[CheckoutLine]]):
             checkout_id__in=keys
         )
         line_map = defaultdict(list)
-        for line in lines.iterator():
+        for line in lines.iterator(chunk_size=1000):
             line_map[line.checkout_id].append(line)
         return [line_map.get(checkout_id, []) for checkout_id in keys]
 

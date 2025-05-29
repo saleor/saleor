@@ -154,7 +154,7 @@ class ApiCall:
 
 
 @contextmanager
-def report_api_call(request: "HttpRequest") -> Generator[ApiCall, None, None]:
+def report_api_call(request: "HttpRequest") -> Generator[ApiCall]:
     root = False
     if not hasattr(_context, "api_call"):
         _context.api_call, root = ApiCall(request), True
@@ -165,7 +165,7 @@ def report_api_call(request: "HttpRequest") -> Generator[ApiCall, None, None]:
 
 
 @contextmanager
-def report_gql_operation() -> Generator[GraphQLOperationResponse, None, None]:
+def report_gql_operation() -> Generator[GraphQLOperationResponse]:
     root = False
     if not hasattr(_context, "gql_operation"):
         _context.gql_operation, root = GraphQLOperationResponse(), True

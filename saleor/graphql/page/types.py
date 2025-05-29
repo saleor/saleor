@@ -27,8 +27,10 @@ from .dataloaders import (
     PageAttributesVisibleInStorefrontByPageTypeIdLoader,
     PagesByPageTypeIdLoader,
     PageTypeByIdLoader,
+    SelectedAttributeAllByPageIdAttributeSlugLoader,
     SelectedAttributesAllByPageIdLoader,
     SelectedAttributesVisibleInStorefrontPageIdLoader,
+    SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader,
 )
 
 
@@ -144,10 +146,19 @@ class Page(ModelObjectType[models.Page]):
         required=True,
     )
     translation = TranslationField(PageTranslation, type_name="page")
+    attribute = graphene.Field(
+        SelectedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description="Get a single attribute attached to page by attribute slug.",
+    )
     attributes = NonNullList(
         SelectedAttribute,
         required=True,
-        description="List of attributes assigned to this product.",
+        description="List of attributes assigned to this page.",
     )
 
     class Meta:
@@ -187,6 +198,21 @@ class Page(ModelObjectType[models.Page]):
         return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
             root.id
         )
+
+    @staticmethod
+    def resolve_attribute(root: models.Page, info: ResolveInfo, slug: str):
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+        ):
+            return SelectedAttributeAllByPageIdAttributeSlugLoader(info.context).load(
+                (root.id, slug)
+            )
+        return SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(
+            info.context
+        ).load((root.id, slug))
 
 
 class PageCountableConnection(CountableConnection):

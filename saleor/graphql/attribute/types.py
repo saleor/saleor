@@ -1,7 +1,4 @@
-from typing import cast
-
 import graphene
-from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, models
 from ...permission.enums import (
@@ -271,14 +268,9 @@ class Attribute(ModelObjectType[models.Attribute]):
     @staticmethod
     def resolve_choices(root: models.Attribute, info: ResolveInfo, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            qs = cast(
-                QuerySet[models.AttributeValue],
-                root.values.using(get_database_connection_name(info.context)).all(),
-            )
+            qs = root.values.using(get_database_connection_name(info.context)).all()
         else:
-            qs = cast(
-                QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
-            )
+            qs = models.AttributeValue.objects.none()
 
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
