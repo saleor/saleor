@@ -639,13 +639,6 @@ def _filter_stock_availability(qs, _, value, channel_slug):
     return qs
 
 
-def _filter_variant_stock_availability(qs, _, value, filter_data):
-    if value:
-        channel_slug = get_channel_slug_from_filter_data(filter_data)
-        qs = filter_variants_by_stock_availability(qs, value, channel_slug)
-    return qs
-
-
 def filter_search(qs, _, value):
     return search_products(qs, value)
 
@@ -1325,11 +1318,6 @@ class ProductVariantFilter(MetadataFilterBase):
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range
     )
-    stock_availability = EnumFilter(
-        input_class=StockAvailability,
-        method="filter_stock_availability",
-        help_text="Filter by product variant stock status.",
-    )
 
     class Meta:
         model = ProductVariant
@@ -1344,9 +1332,6 @@ class ProductVariantFilter(MetadataFilterBase):
         )
         qs |= Q(Exists(products.filter(variants=OuterRef("pk"))))
         return queryset.filter(qs)
-
-    def filter_stock_availability(self, queryset, name, value):
-        return _filter_variant_stock_availability(queryset, name, value, self.data)
 
 
 class ProductVariantWhere(MetadataWhereFilterBase):
