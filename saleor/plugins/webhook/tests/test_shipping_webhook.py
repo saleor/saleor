@@ -1301,7 +1301,7 @@ def test_parse_list_shipping_methods_response_response_incorrect_format(
     response_data_with_incorrect_format = [[1], 2, "3"]
     # when
     result = parse_list_shipping_methods_response(
-        response_data_with_incorrect_format, app
+        response_data_with_incorrect_format, app, "USD"
     )
     # then
     assert result == []
@@ -1326,7 +1326,7 @@ def test_parse_list_shipping_methods_with_metadata(app):
         }
     ]
     # when
-    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    response = parse_list_shipping_methods_response(response_data_with_meta, app, "USD")
     # then
     assert response[0].metadata == response_data_with_meta[0]["metadata"]
     assert response[0].description == response_data_with_meta[0]["description"]
@@ -1347,7 +1347,7 @@ def test_parse_list_shipping_methods_with_metadata_in_incorrect_format(app):
         }
     ]
     # when
-    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    response = parse_list_shipping_methods_response(response_data_with_meta, app, "USD")
     # then
     assert response[0].metadata == {}
 
@@ -1366,7 +1366,7 @@ def test_parse_list_shipping_methods_metadata_absent_in_response(app):
         }
     ]
     # when
-    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    response = parse_list_shipping_methods_response(response_data_with_meta, app, "USD")
 
     # then
     assert response[0].metadata == {}
@@ -1387,6 +1387,6 @@ def test_parse_list_shipping_methods_metadata_is_none(app):
         }
     ]
     # when
-    response = parse_list_shipping_methods_response(response_data_with_meta, app)
+    response = parse_list_shipping_methods_response(response_data_with_meta, app, "USD")
     # then
     assert response[0].metadata == {}

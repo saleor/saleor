@@ -27,13 +27,54 @@ T = TypeVar("T")
 
 
 class ShippingMethodSchema(BaseModel):
-    id: Annotated[str, Field(coerce_numbers_to_str=True)]
-    name: Annotated[str, Field(max_length=name_max_length)]
-    amount: Annotated[Decimal, Field(ge=0)]
-    currency: str
-    maximum_delivery_days: Annotated[int, Field(ge=0)] | None = None
-    minimum_delivery_days: Annotated[int, Field(ge=0)] | None = None
-    description: str | None = None
+    id: Annotated[
+        str, Field(coerce_numbers_to_str=True, description="ID of the shipping method.")
+    ]
+    name: Annotated[
+        str,
+        Field(max_length=name_max_length, description="Name of the shipping method."),
+    ]
+    amount: Annotated[
+        Decimal,
+        Field(
+            ge=Decimal("0"),
+            description="Non-negative price the customer pays for delivery using this shipping method.",
+            examples=[Decimal("10.00")],
+        ),
+    ]
+    currency: Annotated[
+        str,
+        Field(
+            description="Currency code for amount. Must match the currency of object for which the methods are defined."
+        ),
+    ]
+    maximum_delivery_days: (
+        Annotated[
+            int,
+            Field(
+                ge=0,
+                description="Maximum delivery days for delivery promise of shipping carrier.",
+            ),
+        ]
+        | None
+    ) = None
+    minimum_delivery_days: (
+        Annotated[
+            int,
+            Field(
+                ge=0,
+                description="Minimum delivery days for delivery promise of shipping carrier.",
+            ),
+        ]
+        | None
+    ) = None
+    description: (
+        Annotated[
+            str,
+            Field(max_length=255, description="Description of the shipping method."),
+        ]
+        | None
+    ) = None
     metadata: DefaultIfNone[Metadata] = {}
 
     @property
@@ -47,6 +88,20 @@ class ShippingMethodSchema(BaseModel):
         if not app:
             raise RuntimeError("Missing app in context")
         return to_shipping_app_id(app, shipping_method_id)
+
+    @field_validator("currency", mode="before")
+    @classmethod
+    def clean_currency(cls, value: str, info: ValidationInfo) -> str:
+        currency: str | None = (
+            info.context.get("currency", None) if info.context else None
+        )
+        if not currency:
+            raise ValueError("Missing currency in context")
+        if value != currency:
+            error_msg = "ShippingMethod currency mismatch: expected %s, got %s"
+            logger.warning(error_msg, currency, value, extra={"value": value})
+            raise ValueError(error_msg % (currency, value))
+        return value.upper()
 
 
 class ListShippingMethodsSchema(RootModel):
