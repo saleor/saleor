@@ -18,6 +18,7 @@ MUTATION_CHECKOUT_CUSTOMER_ATTACH = """
         checkoutCustomerAttach(id: $id, customerId: $customerId) {
             checkout {
                 token
+                email
             }
             errors {
                 code
@@ -49,6 +50,7 @@ def test_checkout_customer_attach(
 
     data = content["data"]["checkoutCustomerAttach"]
     assert not data["errors"]
+    assert data["checkout"]["email"] == customer_user2.email
     checkout.refresh_from_db()
     assert checkout.user == customer_user2
     assert checkout.email == customer_user2.email

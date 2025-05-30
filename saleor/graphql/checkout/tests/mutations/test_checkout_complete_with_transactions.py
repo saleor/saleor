@@ -1727,6 +1727,7 @@ def test_checkout_complete_gift_card_bought(
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
     )
+    checkout.email = customer_user.email
     checkout.metadata_storage.save()
     checkout.user = customer_user
     checkout.save()
@@ -5363,3 +5364,50 @@ def test_checkout_complete_saving_addresses_on(
 
     assert order.draft_save_billing_address is None
     assert order.draft_save_shipping_address is None
+
+
+def test_checkout_complete_with_different_email_than_user_email(
+    user_api_client,
+    checkout_ready_to_complete,
+    address,
+    address_usa,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_ready_to_complete,
+        address,
+        address_usa,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+        save_billing_address=True,
+        save_shipping_address=True,
+    )
+
+    checkout.email = "different_email@example.com"
+    checkout.user = customer_user
+    checkout.save(update_fields=["email", "user"])
+    assert checkout.user is not None
+    assert checkout.user.email != checkout.email
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    assert order.user_email == checkout.email
+    assert order.user.email == checkout.user.email

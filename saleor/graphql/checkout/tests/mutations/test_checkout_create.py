@@ -1400,9 +1400,11 @@ def test_checkout_create_logged_in_customer_custom_email(
     assert new_checkout is not None
     checkout_data = content["data"]["checkoutCreate"]["checkout"]
     assert checkout_data["token"] == str(new_checkout.token)
+    assert checkout_data["email"] == custom_email
+    assert new_checkout.email == custom_email
+
     checkout_user = new_checkout.user
     assert customer.id == checkout_user.id
-    assert new_checkout.email == custom_email
 
 
 def test_checkout_create_logged_in_customer_custom_addresses(

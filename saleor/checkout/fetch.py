@@ -289,7 +289,11 @@ class CheckoutInfo:
         return address.country.code
 
     def get_customer_email(self) -> str | None:
-        return self.user.email if self.user else self.checkout.email
+        if self.checkout.email:
+            return self.checkout.email
+        if self.user:
+            return self.user.email
+        return None
 
 
 @dataclass(frozen=True)

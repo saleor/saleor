@@ -170,7 +170,7 @@ def test_checkout_add_payment(
     # given
     checkout = checkout_without_shipping_required
     checkout.billing_address = address
-    checkout.email = "old@example"
+    checkout.email = customer_user.email
     checkout.user = customer_user
     checkout.save()
 

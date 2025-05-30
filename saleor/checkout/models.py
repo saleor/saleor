@@ -237,7 +237,11 @@ class Checkout(models.Model):
         return iter(self.lines.all())
 
     def get_customer_email(self) -> str | None:
-        return self.user.email if self.user else self.email
+        if self.email:
+            return self.email
+        if self.user:
+            return self.user.email
+        return None
 
     def is_shipping_required(self) -> bool:
         """Return `True` if any of the lines requires shipping."""
