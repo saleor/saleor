@@ -36,8 +36,7 @@ def test_get_customer_email_for_voucher_usage_for_checkout_info_without_user(
     # given
     expected_email = "test@example.com"
     checkout_info.user = None
-    checkout_info.email = expected_email
-    checkout_info.save()
+    checkout_info.checkout.email = expected_email
 
     # when
     result = get_customer_email_for_voucher_usage(checkout_info)

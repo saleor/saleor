@@ -263,8 +263,7 @@ def get_customer_email_for_voucher_usage(
     """
 
     if source_object.user:
-        user = cast("User", source_object.user)
-        return user.email
+        return source_object.user.email
     return source_object.get_customer_email()
 
 
