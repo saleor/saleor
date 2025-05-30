@@ -88,6 +88,6 @@
   "items": {
     "$ref": "#/$defs/ShippingMethodSchema"
   },
-  "title": "ListShippingMethodsSchema",
+  "title": "ListShippingMethods",
   "type": "array"
 }

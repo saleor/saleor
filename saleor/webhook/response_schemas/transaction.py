@@ -10,7 +10,6 @@ from pydantic import (
     BaseModel,
     Field,
     HttpUrl,
-    JsonValue,
     field_validator,
 )
 
@@ -20,7 +19,7 @@ from ...payment import (
     TransactionAction,
     TransactionEventType,
 )
-from .utils.annotations import DatetimeUTC, DefaultIfNone, OnErrorSkipLiteral
+from .utils.annotations import DatetimeUTC, DefaultIfNone, JSONValue, OnErrorSkipLiteral
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +261,7 @@ class TransactionRefundRequestedSyncFailureSchema(TransactionSyncFailureSchema):
 
 class TransactionSessionBaseSchema(TransactionBaseSchema):
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="The JSON data that will be returned to storefront",
             default=None,
@@ -326,4 +325,4 @@ class TransactionSessionSuccessSchema(TransactionSessionBaseSchema):
 
 
 class PaymentGatewayInitializeSessionSchema(BaseModel):
-    data: JsonValue
+    data: JSONValue

@@ -103,6 +103,6 @@
     "shipping_price_gross_amount",
     "shipping_price_net_amount"
   ],
-  "title": "CalculateTaxesSchema",
+  "title": "CalculateTaxes",
   "type": "object"
 }

@@ -14,7 +14,7 @@ export type StoredPaymentMethodRequestDeleteResult = "SUCCESSFULLY_DELETED" | "F
  */
 export type Error = string | null;
 
-export interface StoredPaymentMethodDeleteRequestedSchema {
+export interface StoredPaymentMethodDeleteRequested {
   result: StoredPaymentMethodRequestDeleteResult;
   error?: Error;
   [k: string]: unknown;

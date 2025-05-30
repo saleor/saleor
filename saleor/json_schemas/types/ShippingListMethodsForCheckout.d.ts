@@ -12,7 +12,7 @@ export type Currency = string;
 export type MaximumDeliveryDays = number | null;
 export type MinimumDeliveryDays = number | null;
 export type Description = string | null;
-export type ListShippingMethodsSchema = ShippingMethodSchema[];
+export type ListShippingMethods = ShippingMethodSchema[];
 
 export interface ShippingMethodSchema {
   id: Id;

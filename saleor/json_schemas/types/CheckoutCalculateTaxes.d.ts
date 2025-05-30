@@ -13,7 +13,7 @@ export type TotalGrossAmount = number | string;
 export type TotalNetAmount = number | string;
 export type Lines = LineCalculateTaxesSchema[];
 
-export interface CalculateTaxesSchema {
+export interface CalculateTaxes {
   shipping_tax_rate: ShippingTaxRate;
   shipping_price_gross_amount: ShippingPriceGrossAmount;
   shipping_price_net_amount: ShippingPriceNetAmount;

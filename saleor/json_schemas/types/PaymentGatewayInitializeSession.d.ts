@@ -5,9 +5,17 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
-export type JsonValue = unknown;
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | {
+      [k: string]: unknown;
+    }
+  | unknown[]
+  | null;
 
-export interface PaymentGatewayInitializeSessionSchema {
+export interface PaymentGatewayInitializeSession {
   data: JsonValue;
   [k: string]: unknown;
 }

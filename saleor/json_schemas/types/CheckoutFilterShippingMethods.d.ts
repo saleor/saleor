@@ -9,7 +9,7 @@ export type Id = string;
 export type Reason = string;
 export type ExcludedMethods = ExcludedShippingMethodSchema[];
 
-export interface FilterShippingMethodsSchema {
+export interface FilterShippingMethods {
   excluded_methods?: ExcludedMethods;
   [k: string]: unknown;
 }

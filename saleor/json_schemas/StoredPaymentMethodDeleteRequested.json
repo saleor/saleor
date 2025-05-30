@@ -33,6 +33,6 @@
   "required": [
     "result"
   ],
-  "title": "StoredPaymentMethodDeleteRequestedSchema",
+  "title": "StoredPaymentMethodDeleteRequested",
   "type": "object"
 }

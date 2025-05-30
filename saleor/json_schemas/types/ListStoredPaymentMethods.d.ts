@@ -22,6 +22,18 @@ export type Type = string;
  */
 export type Name = string;
 /**
+ * JSON data that will be returned to client.
+ */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | {
+      [k: string]: unknown;
+    }
+  | unknown[]
+  | null;
+/**
  * Brand of the credit card.
  */
 export type Brand = string;
@@ -46,7 +58,7 @@ export type Firstdigits = string;
  */
 export type Paymentmethods = StoredPaymentMethodSchema[];
 
-export interface ListStoredPaymentMethodsSchema {
+export interface ListStoredPaymentMethods {
   paymentMethods?: Paymentmethods;
   [k: string]: unknown;
 }
@@ -55,12 +67,7 @@ export interface StoredPaymentMethodSchema {
   supportedPaymentFlows?: Supportedpaymentflows;
   type: Type;
   name?: Name;
-  /**
-   * JSON data that will be returned to client.
-   */
-  data?: {
-    [k: string]: unknown;
-  };
+  data?: JsonValue;
   creditCardInfo?: CreditCardInfoSchema;
   [k: string]: unknown;
 }

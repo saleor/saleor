@@ -38,7 +38,34 @@
       "title": "CreditCardInfoSchema",
       "type": "object"
     },
-    "JsonValue": {},
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    },
     "StoredPaymentMethodSchema": {
       "properties": {
         "id": {
@@ -95,6 +122,6 @@
       "type": "array"
     }
   },
-  "title": "ListStoredPaymentMethodsSchema",
+  "title": "ListStoredPaymentMethods",
   "type": "object"
 }

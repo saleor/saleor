@@ -26,30 +26,43 @@ class Command(BaseCommand):
             title = cast(str, title)
             schema_cls = cast(type[BaseModel], schema_cls)
             schema = schema_cls.model_json_schema()
+            schema["title"] = self.get_schema_title(schema_cls)
             self.write_schema_to_file(schema, title)
 
     def export_combined_schemas(self):
         for combined_schema in COMBINED_SCHEMAS_TO_EXPORT:
             title, schemas_cls = combined_schema["title"], combined_schema["schemas"]
             title = cast(str, title)
-            schemas = self.get_schemas_with_titles(schemas_cls)
+            defs: dict[str, dict] = {}
+            schemas = self.get_schemas_with_titles(schemas_cls, defs)
             combined_schema_dict = {
                 "title": title,
                 "anyOf": schemas,
             }
+            if defs:
+                combined_schema_dict["$defs"] = defs
             self.write_schema_to_file(combined_schema_dict, title)
 
-    @staticmethod
-    def get_schemas_with_titles(schemas_cls):
+    def get_schemas_with_titles(self, schemas_cls, merged_defs):
         schemas = []
         for cls in schemas_cls:
             schema = cls.model_json_schema()
-            schema_title = cls.__name__
-            if schema_title.endswith("Schema"):
-                schema_title = schema_title.removesuffix("Schema")
-            schema["title"] = schema_title
+
+            # move $defs to the top level
+            defs = schema.pop("$defs", {})
+            merged_defs.update(defs)
+
+            schema["title"] = self.get_schema_title(cls)
             schemas.append(schema)
         return schemas
+
+    @staticmethod
+    def get_schema_title(schema_cls: type[BaseModel]) -> str:
+        """Get rid of `Schema` suffix from title."""
+        title = schema_cls.__name__
+        if title.endswith("Schema"):
+            title = title.removesuffix("Schema")
+        return title
 
     def write_schema_to_file(self, schema: dict, title: str):
         file_name = f"{title}.json"

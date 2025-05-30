@@ -2,9 +2,6 @@
   "title": "PaymentGatewayInitializeTokenizationSession",
   "anyOf": [
     {
-      "$defs": {
-        "JsonValue": {}
-      },
       "properties": {
         "id": {
           "description": "ID of the payment method.",
@@ -34,9 +31,6 @@
       "type": "object"
     },
     {
-      "$defs": {
-        "JsonValue": {}
-      },
       "properties": {
         "id": {
           "anyOf": [
@@ -100,5 +94,35 @@
       "title": "PaymentMethodTokenizationFailed",
       "type": "object"
     }
-  ]
+  ],
+  "$defs": {
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    }
+  }
 }

@@ -2,9 +2,6 @@
   "title": "TransactionInitializeSession",
   "anyOf": [
     {
-      "$defs": {
-        "JsonValue": {}
-      },
       "properties": {
         "pspReference": {
           "description": "Psp reference received from payment provider.",
@@ -91,9 +88,6 @@
       "type": "object"
     },
     {
-      "$defs": {
-        "JsonValue": {}
-      },
       "properties": {
         "pspReference": {
           "default": null,
@@ -178,9 +172,6 @@
       "type": "object"
     },
     {
-      "$defs": {
-        "JsonValue": {}
-      },
       "properties": {
         "pspReference": {
           "default": null,
@@ -264,5 +255,35 @@
       "title": "TransactionSessionActionRequired",
       "type": "object"
     }
-  ]
+  ],
+  "$defs": {
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    }
+  }
 }

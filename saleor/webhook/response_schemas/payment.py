@@ -5,7 +5,6 @@ from pydantic import (
     AfterValidator,
     BaseModel,
     Field,
-    JsonValue,
     ValidationInfo,
     field_validator,
     model_validator,
@@ -19,7 +18,13 @@ from ...payment.interface import (
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResult,
 )
-from .utils.annotations import DefaultIfNone, EnumByName, OnErrorDefault, OnErrorSkip
+from .utils.annotations import (
+    DefaultIfNone,
+    EnumByName,
+    JSONValue,
+    OnErrorDefault,
+    OnErrorSkip,
+)
 from .utils.validators import lower_values
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
@@ -88,7 +93,7 @@ class StoredPaymentMethodSchema(BaseModel):
         ),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="JSON data that will be returned to client.",
             default=None,
@@ -139,7 +144,7 @@ class PaymentGatewayInitializeTokenizationSessionSchema(BaseModel):
         ),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             default=None,
             description="A data required to finalize the initialization.",
@@ -180,7 +185,7 @@ class PaymentMethodTokenizationSuccessSchema(BaseModel):
         AfterValidator(clean_result),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="A data passes to the client.",
             default=None,
@@ -206,7 +211,7 @@ class PaymentMethodTokenizationPendingSchema(BaseModel):
         AfterValidator(clean_result),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="A data passes to the client.",
             default=None,

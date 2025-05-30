@@ -29,6 +29,6 @@
       "type": "array"
     }
   },
-  "title": "FilterShippingMethodsSchema",
+  "title": "FilterShippingMethods",
   "type": "object"
 }
