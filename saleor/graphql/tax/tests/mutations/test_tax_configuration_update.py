@@ -176,12 +176,14 @@ def test_create_and_update_country_configurations(
         "chargeTaxes": False,
         "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
         "displayGrossPrices": False,
+        "useWeightedTaxForShipping": False,
     }
     create_DE_data = {
         "countryCode": "DE",
         "chargeTaxes": False,
         "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
         "displayGrossPrices": False,
+        "useWeightedTaxForShipping": False,
     }
 
     variables = {
@@ -229,11 +231,13 @@ def test_create_and_update_country_configurations_no_tax_calculation_strategy(
         "countryCode": "PL",
         "chargeTaxes": False,
         "displayGrossPrices": False,
+        "useWeightedTaxForShipping": False,
     }
     create_PT_data = {
         "countryCode": "PT",
         "chargeTaxes": False,
         "displayGrossPrices": False,
+        "useWeightedTaxForShipping": False,
     }
 
     variables = {
@@ -417,3 +421,316 @@ def test_tax_configuration_update_tax_app_id_with_plugin(
     data = content["data"]["taxConfigurationUpdate"]["taxConfiguration"]
     assert not content["data"]["taxConfigurationUpdate"]["errors"]
     assert data["taxAppId"] == plugin_id
+
+
+def test_tax_configuration_update_use_weighted_tax_for_shipping(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+    variables = {
+        "id": tax_id,
+        "input": {
+            "useWeightedTaxForShipping": True,
+            "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxConfigurationUpdate"]
+    assert not data["errors"]
+
+    # Verify the value was set correctly in the response
+    assert data["taxConfiguration"]["useWeightedTaxForShipping"] is True
+
+    # Verify the value was saved in the database
+    example_tax_configuration.refresh_from_db()
+    assert example_tax_configuration.use_weighted_tax_for_shipping is True
+
+
+def test_tax_configuration_update_turn_off_use_weighted_tax_for_shipping(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    example_tax_configuration.use_weighted_tax_for_shipping = True
+    example_tax_configuration.save(update_fields=["use_weighted_tax_for_shipping"])
+
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+    variables = {
+        "id": tax_id,
+        "input": {
+            "useWeightedTaxForShipping": False,
+            "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxConfigurationUpdate"]
+    assert not data["errors"]
+
+    # Verify the value was set correctly in the response
+    assert data["taxConfiguration"]["useWeightedTaxForShipping"] is False
+
+    # Verify the value was saved in the database
+    example_tax_configuration.refresh_from_db()
+    assert example_tax_configuration.use_weighted_tax_for_shipping is False
+
+
+def test_tax_configuration_update_use_weighted_tax_for_shipping_with_tax_app_included_in_input(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+
+    variables = {
+        "id": tax_id,
+        "input": {
+            "useWeightedTaxForShipping": True,
+            "taxCalculationStrategy": TaxCalculationStrategy.TAX_APP.value,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["taxConfigurationUpdate"]["errors"]
+    assert errors
+    assert errors[0]["field"] == "useWeightedTaxForShipping"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["countryCodes"] == []
+
+
+def test_tax_configuration_update_use_weighted_tax_for_shipping_with_tax_app_already_set(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+
+    example_tax_configuration.tax_calculation_strategy = (
+        TaxCalculationStrategy.TAX_APP.value
+    )
+    example_tax_configuration.save(update_fields=["tax_calculation_strategy"])
+
+    variables = {
+        "id": tax_id,
+        "input": {
+            "useWeightedTaxForShipping": True,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["taxConfigurationUpdate"]["errors"]
+    assert errors
+    assert errors[0]["field"] == "useWeightedTaxForShipping"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["countryCodes"] == []
+
+
+def test_tax_configuration_per_country_update_use_weighted_tax_for_shipping(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+    country_code = "PL"
+    assert example_tax_configuration.country_exceptions.get(country=country_code)
+
+    variables = {
+        "id": tax_id,
+        "input": {
+            "updateCountriesConfiguration": [
+                {
+                    "countryCode": country_code,
+                    "chargeTaxes": True,
+                    "displayGrossPrices": True,
+                    "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
+                    "useWeightedTaxForShipping": True,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["taxConfigurationUpdate"]
+    assert not data["errors"]
+
+    assert data["taxConfiguration"]["countries"]
+    assert data["taxConfiguration"]["countries"][0]["useWeightedTaxForShipping"] is True
+
+    country_exception = example_tax_configuration.country_exceptions.get(
+        country=country_code
+    )
+    assert country_exception.use_weighted_tax_for_shipping is True
+
+
+def test_tax_configuration_per_country_update_turn_off_weighted_tax_for_shipping(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    example_tax_configuration.use_weighted_tax_for_shipping = True
+    example_tax_configuration.save(update_fields=["use_weighted_tax_for_shipping"])
+
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+    country_code = "PL"
+    country_exception = example_tax_configuration.country_exceptions.get(
+        country=country_code
+    )
+    country_exception.use_weighted_tax_for_shipping = True
+    country_exception.save(update_fields=["use_weighted_tax_for_shipping"])
+
+    variables = {
+        "id": tax_id,
+        "input": {
+            "updateCountriesConfiguration": [
+                {
+                    "countryCode": country_code,
+                    "chargeTaxes": True,
+                    "displayGrossPrices": True,
+                    "taxCalculationStrategy": TaxCalculationStrategy.FLAT_RATES.value,
+                    "useWeightedTaxForShipping": False,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["taxConfigurationUpdate"]
+    assert not data["errors"]
+
+    assert data["taxConfiguration"]["countries"]
+    assert (
+        data["taxConfiguration"]["countries"][0]["useWeightedTaxForShipping"] is False
+    )
+
+    country_exception = example_tax_configuration.country_exceptions.get(
+        country=country_code
+    )
+    assert country_exception.use_weighted_tax_for_shipping is False
+
+
+def test_tax_configuration_per_country_update_use_weighted_tax_for_shipping_with_tax_app_included_in_input(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+    country_code = "PL"
+    assert example_tax_configuration.country_exceptions.get(country=country_code)
+
+    country_config = {
+        "countryCode": country_code,
+        "chargeTaxes": True,
+        "displayGrossPrices": True,
+        "useWeightedTaxForShipping": True,
+        "taxCalculationStrategy": TaxCalculationStrategy.TAX_APP.value,
+    }
+
+    variables = {
+        "id": tax_id,
+        "input": {
+            "updateCountriesConfiguration": [country_config],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["taxConfigurationUpdate"]["errors"]
+    assert errors
+    assert errors[0]["field"] == "useWeightedTaxForShipping"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["countryCodes"] == [country_code]
+
+
+def test_tax_configuration_per_country_update_use_weighted_tax_for_shipping_with_tax_app_already_set(
+    example_tax_configuration, staff_api_client, permission_manage_taxes
+):
+    # given
+    tax_id = graphene.Node.to_global_id(
+        "TaxConfiguration", example_tax_configuration.pk
+    )
+    country_code = "PL"
+    assert example_tax_configuration.country_exceptions.get(country=country_code)
+
+    country_exception = example_tax_configuration.country_exceptions.get(
+        country=country_code,
+    )
+    country_exception.tax_calculation_strategy = TaxCalculationStrategy.TAX_APP.value
+    country_exception.save(update_fields=["tax_calculation_strategy"])
+
+    country_config = {
+        "countryCode": country_code,
+        "chargeTaxes": True,
+        "displayGrossPrices": True,
+        "useWeightedTaxForShipping": True,
+    }
+
+    variables = {
+        "id": tax_id,
+        "input": {
+            "updateCountriesConfiguration": [country_config],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["taxConfigurationUpdate"]["errors"]
+    assert errors
+    assert errors[0]["field"] == "useWeightedTaxForShipping"
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["countryCodes"] == [country_code]
