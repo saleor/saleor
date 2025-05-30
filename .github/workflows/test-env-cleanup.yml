@@ -27,6 +27,8 @@ jobs:
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@v3.3.0
         with:
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           REGION: us-east-1
           FunctionName: test-env-manager
           Payload: >-

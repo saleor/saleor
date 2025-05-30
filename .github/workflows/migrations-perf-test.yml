@@ -37,6 +37,8 @@ jobs:
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
         with:
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           REGION: us-east-1
           FunctionName: migrations-perf-test-manager
           Payload: >-
@@ -73,6 +75,8 @@ jobs:
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
         with:
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
           REGION: us-east-1
           FunctionName: migrations-perf-test-manager
           Payload: >-
