@@ -34,7 +34,7 @@ class Command(BaseCommand):
             title, schemas_cls = combined_schema["title"], combined_schema["schemas"]
             title = cast(str, title)
             defs: dict[str, dict] = {}
-            schemas = self.get_schemas_with_titles(schemas_cls, defs)
+            schemas = self.get_schemas(schemas_cls, defs)
             combined_schema_dict = {
                 "title": title,
                 "anyOf": schemas,
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 combined_schema_dict["$defs"] = defs
             self.write_schema_to_file(combined_schema_dict, title)
 
-    def get_schemas_with_titles(self, schemas_cls, merged_defs):
+    def get_schemas(self, schemas_cls, merged_defs):
         schemas = []
         for cls in schemas_cls:
             schema = cls.model_json_schema()
