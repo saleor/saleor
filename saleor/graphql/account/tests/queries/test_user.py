@@ -95,6 +95,10 @@ FULL_USER_QUERY = """
                     code
                 }
             }
+            customerGroups {
+                id
+                name
+            }
             editableGroups {
                 name
             }

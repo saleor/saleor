@@ -57,6 +57,9 @@ class WebhookEventAsyncType:
     CHANNEL_STATUS_CHANGED = "channel_status_changed"
     CHANNEL_METADATA_UPDATED = "channel_metadata_updated"
 
+    CUSTOMER_GROUP_CREATED = "customer_group_created"
+    CUSTOMER_GROUP_UPDATED = "customer_group_updated"
+
     GIFT_CARD_CREATED = "gift_card_created"
     GIFT_CARD_UPDATED = "gift_card_updated"
     GIFT_CARD_DELETED = "gift_card_deleted"

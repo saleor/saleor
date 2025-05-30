@@ -1167,7 +1167,7 @@ def test_add_checkout_lines_catalogue_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(93):
+    with django_assert_num_queries(96):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then
@@ -1253,7 +1253,7 @@ def test_add_checkout_lines_multiple_catalogue_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(93):
+    with django_assert_num_queries(96):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then

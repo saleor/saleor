@@ -259,13 +259,16 @@ def _get_discounted_variants_prices_for_promotions(
         VariantChannelListingPromotionRule
     ] = []
     for variant_listing in variant_listings:
-        applied_discount = calculate_discounted_price_for_promotions(
-            price=variant_listing.price,
-            rules_info_per_variant=rules_info_per_variant,
-            channel=channel,
-            variant_id=variant_listing.variant_id,
+        applied_discount, customer_group_discounts = (
+            calculate_discounted_price_for_promotions(
+                price=variant_listing.price,
+                rules_info_per_variant=rules_info_per_variant,
+                channel=channel,
+                variant_id=variant_listing.variant_id,
+            )
         )
         discounted_variant_price = variant_listing.price
+        rule_ids_to_keep = {rule_id for rule_id, _ in customer_group_discounts}
 
         rule_id = None
         if applied_discount:
@@ -274,7 +277,19 @@ def _get_discounted_variants_prices_for_promotions(
             discounted_variant_price = max(
                 discounted_variant_price, zero_money(discounted_variant_price.currency)
             )
+            rule_ids_to_keep.add(rule_id)
 
+            _handle_discount_rule_id(
+                variant_listing,
+                rule_id,
+                variant_listing_to_listing_rule_per_rule_map,
+                discount.amount,
+                channel.currency_code,
+                variant_listing_promotion_rule_to_update,
+                variant_listing_promotion_rule_to_create,
+            )
+
+        for rule_id, discount in customer_group_discounts:
             _handle_discount_rule_id(
                 variant_listing,
                 rule_id,
@@ -289,11 +304,9 @@ def _get_discounted_variants_prices_for_promotions(
             variant_listing.discounted_price_amount = discounted_variant_price.amount
             variants_listings_to_update.append(variant_listing)
 
-            # delete variant listing - promotion rules relations that are not valid
-            # anymore
-            VariantChannelListingPromotionRule.objects.filter(
-                variant_channel_listing_id=variant_listing.id
-            ).exclude(promotion_rule_id=rule_id).delete()
+        VariantChannelListingPromotionRule.objects.filter(
+            variant_channel_listing_id=variant_listing.id
+        ).exclude(promotion_rule_id__in=rule_ids_to_keep).delete()
 
         discounted_variants_price.append(discounted_variant_price)
 
