@@ -91,11 +91,18 @@ jobs:
             --cov \
             --cov-report= \
             --junitxml=junit/test-results.xml \
+            -o junit_family=legacy \
             --django-db-bench=${{ env.BENCH_PATH }} \
             -n logical
 
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }} # Run even if tests fail
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       # Publish coverage and test results
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
