@@ -1,12 +1,15 @@
 from collections import defaultdict
 from collections.abc import Iterable
 
-from django.db.models import Exists, OuterRef
 from promise import Promise
 
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributePage
 from ...page.models import Page, PageType
-from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
+from ..attribute.dataloaders import (
+    AttributesByAttributeId,
+    AttributesBySlugLoader,
+    AttributeValueByIdLoader,
+)
 from ..core.dataloaders import DataLoader
 
 PageTypeIdAndAttributeSlug = tuple[int, str]
@@ -50,32 +53,38 @@ class BasePageAttributesByPageTypeIdLoader(DataLoader[int, list[Attribute]]):
 
     context_key = "page_attributes_by_pagetype"
 
-    def get_queryset(self):
-        raise NotImplementedError()
+    @staticmethod
+    def filter_attributes(attributes: list[Attribute]) -> list[Attribute]:
+        """Filter attributes based on custom logic, if needed."""
+        return attributes
 
     def batch_load(self, keys):
-        qs = self.get_queryset()
-        page_type_attribute_pairs = qs.filter(page_type_id__in=keys).values_list(
-            "page_type_id", "attribute_id"
+        page_type_attribute_pairs = (
+            AttributePage.objects.using(self.database_connection_name)
+            .filter(page_type_id__in=keys)
+            .values_list("page_type_id", "attribute_id")
         )
-
-        page_type_to_attributes_map = defaultdict(list)
-        for page_type_id, attr_id in page_type_attribute_pairs:
-            page_type_to_attributes_map[page_type_id].append(attr_id)
+        attribute_ids = {attr_id for _, attr_id in page_type_attribute_pairs}
 
         def map_attributes(attributes):
+            attributes = self.filter_attributes(attributes)
             attributes_map = {attr.id: attr for attr in attributes}
+            page_type_to_attributes_map = defaultdict(list)
+            for page_type_id, attr_id in page_type_attribute_pairs:
+                if attr_id in attributes_map:
+                    # Only add attributes that are in the attributes_map to ensure
+                    # that filtered attributes are respected.
+                    page_type_to_attributes_map[page_type_id].append(
+                        attributes_map.get(attr_id)
+                    )
             return [
-                [
-                    attributes_map[attr_id]
-                    for attr_id in page_type_to_attributes_map[page_type_id]
-                ]
+                page_type_to_attributes_map.get(page_type_id, [])
                 for page_type_id in keys
             ]
 
         return (
             AttributesByAttributeId(self.context)
-            .load_many({attr_id for _, attr_id in page_type_attribute_pairs})
+            .load_many(attribute_ids)
             .then(map_attributes)
         )
 
@@ -85,9 +94,6 @@ class PageAttributesAllByPageTypeIdLoader(BasePageAttributesByPageTypeIdLoader):
 
     context_key = "page_attributes_all_by_pagetype"
 
-    def get_queryset(self):
-        return AttributePage.objects.using(self.database_connection_name).all()
-
 
 class PageAttributesVisibleInStorefrontByPageTypeIdLoader(
     BasePageAttributesByPageTypeIdLoader
@@ -96,14 +102,9 @@ class PageAttributesVisibleInStorefrontByPageTypeIdLoader(
 
     context_key = "page_attributes_visible_in_storefront_by_pagetype"
 
-    def get_queryset(self):
-        return AttributePage.objects.using(self.database_connection_name).filter(
-            Exists(
-                Attribute.objects.filter(
-                    pk=OuterRef("attribute_id"), visible_in_storefront=True
-                )
-            ),
-        )
+    @staticmethod
+    def filter_attributes(attributes: list[Attribute]) -> list[Attribute]:
+        return [attr for attr in attributes if attr and attr.visible_in_storefront]
 
 
 class BaseAttributeValuesByPageIdLoader(DataLoader[int, list[dict]]):
@@ -202,38 +203,42 @@ class BasePageAttributeByPageTypeIdAndAttributeSlugLoader(
 
     context_key = "page_attributes_by_pagetype_and_attributeslug"
 
-    def get_queryset(self, slugs):
-        raise NotImplementedError()
+    @staticmethod
+    def filter_attributes(attributes: list[Attribute]) -> list[Attribute]:
+        """Filter attributes based on custom logic, if needed."""
+        return attributes
 
     def batch_load(self, keys: Iterable[PageTypeIdAndAttributeSlug]):
         slugs = [slug for _, slug in keys]
-        qs = self.get_queryset(slugs)
-        page_ids = [page_id for page_id, _ in keys]
-        page_type_attribute_pairs = qs.filter(page_type_id__in=page_ids).values_list(
-            "page_type_id", "attribute_id"
-        )
 
-        def map_attributes(attributes):
+        def with_attributes(attributes):
+            attributes = self.filter_attributes(attributes)
+            attribute_ids = [attr.id for attr in attributes if attr]
+            page_attributes_pairs = (
+                AttributePage.objects.using(self.database_connection_name)
+                .filter(
+                    page_type_id__in=[page_type_id for page_type_id, _ in keys],
+                    attribute_id__in=attribute_ids,
+                )
+                .values_list("page_type_id", "attribute_id")
+            )
+
             attribute_slug_map = {
                 attr.id: attr.slug for attr in attributes if attr.slug in slugs
             }
             attributes_map = {attr.id: attr for attr in attributes}
-
             page_type_to_attributes_map = {}
-            for page_type_id, attr_id in page_type_attribute_pairs:
+            for page_type_id, attr_id in page_attributes_pairs:
                 page_type_to_attributes_map[
                     (page_type_id, attribute_slug_map.get(attr_id))
                 ] = attributes_map.get(attr_id)
-
             return [
                 page_type_to_attributes_map.get((page_type_id, slug))
                 for page_type_id, slug in keys
             ]
 
         return (
-            AttributesByAttributeId(self.context)
-            .load_many({attr_id for _, attr_id in page_type_attribute_pairs})
-            .then(map_attributes)
+            AttributesBySlugLoader(self.context).load_many(slugs).then(with_attributes)
         )
 
 
@@ -244,13 +249,6 @@ class PageAttributeByPageTypeIdAndAttributeSlugLoader(
 
     context_key = "page_attribute_by_pagetype_and_attributeslug"
 
-    def get_queryset(self, slugs):
-        return AttributePage.objects.using(self.database_connection_name).filter(
-            Exists(
-                Attribute.objects.filter(pk=OuterRef("attribute_id"), slug__in=slugs)
-            ),
-        )
-
 
 class PageAttributeVisibleInStorefrontByPageTypeIdAndAttributeSlugLoader(
     BasePageAttributeByPageTypeIdAndAttributeSlugLoader
@@ -259,16 +257,9 @@ class PageAttributeVisibleInStorefrontByPageTypeIdAndAttributeSlugLoader(
 
     context_key = "page_attributes_visible_in_storefront_by_pagetype_and_attributeslug"
 
-    def get_queryset(self, slugs):
-        return AttributePage.objects.using(self.database_connection_name).filter(
-            Exists(
-                Attribute.objects.filter(
-                    pk=OuterRef("attribute_id"),
-                    visible_in_storefront=True,
-                    slug__in=slugs,
-                )
-            ),
-        )
+    @staticmethod
+    def filter_attributes(attributes: list[Attribute]) -> list[Attribute]:
+        return [attr for attr in attributes if attr and attr.visible_in_storefront]
 
 
 class BaseAttributeValuesByPageIdAndAttributeSlugLoader(
