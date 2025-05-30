@@ -46,7 +46,7 @@ def resolve_checkout(info, token, id):
 
         def _with_channel(channel):
             # always return checkout for active channel
-            if checkout.channel.is_active:
+            if channel.is_active:
                 return SyncWebhookControlContext(
                     node=checkout, allow_sync_webhooks=True
                 )
