@@ -287,7 +287,7 @@ def generate_request_data_from_checkout_lines(
 ) -> list[dict[str, str | int | bool | None]]:
     data: list[dict[str, str | int | bool | None]] = []
 
-    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info)
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher
