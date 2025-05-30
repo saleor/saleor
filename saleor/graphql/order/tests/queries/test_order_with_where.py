@@ -13,9 +13,6 @@ from .....order.models import Order
 from .....order.search import (
     prepare_order_search_vector_value,
 )
-from .....payment import ChargeStatus
-from .....payment.models import Payment
-from ....payment.enums import PaymentChargeStatusEnum
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 ORDERS_WHERE_QUERY = """
@@ -599,62 +596,6 @@ def test_order_filter_by_channel_id_none(
     data = get_graphql_content(response)
     orders = data["data"]["orders"]["edges"]
     assert len(orders) == 0
-
-
-@pytest.mark.parametrize(
-    ("where", "indexes"),
-    [
-        ({"eq": PaymentChargeStatusEnum.NOT_CHARGED.name}, [0]),
-        ({"oneOf": [PaymentChargeStatusEnum.CANCELLED.name]}, [1]),
-        ({"oneOf": [PaymentChargeStatusEnum.FULLY_CHARGED.name]}, [2]),
-        (
-            {
-                "oneOf": [
-                    PaymentChargeStatusEnum.CANCELLED.name,
-                    PaymentChargeStatusEnum.FULLY_CHARGED.name,
-                ]
-            },
-            [1, 2],
-        ),
-        ({"eq": PaymentChargeStatusEnum.FULLY_REFUNDED.name}, []),
-        ({}, []),
-        ({"oneOf": []}, []),
-        ({"eq": None}, []),
-        (None, []),
-    ],
-)
-def test_order_filter_by_payment_status(
-    where,
-    indexes,
-    staff_api_client,
-    order_list,
-    payments_dummy,
-    permission_group_manage_orders,
-    channel_USD,
-):
-    # given
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-
-    payments_dummy[0].order = order_list[0]
-    payments_dummy[0].charge_status = ChargeStatus.NOT_CHARGED
-    payments_dummy[1].order = order_list[1]
-    payments_dummy[1].charge_status = ChargeStatus.CANCELLED
-    payments_dummy[2].order = order_list[2]
-    payments_dummy[2].charge_status = ChargeStatus.FULLY_CHARGED
-    Payment.objects.bulk_update(payments_dummy, ["order", "charge_status"])
-    variables = {
-        "where": {"paymentStatus": where},
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
-
-    # then
-    content = get_graphql_content(response)
-    orders = content["data"]["orders"]["edges"]
-    assert len(orders) == len(indexes)
-    numbers = {node["node"]["number"] for node in orders}
-    assert numbers == {str(order_list[index].number) for index in indexes}
 
 
 @pytest.mark.parametrize(
