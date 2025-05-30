@@ -402,10 +402,11 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return self.total_charged_amount > 0
 
     def get_customer_email(self):
+        if self.user_email:
+            return self.user_email
         if self.user_id:
-            # we know that when user_id is set, user is set as well
             return cast("User", self.user).email
-        return self.user_email
+        return None
 
     def __repr__(self):
         return f"<Order #{self.id!r}>"
