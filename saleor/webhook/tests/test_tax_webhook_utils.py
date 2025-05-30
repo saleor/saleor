@@ -1,48 +1,10 @@
-import decimal
-
 import pytest
 from pydantic import ValidationError
 
 from ...core.taxes import TaxData
-from ..transport.utils import (
-    _unsafe_parse_tax_line_data,
+from ..transport.taxes import (
     parse_tax_data,
 )
-
-
-def test_unsafe_parse_tax_line_data_success(tax_line_data_response):
-    # when
-    tax_line_data = _unsafe_parse_tax_line_data(tax_line_data_response)
-
-    # then
-    assert not tax_line_data.total_gross_amount.compare(
-        decimal.Decimal(tax_line_data_response["total_gross_amount"])
-    )
-    assert not tax_line_data.total_net_amount.compare(
-        decimal.Decimal(tax_line_data_response["total_net_amount"])
-    )
-    assert tax_line_data.tax_rate == tax_line_data_response["tax_rate"]
-
-
-def test_unsafe_parse_tax_line_data_keyerror(tax_line_data_response):
-    # given
-    tax_line_data_response["total_net_amount_v2"] = tax_line_data_response[
-        "total_net_amount"
-    ]
-    del tax_line_data_response["total_net_amount"]
-
-    # when
-    with pytest.raises(KeyError):
-        _unsafe_parse_tax_line_data(tax_line_data_response)
-
-
-def test_unsafe_parse_tax_line_data_decimalexception(tax_line_data_response):
-    # given
-    tax_line_data_response["total_net_amount"] = "invalid value"
-
-    # when
-    with pytest.raises(decimal.DecimalException):
-        _unsafe_parse_tax_line_data(tax_line_data_response)
 
 
 def test_parse_tax_data_success(tax_data_response):

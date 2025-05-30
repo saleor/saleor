@@ -12,7 +12,7 @@ from ....core.taxes import TaxDataError, TaxType
 from ....graphql.webhook.utils import get_subscription_query_hash
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.payloads import generate_order_payload_for_tax_calculation
-from ....webhook.transport.utils import (
+from ....webhook.transport.taxes import (
     DEFAULT_TAX_CODE,
     DEFAULT_TAX_DESCRIPTION,
     parse_tax_data,

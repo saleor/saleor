@@ -7,7 +7,7 @@ from ...core.models import EventDelivery
 from ..event_types import WebhookEventSyncType
 from ..models import Webhook, WebhookEvent
 from ..transport.synchronous import trigger_taxes_all_webhooks_sync
-from ..transport.utils import parse_tax_data
+from ..transport.taxes import parse_tax_data
 
 
 @pytest.fixture
