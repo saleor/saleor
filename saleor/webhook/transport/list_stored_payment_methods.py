@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 import graphene
 from django.core.cache import cache
@@ -6,6 +7,7 @@ from pydantic import ValidationError
 
 from ...app.models import App
 from ...payment.interface import (
+    JSONValue,
     PaymentGateway,
     PaymentGatewayInitializeTokenizationResponseData,
     PaymentGatewayInitializeTokenizationResult,
@@ -65,7 +67,7 @@ def get_list_stored_payment_methods_from_response(
             if payment_method.credit_card_info
             else None,
             name=payment_method.name,
-            data=payment_method.data,
+            data=payment_method.data,  # type: ignore[arg-type]
             gateway=PaymentGateway(
                 id=app_identifier, name=app.name, currencies=[currency], config=[]
             ),
@@ -140,6 +142,7 @@ def get_response_for_payment_gateway_initialize_tokenization(
             result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
             error = parse_validation_error(e)
 
+    data = cast(JSONValue, data)
     return PaymentGatewayInitializeTokenizationResponseData(
         result=result, error=error, data=data
     )

@@ -1,0 +1,34 @@
+{
+  "$defs": {
+    "ExcludedShippingMethodSchema": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "ExcludedShippingMethodSchema",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "excluded_methods": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ExcludedShippingMethodSchema"
+      },
+      "title": "Excluded Methods",
+      "type": "array"
+    }
+  },
+  "title": "FilterShippingMethods",
+  "type": "object"
+}
