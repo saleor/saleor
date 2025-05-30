@@ -24,6 +24,7 @@ from ..utils import get_supported_currencies
 from .consts import (
     ACTION_REQUIRED_STATUSES,
     AUTHORIZED_STATUS,
+    PLUGIN_DESCRIPTION,
     PLUGIN_ID,
     PLUGIN_NAME,
     PROCESSING_STATUS,
@@ -54,6 +55,7 @@ logger = logging.getLogger(__name__)
 
 class StripeGatewayPlugin(BasePlugin):
     PLUGIN_NAME = PLUGIN_NAME
+    PLUGIN_DESCRIPTION = PLUGIN_DESCRIPTION
     PLUGIN_ID = PLUGIN_ID
     DEFAULT_CONFIGURATION = [
         {"name": "public_api_key", "value": None},
