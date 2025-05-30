@@ -14,7 +14,6 @@ from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
-from ...payment.models import Payment
 from ...product.models import ProductVariant
 from ..channel.filters import get_currency_from_filter_data
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -323,18 +322,6 @@ class OrderStatusEnumFilterInput(BaseInputObjectType):
         description = "Filter by order status."
 
 
-class PaymentStatusEnumFilterInput(BaseInputObjectType):
-    eq = PaymentChargeStatusEnum(description=FilterInputDescriptions.EQ, required=False)
-    one_of = NonNullList(
-        PaymentChargeStatusEnum,
-        description=FilterInputDescriptions.ONE_OF,
-        required=False,
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
-
-
 class OrderAuthorizeStatusEnumFilterInput(BaseInputObjectType):
     eq = OrderAuthorizeStatusEnum(
         description=FilterInputDescriptions.EQ, required=False
@@ -395,11 +382,6 @@ class OrderWhere(WhereFilterSet):
         input_class=StringFilterInput,
         method="filter_user_email",
         help_text="Filter by user email.",
-    )
-    payment_status = OperationObjectTypeWhereFilter(
-        input_class=PaymentStatusEnumFilterInput,
-        method="filter_payment_status",
-        help_text="Filter by payment status.",
     )
     authorize_status = OperationObjectTypeWhereFilter(
         input_class=OrderAuthorizeStatusEnumFilterInput,
@@ -468,24 +450,6 @@ class OrderWhere(WhereFilterSet):
     @staticmethod
     def filter_user_email(qs, _, value):
         return filter_where_by_value_field(qs, "user_email", value)
-
-    @staticmethod
-    def filter_payment_status(qs, _, value):
-        if value is None:
-            return qs.none()
-
-        eq_value = value.get("eq")
-        values = value.get("one_of")
-        if eq_value:
-            values = [eq_value]
-
-        if values:
-            lookup = Q(is_active=True, charge_status__in=values)
-            if ChargeStatus.FULLY_REFUNDED in values:
-                lookup |= Q(charge_status=ChargeStatus.FULLY_REFUNDED)
-            payments = Payment.objects.using(qs.db).filter(lookup)
-            return qs.filter(Exists(payments.filter(order_id=OuterRef("id"))))
-        return qs.none()
 
     @staticmethod
     def filter_authorize_status(qs, _, value):
