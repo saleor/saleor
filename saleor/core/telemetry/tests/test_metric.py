@@ -50,8 +50,8 @@ def test_meter_initialization(mock_get_meter):
 
     # then
     assert mock_get_meter.call_count == 2
-    mock_get_meter.assert_any_call(Scope.CORE.value, instrumentation_version)
-    mock_get_meter.assert_any_call(Scope.SERVICE.value, instrumentation_version)
+    mock_get_meter.assert_any_call(Scope.CORE.value, instrumentation_version, None)
+    mock_get_meter.assert_any_call(Scope.SERVICE.value, instrumentation_version, None)
 
 
 def test_meter_create_counter():
