@@ -25,6 +25,8 @@ jobs:
       - name: Build and push
         uses: kciter/aws-ecr-action@79255b7c5aa03dbf6d7c46cff2bfd049874cd98d # v4
         with:
+          access_key_id: ${{ env.AWS_ACCESS_KEY_ID }}
+          secret_access_key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           account_id: ${{ secrets.AWS_TESTENVS_ACCOUNT_ID }}
           repo: saleor-testenvs
           region: us-east-1
