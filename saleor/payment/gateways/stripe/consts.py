@@ -1,5 +1,8 @@
 PLUGIN_ID = "saleor.payments.stripe"
 PLUGIN_NAME = "Stripe (deprecated)"
+PLUGIN_DESCRIPTION = """
+Stripe Plugin has been deprecated and will be removed in the future. Use the Stripe App instead.
+"""
 WEBHOOK_PATH = "webhooks/"
 
 WEBHOOK_SUCCESS_EVENT = "payment_intent.succeeded"
