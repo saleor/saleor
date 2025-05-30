@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from ..account.models import User
 from ..app.models import App
 from ..channel import TransactionFlowStrategy
+from ..checkout import calculations
 from ..checkout.actions import (
     transaction_amounts_for_checkout_updated,
     update_last_transaction_modified_at_for_checkout,
@@ -168,11 +169,11 @@ def create_checkout_payment_lines_information(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
-        unit_price = manager.calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            line_info,
-            address,
+        unit_price = calculations.checkout_line_unit_price(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
         )
         unit_gross = unit_price.gross.amount
 
@@ -188,12 +189,12 @@ def create_checkout_payment_lines_information(
                 amount=unit_gross,
             )
         )
-    shipping_amount = manager.calculate_checkout_shipping(
+    shipping_amount = calculations.checkout_shipping_price(
+        manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
     ).gross.amount
-
     voucher_amount = -checkout.discount_amount
 
     return PaymentLinesData(
