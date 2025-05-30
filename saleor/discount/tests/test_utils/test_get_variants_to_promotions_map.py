@@ -207,6 +207,7 @@ def test_get_variants_to_promotions_map_without_customer_group(
     # then
     assert len(rules_info_per_variant) == 1
     assert rules_info_per_variant[variant.id] == [
+        PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id]),
         PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
     ]
 

@@ -102,6 +102,10 @@ def filter_relevant_rules(
     user_groups_ids,
 ):
     relevant_rules = []
+
+    if rules_info is None:
+        return relevant_rules
+
     for rule_info in rules_info:
         rule_group_ids = {group.id for group in rule_info.rule.customer_groups.all()}
         if len(rule_group_ids) == 0 or len(rule_group_ids & user_groups_ids) > 0:
