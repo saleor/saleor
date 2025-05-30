@@ -36,7 +36,7 @@ jobs:
 
       - name: Invoke deployment lambda
         uses: gagoar/invoke-aws-lambda@d3a63ccabbed6ef817604ef6320096bde576ad40
-        with:}
+        with:
           REGION: us-east-1
           FunctionName: migrations-perf-test-manager
           Payload: >-
