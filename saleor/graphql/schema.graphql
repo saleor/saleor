@@ -6648,7 +6648,16 @@ input AttributeInput @doc(category: "Attributes") {
   """Internal representation of an attribute name."""
   slug: String!
 
-  """Internal representation of a value (unique per attribute)."""
+  """
+  Names corresponding to the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values.
+  
+  Added in Saleor 3.22.
+  """
+  valueNames: [String!]
+
+  """
+  Slugs identifying the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values.
+  """
   values: [String!]
 
   """The range that the returned values should be in."""
