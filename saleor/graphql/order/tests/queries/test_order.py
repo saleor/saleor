@@ -453,6 +453,85 @@ def test_order_query(
     )
 
 
+QUERY_ORDER_WITH_EMAIL_BY_ID = """
+    query OrderQuery($id: ID) {
+        order(id: $id) {
+            id
+            userEmail
+        }
+    }
+"""
+
+
+def test_order_query_without_email(
+    user_api_client,
+    fulfilled_order,
+):
+    # given
+    order = fulfilled_order
+    order.user_email = ""
+    order.user = None
+    order.save()
+    assert order.user is None
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ORDER_WITH_EMAIL_BY_ID, {"id": to_global_id_or_none(order)}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["order"]
+    assert order_data["userEmail"] is None
+
+
+def test_order_query_with_explicit_email_for_anonymous_user(
+    user_api_client,
+    fulfilled_order,
+):
+    # given
+    expected_order_email = "different_email@example.com"
+    order = fulfilled_order
+    order.user_email = expected_order_email
+    order.user = None
+    order.save()
+    assert order.user is None
+    assert order.user_email == expected_order_email
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ORDER_WITH_EMAIL_BY_ID, {"id": to_global_id_or_none(order)}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["order"]
+    assert order_data["userEmail"] == expected_order_email
+
+
+def test_order_query_with_explicit_email_for_authenticated_user(
+    user_api_client,
+    fulfilled_order,
+):
+    # given
+    expected_order_email = "different_email@example.com"
+    order = fulfilled_order
+    order.user_email = expected_order_email
+    order.save()
+    assert order.user is not None
+    assert order.user.email != expected_order_email
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ORDER_WITH_EMAIL_BY_ID, {"id": to_global_id_or_none(order)}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    order_data = content["data"]["order"]
+    assert order_data["userEmail"] == expected_order_email
+
+
 def test_order_query_denormalized_shipping_tax_class_data(
     staff_api_client,
     permission_group_manage_orders,

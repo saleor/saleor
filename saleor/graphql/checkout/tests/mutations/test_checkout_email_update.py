@@ -32,8 +32,10 @@ CHECKOUT_EMAIL_UPDATE_MUTATION = """
 """
 
 
-def test_checkout_email_update(user_api_client, checkout_with_item):
+def test_anonymous_checkout_email_update(user_api_client, checkout_with_item):
+    # given
     checkout = checkout_with_item
+    assert checkout.user is None
     checkout.email = None
     checkout.save(update_fields=["email"])
     previous_last_change = checkout.last_change
@@ -41,12 +43,41 @@ def test_checkout_email_update(user_api_client, checkout_with_item):
     email = "test@example.com"
     variables = {"id": to_global_id_or_none(checkout), "email": email}
 
+    # when
     response = user_api_client.post_graphql(CHECKOUT_EMAIL_UPDATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutEmailUpdate"]
     assert not data["errors"]
+    assert data["checkout"]["email"] == email
     checkout.refresh_from_db()
     assert checkout.email == email
+    assert checkout.last_change != previous_last_change
+
+
+def test_authenticated_checkout_email_update(user_api_client, checkout_with_item):
+    # given
+    expected_email = "new-email@example.com"
+    checkout = checkout_with_item
+    checkout.user = user_api_client.user
+    assert checkout.email != expected_email
+    checkout.save(update_fields=["email"])
+    previous_last_change = checkout.last_change
+
+    variables = {"id": to_global_id_or_none(checkout), "email": expected_email}
+
+    # when
+    response = user_api_client.post_graphql(CHECKOUT_EMAIL_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutEmailUpdate"]
+    assert not data["errors"]
+    assert data["checkout"]["email"] == expected_email
+
+    checkout.refresh_from_db()
+    assert checkout.email == expected_email
     assert checkout.last_change != previous_last_change
 
 
