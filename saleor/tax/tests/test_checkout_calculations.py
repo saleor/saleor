@@ -269,9 +269,9 @@ def test_calculate_checkout_shipping_with_weighted_taxes(
     weighted_tax_amount = weighted_tax_amount / sum(
         line_info.line.total_price.net.amount for line_info in lines
     )
-    assert checkout.shipping_tax_rate == Decimal(weighted_tax_amount).quantize(
-        Decimal("0.0001")
-    )
+    assert checkout.shipping_tax_rate.quantize(Decimal("0.0001")) == Decimal(
+        weighted_tax_amount
+    ).quantize(Decimal("0.0001"))
     assert checkout.shipping_price == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
     )

@@ -99,6 +99,46 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
         )
 
 
+def test_apply_tax_data_tax_rate_matches(checkout_with_items, checkout_lines):
+    # given
+    net_amount = Decimal("10.000")
+    tax_rate = Decimal("8.875")
+    expected_tax_rate = Decimal("0.08875")
+    gross_amount = net_amount + (net_amount * tax_rate / 100)
+    tax_data = TaxData(
+        shipping_price_net_amount=net_amount,
+        shipping_price_gross_amount=gross_amount,
+        shipping_tax_rate=tax_rate,
+        lines=[
+            TaxLineData(
+                total_net_amount=net_amount,
+                total_gross_amount=gross_amount,
+                tax_rate=tax_rate,
+            )
+            for _ in checkout_lines
+        ],
+    )
+
+    checkout = checkout_with_items
+    lines = checkout_lines
+
+    # when
+    _apply_tax_data(
+        checkout,
+        [
+            Mock(spec=CheckoutLineInfo, line=line, variant=line.variant)
+            for line in lines
+        ],
+        tax_data,
+    )
+
+    # then
+    assert checkout.shipping_tax_rate == expected_tax_rate
+
+    for line in lines:
+        assert line.tax_rate == expected_tax_rate
+
+
 @pytest.fixture
 def fetch_kwargs(checkout_with_items, plugins_manager):
     lines, _ = fetch_checkout_lines(checkout_with_items)
