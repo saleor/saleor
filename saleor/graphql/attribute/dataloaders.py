@@ -29,6 +29,16 @@ class AttributesByAttributeId(DataLoader[int, Attribute]):
         return [attributes.get(key) for key in keys]
 
 
+class AttributesBySlugLoader(DataLoader[str, Attribute]):
+    context_key = "attributes_by_slug"
+
+    def batch_load(self, keys):
+        attributes = Attribute.objects.using(self.database_connection_name).in_bulk(
+            keys, field_name="slug"
+        )
+        return [attributes.get(slug) for slug in keys]
+
+
 class AttributeValueByIdLoader(DataLoader[int, AttributeValue]):
     context_key = "attributevalue_by_id"
 
