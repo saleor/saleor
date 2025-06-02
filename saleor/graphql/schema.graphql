@@ -12785,9 +12785,6 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by user email."""
   userEmail: StringFilterInput
 
-  """Filter by payment status."""
-  paymentStatus: PaymentStatusEnumFilterInput
-
   """Filter by authorize status."""
   authorizeStatus: OrderAuthorizeStatusEnumFilterInput
 
@@ -12834,14 +12831,6 @@ input IntFilterInput {
 
   """The value in range."""
   range: IntRangeInput
-}
-
-input PaymentStatusEnumFilterInput @doc(category: "Orders") {
-  """The value equal to."""
-  eq: PaymentChargeStatusEnum
-
-  """The value included in."""
-  oneOf: [PaymentChargeStatusEnum!]
 }
 
 """Filter by authorize status."""
