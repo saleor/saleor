@@ -17,6 +17,7 @@ from ...core.taxes import (
 )
 from ...discount import DiscountValueType
 from ...graphql.core.utils import to_global_id_or_none
+from ...order.utils import get_order_country
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.avatax.plugin import AvataxPlugin
 from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
@@ -1661,14 +1662,9 @@ def test_fetch_order_data_tax_data_with_tax_data_error(
     assert mocked_logger.call_args[1]["extra"]["errors"] == errors
 
 
-@pytest.mark.parametrize(
-    "prices_entered_with_tax",
-    [True, False],
-)
 @patch.object(logger, "warning")
 def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
     mocked_logger,
-    prices_entered_with_tax,
     order_with_lines,
 ):
     # given
@@ -1676,7 +1672,7 @@ def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
 
     channel = order.channel
     channel.tax_configuration.tax_app_id = None
-    channel.tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    channel.tax_configuration.prices_entered_with_tax = True
     channel.tax_configuration.save()
 
     zero_money = zero_taxed_money(order.currency)
@@ -1797,3 +1793,69 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
     assert order.tax_error == TaxDataErrorMessage.OVERFLOW
     assert TaxDataErrorMessage.OVERFLOW in caplog.text
     assert caplog.records[0].order_id == to_global_id_or_none(order)
+
+
+@patch(
+    "saleor.order.calculations.update_order_prices_with_flat_rates",
+    wraps=update_order_prices_with_flat_rates,
+)
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_fetch_order_prices_flat_rates_with_weighted_shipping_tax(
+    mocked_update_order_prices_with_flat_rates,
+    order_with_lines_untaxed,
+    prices_entered_with_tax,
+    tax_classes,
+    plugins_manager,
+    tax_configuration_flat_rates,
+):
+    # given
+    order = order_with_lines_untaxed
+
+    tax_configuration_flat_rates.use_weighted_tax_for_shipping = True
+    tax_configuration_flat_rates.save()
+
+    country = get_order_country(order)
+
+    lines = list(order.lines.all())
+    first_line = lines[0]
+    second_line = lines[-1]
+
+    # Set different tax rates for different lines
+    first_rate = Decimal("5")
+    second_rate = Decimal("60")
+    shipping_rate = Decimal("223")
+
+    first_line.tax_class.country_rates.filter(country=country).update(rate=first_rate)
+
+    second_tax_class = tax_classes[0]
+    second_line.tax_class = second_tax_class
+    second_line.save()
+    second_tax_class.country_rates.filter(country=country).update(rate=second_rate)
+
+    # Set a different tax rate for shipping
+    shipping_tax_class = tax_classes[1]
+    shipping_tax_class.country_rates.filter(country=country).update(rate=shipping_rate)
+
+    order.shipping_method.tax_class = shipping_tax_class
+    order.shipping_method.save()
+
+    # when
+    calculations.fetch_order_prices_if_expired(
+        order=order,
+        manager=plugins_manager,
+        force_update=True,
+    )
+
+    # then
+    order.refresh_from_db()
+    lines = list(order.lines.all())
+
+    mocked_update_order_prices_with_flat_rates.assert_called_once()
+
+    # Calculate the expected weighted tax rate
+    total_weighted = sum(line.total_price.net.amount * line.tax_rate for line in lines)
+    total_net = sum(line.total_price.net.amount for line in lines)
+    expected_tax_rate = (total_weighted / total_net).quantize(Decimal("0.0001"))
+
+    assert order.shipping_tax_rate == expected_tax_rate
+    assert order.shipping_tax_rate != shipping_rate / 100

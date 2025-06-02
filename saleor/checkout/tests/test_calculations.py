@@ -307,6 +307,75 @@ def test_fetch_checkout_data_flat_rates(
     assert checkout.shipping_tax_rate == Decimal("0.2300")
 
 
+@pytest.mark.parametrize("allow_sync_webhooks", [True, False])
+@patch(
+    "saleor.checkout.calculations.update_checkout_prices_with_flat_rates",
+    wraps=update_checkout_prices_with_flat_rates,
+)
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_fetch_checkout_data_flat_rates_with_weighted_shipping_tax(
+    mocked_update_checkout_prices_with_flat_rates,
+    allow_sync_webhooks,
+    checkout_with_items_and_shipping,
+    address,
+    prices_entered_with_tax,
+    tax_classes,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = prices_entered_with_tax
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.use_weighted_tax_for_shipping = True
+    tc.save()
+
+    country_code = checkout.shipping_address.country.code
+    first_line = checkout.lines.first()
+    second_line = checkout.lines.last()
+    first_tax_class = first_line.variant.product.tax_class
+    first_tax_class.country_rates.filter(country=country_code).update(rate=5)
+    first_line.variant.product.tax_class = first_tax_class
+    first_line.variant.product.save()
+
+    second_tax_class = tax_classes[0]
+    second_tax_class.country_rates.filter(country=country_code).update(rate=60)
+    second_line.variant.product.tax_class = second_tax_class
+    second_line.variant.product.save()
+
+    third_tax_class = tax_classes[1]
+    third_tax_class.country_rates.filter(country=country_code).update(rate=223)
+    checkout.shipping_method.tax_class = third_tax_class
+    checkout.shipping_method.save()
+
+    lines, _ = fetch_checkout_lines(checkout_with_items_and_shipping)
+    checkout_info = fetch_checkout_info(
+        checkout_with_items_and_shipping, lines, plugins_manager
+    )
+
+    # when
+    fetch_checkout_data(
+        checkout_info,
+        plugins_manager,
+        lines,
+        allow_sync_webhooks=allow_sync_webhooks,
+        address=checkout.shipping_address,
+    )
+
+    # then
+    checkout.refresh_from_db()
+    lines = checkout.lines.all()
+
+    mocked_update_checkout_prices_with_flat_rates.assert_called_once()
+    total_weighted = sum(line.total_price.net.amount * line.tax_rate for line in lines)
+
+    assert checkout.shipping_tax_rate == (
+        total_weighted / sum(line.total_price.net.amount for line in lines)
+    ).quantize(Decimal("0.0001"))
+
+
 @patch(
     "saleor.checkout.calculations.update_checkout_prices_with_flat_rates",
     wraps=update_checkout_prices_with_flat_rates,

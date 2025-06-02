@@ -21,9 +21,7 @@ from ...core.dataloaders import DataLoader
 from ..subscription_payload import generate_payload_promise_from_subscription
 from ..utils import get_subscription_query_hash
 from .models import WebhooksByEventTypeLoader
-from .request_context import (
-    PayloadsRequestContextByEventTypeLoader,
-)
+from .request_context import PayloadsRequestContextByEventTypeLoader
 
 
 class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
@@ -59,12 +57,10 @@ class PregeneratedCheckoutTaxPayloadsByCheckoutTokenLoader(DataLoader):
             checkouts_info, checkout_lines_info, apps, request_context, webhooks = data
             apps_map = {app.id: app for app in apps}
             promises = []
-            for checkout_info, lines_info in zip(
-                checkouts_info, checkout_lines_info, strict=False
-            ):
+            for checkout_info in checkouts_info:
                 tax_configuration, country_tax_configuration = (
                     get_tax_configuration_for_checkout(
-                        checkout_info, lines_info, self.database_connection_name
+                        checkout_info, self.database_connection_name
                     )
                 )
                 tax_strategy = get_tax_calculation_strategy(
