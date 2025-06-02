@@ -3468,7 +3468,7 @@ def test_lock_checkout_during_updating_checkout_amounts(
 
     with before_after.before(
         "saleor.graphql.payment.mutations.transaction."
-        "transaction_event_report.transaction_amounts_for_checkout_updated_without_price_expiration",
+        "transaction_event_report.transaction_amounts_for_checkout_updated_without_price_recalculation",
         check_if_checkout_is_locked,
     ):
         app_api_client.post_graphql(
