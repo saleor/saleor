@@ -424,6 +424,11 @@ class OrderWhere(WhereFilterSet):
         method="filter_is_gift_card_bought",
         help_text="Filter based on whether the order includes a gift card purchase.",
     )
+    voucher_code = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_voucher_code",
+        help_text="Filter by voucher code used in the order.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -494,6 +499,10 @@ class OrderWhere(WhereFilterSet):
         if value is None:
             return qs.none()
         return filter_by_gift_card(qs, value, GiftCardEvents.BOUGHT)
+
+    @staticmethod
+    def filter_voucher_code(qs, _, value):
+        return filter_where_by_value_field(qs, "voucher_code", value)
 
 
 class OrderWhereInput(WhereInputObjectType):

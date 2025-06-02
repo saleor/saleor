@@ -1236,6 +1236,100 @@ def test_order_filter_with_search_and_charge_status(
     }
 
 
+def test_orders_filter_by_voucher_code_eq(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher_with_many_codes,
+):
+    # given
+    codes = voucher_with_many_codes.codes.all()
+    order_list[0].voucher_code = codes[0].code
+    order_list[1].voucher_code = codes[1].code
+    order_list[1].voucher = voucher_with_many_codes
+    order_list[2].voucher_code = codes[2].code
+    Order.objects.bulk_update(order_list, ["voucher_code", "voucher"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"voucherCode": {"eq": codes[0].code}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert orders[0]["node"]["number"] == str(order_list[0].number)
+
+
+def test_orders_filter_by_voucher_code_one_of(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher_with_many_codes,
+):
+    # given
+    codes = voucher_with_many_codes.codes.all()
+    order_list[0].voucher_code = codes[0].code
+    order_list[1].voucher_code = codes[1].code
+    order_list[1].voucher = voucher_with_many_codes
+    order_list[2].voucher_code = codes[2].code
+    Order.objects.bulk_update(order_list, ["voucher_code", "voucher"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"voucherCode": {"oneOf": [codes[1].code, codes[2].code]}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 2
+    returned_numbers = {node["node"]["number"] for node in orders}
+    assert returned_numbers == {
+        str(order_list[1].number),
+        str(order_list[2].number),
+    }
+
+
+@pytest.mark.parametrize(
+    "where",
+    [
+        {},
+        {"oneOf": []},
+        {"eq": None},
+        None,
+    ],
+)
+def test_orders_filter_by_voucher_code_empty_value(
+    where,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    voucher_with_many_codes,
+):
+    # given
+    codes = voucher_with_many_codes.codes.all()
+    order_list[0].voucher_code = codes[0].code
+    order_list[1].voucher_code = codes[1].code
+    order_list[1].voucher = voucher_with_many_codes
+    order_list[2].voucher_code = codes[2].code
+    Order.objects.bulk_update(order_list, ["voucher_code", "voucher"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"voucherCode": where}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
 def test_order_query_with_filter_and_where(
     staff_api_client,
     permission_group_manage_orders,
