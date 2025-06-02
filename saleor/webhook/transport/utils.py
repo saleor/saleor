@@ -1,5 +1,4 @@
 import datetime
-import decimal
 import hashlib
 import json
 import logging
@@ -8,7 +7,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from time import time
-from typing import Any, Optional
+from typing import Optional
 from urllib.parse import unquote, urlparse, urlunparse
 from uuid import UUID
 
@@ -35,28 +34,15 @@ from ...core.models import (
     EventPayload,
 )
 from ...core.tasks import delete_files_from_private_storage_task
-from ...core.taxes import TaxData, TaxLineData
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import sanitize_url_for_logging
-from ...payment.interface import (
-    GatewayResponse,
-    PaymentData,
-    PaymentGateway,
-    PaymentMethodInfo,
-)
 from .. import observability
 from ..const import APP_ID_PREFIX
-from ..event_types import WebhookEventSyncType
 from ..models import Webhook
-from ..response_schemas.taxes import CalculateTaxesSchema
 from . import signature_for_payload
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(f"{__name__}.celery")
-
-
-DEFAULT_TAX_CODE = "UNMAPPED"
-DEFAULT_TAX_DESCRIPTION = "Unmapped Product/Product Type"
 
 
 class WebhookSchemes(str, Enum):
@@ -643,93 +629,6 @@ def save_unsuccessful_delivery_attempt(attempt: "EventDeliveryAttempt"):
         attempt.save()
 
 
-def parse_tax_data(
-    response_data: Any,
-    lines_count: int,
-) -> TaxData:
-    calculated_taxes_model = CalculateTaxesSchema.model_validate(
-        response_data,
-        context={"expected_line_count": lines_count},
-    )
-    return TaxData(
-        shipping_price_gross_amount=calculated_taxes_model.shipping_price_gross_amount,
-        shipping_price_net_amount=calculated_taxes_model.shipping_price_net_amount,
-        shipping_tax_rate=calculated_taxes_model.shipping_tax_rate,
-        lines=[
-            TaxLineData(
-                tax_rate=tax_line.tax_rate,
-                total_gross_amount=tax_line.total_gross_amount,
-                total_net_amount=tax_line.total_net_amount,
-            )
-            for tax_line in calculated_taxes_model.lines
-        ],
-    )
-
-
-def parse_payment_action_response(
-    payment_information: "PaymentData",
-    response_data: Any,
-    transaction_kind: "str",
-) -> "GatewayResponse":
-    error = response_data.get("error")
-    is_success = not error
-
-    payment_method_info = None
-    payment_method_data = response_data.get("payment_method")
-    if payment_method_data:
-        payment_method_info = PaymentMethodInfo(
-            brand=payment_method_data.get("brand"),
-            exp_month=payment_method_data.get("exp_month"),
-            exp_year=payment_method_data.get("exp_year"),
-            last_4=payment_method_data.get("last_4"),
-            name=payment_method_data.get("name"),
-            type=payment_method_data.get("type"),
-        )
-
-    amount = payment_information.amount
-    if "amount" in response_data:
-        try:
-            amount = decimal.Decimal(response_data["amount"])
-        except decimal.DecimalException:
-            pass
-
-    return GatewayResponse(
-        action_required=response_data.get("action_required", False),
-        action_required_data=response_data.get("action_required_data"),
-        amount=amount,
-        currency=payment_information.currency,
-        customer_id=response_data.get("customer_id"),
-        error=error,
-        is_success=is_success,
-        kind=response_data.get("kind", transaction_kind),
-        payment_method_info=payment_method_info,
-        raw_response=response_data,
-        psp_reference=response_data.get("psp_reference"),
-        transaction_id=response_data.get("transaction_id", ""),
-        transaction_already_processed=response_data.get(
-            "transaction_already_processed", False
-        ),
-    )
-
-
-def _unsafe_parse_tax_line_data(
-    tax_line_data_response: Any,
-) -> TaxLineData:
-    """Unsafe TaxLineData parser.
-
-    Raises KeyError or DecimalException on invalid data.
-    """
-    total_gross_amount = decimal.Decimal(tax_line_data_response["total_gross_amount"])
-    total_net_amount = decimal.Decimal(tax_line_data_response["total_net_amount"])
-    tax_rate = decimal.Decimal(tax_line_data_response["tax_rate"])
-
-    return TaxLineData(
-        total_gross_amount=total_gross_amount,
-        total_net_amount=total_net_amount,
-        tax_rate=tax_rate,
-    )
-
-
 def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
     splitted_id = app_gateway_id.split(":", maxsplit=2)
     if len(splitted_id) == 3 and splitted_id[0] == APP_ID_PREFIX and all(splitted_id):
@@ -746,17 +645,6 @@ def from_payment_app_id(app_gateway_id: str) -> Optional["PaymentAppData"]:
     return None
 
 
-def get_current_tax_app() -> App | None:
-    """Return currently used tax app or None, if there aren't any."""
-    return (
-        App.objects.order_by("pk")
-        .filter(removed_at__isnull=True)
-        .for_event_type(WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
-        .for_event_type(WebhookEventSyncType.ORDER_CALCULATE_TAXES)
-        .last()
-    )
-
-
 def get_meta_code_key(app: App) -> str:
     return f"{app.identifier}.code"
 
@@ -768,28 +656,3 @@ def get_meta_description_key(app: App) -> str:
 def to_payment_app_id(app: "App", external_id: str) -> "str":
     app_identifier = app.identifier or app.id
     return f"{APP_ID_PREFIX}:{app_identifier}:{external_id}"
-
-
-def parse_list_payment_gateways_response(
-    response_data: Any, app: "App"
-) -> list["PaymentGateway"]:
-    gateways: list[PaymentGateway] = []
-    if not isinstance(response_data, list):
-        return gateways
-
-    for gateway_data in response_data:
-        gateway_id = gateway_data.get("id")
-        gateway_name = gateway_data.get("name")
-        gateway_currencies = gateway_data.get("currencies")
-        gateway_config = gateway_data.get("config")
-
-        if gateway_id:
-            gateways.append(
-                PaymentGateway(
-                    id=to_payment_app_id(app, gateway_id),
-                    name=gateway_name,
-                    currencies=gateway_currencies,
-                    config=gateway_config,
-                )
-            )
-    return gateways

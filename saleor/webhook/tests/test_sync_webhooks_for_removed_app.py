@@ -5,7 +5,7 @@ from django.utils import timezone
 from ...core.models import EventDelivery, EventPayload
 from ..event_types import WebhookEventSyncType
 from ..transport.synchronous.transport import trigger_taxes_all_webhooks_sync
-from ..transport.utils import parse_tax_data
+from ..transport.taxes import parse_tax_data
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
