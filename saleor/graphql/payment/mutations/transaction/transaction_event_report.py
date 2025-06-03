@@ -17,9 +17,10 @@ from .....core.utils.events import call_event
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.fetch import fetch_order_info
+from .....order.search import update_order_search_vector
 from .....order.utils import (
     calculate_order_granted_refund_status,
-    updates_amounts_and_search_vector_for_order_with_lock,
+    updates_amounts_for_order,
 )
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment import models as payment_models
@@ -301,17 +302,19 @@ class TransactionEventReport(ModelMutation):
         related_granted_refund: Optional[order_models.OrderGrantedRefund],
     ):
         order = cast(order_models.Order, transaction.order)
-        order = updates_amounts_and_search_vector_for_order_with_lock(
-            order,
-            update_fields=[
-                "total_charged_amount",
-                "charge_status",
-                "updated_at",
-                "total_authorized_amount",
-                "authorize_status",
-                "search_vector",
-            ],
-        )
+        with traced_atomic_transaction():
+            order = (
+                order_models.Order.objects.prefetch_related(
+                    "payments", "payment_transactions", "granted_refunds"
+                )
+                .select_for_update()
+                .get(pk=order.pk)
+            )
+            transaction = payment_models.TransactionItem.objects.select_for_update(
+                of=("self",)
+            ).get(pk=transaction.pk)
+            updates_amounts_for_order(order)
+        update_order_search_vector(order)
         order_info = fetch_order_info(order)
         order_transaction_updated(
             order_info=order_info,
