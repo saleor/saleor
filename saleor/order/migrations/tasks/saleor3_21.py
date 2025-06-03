@@ -16,6 +16,9 @@ DEFAULT_EXPIRE_TIME = 24
 # The batch of size 250 takes ~0.2 second and consumes ~15MB memory at peak
 ORDER_BATCH_SIZE = 250
 
+# The batch of size 250 takes ~0.3 second and consumes ~12MB memory at peak
+LINES_COUNT_BATCH_SIZE = 250
+
 
 @app.task
 @allow_writer()
@@ -66,3 +69,22 @@ def migrate_orders_with_waiting_for_approval_fulfillment_task():
             _orders_lock = list(orders.select_for_update(of=(["self"])))
             orders.update(status=OrderStatus.UNFULFILLED)
         migrate_orders_with_waiting_for_approval_fulfillment_task.delay()
+
+
+@app.task
+@allow_writer()
+def set_lines_count_task():
+    """Set lines count for orders."""
+    orders = Order.objects.filter(lines_count__isnull=True)
+    qs = orders.order_by("pk")
+    ids = qs.values_list("pk", flat=True)[:LINES_COUNT_BATCH_SIZE]
+    if ids:
+        orders = Order.objects.filter(id__in=ids).order_by("pk")
+        with transaction.atomic():
+            to_save = []
+            _orders_lock = list(orders.select_for_update(of=(["self"])))
+            for order in orders:
+                order.lines_count = order.lines.count()
+                to_save.append(order)
+            Order.objects.bulk_update(to_save, ["lines_count"])
+        set_lines_count_task.delay()
