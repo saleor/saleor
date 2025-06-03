@@ -20,7 +20,10 @@ from .fetch import (
     fetch_checkout_lines,
 )
 from .models import Checkout
-from .payment_utils import update_refundable_for_checkout
+from .payment_utils import (
+    update_checkout_payment_statuses,
+    update_refundable_for_checkout,
+)
 
 if TYPE_CHECKING:
     from ..account.models import Address, User
@@ -206,8 +209,6 @@ def transaction_amounts_for_checkout_updated(
     user: Optional["User"],
     app: Optional["App"],
 ):
-    from .tasks import automatic_checkout_completion_task
-
     if not transaction.checkout_id:
         return
     checkout = cast(Checkout, transaction.checkout)
@@ -216,6 +217,63 @@ def transaction_amounts_for_checkout_updated(
     previous_charge_status = checkout_info.checkout.charge_status
     previous_authorize_status = checkout_info.checkout.authorize_status
     fetch_checkout_data(checkout_info, manager, lines, force_status_update=True)
+    _transaction_amounts_for_checkout_updated(
+        transaction,
+        previous_charge_status,
+        previous_authorize_status,
+        checkout_info,
+        lines,
+        manager,
+        user,
+        app,
+    )
+
+
+def transaction_amounts_for_checkout_updated_without_price_recalculation(
+    transaction: TransactionItem,
+    checkout: Checkout,
+    manager: "PluginsManager",
+    user: Optional["User"],
+    app: Optional["App"],
+):
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    previous_charge_status = checkout_info.checkout.charge_status
+    previous_authorize_status = checkout_info.checkout.authorize_status
+
+    current_total_gross = checkout_info.checkout.total.gross
+    update_checkout_payment_statuses(
+        checkout=checkout_info.checkout,
+        checkout_total_gross=current_total_gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    _transaction_amounts_for_checkout_updated(
+        transaction,
+        previous_charge_status,
+        previous_authorize_status,
+        checkout_info,
+        lines,
+        manager,
+        user,
+        app,
+    )
+
+
+def _transaction_amounts_for_checkout_updated(
+    transaction: TransactionItem,
+    previous_charge_status: str,
+    previous_authorize_status: str,
+    checkout_info: CheckoutInfo,
+    lines: list[CheckoutLineInfo],
+    manager: "PluginsManager",
+    user: Optional["User"],
+    app: Optional["App"],
+):
+    from .tasks import automatic_checkout_completion_task
+
+    checkout = checkout_info.checkout
+
     previous_charge_status_is_fully_paid = previous_charge_status in [
         CheckoutChargeStatus.FULL,
         CheckoutChargeStatus.OVERCHARGED,
