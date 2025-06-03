@@ -17,8 +17,8 @@ def test_tracer_initialization(mock_get_tracer):
 
     # then
     assert mock_get_tracer.call_count == 2
-    mock_get_tracer.assert_any_call(Scope.CORE.value, instrumentation_version)
-    mock_get_tracer.assert_any_call(Scope.SERVICE.value, instrumentation_version)
+    mock_get_tracer.assert_any_call(Scope.CORE.value, instrumentation_version, None)
+    mock_get_tracer.assert_any_call(Scope.SERVICE.value, instrumentation_version, None)
 
 
 @patch("saleor.core.telemetry.trace.get_tracer")
@@ -35,7 +35,7 @@ def test_tracer_start_as_current_span(mock_get_tracer):
     )
 
     # mock get_tracer to return different tracers for different scopes
-    def mock_get_tracer_func(scope, version):
+    def mock_get_tracer_func(scope, version, provider):
         if scope == Scope.CORE.value:
             return mock_core_tracer
         return mock_service_tracer
@@ -68,7 +68,7 @@ def test_tracer_start_span(mock_get_tracer):
     mock_service_tracer.start_span.return_value = mock_service_span
 
     # mock get_tracer to return different tracers for different scopes
-    def mock_get_tracer_func(scope, version):
+    def mock_get_tracer_func(scope, version, provider):
         if scope == Scope.CORE.value:
             return mock_core_tracer
         return mock_service_tracer
@@ -135,6 +135,7 @@ def test_tracer_proxy_start_as_current_span_with_tracer():
             "test_span",
             scope=Scope.CORE,
             kind=SpanKind.INTERNAL,
+            context=None,
             attributes=None,
             links=None,
             start_time=None,
@@ -161,6 +162,7 @@ def test_tracer_proxy_start_span_with_tracer():
         "test_span",
         scope=Scope.CORE,
         kind=SpanKind.INTERNAL,
+        context=None,
         attributes=None,
         links=None,
         start_time=None,

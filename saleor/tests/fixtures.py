@@ -11,23 +11,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from freezegun import freeze_time
-from opentelemetry import trace as trace_api
-from opentelemetry.metrics import set_meter_provider
-from opentelemetry.sdk.metrics import Counter, Histogram, MeterProvider, UpDownCounter
-from opentelemetry.sdk.metrics.export import (
-    AggregationTemporality,
-    InMemoryMetricReader,
-)
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
 from ..core import JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
-from ..core.telemetry import initialize_telemetry
+from ..core.telemetry import initialize_telemetry, meter, tracer
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import PromotionEvents
@@ -106,44 +96,33 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
 
 
 @pytest.fixture(scope="session")
-def in_memory_span_exporter():
-    span_exporter = InMemorySpanExporter()
-    provider = TracerProvider()
-    provider.add_span_processor(SimpleSpanProcessor(span_exporter))
-    trace_api.set_tracer_provider(provider)
+def initialize_test_telemetry():
     initialize_telemetry()
-    return span_exporter
 
 
 @pytest.fixture
-def get_test_spans(in_memory_span_exporter):
+def trace_context_propagation(initialize_test_telemetry):
+    tracer._tracer._inject_context = True
+    yield
+    tracer._tracer._inject_context = False
+
+
+@pytest.fixture
+def get_test_spans(initialize_test_telemetry):
     # Clear any existing spans from the buffer before test execution
-    in_memory_span_exporter.clear()
-    yield in_memory_span_exporter.get_finished_spans
+    tracer._tracer.span_exporter.clear()
+    yield tracer._tracer.span_exporter.get_finished_spans
     # Clean up by clearing the buffer after test completion
-    in_memory_span_exporter.clear()
-
-
-@pytest.fixture(scope="session")
-def in_memory_metric_reader():
-    temporality = {
-        Counter: AggregationTemporality.DELTA,
-        Histogram: AggregationTemporality.DELTA,
-        UpDownCounter: AggregationTemporality.DELTA,
-    }
-    metric_reader = InMemoryMetricReader(preferred_temporality=temporality)
-    set_meter_provider(MeterProvider((metric_reader,)))
-    initialize_telemetry()
-    return metric_reader
+    tracer._tracer.span_exporter.clear()
 
 
 @pytest.fixture
-def get_test_metrics_data(in_memory_metric_reader):
+def get_test_metrics_data(initialize_test_telemetry):
     # Clear any existing metrics data from the buffer before test execution
-    in_memory_metric_reader.get_metrics_data()
-    yield in_memory_metric_reader.get_metrics_data
+    meter._meter.metric_reader.get_metrics_data()
+    yield meter._meter.metric_reader.get_metrics_data
     # Clean up by clearing the buffer after test completion
-    in_memory_metric_reader.get_metrics_data()
+    meter._meter.metric_reader.get_metrics_data()
 
 
 @pytest.fixture
