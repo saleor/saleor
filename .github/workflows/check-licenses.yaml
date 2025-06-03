@@ -50,6 +50,3 @@ jobs:
             # Authorize.Net Python SDK was reviewed as compatible with our project.
             # License: https://github.com/AuthorizeNet/sdk-python/blob/bfcfb73ac74e33544845e435bb2ad54a22641583/LICENSE.txt
             - authorizenet
-            # pytest-celery is licensed under BSD-3-Clause (false positive).
-            # Bug fix: https://github.com/celery/pytest-celery/pull/438
-            - pytest-celery
