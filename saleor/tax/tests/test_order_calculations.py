@@ -201,7 +201,7 @@ def test_calculate_order_shipping_with_weighted_taxes(
         line.total_price.net.amount for line in lines
     )
     assert (
-        order.shipping_tax_rate
+        order.shipping_tax_rate.quantize(Decimal("0.0001"))
         == Decimal(weighted_tax_amount).quantize(Decimal("0.0001"))
         == Decimal(expected_shipping_tax_rate).quantize(Decimal("0.0001"))
     )
