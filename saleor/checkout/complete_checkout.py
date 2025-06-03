@@ -720,6 +720,7 @@ def _prepare_order_data(
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
             "tax_error": checkout.tax_error,
+            "lines_count": len(order_data["lines"]),
         }
     )
 
@@ -1509,12 +1510,14 @@ def _create_order_from_checkout(
     currency = checkout_info.checkout.currency
     subtotal_list = [line.line.total_price for line in order_lines_info]
     order.subtotal = sum(subtotal_list, zero_taxed_money(currency))
+    order.lines_count = len(order_lines_info)
     order.save(
         update_fields=[
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
             "subtotal_net_amount",
             "subtotal_gross_amount",
+            "lines_count",
         ]
     )
     # allocations

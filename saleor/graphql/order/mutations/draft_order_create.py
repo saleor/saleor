@@ -368,8 +368,8 @@ class DraftOrderCreate(
 
     @staticmethod
     def _save_lines(info, instance, lines_data, app, manager):
+        lines = []
         if lines_data:
-            lines = []
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,
@@ -385,6 +385,8 @@ class DraftOrderCreate(
                 app=app,
                 order_lines=lines,
             )
+
+        instance.lines_count = len(lines)
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
