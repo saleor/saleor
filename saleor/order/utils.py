@@ -60,7 +60,6 @@ from . import (
 from .error_codes import OrderErrorCode
 from .fetch import OrderLineInfo, fetch_draft_order_lines_info
 from .models import Order, OrderGrantedRefund, OrderLine
-from .search import update_order_search_vector
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -1163,41 +1162,6 @@ def updates_amounts_for_order(order: Order, save: bool = True):
                 "authorize_status",
             ]
         )
-
-
-def updates_amounts_and_search_vector_for_order_with_lock(order: Order, update_fields):
-    with transaction.atomic():
-        # Add a transaction block to ensure that the order status won't be overridden by
-        # another process.
-        locked_order = (
-            Order.objects.prefetch_related(
-                "payments", "payment_transactions", "granted_refunds"
-            )
-            .select_for_update()
-            .get(pk=order.pk)
-        )
-
-        order_payments = locked_order.payments.all()
-        order_transactions = locked_order.payment_transactions.all()
-        order_granted_refunds = locked_order.granted_refunds.all()
-
-        update_order_search_vector(locked_order, save=False)
-        update_order_charge_data(
-            order=locked_order,
-            order_payments=order_payments,
-            order_transactions=order_transactions,
-            order_granted_refunds=order_granted_refunds,
-            with_save=False,
-        )
-        update_order_authorize_data(
-            order=locked_order,
-            order_payments=order_payments,
-            order_transactions=order_transactions,
-            order_granted_refunds=order_granted_refunds,
-            with_save=False,
-        )
-        locked_order.save(update_fields=update_fields)
-    return locked_order
 
 
 def update_order_display_gross_prices(order: "Order"):
