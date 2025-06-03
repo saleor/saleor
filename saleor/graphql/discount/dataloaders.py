@@ -6,6 +6,7 @@ from django.db.models import Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
 from promise import Promise
 
+from ...account.models import CustomerGroup
 from ...channel.models import Channel
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
@@ -348,12 +349,40 @@ class ChannelsByPromotionRuleIdLoader(DataLoader[int, list[Channel]]):
         return [rule_to_channels_map.get(rule_id, []) for rule_id in keys]
 
 
+class CustomerGroupsByPromotionRuleIdLoader(DataLoader[int, list[CustomerGroup]]):
+    context_key = "customer_groups_by_promotion_rule_id"
+
+    def batch_load(self, keys):
+        PromotionRuleCustomerGroup = PromotionRule.customer_groups.through
+        rule_customer_groups = PromotionRuleCustomerGroup.objects.using(
+            self.database_connection_name
+        ).filter(promotionrule_id__in=keys)
+        customer_groups = (
+            CustomerGroup.objects.using(self.database_connection_name)
+            .filter(id__in=rule_customer_groups.values("customergroup_id"))
+            .in_bulk()
+        )
+        rule_to_customer_groups_map = defaultdict(list)
+        for rule_id, customer_group_id in rule_customer_groups.values_list(
+            "promotionrule_id", "customergroup_id"
+        ):
+            rule_to_customer_groups_map[rule_id].append(
+                customer_groups.get(customer_group_id)
+            )
+        return [rule_to_customer_groups_map.get(rule_id, []) for rule_id in keys]
+
+
 class PromotionRuleByIdLoader(DataLoader[int, PromotionRule]):
     context_key = "promotion_rule_by_id"
 
     def batch_load(self, keys):
-        rules = PromotionRule.objects.using(self.database_connection_name).in_bulk(keys)
-        return [rules.get(id) for id in keys]
+        qs = (
+            PromotionRule.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
+            .prefetch_related("customer_groups", "translations")
+        )
+        rules = {rule.id: rule for rule in qs}
+        return Promise.resolve([rules.get(id) for id in keys])
 
 
 class PromotionByRuleIdLoader(DataLoader[int, Promotion]):

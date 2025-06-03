@@ -346,7 +346,7 @@ def get_checkout(
             "collection_point",
             "billing_address",
             "shipping_address",
-        )
+        ).prefetch_related("user__customer_groups")
 
     if id:
         checkout = mutation_class.get_node_or_error(

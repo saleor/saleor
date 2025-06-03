@@ -68,7 +68,7 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
     price = variant_channel_listing.price
 
     # when
-    applied_rule_id, applied_discount = calculate_discounted_price_for_promotions(
+    (applied_rule_id, applied_discount), _ = calculate_discounted_price_for_promotions(
         price=price,
         rules_info_per_variant=rules_info_per_promotion_id,
         channel=channel_USD,
@@ -156,7 +156,7 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
     price = variant_channel_listing.price
 
     # when
-    applied_rule_id, applied_discount = calculate_discounted_price_for_promotions(
+    (applied_rule_id, applied_discount), _ = calculate_discounted_price_for_promotions(
         price=price,
         rules_info_per_variant=rules_info_per_promotion_id,
         channel=channel_USD,

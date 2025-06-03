@@ -440,6 +440,7 @@ def fetch_checkout_lines(
         "variant__channel_listings__channel",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion__translations",
         "variant__channel_listings__variantlistingpromotionrule__promotion_rule__translations",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__customer_groups",
         "discounts__promotion_rule__promotion",
     ]
     if prefetch_variant_attributes:
@@ -469,7 +470,9 @@ def fetch_checkout_lines(
         )
         translation_language_code = checkout.language_code
         rules_info = (
-            fetch_variant_rules_info(variant_channel_listing, translation_language_code)
+            fetch_variant_rules_info(
+                variant_channel_listing, translation_language_code, checkout.user
+            )
             if not line.is_gift
             else []
         )
@@ -512,7 +515,6 @@ def fetch_checkout_lines(
                 voucher_code=None,
             )
         )
-
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
             voucher, _ = get_voucher_for_checkout(

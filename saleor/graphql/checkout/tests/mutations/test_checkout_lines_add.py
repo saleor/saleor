@@ -2139,3 +2139,316 @@ def test_checkout_lines_add_with_prior_price(
         checkout["lines"][0]["priorTotalPrice"]["amount"]
         == variant_channel_listing.prior_price_amount * 2
     )
+
+
+def test_add_lines_add_with_customer_group_promotion(
+    user_api_client,
+    stock,
+    channel_USD,
+    catalogue_promotion_without_rules,
+    checkouts_assigned_to_customer,
+    customer_group_list,
+):
+    """Ensure that both catalogue and gift reward are applied."""
+    # given
+    checkout = checkouts_assigned_to_customer[0]
+    variant = stock.product_variant
+    user = checkout.user
+    customer_group = customer_group_list[0]
+    variant_unit_price = Decimal(100)
+    quantity = 1
+
+    user.customer_groups.add(customer_group)
+
+    # prepare catalogue promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.customer_groups.add(customer_group)
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_channel_listing.price_amount = variant_unit_price
+    variant_channel_listing.discounted_price_amount = None
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.save(
+        update_fields=["price_amount", "discounted_price_amount"]
+    )
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": quantity}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    checkout.refresh_from_db()
+
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    base_unit_price = variant_listing.price_amount
+    discounted_unit_price = base_unit_price * Decimal("0.5")
+    # catalogue promotion 50%
+
+    expected_total_price = discounted_unit_price * quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+    line_data = data["checkout"]["lines"][0]
+    unit_price = line_data["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == discounted_unit_price
+    total_price = line_data["totalPrice"]["gross"]["amount"]
+    assert Decimal(total_price) == expected_total_price
+
+
+def test_add_lines_add_with_customer_group_promotion_by_staff(
+    staff_api_client,
+    stock,
+    channel_USD,
+    catalogue_promotion_without_rules,
+    checkouts_assigned_to_customer,
+    customer_group_list,
+    permission_manage_checkouts,
+):
+    """Ensure that both catalogue and gift reward are applied."""
+    # given
+    checkout = checkouts_assigned_to_customer[0]
+    variant = stock.product_variant
+    user = checkout.user
+    customer_group = customer_group_list[0]
+    variant_unit_price = Decimal(100)
+    quantity = 1
+
+    user.customer_groups.add(customer_group)
+
+    # prepare catalogue promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.customer_groups.add(customer_group)
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_channel_listing.price_amount = variant_unit_price
+    variant_channel_listing.discounted_price_amount = None
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.save(
+        update_fields=["price_amount", "discounted_price_amount"]
+    )
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": quantity}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_LINES_ADD, variables, [permission_manage_checkouts], False
+    )
+
+    # then
+    checkout.refresh_from_db()
+
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    base_unit_price = variant_listing.price_amount
+    discounted_unit_price = base_unit_price * Decimal("0.5")
+    # catalogue promotion 50%
+
+    expected_total_price = discounted_unit_price * quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+    line_data = data["checkout"]["lines"][0]
+    unit_price = line_data["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == discounted_unit_price
+    total_price = line_data["totalPrice"]["gross"]["amount"]
+    assert Decimal(total_price) == expected_total_price
+
+
+def test_add_lines_add_with_not_applicable_customer_group_promotion(
+    user_api_client,
+    stock,
+    channel_USD,
+    catalogue_promotion_without_rules,
+    checkouts_assigned_to_customer,
+    customer_group_list,
+):
+    """Ensure that both catalogue and gift reward are applied."""
+    # given
+    checkout = checkouts_assigned_to_customer[0]
+    variant = stock.product_variant
+    user = checkout.user
+    user_customer_group = customer_group_list[0]
+    promo_customer_group = customer_group_list[1]
+    variant_unit_price = Decimal(100)
+    quantity = 1
+
+    user.customer_groups.add(user_customer_group)
+
+    # prepare catalogue promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.customer_groups.add(promo_customer_group)
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_channel_listing.price_amount = variant_unit_price
+    variant_channel_listing.discounted_price_amount = None
+    variant_channel_listing.save(
+        update_fields=["price_amount", "discounted_price_amount"]
+    )
+
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": quantity}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    checkout.refresh_from_db()
+
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    base_unit_price = variant_listing.price_amount
+
+    expected_total_price = base_unit_price * quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+    line_data = data["checkout"]["lines"][0]
+    unit_price = line_data["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == base_unit_price
+    total_price = line_data["totalPrice"]["gross"]["amount"]
+    assert Decimal(total_price) == expected_total_price
+
+
+def test_add_lines_add_with_customer_group_promotion_and_no_user_group(
+    user_api_client,
+    stock,
+    channel_USD,
+    catalogue_promotion_without_rules,
+    checkouts_assigned_to_customer,
+    customer_group_list,
+):
+    """Ensure that both catalogue and gift reward are applied."""
+    # given
+    checkout = checkouts_assigned_to_customer[0]
+    variant = stock.product_variant
+    promo_customer_group = customer_group_list[0]
+    variant_unit_price = Decimal(100)
+    quantity = 1
+
+    # prepare catalogue promotion with 50% discount
+    reward_value = Decimal("50.00")
+    rule = catalogue_promotion_without_rules.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=reward_value,
+    )
+    rule.customer_groups.add(promo_customer_group)
+    rule.channels.add(channel_USD)
+
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_channel_listing.price_amount = variant_unit_price
+    variant_channel_listing.discounted_price_amount = None
+    discount_amount = variant_unit_price * reward_value / 100
+    variant_channel_listing.save(
+        update_fields=["price_amount", "discounted_price_amount"]
+    )
+
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel_USD.currency_code,
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": quantity}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    checkout.refresh_from_db()
+
+    variant_listing = variant.channel_listings.get(channel=checkout.channel)
+    base_unit_price = variant_listing.price_amount
+
+    expected_total_price = base_unit_price * quantity
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+    line_data = data["checkout"]["lines"][0]
+    unit_price = line_data["unitPrice"]["gross"]["amount"]
+    assert Decimal(unit_price) == base_unit_price
+    total_price = line_data["totalPrice"]["gross"]["amount"]
+    assert Decimal(total_price) == expected_total_price

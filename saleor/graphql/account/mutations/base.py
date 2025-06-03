@@ -212,7 +212,7 @@ class UserAddressInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_USERS
 
 
-class CustomerInput(UserInput, UserAddressInput):
+class CustomerBaseInput(BaseInputObjectType):
     language_code = graphene.Field(
         LanguageCodeEnum, required=False, description="User language code."
     )
@@ -227,7 +227,23 @@ class CustomerInput(UserInput, UserAddressInput):
         doc_category = DOC_CATEGORY_USERS
 
 
-class UserCreateInput(CustomerInput):
+class CustomerInput(UserInput, UserAddressInput, CustomerBaseInput):
+    add_customer_groups = NonNullList(
+        graphene.ID,
+        required=False,
+        description="IDs of customer groups to which the user should be added.",
+    )
+    remove_customer_groups = NonNullList(
+        graphene.ID,
+        required=False,
+        description="IDs of customer groups from which the user should be removed.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
+
+class UserCreateInput(UserInput, UserAddressInput, CustomerBaseInput):
     redirect_url = graphene.String(
         description=(
             "URL of a view where users should be redirected to "

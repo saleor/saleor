@@ -3,6 +3,7 @@ from graphene import relay
 
 from ....discount import models
 from ....permission.auth_filters import AuthorizationFilters
+from ...account.types import CustomerGroup
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
@@ -83,6 +84,14 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
         ],
     )
+    customer_groups = PermissionsField(
+        NonNullList(CustomerGroup),
+        description="List of customer groups to which the rule applies.",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_APP,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        ],
+    )
     reward_value = PositiveDecimal(
         description=(
             "The reward value of the promotion rule. Defines the discount value "
@@ -157,6 +166,10 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     @staticmethod
     def resolve_channels(root: models.PromotionRule, info: ResolveInfo):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_customer_groups(root: models.PromotionRule, info: ResolveInfo):
+        return root.customer_groups.all()
 
     @staticmethod
     def resolve_gift_ids(root: models.PromotionRule, info: ResolveInfo):

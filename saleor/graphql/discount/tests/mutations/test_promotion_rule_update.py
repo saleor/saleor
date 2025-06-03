@@ -32,6 +32,10 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 channels {
                     slug
                 }
+                customerGroups {
+                    id
+                    name
+                }
                 rewardValueType
                 rewardValue
                 rewardType
@@ -1276,3 +1280,83 @@ def test_promotion_rule_update_exceeds_gifts_number_limit(
     assert errors[0]["field"] == "gifts"
     assert errors[0]["giftsLimit"] == gift_limit
     assert errors[0]["giftsLimitExceedBy"] == len(gift_ids) - gift_limit
+
+
+def test_promotion_rule_add_customer_groups(
+    app_api_client,
+    permission_manage_discounts,
+    catalogue_promotion,
+    customer_group_list,
+):
+    # given
+    rule = catalogue_promotion.rules.first()
+    rule.customer_groups.add(customer_group_list[0])
+    customer_group_ids = [
+        graphene.Node.to_global_id("CustomerGroup", group.pk)
+        for group in customer_group_list
+    ]
+
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addCustomerGroups": [customer_group_ids[1]],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert errors == []
+    assert {group["id"] for group in data["promotionRule"]["customerGroups"]} == set(
+        customer_group_ids
+    )
+
+
+def test_promotion_rule_remove_customer_groups(
+    app_api_client,
+    permission_manage_discounts,
+    catalogue_promotion,
+    customer_group_list,
+):
+    # given
+    rule = catalogue_promotion.rules.first()
+    rule.customer_groups.add(*customer_group_list)
+    customer_group_ids = [
+        graphene.Node.to_global_id("CustomerGroup", group.pk)
+        for group in customer_group_list
+    ]
+
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "removeCustomerGroups": [customer_group_ids[0]],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        PROMOTION_RULE_UPDATE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert errors == []
+    assert len(data["promotionRule"]["customerGroups"]) == len(customer_group_list) - 1

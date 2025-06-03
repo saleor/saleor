@@ -39,6 +39,7 @@ from ..enums import (
     CheckoutErrorCode,
     CollectionErrorCode,
     CustomerBulkUpdateErrorCode,
+    CustomerGroupErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     ExternalNotificationTriggerErrorCode,
@@ -417,6 +418,10 @@ class PermissionGroupError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
+
+
+class CustomerGroupError(Error):
+    code = CustomerGroupErrorCode(description="The error code.", required=True)
 
 
 class ProductError(Error):

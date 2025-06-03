@@ -194,6 +194,10 @@ CustomerBulkUpdateErrorCode = graphene.Enum.from_enum(
 )
 CustomerBulkUpdateErrorCode.doc_category = DOC_CATEGORY_USERS
 
+CustomerGroupErrorCode = graphene.Enum.from_enum(
+    account_error_codes.CustomerGroupErrorCode
+)
+
 ExternalNotificationTriggerErrorCode = graphene.Enum.from_enum(
     external_notifications_error_codes.ExternalNotificationErrorCodes
 )
