@@ -529,25 +529,15 @@ STORAGES = {
 }
 
 if AWS_STORAGE_BUCKET_NAME:
-    # removed in favor of STORAGES in django 5.1
-    STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
     STORAGES["staticfiles"] = {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}
 elif GS_BUCKET_NAME:
-    # removed in favor of STORAGES in django 5.1
-    STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
     STORAGES["staticfiles"] = {"BACKEND": "storages.backends.gcloud.GoogleCloudStorage"}
 
 if AWS_MEDIA_BUCKET_NAME:
-    # removed in favor of STORAGES in django 5.1
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
     STORAGES["default"] = {"BACKEND": "saleor.core.storages.S3MediaStorage"}
 elif GS_MEDIA_BUCKET_NAME:
-    # removed in favor of STORAGES in django 5.1
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
     STORAGES["default"] = {"BACKEND": "saleor.core.storages.GCSMediaStorage"}
 elif AZURE_CONTAINER:
-    # removed in favor of STORAGES in django 5.1
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
     STORAGES["default"] = {"BACKEND": "saleor.core.storages.AzureMediaStorage"}
 
 PRIVATE_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
