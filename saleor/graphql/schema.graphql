@@ -2972,6 +2972,7 @@ All available ways of opening an app extension.
 enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
+  NEW_TAB
 }
 
 """Represents the app's brand data."""
