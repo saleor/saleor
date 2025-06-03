@@ -522,17 +522,23 @@ AZURE_CONTAINER = os.environ.get("AZURE_CONTAINER")
 AZURE_CONTAINER_PRIVATE = os.environ.get("AZURE_CONTAINER_PRIVATE")
 AZURE_SSL = os.environ.get("AZURE_SSL")
 
+# Replicate behavior of creating default values
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
+
 if AWS_STORAGE_BUCKET_NAME:
-    STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    STORAGES["staticfiles"] = {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}
 elif GS_BUCKET_NAME:
-    STATICFILES_STORAGE = "storages.backends.gcloud.GoogleCloudStorage"
+    STORAGES["staticfiles"] = {"BACKEND": "storages.backends.gcloud.GoogleCloudStorage"}
 
 if AWS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.S3MediaStorage"
+    STORAGES["default"] = {"BACKEND": "saleor.core.storages.S3MediaStorage"}
 elif GS_MEDIA_BUCKET_NAME:
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
+    STORAGES["default"] = {"BACKEND": "saleor.core.storages.GCSMediaStorage"}
 elif AZURE_CONTAINER:
-    DEFAULT_FILE_STORAGE = "saleor.core.storages.AzureMediaStorage"
+    STORAGES["default"] = {"BACKEND": "saleor.core.storages.AzureMediaStorage"}
 
 PRIVATE_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 if AWS_MEDIA_PRIVATE_BUCKET_NAME:
