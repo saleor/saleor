@@ -19,3 +19,4 @@ All notable, unreleased changes to this project will be documented in this file.
 - deps: upgraded urllib3 from v1.x to v2.x
 - Fix PAGE_DELETE webhook to include pageType in payload - #17697 by @Jennyyyy0212 and @CherineCho2016
 - Stripe Plugin has been deprecated. It will be removed in the future. Please use [the Stripe App](https://docs.saleor.io/developer/app-store/apps/stripe/overview) instead
+- New AppExtensionMount points for Dashboard categories, collections, gift cards, draft orders, promotions, vouchers, models, model types and structures

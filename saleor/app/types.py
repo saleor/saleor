@@ -8,6 +8,18 @@ class AppType:
 class AppExtensionMount:
     """All places where app extension can be mounted."""
 
+    CATEGORY_OVERVIEW_CREATE = "category_overview_create"
+    CATEGORY_OVERVIEW_MORE_ACTIONS = "category_overview_more_actions"
+    CATEGORY_DETAILS_MORE_ACTIONS = "category_details_more_actions"
+
+    COLLECTION_OVERVIEW_CREATE = "collection_overview_create"
+    COLLECTION_OVERVIEW_MORE_ACTIONS = "collection_overview_more_actions"
+    COLLECTION_DETAILS_MORE_ACTIONS = "collection_details_more_actions"
+
+    GIFT_CARD_OVERVIEW_CREATE = "gift_card_overview_create"
+    GIFT_CARD_OVERVIEW_MORE_ACTIONS = "gift_card_overview_more_actions"
+    GIFT_CARD_DETAILS_MORE_ACTIONS = "gift_card_details_more_actions"
+
     CUSTOMER_OVERVIEW_CREATE = "customer_overview_create"
     CUSTOMER_OVERVIEW_MORE_ACTIONS = "customer_overview_more_actions"
     CUSTOMER_DETAILS_MORE_ACTIONS = "customer_details_more_actions"
@@ -27,7 +39,40 @@ class AppExtensionMount:
     ORDER_OVERVIEW_CREATE = "order_overview_create"
     ORDER_OVERVIEW_MORE_ACTIONS = "order_overview_more_actions"
 
+    DRAFT_ORDER_DETAILS_MORE_ACTIONS = "draft_order_details_more_actions"
+    DRAFT_ORDER_OVERVIEW_CREATE = "draft_order_overview_create"
+    DRAFT_ORDER_OVERVIEW_MORE_ACTIONS = "draft_order_overview_more_actions"
+
+    PROMOTIONS_DETAILS_MORE_ACTIONS = "promotions_details_more_actions"
+    PROMOTIONS_OVERVIEW_CREATE = "promotions_overview_create"
+    PROMOTIONS_OVERVIEW_MORE_ACTIONS = "promotions_overview_more_actions"
+
+    VOUCHER_DETAILS_MORE_ACTIONS = "voucher_details_more_actions"
+    VOUCHER_OVERVIEW_CREATE = "voucher_overview_create"
+    VOUCHER_OVERVIEW_MORE_ACTIONS = "voucher_overview_more_actions"
+
+    MODEL_DETAILS_MORE_ACTIONS = "model_details_more_actions"
+    MODEL_OVERVIEW_CREATE = "model_overview_create"
+    MODEL_OVERVIEW_MORE_ACTIONS = "model_overview_more_actions"
+
+    MODEL_TYPES_OVERVIEW_CREATE = "model_types_overview_create"
+    MODEL_TYPES_OVERVIEW_MORE_ACTIONS = "model_types_overview_more_actions"
+    MODEL_TYPES_DETAILS_MORE_ACTIONS = "model_types_details_more_actions"
+
+    STRUCTURE_OVERVIEW_CREATE = "structure_overview_create"
+    STRUCTURE_OVERVIEW_MORE_ACTIONS = "structure_overview_more_actions"
+    STRUCTURE_DETAILS_MORE_ACTIONS = "structure_details_more_actions"
+
     CHOICES = [
+        (CATEGORY_OVERVIEW_CREATE, "category_overview_create"),
+        (CATEGORY_OVERVIEW_MORE_ACTIONS, "category_overview_more_actions"),
+        (CATEGORY_DETAILS_MORE_ACTIONS, "category_details_more_actions"),
+        (COLLECTION_OVERVIEW_CREATE, "collection_overview_create"),
+        (COLLECTION_OVERVIEW_MORE_ACTIONS, "collection_overview_more_actions"),
+        (COLLECTION_DETAILS_MORE_ACTIONS, "collection_details_more_actions"),
+        (GIFT_CARD_OVERVIEW_CREATE, "gift_card_overview_create"),
+        (GIFT_CARD_OVERVIEW_MORE_ACTIONS, "gift_card_overview_more_actions"),
+        (GIFT_CARD_DETAILS_MORE_ACTIONS, "gift_card_details_more_actions"),
         (CUSTOMER_OVERVIEW_CREATE, "customer_overview_create"),
         (CUSTOMER_OVERVIEW_MORE_ACTIONS, "customer_overview_more_actions"),
         (CUSTOMER_DETAILS_MORE_ACTIONS, "customer_details_more_actions"),
@@ -43,6 +88,24 @@ class AppExtensionMount:
         (ORDER_DETAILS_MORE_ACTIONS, "order_details_more_actions"),
         (ORDER_OVERVIEW_CREATE, "order_overview_create"),
         (ORDER_OVERVIEW_MORE_ACTIONS, "order_overview_more_actions"),
+        (DRAFT_ORDER_DETAILS_MORE_ACTIONS, "draft_order_details_more_actions"),
+        (DRAFT_ORDER_OVERVIEW_CREATE, "draft_order_overview_create"),
+        (DRAFT_ORDER_OVERVIEW_MORE_ACTIONS, "draft_order_overview_more_actions"),
+        (PROMOTIONS_DETAILS_MORE_ACTIONS, "promotions_details_more_actions"),
+        (PROMOTIONS_OVERVIEW_CREATE, "promotions_overview_create"),
+        (PROMOTIONS_OVERVIEW_MORE_ACTIONS, "promotions_overview_more_actions"),
+        (VOUCHER_DETAILS_MORE_ACTIONS, "voucher_details_more_actions"),
+        (VOUCHER_OVERVIEW_CREATE, "voucher_overview_create"),
+        (VOUCHER_OVERVIEW_MORE_ACTIONS, "voucher_overview_more_actions"),
+        (MODEL_DETAILS_MORE_ACTIONS, "model_details_more_actions"),
+        (MODEL_OVERVIEW_CREATE, "model_overview_create"),
+        (MODEL_OVERVIEW_MORE_ACTIONS, "model_overview_more_actions"),
+        (MODEL_TYPES_OVERVIEW_CREATE, "model_types_overview_create"),
+        (MODEL_TYPES_OVERVIEW_MORE_ACTIONS, "model_types_overview_more_actions"),
+        (MODEL_TYPES_DETAILS_MORE_ACTIONS, "model_types_details_more_actions"),
+        (STRUCTURE_OVERVIEW_CREATE, "structure_overview_create"),
+        (STRUCTURE_OVERVIEW_MORE_ACTIONS, "structure_overview_more_actions"),
+        (STRUCTURE_DETAILS_MORE_ACTIONS, "structure_details_more_actions"),
     ]
 
 
