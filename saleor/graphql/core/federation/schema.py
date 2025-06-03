@@ -23,7 +23,7 @@ class _Any(graphene.Scalar):
 
     @staticmethod
     def parse_literal(any_value: Any):
-        raise any_value
+        return any_value
 
     @staticmethod
     def parse_value(any_value: Any):
