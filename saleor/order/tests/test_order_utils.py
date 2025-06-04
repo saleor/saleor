@@ -168,6 +168,7 @@ def test_match_draft_order_with_new_user(customer_user, channel_USD):
         user_email=customer_user.email,
         status=OrderStatus.DRAFT,
         channel=channel_USD,
+        lines_count=0,
     )
     match_orders_with_new_user(customer_user)
 

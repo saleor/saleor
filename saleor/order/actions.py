@@ -1612,6 +1612,7 @@ def _populate_replace_order_fields(original_order: "Order"):
     replace_order.origin = OrderOrigin.REISSUE
     replace_order.metadata = original_order.metadata
     replace_order.private_metadata = original_order.private_metadata
+    replace_order.lines_count = original_order.lines_count
 
     if original_order.billing_address:
         original_order.billing_address.pk = None

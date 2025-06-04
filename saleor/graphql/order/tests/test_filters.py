@@ -23,6 +23,7 @@ def similar_customers_with_orders(order, customer_user, customer_user2, channel_
         channel=channel_USD,
         user_email=customer_user2.email,
         user=customer_user2,
+        lines_count=0,
     )
     return order, order2, customer_user, customer_user2
 

@@ -206,10 +206,10 @@ def test_query_customers_with_filter_placed_orders(
     customer_user,
     channel_USD,
 ):
-    Order.objects.create(user=customer_user, channel=channel_USD)
+    Order.objects.create(user=customer_user, channel=channel_USD, lines_count=0)
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(user=second_customer, channel=channel_USD)
+        Order.objects.create(user=second_customer, channel=channel_USD, lines_count=0)
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]
@@ -282,14 +282,14 @@ def test_query_customers_with_filter_placed_orders_(
 ):
     Order.objects.bulk_create(
         [
-            Order(user=customer_user, channel=channel_USD),
-            Order(user=customer_user, channel=channel_USD),
-            Order(user=customer_user, channel=channel_USD),
+            Order(user=customer_user, channel=channel_USD, lines_count=0),
+            Order(user=customer_user, channel=channel_USD, lines_count=0),
+            Order(user=customer_user, channel=channel_USD, lines_count=0),
         ]
     )
     second_customer = User.objects.create(email="second_example@example.com")
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(user=second_customer, channel=channel_USD)
+        Order.objects.create(user=second_customer, channel=channel_USD, lines_count=0)
     variables = {"filter": customer_filter}
     response = staff_api_client.post_graphql(
         query_customer_with_filter, variables, permissions=[permission_manage_users]

@@ -252,6 +252,7 @@ class DraftOrderCreate(
         cls.clean_lines(cleaned_input, lines, channel)
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
+        cleaned_input["lines_count"] = len(cleaned_input.get("lines_data", []))
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address, manager
@@ -385,8 +386,6 @@ class DraftOrderCreate(
                 app=app,
                 order_lines=lines,
             )
-
-        instance.lines_count = len(lines)
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
