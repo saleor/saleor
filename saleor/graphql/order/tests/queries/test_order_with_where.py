@@ -8,6 +8,7 @@ from freezegun import freeze_time
 
 from .....core.postgres import FlatConcatSearchVector
 from .....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
+from .....invoice.models import Invoice
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
 from .....order.search import (
@@ -1320,6 +1321,73 @@ def test_orders_filter_by_voucher_code_empty_value(
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"where": {"voucherCode": where}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
+def test_orders_filter_by_has_invoices_true(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    for order in order_list[1:]:
+        Invoice.objects.create(order=order)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"hasInvoices": True}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(order_list[1:])
+    returned_numbers = {node["node"]["number"] for node in orders}
+    assert returned_numbers == {str(o.number) for o in order_list[1:]}
+
+
+def test_orders_filter_by_has_invoices_false(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    for order in order_list[1:]:
+        Invoice.objects.create(order=order)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"hasInvoices": False}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    returned_numbers = {node["node"]["number"] for node in orders}
+    assert returned_numbers == {str(order_list[0].number)}
+
+
+def test_orders_filter_by_has_invoices_none(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    for order in order_list[1:]:
+        Invoice.objects.create(order=order)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"hasInvoices": None}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)

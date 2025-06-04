@@ -12840,6 +12840,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by voucher code used in the order."""
   voucherCode: StringFilterInput
 
+  """Filter by whether the order has any invoices."""
+  hasInvoices: Boolean
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
