@@ -27,6 +27,8 @@ from ..app.types import App
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
+from ..checkout.filters import CheckoutFilterInput
+from ..checkout.sorters import CheckoutSortingInput
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -384,6 +386,8 @@ class User(ModelObjectType[models.User]):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        sort_by=CheckoutSortingInput(description="Sort checkouts."),
+        filter=CheckoutFilterInput(description="Filtering options for checkouts."),
     )
     gift_cards = ConnectionField(
         "saleor.graphql.giftcard.types.GiftCardCountableConnection",

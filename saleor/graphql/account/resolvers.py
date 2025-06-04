@@ -12,7 +12,14 @@ from ...payment.utils import fetch_customer_id
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, OrderPermissions
 from ...permission.utils import has_one_of_permissions
+from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
+from ..checkout.filters import filter_checkouts
+from ..checkout.schema import CheckoutCountableConnection
+from ..checkout.sorters import sort_checkouts
 from ..core import ResolveInfo
+from ..core.connection import (
+    create_connection_slice_for_sync_webhook_control_context,
+)
 from ..core.tracing import traced_resolver
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
@@ -261,3 +268,26 @@ def resolve_permissions(root: models.User, info: ResolveInfo):
     permissions = get_user_permissions(root).using(database_connection_name)
     permissions = permissions.order_by("codename")
     return format_permissions_for_display(permissions)
+
+
+@staticmethod
+def resolve_checkouts(root, info, **kwargs):
+    def _resolve_checkouts(checkouts):
+        qs = checkouts
+        filter_input = kwargs.get("filter")
+        sort_by_input = kwargs.get("sort_by")
+
+        qs = filter_checkouts(qs, filter_input)
+        qs = sort_checkouts(qs, sort_by_input)
+
+        return create_connection_slice_for_sync_webhook_control_context(
+            qs, info, kwargs, CheckoutCountableConnection, allow_sync_webhooks=False
+        )
+
+    if channel := kwargs.get("channel"):
+        return (
+            CheckoutByUserAndChannelLoader(info.context)
+            .load((root.id, channel))
+            .then(_resolve_checkouts)
+        )
+    return CheckoutByUserLoader(info.context).load(root.id).then(_resolve_checkouts)
