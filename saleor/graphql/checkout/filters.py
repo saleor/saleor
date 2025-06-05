@@ -188,3 +188,9 @@ def _filter_price(qs, _, field_name, value, currency):
         )
     qs = qs.filter(currency=currency)
     return filter_where_by_numeric_field(qs, field_name, value)
+
+
+def filter_checkouts(qs, filter_input):
+    if filter_input:
+        return CheckoutFilter(filter_input, queryset=qs).qs
+    return qs
