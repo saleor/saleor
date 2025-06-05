@@ -12,7 +12,7 @@ SCHEMA_OUTPUT_DIR = "saleor/json_schemas"
 
 
 class Command(BaseCommand):
-    help = "Generate JSON schemas for Pydantic response schemas."
+    help = "Generate JSON schemas for synchronous webhooks responses."
 
     def handle(self, *args, **options):
         self.clear_dir()
