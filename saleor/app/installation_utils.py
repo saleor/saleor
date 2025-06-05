@@ -231,12 +231,14 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
+
         extension = AppExtension.objects.create(
             app=app,
             label=extension_data.get("label"),
             url=extension_data.get("url"),
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
+            options=extension_data.get("options", {}),
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
