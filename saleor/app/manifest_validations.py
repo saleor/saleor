@@ -21,6 +21,7 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .models import App
+from .schema import AppExtensionOptions
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator, brand_validator
 
@@ -206,6 +207,22 @@ def _clean_extension_enum_field(enum, field_name, extension, errors):
         )
 
 
+def _clean_extension_options(extension, errors):
+    """Validate the options field in an extension."""
+    options = extension.get("options", {})
+    try:
+        validated_options = AppExtensionOptions.model_validate(options)
+        # Update the extension with the validated options
+        extension["options"] = validated_options.model_dump(exclude_none=True)
+    except Exception as e:
+        errors["extensions"].append(
+            ValidationError(
+                f"Invalid options field: {str(e)}",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+
+
 def _clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
     for extension in extensions:
@@ -227,6 +244,8 @@ def _clean_extensions(manifest_data, app_permissions, errors):
             )
 
         _clean_extension_permissions(extension, app_permissions, errors)
+
+        _clean_extension_options(extension, errors)
 
 
 def _clean_webhooks(manifest_data, errors):
