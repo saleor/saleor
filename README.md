@@ -9,7 +9,7 @@
 </div>
 
 <div align="center">
-  <strong>Commerce that works with your language and stack</strong>
+  <strong>Commerce that works with your language and stacks</strong>
 </div>
 
 <div align="center">
