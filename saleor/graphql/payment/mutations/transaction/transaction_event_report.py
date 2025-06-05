@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
 
 import graphene
@@ -5,7 +6,10 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .....app.models import App
-from .....checkout.actions import transaction_amounts_for_checkout_updated
+from .....checkout.actions import (
+    transaction_amounts_for_checkout_updated_without_price_recalculation,
+)
+from .....checkout.models import Checkout
 from .....core.exceptions import PermissionDenied
 from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
@@ -49,6 +53,7 @@ from ...utils import check_if_requestor_has_access
 from .utils import get_transaction_item
 
 if TYPE_CHECKING:
+    from .....accounts.models import User
     from .....plugins.manager import PluginsManager
 
 
@@ -273,6 +278,88 @@ class TransactionEventReport(DeprecatedModelMutation):
         return quantize_price(amount, currency)
 
     @classmethod
+    def process_order_with_transaction(
+        cls,
+        transaction: payment_models.TransactionItem,
+        manager: "PluginsManager",
+        user: Optional["User"],
+        app: App | None,
+        previous_authorized_value: Decimal,
+        previous_charged_value: Decimal,
+        previous_refunded_value: Decimal,
+        related_granted_refund: order_models.OrderGrantedRefund | None,
+    ):
+        order = cast(order_models.Order, transaction.order)
+        with traced_atomic_transaction():
+            order = (
+                order_models.Order.objects.prefetch_related(
+                    "payments", "payment_transactions", "granted_refunds"
+                )
+                .select_for_update()
+                .get(pk=order.pk)
+            )
+            transaction = payment_models.TransactionItem.objects.select_for_update(
+                of=("self",)
+            ).get(pk=transaction.pk)
+            updates_amounts_for_order(order)
+        update_order_search_vector(order)
+        order_info = fetch_order_info(order)
+        order_transaction_updated(
+            order_info=order_info,
+            transaction_item=transaction,
+            manager=manager,
+            user=user,
+            app=app,
+            previous_authorized_value=previous_authorized_value,
+            previous_charged_value=previous_charged_value,
+            previous_refunded_value=previous_refunded_value,
+        )
+        if related_granted_refund:
+            calculate_order_granted_refund_status(related_granted_refund)
+
+    @classmethod
+    def process_order_or_checkout_with_transaction(
+        cls,
+        transaction: payment_models.TransactionItem,
+        manager: "PluginsManager",
+        user: Optional["User"],
+        app: App | None,
+        previous_authorized_value: Decimal,
+        previous_charged_value: Decimal,
+        previous_refunded_value: Decimal,
+        related_granted_refund: order_models.OrderGrantedRefund | None,
+    ):
+        checkout_deleted = False
+        if transaction.checkout_id:
+            with traced_atomic_transaction():
+                locked_checkout = (
+                    Checkout.objects.select_for_update()
+                    .filter(pk=transaction.checkout_id)
+                    .first()
+                )
+                transaction = payment_models.TransactionItem.objects.select_for_update(
+                    of=("self",)
+                ).get(pk=transaction.pk)
+                if transaction.checkout_id and locked_checkout:
+                    transaction_amounts_for_checkout_updated_without_price_recalculation(
+                        transaction, locked_checkout, manager, user, app
+                    )
+                else:
+                    checkout_deleted = True
+                    # If the checkout was deleted, we still want to update the order associated with the transaction.
+        if transaction.order_id or checkout_deleted:
+            cls.process_order_with_transaction(
+                transaction,
+                manager,
+                user,
+                app,
+                previous_authorized_value,
+                previous_charged_value,
+                previous_refunded_value,
+                related_granted_refund,
+            )
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -418,38 +505,16 @@ class TransactionEventReport(DeprecatedModelMutation):
                 metadata=transaction_metadata,
                 private_metadata=transaction_private_metadata,
             )
-            if transaction.order_id:
-                order = cast(order_models.Order, transaction.order)
-                update_order_search_vector(order, save=False)
-                updates_amounts_for_order(order, save=False)
-                order.save(
-                    update_fields=[
-                        "total_charged_amount",
-                        "charge_status",
-                        "updated_at",
-                        "total_authorized_amount",
-                        "authorize_status",
-                        "search_vector",
-                    ]
-                )
-                order_info = fetch_order_info(order)
-                order_transaction_updated(
-                    order_info=order_info,
-                    transaction_item=transaction,
-                    manager=manager,
-                    user=user,
-                    app=app,
-                    previous_authorized_value=previous_authorized_value,
-                    previous_charged_value=previous_charged_value,
-                    previous_refunded_value=previous_refunded_value,
-                )
-                if related_granted_refund:
-                    calculate_order_granted_refund_status(related_granted_refund)
-            if transaction.checkout_id:
-                manager = get_plugin_manager_promise(info.context).get()
-                transaction_amounts_for_checkout_updated(
-                    transaction, manager, user, app
-                )
+            cls.process_order_or_checkout_with_transaction(
+                transaction,
+                manager,
+                user,
+                app,
+                previous_authorized_value,
+                previous_charged_value,
+                previous_refunded_value,
+                related_granted_refund,
+            )
         elif available_actions is not None and set(
             transaction.available_actions
         ) != set(available_actions):
