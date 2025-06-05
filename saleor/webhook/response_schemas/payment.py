@@ -5,7 +5,6 @@ from pydantic import (
     AfterValidator,
     BaseModel,
     Field,
-    JsonValue,
     ValidationInfo,
     field_validator,
     model_validator,
@@ -19,8 +18,13 @@ from ...payment.interface import (
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResult,
 )
-from ..transport.utils import to_payment_app_id
-from .utils.annotations import DefaultIfNone, EnumByName, OnErrorDefault, OnErrorSkip
+from .utils.annotations import (
+    DefaultIfNone,
+    EnumByName,
+    JSONValue,
+    OnErrorDefault,
+    OnErrorSkip,
+)
 from .utils.validators import lower_values
 
 TokenizedPaymentFlowEnum = Enum(  # type: ignore[misc]
@@ -89,7 +93,7 @@ class StoredPaymentMethodSchema(BaseModel):
         ),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="JSON data that will be returned to client.",
             default=None,
@@ -140,7 +144,7 @@ class PaymentGatewayInitializeTokenizationSessionSchema(BaseModel):
         ),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             default=None,
             description="A data required to finalize the initialization.",
@@ -156,6 +160,8 @@ class PaymentGatewayInitializeTokenizationSessionSchema(BaseModel):
 
 
 def clean_id(payment_method_id: str, info: ValidationInfo) -> str:
+    from ..transport.utils import to_payment_app_id
+
     app: App | None = info.context.get("app", None) if info.context else None
     if not app:
         raise RuntimeError("Missing app in context")
@@ -179,7 +185,7 @@ class PaymentMethodTokenizationSuccessSchema(BaseModel):
         AfterValidator(clean_result),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="A data passes to the client.",
             default=None,
@@ -205,7 +211,7 @@ class PaymentMethodTokenizationPendingSchema(BaseModel):
         AfterValidator(clean_result),
     ]
     data: Annotated[
-        DefaultIfNone[JsonValue],
+        DefaultIfNone[JSONValue],
         Field(
             description="A data passes to the client.",
             default=None,

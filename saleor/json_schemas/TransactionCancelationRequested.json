@@ -1,0 +1,192 @@
+{
+  "title": "TransactionCancelationRequested",
+  "anyOf": [
+    {
+      "properties": {
+        "pspReference": {
+          "description": "Psp reference received from payment provider.",
+          "title": "Pspreference",
+          "type": "string"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": null,
+          "description": "Decimal amount of the processed action",
+          "title": "Amount"
+        },
+        "time": {
+          "description": "Time of the action in ISO 8601 format",
+          "format": "date-time",
+          "title": "Time",
+          "type": "string"
+        },
+        "externalUrl": {
+          "default": "",
+          "description": "External url with action details",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "description": "Message related to the action. The maximum length is 512 characters; any text exceeding this limit will be truncated",
+          "title": "Message",
+          "type": "string"
+        },
+        "actions": {
+          "anyOf": [
+            {
+              "description": "List of actions available for the transaction.",
+              "items": {
+                "enum": [
+                  "CHARGE",
+                  "REFUND",
+                  "CANCEL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actions"
+        },
+        "result": {
+          "const": "CANCEL_SUCCESS",
+          "description": "Result of the action",
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pspReference",
+        "result"
+      ],
+      "title": "TransactionCancelationRequestedSyncSuccess",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "pspReference": {
+          "default": null,
+          "description": "Psp reference received from payment provider.",
+          "title": "Pspreference",
+          "type": "string"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": null,
+          "description": "Decimal amount of the processed action",
+          "title": "Amount"
+        },
+        "time": {
+          "description": "Time of the action in ISO 8601 format",
+          "format": "date-time",
+          "title": "Time",
+          "type": "string"
+        },
+        "externalUrl": {
+          "default": "",
+          "description": "External url with action details",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "description": "Message related to the action. The maximum length is 512 characters; any text exceeding this limit will be truncated",
+          "title": "Message",
+          "type": "string"
+        },
+        "actions": {
+          "anyOf": [
+            {
+              "description": "List of actions available for the transaction.",
+              "items": {
+                "enum": [
+                  "CHARGE",
+                  "REFUND",
+                  "CANCEL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actions"
+        },
+        "result": {
+          "const": "CANCEL_FAILURE",
+          "description": "Result of the action",
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "TransactionCancelationRequestedSyncFailure",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "pspReference": {
+          "description": "Psp reference received from payment provider.",
+          "title": "Pspreference",
+          "type": "string"
+        },
+        "actions": {
+          "anyOf": [
+            {
+              "description": "List of actions available for the transaction.",
+              "items": {
+                "enum": [
+                  "CHARGE",
+                  "REFUND",
+                  "CANCEL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actions"
+        }
+      },
+      "required": [
+        "pspReference"
+      ],
+      "title": "TransactionCancelationRequestedAsync",
+      "type": "object"
+    }
+  ]
+}

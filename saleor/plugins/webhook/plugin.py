@@ -4,7 +4,7 @@ from collections import defaultdict
 from collections.abc import Callable, Iterable
 from decimal import Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Any, Final, Optional, Union
+from typing import TYPE_CHECKING, Any, Final, Optional, Union, cast
 
 import graphene
 from django.conf import settings
@@ -36,6 +36,7 @@ from ...order.models import Order
 from ...payment import PaymentError, TransactionKind
 from ...payment.interface import (
     GatewayResponse,
+    JSONValue,
     ListStoredPaymentMethodsRequestData,
     PaymentData,
     PaymentGateway,
@@ -3149,9 +3150,11 @@ class WebhookPlugin(BasePlugin):
                 response_data = None
                 error_msg = str(e)
 
+        data = response_data_model.data if response_data_model else None
+        data = cast(JSONValue, data)
         response_gateway[webhook.app.identifier] = PaymentGatewayData(
             app_identifier=webhook.app.identifier,
-            data=response_data_model.data if response_data_model else None,
+            data=data,
             error=error_msg,
         )
 

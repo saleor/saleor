@@ -7,13 +7,13 @@ from ...core.prices import MAXIMUM_PRICE
 
 
 class LineCalculateTaxesSchema(BaseModel):
-    tax_rate: Annotated[Decimal, Field(ge=0, le=100)]
+    tax_rate: Annotated[Decimal, Field(ge=0)]
     total_gross_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
     total_net_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
 
 
 class CalculateTaxesSchema(BaseModel):
-    shipping_tax_rate: Annotated[Decimal, Field(ge=0, le=100)]
+    shipping_tax_rate: Annotated[Decimal, Field(ge=0)]
     shipping_price_gross_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
     shipping_price_net_amount: Annotated[Decimal, Field(ge=0, le=MAXIMUM_PRICE)]
     lines: list[LineCalculateTaxesSchema] = []

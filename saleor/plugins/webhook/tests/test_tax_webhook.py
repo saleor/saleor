@@ -355,8 +355,8 @@ def test_get_taxes_for_checkout_with_app_identifier_invalid_response(
     checkout_info = fetch_checkout_info(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
-    # mock returning invalid data - tax_rate above 100
-    mock_request.return_value = tax_data_response_factory(shipping_tax_rate=120)
+    # mock returning invalid data - tax_rate with negative value
+    mock_request.return_value = tax_data_response_factory(shipping_tax_rate=-10)
     mock_generate_payload.return_value = expected_payload
     plugin = webhook_plugin()
     webhook = tax_app.webhooks.get(name="tax-webhook-1")
@@ -462,8 +462,8 @@ def test_get_taxes_for_order_with_app_identifier_invalid_response(
     # given
     subscription_query = "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
     expected_payload = {"taxBase": {"currency": "USD"}}
-    # mock returning invalid data - tax_rate above 100
-    mock_request.return_value = tax_data_response_factory(shipping_tax_rate=120)
+    # mock returning invalid data - tax_rate with negative value
+    mock_request.return_value = tax_data_response_factory(shipping_tax_rate=-10)
     mock_generate_payload.return_value = expected_payload
     plugin = webhook_plugin()
     webhook = tax_app.webhooks.get(name="tax-webhook-1")

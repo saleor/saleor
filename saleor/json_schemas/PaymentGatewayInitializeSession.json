@@ -1,0 +1,42 @@
+{
+  "$defs": {
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    }
+  },
+  "properties": {
+    "data": {
+      "$ref": "#/$defs/JsonValue"
+    }
+  },
+  "required": [
+    "data"
+  ],
+  "title": "PaymentGatewayInitializeSession",
+  "type": "object"
+}

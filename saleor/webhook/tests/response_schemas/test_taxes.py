@@ -18,7 +18,7 @@ from ...response_schemas.taxes import CalculateTaxesSchema, LineCalculateTaxesSc
         },
         # String values with decimal points
         {
-            "tax_rate": "20.12",
+            "tax_rate": "120.12",
             "total_gross_amount": "100.33",
             "total_net_amount": "80.23",
         },
@@ -73,9 +73,9 @@ def test_line_calculate_taxes_schema_valid(data):
             "total_gross_amount": 100,
             "total_net_amount": Decimal("-80.00"),
         },
-        # Invalid tax_rate (greater than 100)
+        # Negative tax_rate
         {
-            "tax_rate": Decimal("120.00"),
+            "tax_rate": Decimal("-120.00"),
             "total_gross_amount": Decimal("100.00"),
             "total_net_amount": Decimal("80.00"),
         },
@@ -122,7 +122,7 @@ def test_line_calculate_taxes_schema_invalid(data):
             ],
         },
         {
-            "shipping_tax_rate": 10,
+            "shipping_tax_rate": 110,
             "shipping_price_gross_amount": 110,
             "shipping_price_net_amount": 100,
             "lines": [],
@@ -200,10 +200,10 @@ def test_calculate_taxes_schema_valid(data):
             },
             0,
         ),
-        # Invalid case with shipping_tax_rate greater than 100
+        # Invalid case with negative shipping_tax_rate
         (
             {
-                "shipping_tax_rate": Decimal("120.00"),
+                "shipping_tax_rate": -Decimal("120.00"),
                 "shipping_price_gross_amount": "110",
                 "shipping_price_net_amount": "100",
                 "lines": [

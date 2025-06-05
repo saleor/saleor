@@ -914,9 +914,9 @@ def _validate_transaction_action_data(
             transaction_schemas.TransactionRefundRequestedAsyncSchema,
         ),
         TransactionEventType.CANCEL_REQUEST: (
-            transaction_schemas.TransactionCancelRequestedSyncSuccessSchema,
-            transaction_schemas.TransactionCancelRequestedSyncFailureSchema,
-            transaction_schemas.TransactionCancelRequestedAsyncSchema,
+            transaction_schemas.TransactionCancelationRequestedSyncSuccessSchema,
+            transaction_schemas.TransactionCancelationRequestedSyncFailureSchema,
+            transaction_schemas.TransactionCancelationRequestedAsyncSchema,
         ),
     }
     success_schema, failure_schema, async_schema = request_type_to_schemas_map[
