@@ -360,6 +360,16 @@ class OrderChargeStatusEnumFilterInput(BaseInputObjectType):
         description = "Filter by charge status."
 
 
+class InvoiceFilterInput(BaseInputObjectType):
+    created_at = DateTimeFilterInput(
+        description="Filter invoices by creation date.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        description = "Filter input for invoices."
+
+
 # TODO: metadata filter will be added later
 class OrderWhere(WhereFilterSet):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Order"))
@@ -443,6 +453,11 @@ class OrderWhere(WhereFilterSet):
         method="filter_has_invoices",
         help_text="Filter by whether the order has any invoices.",
     )
+    invoices = ObjectTypeWhereFilter(
+        input_class=InvoiceFilterInput,
+        method="filter_invoices",
+        help_text="Filter by invoice data associated with the order.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -521,6 +536,17 @@ class OrderWhere(WhereFilterSet):
     @staticmethod
     def filter_has_invoices(qs, _, value):
         return filter_has_invoices(qs, value)
+
+    @staticmethod
+    def filter_invoices(qs, _, value):
+        if value is None:
+            return qs.none()
+        if filter_value := value.get("created_at"):
+            invoices = filter_where_range_field(
+                Invoice.objects.using(qs.db), "created_at", filter_value
+            )
+            return qs.filter(Exists(invoices.filter(order_id=OuterRef("id"))))
+        return qs.none()
 
 
 class OrderWhereInput(WhereInputObjectType):

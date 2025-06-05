@@ -12843,6 +12843,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by whether the order has any invoices."""
   hasInvoices: Boolean
 
+  """Filter by invoice data associated with the order."""
+  invoices: InvoiceFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
@@ -12896,6 +12899,12 @@ input UUIDFilterInput {
 
   """The value included in."""
   oneOf: [UUID!]
+}
+
+"""Filter input for invoices."""
+input InvoiceFilterInput @doc(category: "Orders") {
+  """Filter invoices by creation date."""
+  createdAt: DateTimeFilterInput
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
