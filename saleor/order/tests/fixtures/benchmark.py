@@ -116,6 +116,7 @@ def orders_for_benchmarks(
             shipping_method=shipping_method,
             user=users_for_order_benchmarks[i],
             total=TaxedMoney(net=Money(i, "USD"), gross=Money(i, "USD")),
+            lines_count=0,
         )
         for i in range(ORDER_COUNT_IN_BENCHMARKS)
     ]
@@ -133,6 +134,7 @@ def orders_for_benchmarks(
         new_transactions = _prepare_payment_transactions(new_payments)
         new_events = _prepare_events_for_order(order)
         new_lines = _prepare_lines_for_order(order, variant_with_image)
+        order.lines_count = len(new_lines)
         payments.extend(new_payments)
         transactions.extend(new_transactions)
         events.extend(new_events)
@@ -155,6 +157,7 @@ def orders_for_benchmarks(
     Fulfillment.objects.bulk_create(fulfillments)
     OrderLine.objects.bulk_create(lines)
     FulfillmentLine.objects.bulk_create(fulfillment_lines)
+    Order.objects.bulk_update(created_orders, ["lines_count"])
 
     return created_orders
 

@@ -78,6 +78,7 @@ def order_for_payload(fulfilled_order, voucher_percentage):
     new_order = Order.objects.create(
         channel=order.channel,
         billing_address=order.billing_address,
+        lines_count=0,
     )
     order.origin = OrderOrigin.REISSUE
     order.original = new_order

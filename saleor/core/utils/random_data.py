@@ -806,6 +806,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
             "shipping_price": shipping_price,
             "base_shipping_price": shipping_method_channel_listing.price,
             "undiscounted_base_shipping_price": shipping_method_channel_listing.price,
+            "lines_count": 0,
         }
     )
     if will_be_unconfirmed:
@@ -825,6 +826,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
     )
+    order.lines_count = order.lines.count()
     order.save()
 
     create_fake_payment(order=order)

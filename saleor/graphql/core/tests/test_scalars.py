@@ -88,7 +88,7 @@ def test_order_query_with_filter_created_str_as_date_value(
       }
     """
 
-    Order.objects.create(channel=channel_USD)
+    Order.objects.create(channel=channel_USD, lines_count=0)
     variables = {"filter": orders_filter}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
 

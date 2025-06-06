@@ -68,7 +68,9 @@ def test_query_customers_with_sort(
     users[1].save()
 
     Order.objects.create(
-        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+        user=User.objects.get(email="zordon01@example.com"),
+        channel=channel_USD,
+        lines_count=0,
     )
 
     variables = {"sort_by": customer_sort}
@@ -157,7 +159,9 @@ def test_query_customers_pagination_with_sort(
     channel_USD,
 ):
     Order.objects.create(
-        user=User.objects.get(email="zordon01@example.com"), channel=channel_USD
+        user=User.objects.get(email="zordon01@example.com"),
+        channel=channel_USD,
+        lines_count=0,
     )
     page_size = 2
     variables = {"first": page_size, "after": None, "sortBy": customer_sort}

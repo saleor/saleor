@@ -37,6 +37,7 @@ def users_for_customers_benchmarks(channel_USD, address, shipping_method):
             shipping_method=shipping_method,
             user=users_for_customers_benchmarks[i],
             total=TaxedMoney(net=Money(i, "USD"), gross=Money(i, "USD")),
+            lines_count=0,
         )
         for i in range(ORDER_COUNT_IN_BENCHMARKS)
     ]

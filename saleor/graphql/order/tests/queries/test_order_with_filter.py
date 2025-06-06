@@ -84,7 +84,7 @@ def test_order_query_with_filter_channels_with_many_channel(
     other_channel_USD,
 ):
     # given
-    Order.objects.create(channel=other_channel_USD)
+    Order.objects.create(channel=other_channel_USD, lines_count=0)
     channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
     channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
     variables = {"filter": {"channels": [channel_pln_id, channel_usd_id]}}
@@ -280,9 +280,9 @@ def test_order_query_with_filter_created(
     channel_USD,
 ):
     # given
-    Order.objects.create(channel=channel_USD)
+    Order.objects.create(channel=channel_USD, lines_count=0)
     with freeze_time("2012-01-14"):
-        Order.objects.create(channel=channel_USD)
+        Order.objects.create(channel=channel_USD, lines_count=0)
     variables = {"filter": orders_filter}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -324,10 +324,10 @@ def test_order_query_with_filter_updated_at(
 ):
     # given
     with freeze_time("2012-01-14 11:00:00"):
-        Order.objects.create(channel=channel_USD)
+        Order.objects.create(channel=channel_USD, lines_count=0)
 
     with freeze_time("2012-01-14 12:00:00"):
-        Order.objects.create(channel=channel_USD)
+        Order.objects.create(channel=channel_USD, lines_count=0)
 
     variables = {"filter": orders_filter}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -366,7 +366,7 @@ def test_order_query_with_filter_payment_status(
     payment_dummy.save()
 
     payment_dummy.id = None
-    payment_dummy.order = Order.objects.create(channel=channel_PLN)
+    payment_dummy.order = Order.objects.create(channel=channel_PLN, lines_count=0)
     payment_dummy.charge_status = ChargeStatus.NOT_CHARGED
     payment_dummy.save()
 
@@ -388,7 +388,7 @@ def test_order_query_with_filter_payment_fully_refunded_not_active(
     # given
     payment_dummy.charge_status = ChargeStatus.FULLY_REFUNDED
     payment_dummy.is_active = False
-    payment_dummy.order = Order.objects.create(channel=channel_PLN)
+    payment_dummy.order = Order.objects.create(channel=channel_PLN, lines_count=0)
     payment_dummy.save()
     variables = {"filter": {"paymentStatus": "FULLY_REFUNDED"}}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -457,8 +457,20 @@ def test_order_query_with_filter_customer_fields(
     customer_user.save()
     customer_user.refresh_from_db()
 
-    order = Order(user=customer_user, channel=channel_USD)
-    Order.objects.bulk_create([order, Order(channel=channel_USD)])
+    order = Order(
+        user=customer_user,
+        channel=channel_USD,
+        lines_count=0,
+    )
+    Order.objects.bulk_create(
+        [
+            order,
+            Order(
+                channel=channel_USD,
+                lines_count=0,
+            ),
+        ]
+    )
 
     variables = {"filter": orders_filter}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -605,14 +617,17 @@ def test_orders_query_with_filter_search(
                 user=customer_user,
                 user_email="test@mirumee.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email2@example.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
@@ -688,10 +703,12 @@ def test_orders_query_with_filter_search_by_global_payment_id(
                 user=customer_user,
                 channel=channel_USD,
                 user_email="test@example.com",
+                lines_count=0,
             ),
             Order(
                 channel=channel_USD,
                 user_email="user1@example.com",
+                lines_count=0,
             ),
         ]
     )
@@ -807,11 +824,13 @@ def test_orders_query_with_filter_by_orders_id(
                 user_email="test@mirumee.com",
                 status=OrderStatus.UNFULFILLED,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 status=OrderStatus.FULFILLED,
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
@@ -844,12 +863,14 @@ def test_orders_query_with_filter_by_old_orders_id(
                 status=OrderStatus.UNFULFILLED,
                 channel=channel_USD,
                 use_old_id=True,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 status=OrderStatus.FULFILLED,
                 channel=channel_USD,
                 use_old_id=False,
+                lines_count=0,
             ),
         ]
     )
@@ -882,11 +903,13 @@ def test_orders_query_with_filter_by_old_and_new_orders_id(
                 status=OrderStatus.UNFULFILLED,
                 channel=channel_USD,
                 use_old_id=True,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 status=OrderStatus.FULFILLED,
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
@@ -1051,6 +1074,7 @@ def test_orders_query_with_filter_authorize_status(
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        lines_count=0,
     )
     order.payment_transactions.create(
         currency=order.currency, authorized_value=Decimal("10")
@@ -1131,6 +1155,7 @@ def test_orders_query_with_filter_charge_status(
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        lines_count=0,
     )
     order.payment_transactions.create(
         currency=order.currency, charged_value=Decimal("10")

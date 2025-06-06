@@ -94,11 +94,12 @@ def test_draft_order_query_with_filter_customer_fields(
         status=OrderStatus.DRAFT,
         user=customer_user,
         channel=channel_USD,
+        lines_count=0,
     )
     Order.objects.bulk_create(
         [
             order,
-            Order(status=OrderStatus.DRAFT, channel=channel_USD),
+            Order(status=OrderStatus.DRAFT, channel=channel_USD, lines_count=0),
         ]
     )
 
@@ -177,9 +178,11 @@ def test_draft_order_query_with_filter_created(
     channel_USD,
 ):
     # given
-    Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
+    Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD, lines_count=0)
     with freeze_time("2012-01-14"):
-        Order.objects.create(status=OrderStatus.DRAFT, channel=channel_USD)
+        Order.objects.create(
+            status=OrderStatus.DRAFT, channel=channel_USD, lines_count=0
+        )
     variables = {"filter": orders_filter}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -221,16 +224,19 @@ def test_draft_orders_query_with_filter_search(
                 user_email="test@mirumee.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )

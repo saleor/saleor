@@ -24,14 +24,17 @@ def orders_for_pagination(db, channel_USD):
             Order(
                 total=TaxedMoney(net=Money(1, "USD"), gross=Money(1, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
@@ -54,18 +57,21 @@ def draft_orders_for_pagination(db, channel_USD):
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
             Order(
                 total=TaxedMoney(net=Money(2, "USD"), gross=Money(2, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
             Order(
                 total=TaxedMoney(net=Money(3, "USD"), gross=Money(3, "USD")),
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
         ]
     )
@@ -205,7 +211,7 @@ def test_order_query_pagination_with_filter_created(
     channel_USD,
 ):
     with freeze_time("2012-01-14"):
-        Order.objects.create(channel=channel_USD)
+        Order.objects.create(channel=channel_USD, lines_count=0)
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
@@ -335,7 +341,7 @@ def test_order_query_pagination_with_filter_customer_fields(
     customer_user.save()
     customer_user.refresh_from_db()
 
-    order = Order.objects.create(user=customer_user, channel=channel_USD)
+    order = Order.objects.create(user=customer_user, channel=channel_USD, lines_count=0)
 
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}
@@ -373,9 +379,7 @@ def test_draft_order_query_pagination_with_filter_customer_fields(
     customer_user.refresh_from_db()
 
     order = Order.objects.create(
-        status=OrderStatus.DRAFT,
-        user=customer_user,
-        channel=channel_USD,
+        status=OrderStatus.DRAFT, user=customer_user, channel=channel_USD, lines_count=0
     )
 
     page_size = 2
@@ -466,6 +470,7 @@ def test_draft_order_query_pagination_with_filter_created(
             status=OrderStatus.DRAFT,
             channel=channel_USD,
             should_refresh_prices=False,
+            lines_count=0,
         )
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": orders_filter}
@@ -511,14 +516,17 @@ def test_orders_query_pagination_with_filter_search(
                 user=customer_user,
                 user_email="test@mirumee.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email2@example.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
@@ -595,18 +603,21 @@ def test_draft_orders_query_pagination_with_filter_search(
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email2@example.com",
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
         ]
     )
@@ -716,6 +727,7 @@ def test_query_orders_pagination_with_sort(
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             )
         )
     with freeze_time("2012-01-14"):
@@ -728,6 +740,7 @@ def test_query_orders_pagination_with_sort(
                 status=OrderStatus.FULFILLED,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             )
         )
     address3 = address.get_copy()
@@ -739,6 +752,7 @@ def test_query_orders_pagination_with_sort(
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
             channel=channel_USD,
+            lines_count=0,
         )
     )
 
@@ -788,18 +802,21 @@ def test_orders_with_filter_search_returns_correct_cursor(
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
             Order(
                 user_email=search_query,
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
             Order(
                 user_email=search_query,
                 status=OrderStatus.DRAFT,
                 channel=channel_USD,
                 should_refresh_prices=False,
+                lines_count=0,
             ),
         ]
     )

@@ -331,10 +331,12 @@ def test_customers_doesnt_return_duplicates(customer_user, channel_USD):
             Order(
                 user=customer_user,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
@@ -346,6 +348,7 @@ def test_customers_show_staff_with_order(admin_user, channel_USD):
     Order.objects.create(
         user=admin_user,
         channel=channel_USD,
+        lines_count=0,
     )
     assert User.objects.customers().count() == 1
 

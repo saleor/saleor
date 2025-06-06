@@ -1124,7 +1124,7 @@ def test_order_calculate_taxes_empty_order(
     order, webhook_app, permission_handle_taxes, channel_USD
 ):
     # given
-    order = Order.objects.create(channel=channel_USD, currency="USD")
+    order = Order.objects.create(channel=channel_USD, currency="USD", lines_count=0)
     webhook_app.permissions.add(permission_handle_taxes)
     webhook = Webhook.objects.create(
         name="Webhook",

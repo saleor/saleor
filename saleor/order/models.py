@@ -259,6 +259,8 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
 
+    lines_count = models.PositiveIntegerField()
+
     total_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

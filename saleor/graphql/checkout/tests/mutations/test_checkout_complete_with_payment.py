@@ -281,6 +281,8 @@ def test_checkout_complete(
     assert order_payment == payment
     assert payment.transactions.count() == 1
 
+    assert order.lines_count == len(lines)
+
     gift_card.refresh_from_db()
     assert gift_card.current_balance == zero_money(gift_card.currency)
     assert gift_card.last_used_on

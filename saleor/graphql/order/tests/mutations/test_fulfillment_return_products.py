@@ -381,7 +381,7 @@ def test_fulfillment_return_products_order_lines(
     assert replace_order["origin"] == OrderOrigin.REISSUE.upper()
     assert replace_order["original"] == order_id
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
-    assert replace_order.lines.count() == 1
+    assert replace_order.lines_count == replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
     assert replaced_line.variant_id == line_to_replace.variant_id
     assert (
@@ -679,7 +679,7 @@ def test_fulfillment_return_products_fulfillment_lines(
     assert replace_order["original"] == order_id
 
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
-    assert replace_order.lines.count() == 1
+    assert replace_order.lines_count == replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
     assert replaced_line.variant_id == fulfillment_line_to_replace.order_line.variant_id
     assert (
@@ -1030,7 +1030,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     assert replace_order["original"] == order_id
 
     replace_order = Order.objects.get(status=OrderStatus.DRAFT)
-    assert replace_order.lines.count() == 1
+    assert replace_order.lines_count == replace_order.lines.count() == 1
     replaced_line = replace_order.lines.get()
     assert replaced_line.variant_id == fulfillment_line_to_replace.order_line.variant_id
     assert (

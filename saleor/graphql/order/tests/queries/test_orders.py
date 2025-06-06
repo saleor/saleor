@@ -307,14 +307,17 @@ def test_orders_query_with_search(
                 user=customer_user,
                 user_email="test@mirumee.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email1@example.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user_email="user_email2@example.com",
                 channel=channel_USD,
+                lines_count=0,
             ),
         ]
     )
