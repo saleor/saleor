@@ -339,6 +339,11 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "root": {"level": "INFO", "handlers": ["default"]},
+    "filters": {
+        "disable_bad_request_graphql_log": {
+            "()": "saleor.core.logging.DisableBadRequestGraphQLLog",
+        },
+    },
     "formatters": {
         "django.server": {
             "()": "django.utils.log.ServerFormatter",
@@ -415,6 +420,9 @@ LOGGING = {
         },
     },
     "loggers": {
+        "django.request": {
+            "filters": ["disable_bad_request_graphql_log"],
+        },
         "django": {"level": "INFO", "propagate": True},
         "django.server": {
             "handlers": ["django.server"],
