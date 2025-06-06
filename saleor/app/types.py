@@ -25,6 +25,7 @@ class AppExtensionMount:
     CUSTOMER_DETAILS_MORE_ACTIONS = "customer_details_more_actions"
 
     PRODUCT_OVERVIEW_CREATE = "product_overview_create"
+    PRODUCT_DETAILS_WIDGETS = "product_details_widgets"
     PRODUCT_OVERVIEW_MORE_ACTIONS = "product_overview_more_actions"
     PRODUCT_DETAILS_MORE_ACTIONS = "product_details_more_actions"
 
@@ -36,7 +37,7 @@ class AppExtensionMount:
     NAVIGATION_PAGES = "navigation_pages"
 
     ORDER_DETAILS_MORE_ACTIONS = "order_details_more_actions"
-    ORDERS_DETAILS_WIDGETS = "order_details_widgets"
+    ORDER_DETAILS_WIDGETS = "order_details_widgets"
     ORDER_OVERVIEW_CREATE = "order_overview_create"
     ORDER_OVERVIEW_MORE_ACTIONS = "order_overview_more_actions"
 
@@ -80,6 +81,7 @@ class AppExtensionMount:
         (PRODUCT_OVERVIEW_CREATE, "product_overview_create"),
         (PRODUCT_OVERVIEW_MORE_ACTIONS, "product_overview_more_actions"),
         (PRODUCT_DETAILS_MORE_ACTIONS, "product_details_more_actions"),
+        (PRODUCT_DETAILS_WIDGETS, "product_details_widgets"),
         (NAVIGATION_CATALOG, "navigation_catalog"),
         (NAVIGATION_ORDERS, "navigation_orders"),
         (NAVIGATION_CUSTOMERS, "navigation_customers"),
@@ -87,7 +89,7 @@ class AppExtensionMount:
         (NAVIGATION_TRANSLATIONS, "navigation_translations"),
         (NAVIGATION_PAGES, "navigation_pages"),
         (ORDER_DETAILS_MORE_ACTIONS, "order_details_more_actions"),
-        (ORDERS_DETAILS_WIDGETS, "order_details_widgets"),
+        (ORDER_DETAILS_WIDGETS, "order_details_widgets"),
         (ORDER_OVERVIEW_CREATE, "order_overview_create"),
         (ORDER_OVERVIEW_MORE_ACTIONS, "order_overview_more_actions"),
         (DRAFT_ORDER_DETAILS_MORE_ACTIONS, "draft_order_details_more_actions"),
