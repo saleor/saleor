@@ -575,6 +575,9 @@ def test_order_bulk_create_unit_discount(
     assert db_order_line.unit_discount_value == discount_value
     assert db_order_line.unit_discount_reason == discount_reason
     assert db_order.lines.first() == db_order_line
+    assert (
+        db_order.lines_count == len(order_bulk_input["lines"]) == db_order.lines.count()
+    )
 
 
 def test_order_bulk_create_unit_discount_mismatched_discount(
@@ -768,6 +771,9 @@ def test_order_bulk_create(
     assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
     assert db_order.shipping_address.validation_skipped is False
     assert db_order.billing_address.validation_skipped is False
+    assert (
+        db_order.lines_count == len(order_bulk_input["lines"]) == db_order.lines.count()
+    )
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(
@@ -1099,6 +1105,9 @@ def test_order_bulk_create_multiple_lines(
     db_order = Order.objects.get()
     assert db_order.total_gross_amount == expected_order_total_gross
     assert db_order.total_net_amount == expected_order_total_net
+    assert (
+        db_order.lines_count == len(order_bulk_input["lines"]) == db_order.lines.count()
+    )
 
     assert OrderLine.objects.count() == lines_count + 2
 
@@ -1173,6 +1182,9 @@ def test_order_bulk_create_line_without_variant(
     db_order = Order.objects.get()
     assert db_order.total_gross_amount == expected_order_total_gross
     assert db_order.total_net_amount == expected_order_total_net
+    assert (
+        db_order.lines_count == len(order_bulk_input["lines"]) == db_order.lines.count()
+    )
 
     error0 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error0["message"] == (

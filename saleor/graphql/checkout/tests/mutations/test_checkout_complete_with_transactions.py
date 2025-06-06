@@ -266,6 +266,8 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     assert order.authorize_status == OrderAuthorizeStatus.NONE
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
 
+    assert order.lines_count == len(lines)
+
 
 def test_checkout_with_total_0(
     checkout_with_item_total_0,
@@ -324,6 +326,8 @@ def test_checkout_with_total_0(
     assert order.shipping_price_gross_amount == 0
     assert order.base_shipping_price_amount == 0
     assert order.undiscounted_base_shipping_price_amount == 0
+
+    assert order.lines_count == len(lines)
 
 
 def test_checkout_with_authorized(
@@ -427,6 +431,8 @@ def test_checkout_with_authorized(
     assert order.base_shipping_price_amount == shipping_price.amount
     assert order.undiscounted_base_shipping_price_amount == shipping_price.amount
 
+    assert order.lines_count == len(lines)
+
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
 
@@ -525,6 +531,8 @@ def test_checkout_with_charged(
     assert (
         order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
     )
+
+    assert order.lines_count == len(lines)
 
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
@@ -628,6 +636,8 @@ def test_checkout_price_override(
     assert (
         order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
     )
+
+    assert order.lines_count == len(lines)
 
     assert not Checkout.objects.filter()
 

@@ -2169,6 +2169,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.weight = order_input.get("weight") or zero_weight()
         order_data.order.currency = order_input["currency"]
         order_data.order.should_refresh_prices = False
+        order_data.order.lines_count = len(order_data.lines)
         if order_data.voucher_code:
             order_data.order.voucher_code = order_data.voucher_code.code
             order_data.order.voucher = order_data.voucher_code.voucher

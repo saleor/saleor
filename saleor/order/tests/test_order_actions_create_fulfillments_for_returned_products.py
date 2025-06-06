@@ -362,7 +362,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
 
     expected_replaced_line = order_lines_to_return[0]
 
-    assert replace_order.lines.count() == 1
+    assert replace_order.lines_count == replace_order.lines.count() == 1
     replaced_line = replace_order.lines.first()
     # make sure that all data from original line is in replaced line
     assert replaced_line.variant_id == expected_replaced_line.variant_id
@@ -524,7 +524,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
 
     expected_replaced_line = fulfillment_lines[0].order_line
 
-    assert replace_order.lines.count() == 1
+    assert replace_order.lines_count == replace_order.lines.count() == 1
     replaced_line = replace_order.lines.first()
     # make sure that all data from original line is in replaced line
     assert replaced_line.variant_id == expected_replaced_line.variant_id
