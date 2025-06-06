@@ -10,6 +10,8 @@ from django.conf import settings
 from opentelemetry.trace import Link, SpanContext, TraceFlags
 from opentelemetry.util.types import Attributes, AttributeValue
 
+from .saleor_attributes import OPERATION_NAME
+
 logger = logging.getLogger(__name__)
 
 Amount = int | float
@@ -68,8 +70,14 @@ def get_global_attributes() -> dict[str, AttributeValue]:
     return _GLOBAL_ATTRS.get({})
 
 
-def enrich_with_global_attributes(attributes: Attributes) -> Attributes:
+def enrich_with_global_attributes(attributes: Attributes) -> dict[str, AttributeValue]:
     return {**(attributes or {}), **get_global_attributes()}
+
+
+def enrich_span_with_global_attributes(
+    attributes: Attributes, span_name: str
+) -> dict[str, AttributeValue]:
+    return {OPERATION_NAME: span_name, **enrich_with_global_attributes(attributes)}
 
 
 @dataclass(frozen=True)
