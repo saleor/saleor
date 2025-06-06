@@ -12868,6 +12868,12 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by voucher code used in the order."""
   voucherCode: StringFilterInput
 
+  """Filter by whether the order has any fulfillments."""
+  hasFulfillments: Boolean
+
+  """Filter by fulfillment data associated with the order."""
+  fulfillments: FulfillmentFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
@@ -12921,6 +12927,21 @@ input UUIDFilterInput {
 
   """The value included in."""
   oneOf: [UUID!]
+}
+
+"""Filter input for fulfillments."""
+input FulfillmentFilterInput @doc(category: "Orders") {
+  """Filter by fulfillment status."""
+  status: FulfillmentStatusEnumFilterInput
+}
+
+"""Filter by fulfillment status."""
+input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
+  """The value equal to."""
+  eq: FulfillmentStatus
+
+  """The value included in."""
+  oneOf: [FulfillmentStatus!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
