@@ -73,13 +73,13 @@ def migrate_orders_with_waiting_for_approval_fulfillment_task():
 
 @app.task
 @allow_writer()
-def set_lines_count_task():
+def set_lines_count_task(order_number=0):
     """Set lines count for orders."""
-    orders = Order.objects.filter(lines_count__isnull=True)
-    qs = orders.order_by("pk")
-    ids = qs.values_list("pk", flat=True)[:LINES_COUNT_BATCH_SIZE]
-    if ids:
-        orders = Order.objects.filter(id__in=ids).order_by("pk")
+    orders = Order.objects.filter(number__gte=order_number, lines_count__isnull=True)
+    qs = orders.order_by("number")
+    numbers = list(qs.values_list("number", flat=True)[:LINES_COUNT_BATCH_SIZE])
+    if numbers:
+        orders = Order.objects.filter(number__in=numbers).order_by("pk")
         with transaction.atomic():
             to_save = []
             _orders_lock = list(orders.select_for_update(of=(["self"])))
@@ -87,4 +87,4 @@ def set_lines_count_task():
                 order.lines_count = order.lines.count()
                 to_save.append(order)
             Order.objects.bulk_update(to_save, ["lines_count"])
-        set_lines_count_task.delay()
+        set_lines_count_task.delay(numbers[-1])
