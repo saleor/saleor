@@ -12874,6 +12874,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by invoice data associated with the order."""
   invoices: InvoiceFilterInput
 
+  """Filter by whether the order has any fulfillments."""
+  hasFulfillments: Boolean
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 

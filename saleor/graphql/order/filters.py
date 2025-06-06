@@ -12,7 +12,7 @@ from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...invoice.models import Invoice
-from ...order.models import Order, OrderLine
+from ...order.models import Fulfillment, Order, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
 from ...product.models import ProductVariant
@@ -264,6 +264,15 @@ def filter_has_invoices(qs, value):
     return qs.filter(~Exists(invoices))
 
 
+def filter_has_fulfillments(qs, value):
+    if value is None:
+        return qs.none()
+    fulfillments = Fulfillment.objects.using(qs.db).filter(order_id=OuterRef("id"))
+    if value:
+        return qs.filter(Exists(fulfillments))
+    return qs.filter(~Exists(fulfillments))
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -459,6 +468,10 @@ class OrderWhere(WhereFilterSet):
         method="filter_invoices",
         help_text="Filter by invoice data associated with the order.",
     )
+    has_fulfillments = BooleanWhereFilter(
+        method="filter_has_fulfillments",
+        help_text="Filter by whether the order has any fulfillments.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -548,6 +561,10 @@ class OrderWhere(WhereFilterSet):
             )
             return qs.filter(Exists(invoices.filter(order_id=OuterRef("id"))))
         return qs.none()
+
+    @staticmethod
+    def filter_has_fulfillments(qs, _, value):
+        return filter_has_fulfillments(qs, value)
 
 
 class OrderWhereInput(WhereInputObjectType):

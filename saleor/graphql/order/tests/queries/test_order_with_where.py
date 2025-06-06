@@ -1463,6 +1463,73 @@ def test_orders_filter_by_invoices(
     assert numbers == {str(order_list[index].number) for index in indexes}
 
 
+def test_orders_filter_by_has_fulfillments_true(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    for order in order_list[1:]:
+        order.fulfillments.create(tracking_number="123")
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"hasFulfillments": True}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(order_list[1:])
+    returned_numbers = {node["node"]["number"] for node in orders}
+    assert returned_numbers == {str(o.number) for o in order_list[1:]}
+
+
+def test_orders_filter_by_has_fulfillments_false(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    for order in order_list[1:]:
+        order.fulfillments.create(tracking_number="123")
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"hasFulfillments": False}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    returned_numbers = {node["node"]["number"] for node in orders}
+    assert returned_numbers == {str(order_list[0].number)}
+
+
+def test_orders_filter_by_has_fulfillments_none(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    for order in order_list[1:]:
+        order.fulfillments.create(tracking_number="123")
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"hasFulfillments": None}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
 def test_order_query_with_filter_and_where(
     staff_api_client,
     permission_group_manage_orders,
