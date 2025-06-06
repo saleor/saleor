@@ -786,6 +786,10 @@ class Fulfillment(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(fields=["status"], name="fulfillment_status_idx"),
+        ]
 
     def __str__(self):
         return f"Fulfillment #{self.composed_id}"
