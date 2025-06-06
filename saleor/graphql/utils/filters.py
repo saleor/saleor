@@ -86,6 +86,15 @@ def filter_where_range_field(qs, field, value):
     return qs.none()
 
 
+def filter_where_by_range_field(qs: "QuerySet", field: str, value: dict):
+    if value is None:
+        return qs.none()
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte is None and lte is None:
+        return qs.none()
+    return filter_range_field(qs, field, value)
+
+
 ValueT = str | UUID
 
 
