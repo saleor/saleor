@@ -54,6 +54,7 @@ from ..utils.filters import (
     filter_range_field,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
+    filter_where_by_range_field,
     filter_where_by_value_field,
     filter_where_range_field,
 )
@@ -361,7 +362,7 @@ class OrderChargeStatusEnumFilterInput(BaseInputObjectType):
 
 
 class InvoiceFilterInput(BaseInputObjectType):
-    created_at = DateTimeFilterInput(
+    created_at = DateTimeRangeInput(
         description="Filter invoices by creation date.",
     )
 
@@ -542,7 +543,7 @@ class OrderWhere(WhereFilterSet):
         if value is None:
             return qs.none()
         if filter_value := value.get("created_at"):
-            invoices = filter_where_range_field(
+            invoices = filter_where_by_range_field(
                 Invoice.objects.using(qs.db), "created_at", filter_value
             )
             return qs.filter(Exists(invoices.filter(order_id=OuterRef("id"))))

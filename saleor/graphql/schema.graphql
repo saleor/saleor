@@ -12904,7 +12904,7 @@ input UUIDFilterInput {
 """Filter input for invoices."""
 input InvoiceFilterInput @doc(category: "Orders") {
   """Filter invoices by creation date."""
-  createdAt: DateTimeFilterInput
+  createdAt: DateTimeRangeInput
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
