@@ -9,7 +9,12 @@ from freezegun import freeze_time
 from .....core.postgres import FlatConcatSearchVector
 from .....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
 from .....invoice.models import Invoice
-from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
+from .....order import (
+    FulfillmentStatus,
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderStatus,
+)
 from .....order.models import Order
 from .....order.search import (
     prepare_order_search_vector_value,
@@ -1528,6 +1533,67 @@ def test_orders_filter_by_has_fulfillments_none(
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
     assert len(orders) == 0
+
+
+@pytest.mark.parametrize(
+    ("where", "indexes"),
+    [
+        ({"eq": FulfillmentStatus.FULFILLED.upper()}, [0]),
+        ({"eq": FulfillmentStatus.REFUNDED.upper()}, [1]),
+        ({"eq": FulfillmentStatus.RETURNED.upper()}, [2]),
+        (
+            {
+                "oneOf": [
+                    FulfillmentStatus.FULFILLED.upper(),
+                    FulfillmentStatus.REFUNDED.upper(),
+                ]
+            },
+            [0, 1],
+        ),
+        (
+            {
+                "oneOf": [
+                    FulfillmentStatus.REPLACED.upper(),
+                    FulfillmentStatus.CANCELED.upper(),
+                ]
+            },
+            [],
+        ),
+        ({"eq": FulfillmentStatus.WAITING_FOR_APPROVAL.upper()}, []),
+        ({}, []),
+        ({"oneOf": []}, []),
+        ({"eq": None}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_fulfillment_status(
+    where,
+    indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    statuses = [
+        FulfillmentStatus.FULFILLED,
+        FulfillmentStatus.REFUNDED,
+        FulfillmentStatus.RETURNED,
+    ]
+    for order, status in zip(order_list, statuses, strict=True):
+        order.fulfillments.create(tracking_number="123", status=status)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"fulfillments": {"status": where}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[index].number) for index in indexes}
 
 
 def test_order_query_with_filter_and_where(
