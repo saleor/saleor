@@ -251,7 +251,6 @@ def _get_weighted_tax_rate_for_shipping(
     weighted_sum = sum(
         [rate * weight for rate, weight in tax_rates_with_weights.items()], Decimal(0)
     )
-
     return (weighted_sum / total_weight).quantize(Decimal(".0001"))
 
 
@@ -327,7 +326,7 @@ def normalize_tax_rate_for_db(tax_rate: Decimal) -> Decimal:
     # Percentage values are used to represent tax rates in tax apps and flat rates, but
     # in the database rates are stored as fractional values. Example: tax app returns
     # `10%` as `10`, but in the database it's stored as `0.1`.
-    return (tax_rate / 100).quantize(Decimal(".0001"))
+    return tax_rate / 100
 
 
 def denormalize_tax_rate_from_db(tax_rate: Decimal) -> Decimal:
