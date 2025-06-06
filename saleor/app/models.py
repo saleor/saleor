@@ -163,6 +163,9 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
+    # todo: Should we keep it in json field or maybe create separate model?
+    # I want to have separate "options" per mount and target
+    options = models.JSONField(blank=True, default=dict)
 
 
 class AppInstallation(Job):

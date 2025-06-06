@@ -237,6 +237,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             url=extension_data.get("url"),
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
+            options=extension_data.get("options", {}),
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
