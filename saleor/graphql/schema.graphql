@@ -2942,6 +2942,9 @@ type AppExtension implements Node @doc(category: "Apps") {
 
   """JWT token used to authenticate by third-party app extension."""
   accessToken: String
+
+  """App extension options."""
+  options: AppExtensionOptionsType
 }
 
 """All places where app extension can be mounted."""
@@ -3000,6 +3003,18 @@ enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
   NEW_TAB
+}
+
+"""Represents the options for an app extension."""
+type AppExtensionOptionsType @doc(category: "Apps") {
+  """Options for opening the extension in a new tab."""
+  newTabTarget: NewTabTargetType
+}
+
+"""Represents the new tab target options for an app extension."""
+type NewTabTargetType @doc(category: "Apps") {
+  """HTTP method for new tab target (GET or POST)"""
+  method: String!
 }
 
 """Represents the app's brand data."""

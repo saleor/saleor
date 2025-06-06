@@ -231,7 +231,6 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
-
         extension = AppExtension.objects.create(
             app=app,
             label=extension_data.get("label"),

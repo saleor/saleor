@@ -137,6 +137,28 @@ class AppManifestExtension(BaseObjectType):
         return resolve_app_extension_url(root)
 
 
+class NewTabTargetType(BaseObjectType):
+    method = graphene.String(
+        required=True, description="HTTP method for new tab target (GET or POST)"
+    )
+
+    class Meta:
+        description = "Represents the new tab target options for an app extension."
+        doc_category = DOC_CATEGORY_APPS
+
+
+class AppExtensionOptionsType(BaseObjectType):
+    new_tab_target = graphene.Field(
+        NewTabTargetType,
+        description="Options for opening the extension in a new tab.",
+        required=False,
+    )
+
+    class Meta:
+        description = "Represents the options for an app extension."
+        doc_category = DOC_CATEGORY_APPS
+
+
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     id = graphene.GlobalID(required=True, description="The ID of the app extension.")
     app = graphene.Field(
@@ -146,6 +168,10 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     )
     access_token = graphene.String(
         description="JWT token used to authenticate by third-party app extension."
+    )
+    options = graphene.Field(
+        AppExtensionOptionsType,
+        description="App extension options.",
     )
 
     class Meta:
@@ -200,6 +226,22 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             return resolve_access_token_for_app_extension(info, root, app)
 
         return AppByIdLoader(info.context).load(root.app_id).then(_resolve_access_token)
+
+    @staticmethod
+    def resolve_options(root: models.AppExtension, _info: ResolveInfo):
+        options = getattr(root, "options", None)
+        if not options:
+            return None
+        # options is expected to be a dict, e.g. {"newTabTarget": {"method": "GET"}}
+        new_tab_target = (
+            options.get("newTabTarget") if isinstance(options, dict) else None
+        )
+        if new_tab_target:
+            return AppExtensionOptionsType(
+                new_tab_target=NewTabTargetType(method=new_tab_target.get("method"))
+            )
+        # new_tab_target is optional, so if not present, return options without it
+        return AppExtensionOptionsType(new_tab_target=None)
 
 
 class AppExtensionCountableConnection(CountableConnection):
