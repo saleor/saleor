@@ -13,6 +13,7 @@ from .....discount import PromotionType, events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....webhook.event_types import WebhookEventAsyncType
+from ....account.types import CustomerGroup
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
@@ -177,6 +178,11 @@ class PromotionCreate(DeprecatedModelMutation):
             if channel_ids := rule_data.get("channels"):
                 channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
+            if customer_group_ids := rule_data.get("customer_groups"):
+                customer_groups = cls.clean_customer_groups(
+                    info, customer_group_ids, index, errors
+                )
+                rule_data["customer_groups"] = customer_groups
             if gift_ids := rule_data.get("gifts"):
                 instances = cls.get_nodes_or_error(
                     gift_ids, "gifts", schema=info.schema
@@ -212,6 +218,29 @@ class PromotionCreate(DeprecatedModelMutation):
         return channels
 
     @classmethod
+    def clean_customer_groups(
+        cls,
+        info: ResolveInfo,
+        customer_group_ids: list[str],
+        index: int,
+        errors: defaultdict[str, list[ValidationError]],
+    ) -> list[CustomerGroup]:
+        try:
+            customer_groups = get_nodes(
+                customer_group_ids, CustomerGroup, schema=info.schema
+            )
+        except GraphQLError as e:
+            errors["customer_groups"].append(
+                ValidationError(
+                    str(e),
+                    code=PromotionCreateErrorCode.GRAPHQL_ERROR.value,
+                    params={"index": index},
+                )
+            )
+            return []
+        return customer_groups
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
         data = data["input"]
@@ -231,10 +260,12 @@ class PromotionCreate(DeprecatedModelMutation):
     ):
         super()._save_m2m(info, instance, cleaned_data)
         rules_with_channels_to_add = []
+        rules_with_customer_groups_to_add = []
         rules = []
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
+                customer_groups = rule_data.pop("customer_groups", None)
                 gifts = rule_data.pop("gifts", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
                 if promotion_rule_should_be_marked_with_dirty_variants(
@@ -245,11 +276,16 @@ class PromotionCreate(DeprecatedModelMutation):
                     rule.gifts.set(gifts)
                 if channels:
                     rules_with_channels_to_add.append((rule, channels))
+                if customer_groups:
+                    rules_with_customer_groups_to_add.append((rule, customer_groups))
                 rules.append(rule)
             models.PromotionRule.objects.bulk_create(rules)
 
         for rule, channels in rules_with_channels_to_add:
             rule.channels.set(channels)
+
+        for rule, customer_groups in rules_with_customer_groups_to_add:
+            rule.customer_groups.set(customer_groups)
 
         return rules
 

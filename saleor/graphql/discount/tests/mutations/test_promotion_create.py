@@ -2111,3 +2111,66 @@ def test_promotion_create_without_catalogue_predicate(
     assert error["rulesLimitExceedBy"] is None
     assert error["giftsLimit"] is None
     assert error["giftsLimitExceedBy"] is None
+
+
+def test_promotion_create_with_customer_groups(
+    staff_api_client,
+    permission_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    variant,
+    product,
+    customer_group_list,
+):
+    # given
+    start_date = timezone.now() - datetime.timedelta(days=30)
+    end_date = timezone.now() + datetime.timedelta(days=30)
+    channel_ids = [
+        graphene.Node.to_global_id("Channel", channel.pk)
+        for channel in [channel_USD, channel_PLN]
+    ]
+    customer_group_ids = [
+        graphene.Node.to_global_id("CustomerGroup", group.pk)
+        for group in customer_group_list
+    ]
+    catalogue_predicate = {
+        "OR": [
+            {
+                "variantPredicate": {
+                    "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+                }
+            },
+        ]
+    }
+    promotion_name = "test promotion"
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "type": PromotionTypeEnum.CATALOGUE.name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": "test promotion rule",
+                    "description": description_json,
+                    "channels": channel_ids,
+                    "customerGroups": customer_group_ids,
+                    "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
+                    "rewardValue": Decimal("50"),
+                    "cataloguePredicate": catalogue_predicate,
+                }
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_CREATE_MUTATION, variables, permissions=(permission_manage_discounts,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    assert len(data["errors"]) == 0
