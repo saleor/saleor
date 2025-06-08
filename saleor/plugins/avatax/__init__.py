@@ -287,7 +287,7 @@ def generate_request_data_from_checkout_lines(
 ) -> list[dict[str, str | int | bool | None]]:
     data: list[dict[str, str | int | bool | None]] = []
 
-    charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines_info)
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info)
     prices_entered_with_tax = checkout_info.tax_configuration.prices_entered_with_tax
 
     voucher = checkout_info.voucher
@@ -403,7 +403,7 @@ def get_order_lines_data(
             undiscounted_amount = prices_data.undiscounted_price.net.amount
             price_with_discounts_amount = prices_data.price_with_discounts.net.amount
 
-        append_line_to_data_kwargs = {
+        append_line_to_data_kwargs: dict[str, Any] = {
             "data": data,
             "quantity": line.quantity,
             # This is a workaround for Avatax and sending a lines with amount 0. Like

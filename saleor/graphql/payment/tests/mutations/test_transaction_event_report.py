@@ -5,11 +5,14 @@ from uuid import uuid4
 
 import graphene
 import pytest
+from django.db import transaction as database_transaction
 from django.utils import timezone
 from freezegun import freeze_time
+from psycopg.errors import QueryCanceled
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
+from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....order import OrderEvents, OrderGrantedRefundStatus, OrderStatus
@@ -17,6 +20,7 @@ from .....order.models import Order
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
+from .....tests import race_condition
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.utils import to_global_id_or_none
 from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
@@ -1237,9 +1241,16 @@ def test_transaction_event_updates_checkout_payment_statuses(
     app_api_client,
     permission_manage_payments,
     checkout_with_items,
+    plugins_manager,
 ):
     # given
     checkout = checkout_with_items
+
+    # Fetch checkout lines and info to recalculate checkout total prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    fetch_checkout_data(checkout_info, plugins_manager, lines)
+
     current_charged_value = Decimal("20")
     psp_reference = "111-abc"
     amount = Decimal("11.00")
@@ -3304,3 +3315,226 @@ def test_transaction_event_report_empty_message(
     assert event.app == app_api_client.app
     assert event.user is None
     assert event.message == ""
+
+
+# transaction=True is required to ensure that the order is locked without it second context will not
+# be able to trying to acquire a lock on the order.
+@pytest.mark.django_db(transaction=True)
+def test_lock_order_during_updating_order_amounts(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    psp_reference = "111-abc"
+    amount = order.total.gross.amount
+    transaction = transaction_item_generator(
+        app=app_api_client.app,
+        order_id=order.pk,
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when & then
+    def check_if_order_is_locked(*args, **kwargs):
+        # This function will be called when the order amounts are being updated
+        # We will try to acquire a lock on the order row to check if it's locked.
+        cxn = database_transaction.get_connection()
+        new_cxn = cxn.get_new_connection(cxn.get_connection_params())
+        with new_cxn.cursor() as cursor:
+            cursor.execute("SET statement_timeout = 100")
+            with pytest.raises(QueryCanceled):
+                cursor.execute(
+                    """
+                    SELECT *
+                    FROM "order_order"
+                    WHERE "order_order"."id" = %s
+                    FOR UPDATE
+                    """,
+                    [order.pk],
+                )
+
+    with race_condition.RunBefore(
+        "saleor.order.utils.update_order_charge_data",
+        check_if_order_is_locked,
+    ):
+        app_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_payments],
+            check_no_permissions=False,
+        )
+
+
+# transaction=True is required to ensure that the order is locked without it second context will not
+# be able to trying to acquire a lock on the order.
+@pytest.mark.django_db(transaction=True)
+def test_lock_checkout_during_updating_checkout_amounts(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    psp_reference = "111-abc"
+    transaction = transaction_item_generator(
+        app=app_api_client.app, checkout_id=checkout.pk
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": checkout_info.checkout.total.gross.amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when & then
+    def check_if_checkout_is_locked(*args, **kwargs):
+        # This function will be called when the order amounts are being updated
+        # We will try to acquire a lock on the order row to check if it's locked.
+        cxn = database_transaction.get_connection()
+        new_cxn = cxn.get_new_connection(cxn.get_connection_params())
+        with new_cxn.cursor() as cursor:
+            cursor.execute("SET statement_timeout = 100")
+            with pytest.raises(QueryCanceled):
+                cursor.execute(
+                    """
+                    SELECT *
+                    FROM "checkout_checkout"
+                    WHERE "checkout_checkout"."token" = %s
+                    FOR UPDATE
+                    """,
+                    [checkout.pk],
+                )
+
+    with race_condition.RunBefore(
+        "saleor.graphql.payment.mutations.transaction."
+        "transaction_event_report.transaction_amounts_for_checkout_updated_without_price_recalculation",
+        check_if_checkout_is_locked,
+    ):
+        app_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_payments]
+        )
+
+
+def test_transaction_event_report_checkout_completed_race_condition(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    psp_reference = "111-abc"
+    transaction = transaction_item_generator(
+        app=app_api_client.app, checkout_id=checkout.pk
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": checkout_info.checkout.total.gross.amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+
+    # when
+    def complete_checkout(*args, **kwargs):
+        create_order_from_checkout(
+            checkout_info, plugins_manager, user=None, app=app_api_client.app
+        )
+
+    with race_condition.RunBefore(
+        "saleor.graphql.payment.mutations.transaction.transaction_event_report.recalculate_transaction_amounts",
+        complete_checkout,
+    ):
+        response = app_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_payments]
+        )
+
+    # then
+    get_graphql_content(response)
+    order = Order.objects.get(checkout_token=checkout.pk)
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    assert order.total_charged.amount == checkout.total.gross.amount

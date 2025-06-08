@@ -1,12 +1,16 @@
 import logging
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 
+from opentelemetry import context as otel_context
+from opentelemetry.propagate import extract, inject
 from opentelemetry.trace import (
     INVALID_SPAN,
+    INVALID_SPAN_CONTEXT,
     Link,
     Span,
     SpanKind,
+    TracerProvider,
     get_current_span,
     get_tracer,
 )
@@ -35,9 +39,32 @@ class Tracer:
 
     """
 
+    tracer_provider: TracerProvider | None = None
+
     def __init__(self, instrumentation_version: str):
-        self._core_tracer = get_tracer(Scope.CORE.value, instrumentation_version)
-        self._service_tracer = get_tracer(Scope.SERVICE.value, instrumentation_version)
+        self._core_tracer = get_tracer(
+            Scope.CORE.value, instrumentation_version, self.tracer_provider
+        )
+        self._service_tracer = get_tracer(
+            Scope.SERVICE.value, instrumentation_version, self.tracer_provider
+        )
+
+    @contextmanager
+    def extract_context(
+        self, carrier: Mapping[str, str | list[str]] | None = None
+    ) -> Iterator[otel_context.Context | None]:
+        token = context = None
+        if (
+            carrier is not None
+            and self.get_current_span().get_span_context() is INVALID_SPAN_CONTEXT
+        ):
+            context = extract(carrier)
+            token = otel_context.attach(context)
+        try:
+            yield context
+        finally:
+            if token:
+                otel_context.detach(token)
 
     @contextmanager
     def start_as_current_span(
@@ -46,6 +73,7 @@ class Tracer:
         *,
         scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
+        context: otel_context.Context | None = None,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
         start_time: int | None = None,
@@ -59,6 +87,7 @@ class Tracer:
             name: The name of the span
             scope: The scope of the span, defaults to Scope.CORE
             kind: The SpanKind of the span
+            context: An optional Context containing the span's parent
             attributes: Initial attributes for the span
             links: Links to other spans
             start_time: Optional start time for the span in nanoseconds
@@ -74,6 +103,7 @@ class Tracer:
         tracer = self._service_tracer if scope.is_service else self._core_tracer
         with tracer.start_as_current_span(
             name,
+            context=context,
             kind=kind,
             attributes=attributes,
             links=links,
@@ -90,6 +120,7 @@ class Tracer:
         *,
         scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
+        context: otel_context.Context | None = None,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
         start_time: int | None = None,
@@ -102,6 +133,7 @@ class Tracer:
             name: The name of the span
             scope: The scope of the span, defaults to Scope.CORE
             kind: The SpanKind of the span
+            context: An optional Context containing the span's parent
             attributes: Initial attributes for the span
             links: Links to other spans
             start_time: Optional start time for the span in nanoseconds
@@ -116,6 +148,7 @@ class Tracer:
         tracer = self._service_tracer if scope.is_service else self._core_tracer
         return tracer.start_span(
             name,
+            context=context,
             kind=kind,
             attributes=attributes,
             links=links,
@@ -127,6 +160,9 @@ class Tracer:
     def get_current_span(self) -> Span:
         """Return the current span from the context."""
         return get_current_span()
+
+    def inject_context(self, carrier: Mapping[str, str | list[str]]):
+        inject(carrier)
 
 
 class TracerProxy(Tracer):
@@ -145,12 +181,23 @@ class TracerProxy(Tracer):
         self._tracer = tracer_cls(instrumentation_version)
 
     @contextmanager
+    def extract_context(
+        self, carrier: Mapping[str, str | list[str]] | None = None
+    ) -> Iterator[otel_context.Context | None]:
+        if self._tracer is None:
+            yield None
+        else:
+            with self._tracer.extract_context(carrier) as context:
+                yield context
+
+    @contextmanager
     def start_as_current_span(
         self,
         name: str,
         *,
         scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
+        context: otel_context.Context | None = None,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
         start_time: int | None = None,
@@ -165,6 +212,7 @@ class TracerProxy(Tracer):
                 name,
                 scope=scope,
                 kind=kind,
+                context=context,
                 attributes=attributes,
                 links=links,
                 start_time=start_time,
@@ -180,6 +228,7 @@ class TracerProxy(Tracer):
         *,
         scope: Scope = Scope.CORE,
         kind: SpanKind = SpanKind.INTERNAL,
+        context: otel_context.Context | None = None,
         attributes: Attributes = None,
         links: Sequence[Link] | None = None,
         start_time: int | None = None,
@@ -192,6 +241,7 @@ class TracerProxy(Tracer):
             name,
             scope=scope,
             kind=kind,
+            context=context,
             attributes=attributes,
             links=links,
             start_time=start_time,
@@ -203,3 +253,8 @@ class TracerProxy(Tracer):
         if self._tracer is None:
             return INVALID_SPAN
         return self._tracer.get_current_span()
+
+    def inject_context(self, carrier: Mapping[str, str | list[str]]):
+        if self._tracer:
+            return self._tracer.inject_context(carrier)
+        return None

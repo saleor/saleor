@@ -1,10 +1,10 @@
 from unittest.mock import patch
 
-from django.contrib.auth.tokens import default_token_generator
 from freezegun import freeze_time
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
+from ......core.tokens import token_generator
 from .....core.utils import str_to_enum
 from .....tests.utils import get_graphql_content
 from ....mutations.base import INVALID_TOKEN
@@ -33,7 +33,7 @@ SET_PASSWORD_MUTATION = """
 
 @freeze_time("2018-05-31 12:00:01")
 def test_set_password(user_api_client, customer_user):
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     variables = {"email": customer_user.email, "password": password, "token": token}
@@ -62,7 +62,7 @@ def test_set_password_confirm_user_and_match_orders(
     customer_user.is_confirmed = False
     customer_user.save(update_fields=["is_confirmed"])
 
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     variables = {"email": customer_user.email, "password": password, "token": token}
@@ -122,7 +122,7 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
         {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
     ]
 
-    token = default_token_generator.make_token(customer_user)
+    token = token_generator.make_token(customer_user)
     variables = {"email": customer_user.email, "password": "1234", "token": token}
     response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
     content = get_graphql_content(response)

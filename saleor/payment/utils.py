@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Any, Optional, cast, overload
+from typing import Any, Optional, cast, get_args, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -16,6 +16,7 @@ from pydantic import ValidationError
 from ..account.models import User
 from ..app.models import App
 from ..channel import TransactionFlowStrategy
+from ..checkout import calculations
 from ..checkout.actions import (
     transaction_amounts_for_checkout_updated,
     update_last_transaction_modified_at_for_checkout,
@@ -36,13 +37,8 @@ from ..order.utils import (
     updates_amounts_for_order,
 )
 from ..plugins.manager import PluginsManager, get_plugins_manager
-from ..webhook.response_schemas.transaction import (
-    TransactionCancelRequestedSchema,
-    TransactionChargeRequestedSchema,
-    TransactionRefundRequestedSchema,
-    TransactionSchema,
-    TransactionSessionSchema,
-)
+from ..webhook.response_schemas import transaction as transaction_schemas
+from ..webhook.response_schemas.utils.helpers import parse_validation_error
 from . import (
     ChargeStatus,
     GatewayError,
@@ -173,11 +169,11 @@ def create_checkout_payment_lines_information(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
-        unit_price = manager.calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            line_info,
-            address,
+        unit_price = calculations.checkout_line_unit_price(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
         )
         unit_gross = unit_price.gross.amount
 
@@ -193,12 +189,12 @@ def create_checkout_payment_lines_information(
                 amount=unit_gross,
             )
         )
-    shipping_amount = manager.calculate_checkout_shipping(
+    shipping_amount = calculations.checkout_shipping_price(
+        manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
     ).gross.amount
-
     voucher_amount = -checkout.discount_amount
 
     return PaymentLinesData(
@@ -820,7 +816,7 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
     return type_map.get(request_type, [])
 
 
-error_msg = str
+ErrorMsg = str
 
 
 def parse_transaction_action_data(
@@ -828,23 +824,19 @@ def parse_transaction_action_data(
     request_type: str,
     request_event_amount: Decimal,
     event_is_optional: bool = True,
-) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
+) -> tuple[Optional["TransactionRequestResponse"], ErrorMsg | None]:
     """Parse response from transaction action webhook.
 
     It takes the recieved response from sync webhook and
     returns TransactionRequestResponse with all details.
     If unable to parse, None will be returned.
     """
-
-    request_type_to_schema_map: dict[str, type[TransactionSchema]] = {
-        TransactionEventType.CHARGE_REQUEST: TransactionChargeRequestedSchema,
-        TransactionEventType.REFUND_REQUEST: TransactionRefundRequestedSchema,
-        TransactionEventType.CANCEL_REQUEST: TransactionCancelRequestedSchema,
-        SESSION_REQUEST_EVENT_TYPE: TransactionSessionSchema,
-    }
-
-    request_schema = request_type_to_schema_map.get(request_type)
-    if not request_schema:
+    if request_type not in [
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.REFUND_REQUEST,
+        TransactionEventType.CANCEL_REQUEST,
+        SESSION_REQUEST_EVENT_TYPE,
+    ]:
         logger.error(
             "Request type %s not supported for parsing transaction action data.",
             request_type,
@@ -852,10 +844,37 @@ def parse_transaction_action_data(
         )
         return None, "Request type not supported"
 
-    error_msg_response = None
     try:
-        response_data_model = request_schema.model_validate(
-            response_data, context={"is_event_optional": event_is_optional}
+        if request_type in [
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.CANCEL_REQUEST,
+        ]:
+            response_data_model = _validate_transaction_action_data(
+                response_data,
+                request_type,
+                event_is_optional,
+            )
+        else:
+            response_data_model = _validate_transaction_session_action_data(
+                response_data,
+            )
+    except ValidationError as error:
+        error_msg_response = parse_validation_error(error)
+        logger.warning(error_msg_response)
+        return None, truncate_transaction_event_message(error_msg_response)
+    except ValueError as error:
+        error_msg_response = str(error)
+        logger.warning(
+            "Error while parsing transaction action data: %s",
+            error_msg_response,
+            extra={"request_type": request_type},
+        )
+        return None, truncate_transaction_event_message(error_msg_response)
+    event = None
+    if getattr(response_data_model, "result", None):
+        response_data_model = cast(
+            transaction_schemas.TransactionSessionBaseSchema, response_data_model
         )
         event = TransactionRequestEventResponse(
             psp_reference=response_data_model.psp_reference,
@@ -865,19 +884,95 @@ def parse_transaction_action_data(
             external_url=str(response_data_model.external_url),
             message=response_data_model.message,
         )
-        return (
-            TransactionRequestResponse(
-                psp_reference=response_data_model.psp_reference,
-                available_actions=response_data_model.actions,
-                event=event if response_data_model.result else None,
-            ),
-            None,
-        )
-    except ValidationError as error:
-        error_msg_response = str(error)
-        logger.warning(error_msg_response)
-        error_msg_response = truncate_transaction_event_message(error_msg_response)
-        return None, error_msg_response
+    return (
+        TransactionRequestResponse(
+            psp_reference=response_data_model.psp_reference,
+            available_actions=response_data_model.actions,
+            event=event,
+        ),
+        None,
+    )
+
+
+def _validate_transaction_action_data(
+    response_data: Any,
+    request_type: str,
+    event_is_optional: bool,
+) -> (
+    transaction_schemas.TransactionBaseSchema
+    | transaction_schemas.TransactionAsyncSchema
+):
+    request_type_to_schemas_map: dict[str, tuple] = {
+        TransactionEventType.CHARGE_REQUEST: (
+            transaction_schemas.TransactionChargeRequestedSyncSuccessSchema,
+            transaction_schemas.TransactionChargeRequestedSyncFailureSchema,
+            transaction_schemas.TransactionChargeRequestedAsyncSchema,
+        ),
+        TransactionEventType.REFUND_REQUEST: (
+            transaction_schemas.TransactionRefundRequestedSyncSuccessSchema,
+            transaction_schemas.TransactionRefundRequestedSyncFailureSchema,
+            transaction_schemas.TransactionRefundRequestedAsyncSchema,
+        ),
+        TransactionEventType.CANCEL_REQUEST: (
+            transaction_schemas.TransactionCancelRequestedSyncSuccessSchema,
+            transaction_schemas.TransactionCancelRequestedSyncFailureSchema,
+            transaction_schemas.TransactionCancelRequestedAsyncSchema,
+        ),
+    }
+    success_schema, failure_schema, async_schema = request_type_to_schemas_map[
+        request_type
+    ]
+    result_value = response_data.get("result")
+    if result_value in get_args(success_schema.model_fields["result"].annotation):
+        return success_schema.model_validate(response_data)
+    if result_value in get_args(failure_schema.model_fields["result"].annotation):
+        return failure_schema.model_validate(response_data)
+    if result_value is None and event_is_optional:
+        return async_schema.model_validate(response_data)
+    possible_values = ", ".join(
+        list(get_args(success_schema.model_fields["result"].annotation))
+        + list(get_args(failure_schema.model_fields["result"].annotation))
+    )
+    logger.warning(
+        "Invalid value for `result`: %s. Possible values: %s.",
+        result_value,
+        possible_values,
+    )
+    raise ValueError(
+        f"Missing or invalid value for `result`: {result_value}. Possible values: {possible_values}."
+    )
+
+
+def _validate_transaction_session_action_data(
+    response_data: Any,
+) -> transaction_schemas.TransactionSessionBaseSchema:
+    success_schema = transaction_schemas.TransactionSessionSuccessSchema
+    failure_schema = transaction_schemas.TransactionSessionFailureSchema
+    action_required_schema = transaction_schemas.TransactionSessionActionRequiredSchema
+
+    result_value = response_data.get("result")
+    if result_value in get_args(success_schema.model_fields["result"].annotation):
+        return success_schema.model_validate(response_data)
+    if result_value in get_args(failure_schema.model_fields["result"].annotation):
+        return failure_schema.model_validate(response_data)
+    if result_value in get_args(
+        action_required_schema.model_fields["result"].annotation
+    ):
+        return action_required_schema.model_validate(response_data)
+    possible_values = ", ".join(
+        [
+            value.name
+            for value in transaction_schemas.TransactionEventTypeEnum.__members__.values()
+        ]
+    )
+    logger.warning(
+        "Invalid value for `result`: %s. Possible values: %s.",
+        result_value,
+        possible_values,
+    )
+    raise ValueError(
+        f"Missing or invalid value for `result`: {result_value}. Possible values: {possible_values}."
+    )
 
 
 def parse_available_actions(available_actions):
@@ -985,7 +1080,7 @@ def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | No
 
 def deduplicate_event(
     event: TransactionEvent, app: App
-) -> tuple[TransactionEvent, error_msg | None]:
+) -> tuple[TransactionEvent, ErrorMsg | None]:
     """Deduplicate the TransactionEvent.
 
     In case of having an existing event with the same type, psp reference
@@ -1036,7 +1131,7 @@ def _create_event_from_response(
     transaction_id: int,
     currency: str,
     related_granted_refund_id: int | None = None,
-) -> tuple[TransactionEvent | None, error_msg | None]:
+) -> tuple[TransactionEvent | None, ErrorMsg | None]:
     app_identifier = None
     if app and app.identifier:
         app_identifier = app.identifier
@@ -1073,7 +1168,7 @@ def _get_parsed_transaction_action_data(
     event_type: str,
     request_event_amount: Decimal,
     event_is_optional: bool = True,
-) -> tuple[Optional["TransactionRequestResponse"], error_msg | None]:
+) -> tuple[Optional["TransactionRequestResponse"], ErrorMsg | None]:
     if transaction_webhook_response is None:
         return None, "Failed to delivery request."
 

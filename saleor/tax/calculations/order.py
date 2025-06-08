@@ -13,6 +13,7 @@ from ...order.utils import get_order_country
 from ..models import TaxClassCountryRate
 from ..utils import (
     denormalize_tax_rate_from_db,
+    get_shipping_tax_rate_for_order,
     get_tax_rate_for_country,
     normalize_tax_rate_for_db,
 )
@@ -49,26 +50,13 @@ def update_order_prices_with_flat_rates(
     )
 
     # Calculate order shipping.
-
-    shipping_tax_rate = default_tax_rate
-
-    if order.shipping_tax_class_id:
-        shipping_tax_rates = TaxClassCountryRate.objects.using(
-            database_connection_name
-        ).filter(tax_class_id=order.shipping_tax_class_id)
-        shipping_tax_rate = get_tax_rate_for_country(
-            tax_class_country_rates=shipping_tax_rates,
-            default_tax_rate=default_tax_rate,
-            country_code=country_code,
-        )
-    elif (
-        order.shipping_tax_class_name is not None
-        and order.shipping_tax_rate is not None
-    ):
-        # Use order.shipping_tax_rate if it was ever set before (it's non-null now and
-        # the name is non-null). This is a valid case when recalculating shipping price
-        # and the tax class is null, because it was removed from the system.
-        shipping_tax_rate = denormalize_tax_rate_from_db(order.shipping_tax_rate)
+    shipping_tax_rate = get_shipping_tax_rate_for_order(
+        order,
+        lines,
+        default_tax_rate,
+        country_code,
+        database_connection_name=database_connection_name,
+    )
 
     order.shipping_price = _calculate_order_shipping(
         order, shipping_tax_rate, prices_entered_with_tax

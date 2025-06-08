@@ -40,7 +40,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         )
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.COLLECTION_DELETED)
-        for collection in queryset.iterator():
+        for collection in queryset.iterator(chunk_size=1000):
             cls.call_event(manager.collection_deleted, collection, webhooks=webhooks)
         queryset.delete()
 

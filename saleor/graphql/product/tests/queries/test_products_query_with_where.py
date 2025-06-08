@@ -650,7 +650,7 @@ def test_product_filter_by_minimal_price(
     assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
-def test_products_filter_by_attributes(
+def test_products_filter_by_attributes_value_slug(
     api_client,
     product_list,
     channel_USD,
@@ -680,6 +680,52 @@ def test_products_filter_by_attributes(
         "channel": channel_USD.slug,
         "where": {
             "attributes": [{"slug": attribute.slug, "values": [attr_value.slug]}],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
+
+
+def test_products_filter_by_attributes_value_name(
+    api_client,
+    product_list,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+        kind=ProductTypeKind.NORMAL,
+    )
+    attribute = Attribute.objects.create(slug="new_attr", name="Attr")
+    attribute.product_types.add(product_type)
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute, name="First", slug="first"
+    )
+    product = product_list[0]
+    product.product_type = product_type
+    product.save()
+    associate_attribute_values_to_instance(
+        product,
+        {attribute.id: [attr_value]},
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [{"slug": attribute.slug, "valueNames": [attr_value.name]}],
         },
     }
 

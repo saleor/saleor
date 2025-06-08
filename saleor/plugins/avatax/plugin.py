@@ -323,8 +323,8 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        tax_strategy = get_tax_calculation_strategy_for_checkout(checkout_info, lines)
-        tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines)
+        tax_strategy = get_tax_calculation_strategy_for_checkout(checkout_info)
+        tax_app_identifier = get_tax_app_identifier_for_checkout(checkout_info)
         if (
             tax_strategy == TaxCalculationStrategy.FLAT_RATES
             or tax_app_identifier is not None
@@ -396,7 +396,7 @@ class AvataxPlugin(BasePlugin):
         address: Optional["Address"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
+        charge_taxes = get_charge_taxes_for_checkout(checkout_info)
         if not charge_taxes:
             return previous_value
 
@@ -538,8 +538,7 @@ class AvataxPlugin(BasePlugin):
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         base_total = previous_value
-        charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
-
+        charge_taxes = get_charge_taxes_for_checkout(checkout_info)
         if not charge_taxes:
             return base_total
 
@@ -681,7 +680,7 @@ class AvataxPlugin(BasePlugin):
         address: Optional["Address"],
         previous_value: Decimal,
     ) -> Decimal:
-        charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
+        charge_taxes = get_charge_taxes_for_checkout(checkout_info)
         if not charge_taxes:
             return previous_value
 
@@ -777,7 +776,7 @@ class AvataxPlugin(BasePlugin):
         lines_info: list["CheckoutLineInfo"],
         tax_error_message: str,
     ) -> None:
-        app_identifier = get_tax_app_identifier_for_checkout(checkout_info, lines_info)
+        app_identifier = get_tax_app_identifier_for_checkout(checkout_info)
         if app_identifier == self.PLUGIN_IDENTIFIER:
             checkout_info.checkout.tax_error = tax_error_message
 

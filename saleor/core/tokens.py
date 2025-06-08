@@ -1,7 +1,10 @@
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.conf import settings
+from django.utils.module_loading import import_string
+
+token_generator_cls = import_string(settings.TOKEN_GENERATOR_CLASS)
 
 
-class AccountDeleteTokenGenerator(PasswordResetTokenGenerator):
+class AccountDeleteTokenGenerator(token_generator_cls):  # type: ignore[valid-type,misc]
     def _make_hash_value(self, user, timestamp):
         # Override this method to remove the user `last_login` value from the hash.
         # As this token is used for deleting the user, so there is no worry
@@ -12,3 +15,4 @@ class AccountDeleteTokenGenerator(PasswordResetTokenGenerator):
 
 
 account_delete_token_generator = AccountDeleteTokenGenerator()
+token_generator = token_generator_cls()

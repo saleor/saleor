@@ -18,7 +18,15 @@ from ...payment.interface import (
 )
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.utils import get_webhooks_for_event
-from ..response_schemas.payment import ListStoredPaymentMethodsSchema
+from ..response_schemas.payment import (
+    ListStoredPaymentMethodsSchema,
+    PaymentGatewayInitializeTokenizationSessionSchema,
+    PaymentMethodTokenizationFailedSchema,
+    PaymentMethodTokenizationPendingSchema,
+    PaymentMethodTokenizationSuccessSchema,
+    StoredPaymentMethodDeleteRequestedSchema,
+)
+from ..response_schemas.utils.helpers import parse_validation_error
 from .utils import generate_cache_key_for_webhook, to_payment_app_id
 
 logger = logging.getLogger(__name__)
@@ -69,17 +77,20 @@ def get_list_stored_payment_methods_from_response(
 def get_response_for_stored_payment_method_request_delete(
     response_data: dict | None,
 ) -> "StoredPaymentMethodRequestDeleteResponseData":
+    error: str | None = None
     if response_data is None:
         result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELIVER
         error = "Failed to delivery request."
     else:
         try:
-            response_result = response_data.get("result") or ""
-            result = StoredPaymentMethodRequestDeleteResult[response_result]
-            error = response_data.get("error", None)
-        except KeyError:
+            delete_requested_model = (
+                StoredPaymentMethodDeleteRequestedSchema.model_validate(response_data)
+            )
+            result = delete_requested_model.result
+            error = delete_requested_model.error
+        except ValidationError as e:
             result = StoredPaymentMethodRequestDeleteResult.FAILED_TO_DELETE
-            error = "Missing or incorrect `result` in response."
+            error = parse_validation_error(e)
 
     return StoredPaymentMethodRequestDeleteResponseData(
         result=result,
@@ -111,18 +122,23 @@ def get_response_for_payment_gateway_initialize_tokenization(
     response_data: dict | None,
 ) -> "PaymentGatewayInitializeTokenizationResponseData":
     data = None
+    error: str | None = None
     if response_data is None:
         result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_DELIVER
         error = "Failed to delivery request."
     else:
         try:
-            response_result = response_data.get("result") or ""
-            result = PaymentGatewayInitializeTokenizationResult[response_result]
-            error = response_data.get("error", None)
-            data = response_data.get("data", None)
-        except KeyError:
+            gateway_initialize_model = (
+                PaymentGatewayInitializeTokenizationSessionSchema.model_validate(
+                    response_data
+                )
+            )
+            result = gateway_initialize_model.result
+            error = gateway_initialize_model.error
+            data = gateway_initialize_model.data
+        except ValidationError as e:
             result = PaymentGatewayInitializeTokenizationResult.FAILED_TO_INITIALIZE
-            error = "Missing or incorrect `result` in response."
+            error = parse_validation_error(e)
 
     return PaymentGatewayInitializeTokenizationResponseData(
         result=result, error=error, data=data
@@ -133,31 +149,63 @@ def get_response_for_payment_method_tokenization(
     response_data: dict | None, app: "App"
 ) -> "PaymentMethodTokenizationResponseData":
     data = None
+    error: str | None = None
     payment_method_id = None
     if response_data is None:
         result = PaymentMethodTokenizationResult.FAILED_TO_DELIVER
         error = "Failed to delivery request."
     else:
         try:
-            response_result = response_data.get("result") or ""
-            result = PaymentMethodTokenizationResult[response_result]
-            error = response_data.get("error", None)
-            data = response_data.get("data", None)
-        except KeyError:
+            response_model = _validate_payment_method_response(response_data, app)
+            result = response_model.result
+            error = getattr(response_model, "error", None)
+            data = getattr(response_model, "data", None)
+            payment_method_id = getattr(response_model, "id", None)
+        except ValidationError as e:
             result = PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
-            error = "Missing or incorrect `result` in response."
-
-        try:
-            payment_method_id = response_data["id"]
-            payment_method_id = to_payment_app_id(app, payment_method_id)
-        except KeyError:
-            if result in [
-                PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED,
-                PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED,
-            ]:
-                result = PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
-                error = "Missing payment method `id` in response."
+            error = parse_validation_error(e)
+        except ValueError as e:
+            result = PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE
+            error = str(e)
 
     return PaymentMethodTokenizationResponseData(
         result=result, error=error, data=data, id=payment_method_id
     )
+
+
+def _validate_payment_method_response(response_data: dict, app):
+    context = {
+        "app": app,
+    }
+    match response_data.get("result"):
+        case (
+            PaymentMethodTokenizationResult.SUCCESSFULLY_TOKENIZED.name
+            | PaymentMethodTokenizationResult.ADDITIONAL_ACTION_REQUIRED.name
+        ):
+            return PaymentMethodTokenizationSuccessSchema.model_validate(
+                response_data, context=context
+            )
+        case PaymentMethodTokenizationResult.PENDING.name:
+            return PaymentMethodTokenizationPendingSchema.model_validate(
+                response_data, context=context
+            )
+        case (
+            PaymentMethodTokenizationResult.FAILED_TO_TOKENIZE.name
+            | PaymentMethodTokenizationResult.FAILED_TO_DELIVER.name
+        ):
+            return PaymentMethodTokenizationFailedSchema.model_validate(
+                response_data, context=context
+            )
+        case _:
+            possible_values = ", ".join(
+                [value.name for value in PaymentMethodTokenizationResult]
+            )
+            logger.warning(
+                "Invalid value for `result`: %s. Possible values: %s.",
+                response_data.get("result"),
+                possible_values,
+                extra={"app": app.id},
+            )
+            raise ValueError(
+                f"Missing or invalid value for `result`: {response_data.get('result')}. Possible values: {possible_values}."
+            )

@@ -44,6 +44,7 @@ from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
 from .. import signature_for_payload
 from ..metrics import record_external_request
+from ..taxes import parse_tax_data
 from ..utils import (
     WebhookResponse,
     WebhookSchemes,
@@ -54,7 +55,6 @@ from ..utils import (
     generate_cache_key_for_webhook,
     get_delivery_for_webhook,
     handle_webhook_retry,
-    parse_tax_data,
     save_unsuccessful_delivery_attempt,
     send_webhook_using_http,
 )

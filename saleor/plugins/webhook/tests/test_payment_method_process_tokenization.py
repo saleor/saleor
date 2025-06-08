@@ -367,14 +367,14 @@ def test_payment_method_process_tokenization_missing_required_id(
     webhook_plugin,
     payment_method_process_tokenization_app,
     channel_USD,
-    app,
 ):
     # given
-    expected_error_msg = "Missing payment method `id` in response."
-    mock_request.return_value = {
+    return_value = {
         "result": result,
         "data": None,
     }
+    mock_request.return_value = return_value
+    expected_error_msg = f"Missing value for field: id. Input: {return_value}."
 
     plugin = webhook_plugin()
 

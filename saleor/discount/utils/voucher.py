@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Sequence
 from dataclasses import asdict, dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
 from uuid import UUID
 
 from django.db.models import Exists, F, OuterRef
@@ -13,7 +13,7 @@ from ...channel.models import Channel
 from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
-from ...order.models import Order
+from ...order.models import Order, OrderLine
 from .. import DiscountType, VoucherType
 from ..interface import DiscountInfo, VoucherInfo
 from ..models import (
@@ -30,9 +30,9 @@ from .shared import update_discount
 if TYPE_CHECKING:
     from ...account.models import User
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ...checkout.models import Checkout
     from ...core.pricing.interface import LineInfo
     from ...order.fetch import EditableOrderLineInfo
-    from ...order.models import OrderLine
     from ...plugins.manager import PluginsManager
     from ..models import Voucher
 
@@ -251,6 +251,22 @@ def get_the_cheapest_line(
     return min(lines_info, key=lambda line_info: line_info.variant_discounted_price)
 
 
+def get_customer_email_for_voucher_usage(
+    source_object: Union["Order", "Checkout", "CheckoutInfo"],
+):
+    """Get customer email for voucher.
+
+    Always prioritize the user's email over the email assigned to the
+    source object in terms of voucher application.
+    If the source object has associated user, return the user's email.
+    Otherwise, return the customer email from the source object.
+    """
+
+    if source_object.user:
+        return source_object.user.email
+    return source_object.get_customer_email()
+
+
 def validate_voucher_for_checkout(
     manager: "PluginsManager",
     voucher: "Voucher",
@@ -267,7 +283,7 @@ def validate_voucher_for_checkout(
         checkout_info.checkout.currency,
     )
 
-    customer_email = cast(str, checkout_info.get_customer_email())
+    customer_email = cast(str, get_customer_email_for_voucher_usage(checkout_info))
     validate_voucher(
         voucher,
         subtotal,
@@ -288,7 +304,7 @@ def validate_voucher_in_order(
 
     subtotal = order.subtotal
     quantity = get_total_quantity(lines)
-    customer_email = order.get_customer_email()
+    customer_email = get_customer_email_for_voucher_usage(order)
     tax_configuration = channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     value = subtotal.gross if prices_entered_with_tax else subtotal.net

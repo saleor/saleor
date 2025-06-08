@@ -156,9 +156,8 @@ class NPAtobaraiGatewayPlugin(BasePlugin):
 
     @classmethod
     def validate_authentication(cls, plugin_configuration: "PluginConfiguration"):
-        conf = {
-            data["name"]: data["value"] for data in plugin_configuration.configuration
-        }
+        configuration = plugin_configuration.configuration
+        conf = {data["name"]: data["value"] for data in configuration}
         with np_atobarai_otel_trace("np-atobarai.utilities.ping"):
             response = health_check(get_api_config(conf))
 

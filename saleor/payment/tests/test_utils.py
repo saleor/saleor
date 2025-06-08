@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from freezegun import freeze_time
 
-from ...checkout import CheckoutAuthorizeStatus
+from ...checkout import CheckoutAuthorizeStatus, calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderGrantedRefundStatus
 from ...plugins.manager import get_plugins_manager
@@ -68,7 +68,6 @@ def test_create_payment_lines_information_order_with_voucher(payment_dummy):
     # when
     payment_lines_data = create_payment_lines_information(payment_dummy, manager)
 
-    # then
     assert payment_lines_data.lines == [
         PaymentLineData(
             amount=line.unit_price_gross_amount,
@@ -87,11 +86,11 @@ def get_expected_checkout_payment_lines(manager, checkout_info, lines, address):
     expected_payment_lines = []
 
     for line_info in lines:
-        unit_gross = manager.calculate_checkout_line_unit_price(
-            checkout_info,
-            lines,
-            line_info,
-            address,
+        unit_gross = calculations.checkout_line_unit_price(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
         ).gross.amount
         quantity = line_info.line.quantity
         variant_id = line_info.variant.id
@@ -107,7 +106,8 @@ def get_expected_checkout_payment_lines(manager, checkout_info, lines, address):
             )
         )
 
-    shipping_gross = manager.calculate_checkout_shipping(
+    shipping_gross = calculations.checkout_shipping_price(
+        manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=address,
@@ -118,6 +118,42 @@ def get_expected_checkout_payment_lines(manager, checkout_info, lines, address):
         shipping_amount=shipping_gross,
         voucher_amount=Decimal("0.00"),
     )
+
+
+def test_create_payment_lines_information_checkout_with_flat_rates(
+    payment_dummy,
+    checkout_with_items,
+    tax_configuration_flat_rates,
+    default_tax_class,
+    address,
+    shipping_method,
+):
+    # given
+    tax_configuration_flat_rates.prices_entered_with_tax = False
+    tax_configuration_flat_rates.save()
+
+    checkout_with_items.shipping_address = address
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    payment_dummy.order = None
+    payment_dummy.checkout = checkout_with_items
+
+    # when
+    payment_lines = create_payment_lines_information(payment_dummy, manager)
+
+    # then
+    lines, _ = fetch_checkout_lines(checkout_with_items)
+
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
+    address = checkout_with_items.shipping_address
+
+    expected_payment_lines = get_expected_checkout_payment_lines(
+        manager, checkout_info, lines, address
+    )
+
+    assert payment_lines == expected_payment_lines
 
 
 def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_items):
@@ -141,22 +177,23 @@ def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_
 
 
 def test_create_payment_lines_information_checkout_with_voucher(
-    payment_dummy, checkout_with_items
+    payment_dummy, checkout_with_voucher
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
     voucher_amount = Decimal("12.30")
     payment_dummy.order = None
-    checkout_with_items.discount_amount = voucher_amount
-    payment_dummy.checkout = checkout_with_items
+    checkout = checkout_with_voucher
+    checkout.discount_amount = voucher_amount
+    payment_dummy.checkout = checkout
 
     # when
     payment_lines = create_payment_lines_information(payment_dummy, manager)
 
     # then
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    address = checkout_with_items.shipping_address
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    address = checkout.shipping_address
     expected_payment_lines_data = get_expected_checkout_payment_lines(
         manager, checkout_info, lines, address
     )
@@ -382,7 +419,10 @@ def test_parse_transaction_action_data_with_incorrect_result():
 
     # then
     assert parsed_data is None
-    assert isinstance(error_msg, str)
+    assert (
+        error_msg
+        == f"Missing or invalid value for `result`: {response_data['result']}. Possible values: {TransactionEventType.REFUND_SUCCESS.upper()}, {TransactionEventType.REFUND_FAILURE.upper()}."
+    )
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -655,10 +695,7 @@ def test_create_transaction_event_from_request_and_webhook_response_with_no_psp_
     assert transaction.events.count() == event_count + 1
     assert event.psp_reference is None
     assert event.transaction_id == transaction.id
-    error_msg = (
-        f"Providing `pspReference` is required for {result_event_type.upper()} "
-        "action result."
-    )
+    error_msg = f"Missing value for field: pspReference. Input: {response_data}."
     assert error_msg in event.message
     assert caplog.records[0].levelno == logging.WARNING
     assert error_msg in caplog.records[0].message
@@ -2444,11 +2481,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events_wit
     [
         (
             TransactionEventType.AUTHORIZATION_SUCCESS,
-            "Providing `pspReference` is required for AUTHORIZATION_SUCCESS action result.",
+            "Missing value for field: pspReference.",
         ),
         (
             TransactionEventType.CHARGE_SUCCESS,
-            "Providing `pspReference` is required for CHARGE_SUCCESS action result.",
+            "Missing value for field: pspReference.",
         ),
         (
             TransactionEventType.CHARGE_FAILURE,
@@ -2456,11 +2493,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events_wit
         ),
         (
             TransactionEventType.CHARGE_REQUEST,
-            "Providing `pspReference` is required for CHARGE_REQUEST action result.",
+            "Missing value for field: pspReference.",
         ),
         (
             TransactionEventType.AUTHORIZATION_REQUEST,
-            "Providing `pspReference` is required for AUTHORIZATION_REQUEST action result.",
+            "Missing value for field: pspReference.",
         ),
     ],
 )

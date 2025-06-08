@@ -2,8 +2,12 @@ import pytest
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from .....core.postgres import FlatConcatSearchVector
 from .....order import OrderStatus
 from .....order.models import Order
+from .....order.search import (
+    prepare_order_search_vector_value,
+)
 from ....tests.utils import get_graphql_content
 
 QUERY_ORDER_WITH_SORT = """
@@ -96,6 +100,8 @@ def test_query_orders_with_sort(
 SEARCH_ORDERS_QUERY = """
     query Orders(
         $filters: OrderFilterInput,
+        $where: OrderWhereInput,
+        $search: String,
         $sortBy: OrderSortingInput,
         $after: String,
     ) {
@@ -104,7 +110,10 @@ SEARCH_ORDERS_QUERY = """
             filter: $filters,
             sortBy: $sortBy,
             after: $after,
+            where: $where,
+            search: $search
         ) {
+            totalCount
             edges {
                 node {
                     id
@@ -155,3 +164,65 @@ def test_sort_order_by_rank_with_nonetype_search(
     expected_message = "Sorting by RANK is available only when using a search filter."
     assert len(errors) == 1
     assert errors[0]["message"] == expected_message
+
+
+def test_sort_order_by_rank_with_various_search_in_filters(
+    staff_api_client, permission_group_manage_orders, customer_user, orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    excluded_order = orders[0]
+    excluded_order.user = None
+    excluded_order.user_email = "invalid@example.com"
+    excluded_order.save(update_fields=["user", "user_email"])
+
+    for order in orders:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(orders, ["search_vector"])
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "ASC"},
+        "filters": {"search": customer_user.email},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(SEARCH_ORDERS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    non_draft_orders = [order for order in orders if not order.is_draft()]
+    assert content["data"]["orders"]["totalCount"] == len(non_draft_orders) - 1
+
+
+def test_sort_order_by_rank_with_search_on_top_level(
+    staff_api_client, permission_group_manage_orders, orders, customer_user
+):
+    # given
+    excluded_order = orders[0]
+    excluded_order.user = None
+    excluded_order.user_email = "invalid@example.com"
+    excluded_order.save(update_fields=["user", "user_email"])
+
+    for order in orders:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(orders, ["search_vector"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variables = {
+        "sortBy": {"field": "RANK", "direction": "DESC"},
+        "search": customer_user.email,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(SEARCH_ORDERS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    non_draft_orders = [order for order in orders if not order.is_draft()]
+    assert content["data"]["orders"]["totalCount"] == len(non_draft_orders) - 1

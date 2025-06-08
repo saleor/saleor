@@ -5,10 +5,12 @@ from ... import __version__
 from ...app.validators import AppURLValidator
 from ..error_codes import AppErrorCode
 from ..manifest_validations import (
-    clean_author,
-    clean_required_saleor_version,
-    parse_version,
+    _clean_author,
+    _clean_extension_url,
+    _clean_required_saleor_version,
+    _parse_version,
 )
+from ..types import AppExtensionTarget
 from ..validators import brand_validator
 
 
@@ -26,7 +28,7 @@ def test_validate_invalid_url():
 
 
 def test_parse_version():
-    assert str(parse_version(__version__)) == __version__
+    assert str(_parse_version(__version__)) == __version__
 
 
 @pytest.mark.parametrize(
@@ -41,12 +43,12 @@ def test_parse_version():
     ],
 )
 def test_clean_required_saleor_version(required_version, version, satisfied):
-    cleaned = clean_required_saleor_version(required_version, False, version)
+    cleaned = _clean_required_saleor_version(required_version, False, version)
     assert cleaned == {"constraint": required_version, "satisfied": satisfied}
 
 
 def test_clean_required_saleor_version_optional():
-    assert clean_required_saleor_version(None, False) is None
+    assert _clean_required_saleor_version(None, False) is None
 
 
 @pytest.mark.parametrize(
@@ -54,13 +56,13 @@ def test_clean_required_saleor_version_optional():
 )
 def test_clean_required_saleor_version_with_invalid_range(required_version):
     with pytest.raises(ValidationError) as error:
-        clean_required_saleor_version(required_version, False, "3.12.1")
+        _clean_required_saleor_version(required_version, False, "3.12.1")
     assert error.value.code == AppErrorCode.INVALID.value
 
 
 def test_clean_required_saleor_version_raise_for_saleor_version():
     with pytest.raises(ValidationError) as error:
-        clean_required_saleor_version("^3.13", True, "3.12.1")
+        _clean_required_saleor_version("^3.13", True, "3.12.1")
     assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
 
 
@@ -68,7 +70,7 @@ def test_clean_required_saleor_version_raise_for_saleor_version():
     ("author", "cleaned"), [(None, None), (" Acme Ltd ", "Acme Ltd")]
 )
 def test_clean_author(author, cleaned):
-    assert clean_author(author) == cleaned
+    assert _clean_author(author) == cleaned
 
 
 def test_brand_validator_required_fields():
@@ -89,3 +91,15 @@ def test_brand_validator_with_invalid_logo_url(url):
     with pytest.raises(ValidationError) as error:
         brand_validator({"logo": {"default": url}})
     assert error.value.code == AppErrorCode.INVALID_URL_FORMAT.value
+
+
+def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
+    extension = {
+        "url": "/relative/path",
+        "target": AppExtensionTarget.NEW_TAB,
+    }
+
+    with pytest.raises(ValidationError) as error:
+        _clean_extension_url(extension, app_manifest)
+
+    assert error.value.message == "NEW_TAB target should be absolute path"

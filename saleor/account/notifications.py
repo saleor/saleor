@@ -1,10 +1,8 @@
 from urllib.parse import urlencode
 
-from django.contrib.auth.tokens import default_token_generator
-
 from ..core.notification.utils import get_site_context
 from ..core.notify import NotifyEventType, NotifyHandler
-from ..core.tokens import account_delete_token_generator
+from ..core.tokens import account_delete_token_generator, token_generator
 from ..core.utils.url import prepare_url
 from ..graphql.core.utils import to_global_id_or_none
 from .models import User
@@ -43,7 +41,7 @@ def send_password_reset_notification(
     """Trigger sending a password reset notification for the given customer/staff."""
 
     def _generate_payload():
-        token = default_token_generator.make_token(user)
+        token = token_generator.make_token(user)
         params = urlencode({"email": user.email, "token": token})
         reset_url = prepare_url(params, redirect_url)
 
@@ -71,7 +69,7 @@ def send_account_confirmation(user, redirect_url, manager, channel_slug, token=N
 
     def _generate_payload():
         if not token:
-            user_token = default_token_generator.make_token(user)
+            user_token = token_generator.make_token(user)
         else:
             user_token = token
 
@@ -181,12 +179,12 @@ def send_set_password_notification(
     """Trigger sending a set password notification for the given customer/staff."""
 
     def _generate_payload():
-        token = default_token_generator.make_token(user)
+        token = token_generator.make_token(user)
         params = urlencode({"email": user.email, "token": token})
         password_set_url = prepare_url(params, redirect_url)
         payload = {
             "user": get_default_user_payload(user),
-            "token": default_token_generator.make_token(user),
+            "token": token_generator.make_token(user),
             "recipient_email": user.email,
             "password_set_url": password_set_url,
             "channel_slug": channel_slug,

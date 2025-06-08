@@ -58,19 +58,19 @@ def test_shipping_methods_use_pregenerated_payloads_app_without_subscription(
 
     # then
     assert content["data"]["checkout"]["id"] == checkout_global_id
-    assert content["data"]["checkout"]["shippingMethods"] == [
-        {
-            "id": shipping_method_global_ids[0],
-            "name": "DHL",
-            "active": True,
-            "message": "",
-        },
-        {
-            "id": shipping_method_global_ids[1],
-            "name": "DHL",
-            "active": False,
-            "message": exclude_msg,
-        },
-    ]
+    assert len(content["data"]["checkout"]["shippingMethods"]) == 2
+    assert {
+        "id": shipping_method_global_ids[0],
+        "name": "DHL",
+        "active": True,
+        "message": "",
+    } in content["data"]["checkout"]["shippingMethods"]
+    assert {
+        "id": shipping_method_global_ids[1],
+        "name": "DHL",
+        "active": False,
+        "message": exclude_msg,
+    } in content["data"]["checkout"]["shippingMethods"]
+
     mock_request.assert_called_once()
     mock_generate_payload.assert_not_called()

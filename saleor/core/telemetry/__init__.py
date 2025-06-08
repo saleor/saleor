@@ -1,10 +1,12 @@
+import uuid
 from importlib import import_module
 from typing import Any
 
-from django.conf import settings
+from opentelemetry.sdk._configuration import _OTelSDKConfigurator
+from opentelemetry.sdk.resources import SERVICE_INSTANCE_ID
 from opentelemetry.util.types import Attributes
 
-from .metric import Meter, MeterProxy, MetricType
+from .metric import DEFAULT_DURATION_BUCKETS, Meter, MeterProxy, MetricType
 from .trace import Link, SpanKind, Tracer, TracerProxy
 from .utils import (
     Scope,
@@ -23,8 +25,17 @@ def load_object(python_path: str) -> Any:
     return getattr(import_module(module), obj)
 
 
+def otel_configure_sdk():
+    configurator = _OTelSDKConfigurator()
+    configurator.configure(resource_attributes={SERVICE_INSTANCE_ID: str(uuid.uuid4())})
+
+
 def initialize_telemetry() -> None:
     """Initialize telemetry components lazily to ensure fork safety in multi-process environments."""
+    otel_configure_sdk()
+
+    # To avoid importing Django before instrumenting libs
+    from django.conf import settings
 
     # To avoid circular imports.
     from ... import __version__ as saleor_version
@@ -63,4 +74,5 @@ __all__ = [
     "TelemetryTaskContext",
     "task_with_telemetry_context",
     "get_task_context",
+    "DEFAULT_DURATION_BUCKETS",
 ]

@@ -1,7 +1,4 @@
-from typing import cast
-
 import graphene
-from django.db.models import QuerySet
 
 from ...attribute import AttributeInputType, models
 from ...permission.enums import (
@@ -18,6 +15,7 @@ from ..core.connection import (
 )
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
+    ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -270,14 +268,9 @@ class Attribute(ModelObjectType[models.Attribute]):
     @staticmethod
     def resolve_choices(root: models.Attribute, info: ResolveInfo, **kwargs):
         if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            qs = cast(
-                QuerySet[models.AttributeValue],
-                root.values.using(get_database_connection_name(info.context)).all(),
-            )
+            qs = root.values.using(get_database_connection_name(info.context)).all()
         else:
-            qs = cast(
-                QuerySet[models.AttributeValue], models.AttributeValue.objects.none()
-            )
+            qs = models.AttributeValue.objects.none()
 
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
@@ -384,8 +377,24 @@ class SelectedAttribute(BaseObjectType):
 
 class AttributeInput(BaseInputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
+    value_names = NonNullList(
+        graphene.String,
+        required=False,
+        description=(
+            "Names corresponding to the attributeValues associated with the Attribute. "
+            "When specified, it filters the results to include only records with "
+            "one of the matching values."
+        )
+        + ADDED_IN_322,
+    )
     values = NonNullList(
-        graphene.String, required=False, description=AttributeValueDescriptions.SLUG
+        graphene.String,
+        required=False,
+        description=(
+            "Slugs identifying the attributeValues associated with the Attribute. "
+            "When specified, it filters the results to include only records with "
+            "one of the matching values."
+        ),
     )
     values_range = graphene.Field(
         IntRangeInput,

@@ -1,4 +1,3 @@
-import copy
 from decimal import Decimal
 from operator import attrgetter
 from re import match
@@ -12,7 +11,6 @@ from django.core.validators import MinValueValidator
 from django.db import connection, models
 from django.db.models import F, JSONField, Max
 from django.db.models.expressions import Exists, OuterRef
-from django.forms.models import model_to_dict
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from measurement.measures import Weight
@@ -252,10 +250,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     )
     shipping_tax_class_name = models.CharField(max_length=255, blank=True, null=True)
     shipping_tax_class_private_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
     shipping_tax_class_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
 
     # Token of a checkout instance that this order was created from
@@ -397,28 +395,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
         ]
 
-    @property
-    def comparison_fields(self):
-        return [
-            "discount",
-            "voucher",
-            "voucher_code",
-            "customer_note",
-            "redirect_url",
-            "external_reference",
-            "user",
-            "user_email",
-            "channel",
-            "metadata",
-            "private_metadata",
-            "draft_save_billing_address",
-            "draft_save_shipping_address",
-            "language_code",
-        ]
-
-    def serialize_for_comparison(self):
-        return copy.deepcopy(model_to_dict(self, fields=self.comparison_fields))
-
     def is_fully_paid(self):
         return self.total_charged >= self.total.gross
 
@@ -426,10 +402,11 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return self.total_charged_amount > 0
 
     def get_customer_email(self):
+        if self.user_email:
+            return self.user_email
         if self.user_id:
-            # we know that when user_id is set, user is set as well
             return cast("User", self.user).email
-        return self.user_email
+        return None
 
     def __repr__(self):
         return f"<Order #{self.id!r}>"
@@ -732,10 +709,10 @@ class OrderLine(ModelWithMetadata):
     )
     tax_class_name = models.CharField(max_length=255, blank=True, null=True)
     tax_class_private_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
     tax_class_metadata = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+        blank=True, db_default={}, default=dict, encoder=CustomJsonEncoder
     )
 
     is_price_overridden = models.BooleanField(null=True, blank=True)

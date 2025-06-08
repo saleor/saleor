@@ -84,9 +84,18 @@ def _bulk_release_voucher_usage(order_ids):
     voucher_codes = VoucherCode.objects.filter(
         Exists(orders.filter(voucher_code=OuterRef("code")))
     )
+    # Only delete voucher customers for orders that have no user associated
+    # as voucher are associated with user's email account
     VoucherCustomer.objects.filter(
         Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
-        Exists(orders.filter(user_email=OuterRef("customer_email"))),
+        Exists(
+            orders.filter(user_email=OuterRef("customer_email"), user_id__isnull=True)
+        ),
+    ).delete()
+
+    VoucherCustomer.objects.filter(
+        Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
+        Exists(orders.filter(user__email=OuterRef("customer_email"))),
     ).delete()
 
 

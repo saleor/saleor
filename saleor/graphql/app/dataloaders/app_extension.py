@@ -23,7 +23,7 @@ class AppExtensionByAppIdLoader(DataLoader[str, AppExtension]):
         )
         extensions_map = defaultdict(list)
         app_extension_loader = AppExtensionByIdLoader(self.context)
-        for extension in extensions.iterator():
+        for extension in extensions.iterator(chunk_size=1000):
             extensions_map[extension.app_id].append(extension)
             app_extension_loader.prime(extension.id, extension)
         return [extensions_map.get(app_id, []) for app_id in keys]

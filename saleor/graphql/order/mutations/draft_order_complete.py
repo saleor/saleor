@@ -10,7 +10,10 @@ from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
 from ....discount.models import VoucherCode
-from ....discount.utils.voucher import add_voucher_usage_by_customer
+from ....discount.utils.voucher import (
+    add_voucher_usage_by_customer,
+    get_customer_email_for_voucher_usage,
+)
 from ....order import OrderStatus, models
 from ....order.actions import order_created
 from ....order.calculations import fetch_order_prices_if_expired
@@ -92,7 +95,9 @@ class DraftOrderComplete(BaseMutation):
         ):
             code = VoucherCode.objects.filter(code=order.voucher_code).first()
             if code:
-                add_voucher_usage_by_customer(code, order.get_customer_email())
+                add_voucher_usage_by_customer(
+                    code, get_customer_email_for_voucher_usage(order)
+                )
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

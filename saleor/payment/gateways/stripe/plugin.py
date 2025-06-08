@@ -24,6 +24,7 @@ from ..utils import get_supported_currencies
 from .consts import (
     ACTION_REQUIRED_STATUSES,
     AUTHORIZED_STATUS,
+    PLUGIN_DESCRIPTION,
     PLUGIN_ID,
     PLUGIN_NAME,
     PROCESSING_STATUS,
@@ -54,6 +55,7 @@ logger = logging.getLogger(__name__)
 
 class StripeGatewayPlugin(BasePlugin):
     PLUGIN_NAME = PLUGIN_NAME
+    PLUGIN_DESCRIPTION = PLUGIN_DESCRIPTION
     PLUGIN_ID = PLUGIN_ID
     DEFAULT_CONFIGURATION = [
         {"name": "public_api_key", "value": None},
@@ -536,7 +538,7 @@ class StripeGatewayPlugin(BasePlugin):
         if not webhook_id and not webhook_secret_data.get("value"):
             webhook = subscribe_webhook(
                 api_key,
-                plugin_configuration.channel.slug,  # type: ignore[arg-type,union-attr]
+                plugin_configuration.channel.slug,  # type: ignore[union-attr]
             )
 
         if not webhook:
@@ -552,7 +554,9 @@ class StripeGatewayPlugin(BasePlugin):
         )
 
     @classmethod
-    def _update_or_create_config_field(cls, configuration, field, value):
+    def _update_or_create_config_field(
+        cls, configuration: list[dict], field: str, value
+    ):
         for c_field in configuration:
             if c_field["name"] == field:
                 c_field["value"] = value

@@ -31,6 +31,7 @@ from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
 from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..core.validators import validate_one_of_args_is_in_mutation
+from ..product.utils import get_used_attribute_values_for_variant
 from ..utils import get_nodes
 from .enums import AttributeValueBulkActionEnum
 
@@ -49,7 +50,7 @@ class AttrValuesForSelectableFieldInput:
 
 @dataclass
 class AttrValuesInput:
-    global_id: str | None = None
+    global_id: str
     external_reference: str | None = None
     values: list[str] | None = None
     dropdown: AttrValuesForSelectableFieldInput | None = None
@@ -123,7 +124,7 @@ class AttributeAssignmentMixin:
         nodes: list[attribute_models.Attribute] = list(
             qs.filter(
                 Q(pk__in=pks) | Q(external_reference__in=external_references)
-            ).iterator()
+            ).iterator(chunk_size=1000)
         )
 
         if not nodes:
@@ -1612,3 +1613,37 @@ def prepare_error_list_from_error_attribute_mapping(
         errors.append(error)
 
     return errors
+
+
+def has_input_modified_attribute_values(
+    variant: product_models.ProductVariant, attributes_data: T_INPUT_MAP
+) -> bool:
+    """Compare already assigned attribute values with values from AttrValuesInput.
+
+    Return:
+        `False` if the attribute values are equal, otherwise `True`.
+
+    """
+    if variant.product_id is not None:
+        assigned_attributes = get_used_attribute_values_for_variant(variant)
+        input_attribute_values: defaultdict[str, list[str]] = defaultdict(list)
+        for attr, attr_data in attributes_data:
+            values = get_values_from_attribute_values_input(attr, attr_data)
+            if attr_data.global_id is not None:
+                input_attribute_values[attr_data.global_id].extend(values)
+        if input_attribute_values != assigned_attributes:
+            return True
+    return False
+
+
+def get_values_from_attribute_values_input(
+    attribute: attribute_models.Attribute, attribute_data: AttrValuesInput
+) -> list[str]:
+    """Format attribute values of type FILE."""
+    if attribute.input_type == AttributeInputType.FILE:
+        return (
+            [slugify(attribute_data.file_url.split("/")[-1])]
+            if attribute_data.file_url
+            else []
+        )
+    return attribute_data.values or []

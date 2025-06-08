@@ -4,7 +4,14 @@ from opentelemetry.semconv._incubating.attributes import graphql_attributes
 from opentelemetry.semconv.attributes import error_attributes
 from opentelemetry.util.types import AttributeValue
 
-from ..core.telemetry import MetricType, Scope, Unit, meter, saleor_attributes
+from ..core.telemetry import (
+    DEFAULT_DURATION_BUCKETS,
+    MetricType,
+    Scope,
+    Unit,
+    meter,
+    saleor_attributes,
+)
 
 # Initialize metrics
 METRIC_GRAPHQL_QUERY_COUNT = meter.create_metric(
@@ -21,14 +28,34 @@ METRIC_GRAPHQL_QUERY_DURATION = meter.create_metric(
     type=MetricType.HISTOGRAM,
     unit=Unit.SECOND,
     description="Duration of GraphQL queries.",
+    bucket_boundaries=DEFAULT_DURATION_BUCKETS,
 )
 
+QUERY_COST_BUCKETS = [
+    0,
+    5,
+    10,
+    25,
+    50,
+    100,
+    250,
+    500,
+    1000,
+    2000,
+    5000,
+    10000,
+    15000,
+    20000,
+    30000,
+    50000,
+]
 METRIC_GRAPHQL_QUERY_COST = meter.create_metric(
     "saleor.graphql.operation.cost",
     scope=Scope.SERVICE,
     type=MetricType.HISTOGRAM,
     unit=Unit.COST,
     description="Cost of GraphQL queries.",
+    bucket_boundaries=QUERY_COST_BUCKETS,
 )
 
 METRIC_REQUEST_COUNT = meter.create_metric(
@@ -45,6 +72,7 @@ METRIC_REQUEST_DURATION = meter.create_metric(
     type=MetricType.HISTOGRAM,
     unit=Unit.SECOND,
     description="Duration of API requests.",
+    bucket_boundaries=DEFAULT_DURATION_BUCKETS,
 )
 
 
@@ -58,7 +86,6 @@ def record_graphql_query_count(
 ) -> None:
     attributes = {
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier or "",
-        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name or "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type or "",
     }
     if error_type:
@@ -72,7 +99,6 @@ def record_graphql_query_duration() -> AbstractContextManager[
     dict[str, AttributeValue]
 ]:
     attributes: dict[str, AttributeValue] = {
-        graphql_attributes.GRAPHQL_OPERATION_NAME: "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: "",
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: "",
     }
@@ -88,7 +114,6 @@ def record_graphql_query_cost(
 ) -> None:
     attributes = {
         saleor_attributes.GRAPHQL_OPERATION_IDENTIFIER: operation_identifier or "",
-        graphql_attributes.GRAPHQL_OPERATION_NAME: operation_name or "",
         graphql_attributes.GRAPHQL_OPERATION_TYPE: operation_type or "",
     }
     if error_type:

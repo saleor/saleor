@@ -1,18 +1,20 @@
 import logging
 from datetime import UTC, datetime
+from enum import Enum
 from typing import Annotated, Any, TypeVar
 
 from pydantic import (
     AfterValidator,
     BeforeValidator,
+    GetCoreSchemaHandler,
     ValidationError,
     ValidationInfo,
     ValidatorFunctionWrapHandler,
     WrapValidator,
 )
-from pydantic_core import PydanticOmit, PydanticUseDefault
+from pydantic_core import PydanticOmit, PydanticUseDefault, core_schema
 
-from ...core.utils.metadata_manager import metadata_is_valid
+from ....core.utils.metadata_manager import metadata_is_valid
 
 M = TypeVar("M")
 logger = logging.getLogger(__name__)
@@ -85,7 +87,7 @@ def default_if_invalid(
 
 OnErrorDefault = Annotated[T, WrapValidator(default_if_invalid)]
 
-DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.replace(tzinfo=UTC))]
+DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.astimezone(UTC))]
 
 
 def skip_invalid_literal(value: T, handler: ValidatorFunctionWrapHandler) -> T:
@@ -97,3 +99,50 @@ def skip_invalid_literal(value: T, handler: ValidatorFunctionWrapHandler) -> T:
 
 
 OnErrorSkipLiteral = Annotated[T, WrapValidator(skip_invalid_literal)]
+
+
+class EnumName:
+    """Validate and serialize enum by name."""
+
+    def __init__(self, *, ignore_case: bool = False):
+        self.ignore_case = ignore_case
+
+    def __get_pydantic_core_schema__(
+        self, enum_cls: type[Enum], _handler: GetCoreSchemaHandler
+    ):
+        name_enum = Enum(  # type: ignore[misc]
+            "name_enum", {member.name: member.name for member in enum_cls}
+        )
+
+        def enum_or_name(value: Enum | str) -> Enum:
+            if isinstance(value, enum_cls):
+                return value
+
+            if isinstance(value, str):
+                try:
+                    if self.ignore_case:
+                        return next(
+                            member
+                            for member in enum_cls
+                            if member.name.lower() == value.lower()
+                        )
+                    return enum_cls[value]
+                except (KeyError, StopIteration) as e:
+                    raise ValueError(f"Enum name not found: {value}") from e
+            raise ValueError(
+                f"Expected enum member or name, got {type(value).__name__}: {value}"
+            )
+
+        return core_schema.no_info_plain_validator_function(
+            enum_or_name,
+            json_schema_input_schema=core_schema.enum_schema(
+                enum_cls, list(name_enum.__members__.values())
+            ),
+            ref=enum_cls.__name__,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda e: e.name
+            ),
+        )
+
+
+EnumByName = Annotated[T, EnumName()]

@@ -125,7 +125,7 @@ class App(ModelWithMetadata):
 
 
 class AppTokenManager(models.Manager["AppToken"]):
-    def create(self, app, name="", auth_token=None, **extra_fields):
+    def create(self, *, app, name="", auth_token=None, **extra_fields):  # type: ignore[override]
         """Create an app token with the given name."""
         if not auth_token:
             auth_token = generate_token()
@@ -133,11 +133,6 @@ class AppTokenManager(models.Manager["AppToken"]):
         app_token.set_auth_token(auth_token)
         app_token.save()
         return app_token, auth_token
-
-    def create_with_token(self, *args, **kwargs) -> tuple["AppToken", str]:
-        # As `create` is waiting to be fixed, I'm using this proper method from future
-        # to get both AppToken and auth_token.
-        return self.create(*args, **kwargs)
 
 
 class AppToken(models.Model):
