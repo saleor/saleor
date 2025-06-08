@@ -340,46 +340,46 @@ def filter_products_by_attributes(
     return filter_products_by_attributes_values(qs, queries)
 
 
-def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
-    channels = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    product_variant_channel_listings = ProductVariantChannelListing.objects.using(
-        qs.db
-    ).filter(Exists(channels.filter(pk=OuterRef("channel_id"))))
-    if price_lte:
+def filter_products_by_variant_price(qs, channel_slug=None, price_lte=None, price_gte=None):
+    product_variant_channel_listings = ProductVariantChannelListing.objects.using(qs.db)
+
+    if channel_slug:
+        channels = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+        product_variant_channel_listings = product_variant_channel_listings.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id")))
+        )
+
+    if price_lte is not None:
         product_variant_channel_listings = product_variant_channel_listings.filter(
             Q(price_amount__lte=price_lte) | Q(price_amount__isnull=True)
         )
-    if price_gte:
+    if price_gte is not None:
         product_variant_channel_listings = product_variant_channel_listings.filter(
             Q(price_amount__gte=price_gte) | Q(price_amount__isnull=True)
         )
-    product_variant_channel_listings = product_variant_channel_listings.values(
-        "variant_id"
-    )
+
+    product_variant_channel_listings = product_variant_channel_listings.values("variant_id")
     variants = (
         ProductVariant.objects.using(qs.db)
-        .filter(
-            Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk")))
-        )
+        .filter(Exists(product_variant_channel_listings.filter(variant_id=OuterRef("pk"))))
         .values("product_id")
     )
     return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_by_minimal_price(
-    qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
-):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
-    if not channel:
-        return qs
-    product_channel_listings = ProductChannelListing.objects.using(qs.db).filter(
-        channel_id=channel.id
-    )
-    if minimal_price_lte:
+def filter_products_by_minimal_price(qs, channel_slug=None, minimal_price_lte=None, minimal_price_gte=None):
+    product_channel_listings = ProductChannelListing.objects.using(qs.db)
+    if channel_slug:
+        channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
+        if not channel:
+            return qs.none()
+        product_channel_listings = product_channel_listings.filter(channel_id=channel.id)
+
+    if minimal_price_lte is not None:
         product_channel_listings = product_channel_listings.filter(
             discounted_price_amount__lte=minimal_price_lte
         )
-    if minimal_price_gte:
+    if minimal_price_gte is not None:
         product_channel_listings = product_channel_listings.filter(
             discounted_price_amount__gte=minimal_price_gte
         )
