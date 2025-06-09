@@ -720,6 +720,7 @@ def _prepare_order_data(
             "undiscounted_total": undiscounted_total,
             "shipping_tax_rate": shipping_tax_rate,
             "tax_error": checkout.tax_error,
+            "lines_count": len(order_data["lines"]),
         }
     )
 
@@ -1474,6 +1475,7 @@ def _create_order_from_checkout(
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,
         tax_error=checkout_info.checkout.tax_error,
+        lines_count=len(checkout_lines_info),
         **_process_shipping_data_for_order(
             checkout_info,
             undiscounted_base_shipping_price,

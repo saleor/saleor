@@ -110,31 +110,37 @@ def orders(customer_user, channel_USD, channel_PLN):
                 user=customer_user,
                 status=OrderStatus.CANCELED,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.UNFULFILLED,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 channel=channel_USD,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.FULFILLED,
                 channel=channel_PLN,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.DRAFT,
                 channel=channel_PLN,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.UNCONFIRMED,
                 channel=channel_PLN,
+                lines_count=0,
             ),
         ]
     )
@@ -149,24 +155,28 @@ def orders_from_checkout(customer_user, checkout):
                 status=OrderStatus.CANCELED,
                 channel=checkout.channel,
                 checkout_token=checkout.token,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.UNFULFILLED,
                 channel=checkout.channel,
                 checkout_token=checkout.token,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.FULFILLED,
                 channel=checkout.channel,
                 checkout_token=checkout.token,
+                lines_count=0,
             ),
             Order(
                 user=customer_user,
                 status=OrderStatus.FULFILLED,
                 channel=checkout.channel,
                 checkout_token=checkout.token,
+                lines_count=0,
             ),
         ]
     )
@@ -203,6 +213,7 @@ def order_generator(customer_user, channel_USD):
             checkout_token=checkout_token,
             status=status,
             undiscounted_base_shipping_price_amount=Decimal("0.0"),
+            lines_count=0,
         )
         if search_vector_class:
             search_vector = search_vector_class(
@@ -236,6 +247,7 @@ def order_list(customer_user, channel_USD):
         "user_email": customer_user.email,
         "channel": channel_USD,
         "origin": OrderOrigin.CHECKOUT,
+        "lines_count": 0,
     }
     order = Order.objects.create(**data)
     order1 = Order.objects.create(**data)
@@ -420,6 +432,7 @@ def order_with_lines(
     order.base_shipping_price = net
     order.undiscounted_base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
+    order.lines_count = order.lines.count()
     order.save()
 
     recalculate_order(order)
@@ -471,6 +484,7 @@ def order_with_lines_for_cc(
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        lines_count=1,
     )
 
     order.collection_point = warehouse_for_cc
@@ -647,6 +661,8 @@ def order_with_lines_and_gift_promotion(
         amount_value=variant_listing.price_amount,
         currency=order.currency,
     )
+    order.lines_count = order.lines.count()
+    order.save(update_fields=["lines_count"])
     return order
 
 
@@ -697,6 +713,7 @@ def order_with_lines_channel_PLN(
         user_email=customer_user.email,
         user=customer_user,
         origin=OrderOrigin.CHECKOUT,
+        lines_count=0,
     )
     product = Product.objects.create(
         name="Test product in PLN channel",
@@ -818,6 +835,7 @@ def order_with_lines_channel_PLN(
     order.base_shipping_price = net
     order.undiscounted_base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
+    order.lines_count = order.lines.count()
     order.save()
 
     recalculate_order(order)
@@ -857,6 +875,8 @@ def order_with_line_without_inventory_tracking(
         tax_rate=Decimal("0.23"),
         **get_tax_class_kwargs_for_order_line(product.product_type.tax_class),
     )
+    order.lines_count = order.lines.count()
+    order.save(update_fields=["lines_count"])
 
     recalculate_order(order)
 
@@ -934,6 +954,7 @@ def order_with_preorder_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.undiscounted_base_shipping_price = net
+    order.lines_count = order.lines.count()
     order.save()
 
     recalculate_order(order)
@@ -1074,6 +1095,8 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
         total_price=unit_price * quantity,
         tax_rate=Decimal("0.23"),
     )
+    order.lines_count = order.lines.count()
+    order.save(update_fields=["lines_count"])
 
     Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
 

@@ -509,12 +509,18 @@ def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
 
 def test_order_queryset_confirmed(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
+            status=OrderStatus.UNFULFILLED, channel=channel_USD, lines_count=0
         ),
-        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
-        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.CANCELED, channel=channel_USD, lines_count=0
+        ),
     ]
 
     confirmed_orders = Order.objects.confirmed()
@@ -525,12 +531,18 @@ def test_order_queryset_confirmed(draft_order, channel_USD):
 
 def test_order_queryset_drafts(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
+            status=OrderStatus.UNFULFILLED, channel=channel_USD, lines_count=0
         ),
-        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
-        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.CANCELED, channel=channel_USD, lines_count=0
+        ),
     ]
 
     draft_orders = Order.objects.drafts()
@@ -547,12 +559,14 @@ def test_order_queryset_to_ship(settings, channel_USD):
             total=total,
             total_charged_amount=total.gross.amount,
             channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
             status=OrderStatus.PARTIALLY_FULFILLED,
             total=total,
             total_charged_amount=total.gross.amount,
             channel=channel_USD,
+            lines_count=0,
         ),
     ]
     for order in orders_to_ship:
@@ -566,19 +580,28 @@ def test_order_queryset_to_ship(settings, channel_USD):
 
     orders_not_to_ship = [
         Order.objects.create(
-            status=OrderStatus.DRAFT, total=total, channel=channel_USD
+            status=OrderStatus.DRAFT, total=total, channel=channel_USD, lines_count=0
         ),
         Order.objects.create(
-            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.UNFULFILLED,
+            total=total,
+            channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.PARTIALLY_FULFILLED,
+            total=total,
+            channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
-            status=OrderStatus.FULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.FULFILLED,
+            total=total,
+            channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
-            status=OrderStatus.CANCELED, total=total, channel=channel_USD
+            status=OrderStatus.CANCELED, total=total, channel=channel_USD, lines_count=0
         ),
     ]
 
@@ -592,17 +615,21 @@ def test_queryset_ready_to_capture(channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
 
     preauth_order = Order.objects.create(
-        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD, lines_count=0
     )
     Payment.objects.create(
         order=preauth_order, charge_status=ChargeStatus.NOT_CHARGED, is_active=True
     )
 
-    Order.objects.create(status=OrderStatus.DRAFT, total=total, channel=channel_USD)
     Order.objects.create(
-        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+        status=OrderStatus.DRAFT, total=total, channel=channel_USD, lines_count=0
     )
-    Order.objects.create(status=OrderStatus.CANCELED, total=total, channel=channel_USD)
+    Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD, lines_count=0
+    )
+    Order.objects.create(
+        status=OrderStatus.CANCELED, total=total, channel=channel_USD, lines_count=0
+    )
 
     qs = Order.objects.ready_to_capture()
     assert preauth_order in qs
