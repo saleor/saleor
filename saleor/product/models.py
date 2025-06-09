@@ -43,6 +43,11 @@ from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind, managers
 
+from django.db import models
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
+
 ALL_PRODUCTS_PERMISSIONS = [
     # List of permissions, where each of them allows viewing all products
     # (including unpublished).
@@ -773,3 +778,98 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
             }
         )
         return translated_keys
+ 
+User = get_user_model()
+
+class ProductBrowsingHistory(models.Model):
+    """Product browsing history model"""
+    
+    # Relation fields
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        help_text="Logged-in user. Null for anonymous users."
+    )
+    product = models.ForeignKey(
+        'product.Product', 
+        on_delete=models.CASCADE,
+        help_text="Browsed product."
+    )
+    
+    # Session tracking (for anonymous users)
+    session_key = models.CharField(
+        max_length=40, 
+        null=True, 
+        blank=True,
+        help_text="Anonymous user's session key."
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # IP address
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'product_browsing_history'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['session_key', '-created_at']),
+            models.Index(fields=['product', '-created_at']),
+        ]
+        # Ensure that the same user/session has only one latest record for the same product
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'product'],
+                condition=models.Q(user__isnull=False),
+                name='unique_user_product_browsing'
+            ),
+            models.UniqueConstraint(
+                fields=['session_key', 'product'], 
+                condition=models.Q(session_key__isnull=False),
+                name='unique_session_product_browsing'
+            ),
+        ]
+    
+    def __str__(self):
+        user_info = self.user.email if self.user_id else f"Session: {self.session_key}"
+        return f"{user_info} - {self.product.name} ({self.created_at})"
+    
+    @classmethod
+    def record_view(cls, product, user=None, session_key=None, ip_address=None):
+        """Record a product view for either authenticated or anonymous user."""
+        if user and user.is_authenticated:
+            # Authenticated user
+            obj, created = cls.objects.update_or_create(
+                user=user,
+                product=product,
+                defaults={
+                    'ip_address': ip_address,
+                    'updated_at': timezone.now()
+                }
+            )
+        elif session_key:
+            # Anonymous user
+            obj, created = cls.objects.update_or_create(
+                session_key=session_key,
+                product=product,
+                defaults={
+                    'ip_address': ip_address,
+                    'updated_at': timezone.now()
+                }
+            )
+        else:
+            # No user or session key provided
+            return None
+        
+        return obj
+    
+    @classmethod
+    def cleanup_old_records(cls, days=90):
+        """Clean up product browsing history older than N days."""
+        cutoff_date = timezone.now() - timedelta(days=days)
+        deleted_count, _ = cls.objects.filter(created_at__lt=cutoff_date).delete()
+        return deleted_count

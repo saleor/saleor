@@ -17,7 +17,9 @@ from ...plugins.manager import get_plugins_manager
 from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
-API_PATH = reverse("api")
+from django.urls import reverse_lazy
+
+API_PATH = reverse_lazy("api")
 
 
 class BaseApiClient(Client):

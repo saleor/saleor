@@ -14,6 +14,10 @@ from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 
+from ...product.models import ProductBrowsingHistory as ProductBrowsingHistoryModel
+from ..core.utils import from_global_id_or_error
+from ..core.types import BaseInputObjectType
+from graphql.error import GraphQLError
 
 def resolve_categories(info: ResolveInfo, level=None):
     qs = models.Category.objects.using(
@@ -240,3 +244,40 @@ def resolve_report_product_sales(info, period, channel_slug) -> ChannelQsContext
     qs = qs.order_by("-quantity_ordered")
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
+
+def resolve_my_browsing_history(root, info, **kwargs):
+    """Parse the current user's browsing history"""
+    user = info.context.user
+    
+    if user.is_authenticated:
+        # Login User
+        queryset = ProductBrowsingHistoryModel.objects.filter(
+            user=user
+        ).select_related('product')
+    else:
+        # Anonymous user
+        session_key = info.context.session.session_key
+        if not session_key:
+            return ProductBrowsingHistoryModel.objects.none()
+        
+        queryset = ProductBrowsingHistoryModel.objects.filter(
+            session_key=session_key,
+            user=None
+        ).select_related('product')
+    
+    return queryset.order_by('-updated_at')
+
+def resolve_user_browsing_history(root, info, user_id, **kwargs):
+    """Parse browsing history of a specific user (for administrators)"""
+    # Permission Check
+    if not info.context.user.has_perm('account.manage_users'):
+        raise GraphQLError("You do not have permission to view other users' browsing history")
+    
+    try:
+        user_pk = from_global_id_or_error(user_id, 'User')[1]
+    except Exception:
+        raise GraphQLError("Invalid User ID")
+    
+    return ProductBrowsingHistoryModel.objects.filter(
+        user_id=user_pk
+    ).select_related('product').order_by('-updated_at')

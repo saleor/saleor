@@ -27,6 +27,7 @@ from .product_variant import (
     VariantMediaAssign,
     VariantMediaUnassign,
 )
+from .browsing_history import RecordProductView, ClearBrowsingHistory, RemoveBrowsingHistoryItem
 
 __all__ = [
     "ProductTypeCreate",

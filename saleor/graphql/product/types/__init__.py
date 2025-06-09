@@ -14,6 +14,7 @@ from .products import (
     ProductVariant,
     ProductVariantCountableConnection,
 )
+from .browsing_history import ProductBrowsingHistory, ProductBrowsingHistoryConnection
 
 __all__ = [
     "Category",

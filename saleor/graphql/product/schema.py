@@ -10,6 +10,10 @@ from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.fields import ConnectionField
+from .types.browsing_history import ProductBrowsingHistoryConnection
+from .resolvers import resolve_my_browsing_history, resolve_user_browsing_history
+
 from ..core.descriptions import (
     ADDED_IN_321,
     DEFAULT_DEPRECATION_REASON,
@@ -108,6 +112,11 @@ from .mutations.digital_contents import (
     DigitalContentDelete,
     DigitalContentUpdate,
     DigitalContentUrlCreate,
+)
+from .mutations.browsing_history import (
+    RecordProductView,
+    ClearBrowsingHistory,
+    RemoveBrowsingHistoryItem,
 )
 from .resolvers import (
     resolve_categories,
@@ -348,6 +357,27 @@ class ProductQueries(graphene.ObjectType):
         doc_category=DOC_CATEGORY_PRODUCTS,
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
+    # browsing history
+    my_browsing_history = ConnectionField(
+        ProductBrowsingHistoryConnection,
+        description="Get the browsing history of the current user",
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+
+    user_browsing_history = ConnectionField(
+        ProductBrowsingHistoryConnection,
+        user_id=graphene.Argument(graphene.ID, required=True),
+        description="Get the browsing history of a specified user (for administrators)",
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+
+    @staticmethod
+    def resolve_my_browsing_history(root, info, **kwargs):
+        return resolve_my_browsing_history(root, info, **kwargs)
+
+    @staticmethod
+    def resolve_user_browsing_history(root, info, user_id, **kwargs):
+        return resolve_user_browsing_history(root, info, user_id, **kwargs)
 
     @staticmethod
     def resolve_categories(_root, info: ResolveInfo, *, level=None, **kwargs):
@@ -724,3 +754,7 @@ class ProductMutations(graphene.ObjectType):
 
     variant_media_assign = VariantMediaAssign.Field()
     variant_media_unassign = VariantMediaUnassign.Field()
+
+    record_product_view = RecordProductView.Field()
+    clear_browsing_history = ClearBrowsingHistory.Field()
+    remove_browsing_history_item = RemoveBrowsingHistoryItem.Field()
