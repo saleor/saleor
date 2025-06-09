@@ -4,7 +4,7 @@ from ....celeryconf import app
 from ....core.db.connection import allow_writer
 from ...models import OrderLine
 
-ORDER_LINE_PRODUCT_ID_BATCH_SIZE = 2
+ORDER_LINE_PRODUCT_ID_BATCH_SIZE = 250
 
 
 @app.task
