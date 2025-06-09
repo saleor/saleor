@@ -307,6 +307,7 @@ def create_order_line(
         product_sku=variant.sku,
         product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
+        product_type_id=product.product_type_id,
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         unit_price=unit_price,

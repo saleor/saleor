@@ -47,7 +47,7 @@ from ....order.utils import update_order_display_gross_prices, updates_amounts_f
 from ....payment import TransactionEventType
 from ....payment.models import TransactionEvent, TransactionItem
 from ....permission.enums import OrderPermissions
-from ....product.models import ProductVariant
+from ....product.models import Product, ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....tax.models import TaxClass, TaxConfiguration
 from ....warehouse.management import stock_bulk_update
@@ -800,6 +800,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         orders = Order.objects.filter(
             external_reference__in=identifiers.order_external_references.keys
         )
+        product_ids = {variant.product_id for variant in variants}
+        product_id_to_product_type_id_map = dict(
+            Product.objects.filter(pk__in=product_ids).values_list(
+                "id", "product_type_id"
+            )
+        )
 
         # Create dictionary
         object_storage: dict[str, Any] = {}
@@ -841,6 +847,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         for object in [*warehouses, *shipping_methods, *tax_classes, *apps]:
             object_storage[f"{object.__class__.__name__}.id.{object.pk}"] = object
+
+        object_storage["product_id_to_product_type_id_map"] = (
+            product_id_to_product_type_id_map
+        )
 
         return object_storage
 
@@ -1756,10 +1766,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
-
+        product_type_id = None
+        if variant:
+            product_type_id = object_storage.get(
+                "product_id_to_product_type_id_map"
+            ).get(variant.product_id)
         order_line = OrderLine(
             order=order_data.order,
             variant=variant,
+            product_type_id=product_type_id,
             product_name=order_line_input.get("product_name") or variant.product.name,
             variant_name=order_line_input.get("variant_name")
             or (variant.name if variant else ""),
