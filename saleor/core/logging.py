@@ -1,9 +1,7 @@
-import logging
 import platform
 import time
 
 from celery._state import get_current_task as get_current_celery_task
-from django.urls import reverse
 from pythonjsonlogger.jsonlogger import JsonFormatter as BaseFormatter
 
 from .. import __version__ as saleor_version
@@ -49,20 +47,3 @@ class JsonCeleryTaskFormatter(JsonFormatter):
             }
         )
         super().add_fields(log_record, record, message_dict)
-
-
-class DisableBadRequestGraphQLLog(logging.Filter):
-    """Filter to disable logging of "Bad Request" messages in the GraphQL endpoint.
-
-    This is useful to prevent cluttering the logs with expected "Bad Request" errors
-    that occur when clients send invalid GraphQL queries.
-    """
-
-    def filter(self, record):
-        api_path = reverse("api")
-        if (
-            record.levelno == logging.WARNING
-            and f"Bad Request: {api_path}" in record.getMessage()
-        ):
-            return False
-        return True
