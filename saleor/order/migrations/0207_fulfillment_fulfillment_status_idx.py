@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("order", "0203_merge_20250527_1210"),
+        ("order", "0206_alter_order_lines_count"),
     ]
 
     operations = [
