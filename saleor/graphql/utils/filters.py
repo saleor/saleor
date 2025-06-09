@@ -154,3 +154,11 @@ def filter_where_by_numeric_field(
             qs = qs.filter(**{f"{field}__gte": gte})
         return qs
     return qs.none()
+
+
+def filter_where_by_price_field(qs: "QuerySet", field: str, value: dict) -> "QuerySet":
+    if value is None:
+        return qs.none()
+    if currency := value.get("currency"):
+        qs = qs.filter(currency=currency)
+    return filter_where_range_field(qs, field, value.get("amount", {}))
