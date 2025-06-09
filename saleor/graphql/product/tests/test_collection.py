@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 from unittest.mock import MagicMock, Mock, patch
 
@@ -138,13 +139,20 @@ def test_collection_query_error_when_id_and_slug_provided(
     collection,
     graphql_log_handler,
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
     variables = {
         "id": graphene.Node.to_global_id("Collection", collection.pk),
         "slug": collection.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+
+    # then
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -155,10 +163,17 @@ def test_collection_query_error_when_no_param(
     collection,
     graphql_log_handler,
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
     variables = {}
+
+    # when
     response = user_api_client.post_graphql(QUERY_COLLECTION, variables=variables)
+
+    # then
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
