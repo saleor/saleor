@@ -1,0 +1,38 @@
+{
+  "$defs": {
+    "StoredPaymentMethodRequestDeleteResult": {
+      "description": "Result of deleting a stored payment method.\n\nThis enum is used to determine the result of deleting a stored payment method.\nSUCCESSFULLY_DELETED - The stored payment method was successfully deleted.\nFAILED_TO_DELETE - The stored payment method was not deleted.\nFAILED_TO_DELIVER - The request to delete the stored payment method was not\ndelivered.",
+      "enum": [
+        "SUCCESSFULLY_DELETED",
+        "FAILED_TO_DELETE",
+        "FAILED_TO_DELIVER"
+      ],
+      "title": "StoredPaymentMethodRequestDeleteResult",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "result": {
+      "$ref": "#/$defs/StoredPaymentMethodRequestDeleteResult",
+      "description": "Result of the request to delete the stored payment method."
+    },
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Error message if the request to delete the stored payment method failed that will be passed to the frontend.",
+      "title": "Error"
+    }
+  },
+  "required": [
+    "result"
+  ],
+  "title": "StoredPaymentMethodDeleteRequested",
+  "type": "object"
+}

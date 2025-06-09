@@ -52,6 +52,7 @@ def test_query_orders_with_sort(
                 status=OrderStatus.PARTIALLY_FULFILLED,
                 total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             )
         )
     with freeze_time("2012-01-14"):
@@ -64,6 +65,7 @@ def test_query_orders_with_sort(
                 status=OrderStatus.FULFILLED,
                 total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
                 channel=channel_USD,
+                lines_count=0,
             )
         )
     address3 = address.get_copy()
@@ -75,6 +77,7 @@ def test_query_orders_with_sort(
             status=OrderStatus.CANCELED,
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
             channel=channel_USD,
+            lines_count=0,
         )
     )
     created_orders.append(
@@ -83,6 +86,7 @@ def test_query_orders_with_sort(
             status=OrderStatus.UNCONFIRMED,
             total=TaxedMoney(net=Money(60, "USD"), gross=Money(80, "USD")),
             channel=channel_USD,
+            lines_count=0,
         )
     )
     variables = {"sort_by": order_sort}

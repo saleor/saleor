@@ -11,6 +11,7 @@ from graphql.error import GraphQLError
 from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
+from ...invoice.models import Invoice
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
@@ -53,6 +54,7 @@ from ..utils.filters import (
     filter_range_field,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
+    filter_where_by_range_field,
     filter_where_by_value_field,
     filter_where_range_field,
 )
@@ -253,6 +255,15 @@ def filter_by_checkout_tokens(qs, _, values):
     return qs.filter(checkout_token__in=values)
 
 
+def filter_has_invoices(qs, value):
+    if value is None:
+        return qs.none()
+    invoices = Invoice.objects.using(qs.db).filter(order_id=OuterRef("id"))
+    if value:
+        return qs.filter(Exists(invoices))
+    return qs.filter(~Exists(invoices))
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -350,6 +361,16 @@ class OrderChargeStatusEnumFilterInput(BaseInputObjectType):
         description = "Filter by charge status."
 
 
+class InvoiceFilterInput(BaseInputObjectType):
+    created_at = DateTimeRangeInput(
+        description="Filter invoices by creation date.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        description = "Filter input for invoices."
+
+
 # TODO: metadata filter will be added later
 class OrderWhere(WhereFilterSet):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Order"))
@@ -429,6 +450,15 @@ class OrderWhere(WhereFilterSet):
         method="filter_voucher_code",
         help_text="Filter by voucher code used in the order.",
     )
+    has_invoices = BooleanWhereFilter(
+        method="filter_has_invoices",
+        help_text="Filter by whether the order has any invoices.",
+    )
+    invoices = ObjectTypeWhereFilter(
+        input_class=InvoiceFilterInput,
+        method="filter_invoices",
+        help_text="Filter by invoice data associated with the order.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -503,6 +533,21 @@ class OrderWhere(WhereFilterSet):
     @staticmethod
     def filter_voucher_code(qs, _, value):
         return filter_where_by_value_field(qs, "voucher_code", value)
+
+    @staticmethod
+    def filter_has_invoices(qs, _, value):
+        return filter_has_invoices(qs, value)
+
+    @staticmethod
+    def filter_invoices(qs, _, value):
+        if value is None:
+            return qs.none()
+        if filter_value := value.get("created_at"):
+            invoices = filter_where_by_range_field(
+                Invoice.objects.using(qs.db), "created_at", filter_value
+            )
+            return qs.filter(Exists(invoices.filter(order_id=OuterRef("id"))))
+        return qs.none()
 
 
 class OrderWhereInput(WhereInputObjectType):

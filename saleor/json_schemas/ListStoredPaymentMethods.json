@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "CreditCardInfoSchema": {
+      "properties": {
+        "brand": {
+          "description": "Brand of the credit card.",
+          "title": "Brand",
+          "type": "string"
+        },
+        "lastDigits": {
+          "description": "Last digits of the credit card.",
+          "title": "Lastdigits",
+          "type": "string"
+        },
+        "expYear": {
+          "description": "Expiration year of the credit card.",
+          "title": "Expyear",
+          "type": "integer"
+        },
+        "expMonth": {
+          "description": "Expiration month of the credit card.",
+          "title": "Expmonth",
+          "type": "integer"
+        },
+        "firstDigits": {
+          "default": null,
+          "description": "First digits of the credit card.",
+          "title": "Firstdigits",
+          "type": "string"
+        }
+      },
+      "required": [
+        "brand",
+        "lastDigits",
+        "expYear",
+        "expMonth"
+      ],
+      "title": "CreditCardInfoSchema",
+      "type": "object"
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    },
+    "StoredPaymentMethodSchema": {
+      "properties": {
+        "id": {
+          "description": "ID of stored payment method.",
+          "title": "Id",
+          "type": "string"
+        },
+        "supportedPaymentFlows": {
+          "description": "Supported flows that can be performed with this payment method.",
+          "items": {
+            "const": "INTERACTIVE",
+            "type": "string"
+          },
+          "title": "Supportedpaymentflows",
+          "type": "array"
+        },
+        "type": {
+          "description": "Type of stored payment method. For example: Credit Card.",
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "default": null,
+          "description": "Name of the payment method. For example: last 4 digits of credit card, obfuscated email.",
+          "title": "Name",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null,
+          "description": "JSON data that will be returned to client."
+        },
+        "creditCardInfo": {
+          "$ref": "#/$defs/CreditCardInfoSchema",
+          "default": null,
+          "description": "Credit card information."
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "StoredPaymentMethodSchema",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "paymentMethods": {
+      "description": "List of stored payment methods.",
+      "items": {
+        "$ref": "#/$defs/StoredPaymentMethodSchema"
+      },
+      "title": "Paymentmethods",
+      "type": "array"
+    }
+  },
+  "title": "ListStoredPaymentMethods",
+  "type": "object"
+}

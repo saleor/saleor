@@ -11,9 +11,9 @@ from ....payment import TransactionAction, TransactionEventType
 from ...response_schemas.transaction import (
     PaymentGatewayInitializeSessionSchema,
     TransactionBaseSchema,
-    TransactionCancelRequestedAsyncSchema,
-    TransactionCancelRequestedSyncFailureSchema,
-    TransactionCancelRequestedSyncSuccessSchema,
+    TransactionCancelationRequestedAsyncSchema,
+    TransactionCancelationRequestedSyncFailureSchema,
+    TransactionCancelationRequestedSyncSuccessSchema,
     TransactionChargeRequestedAsyncSchema,
     TransactionChargeRequestedSyncFailureSchema,
     TransactionChargeRequestedSyncSuccessSchema,
@@ -376,7 +376,7 @@ def test_transaction_cancel_requested_sync_success_schema_valid():
     }
 
     # when
-    transaction = TransactionCancelRequestedSyncSuccessSchema.model_validate(data)
+    transaction = TransactionCancelationRequestedSyncSuccessSchema.model_validate(data)
 
     # then
     assert transaction.result == result
@@ -401,7 +401,7 @@ def test_transaction_cancel_requested_sync_success_schema_invalid(result):
 
     # when
     with pytest.raises(ValidationError) as exc_info:
-        TransactionCancelRequestedSyncSuccessSchema.model_validate(data)
+        TransactionCancelationRequestedSyncSuccessSchema.model_validate(data)
 
     # then
     assert len(exc_info.value.errors()) == 1
@@ -422,7 +422,7 @@ def test_transaction_cancel_requested_sync_failure_schema_valid():
     }
 
     # when
-    transaction = TransactionCancelRequestedSyncFailureSchema.model_validate(data)
+    transaction = TransactionCancelationRequestedSyncFailureSchema.model_validate(data)
 
     # then
     assert transaction.result == result
@@ -447,7 +447,7 @@ def test_transaction_cancel_requested_sync_failure_schema_invalid(result):
 
     # when
     with pytest.raises(ValidationError) as exc_info:
-        TransactionCancelRequestedSyncFailureSchema.model_validate(data)
+        TransactionCancelationRequestedSyncFailureSchema.model_validate(data)
 
     # then
     assert len(exc_info.value.errors()) == 1
@@ -462,7 +462,7 @@ def test_transaction_cancel_requested_async_schema_valid():
     }
 
     # when
-    transaction = TransactionCancelRequestedAsyncSchema.model_validate(data)
+    transaction = TransactionCancelationRequestedAsyncSchema.model_validate(data)
 
     # then
     assert transaction.psp_reference == "psp-async-123"
@@ -477,7 +477,7 @@ def test_transaction_cancel_requested_async_schema_invalid():
 
     # when
     with pytest.raises(ValidationError) as exc_info:
-        TransactionCancelRequestedAsyncSchema.model_validate(data)
+        TransactionCancelationRequestedAsyncSchema.model_validate(data)
 
     # then
     assert len(exc_info.value.errors()) == 1
