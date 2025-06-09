@@ -99,7 +99,7 @@ def _associate_attribute_to_instance(
             "product_type_id": prod_type_id,
         }
 
-        instance_attrs_ids = AttributeVariant.objects.filter(  # type: ignore[attr-defined]
+        instance_attrs_ids = AttributeVariant.objects.filter(
             **attribute_filter
         ).values_list("pk", flat=True)
 
