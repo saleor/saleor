@@ -132,6 +132,9 @@ def filter_where_by_numeric_field(
     field: str,
     value: dict[str, Number | list[Number] | dict[str, Number]],
 ):
+    if not value:
+        return qs.none()
+
     one_of = value.get("one_of")
     range = value.get("range")
 
