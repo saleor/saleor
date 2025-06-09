@@ -37,7 +37,6 @@ from ..core.types import (
     NonNullList,
 )
 from ..core.types.filter_input import (
-    DateTimeFilterInput,
     FilterInputDescriptions,
     GlobalIDFilterInput,
     IntFilterInput,
@@ -56,7 +55,6 @@ from ..utils.filters import (
     filter_where_by_numeric_field,
     filter_where_by_range_field,
     filter_where_by_value_field,
-    filter_where_range_field,
 )
 from .enums import (
     OrderAuthorizeStatusEnum,
@@ -385,12 +383,12 @@ class OrderWhere(WhereFilterSet):
         help_text="Filter by channel.",
     )
     created_at = ObjectTypeWhereFilter(
-        input_class=DateTimeFilterInput,
+        input_class=DateTimeRangeInput,
         method="filter_created_at_range",
         help_text="Filter order by created at date.",
     )
     updated_at = ObjectTypeWhereFilter(
-        input_class=DateTimeFilterInput,
+        input_class=DateTimeRangeInput,
         method="filter_updated_at_range",
         help_text="Filter order by updated at date.",
     )
@@ -472,11 +470,11 @@ class OrderWhere(WhereFilterSet):
 
     @staticmethod
     def filter_created_at_range(qs, _, value):
-        return filter_where_range_field(qs, "created_at", value)
+        return filter_where_by_range_field(qs, "created_at", value)
 
     @staticmethod
     def filter_updated_at_range(qs, _, value):
-        return filter_where_range_field(qs, "updated_at", value)
+        return filter_where_by_range_field(qs, "updated_at", value)
 
     @staticmethod
     def filter_user(qs, _, value):
