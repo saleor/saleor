@@ -825,6 +825,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
     )
+    order.lines_count = order.lines.count()
     order.save()
 
     create_fake_payment(order=order)

@@ -95,8 +95,15 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             invalidate_order_prices(order)
             recalculate_order_weight(order)
             update_order_search_vector(order, save=False)
+            order.lines_count = order.lines.count()
             updated_fields.extend(
-                ["should_refresh_prices", "weight", "search_vector", "updated_at"]
+                [
+                    "should_refresh_prices",
+                    "weight",
+                    "search_vector",
+                    "updated_at",
+                    "lines_count",
+                ]
             )
             order.save(update_fields=updated_fields)
             call_event_by_order_status(order, manager)
