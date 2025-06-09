@@ -1,15 +1,19 @@
 import decimal
 
-import graphene
 import pytest
 
-from ....tests.utils import get_graphql_content
+
+def _assert_error_message(response, expected_msg: str) -> None:
+    data = response.json()
+    assert "errors" in data, "Expected GraphQL errors, but got none"
+    assert data["errors"][0]["message"] == expected_msg
 
 
 @pytest.mark.django_db
-def test_products_filter_price_without_channel(
+def test_products_filter_price_without_channel_multiple_channels(
     staff_api_client,
     channel_USD,
+    channel_PLN,
     product,
     product_with_default_variant,
 ):
@@ -30,9 +34,7 @@ def test_products_filter_price_without_channel(
             first: 10,
             filter: { price: { lte: $lte } }
           ) {
-            edges {
-              node { id }
-            }
+            edges { node { id } }
           }
         }
     """
@@ -42,13 +44,7 @@ def test_products_filter_price_without_channel(
     response = staff_api_client.post_graphql(query, variables=variables)
 
     # then
-    content = get_graphql_content(response)
-    returned_ids = {edge["node"]["id"] for edge in content["data"]["products"]["edges"]}
-
-    product_id_1 = graphene.Node.to_global_id("Product", product.id)
-    product_id_2 = graphene.Node.to_global_id(
-        "Product", product_with_default_variant.id
+    _assert_error_message(
+        response,
+        "More than one channel exists. Specify which channel to use.",
     )
-
-    assert product_id_1 in returned_ids
-    assert product_id_2 not in returned_ids
