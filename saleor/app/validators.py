@@ -1,11 +1,14 @@
 import mimetypes
 import re
+from typing import Literal
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from pydantic import BaseModel, field_validator
 
 from ..thumbnail import ICON_MIME_TYPES
 from .error_codes import AppErrorCode
+from .types import AppExtensionHttpMethod
 
 
 class AppURLValidator(URLValidator):
@@ -44,3 +47,40 @@ def brand_validator(brand):
             "Invalid file type for field: logo.default.",
             code=AppErrorCode.INVALID_URL_FORMAT.value,
         )
+
+
+class NewTabTargetOptions(BaseModel):
+    method: Literal["GET", "POST"]
+
+    @field_validator("method")
+    @classmethod
+    def validate_method(cls, value):
+        if value not in [
+            AppExtensionHttpMethod.GET.value,
+            AppExtensionHttpMethod.POST.value,
+        ]:
+            raise ValueError(
+                f"Method must be either {AppExtensionHttpMethod.GET.value} or {AppExtensionHttpMethod.POST.value}"
+            )
+        return value
+
+
+class WidgetTargetOptions(BaseModel):
+    method: Literal["GET", "POST"]
+
+    @field_validator("method")
+    @classmethod
+    def validate_method(cls, value):
+        if value not in [
+            AppExtensionHttpMethod.GET.value,
+            AppExtensionHttpMethod.POST.value,
+        ]:
+            raise ValueError(
+                f"Method must be either {AppExtensionHttpMethod.GET.value} or {AppExtensionHttpMethod.POST.value}"
+            )
+        return value
+
+
+class AppExtensionOptions(BaseModel):
+    newTabTarget: NewTabTargetOptions | None = None
+    widgetTarget: WidgetTargetOptions | None = None

@@ -21,9 +21,8 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .models import App
-from .schema import AppExtensionOptions
 from .types import AppExtensionMount, AppExtensionTarget
-from .validators import AppURLValidator, brand_validator
+from .validators import AppExtensionOptions, AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import datetime
 import graphene
 
 from ...app import models
-from ...app.types import AppExtensionTarget
+from ...app.types import AppExtensionHttpMethod, AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -137,9 +137,23 @@ class AppManifestExtension(BaseObjectType):
         return resolve_app_extension_url(root)
 
 
-class NewTabTargetType(BaseObjectType):
-    method = graphene.String(
-        required=True, description="HTTP method for new tab target (GET or POST)"
+class NewTabTargetOptions(BaseObjectType):
+    method = graphene.Field(
+        AppExtensionHttpMethod,
+        required=True,
+        description="HTTP method for New Tab target (GET or POST)",
+    )
+
+    class Meta:
+        description = "Represents the new tab target options for an app extension."
+        doc_category = DOC_CATEGORY_APPS
+
+
+class WidgetTargetOptions(BaseObjectType):
+    method = graphene.Field(
+        AppExtensionHttpMethod,
+        required=True,
+        description="HTTP method for Widget target (GET or POST)",
     )
 
     class Meta:
@@ -149,7 +163,13 @@ class NewTabTargetType(BaseObjectType):
 
 class AppExtensionOptionsType(BaseObjectType):
     new_tab_target = graphene.Field(
-        NewTabTargetType,
+        NewTabTargetOptions,
+        description="Options for opening the extension in a new tab.",
+        required=False,
+    )
+
+    widget_target = graphene.Field(
+        WidgetTargetOptions,
         description="Options for opening the extension in a new tab.",
         required=False,
     )
@@ -238,7 +258,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         )
         if new_tab_target:
             return AppExtensionOptionsType(
-                new_tab_target=NewTabTargetType(method=new_tab_target.get("method"))
+                new_tab_target=NewTabTargetOptions(method=new_tab_target.get("method"))
             )
         # new_tab_target is optional, so if not present, return options without it
         return AppExtensionOptionsType(new_tab_target=None)
