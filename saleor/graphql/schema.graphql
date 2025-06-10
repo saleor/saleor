@@ -12825,10 +12825,10 @@ input OrderWhereInput @doc(category: "Orders") {
   channelId: GlobalIDFilterInput
 
   """Filter order by created at date."""
-  createdAt: DateTimeFilterInput
+  createdAt: DateTimeRangeInput
 
   """Filter order by updated at date."""
-  updatedAt: DateTimeFilterInput
+  updatedAt: DateTimeRangeInput
 
   """Filter by user."""
   user: GlobalIDFilterInput

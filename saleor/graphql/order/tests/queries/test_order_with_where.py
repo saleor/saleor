@@ -100,43 +100,33 @@ def test_order_filter_by_ids_empty_list(
     [
         (
             {
-                "range": {
-                    "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
-                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
-                }
+                "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
+                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
             },
             [1, 2],
         ),
         (
             {
-                "range": {
-                    "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
-                }
+                "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
             },
             [1, 2],
         ),
         (
             {
-                "range": {
-                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
-                }
+                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
             },
             [0, 1, 2],
         ),
         (
             {
-                "range": {
-                    "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
-                }
+                "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
             },
             [],
         ),
         (None, []),
-        ({"range": {"gte": None}}, []),
-        ({"range": {"lte": None}}, []),
-        ({"range": {"lte": None, "gte": None}}, []),
-        ({"eq": None}, []),
-        ({"oneOf": []}, []),
+        ({"gte": None}, []),
+        ({"lte": None}, []),
+        ({"lte": None, "gte": None}, []),
         ({}, []),
     ],
 )
@@ -177,43 +167,33 @@ def test_orders_filter_by_created_at(
     [
         (
             {
-                "range": {
-                    "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
-                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
-                }
+                "gte": (timezone.now() + datetime.timedelta(days=3)).isoformat(),
+                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
             },
             [0, 1],
         ),
         (
             {
-                "range": {
-                    "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
-                }
+                "gte": (timezone.now() + datetime.timedelta(days=5)).isoformat(),
             },
             [0],
         ),
         (
             {
-                "range": {
-                    "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
-                }
+                "lte": (timezone.now() + datetime.timedelta(days=25)).isoformat(),
             },
             [0, 1, 2],
         ),
         (
             {
-                "range": {
-                    "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
-                }
+                "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
             },
             [],
         ),
         (None, []),
-        ({"range": {"gte": None}}, []),
-        ({"range": {"lte": None}}, []),
-        ({"range": {"lte": None, "gte": None}}, []),
-        ({"eq": None}, []),
-        ({"oneOf": []}, []),
+        ({"gte": None}, []),
+        ({"lte": None}, []),
+        ({"lte": None, "gte": None}, []),
         ({}, []),
     ],
 )
