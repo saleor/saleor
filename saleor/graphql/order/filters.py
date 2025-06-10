@@ -624,7 +624,7 @@ class OrderWhere(WhereFilterSet):
     @staticmethod
     def filter_lines_count(qs, _, value):
         return filter_where_by_numeric_field(qs, "lines_count", value)
-    
+
     @staticmethod
     def filter_total_gross(qs, _, value):
         return filter_where_by_price_field(qs, "total_gross_amount", value)

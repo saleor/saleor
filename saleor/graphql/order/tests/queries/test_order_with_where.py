@@ -1771,5 +1771,3 @@ def test_orders_filter_by_total_net(
     assert len(orders) == len(indexes)
     numbers = {node["node"]["number"] for node in orders}
     assert numbers == {str(order_list[index].number) for index in indexes}
-
-
