@@ -1576,6 +1576,50 @@ def test_orders_filter_by_fulfillment_status(
     assert numbers == {str(order_list[index].number) for index in indexes}
 
 
+@pytest.mark.parametrize(
+    ("where", "indexes"),
+    [
+        ({"range": {"gte": 2, "lte": 4}}, [1, 2]),
+        ({"range": {"gte": 3}}, [2]),
+        ({"range": {"lte": 2}}, [0, 1]),
+        ({"eq": 2}, [1]),
+        ({"oneOf": [1, 3]}, [0, 2]),
+        ({"eq": 99}, []),
+        ({}, []),
+        ({"range": {"gte": None}}, []),
+        ({"range": {"lte": None}}, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_lines_count(
+    where,
+    indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    order_list[0].lines_count = 1
+    order_list[1].lines_count = 2
+    order_list[2].lines_count = 3
+    Order.objects.bulk_update(order_list, ["lines_count"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"linesCount": where}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[index].number) for index in indexes}
+
+
 def test_order_query_with_filter_and_where(
     staff_api_client,
     permission_group_manage_orders,
