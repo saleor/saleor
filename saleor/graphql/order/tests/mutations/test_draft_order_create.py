@@ -4153,5 +4153,5 @@ def test_draft_order_create_sets_product_type_id_for_order_line(
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
 
-    order = Order.objects.first()
-    assert order.lines.first().product_type_id == expected_product_type_id
+    order_line = OrderLine.objects.first()
+    assert order_line.product_type_id == expected_product_type_id

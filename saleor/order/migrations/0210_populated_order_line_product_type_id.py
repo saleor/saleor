@@ -15,7 +15,7 @@ def populate_order_line_product_id(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0208_orderline_product_type_id"),
+        ("order", "0209_orderline_product_type_id"),
     ]
 
     operations = [

@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0207_fulfillment_fulfillment_status_idx"),
+        ("order", "0208_order_lines_count_idx"),
     ]
 
     operations = [
