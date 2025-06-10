@@ -610,7 +610,7 @@ class OrderWhere(WhereFilterSet):
             )
             return qs.filter(Exists(fulfillments.filter(order_id=OuterRef("id"))))
         return qs.none()
-    
+
     @staticmethod
     def filter_lines_count(qs, _, value):
         return filter_where_by_numeric_field(qs, "lines_count", value)
