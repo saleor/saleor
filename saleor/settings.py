@@ -113,13 +113,21 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # This variable should be set to `replica`
 DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
+if "DATABASE_URL_REPLICA" in os.environ:
+    DATABASE_URL_REPLICA_ENV_NAME = "DATABASE_URL_REPLICA"
+else:
+    # If replica env is not set, then always try to use the
+    # default env first.
+    DATABASE_URL_REPLICA_ENV_NAME = dj_database_url.DEFAULT_ENV
+
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
+        env=dj_database_url.DEFAULT_ENV,
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        env="DATABASE_URL_REPLICA",
+        env=DATABASE_URL_REPLICA_ENV_NAME,
         default="postgres://saleor:saleor@localhost:5432/saleor",
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
