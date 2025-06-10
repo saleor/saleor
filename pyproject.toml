@@ -183,6 +183,7 @@ package-mode = false
   vcrpy = { version = "^7.0.0", markers = "platform_python_implementation != 'PyPy' and python_version >= \"3.10\"" }
   poethepoet = "^0.32.2"
   ipdb = "^0.13.13"
+  mypy = "1.15.0"
 
 [tool.deptry]
 extend_exclude = ["conftest\\.py", ".*/conftest\\.py", ".*/tests/.*"]
