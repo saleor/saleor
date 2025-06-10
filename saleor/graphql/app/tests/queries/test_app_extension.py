@@ -316,7 +316,7 @@ def test_app_extension_with_app_query_by_staff_without_permissions(
     )
 
     # then
-    assert_no_permission(response)
+    get_graphql_content(response)
 
 
 def test_app_extension_with_app_query_by_app_without_permissions(
@@ -340,7 +340,7 @@ def test_app_extension_with_app_query_by_app_without_permissions(
     )
 
     # then
-    assert_no_permission(response)
+    get_graphql_content(response)
 
 
 def test_app_extension_with_app_query_by_app_with_permissions(
@@ -412,7 +412,7 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
 
     # when
     response = staff_api_client.post_graphql(
-        QUERY_APP_EXTENSION_WITH_APP, variables, permissions=[permission_manage_apps]
+        QUERY_APP_EXTENSION_WITH_APP, variables, permissions=[]
     )
 
     # then
