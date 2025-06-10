@@ -500,12 +500,10 @@ class PaymentMethodDetails(graphene.Union):
         types = (CardPaymentMethodDetails, OtherPaymentMethodDetails)
 
     @classmethod
-    def resolve_type(cls, instance, _info: graphene.ResolveInfo):
+    def resolve_type(cls, instance, info: graphene.ResolveInfo):
         if instance.payment_method_type == PaymentMethodType.CARD:
             return CardPaymentMethodDetails
-        if instance.payment_method_type == PaymentMethodType.OTHER:
-            return OtherPaymentMethodDetails
-        return None
+        return OtherPaymentMethodDetails
 
 
 class TransactionItem(ModelObjectType[models.TransactionItem]):
