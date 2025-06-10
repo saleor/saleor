@@ -178,7 +178,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
             app_id = root.app_id
         else:
             requestor = get_user_or_app_from_context(info.context)
-            if requestor and requestor.has_perm(AppPermission.MANAGE_APPS):
+            if requestor:
                 app_id = root.app_id
 
         if not app_id:
