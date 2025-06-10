@@ -310,6 +310,52 @@ def test_install_app_with_extension(
     assert app_extension.options == options
 
 
+def test_install_app_with_extension_widget(
+    app_manifest,
+    app_installation,
+    monkeypatch,
+    permission_manage_products,
+    permission_manage_orders,
+):
+    # given
+    label = "Create product with app"
+    url = "http://127.0.0.1:8080/app-extension"
+    options = {"widgetTarget": {"method": "POST"}}
+    app_manifest["permissions"] = ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
+    app_manifest["extensions"] = [
+        {
+            "label": label,
+            "url": url,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "permissions": ["MANAGE_PRODUCTS"],
+            "options": options,
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    app_installation.permissions.set(
+        [permission_manage_products, permission_manage_orders]
+    )
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert App.objects.get().id == app.id
+    app_extension = app.extensions.get()
+
+    assert app_extension.label == label
+    assert app_extension.url == url
+    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.target == AppExtensionTarget.POPUP
+    assert list(app_extension.permissions.all()) == [permission_manage_products]
+    assert app_extension.options == options
+
+
 @pytest.mark.parametrize(
     ("app_permissions", "extension_permissions"),
     [
@@ -346,6 +392,49 @@ def test_install_app_extension_permission_out_of_scope(
     # when & then
     with pytest.raises(ValidationError):
         install_app(app_installation, activate=True)
+
+
+def test_install_app_with_extension_new_tab_target(
+    app_manifest,
+    app_installation,
+    monkeypatch,
+    permission_manage_products,
+):
+    # given
+    label = "Open in new tab"
+    url = "http://127.0.0.1:8080/app-extension"
+    options = {"newTabTarget": {"method": "GET"}}
+    app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
+    app_manifest["extensions"] = [
+        {
+            "label": label,
+            "url": url,
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "permissions": ["MANAGE_PRODUCTS"],
+            "options": options,
+            "target": "NEW_TAB",
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    app_installation.permissions.set([permission_manage_products])
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert App.objects.get().id == app.id
+    app_extension = app.extensions.get()
+    assert app_extension.label == label
+    assert app_extension.url == url
+    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.target.name == "NEW_TAB"
+    assert list(app_extension.permissions.all()) == [permission_manage_products]
+    assert app_extension.options == options
 
 
 @pytest.mark.parametrize(
