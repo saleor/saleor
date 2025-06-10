@@ -32,6 +32,7 @@ from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.scalars import DateTime
 from ..core.types import (
+    BaseEnum,
     BaseObjectType,
     IconThumbnailField,
     Job,
@@ -137,9 +138,14 @@ class AppManifestExtension(BaseObjectType):
         return resolve_app_extension_url(root)
 
 
+class HttpMethod(BaseEnum):
+    POST = AppExtensionHttpMethod.POST
+    GET = AppExtensionHttpMethod.GET
+
+
 class NewTabTargetOptions(BaseObjectType):
     method = graphene.Field(
-        AppExtensionHttpMethod,
+        HttpMethod,
         required=True,
         description="HTTP method for New Tab target (GET or POST)",
     )
@@ -151,7 +157,7 @@ class NewTabTargetOptions(BaseObjectType):
 
 class WidgetTargetOptions(BaseObjectType):
     method = graphene.Field(
-        AppExtensionHttpMethod,
+        HttpMethod,
         required=True,
         description="HTTP method for Widget target (GET or POST)",
     )
