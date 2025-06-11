@@ -40,6 +40,7 @@ from ..core.types.filter_input import (
     FilterInputDescriptions,
     GlobalIDFilterInput,
     IntFilterInput,
+    PriceFilterInput,
     StringFilterInput,
     UUIDFilterInput,
     WhereInputObjectType,
@@ -53,6 +54,7 @@ from ..utils.filters import (
     filter_range_field,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
+    filter_where_by_price_field,
     filter_where_by_range_field,
     filter_where_by_value_field,
 )
@@ -504,6 +506,16 @@ class OrderWhere(WhereFilterSet):
         method="filter_lines_count",
         help_text="Filter by number of lines in the order.",
     )
+    total_gross = ObjectTypeWhereFilter(
+        input_class=PriceFilterInput,
+        method="filter_total_gross",
+        help_text="Filter by total gross amount of the order.",
+    )
+    total_net = ObjectTypeWhereFilter(
+        input_class=PriceFilterInput,
+        method="filter_total_net",
+        help_text="Filter by total net amount of the order.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -612,6 +624,14 @@ class OrderWhere(WhereFilterSet):
     @staticmethod
     def filter_lines_count(qs, _, value):
         return filter_where_by_numeric_field(qs, "lines_count", value)
+
+    @staticmethod
+    def filter_total_gross(qs, _, value):
+        return filter_where_by_price_field(qs, "total_gross_amount", value)
+
+    @staticmethod
+    def filter_total_net(qs, _, value):
+        return filter_where_by_price_field(qs, "total_net_amount", value)
 
 
 class OrderWhereInput(WhereInputObjectType):

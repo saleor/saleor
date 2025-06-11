@@ -235,3 +235,12 @@ class UUIDFilterInput(graphene.InputObjectType):
 
     class Meta:
         description = "Define the filtering options for string fields."
+
+
+class PriceFilterInput(graphene.InputObjectType):
+    currency = graphene.String(
+        required=False, description="The currency of the price to filter by."
+    )
+    amount = DecimalFilterInput(
+        required=True, description="The amount of the price to filter by."
+    )

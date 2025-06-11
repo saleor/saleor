@@ -12883,6 +12883,12 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
+  """Filter by total gross amount of the order."""
+  totalGross: PriceFilterInput
+
+  """Filter by total net amount of the order."""
+  totalNet: PriceFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
@@ -12957,6 +12963,14 @@ input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
 
   """The value included in."""
   oneOf: [FulfillmentStatus!]
+}
+
+input PriceFilterInput {
+  """The currency of the price to filter by."""
+  currency: String
+
+  """The amount of the price to filter by."""
+  amount: DecimalFilterInput!
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
