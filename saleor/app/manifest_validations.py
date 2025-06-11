@@ -88,8 +88,7 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         raise ValidationError(msg)
     elif (
         target == AppExtensionTarget.NEW_TAB
-        and extension.get("options", dict).get("newTabTarget", dict).get("method")
-        == "POST"
+        and extension.get("options", {}).get("newTabTarget", {}).get("method") == "POST"
     ):
         parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
