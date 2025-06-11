@@ -129,9 +129,18 @@ class TransactionRequestEventResponse:
 
 
 @dataclass
-class TransactionRequestResponse:
+class TransactionResponseBase:
     psp_reference: str | None
-    available_actions: list[str] | None = None
+    available_actions: list[str] | None
+
+
+@dataclass
+class TransactionSessionResponse(TransactionResponseBase):
+    event: TransactionRequestEventResponse
+
+
+@dataclass
+class TransactionRequestResponse(TransactionResponseBase):
     event: Optional["TransactionRequestEventResponse"] = None
 
 
