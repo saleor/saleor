@@ -3022,7 +3022,7 @@ type AppExtensionOptionsType @doc(category: "Apps") {
   widgetTarget: WidgetTargetOptions
 }
 
-"""Represents the new tab target options for an app extension."""
+"""Represents the NEW_TAB target options for an app extension."""
 type NewTabTargetOptions @doc(category: "Apps") {
   """HTTP method for New Tab target (GET or POST)"""
   method: HttpMethod!
@@ -3033,7 +3033,7 @@ enum HttpMethod {
   GET
 }
 
-"""Represents the new tab target options for an app extension."""
+"""Represents the WIDGET target options for an app extension."""
 type WidgetTargetOptions @doc(category: "Apps") {
   """HTTP method for Widget target (GET or POST)"""
   method: HttpMethod!

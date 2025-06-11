@@ -151,7 +151,7 @@ class NewTabTargetOptions(BaseObjectType):
     )
 
     class Meta:
-        description = "Represents the new tab target options for an app extension."
+        description = "Represents the NEW_TAB target options for an app extension."
         doc_category = DOC_CATEGORY_APPS
 
 
@@ -163,7 +163,7 @@ class WidgetTargetOptions(BaseObjectType):
     )
 
     class Meta:
-        description = "Represents the new tab target options for an app extension."
+        description = "Represents the WIDGET target options for an app extension."
         doc_category = DOC_CATEGORY_APPS
 
 
@@ -262,10 +262,18 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         new_tab_target = (
             options.get("newTabTarget") if isinstance(options, dict) else None
         )
+        widget_target = (
+            options.get("widgetTarget") if isinstance(options, dict) else None
+        )
         if new_tab_target:
             return AppExtensionOptionsType(
                 new_tab_target=NewTabTargetOptions(method=new_tab_target.get("method"))
             )
+        if widget_target:
+            return AppExtensionOptionsType(
+                widget_target=WidgetTargetOptions(method=widget_target.get("method"))
+            )
+
         # new_tab_target is optional, so if not present, return options without it
         return AppExtensionOptionsType(new_tab_target=None)
 
