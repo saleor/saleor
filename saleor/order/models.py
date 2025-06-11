@@ -397,14 +397,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
             BTreeIndex(fields=["lines_count"], name="lines_count_idx"),
             BTreeIndex(
-                fields=["currency", "total_gross_amount"],
-                name="currency_totalgrossamount_idx",
-            ),
-            BTreeIndex(
-                fields=["currency", "total_net_amount"],
-                name="currency_totalnetamount_idx",
-            ),
-            BTreeIndex(
                 fields=["total_gross_amount"],
                 name="order_totalgrossamount_idx",
             ),

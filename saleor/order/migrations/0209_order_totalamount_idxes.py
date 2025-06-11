@@ -23,20 +23,6 @@ class Migration(migrations.Migration):
         AddIndexConcurrently(
             model_name="order",
             index=BTreeIndex(
-                fields=["currency", "total_gross_amount"],
-                name="currency_totalgrossamount_idx",
-            ),
-        ),
-        AddIndexConcurrently(
-            model_name="order",
-            index=BTreeIndex(
-                fields=["currency", "total_net_amount"],
-                name="currency_totalnetamount_idx",
-            ),
-        ),
-        AddIndexConcurrently(
-            model_name="order",
-            index=BTreeIndex(
                 fields=["total_gross_amount"], name="order_totalgrossamount_idx"
             ),
         ),
