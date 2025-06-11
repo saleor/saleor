@@ -274,7 +274,7 @@ def test_install_app_with_extension(
     # given
     label = "Create product with app"
     url = "http://127.0.0.1:8080/app-extension"
-    options = {"newTabTarget": {"method": "GET"}}
+    options = {}
     app_manifest["permissions"] = ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
     app_manifest["extensions"] = [
         {
@@ -319,15 +319,17 @@ def test_install_app_with_extension_widget(
 ):
     # given
     label = "Create product with app"
-    url = "http://127.0.0.1:8080/app-extension"
+    url = "https://example.com/app-extension"
     options = {"widgetTarget": {"method": "POST"}}
     app_manifest["permissions"] = ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
+    app_manifest["tokenTargetUrl"] = "https://example.com/install"
     app_manifest["extensions"] = [
         {
             "label": label,
             "url": url,
             "mount": "PRODUCT_OVERVIEW_CREATE",
             "permissions": ["MANAGE_PRODUCTS"],
+            "target": "WIDGET",
             "options": options,
         }
     ]
@@ -351,7 +353,7 @@ def test_install_app_with_extension_widget(
     assert app_extension.label == label
     assert app_extension.url == url
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
-    assert app_extension.target == AppExtensionTarget.POPUP
+    assert app_extension.target == AppExtensionTarget.WIDGET
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.options == options
 
@@ -485,6 +487,7 @@ def test_install_app_with_extension_new_tab_target_post_url_other_than_app(
     label = "Open in new tab"
     # Url other than app's URL is prohibited
     url = "https://extenal-url.com"
+    app_manifest["tokenTargetUrl"] = "https://app-url.com"
     options = {"newTabTarget": {"method": "POST"}}
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
     app_manifest["extensions"] = [
@@ -664,8 +667,9 @@ def test_install_app_with_extension_post_method(
 ):
     # given
     label = "Create product with app"
-    url = "http://127.0.0.1:8080/app-extension"
+    url = "https://example.com/extension"  # extension url must be under the same origin as app
     options = {"newTabTarget": {"method": "POST"}}
+    app_manifest["tokenTargetUrl"] = "https://example.com/install"
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
     app_manifest["extensions"] = [
         {
@@ -674,6 +678,7 @@ def test_install_app_with_extension_post_method(
             "mount": "PRODUCT_OVERVIEW_CREATE",
             "permissions": ["MANAGE_PRODUCTS"],
             "options": options,
+            "target": "NEW_TAB",
         }
     ]
     mocked_get_response = Mock()
@@ -694,7 +699,7 @@ def test_install_app_with_extension_post_method(
     assert app_extension.label == label
     assert app_extension.url == url
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
-    assert app_extension.target == AppExtensionTarget.POPUP
+    assert app_extension.target == AppExtensionTarget.NEW_TAB
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.options == options
 

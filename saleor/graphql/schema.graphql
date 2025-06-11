@@ -3010,6 +3010,7 @@ enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
   NEW_TAB
+  WIDGET
 }
 
 """Represents the options for an app extension."""

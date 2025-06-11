@@ -76,7 +76,13 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     # Assume app URL is the one that originally received the token.
     app_url = manifest_data.get("tokenTargetUrl")
 
-    # This should be moved to Pydantic model
+    new_tab_method_post = (
+        extension.get("options", {}).get("newTabTarget", {}).get("method") == "POST"
+    )
+    widget_method_post = (
+        extension.get("options", {}).get("widgetTarget", {}).get("method") == "POST"
+    )
+
     if not app_url:
         raise ValidationError("Manifest is invalid, token_target_url is missing")
 
@@ -86,9 +92,8 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         msg = "Url cannot start with protocol when target == APP_PAGE"
         logger.warning(msg)
         raise ValidationError(msg)
-    elif (
-        target == AppExtensionTarget.NEW_TAB
-        and extension.get("options", {}).get("newTabTarget", {}).get("method") == "POST"
+    elif (target == AppExtensionTarget.NEW_TAB and new_tab_method_post) or (
+        target == AppExtensionTarget.WIDGET and widget_method_post
     ):
         parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
@@ -96,7 +101,7 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         if parsed_extension_url.scheme != "https":
             raise ValidationError("Extension must start with https")
 
-        if parsed_app_url.hostname != app_url.hostname:
+        if parsed_app_url.hostname != parsed_extension_url.hostname:
             raise ValidationError("Extension URL must match App URL")
 
     else:
@@ -233,6 +238,28 @@ def _clean_extension_options(extension, errors):
     options = extension.get("options", {})
     try:
         validated_options = AppExtensionOptions.model_validate(options)
+
+        if validated_options.widgetTarget and validated_options.newTabTarget:
+            raise ValidationError(
+                "You cannot specify both widgetTarget and newTabTarget."
+            )
+
+        if (
+            validated_options.widgetTarget
+            and extension.get("target") != AppExtensionTarget.WIDGET
+        ):
+            raise ValidationError(
+                "widgetTarget options must be set only on WIDGET target"
+            )
+
+        if (
+            validated_options.newTabTarget
+            and extension.get("target") != AppExtensionTarget.NEW_TAB
+        ):
+            raise ValidationError(
+                "newTabTarget options must be set only on NEW_TAB target"
+            )
+
         # Update the extension with the validated options
         extension["options"] = validated_options.model_dump(exclude_none=True)
     except Exception as e:

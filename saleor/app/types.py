@@ -136,8 +136,14 @@ class AppExtensionTarget:
     POPUP = "popup"
     APP_PAGE = "app_page"
     NEW_TAB = "new_tab"
+    WIDGET = "widget"
 
-    CHOICES = [(POPUP, "popup"), (APP_PAGE, "app_page"), (NEW_TAB, "new_tab")]
+    CHOICES = [
+        (POPUP, "popup"),
+        (APP_PAGE, "app_page"),
+        (NEW_TAB, "new_tab"),
+        (WIDGET, "widget"),
+    ]
 
 
 class AppExtensionHttpMethod(str, Enum):
