@@ -262,7 +262,7 @@ def _clean_extension_options(extension, errors):
 
         # Update the extension with the validated options
         extension["options"] = validated_options.model_dump(exclude_none=True)
-    except Exception as e:
+    except ValidationError as e:
         errors["extensions"].append(
             ValidationError(
                 f"Invalid options field: {str(e)}",

@@ -2,7 +2,12 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ... import __version__
-from ...app.validators import AppURLValidator
+from ...app.validators import (
+    AppExtensionOptions,
+    AppURLValidator,
+    NewTabTargetOptions,
+    WidgetTargetOptions,
+)
 from ..error_codes import AppErrorCode
 from ..manifest_validations import (
     _clean_author,
@@ -179,3 +184,25 @@ def test_clean_extension_url(extension, manifest, should_raise):
             _clean_extension_url(extension, manifest)
     else:
         _clean_extension_url(extension, manifest)
+
+
+def test_app_extension_options_accepts_only_one():
+    opts = AppExtensionOptions(newTabTarget=NewTabTargetOptions(method="GET"))
+    assert opts.newTabTarget is not None
+    assert opts.widgetTarget is None
+
+    opts = AppExtensionOptions(widgetTarget=WidgetTargetOptions(method="POST"))
+    assert opts.widgetTarget is not None
+    assert opts.newTabTarget is None
+
+    with pytest.raises(
+        ValueError, match="Only one of 'newTabTarget' or 'widgetTarget' can be set."
+    ):
+        AppExtensionOptions(
+            newTabTarget=NewTabTargetOptions(method="GET"),
+            widgetTarget=WidgetTargetOptions(method="POST"),
+        )
+
+    opts = AppExtensionOptions()
+    assert opts.newTabTarget is None
+    assert opts.widgetTarget is None

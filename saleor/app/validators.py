@@ -4,7 +4,7 @@ from typing import Literal
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 from ..thumbnail import ICON_MIME_TYPES
 from .error_codes import AppErrorCode
@@ -84,3 +84,13 @@ class WidgetTargetOptions(BaseModel):
 class AppExtensionOptions(BaseModel):
     newTabTarget: NewTabTargetOptions | None = None
     widgetTarget: WidgetTargetOptions | None = None
+
+    @model_validator(mode="after")
+    def validate_either_or(cls, values):
+        new_tab = values.newTabTarget
+        widget = values.widgetTarget
+
+        if new_tab and widget:
+            raise ValueError("Only one of 'newTabTarget' or 'widgetTarget' can be set.")
+
+        return values
