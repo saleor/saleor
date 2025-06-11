@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+
 - Added support for filtering products by attribute value names. The `AttributeInput` now includes a `valueNames` field, enabling filtering by the names of attribute values, in addition to the existing filtering by value slugs.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
@@ -25,8 +26,29 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Add JSON schemas for synchronous webhooks, now available in `saleor/json_schemas.py`. These schemas define the expected structure of webhook responses sent back to Saleor, enabling improved validation and tooling support for integrations. This change helps ensure that responses from webhook consumers meet Saleor’s expectations and can be reliably processed.
+
 - deps: upgraded urllib3 from v1.x to v2.x
 - Fix PAGE_DELETE webhook to include pageType in payload - #17697 by @Jennyyyy0212 and @CherineCho2016
 - Stripe Plugin has been deprecated. It will be removed in the future. Please use [the Stripe App](https://docs.saleor.io/developer/app-store/apps/stripe/overview) instead
 - App Extensions: Added new allowed extension target: NEW_TAB. Once handled in the Dashboard, an extension will be able to open a link in new tab
 - App Extensions: New mount points for Dashboard categories, collections, gift cards, draft orders, discounts, vouchers, pages, pages types and menus
+- Changed logging settings of failed requests to reduce logs amount in production:
+
+  - Downgraded the "A query had an error" log from INFO to DEBUG level.
+  - Increased the `django.request` logger's level to ERROR, to reduce the number of WARNING logs for failed GraphQL or 404 requests.
+
+  Previously, a failed GraphQL request (up to Saleor 3.21) would generate the following logs:
+
+  ```
+  2025-06-06 13:26:06,104 INFO saleor.graphql.errors.handled A query had an error [PID:21676:ThreadPoolExecutor-5_0]
+  2025-06-06 13:26:06,107 WARNING django.request Bad Request: /graphql/ [PID:21676:ThreadPoolExecutor-6_0]
+  INFO:     127.0.0.1:63244 - "POST /graphql/ HTTP/1.1" 400 Bad Request
+  ```
+
+  Starting from Saleor 3.22, the same request logs only the HTTP-level message:
+
+  ```
+  INFO:     127.0.0.1:63345 - "POST /graphql/ HTTP/1.1" 400 Bad Request
+  ```
+
+  To see details of why a GraphQL request is failing, you can use OpenTelemetry tracing, where each span for a failing request will be marked with an error flag and will include an error message.
