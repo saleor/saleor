@@ -152,7 +152,7 @@ class TransactionItem(ModelWithMetadata):
     last_refund_success = models.BooleanField(default=True)
 
     cc_first_digits = models.CharField(
-        max_length=6,
+        max_length=4,
         blank=True,
         null=True,
     )

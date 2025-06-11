@@ -902,9 +902,9 @@ def test_transaction_query_by_app_with_payment_method_other(
     transaction_item_created_by_app.payment_method_type = PaymentMethodType.OTHER
     transaction_item_created_by_app.payment_method_name = expected_payment_method_name
     # Clear card-specific fields for OTHER payment method
-    transaction_item_created_by_app.cc_brand = ""
-    transaction_item_created_by_app.cc_first_digits = ""
-    transaction_item_created_by_app.cc_last_digits = ""
+    transaction_item_created_by_app.cc_brand = None
+    transaction_item_created_by_app.cc_first_digits = None
+    transaction_item_created_by_app.cc_last_digits = None
     transaction_item_created_by_app.cc_exp_month = None
     transaction_item_created_by_app.cc_exp_year = None
     transaction_item_created_by_app.save()
