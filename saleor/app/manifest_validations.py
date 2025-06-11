@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
+from urllib.parse import urlparse
 
 from django.core.exceptions import ValidationError
 from django.db.models import Value
@@ -71,12 +72,34 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     """
     extension_url = extension["url"]
     target = extension.get("target") or AppExtensionTarget.POPUP
+
+    # Assume app URL is the one that originally received the token.
+    app_url = manifest_data.get("tokenTargetUrl")
+
+    # This should be moved to Pydantic model
+    if not app_url:
+        raise ValidationError("Manifest is invalid, token_target_url is missing")
+
     if extension_url.startswith("/"):
         _clean_extension_url_with_only_path(manifest_data, target, extension_url)
     elif target == AppExtensionTarget.APP_PAGE:
         msg = "Url cannot start with protocol when target == APP_PAGE"
         logger.warning(msg)
         raise ValidationError(msg)
+    elif (
+        target == AppExtensionTarget.NEW_TAB
+        and extension.get("options", dict).get("newTabTarget", dict).get("method")
+        == "POST"
+    ):
+        parsed_app_url = urlparse(app_url)
+        parsed_extension_url = urlparse(extension_url)
+
+        if parsed_extension_url.scheme != "https":
+            raise ValidationError("Extension must start with https")
+
+        if parsed_app_url.hostname != app_url.hostname:
+            raise ValidationError("Extension URL must match App URL")
+
     else:
         _clean_app_url(extension_url)
 
@@ -224,6 +247,7 @@ def _clean_extension_options(extension, errors):
 
 def _clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
+
     for extension in extensions:
         if "target" not in extension:
             extension["target"] = AppExtensionTarget.POPUP
