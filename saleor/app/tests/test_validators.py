@@ -103,3 +103,79 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
         _clean_extension_url(extension, app_manifest)
 
     assert error.value.message == "NEW_TAB target should be absolute path"
+
+
+@pytest.mark.parametrize(
+    ("extension", "manifest", "should_raise"),
+    [
+        # url starts with /, target APP_PAGE, appUrl provided
+        (
+            {"url": "/page", "target": AppExtensionTarget.APP_PAGE},
+            {
+                "tokenTargetUrl": "https://app.example.com",
+                "appUrl": "https://app.example.com",
+            },
+            False,
+        ),
+        # url starts with /, target NEW_TAB, should raise
+        (
+            {"url": "/tab", "target": AppExtensionTarget.NEW_TAB},
+            {
+                "tokenTargetUrl": "https://app.example.com",
+                "appUrl": "https://app.example.com",
+            },
+            True,
+        ),
+        # url starts with protocol, target APP_PAGE, should raise
+        (
+            {
+                "url": "https://app.example.com/page",
+                "target": AppExtensionTarget.APP_PAGE,
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            True,
+        ),
+        # url starts with protocol, target NEW_TAB, method POST, valid host
+        (
+            {
+                "url": "https://app.example.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            False,
+        ),
+        # url starts with protocol, target NEW_TAB, method POST, invalid host
+        (
+            {
+                "url": "https://other.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            True,
+        ),
+        # url starts with http, should raise (must be https)
+        (
+            {
+                "url": "http://app.example.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            True,
+        ),
+        # url is valid absolute, target POPUP
+        (
+            {"url": "https://app.example.com/page", "target": AppExtensionTarget.POPUP},
+            {"tokenTargetUrl": "https://app.example.com"},
+            False,
+        ),
+    ],
+)
+def test_clean_extension_url(extension, manifest, should_raise):
+    if should_raise:
+        with pytest.raises(ValidationError):
+            _clean_extension_url(extension, manifest)
+    else:
+        _clean_extension_url(extension, manifest)
