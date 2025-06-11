@@ -20,6 +20,7 @@ from ..permission.enums import PaymentPermissions
 from . import (
     ChargeStatus,
     CustomPaymentChoices,
+    PaymentMethodType,
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
@@ -149,6 +150,31 @@ class TransactionItem(ModelWithMetadata):
     # Used to define if the checkout with transaction is refundable or not.
     # Set to False when automatic refund was triggered.
     last_refund_success = models.BooleanField(default=True)
+
+    cc_first_digits = models.CharField(
+        max_length=4,
+        blank=True,
+        null=True,
+    )
+    cc_last_digits = models.CharField(
+        max_length=4,
+        blank=True,
+        null=True,
+    )
+    cc_brand = models.CharField(max_length=40, blank=True, null=True)
+    cc_exp_month = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(12)], null=True, blank=True
+    )
+    cc_exp_year = models.PositiveIntegerField(
+        validators=[MinValueValidator(2000)], null=True, blank=True
+    )
+    payment_method_type = models.CharField(
+        max_length=32,
+        blank=True,
+        null=True,
+        choices=PaymentMethodType.CHOICES,
+    )
+    payment_method_name = models.CharField(max_length=256, blank=True, null=True)
 
     class Meta:
         ordering = ("pk",)
