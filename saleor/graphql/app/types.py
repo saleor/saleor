@@ -255,27 +255,19 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
     @staticmethod
     def resolve_options(root: models.AppExtension, _info: ResolveInfo):
-        options = getattr(root, "options", None)
-        if not options:
-            return None
-        # options is expected to be a dict, e.g. {"newTabTarget": {"method": "GET"}}
-        new_tab_target = (
-            options.get("newTabTarget") if isinstance(options, dict) else None
-        )
-        widget_target = (
-            options.get("widgetTarget") if isinstance(options, dict) else None
-        )
-        if new_tab_target:
+        new_tab_method = getattr(root, "new_tab_target_method", None)
+        widget_method = getattr(root, "widget_target_method", None)
+        if new_tab_method:
             return AppExtensionOptionsType(
-                new_tab_target=NewTabTargetOptions(method=new_tab_target.get("method"))
+                new_tab_target=NewTabTargetOptions(method=new_tab_method),
+                widget_target=None,
             )
-        if widget_target:
+        if widget_method:
             return AppExtensionOptionsType(
-                widget_target=WidgetTargetOptions(method=widget_target.get("method"))
+                new_tab_target=None,
+                widget_target=WidgetTargetOptions(method=widget_method),
             )
-
-        # new_tab_target is optional, so if not present, return options without it
-        return AppExtensionOptionsType(new_tab_target=None)
+        return None
 
 
 class AppExtensionCountableConnection(CountableConnection):

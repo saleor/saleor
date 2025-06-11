@@ -231,13 +231,18 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
+        # Extract new_tab_target_method and widget_target_method from options
+        options = extension_data.get("options", {})
+        new_tab_target = options.get("newTabTarget")
+        widget_target = options.get("widgetTarget")
         extension = AppExtension.objects.create(
             app=app,
             label=extension_data.get("label"),
             url=extension_data.get("url"),
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
-            options=extension_data.get("options", {}),
+            new_tab_target_method=new_tab_target["method"] if new_tab_target else None,
+            widget_target_method=widget_target["method"] if widget_target else None,
         )
         extension.permissions.set(extension_data.get("permissions", []))
 

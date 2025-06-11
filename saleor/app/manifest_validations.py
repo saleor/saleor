@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
+from pydantic import ValidationError as PydanticValidationError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
@@ -262,7 +263,7 @@ def _clean_extension_options(extension, errors):
 
         # Update the extension with the validated options
         extension["options"] = validated_options.model_dump(exclude_none=True)
-    except ValidationError as e:
+    except (ValidationError, PydanticValidationError) as e:
         errors["extensions"].append(
             ValidationError(
                 f"Invalid options field: {str(e)}",

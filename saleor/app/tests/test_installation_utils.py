@@ -274,7 +274,7 @@ def test_install_app_with_extension(
     # given
     label = "Create product with app"
     url = "http://127.0.0.1:8080/app-extension"
-    options = {}
+    options: dict = {}
     app_manifest["permissions"] = ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]
     app_manifest["extensions"] = [
         {
@@ -307,7 +307,8 @@ def test_install_app_with_extension(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == AppExtensionTarget.POPUP
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.options == options
+    assert app_extension.new_tab_target_method is None
+    assert app_extension.widget_target_method is None
 
 
 def test_install_app_with_extension_widget(
@@ -355,7 +356,8 @@ def test_install_app_with_extension_widget(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == AppExtensionTarget.WIDGET
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.options == options
+    assert app_extension.new_tab_target_method is None
+    assert app_extension.widget_target_method == "POST"
 
 
 @pytest.mark.parametrize(
@@ -436,7 +438,8 @@ def test_install_app_with_extension_new_tab_target(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == "new_tab"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.options == options
+    assert app_extension.new_tab_target_method == "GET"
+    assert app_extension.widget_target_method is None
 
 
 def test_install_app_with_extension_new_tab_target_post_url_non_https(
@@ -629,6 +632,9 @@ def test_install_app_extension_incorrect_values(
         {"newTabTarget": {"method": "INVALID"}},
         {"newTabTarget": {}},
         {"newTabTarget": "invalid"},
+        {"widgetTarget": {"method": "INVALID"}},
+        {"widgetTarget": {}},
+        {"widgetTarget": "invalid"},
     ],
 )
 def test_install_app_extension_incorrect_options(
@@ -701,7 +707,8 @@ def test_install_app_with_extension_post_method(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == AppExtensionTarget.NEW_TAB
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.options == options
+    assert app_extension.new_tab_target_method == "POST"
+    assert app_extension.widget_target_method is None
 
 
 def test_install_app_with_webhook(
