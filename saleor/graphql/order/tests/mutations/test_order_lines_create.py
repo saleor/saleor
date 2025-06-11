@@ -2185,3 +2185,37 @@ def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_d
     line.refresh_from_db()
     assert line.quantity == old_quantity + extra_quantity
     assert line.draft_base_price_expire_at is None
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_lines_create_sets_product_type_id_for_order_line(
+    status,
+    order,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    expected_product_type_id = variant.product.product_type_id
+
+    # when
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLinesCreate"]["errors"]
+
+    order.refresh_from_db()
+    assert len(order.lines.all()) == 1
+    assert order.lines.first().product_type_id == expected_product_type_id

@@ -4113,3 +4113,45 @@ def test_draft_order_create_create_with_language_code(
     order = Order.objects.get(id=order_pk)
 
     assert order.language_code == "pl"
+
+
+def test_draft_order_create_sets_product_type_id_for_order_line(
+    app_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_available_in_many_channels,
+    channel_PLN,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    expected_product_type_id = variant.product.product_type_id
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+
+    order_line = OrderLine.objects.first()
+    assert order_line.product_type_id == expected_product_type_id
