@@ -11,7 +11,12 @@ from ..core.models import Job, ModelWithMetadata
 from ..permission.enums import AppPermission, BasePermissionEnum
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .types import AppExtensionMount, AppExtensionTarget, AppType
+from .types import (
+    AppExtensionHttpMethod,
+    AppExtensionMount,
+    AppExtensionTarget,
+    AppType,
+)
 
 
 class AppQueryset(models.QuerySet["App"]):
@@ -164,8 +169,16 @@ class AppExtension(models.Model):
         help_text="Specific permissions for this app extension.",
     )
     # todo: In 3.23 we can make these fields required. In 3.22 it's nullable due to zero-downtime
-    new_tab_target_method = models.CharField(blank=False, null=True)
-    widget_target_method = models.CharField(blank=False, null=True)
+    new_tab_target_method = models.CharField(
+        blank=False,
+        null=True,
+        choices=AppExtensionHttpMethod.CHOICES,
+    )
+    widget_target_method = models.CharField(
+        blank=False,
+        null=True,
+        choices=AppExtensionHttpMethod.CHOICES,
+    )
 
 
 class AppInstallation(Job):

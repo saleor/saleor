@@ -176,7 +176,7 @@ class AppExtensionOptionsType(BaseObjectType):
 
     widget_target = graphene.Field(
         WidgetTargetOptions,
-        description="Options for opening the extension in a new tab.",
+        description="Options for displaying a Widget",
         required=False,
     )
 

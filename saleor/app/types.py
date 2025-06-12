@@ -1,6 +1,3 @@
-from enum import Enum
-
-
 class AppType:
     LOCAL = "local"
     THIRDPARTY = "thirdparty"
@@ -146,6 +143,13 @@ class AppExtensionTarget:
     ]
 
 
-class AppExtensionHttpMethod(str, Enum):
+class AppExtensionHttpMethod:
+    """HTTP methods available for app extensions.
+
+    Represents available HTTPS methods for frontend to work with extension (WIDGET and NEW_TAB)
+    """
+
     GET = "GET"
     POST = "POST"
+
+    CHOICES = [("GET", "GET"), ("POST", "POST")]

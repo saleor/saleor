@@ -49,20 +49,25 @@ def brand_validator(brand):
         )
 
 
+def validate_POST_or_GET_http_method(value):
+    """Validate that the HTTP method is either GET or POST."""
+    if value not in [
+        AppExtensionHttpMethod.GET,
+        AppExtensionHttpMethod.POST,
+    ]:
+        raise ValueError(
+            f"Method must be either {AppExtensionHttpMethod.GET} or {AppExtensionHttpMethod.POST}"
+        )
+    return value
+
+
 class NewTabTargetOptions(BaseModel):
     method: Literal["GET", "POST"]
 
     @field_validator("method")
     @classmethod
     def validate_method(cls, value):
-        if value not in [
-            AppExtensionHttpMethod.GET.value,
-            AppExtensionHttpMethod.POST.value,
-        ]:
-            raise ValueError(
-                f"Method must be either {AppExtensionHttpMethod.GET.value} or {AppExtensionHttpMethod.POST.value}"
-            )
-        return value
+        return validate_POST_or_GET_http_method(value)
 
 
 class WidgetTargetOptions(BaseModel):
@@ -71,14 +76,7 @@ class WidgetTargetOptions(BaseModel):
     @field_validator("method")
     @classmethod
     def validate_method(cls, value):
-        if value not in [
-            AppExtensionHttpMethod.GET.value,
-            AppExtensionHttpMethod.POST.value,
-        ]:
-            raise ValueError(
-                f"Method must be either {AppExtensionHttpMethod.GET.value} or {AppExtensionHttpMethod.POST.value}"
-            )
-        return value
+        return validate_POST_or_GET_http_method(value)
 
 
 class AppExtensionOptions(BaseModel):

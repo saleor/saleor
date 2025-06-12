@@ -3018,7 +3018,7 @@ type AppExtensionOptionsType @doc(category: "Apps") {
   """Options for opening the extension in a new tab."""
   newTabTarget: NewTabTargetOptions
 
-  """Options for opening the extension in a new tab."""
+  """Options for displaying a Widget"""
   widgetTarget: WidgetTargetOptions
 }
 
