@@ -1,12 +1,13 @@
 import mimetypes
 import re
-from typing import Literal
+from typing import Annotated, Literal
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from ..thumbnail import ICON_MIME_TYPES
+from ..webhook.response_schemas.utils.annotations import DefaultIfNone
 from .error_codes import AppErrorCode
 from .types import AppExtensionHttpMethod
 
@@ -80,8 +81,22 @@ class WidgetTargetOptions(BaseModel):
 
 
 class AppExtensionOptions(BaseModel):
-    newTabTarget: NewTabTargetOptions | None = None
-    widgetTarget: WidgetTargetOptions | None = None
+    new_tab_target: Annotated[
+        DefaultIfNone[NewTabTargetOptions],
+        Field(
+            validation_alias="newTabTarget",
+            description="Settings for extension target NEW_TAB",
+            default=None,
+        ),
+    ]
+    widget_target: Annotated[
+        DefaultIfNone[WidgetTargetOptions],
+        Field(
+            validation_alias="widgetTarget",
+            description="Settings for extension target NEW_TAB",
+            default=None,
+        ),
+    ]
 
     @model_validator(mode="after")
     def validate_either_or(cls, values):

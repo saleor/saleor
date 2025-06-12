@@ -168,7 +168,6 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
-    # todo: In 3.23 we can make these fields required. In 3.22 it's nullable due to zero-downtime
     new_tab_target_method = models.CharField(
         blank=False,
         null=True,
