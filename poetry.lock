@@ -399,14 +399,14 @@ files = [
 
 [[package]]
 name = "celery"
-version = "5.5.1"
+version = "5.5.3"
 description = "Distributed Task Queue."
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
 files = [
-    {file = "celery-5.5.1-py3-none-any.whl", hash = "sha256:9f4f9e57e36000c097c1b6f7a8ab29814b82771e5439836f83915823809729c8"},
-    {file = "celery-5.5.1.tar.gz", hash = "sha256:2af9109a10fe28155044f4c387ce0e5e7f1fc89f9584cfb4b0df94f99a5fedc7"},
+    {file = "celery-5.5.3-py3-none-any.whl", hash = "sha256:0b5761a07057acee94694464ca482416b959568904c9dfa41ce8413a7d65d525"},
+    {file = "celery-5.5.3.tar.gz", hash = "sha256:6c972ae7968c2b5281227f01c3a3f984037d21c5129d07bf3550cc2afc6b10a5"},
 ]
 
 [package.dependencies]
@@ -418,10 +418,10 @@ click-plugins = ">=1.1.1"
 click-repl = ">=0.2.0"
 kombu = [
     {version = ">=5.5.2,<5.6"},
-    {version = ">=5.3.4", extras = ["sqs"], optional = true, markers = "extra == \"sqs\""},
+    {version = "*", extras = ["redis"], optional = true, markers = "extra == \"redis\""},
+    {version = ">=5.5.0", extras = ["sqs"], optional = true, markers = "extra == \"sqs\""},
 ]
 python-dateutil = ">=2.8.2"
-redis = {version = ">=4.5.2,<4.5.5 || >4.5.5,<6.0.0", optional = true, markers = "extra == \"redis\""}
 urllib3 = {version = ">=1.26.16", optional = true, markers = "extra == \"sqs\""}
 vine = ">=5.1.0,<6.0"
 
@@ -443,20 +443,20 @@ gcs = ["google-cloud-firestore (==2.20.1)", "google-cloud-storage (>=2.10.0)", "
 gevent = ["gevent (>=1.5.0)"]
 librabbitmq = ["librabbitmq (>=2.0.0) ; python_version < \"3.11\""]
 memcache = ["pylibmc (==1.6.3) ; platform_system != \"Windows\""]
-mongodb = ["pymongo (==4.10.1)"]
-msgpack = ["msgpack (==1.1.0)"]
+mongodb = ["kombu[mongodb]"]
+msgpack = ["kombu[msgpack]"]
 pydantic = ["pydantic (>=2.4)"]
 pymemcache = ["python-memcached (>=1.61)"]
 pyro = ["pyro4 (==4.82) ; python_version < \"3.11\""]
 pytest = ["pytest-celery[all] (>=1.2.0,<1.3.0)"]
-redis = ["redis (>=4.5.2,!=4.5.5,<6.0.0)"]
+redis = ["kombu[redis]"]
 s3 = ["boto3 (>=1.26.143)"]
 slmq = ["softlayer_messaging (>=1.0.3)"]
 solar = ["ephem (==4.2) ; platform_python_implementation != \"PyPy\""]
-sqlalchemy = ["sqlalchemy (>=1.4.48,<2.1)"]
-sqs = ["boto3 (>=1.26.143)", "kombu[sqs] (>=5.3.4)", "urllib3 (>=1.26.16)"]
+sqlalchemy = ["kombu[sqlalchemy]"]
+sqs = ["boto3 (>=1.26.143)", "kombu[sqs] (>=5.5.0)", "urllib3 (>=1.26.16)"]
 tblib = ["tblib (>=1.3.0) ; python_version < \"3.8.0\"", "tblib (>=1.5.0) ; python_version >= \"3.8.0\""]
-yaml = ["PyYAML (>=3.10)"]
+yaml = ["kombu[yaml]"]
 zookeeper = ["kazoo (>=1.3.1)"]
 zstd = ["zstandard (==0.23.0)"]
 
@@ -1127,18 +1127,18 @@ test = ["djangorestframework", "graphene-django", "pytest", "pytest-cov", "pytes
 
 [[package]]
 name = "django-extensions"
-version = "3.2.3"
+version = "4.1"
 description = "Extensions for Django"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "django-extensions-3.2.3.tar.gz", hash = "sha256:44d27919d04e23b3f40231c4ab7af4e61ce832ef46d610cc650d53e68328410a"},
-    {file = "django_extensions-3.2.3-py3-none-any.whl", hash = "sha256:9600b7562f79a92cbf1fde6403c04fee314608fefbb595502e34383ae8203401"},
+    {file = "django_extensions-4.1-py3-none-any.whl", hash = "sha256:0699a7af28f2523bf8db309a80278519362cd4b6e1fd0a8cd4bf063e1e023336"},
+    {file = "django_extensions-4.1.tar.gz", hash = "sha256:7b70a4d28e9b840f44694e3f7feb54f55d495f8b3fa6c5c0e5e12bcb2aa3cdeb"},
 ]
 
 [package.dependencies]
-Django = ">=3.2"
+django = ">=4.2"
 
 [[package]]
 name = "django-filter"
@@ -2138,6 +2138,7 @@ files = [
 [package.dependencies]
 amqp = ">=5.1.1,<6.0.0"
 boto3 = {version = ">=1.26.143", optional = true, markers = "extra == \"sqs\""}
+redis = {version = ">=4.5.2,<4.5.5 || >4.5.5,<5.0.2 || >5.0.2,<=5.2.1", optional = true, markers = "extra == \"redis\""}
 tzdata = {version = ">=2025.2", markers = "python_version >= \"3.9\""}
 urllib3 = {version = ">=1.26.16", optional = true, markers = "extra == \"sqs\""}
 vine = "5.1.0"
@@ -2733,14 +2734,14 @@ reports = ["lxml"]
 
 [[package]]
 name = "mypy-extensions"
-version = "1.0.0"
+version = "1.1.0"
 description = "Type system extensions for programs checked with the mypy type checker."
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "mypy_extensions-1.0.0-py3-none-any.whl", hash = "sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d"},
-    {file = "mypy_extensions-1.0.0.tar.gz", hash = "sha256:75dbf8955dc00442a438fc4d0666508a9a97b6bd41aa2f0ffe9d2f2725af0782"},
+    {file = "mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505"},
+    {file = "mypy_extensions-1.1.0.tar.gz", hash = "sha256:52e68efc3284861e772bbcd66823fde5ae21fd2fdb51c62a211403730b916558"},
 ]
 
 [[package]]
@@ -3048,14 +3049,14 @@ ptyprocess = ">=0.5"
 
 [[package]]
 name = "phonenumberslite"
-version = "8.13.55"
+version = "9.0.7"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "phonenumberslite-8.13.55-py2.py3-none-any.whl", hash = "sha256:3daa107c7d89576effa8ecc0ed17f0e8845055836590a96fa5f1fdac5dd475e0"},
-    {file = "phonenumberslite-8.13.55.tar.gz", hash = "sha256:b961bb36d32688bcf28ec308f8f11f502353c9aa5f9fb18261b215c6b0e6b898"},
+    {file = "phonenumberslite-9.0.7-py2.py3-none-any.whl", hash = "sha256:60756f4c0a6057820c7e39dbd589038aebab61d6f336369ada8c6a01bf38cae9"},
+    {file = "phonenumberslite-9.0.7.tar.gz", hash = "sha256:4520413b78961165ee427afcd3ab93449c347aaf27b7c2a109258d14dfabdf21"},
 ]
 
 [[package]]
@@ -4980,18 +4981,15 @@ urllib3 = ">=2"
 
 [[package]]
 name = "types-setuptools"
-version = "75.8.2.20250305"
+version = "80.9.0.20250529"
 description = "Typing stubs for setuptools"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "types_setuptools-75.8.2.20250305-py3-none-any.whl", hash = "sha256:ba80953fd1f5f49e552285c024f75b5223096a38a5138a54d18ddd3fa8f6a2d4"},
-    {file = "types_setuptools-75.8.2.20250305.tar.gz", hash = "sha256:a987269b49488f21961a1d99aa8d281b611625883def6392a93855b31544e405"},
+    {file = "types_setuptools-80.9.0.20250529-py3-none-any.whl", hash = "sha256:00dfcedd73e333a430e10db096e4d46af93faf9314f832f13b6bbe3d6757e95f"},
+    {file = "types_setuptools-80.9.0.20250529.tar.gz", hash = "sha256:79e088ba0cba2186c8d6499cbd3e143abb142d28a44b042c28d3148b1e353c91"},
 ]
-
-[package.dependencies]
-setuptools = "*"
 
 [[package]]
 name = "types-six"
@@ -5616,4 +5614,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "1d99221538d816608e9a7b6f2676c28e4fd16583dc1d5b0e04c9b6b723081c4d"
+content-hash = "9153711ad3ecbef89d7296e771af20281ca4cb93f7cc26e04c88112607415289"

@@ -15,14 +15,14 @@ repos:
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0
+    rev: v0.11.13
     hooks:
       - id: ruff
         args: [ --fix ]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.15.0
+    rev: v1.16.0
     hooks:
       - id: mypy
         args: [--cache-dir=/dev/null] # Disable cache to avoid issues with pre-commit
@@ -35,7 +35,7 @@ repos:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.121.0
+    rev: v1.89.0
     hooks:
     - id: semgrep
       exclude_types:
@@ -56,7 +56,7 @@ repos:
         - --quiet
 
   - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.2
+    rev: 2.1.3
     hooks:
       - id: poetry-lock
         files: "^pyproject.toml$"
