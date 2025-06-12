@@ -2943,8 +2943,12 @@ type AppExtension implements Node @doc(category: "Apps") {
   """JWT token used to authenticate by third-party app extension."""
   accessToken: String
 
-  """App extension options."""
-  options: AppExtensionOptionsType
+  """
+  App extension options.
+  
+  Added in Saleor 3.22.
+  """
+  options: AppExtensionPossibleOptions
 }
 
 """All places where app extension can be mounted."""
@@ -3013,18 +3017,17 @@ enum AppExtensionTargetEnum @doc(category: "Apps") {
   WIDGET
 }
 
-"""Represents the options for an app extension."""
-type AppExtensionOptionsType @doc(category: "Apps") {
-  """Options for opening the extension in a new tab."""
-  newTabTarget: NewTabTargetOptions
+union AppExtensionPossibleOptions = AppExtensionOptionsWidget | AppExtensionOptionsNewTab
 
+"""Represents the options for an app extension."""
+type AppExtensionOptionsWidget @doc(category: "Apps") {
   """Options for displaying a Widget"""
   widgetTarget: WidgetTargetOptions
 }
 
-"""Represents the NEW_TAB target options for an app extension."""
-type NewTabTargetOptions @doc(category: "Apps") {
-  """HTTP method for New Tab target (GET or POST)"""
+"""Represents the WIDGET target options for an app extension."""
+type WidgetTargetOptions @doc(category: "Apps") {
+  """HTTP method for Widget target (GET or POST)"""
   method: HttpMethod!
 }
 
@@ -3033,10 +3036,10 @@ enum HttpMethod {
   GET
 }
 
-"""Represents the WIDGET target options for an app extension."""
-type WidgetTargetOptions @doc(category: "Apps") {
-  """HTTP method for Widget target (GET or POST)"""
-  method: HttpMethod!
+"""Represents the options for an app extension."""
+type AppExtensionOptionsNewTab @doc(category: "Apps") {
+  """Options controlling behavior of the NEW_TAB extension target"""
+  widgetTarget: WidgetTargetOptions
 }
 
 """Represents the app's brand data."""

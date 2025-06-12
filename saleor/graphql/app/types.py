@@ -27,7 +27,7 @@ from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_321
+from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.scalars import DateTime
@@ -167,13 +167,7 @@ class WidgetTargetOptions(BaseObjectType):
         doc_category = DOC_CATEGORY_APPS
 
 
-class AppExtensionOptionsType(BaseObjectType):
-    new_tab_target = graphene.Field(
-        NewTabTargetOptions,
-        description="Options for opening the extension in a new tab.",
-        required=False,
-    )
-
+class AppExtensionOptionsWidget(BaseObjectType):
     widget_target = graphene.Field(
         WidgetTargetOptions,
         description="Options for displaying a Widget",
@@ -183,6 +177,23 @@ class AppExtensionOptionsType(BaseObjectType):
     class Meta:
         description = "Represents the options for an app extension."
         doc_category = DOC_CATEGORY_APPS
+
+
+class AppExtensionOptionsNewTab(BaseObjectType):
+    widget_target = graphene.Field(
+        WidgetTargetOptions,
+        description="Options controlling behavior of the NEW_TAB extension target",
+        required=False,
+    )
+
+    class Meta:
+        description = "Represents the options for an app extension."
+        doc_category = DOC_CATEGORY_APPS
+
+
+class AppExtensionPossibleOptions(graphene.Union):
+    class Meta:
+        types = (AppExtensionOptionsWidget, AppExtensionOptionsNewTab)
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
@@ -196,8 +207,8 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         description="JWT token used to authenticate by third-party app extension."
     )
     options = graphene.Field(
-        AppExtensionOptionsType,
-        description="App extension options.",
+        AppExtensionPossibleOptions,
+        description="App extension options." + ADDED_IN_322,
     )
 
     class Meta:
@@ -258,12 +269,12 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         new_tab_method = getattr(root, "new_tab_target_method", None)
         widget_method = getattr(root, "widget_target_method", None)
         if new_tab_method:
-            return AppExtensionOptionsType(
+            return AppExtensionOptionsNewTab(
                 new_tab_target=NewTabTargetOptions(method=new_tab_method),
                 widget_target=None,
             )
         if widget_method:
-            return AppExtensionOptionsType(
+            return AppExtensionOptionsWidget(
                 new_tab_target=None,
                 widget_target=WidgetTargetOptions(method=widget_method),
             )
