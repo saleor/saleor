@@ -19,8 +19,8 @@ from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
 from ..filters import EnumFilter
+from ..filters.filter_input import FilterInputObjectType
 from ..mutations import BaseMutation, ModelWithExtRefMutation
-from ..types import FilterInputObjectType
 from ..utils import (
     add_hash_to_file_name,
     ext_ref_to_global_id_or_error,

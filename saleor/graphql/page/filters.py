@@ -5,14 +5,13 @@ from django.db.models import Q
 from ...page import models
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.filters import (
+    FilterInputObjectType,
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
-    filter_slug_list,
 )
-from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_by_id
+from ..utils.filters import filter_by_id, filter_slug_list
 from .types import Page, PageType
 
 

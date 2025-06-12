@@ -25,18 +25,18 @@ from ..core.filters import (
     OperationObjectTypeWhereFilter,
     WhereFilterSet,
 )
+from ..core.filters.where_input import (
+    DateTimeFilterInput,
+    DecimalFilterInput,
+    FilterInputDescriptions,
+    StringFilterInput,
+    WhereInputObjectType,
+)
 from ..core.types import (
     BaseInputObjectType,
-    DateTimeFilterInput,
     DateTimeRangeInput,
     IntRangeInput,
     NonNullList,
-    StringFilterInput,
-)
-from ..core.types.filter_input import (
-    DecimalFilterInput,
-    FilterInputDescriptions,
-    WhereInputObjectType,
 )
 from ..utils.filters import (
     filter_by_id,

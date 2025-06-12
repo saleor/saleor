@@ -13,7 +13,9 @@ from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
     BooleanWhereFilter,
+    ChannelFilterInputObjectType,
     EnumFilter,
+    FilterInputObjectType,
     GlobalIDFilter,
     GlobalIDMultipleChoiceFilter,
     GlobalIDMultipleChoiceWhereFilter,
@@ -22,19 +24,19 @@ from ..core.filters import (
     MetadataFilterBase,
     MetadataWhereFilterBase,
     OperationObjectTypeWhereFilter,
-    filter_slug_list,
+)
+from ..core.filters.where_input import (
+    FilterInputDescriptions,
+    StringFilterInput,
+    WhereInputObjectType,
 )
 from ..core.types import (
     BaseInputObjectType,
-    ChannelFilterInputObjectType,
-    FilterInputObjectType,
     NonNullList,
-    StringFilterInput,
 )
-from ..core.types.filter_input import FilterInputDescriptions, WhereInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
-from ..utils.filters import filter_by_ids, filter_where_by_value_field
+from ..utils.filters import filter_by_ids, filter_slug_list, filter_where_by_value_field
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 

@@ -718,6 +718,7 @@ def _get_new_order_line(order, variant, channel):
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_type_id=product.product_type.id,
         product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),

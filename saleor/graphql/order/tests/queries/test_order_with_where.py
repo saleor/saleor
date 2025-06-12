@@ -21,6 +21,47 @@ from .....order.search import (
 )
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
+
+def test_order_query_with_filter_and_where(
+    staff_api_client,
+    permission_group_manage_orders,
+    orders,
+):
+    # given
+    query = """
+        query ($where: OrderWhereInput!, $filter: OrderFilterInput!) {
+            orders(first: 10, where: $where, filter: $filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    variables = {
+        "where": {
+            "status": {
+                "eq": OrderStatus.UNFULFILLED.upper(),
+            },
+        },
+        "filter": {
+            "search": "test",
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    error_message = "Only one filtering argument (filter or where) can be specified."
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert content["errors"][0]["message"] == error_message
+    assert not content["data"]["orders"]
+
+
 ORDERS_WHERE_QUERY = """
     query($where: OrderWhereInput!, $search: String) {
       orders(first: 10, search: $search, where: $where) {
@@ -1620,41 +1661,113 @@ def test_orders_filter_by_lines_count(
     assert numbers == {str(order_list[index].number) for index in indexes}
 
 
-def test_order_query_with_filter_and_where(
+@pytest.mark.parametrize(
+    ("currency", "where", "indexes"),
+    [
+        ("USD", {"range": {"gte": "100.00", "lte": "200.00"}}, [0, 1]),
+        ("USD", {"range": {"gte": "150.00"}}, [1]),
+        ("PLN", {"range": {"gte": "150.00"}}, [2]),
+        (None, {"range": {"gte": "150.00"}}, [1, 2]),
+        ("USD", {"range": {"lte": "120.00"}}, [0]),
+        ("USD", {"eq": "150.00"}, [1]),
+        ("PLN", {"eq": "150.00"}, []),
+        ("USD", {"oneOf": ["100.00", "110.00"]}, [0]),
+        ("USD", {}, []),
+        (None, {"range": {"gte": None}}, []),
+        ("USD", {"range": {"lte": None}}, []),
+        ("USD", {"eq": None}, []),
+        (None, {"eq": None}, []),
+    ],
+)
+def test_orders_filter_by_total_gross(
+    currency,
+    where,
+    indexes,
+    order_list,
     staff_api_client,
     permission_group_manage_orders,
-    orders,
 ):
     # given
-    query = """
-        query ($where: OrderWhereInput!, $filter: OrderFilterInput!) {
-            orders(first: 10, where: $where, filter: $filter) {
-                totalCount
-                edges {
-                    node {
-                        id
-                    }
-                }
-            }
-        }
-    """
+    order_list[0].total_gross_amount = "110.00"
+    order_list[0].currency = "USD"
+    order_list[1].total_gross_amount = "150.00"
+    order_list[1].currency = "USD"
+    order_list[2].total_gross_amount = "200.00"
+    order_list[2].currency = "PLN"
+    Order.objects.bulk_update(order_list, ["total_gross_amount", "currency"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "status": {
-                "eq": OrderStatus.UNFULFILLED.upper(),
-            },
-        },
-        "filter": {
-            "search": "test",
-        },
+            "totalGross": {
+                "currency": currency,
+                "amount": where,
+            }
+        }
     }
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    error_message = "Only one filtering argument (filter or where) can be specified."
 
     # when
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
 
     # then
-    content = get_graphql_content_from_response(response)
-    assert content["errors"][0]["message"] == error_message
-    assert not content["data"]["orders"]
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[index].number) for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("currency", "where", "indexes"),
+    [
+        ("USD", {"range": {"gte": "100.00", "lte": "200.00"}}, [0, 1]),
+        ("USD", {"range": {"gte": "150.00"}}, [1]),
+        ("PLN", {"range": {"gte": "150.00"}}, [2]),
+        (None, {"range": {"gte": "150.00"}}, [1, 2]),
+        ("USD", {"range": {"lte": "120.00"}}, [0]),
+        ("USD", {"eq": "150.00"}, [1]),
+        ("PLN", {"eq": "150.00"}, []),
+        ("USD", {"oneOf": ["100.00", "110.00"]}, [0]),
+        ("USD", {}, []),
+        (None, {"range": {"gte": None}}, []),
+        ("USD", {"range": {"lte": None}}, []),
+        ("USD", {"eq": None}, []),
+        (None, {"eq": None}, []),
+    ],
+)
+def test_orders_filter_by_total_net(
+    currency,
+    where,
+    indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    order_list[0].total_net_amount = "110.00"
+    order_list[0].currency = "USD"
+    order_list[1].total_net_amount = "150.00"
+    order_list[1].currency = "USD"
+    order_list[2].total_net_amount = "200.00"
+    order_list[2].currency = "PLN"
+    Order.objects.bulk_update(order_list, ["total_net_amount", "currency"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "totalNet": {
+                "currency": currency,
+                "amount": where,
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[index].number) for index in indexes}

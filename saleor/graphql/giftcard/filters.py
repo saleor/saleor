@@ -11,6 +11,7 @@ from ...order import models as order_models
 from ...product import models as product_models
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.filters import (
+    FilterInputObjectType,
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
@@ -18,7 +19,6 @@ from ..core.filters import (
 )
 from ..core.types import (
     BaseInputObjectType,
-    FilterInputObjectType,
     NonNullList,
     PriceRangeInput,
 )

@@ -37,8 +37,10 @@ from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     BooleanWhereFilter,
+    ChannelFilterInputObjectType,
     EnumFilter,
     EnumWhereFilter,
+    FilterInputObjectType,
     GlobalIDMultipleChoiceFilter,
     GlobalIDMultipleChoiceWhereFilter,
     ListObjectTypeFilter,
@@ -48,30 +50,28 @@ from ..core.filters import (
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
-    filter_slug_list,
+)
+from ..core.filters.where_input import (
+    DateTimeFilterInput,
+    DecimalFilterInput,
+    GlobalIDFilterInput,
+    StringFilterInput,
+    WhereInputObjectType,
 )
 from ..core.scalars import DateTime
 from ..core.types import (
     BaseInputObjectType,
-    ChannelFilterInputObjectType,
-    DateTimeFilterInput,
     DateTimeRangeInput,
-    FilterInputObjectType,
     IntRangeInput,
     NonNullList,
     PriceRangeInput,
-    StringFilterInput,
-)
-from ..core.types.filter_input import (
-    DecimalFilterInput,
-    GlobalIDFilterInput,
-    WhereInputObjectType,
 )
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
     filter_range_field,
+    filter_slug_list,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
     filter_where_by_value_field,

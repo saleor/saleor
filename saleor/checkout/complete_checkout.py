@@ -373,6 +373,7 @@ def _create_line_for_order(
         translated_variant_name=translated_variant_name,
         product_sku=variant.sku,
         product_variant_id=variant.get_global_id(),
+        product_type_id=checkout_line_info.product.product_type_id,
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,

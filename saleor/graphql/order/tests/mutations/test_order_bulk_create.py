@@ -578,6 +578,7 @@ def test_order_bulk_create_unit_discount(
     assert (
         db_order.lines_count == len(order_bulk_input["lines"]) == db_order.lines.count()
     )
+    assert db_order_line.product_type_id == variant.product.product_type_id
 
 
 def test_order_bulk_create_unit_discount_mismatched_discount(

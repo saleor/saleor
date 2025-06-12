@@ -396,6 +396,14 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             ),
             BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
             BTreeIndex(fields=["lines_count"], name="lines_count_idx"),
+            BTreeIndex(
+                fields=["total_gross_amount"],
+                name="order_totalgrossamount_idx",
+            ),
+            BTreeIndex(
+                fields=["total_net_amount"],
+                name="order_totalnetamount_idx",
+            ),
         ]
 
     def is_fully_paid(self):
@@ -571,6 +579,10 @@ class OrderLine(ModelWithMetadata):
     product_sku = models.CharField(max_length=255, null=True, blank=True)
     # str with GraphQL ID used as fallback when product SKU is not available
     product_variant_id = models.CharField(max_length=255, null=True, blank=True)
+
+    # denormalized product type id
+    product_type_id = models.IntegerField(null=True, blank=True)
+
     is_shipping_required = models.BooleanField()
     is_gift_card = models.BooleanField()
     quantity = models.IntegerField(validators=[MinValueValidator(1)])

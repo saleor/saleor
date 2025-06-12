@@ -290,7 +290,7 @@ def format_error(error, handled_exceptions, query=None):
     if query:
         exc._exc_query = query
     if isinstance(exc, handled_exceptions):
-        handled_errors_logger.info("A query had an error", exc_info=exc)
+        handled_errors_logger.debug("A query had an error", exc_info=exc)
     else:
         unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 

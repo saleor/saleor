@@ -4,11 +4,11 @@ from ...tax import models
 from ..account.enums import CountryCodeEnum
 from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.filters import (
+    FilterInputObjectType,
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
 )
-from ..core.types import FilterInputObjectType
 from ..utils.filters import filter_by_id
 from .types import TaxClass, TaxConfiguration
 
