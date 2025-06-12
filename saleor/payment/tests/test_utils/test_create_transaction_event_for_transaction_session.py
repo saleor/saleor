@@ -1044,3 +1044,158 @@ def test_create_transaction_event_for_transaction_session_twice_auth(
     assert failed_event
     assert failed_event.psp_reference == request_event.psp_reference
     assert failed_event.type == TransactionEventType.AUTHORIZATION_FAILURE
+
+
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_FAILURE,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "firstDigits": "1234",
+            "lastDigits": "5678",
+            "expMonth": 12,
+            "expYear": 2025,
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "lastDigits": "5678",
+        },
+        {
+            "type": "OTHER",
+            "name": "Test Other",
+        },
+    ],
+)
+def test_create_transaction_event_for_transaction_session_sets_payment_method_details(
+    payment_method_details,
+    response_result,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    response["paymentMethodDetails"] = payment_method_details
+
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then
+    assert response_event
+    transaction.refresh_from_db()
+    assert transaction.payment_method_name == payment_method_details["name"]
+    assert transaction.payment_method_type == payment_method_details["type"].lower()
+    assert transaction.cc_brand == payment_method_details.get("brand")
+    assert transaction.cc_first_digits == payment_method_details.get("firstDigits")
+    assert transaction.cc_last_digits == payment_method_details.get("lastDigits")
+    assert transaction.cc_exp_month == payment_method_details.get("expMonth")
+    assert transaction.cc_exp_year == payment_method_details.get("expYear")
+
+
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_FAILURE,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        # unknown type
+        {
+            "type": "WRONG-TYPE",
+            "name": "Test Card",
+        },
+        # Missing name
+        {
+            "type": "CARD",
+        },
+        # Missing type
+        {
+            "name": "Test Card",
+        },
+    ],
+)
+def test_create_transaction_event_for_transaction_session_invalid_payment_method_details(
+    payment_method_details,
+    response_result,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    response["paymentMethodDetails"] = payment_method_details
+
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        include_in_calculations=False,
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        transaction_webhook_response=response,
+    )
+
+    # then
+    assert response_event
+    assert response_event.type == TransactionEventType.AUTHORIZATION_FAILURE
+    assert "paymentMethodDetails" in response_event.message
+
+    transaction.refresh_from_db()
+    assert not transaction.payment_method_name
+    assert not transaction.payment_method_type
+    assert not transaction.cc_brand
+    assert not transaction.cc_first_digits
+    assert not transaction.cc_last_digits
+    assert not transaction.cc_exp_month
+    assert not transaction.cc_exp_year

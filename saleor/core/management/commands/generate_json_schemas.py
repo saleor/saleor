@@ -69,6 +69,7 @@ class Command(BaseCommand):
         path = os.path.join(SCHEMA_OUTPUT_DIR, file_name)
         with open(path, "w") as f:
             json.dump(schema, f, indent=2)
+            f.write("\n")
         self.stdout.write(self.style.SUCCESS(f"Generated {path}"))
 
     @staticmethod
