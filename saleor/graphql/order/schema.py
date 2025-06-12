@@ -22,8 +22,9 @@ from ..core.fields import (
     FilterConnectionField,
     PermissionsField,
 )
+from ..core.filters import FilterInputObjectType
 from ..core.scalars import UUID
-from ..core.types import FilterInputObjectType, TaxedMoney
+from ..core.types import TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..utils import get_user_or_app_from_context

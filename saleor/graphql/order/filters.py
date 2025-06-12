@@ -29,14 +29,7 @@ from ..core.filters import (
     OperationObjectTypeWhereFilter,
     WhereFilterSet,
 )
-from ..core.scalars import UUID as UUIDScalar
-from ..core.types import (
-    BaseInputObjectType,
-    DateRangeInput,
-    DateTimeRangeInput,
-    NonNullList,
-)
-from ..core.types.filter_input import (
+from ..core.filters.where_input import (
     FilterInputDescriptions,
     GlobalIDFilterInput,
     IntFilterInput,
@@ -44,6 +37,13 @@ from ..core.types.filter_input import (
     StringFilterInput,
     UUIDFilterInput,
     WhereInputObjectType,
+)
+from ..core.scalars import UUID as UUIDScalar
+from ..core.types import (
+    BaseInputObjectType,
+    DateRangeInput,
+    DateTimeRangeInput,
+    NonNullList,
 )
 from ..core.utils import from_global_id_or_error
 from ..discount.filters import DiscountedObjectWhere

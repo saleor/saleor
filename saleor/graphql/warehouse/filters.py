@@ -10,13 +10,13 @@ from ..channel.types import Channel
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     EnumFilter,
+    FilterInputObjectType,
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
-    filter_slug_list,
 )
-from ..core.types import FilterInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
+from ..utils.filters import filter_slug_list
 from ..warehouse.enums import WarehouseClickAndCollectOptionEnum
 
 

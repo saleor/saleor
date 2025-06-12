@@ -3,8 +3,12 @@ import graphene
 from django.db.models import Q
 
 from ...menu.models import Menu, MenuItem
-from ..core.filters import ListObjectTypeFilter, MetadataFilterBase, filter_slug_list
-from ..core.types import FilterInputObjectType
+from ..core.filters import (
+    FilterInputObjectType,
+    ListObjectTypeFilter,
+    MetadataFilterBase,
+)
+from ..utils.filters import filter_slug_list
 
 
 def filter_menu_search(qs, _, value):
