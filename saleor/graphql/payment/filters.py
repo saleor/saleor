@@ -1,8 +1,7 @@
 import django_filters
 
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
-from ..core.filters import GlobalIDMultipleChoiceFilter
-from ..core.types import FilterInputObjectType
+from ..core.filters import FilterInputObjectType, GlobalIDMultipleChoiceFilter
 from .types import Payment
 
 

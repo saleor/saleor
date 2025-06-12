@@ -162,3 +162,7 @@ def filter_where_by_price_field(qs: "QuerySet", field: str, value: dict) -> "Que
     if currency := value.get("currency"):
         qs = qs.filter(currency=currency)
     return filter_where_range_field(qs, field, value.get("amount", {}))
+
+
+def filter_slug_list(qs, _, values):
+    return qs.filter(slug__in=values)

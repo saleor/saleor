@@ -3,8 +3,7 @@ import django_filters
 from ...shipping.models import ShippingZone
 from ..channel.types import Channel
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
-from ..core.filters import GlobalIDMultipleChoiceFilter
-from ..core.types import FilterInputObjectType
+from ..core.filters import FilterInputObjectType, GlobalIDMultipleChoiceFilter
 from ..utils import resolve_global_ids_to_primary_keys
 
 
