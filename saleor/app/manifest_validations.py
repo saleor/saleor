@@ -99,7 +99,7 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
 
-        if parsed_extension_url.scheme != "https" if settings.ENABLE_SSL else "http":
+        if parsed_extension_url.scheme != "https" and settings.ENABLE_SSL:
             raise ValidationError("Extension must start with https")
 
         if parsed_app_url.hostname != parsed_extension_url.hostname:
@@ -240,13 +240,8 @@ def _clean_extension_options(extension, errors):
     try:
         validated_options = AppExtensionOptions.model_validate(options)
 
-        if validated_options.widgetTarget and validated_options.newTabTarget:
-            raise ValidationError(
-                "You cannot specify both widgetTarget and newTabTarget."
-            )
-
         if (
-            validated_options.widgetTarget
+            validated_options.widget_target
             and extension.get("target") != AppExtensionTarget.WIDGET
         ):
             raise ValidationError(
@@ -254,7 +249,7 @@ def _clean_extension_options(extension, errors):
             )
 
         if (
-            validated_options.newTabTarget
+            validated_options.new_tab_target
             and extension.get("target") != AppExtensionTarget.NEW_TAB
         ):
             raise ValidationError(

@@ -188,25 +188,29 @@ def test_clean_extension_url(extension, manifest, should_raise):
 
 
 def test_app_extension_options_accepts_only_one():
-    opts = AppExtensionOptions(newTabTarget=NewTabTargetOptions(method="GET"))
-    assert opts.newTabTarget is not None
-    assert opts.widgetTarget is None
+    opts = AppExtensionOptions(
+        new_tab_target=NewTabTargetOptions(method="GET"), widget_target=None
+    )
+    assert opts.new_tab_target is not None
+    assert opts.widget_target is None
 
-    opts = AppExtensionOptions(widgetTarget=WidgetTargetOptions(method="POST"))
-    assert opts.widgetTarget is not None
-    assert opts.newTabTarget is None
+    opts = AppExtensionOptions(
+        widget_target=WidgetTargetOptions(method="POST"), new_tab_target=None
+    )
+    assert opts.widget_target is not None
+    assert opts.new_tab_target is None
 
     with pytest.raises(
         ValueError, match="Only one of 'newTabTarget' or 'widgetTarget' can be set."
     ):
         AppExtensionOptions(
-            newTabTarget=NewTabTargetOptions(method="GET"),
-            widgetTarget=WidgetTargetOptions(method="POST"),
+            new_tab_target=NewTabTargetOptions(method="GET"),
+            widget_target=WidgetTargetOptions(method="POST"),
         )
 
-    opts = AppExtensionOptions()
-    assert opts.newTabTarget is None
-    assert opts.widgetTarget is None
+    opts = AppExtensionOptions(new_tab_target=None, widget_target=None)
+    assert opts.new_tab_target is None
+    assert opts.widget_target is None
 
 
 @pytest.mark.parametrize(
@@ -245,8 +249,8 @@ def test_clean_extension_options_valid_widget_options():
     assert "extensions" in errors
     assert len(errors["extensions"]) == 0
     assert "options" in extension
-    assert "widgetTarget" in extension["options"]
-    assert extension["options"]["widgetTarget"]["method"] == "POST"
+    assert "widget_target" in extension["options"]
+    assert extension["options"]["widget_target"]["method"] == "POST"
 
 
 def test_clean_extension_options_valid_new_tab_options():
@@ -264,8 +268,8 @@ def test_clean_extension_options_valid_new_tab_options():
     assert "extensions" in errors
     assert len(errors["extensions"]) == 0
     assert "options" in extension
-    assert "newTabTarget" in extension["options"]
-    assert extension["options"]["newTabTarget"]["method"] == "GET"
+    assert "new_tab_target" in extension["options"]
+    assert extension["options"]["new_tab_target"]["method"] == "GET"
 
 
 def test_clean_extension_options_both_targets():

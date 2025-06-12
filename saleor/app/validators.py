@@ -93,15 +93,15 @@ class AppExtensionOptions(BaseModel):
         DefaultIfNone[WidgetTargetOptions],
         Field(
             validation_alias="widgetTarget",
-            description="Settings for extension target NEW_TAB",
+            description="Settings for extension target WIDGET",
             default=None,
         ),
     ]
 
     @model_validator(mode="after")
     def validate_either_or(cls, values):
-        new_tab = values.newTabTarget
-        widget = values.widgetTarget
+        new_tab = values.new_tab_target
+        widget = values.widget_target
 
         if new_tab and widget:
             raise ValueError("Only one of 'newTabTarget' or 'widgetTarget' can be set.")
