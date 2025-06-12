@@ -3039,7 +3039,13 @@ enum HttpMethod {
 """Represents the options for an app extension."""
 type AppExtensionOptionsNewTab @doc(category: "Apps") {
   """Options controlling behavior of the NEW_TAB extension target"""
-  widgetTarget: WidgetTargetOptions
+  newTabTarget: NewTabTargetOptions
+}
+
+"""Represents the NEW_TAB target options for an app extension."""
+type NewTabTargetOptions @doc(category: "Apps") {
+  """HTTP method for New Tab target (GET or POST)"""
+  method: HttpMethod!
 }
 
 """Represents the app's brand data."""

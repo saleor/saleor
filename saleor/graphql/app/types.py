@@ -180,8 +180,8 @@ class AppExtensionOptionsWidget(BaseObjectType):
 
 
 class AppExtensionOptionsNewTab(BaseObjectType):
-    widget_target = graphene.Field(
-        WidgetTargetOptions,
+    new_tab_target = graphene.Field(
+        NewTabTargetOptions,
         description="Options controlling behavior of the NEW_TAB extension target",
         required=False,
     )
