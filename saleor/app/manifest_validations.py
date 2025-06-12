@@ -10,7 +10,7 @@ from pydantic import ValidationError as PydanticValidationError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
-from .. import __version__
+from .. import __version__, settings
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
@@ -99,7 +99,7 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
 
-        if parsed_extension_url.scheme != "https":
+        if parsed_extension_url.scheme != "https" if settings.ENABLE_SSL else "http":
             raise ValidationError("Extension must start with https")
 
         if parsed_app_url.hostname != parsed_extension_url.hostname:
