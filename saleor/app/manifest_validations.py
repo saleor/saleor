@@ -3,6 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from urllib.parse import urlparse
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -10,7 +11,7 @@ from pydantic import ValidationError as PydanticValidationError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
-from .. import __version__, settings
+from .. import __version__
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (

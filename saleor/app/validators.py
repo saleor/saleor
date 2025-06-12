@@ -7,7 +7,6 @@ from django.core.validators import URLValidator
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from ..thumbnail import ICON_MIME_TYPES
-from ..webhook.response_schemas.utils.annotations import DefaultIfNone
 from .error_codes import AppErrorCode
 from .types import AppExtensionHttpMethod
 
@@ -66,7 +65,6 @@ class NewTabTargetOptions(BaseModel):
     method: Literal["GET", "POST"]
 
     @field_validator("method")
-    @classmethod
     def validate_method(cls, value):
         return validate_POST_or_GET_http_method(value)
 
@@ -75,28 +73,25 @@ class WidgetTargetOptions(BaseModel):
     method: Literal["GET", "POST"]
 
     @field_validator("method")
-    @classmethod
     def validate_method(cls, value):
         return validate_POST_or_GET_http_method(value)
 
 
 class AppExtensionOptions(BaseModel):
     new_tab_target: Annotated[
-        DefaultIfNone[NewTabTargetOptions],
+        NewTabTargetOptions | None,
         Field(
             validation_alias="newTabTarget",
             description="Settings for extension target NEW_TAB",
-            default=None,
         ),
-    ]
+    ] = None
     widget_target: Annotated[
-        DefaultIfNone[WidgetTargetOptions],
+        WidgetTargetOptions | None,
         Field(
             validation_alias="widgetTarget",
             description="Settings for extension target WIDGET",
-            default=None,
         ),
-    ]
+    ] = None
 
     @model_validator(mode="after")
     def validate_either_or(cls, values):

@@ -5,8 +5,6 @@ from ... import __version__
 from ...app.validators import (
     AppExtensionOptions,
     AppURLValidator,
-    NewTabTargetOptions,
-    WidgetTargetOptions,
 )
 from ..error_codes import AppErrorCode
 from ..manifest_validations import (
@@ -161,16 +159,6 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
             {"tokenTargetUrl": "https://app.example.com"},
             True,
         ),
-        # url starts with http, should raise (must be https)
-        (
-            {
-                "url": "http://app.example.com/page",
-                "target": AppExtensionTarget.NEW_TAB,
-                "options": {"newTabTarget": {"method": "POST"}},
-            },
-            {"tokenTargetUrl": "https://app.example.com"},
-            True,
-        ),
         # url is valid absolute, target POPUP
         (
             {"url": "https://app.example.com/page", "target": AppExtensionTarget.POPUP},
@@ -183,34 +171,67 @@ def test_clean_extension_url(extension, manifest, should_raise):
     if should_raise:
         with pytest.raises(ValidationError):
             _clean_extension_url(extension, manifest)
+
     else:
         _clean_extension_url(extension, manifest)
 
 
-def test_app_extension_options_accepts_only_one():
-    opts = AppExtensionOptions(
-        new_tab_target=NewTabTargetOptions(method="GET"), widget_target=None
-    )
-    assert opts.new_tab_target is not None
-    assert opts.widget_target is None
+def test_clean_extension_url_https_only(settings):
+    settings.ENABLE_SSL = True
 
-    opts = AppExtensionOptions(
-        widget_target=WidgetTargetOptions(method="POST"), new_tab_target=None
+    with pytest.raises(ValidationError):
+        _clean_extension_url(
+            {
+                "url": "http://app.example.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {
+                "tokenTargetUrl": "https://app.example.com",
+                "appUrl": "https://app.example.com",
+            },
+        )
+
+
+def test_clean_extension_url_http_if_SSL_disabled(settings):
+    settings.ENABLE_SSL = False
+
+    result = _clean_extension_url(
+        {"url": "http://app.example.com/page", "target": AppExtensionTarget.NEW_TAB},
+        {
+            "tokenTargetUrl": "https://app.example.com",
+            "appUrl": "https://app.example.com",
+        },
     )
-    assert opts.widget_target is not None
-    assert opts.new_tab_target is None
+
+    assert result is None
+
+
+def test_app_extension_options_accepts_only_one():
+    parsed = AppExtensionOptions().model_validate({"widgetTarget": {"method": "GET"}})
+
+    assert parsed.new_tab_target is None
+    assert parsed.widget_target is not None
+
+    parsed = AppExtensionOptions().model_validate({"newTabTarget": {"method": "GET"}})
+
+    assert parsed.new_tab_target is not None
+    assert parsed.widget_target is None
 
     with pytest.raises(
         ValueError, match="Only one of 'newTabTarget' or 'widgetTarget' can be set."
     ):
-        AppExtensionOptions(
-            new_tab_target=NewTabTargetOptions(method="GET"),
-            widget_target=WidgetTargetOptions(method="POST"),
+        AppExtensionOptions.model_validate(
+            {
+                "newTabTarget": {"method": "GET"},
+                "widgetTarget": {"method": "GET"},
+            }
         )
 
-    opts = AppExtensionOptions(new_tab_target=None, widget_target=None)
-    assert opts.new_tab_target is None
-    assert opts.widget_target is None
+    parsed = AppExtensionOptions().model_validate({})
+
+    assert parsed.new_tab_target is None
+    assert parsed.widget_target is None
 
 
 @pytest.mark.parametrize(
