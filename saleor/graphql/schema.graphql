@@ -12979,6 +12979,9 @@ input InvoiceFilterInput @doc(category: "Orders") {
 input FulfillmentFilterInput @doc(category: "Orders") {
   """Filter by fulfillment status."""
   status: FulfillmentStatusEnumFilterInput
+
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
 }
 
 """Filter by fulfillment status."""

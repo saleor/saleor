@@ -28,11 +28,12 @@ from ..core.filters import (
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
 )
-from ..core.filters.where_filters import MetadataWhereBase
+from ..core.filters.where_filters import MetadataWhereBase, filter_where_metadata
 from ..core.filters.where_input import (
     FilterInputDescriptions,
     GlobalIDFilterInput,
     IntFilterInput,
+    MetadataFilterInput,
     PriceFilterInput,
     StringFilterInput,
     UUIDFilterInput,
@@ -274,6 +275,23 @@ def filter_has_fulfillments(qs, value):
     return qs.filter(~Exists(fulfillments))
 
 
+def filter_fulfillments(qs, value):
+    if value is None:
+        return qs.none()
+    fulfillment_qs = None
+    if status_value := value.get("status"):
+        fulfillment_qs = filter_where_by_value_field(
+            Fulfillment.objects.using(qs.db), "status", status_value
+        )
+    if metadata_value := value.get("metadata"):
+        fulfillment_qs = filter_where_metadata(
+            fulfillment_qs or Fulfillment.objects.using(qs.db), None, metadata_value
+        )
+    if fulfillment_qs is not None:
+        return qs.filter(Exists(fulfillment_qs.filter(order_id=OuterRef("id"))))
+    return qs.none()
+
+
 class DraftOrderFilter(MetadataFilterBase):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
@@ -398,6 +416,7 @@ class FulfillmentFilterInput(BaseInputObjectType):
     status = FulfillmentStatusEnumFilterInput(
         description="Filter by fulfillment status."
     )
+    metadata = MetadataFilterInput(description="Filter by metadata fields.")
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -611,14 +630,7 @@ class OrderWhere(MetadataWhereBase):
 
     @staticmethod
     def filter_fulfillments(qs, _, value):
-        if value is None:
-            return qs.none()
-        if filter_value := value.get("status"):
-            fulfillments = filter_where_by_value_field(
-                Fulfillment.objects.using(qs.db), "status", filter_value
-            )
-            return qs.filter(Exists(fulfillments.filter(order_id=OuterRef("id"))))
-        return qs.none()
+        return filter_fulfillments(qs, value)
 
     @staticmethod
     def filter_lines_count(qs, _, value):
