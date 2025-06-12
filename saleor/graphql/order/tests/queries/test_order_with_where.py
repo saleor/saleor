@@ -1771,3 +1771,45 @@ def test_orders_filter_by_total_net(
     assert len(orders) == len(indexes)
     numbers = {node["node"]["number"] for node in orders}
     assert numbers == {str(order_list[index].number) for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("metadata", "expected_indexes"),
+    [
+        ({"key": "foo"}, [0, 1]),
+        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
+        ({"key": "foo", "value": {"eq": "baz"}}, []),
+        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
+        ({"key": "foo", "value": {"notOneOf": ["bar"]}}, [1]),
+        ({"key": "notfound"}, []),
+        ({"key": "foo", "value": {"eq": None}}, []),
+        ({"key": "foo", "value": {"oneOf": []}}, []),
+        ({"key": "foo", "value": {"notOneOf": []}}, [0, 1]),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_metadata(
+    metadata,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    order_list[0].metadata = {"foo": "bar"}
+    order_list[1].metadata = {"foo": "zaz"}
+    order_list[2].metadata = {}
+    Order.objects.bulk_update(order_list, ["metadata"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"metadata": metadata}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}

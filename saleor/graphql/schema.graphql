@@ -12816,6 +12816,8 @@ enum OrderStatusFilter @doc(category: "Orders") {
 }
 
 input OrderWhereInput @doc(category: "Orders") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
   ids: [ID!]
 
   """Filter by order number."""
@@ -12894,6 +12896,29 @@ input OrderWhereInput @doc(category: "Orders") {
 
   """A list of conditions of which at least one must be met."""
   OR: [OrderWhereInput!]
+}
+
+"""Define the filtering options for metadata fields."""
+input MetadataFilterInput {
+  """
+  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
+  """
+  key: String!
+
+  """Value to filter by."""
+  value: MetadataValueFilterInput
+}
+
+"""Define the filtering options for metadata value fields."""
+input MetadataValueFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+
+  """The value not included in."""
+  notOneOf: [String!]
 }
 
 """Define the filtering options for integer fields."""

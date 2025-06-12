@@ -27,8 +27,8 @@ from ..core.filters import (
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
-    WhereFilterSet,
 )
+from ..core.filters.where_filters import MetadataWhereBase
 from ..core.filters.where_input import (
     FilterInputDescriptions,
     GlobalIDFilterInput,
@@ -404,8 +404,7 @@ class FulfillmentFilterInput(BaseInputObjectType):
         description = "Filter input for fulfillments."
 
 
-# TODO: metadata filter will be added later
-class OrderWhere(WhereFilterSet):
+class OrderWhere(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Order"))
     number = OperationObjectTypeWhereFilter(
         input_class=IntFilterInput,
