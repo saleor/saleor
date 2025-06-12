@@ -415,6 +415,11 @@ LOGGING = {
         },
     },
     "loggers": {
+        "django.request": {
+            "handlers": ["default"],
+            "level": "ERROR",
+            "propagate": False,
+        },
         "django": {"level": "INFO", "propagate": True},
         "django.server": {
             "handlers": ["django.server"],

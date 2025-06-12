@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from unittest.mock import MagicMock, Mock, patch
 
@@ -251,15 +252,22 @@ def test_category_query_by_translated_slug(
 def test_category_query_error_when_id_and_slug_provided(
     user_api_client, product, graphql_log_handler, channel_USD
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
     category = Category.objects.first()
     variables = {
         "id": graphene.Node.to_global_id("Category", category.pk),
         "slug": category.slug,
         "channel": channel_USD.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+
+    # then
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
@@ -268,10 +276,17 @@ def test_category_query_error_when_id_and_slug_provided(
 def test_category_query_error_when_no_param(
     user_api_client, product, graphql_log_handler
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
     variables = {}
+
+    # when
     response = user_api_client.post_graphql(QUERY_CATEGORY, variables=variables)
+
+    # then
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
     ]
     content = get_graphql_content(response, ignore_errors=True)
     assert len(content["errors"]) == 1
