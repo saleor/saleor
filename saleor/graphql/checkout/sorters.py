@@ -37,3 +37,17 @@ class CheckoutSortingInput(SortInputObjectType):
         doc_category = DOC_CATEGORY_CHECKOUT
         sort_enum = CheckoutSortField
         type_name = "checkouts"
+
+
+def sort_checkouts(qs, sort_by_input):
+    if sort_by_input:
+        field = sort_by_input.get("field")
+        direction = sort_by_input.get("direction")
+        if field:
+            sort_fields = getattr(CheckoutSortField, field)
+            ordering = []
+            for f in sort_fields:
+                order = f if direction == "ASC" else f"-{f}"
+                ordering.append(order)
+            qs = qs.order_by(*ordering)
+    return qs
