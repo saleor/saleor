@@ -12,7 +12,7 @@ from .....checkout.models import Checkout
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionEventType
+from .....payment import PaymentMethodType, TransactionEventType
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
@@ -61,6 +61,21 @@ mutation TransactionCreate(
                     }
                     ... on App {
                         id
+                    }
+                }
+                paymentMethodDetails{
+                    ...on CardPaymentMethodDetails{
+                        __typename
+                        name
+                        brand
+                        firstDigits
+                        lastDigits
+                        expMonth
+                        expYear
+                    }
+                    ...on OtherPaymentMethodDetails{
+                        __typename
+                        name
                     }
                 }
                 events{
@@ -2466,3 +2481,307 @@ def test_transaction_create_create_event_message_is_empty(
     event = transaction.events.last()
     assert event.message == ""
     assert event.psp_reference == transaction_reference
+
+
+@pytest.mark.parametrize(
+    (
+        "card_brand",
+        "card_first_digits",
+        "card_last_digits",
+        "card_exp_month",
+        "card_exp_year",
+    ),
+    [
+        ("Brand", "1234", "5678", 12, 2025),
+        (None, "1111", "0000", 1, 2001),
+        (None, None, None, None, None),
+        ("", "", "", None, None),
+        (None, None, "1234", None, None),
+    ],
+)
+def test_transaction_create_with_card_payment_method_details(
+    card_brand,
+    card_first_digits,
+    card_last_digits,
+    card_exp_month,
+    card_exp_year,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+
+    authorized_value = Decimal("10")
+
+    card_name = "Payment Method Name"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "paymentMethodDetails": {
+                "card": {
+                    "name": card_name,
+                    "brand": card_brand,
+                    "firstDigits": card_first_digits,
+                    "lastDigits": card_last_digits,
+                    "expMonth": card_exp_month,
+                    "expYear": card_exp_year,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    transaction_data = content["data"]["transactionCreate"]["transaction"]
+    assert transaction_data
+    assert not content["data"]["transactionCreate"]["errors"]
+
+    payment_method_details_data = transaction_data["paymentMethodDetails"]
+    assert payment_method_details_data["__typename"] == "CardPaymentMethodDetails"
+    assert payment_method_details_data["name"] == card_name
+    assert payment_method_details_data["brand"] == card_brand
+    assert payment_method_details_data["firstDigits"] == card_first_digits
+    assert payment_method_details_data["lastDigits"] == card_last_digits
+    assert payment_method_details_data["expMonth"] == card_exp_month
+    assert payment_method_details_data["expYear"] == card_exp_year
+
+    assert transaction.payment_method_type == PaymentMethodType.CARD
+    assert transaction.payment_method_name == card_name
+    assert transaction.cc_brand == card_brand
+    assert transaction.cc_first_digits == card_first_digits
+    assert transaction.cc_last_digits == card_last_digits
+    assert transaction.cc_exp_month == card_exp_month
+    assert transaction.cc_exp_year == card_exp_year
+
+
+def test_transaction_create_with_other_payment_method_details(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+
+    authorized_value = Decimal("10")
+
+    other_name = "Payment Method Name"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "paymentMethodDetails": {
+                "other": {
+                    "name": other_name,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    transaction_data = content["data"]["transactionCreate"]["transaction"]
+    assert transaction_data
+    assert not content["data"]["transactionCreate"]["errors"]
+
+    payment_method_details_data = transaction_data["paymentMethodDetails"]
+    assert payment_method_details_data["__typename"] == "OtherPaymentMethodDetails"
+    assert payment_method_details_data["name"] == other_name
+
+    transaction.refresh_from_db()
+    assert transaction.payment_method_type == PaymentMethodType.OTHER
+    assert transaction.payment_method_name == other_name
+    assert transaction.cc_brand is None
+    assert transaction.cc_first_digits is None
+    assert transaction.cc_last_digits is None
+    assert transaction.cc_exp_month is None
+    assert transaction.cc_exp_year is None
+
+
+def test_transaction_create_with_both_payment_method_details_inputs(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+
+    authorized_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "paymentMethodDetails": {
+                "other": {
+                    "name": "Other",
+                },
+                "card": {
+                    "name": "Name",
+                },
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionCreate"]
+    assert transaction_data["errors"]
+    assert len(transaction_data["errors"]) == 1
+    assert transaction_data["errors"][0]["code"] == "INVALID"
+
+
+@pytest.mark.parametrize(
+    (
+        "card_brand_length",
+        "card_first_digits",
+        "card_last_digits",
+        "card_exp_month",
+        "card_exp_year",
+        "card_name_length",
+    ),
+    [
+        (41, "12345", "56780", 33, 12025, 257),
+        (41, None, None, None, None, None),
+        (None, "12345", None, None, None, None),
+        (None, None, "56780", None, None, None),
+        (None, None, None, 33, None, None),
+        (None, None, None, None, 12025, None),
+        (None, None, None, None, None, 257),
+    ],
+)
+def test_transaction_create_with_invalid_card_payment_method_details(
+    card_brand_length,
+    card_first_digits,
+    card_last_digits,
+    card_exp_month,
+    card_exp_year,
+    card_name_length,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+
+    authorized_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "paymentMethodDetails": {
+                "card": {
+                    "name": "N" * (card_name_length or 0),
+                    "brand": "B" * (card_brand_length or 0),
+                    "firstDigits": card_first_digits,
+                    "lastDigits": card_last_digits,
+                    "expMonth": card_exp_month,
+                    "expYear": card_exp_year,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionCreate"]
+    assert transaction_data["errors"]
+
+    for error in transaction_data["errors"]:
+        assert error["code"] == "INVALID"
+        assert error["field"] == "paymentMethodDetails"
+
+
+def test_transaction_create_with_invalid_other_payment_method_details(
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+
+    authorized_value = Decimal("10")
+
+    other_name = "Payment Method Name"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "paymentMethodDetails": {
+                "other": {
+                    "name": other_name * 256,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionCreate"]
+    assert transaction_data["errors"]
+    assert len(transaction_data["errors"]) == 1
+    error = transaction_data["errors"][0]
+    assert error["code"] == "INVALID"
+    assert error["field"] == "paymentMethodDetails"
