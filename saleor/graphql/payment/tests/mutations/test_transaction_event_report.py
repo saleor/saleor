@@ -3739,6 +3739,7 @@ def test_transaction_event_report_with_other_payment_method_details(
 
     transaction_data = transaction_report_data["transaction"]
     assert transaction_data
+
     payment_method_details_data = transaction_data["paymentMethodDetails"]
     assert payment_method_details_data["__typename"] == "OtherPaymentMethodDetails"
     assert payment_method_details_data["name"] == other_name
@@ -3906,6 +3907,68 @@ def test_transaction_event_report_with_invalid_card_payment_method_details(
     for error in transaction_report_data["errors"]:
         assert error["code"] == "INVALID"
         assert error["field"] == "paymentMethodDetails"
+
+
+def test_transaction_event_report_with_invalid_other_payment_method_details(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "paymentMethodDetails": {
+            "other": {
+                "name": "N" * 257,
+            }
+        },
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $paymentMethodDetails: PaymentMethodDetailsInput
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            paymentMethodDetails: $paymentMethodDetails
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["errors"]
+    assert len(transaction_report_data["errors"]) == 1
+    error = transaction_report_data["errors"][0]
+    assert error["code"] == "INVALID"
+    assert error["field"] == "paymentMethodDetails"
 
 
 def test_transaction_event_report_event_already_exists_updates_card_payment_method_details(
