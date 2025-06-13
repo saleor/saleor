@@ -6,16 +6,12 @@ from typing import Annotated, Any, Literal
 
 from django.conf import settings
 from django.utils import timezone
-from pydantic import (
-    BaseModel,
-    Field,
-    HttpUrl,
-    field_validator,
-)
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 from ...graphql.core.utils import str_to_enum
 from ...payment import (
     OPTIONAL_PSP_REFERENCE_EVENTS,
+    PaymentMethodType,
     TransactionAction,
     TransactionEventType,
 )
@@ -23,11 +19,97 @@ from .utils.annotations import DatetimeUTC, DefaultIfNone, JSONValue, OnErrorSki
 
 logger = logging.getLogger(__name__)
 
-
 TransactionActionEnum = Enum(  # type: ignore[misc]
     "TransactionActionEnum",
     [(str_to_enum(value), value) for value, _ in TransactionAction.CHOICES],
 )
+
+PaymentMethodTypeEnum = Enum(  # type: ignore[misc]
+    "PaymentMethodTypeEnum",
+    [(str_to_enum(value), value) for value, _ in PaymentMethodType.CHOICES],
+)
+
+
+class PaymentMethodDetailsBase(BaseModel):
+    type: Annotated[
+        DefaultIfNone[str],
+        Field(
+            description="Type of the payment method used for the transaction.",
+            max_length=32,
+        ),
+    ]
+    name: Annotated[
+        str,
+        Field(
+            description=("Name of the payment method used for the transaction."),
+            max_length=256,
+        ),
+    ]
+
+    @field_validator("type", mode="after")
+    @classmethod
+    def clean_type(cls, type_value: str) -> str:
+        return type_value.lower()
+
+
+class OtherPaymentMethodDetails(PaymentMethodDetailsBase):
+    type: Annotated[  # type: ignore[name-defined]
+        Literal[PaymentMethodTypeEnum.OTHER.name],
+        Field(
+            description="Type of the payment method used for the transaction.",
+            max_length=32,
+        ),
+    ]
+
+
+class CardPaymentMethodDetails(PaymentMethodDetailsBase):
+    type: Annotated[  # type: ignore[name-defined]
+        Literal[PaymentMethodTypeEnum.CARD.name],
+        Field(
+            description="Type of the payment method used for the transaction.",
+            max_length=32,
+        ),
+    ]
+    brand: Annotated[
+        str | None,
+        Field(
+            description="Brand of the card used for the transaction.",
+            max_length=40,
+        ),
+    ] = None
+    first_digits: Annotated[
+        str | None,
+        Field(
+            description="First digits of the card used for the transaction.",
+            max_length=4,
+            validation_alias="firstDigits",
+        ),
+    ] = None
+    last_digits: Annotated[
+        str | None,
+        Field(
+            description="Last digits of the card used for the transaction.",
+            max_length=4,
+            validation_alias="lastDigits",
+        ),
+    ] = None
+    exp_month: Annotated[
+        int | None,
+        Field(
+            description="Expiration month of the card used for the transaction.",
+            ge=1,
+            le=12,
+            validation_alias="expMonth",
+        ),
+    ] = None
+    exp_year: Annotated[
+        int | None,
+        Field(
+            description="Expiration year of the card used for the transaction.",
+            ge=2000,
+            validation_alias="expYear",
+        ),
+    ] = None
 
 
 class TransactionBaseSchema(BaseModel):
@@ -267,6 +349,16 @@ class TransactionSessionBaseSchema(TransactionBaseSchema):
             default=None,
         ),
     ]
+
+    payment_method_details: Annotated[
+        OtherPaymentMethodDetails | CardPaymentMethodDetails | None,
+        Field(
+            validation_alias="paymentMethodDetails",
+            default=None,
+            description="Details of the payment method used for the transaction.",
+            discriminator="type",
+        ),
+    ] = None
 
 
 class TransactionSessionFailureSchema(TransactionSessionBaseSchema):
