@@ -413,7 +413,7 @@ def test_app_extension_with_app_query_by_owner_app(
 
 
 def test_app_extension_with_app_query_by_staff_with_permissions(
-    external_app, app, staff_api_client
+    external_app, app, staff_api_client, permission_group_manage_apps
 ):
     # given
     app_extension = AppExtension.objects.create(
@@ -426,10 +426,10 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
     variables = {"id": id}
 
+    staff_api_client.user.groups.add(permission_group_manage_apps)
+
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_APP_EXTENSION_WITH_APP, variables, permissions=[]
-    )
+    response = staff_api_client.post_graphql(QUERY_APP_EXTENSION_WITH_APP, variables)
 
     # then
     response = get_graphql_content(response)
