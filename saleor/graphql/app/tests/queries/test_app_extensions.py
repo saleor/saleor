@@ -47,7 +47,7 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
-        widget_target_method="POST",
+        http_target_method="POST",
         target=AppExtensionTarget.WIDGET,
     )
     app_extension.permissions.add(permission_manage_products)

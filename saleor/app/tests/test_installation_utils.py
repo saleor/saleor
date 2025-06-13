@@ -307,8 +307,7 @@ def test_install_app_with_extension(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == AppExtensionTarget.POPUP
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.new_tab_target_method is None
-    assert app_extension.widget_target_method is None
+    assert app_extension.http_target_method is None
 
 
 def test_install_app_with_extension_widget(
@@ -356,8 +355,7 @@ def test_install_app_with_extension_widget(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == AppExtensionTarget.WIDGET
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.new_tab_target_method is None
-    assert app_extension.widget_target_method == "POST"
+    assert app_extension.http_target_method == "POST"
 
 
 @pytest.mark.parametrize(
@@ -438,8 +436,7 @@ def test_install_app_with_extension_new_tab_target(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == "new_tab"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.new_tab_target_method == "GET"
-    assert app_extension.widget_target_method is None
+    assert app_extension.http_target_method == "GET"
 
 
 def test_install_app_with_extension_new_tab_target_post_url_non_https(
@@ -707,8 +704,7 @@ def test_install_app_with_extension_post_method(
     assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
     assert app_extension.target == AppExtensionTarget.NEW_TAB
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.new_tab_target_method == "POST"
-    assert app_extension.widget_target_method is None
+    assert app_extension.http_target_method == "POST"
 
 
 def test_install_app_with_webhook(

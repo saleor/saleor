@@ -266,17 +266,18 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
     @staticmethod
     def resolve_options(root: models.AppExtension, _info: ResolveInfo):
-        new_tab_method = getattr(root, "new_tab_target_method", None)
-        widget_method = getattr(root, "widget_target_method", None)
+        http_method = root.http_target_method
 
-        if new_tab_method:
-            return AppExtensionOptionsNewTab(
-                new_tab_target=NewTabTargetOptions(method=new_tab_method),
-            )
-        if widget_method:
+        if root.target == AppExtensionTarget.WIDGET:
             return AppExtensionOptionsWidget(
-                widget_target=WidgetTargetOptions(method=widget_method),
+                widget_target=WidgetTargetOptions(method=http_method),
             )
+
+        if root.target == AppExtensionTarget.NEW_TAB:
+            return AppExtensionOptionsNewTab(
+                new_tab_target=NewTabTargetOptions(method=http_method),
+            )
+
         return None
 
 

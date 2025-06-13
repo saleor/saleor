@@ -168,12 +168,7 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
-    new_tab_target_method = models.CharField(
-        blank=False,
-        null=True,
-        choices=AppExtensionHttpMethod.CHOICES,
-    )
-    widget_target_method = models.CharField(
+    http_target_method = models.CharField(
         blank=False,
         null=True,
         choices=AppExtensionHttpMethod.CHOICES,
