@@ -420,7 +420,17 @@ class FulfillmentFilterInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
-        description = "Filter input for fulfillments."
+        description = "Filter input for order fulfillments data."
+
+
+class LinesFilterInput(BaseInputObjectType):
+    metadata = MetadataFilterInput(
+        description="Filter by metadata fields of order lines."
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        description = "Filter input for order lines data."
 
 
 class OrderWhere(MetadataWhereBase):
@@ -518,6 +528,11 @@ class OrderWhere(MetadataWhereBase):
         input_class=FulfillmentFilterInput,
         method="filter_fulfillments",
         help_text="Filter by fulfillment data associated with the order.",
+    )
+    lines = ObjectTypeWhereFilter(
+        input_class=LinesFilterInput,
+        method="filter_lines",
+        help_text="Filter by metadata fields of order lines.",
     )
     lines_count = OperationObjectTypeWhereFilter(
         input_class=IntFilterInput,
@@ -631,6 +646,17 @@ class OrderWhere(MetadataWhereBase):
     @staticmethod
     def filter_fulfillments(qs, _, value):
         return filter_fulfillments(qs, value)
+
+    @staticmethod
+    def filter_lines(qs, _, value):
+        if not value:
+            return qs
+        if metadata_value := value.get("metadata"):
+            lines_qs = filter_where_metadata(
+                OrderLine.objects.using(qs.db), None, metadata_value
+            )
+            return qs.filter(Exists(lines_qs.filter(order_id=OuterRef("id"))))
+        return qs.none()
 
     @staticmethod
     def filter_lines_count(qs, _, value):

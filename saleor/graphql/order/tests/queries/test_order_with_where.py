@@ -15,7 +15,7 @@ from .....order import (
     OrderChargeStatus,
     OrderStatus,
 )
-from .....order.models import Order
+from .....order.models import Order, OrderLine
 from .....order.search import (
     prepare_order_search_vector_value,
 )
@@ -1761,6 +1761,68 @@ def test_orders_filter_by_fulfillment_status_and_metadata(
     variables = {
         "where": {"fulfillments": {"status": status_where, "metadata": metadata_where}}
     }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("metadata", "expected_indexes"),
+    [
+        ({"key": "foo"}, [0, 1]),
+        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
+        ({"key": "foo", "value": {"eq": "baz"}}, []),
+        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
+        ({"key": "foo", "value": {"notOneOf": ["bar"]}}, [1, 2]),
+        ({"key": "foo", "value": {"notOneOf": ["bar", "zaz"]}}, [2]),
+        ({"key": "notfound"}, []),
+        ({"key": "foo", "value": {"eq": None}}, []),
+        ({"key": "foo", "value": {"oneOf": []}}, []),
+        ({"key": "foo", "value": {"notOneOf": []}}, [0, 1, 2]),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_lines_metadata(
+    metadata,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    metadata_values = [
+        {"foo": "bar"},
+        {"foo": "zaz"},
+        {},
+    ]
+    for order, metadata_value in zip(order_list, metadata_values, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                metadata=metadata_value,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"lines": {"metadata": metadata}}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)

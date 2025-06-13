@@ -12882,6 +12882,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by fulfillment data associated with the order."""
   fulfillments: FulfillmentFilterInput
 
+  """Filter by metadata fields of order lines."""
+  lines: LinesFilterInput
+
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
@@ -12975,7 +12978,7 @@ input InvoiceFilterInput @doc(category: "Orders") {
   createdAt: DateTimeRangeInput
 }
 
-"""Filter input for fulfillments."""
+"""Filter input for order fulfillments data."""
 input FulfillmentFilterInput @doc(category: "Orders") {
   """Filter by fulfillment status."""
   status: FulfillmentStatusEnumFilterInput
@@ -12991,6 +12994,12 @@ input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
 
   """The value included in."""
   oneOf: [FulfillmentStatus!]
+}
+
+"""Filter input for order lines data."""
+input LinesFilterInput @doc(category: "Orders") {
+  """Filter by metadata fields of order lines."""
+  metadata: MetadataFilterInput
 }
 
 input PriceFilterInput {
