@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from .....app.models import AppExtension
 from .....app.types import AppExtensionMount, AppExtensionTarget
@@ -434,3 +435,49 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
 
     # then
     get_graphql_content(response)
+
+
+@pytest.mark.parametrize(
+    ("target", "method"),
+    [
+        (AppExtensionTarget.WIDGET, "POST"),
+        (AppExtensionTarget.WIDGET, "GET"),
+        (AppExtensionTarget.NEW_TAB, "POST"),
+        (AppExtensionTarget.NEW_TAB, "GET"),
+    ],
+)
+def test_app_extension_type_options(
+    target,
+    method,
+    app,
+    staff_api_client,
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.ORDER_DETAILS_WIDGETS,
+        http_target_method=method,
+        target=target,
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    assert extension_data["target"] == target.upper()
+
+    if target == AppExtensionTarget.NEW_TAB:
+        assert extension_data["options"]["newTabTarget"]["method"] == method
+
+    if target == AppExtensionTarget.WIDGET:
+        assert extension_data["options"]["widgetTarget"]["method"] == method
