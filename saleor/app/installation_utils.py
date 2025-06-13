@@ -232,6 +232,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
         # Extract new_tab_target_method and widget_target_method from options
+        # Manifest is already "clean" so values are snake case
         options = extension_data.get("options", {})
         new_tab_target = options.get("new_tab_target")
         widget_target = options.get("widget_target")

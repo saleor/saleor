@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import pytest
 
 from .....app.models import AppExtension
@@ -82,8 +80,6 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     assert extension_data["accessToken"]
     decode_token = jwt_decode(extension_data["accessToken"])
     decode_token["permissions"] = ["MANAGE_PRODUCTS"]
-
-    pprint(extension_data)
 
     assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 

@@ -272,11 +272,9 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         if new_tab_method:
             return AppExtensionOptionsNewTab(
                 new_tab_target=NewTabTargetOptions(method=new_tab_method),
-                widget_target=None,
             )
         if widget_method:
             return AppExtensionOptionsWidget(
-                new_tab_target=None,
                 widget_target=WidgetTargetOptions(method=widget_method),
             )
         return None
