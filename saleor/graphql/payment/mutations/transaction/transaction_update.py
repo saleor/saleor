@@ -15,11 +15,15 @@ from .....payment.error_codes import (
     TransactionCreateErrorCode,
     TransactionUpdateErrorCode,
 )
+from .....payment.interface import PaymentMethodDetails
 from .....payment.transaction_item_calculations import (
     calculate_transaction_amount_based_on_events,
     recalculate_transaction_amounts,
 )
-from .....payment.utils import create_manual_adjustment_events
+from .....payment.utils import (
+    create_manual_adjustment_events,
+    update_transaction_item_with_payment_method_details,
+)
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
@@ -31,6 +35,7 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from ...utils import check_if_requestor_has_access
+from .shared import get_payment_method_details, validate_payment_method_details_input
 from .transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
@@ -131,6 +136,10 @@ class TransactionUpdate(TransactionCreate):
             transaction_data.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        if payment_method_details := transaction_data.get("payment_method_details"):
+            validate_payment_method_details_input(
+                payment_method_details, TransactionUpdateErrorCode
+            )
 
     @classmethod
     def update_transaction(
@@ -140,6 +149,7 @@ class TransactionUpdate(TransactionCreate):
         money_data: dict,
         user: Optional["User"],
         app: Optional["App"],
+        payment_details_data: PaymentMethodDetails | None = None,
     ):
         psp_reference = transaction_data.get("psp_reference")
         if psp_reference and instance.psp_reference != psp_reference:
@@ -155,6 +165,10 @@ class TransactionUpdate(TransactionCreate):
                     }
                 )
         instance = cls.construct_instance(instance, transaction_data)
+        if payment_details_data:
+            update_transaction_item_with_payment_method_details(
+                instance, payment_details_data
+            )
         instance.save()
         if money_data:
             calculate_transaction_amount_based_on_events(transaction=instance)
@@ -218,7 +232,21 @@ class TransactionUpdate(TransactionCreate):
                 transaction.pop("private_metadata", None),
             )
             money_data = cls.get_money_data_from_input(transaction, instance.currency)
-            cls.update_transaction(instance, transaction, money_data, user, app)
+            payment_details_data: PaymentMethodDetails | None = None
+            if payment_method_details := transaction.pop(
+                "payment_method_details", None
+            ):
+                payment_details_data = get_payment_method_details(
+                    payment_method_details
+                )
+            cls.update_transaction(
+                instance,
+                transaction,
+                money_data,
+                user,
+                app,
+                payment_details_data=payment_details_data,
+            )
 
         event = None
         if transaction_event:
