@@ -4,6 +4,7 @@ import datetime
 import graphene
 
 from ...app import models
+from ...app.models import App as AppModel
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
@@ -179,20 +180,16 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
         # Reject if app from context is different from requested app
         if app and app.id != root.app_id:
-            raise PermissionDenied(
-                permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
-            )
+            raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
         # Resolve app if user from the context is authenticated
         requestor = get_user_or_app_from_context(info.context)
 
         # Check if requestor is an app and is the same as requested app
-        from ...app.models import App as AppModel
-
         if isinstance(requestor, AppModel) and requestor.id == root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
 
-        # Allow staff users to access app data, even without special permissions
+        # Allow staff users to access app data, no MANAGE_APPS needed
         if requestor and is_staff_user(info.context):
             return AppByIdLoader(info.context).load(root.app_id)
 
