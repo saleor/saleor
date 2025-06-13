@@ -43,6 +43,12 @@ Populates database with sample data and creates admin user with credentials:
 test.cmd="pytest --reuse-db"
 test.help = "Run tests with db reuse to speed up testing time"
 
+make-migrations.cmd="python manage.py makemigrations"
+make-migrations.help="Auto-generate Django migrations"
+
+commit.cmd="git commit"
+commit.help="Execute git commit in virtual env"
+
 [tool.poetry]
 name = "saleor"
 version = "3.22.0-a.0"
