@@ -510,21 +510,6 @@ class TransactionEventReport(DeprecatedModelMutation):
     def validate_payment_method_details_input(
         cls, payment_method_details_input: PaymentMethodDetailsInput
     ):
-        if not payment_method_details_input:
-            return
-
-        if (
-            payment_method_details_input.card is None
-            and payment_method_details_input.other is None
-        ):
-            raise ValidationError(
-                {
-                    "payment_method_details": ValidationError(
-                        "One of `card` or `other` is required.",
-                        code=TransactionEventReportErrorCode.REQUIRED.value,
-                    )
-                }
-            )
         try:
             validate_one_of_args_is_in_mutation(
                 "card",
@@ -560,12 +545,9 @@ class TransactionEventReport(DeprecatedModelMutation):
 
     @classmethod
     def get_payment_method_details(
-        cls, payment_method_details_input: PaymentMethodDetailsInput | None
+        cls, payment_method_details_input: PaymentMethodDetailsInput
     ) -> PaymentMethodDetails | None:
         """Get the payment method details dataclass from the input."""
-
-        if not payment_method_details_input:
-            return None
 
         payment_details_data: PaymentMethodDetails | None = None
         if payment_method_details_input.card:
