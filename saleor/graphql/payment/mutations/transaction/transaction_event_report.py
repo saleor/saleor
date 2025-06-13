@@ -22,8 +22,9 @@ from .....order.utils import (
     calculate_order_granted_refund_status,
     updates_amounts_for_order,
 )
-from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
+from .....payment import OPTIONAL_AMOUNT_EVENTS, PaymentMethodType, TransactionEventType
 from .....payment import models as payment_models
+from .....payment.interface import PaymentMethodDetails
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     authorization_success_already_exists,
@@ -31,6 +32,7 @@ from .....payment.utils import (
     get_already_existing_event,
     get_transaction_event_amount,
     truncate_transaction_event_message,
+    update_transaction_item_with_payment_method_details,
 )
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
@@ -43,6 +45,7 @@ from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import UUID, DateTime, PositiveDecimal
 from ....core.types import NonNullList
 from ....core.types import common as common_types
+from ....core.types.base import BaseInputObjectType
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_one_of_args_is_in_mutation
 from ....meta.inputs import MetadataInput, MetadataInputDescription
@@ -55,6 +58,59 @@ from .utils import get_transaction_item
 if TYPE_CHECKING:
     from .....accounts.models import User
     from .....plugins.manager import PluginsManager
+
+
+class CardPaymentMethodDetailsInput(BaseInputObjectType):
+    name = graphene.String(
+        description="Name of the payment method used for the transaction. Max length is 256 characters.",
+        required=True,
+    )
+    brand = graphene.String(
+        description="Brand of the payment method used for the transaction. Max length is 40 characters.",
+        required=False,
+    )
+    first_digits = graphene.String(
+        description="First digits of the card used for the transaction. Max length is 4 characters.",
+        required=False,
+    )
+    last_digits = graphene.String(
+        description="Last digits of the card used for the transaction. Max length is 4 characters.",
+        required=False,
+    )
+    exp_month = graphene.Int(
+        description="Expiration month of the card used for the transaction. Must be between 1 and 12.",
+        required=False,
+    )
+    exp_year = graphene.Int(
+        description="Expiration year of the card used for the transaction. Must be between 2000 and 9999.",
+        required=False,
+    )
+
+
+class OtherPaymentMethodDetailsInput(BaseInputObjectType):
+    name = graphene.String(
+        description="Name of the payment method used for the transaction.",
+        required=True,
+    )
+
+
+class PaymentMethodDetailsInput(BaseInputObjectType):
+    card = graphene.Field(
+        CardPaymentMethodDetailsInput,
+        required=False,
+        description="Details of the card payment method used for the transaction.",
+    )
+    other = graphene.Field(
+        OtherPaymentMethodDetailsInput,
+        required=False,
+        description="Details of the non-card payment method used for this transaction.",
+    )
+
+    class Meta:
+        description = (
+            "Details of the payment method used for the transaction. "
+            "One of `card` or `other` is required."
+        )
 
 
 class TransactionEventReport(DeprecatedModelMutation):
@@ -137,6 +193,10 @@ class TransactionEventReport(DeprecatedModelMutation):
             f"\n\n{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
             required=False,
         )
+        payment_method_details = PaymentMethodDetailsInput(
+            description="Details of the payment method used for the transaction.",
+            required=False,
+        )
 
     class Meta:
         description = (
@@ -192,6 +252,7 @@ class TransactionEventReport(DeprecatedModelMutation):
         app: Optional["App"] = None,
         metadata: list[MetadataInput] | None = None,
         private_metadata: list[MetadataInput] | None = None,
+        payment_details_data: PaymentMethodDetails | None = None,
     ):
         fields_to_update = [
             "authorized_value",
@@ -223,6 +284,13 @@ class TransactionEventReport(DeprecatedModelMutation):
         if available_actions is not None:
             transaction.available_actions = available_actions
             fields_to_update.append("available_actions")
+
+        if payment_details_data:
+            fields_to_update.extend(
+                update_transaction_item_with_payment_method_details(
+                    transaction, payment_details_data
+                )
+            )
 
         recalculate_transaction_amounts(transaction, save=False)
         transaction_has_assigned_app = transaction.app_id or transaction.app_identifier
@@ -360,6 +428,170 @@ class TransactionEventReport(DeprecatedModelMutation):
             )
 
     @classmethod
+    def _validate_card_payment_method_details_input(
+        cls, card_method_details_input: CardPaymentMethodDetailsInput
+    ):
+        errors = []
+        if len(card_method_details_input.name) > 256:
+            errors.append(
+                {
+                    "name": ValidationError(
+                        "The `name` field must be less than 256 characters.",
+                        code=TransactionEventReportErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        if (
+            card_method_details_input.brand
+            and len(card_method_details_input.brand) > 40
+        ):
+            errors.append(
+                {
+                    "brand": ValidationError(
+                        "The `brand` field must be less than 40 characters.",
+                        code=TransactionEventReportErrorCode.INVALID.value,
+                    )
+                }
+            )
+        if (
+            card_method_details_input.first_digits
+            and len(card_method_details_input.first_digits) > 4
+        ):
+            errors.append(
+                {
+                    "first_digits": ValidationError(
+                        "The `firstDigits` field must be less than 4 characters.",
+                        code=TransactionEventReportErrorCode.INVALID.value,
+                    )
+                }
+            )
+        if (
+            card_method_details_input.last_digits
+            and len(card_method_details_input.last_digits) > 4
+        ):
+            errors.append(
+                {
+                    "last_digits": ValidationError(
+                        "The `lastDigits` field must be less than 4 characters.",
+                        code=TransactionEventReportErrorCode.INVALID.value,
+                    )
+                }
+            )
+        if card_method_details_input.exp_month and (
+            card_method_details_input.exp_month < 1
+            or card_method_details_input.exp_month > 12
+        ):
+            errors.append(
+                {
+                    "exp_month": ValidationError(
+                        "The `expMonth` field must be between 1 and 12.",
+                        code=TransactionEventReportErrorCode.INVALID.value,
+                    )
+                }
+            )
+        if card_method_details_input.exp_year and (
+            card_method_details_input.exp_year < 2000
+            or card_method_details_input.exp_year > 9999
+        ):
+            errors.append(
+                {
+                    "exp_year": ValidationError(
+                        "The `expYear` field must be between 2000 and 9999.",
+                        code=TransactionEventReportErrorCode.INVALID.value,
+                    )
+                }
+            )
+        return errors
+
+    @classmethod
+    def validate_payment_method_details_input(
+        cls, payment_method_details_input: PaymentMethodDetailsInput
+    ):
+        if not payment_method_details_input:
+            return
+
+        if (
+            payment_method_details_input.card is None
+            and payment_method_details_input.other is None
+        ):
+            raise ValidationError(
+                {
+                    "payment_method_details": ValidationError(
+                        "One of `card` or `other` is required.",
+                        code=TransactionEventReportErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        try:
+            validate_one_of_args_is_in_mutation(
+                "card",
+                payment_method_details_input.card,
+                "other",
+                payment_method_details_input.other,
+            )
+        except ValidationError as e:
+            e.code = TransactionEventReportErrorCode.INVALID.value
+            raise ValidationError({"payment_method_details": e}) from e
+
+        errors = []
+
+        if payment_method_details_input.card:
+            errors.extend(
+                cls._validate_card_payment_method_details_input(
+                    payment_method_details_input.card
+                )
+            )
+        elif payment_method_details_input.other:
+            if len(payment_method_details_input.other.name) > 256:
+                errors.append(
+                    {
+                        "name": ValidationError(
+                            "The `name` field must be less than 256 characters.",
+                            code=TransactionEventReportErrorCode.INVALID.value,
+                        )
+                    }
+                )
+
+        if errors:
+            raise ValidationError({"payment_method_details": errors})
+
+    @classmethod
+    def get_payment_method_details(
+        cls, payment_method_details_input: PaymentMethodDetailsInput | None
+    ) -> PaymentMethodDetails | None:
+        """Get the payment method details dataclass from the input."""
+
+        if not payment_method_details_input:
+            return None
+
+        payment_details_data: PaymentMethodDetails | None = None
+        if payment_method_details_input.card:
+            card_details: CardPaymentMethodDetailsInput = (
+                payment_method_details_input.card
+            )
+
+            payment_details_data = PaymentMethodDetails(
+                type=PaymentMethodType.CARD,
+                name=card_details.name,
+                brand=card_details.brand,
+                first_digits=card_details.first_digits,
+                last_digits=card_details.last_digits,
+                exp_month=card_details.exp_month,
+                exp_year=card_details.exp_year,
+            )
+        elif payment_method_details_input.other:
+            other_details: OtherPaymentMethodDetailsInput = (
+                payment_method_details_input.other
+            )
+            payment_details_data = PaymentMethodDetails(
+                type=PaymentMethodType.OTHER,
+                name=other_details.name,
+            )
+
+        return payment_details_data
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -377,6 +609,7 @@ class TransactionEventReport(DeprecatedModelMutation):
         available_actions=None,
         transaction_metadata: list[MetadataInput] | None = None,
         transaction_private_metadata: list[MetadataInput] | None = None,
+        payment_method_details: PaymentMethodDetailsInput | None = None,
     ):
         validate_one_of_args_is_in_mutation("id", id, "token", token)
         transaction = get_transaction_item(id, token)
@@ -405,6 +638,13 @@ class TransactionEventReport(DeprecatedModelMutation):
         if type in TransactionEventType.REFUND_RELATED_EVENT_TYPES:
             related_granted_refund = cls.get_related_granted_refund(
                 psp_reference, transaction
+            )
+
+        payment_details_data: PaymentMethodDetails | None = None
+        if payment_method_details:
+            cls.validate_payment_method_details_input(payment_method_details)
+            payment_details_data = cls.get_payment_method_details(
+                payment_method_details
             )
 
         message = (
@@ -504,6 +744,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 app=app,
                 metadata=transaction_metadata,
                 private_metadata=transaction_private_metadata,
+                payment_details_data=payment_details_data,
             )
             cls.process_order_or_checkout_with_transaction(
                 transaction,
@@ -515,11 +756,22 @@ class TransactionEventReport(DeprecatedModelMutation):
                 previous_refunded_value,
                 related_granted_refund,
             )
-        elif available_actions is not None and set(
-            transaction.available_actions
-        ) != set(available_actions):
-            transaction.available_actions = available_actions
-            transaction.save(update_fields=["available_actions"])
+        else:
+            updated_fields = []
+            if available_actions is not None and set(
+                transaction.available_actions
+            ) != set(available_actions):
+                transaction.available_actions = available_actions
+                updated_fields.append("available_actions")
+
+            if payment_details_data:
+                updated_fields.extend(
+                    update_transaction_item_with_payment_method_details(
+                        transaction, payment_details_data
+                    )
+                )
+            if updated_fields:
+                transaction.save(update_fields=updated_fields)
 
         return cls(
             already_processed=already_processed,
