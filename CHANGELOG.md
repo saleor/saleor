@@ -17,9 +17,10 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by invoice existence.
     - Filter by associated invoice creation date.
     - Filter by fulfillment existence.
-    - Filter by associated fulfillment status.
+    - Filter by associated fulfillment status and metadata.
     - Filter by number of lines in the order.
     - Filter by order total gross and net price amount.
+    - Filter by order metadata.
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 
 ### Webhooks
