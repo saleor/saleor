@@ -15718,7 +15718,11 @@ type Mutation {
     """
     message: String
 
-    """Details of the payment method used for the transaction."""
+    """
+    Details of the payment method used for the transaction.
+    
+    Added in Saleor 3.22.
+    """
     paymentMethodDetails: PaymentMethodDetailsInput
 
     """PSP Reference of the event to report."""
@@ -22899,6 +22903,8 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
 
 """
 Details of the payment method used for the transaction. One of `card` or `other` is required.
+
+Added in Saleor 3.22.
 """
 input PaymentMethodDetailsInput {
   """Details of the card payment method used for the transaction."""

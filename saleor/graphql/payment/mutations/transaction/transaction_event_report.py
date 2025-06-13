@@ -39,6 +39,7 @@ from .....permission.enums import PaymentPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_322
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.mutations import DeprecatedModelMutation
@@ -109,7 +110,7 @@ class PaymentMethodDetailsInput(BaseInputObjectType):
     class Meta:
         description = (
             "Details of the payment method used for the transaction. "
-            "One of `card` or `other` is required."
+            "One of `card` or `other` is required." + ADDED_IN_322
         )
 
 
@@ -194,7 +195,8 @@ class TransactionEventReport(DeprecatedModelMutation):
             required=False,
         )
         payment_method_details = PaymentMethodDetailsInput(
-            description="Details of the payment method used for the transaction.",
+            description="Details of the payment method used for the transaction."
+            + ADDED_IN_322,
             required=False,
         )
 
