@@ -86,6 +86,8 @@ class ApiClient(BaseApiClient):
         self,
         query,
         variables=None,
+        # @deprecated - do not use it, because it makes implicit permissions check
+        # Use explicit permissions assertions
         permissions=None,
         check_no_permissions=True,
         **kwargs,
