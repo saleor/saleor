@@ -1,7 +1,7 @@
 import graphene
 
-from .....app.models import AppExtension
-from .....app.types import AppExtensionMount
+from .....app.models import App, AppExtension
+from .....app.types import AppExtensionMount, AppType
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -316,15 +316,17 @@ def test_app_extension_with_app_query_by_staff_without_permissions(
     )
 
     # then
-    assert_no_permission(response)
+    response = get_graphql_content(response)
+
+    assert response["data"]["appExtension"]["id"] == id
 
 
 def test_app_extension_with_app_query_by_app_without_permissions(
-    external_app, app_api_client, permission_manage_products
+    app, app_api_client, permission_manage_products
 ):
     # given
     app_extension = AppExtension.objects.create(
-        app=external_app,
+        app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
@@ -340,6 +342,49 @@ def test_app_extension_with_app_query_by_app_without_permissions(
     )
 
     # then
+    response = get_graphql_content(response)
+
+    # Can access OWN extension
+    assert response["data"]["appExtension"]["id"] == id
+
+
+def test_app_extension_with_app_query_by_app_without_permissions_other_app(
+    app_api_client, permission_manage_products
+):
+    # given
+    # another app - to be sure we don't mix it with app from the app_api_client
+    another_app = App.objects.create(
+        name="External App",
+        is_active=True,
+        type=AppType.THIRDPARTY,
+        identifier="mirumee.app.sample",
+        about_app="About app text.",
+        data_privacy="Data privacy text.",
+        data_privacy_url="http://www.example.com/privacy/",
+        homepage_url="http://www.example.com/homepage/",
+        support_url="http://www.example.com/support/contact/",
+        configuration_url="http://www.example.com/app-configuration/",
+        app_url="http://www.example.com/app/",
+    )
+
+    app_extension = AppExtension.objects.create(
+        app=another_app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+    app_extension.permissions.add(permission_manage_products)
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_APP_EXTENSION_WITH_APP,
+        variables,
+    )
+
+    # then
+    # Can't access other apps
     assert_no_permission(response)
 
 
@@ -369,7 +414,9 @@ def test_app_extension_with_app_query_by_app_with_permissions(
     )
 
     # then
-    get_graphql_content(response)
+    response = get_graphql_content(response)
+
+    assert response["data"]["appExtension"]["id"] == id
 
 
 def test_app_extension_with_app_query_by_owner_app(

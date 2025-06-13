@@ -8,7 +8,7 @@ from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
-from ...permission.auth_filters import AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters, is_staff_user
 from ...permission.enums import AppPermission
 from ...permission.utils import message_one_of_permissions_required
 from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
@@ -173,19 +173,33 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     @staticmethod
     @app_promise_callback
     def resolve_app(root, info: ResolveInfo, app):
-        app_id = None
+        # Resolve if app from context is the same as requested app
         if app and app.id == root.app_id:
-            app_id = root.app_id
-        else:
-            requestor = get_user_or_app_from_context(info.context)
-            if requestor and requestor.has_perm(AppPermission.MANAGE_APPS):
-                app_id = root.app_id
+            return AppByIdLoader(info.context).load(root.app_id)
 
-        if not app_id:
+        # Reject if app from context is different from requested app
+        if app and app.id != root.app_id:
             raise PermissionDenied(
                 permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
             )
-        return AppByIdLoader(info.context).load(app_id)
+
+        # Resolve app if user from the context is authenticated
+        requestor = get_user_or_app_from_context(info.context)
+
+        # Check if requestor is an app and is the same as requested app
+        from ...app.models import App as AppModel
+
+        if isinstance(requestor, AppModel) and requestor.id == root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id)
+
+        # Allow staff users to access app data, even without special permissions
+        if requestor and is_staff_user(info.context):
+            return AppByIdLoader(info.context).load(root.app_id)
+
+        # If none of the conditions are met, reject with permission denied
+        raise PermissionDenied(
+            permissions=[AppPermission.MANAGE_APPS, AuthorizationFilters.OWNER]
+        )
 
     @staticmethod
     def resolve_permissions(root: models.AppExtension, _info: ResolveInfo):
