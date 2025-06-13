@@ -1937,6 +1937,7 @@ def test_orders_filter_by_total_net(
         ({"key": "foo", "value": {"eq": "baz"}}, []),
         ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
         ({"key": "foo", "value": {"notOneOf": ["bar"]}}, [1, 2]),
+        ({"key": "foo", "value": {"notOneOf": ["bar", "zaz"]}}, [2]),
         ({"key": "notfound"}, []),
         ({"key": "foo", "value": {"eq": None}}, []),
         ({"key": "foo", "value": {"oneOf": []}}, []),
