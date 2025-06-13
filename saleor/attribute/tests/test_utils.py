@@ -217,7 +217,7 @@ def test_associate_attribute_to_instance_duplicated_values(
     }
 
 
-def test_validate_attribute_owns_values(attribute_1, attribute_2):
+def test_validate_attribute_owns_values():
     attribute_1 = Attribute.objects.create(
         slug="attribute-1",
         name="Attribute 1",
