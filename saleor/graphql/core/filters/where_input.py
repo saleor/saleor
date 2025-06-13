@@ -54,6 +54,7 @@ class WhereInputObjectType(FilterInputObjectType):
 class FilterInputDescriptions:
     EQ = "The value equal to."
     ONE_OF = "The value included in."
+    NOT_ONE_OF = "The value not included in."
     RANGE = "The value in range."
 
 
@@ -148,3 +149,30 @@ class PriceFilterInput(graphene.InputObjectType):
     amount = DecimalFilterInput(
         required=True, description="The amount of the price to filter by."
     )
+
+
+class MetadataValueFilterInput(graphene.InputObjectType):
+    eq = graphene.String(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.String, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    not_one_of = NonNullList(
+        graphene.String, description=FilterInputDescriptions.NOT_ONE_OF, required=False
+    )
+
+    class Meta:
+        description = "Define the filtering options for metadata value fields."
+
+
+class MetadataFilterInput(graphene.InputObjectType):
+    key = graphene.String(
+        required=True,
+        description="Key to filter by. If not other fields provided - checking the existence of the key in metadata.",
+    )
+    value = MetadataValueFilterInput(
+        required=False,
+        description="Value to filter by.",
+    )
+
+    class Meta:
+        description = "Define the filtering options for metadata fields."
