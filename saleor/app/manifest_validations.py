@@ -1,10 +1,13 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
+from urllib.parse import urlparse
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
+from pydantic import ValidationError as PydanticValidationError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
@@ -22,7 +25,7 @@ from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .models import App
 from .types import AppExtensionMount, AppExtensionTarget
-from .validators import AppURLValidator, brand_validator
+from .validators import AppExtensionOptions, AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
 
@@ -71,12 +74,38 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     """
     extension_url = extension["url"]
     target = extension.get("target") or AppExtensionTarget.POPUP
+
+    # Assume app URL is the one that originally received the token.
+    app_url = manifest_data.get("tokenTargetUrl")
+
+    new_tab_method_post = (
+        extension.get("options", {}).get("newTabTarget", {}).get("method") == "POST"
+    )
+    widget_method_post = (
+        extension.get("options", {}).get("widgetTarget", {}).get("method") == "POST"
+    )
+
+    if not app_url:
+        raise ValidationError("Manifest is invalid, token_target_url is missing")
+
     if extension_url.startswith("/"):
         _clean_extension_url_with_only_path(manifest_data, target, extension_url)
     elif target == AppExtensionTarget.APP_PAGE:
         msg = "Url cannot start with protocol when target == APP_PAGE"
         logger.warning(msg)
         raise ValidationError(msg)
+    elif (target == AppExtensionTarget.NEW_TAB and new_tab_method_post) or (
+        target == AppExtensionTarget.WIDGET and widget_method_post
+    ):
+        parsed_app_url = urlparse(app_url)
+        parsed_extension_url = urlparse(extension_url)
+
+        if parsed_extension_url.scheme != "https" and settings.ENABLE_SSL:
+            raise ValidationError("Extension must start with https")
+
+        if parsed_app_url.hostname != parsed_extension_url.hostname:
+            raise ValidationError("Extension URL must match App URL")
+
     else:
         _clean_app_url(extension_url)
 
@@ -206,8 +235,42 @@ def _clean_extension_enum_field(enum, field_name, extension, errors):
         )
 
 
+def _clean_extension_options(extension, errors):
+    """Validate the options field in an extension."""
+    options = extension.get("options", {})
+    try:
+        validated_options = AppExtensionOptions.model_validate(options)
+
+        if (
+            validated_options.widget_target
+            and extension.get("target") != AppExtensionTarget.WIDGET
+        ):
+            raise ValidationError(
+                "widgetTarget options must be set only on WIDGET target"
+            )
+
+        if (
+            validated_options.new_tab_target
+            and extension.get("target") != AppExtensionTarget.NEW_TAB
+        ):
+            raise ValidationError(
+                "newTabTarget options must be set only on NEW_TAB target"
+            )
+
+        # Update the extension with the validated options
+        extension["options"] = validated_options.model_dump(exclude_none=True)
+    except (ValidationError, PydanticValidationError) as e:
+        errors["extensions"].append(
+            ValidationError(
+                f"Invalid options field: {str(e)}",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+
+
 def _clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
+
     for extension in extensions:
         if "target" not in extension:
             extension["target"] = AppExtensionTarget.POPUP
@@ -227,6 +290,8 @@ def _clean_extensions(manifest_data, app_permissions, errors):
             )
 
         _clean_extension_permissions(extension, app_permissions, errors)
+
+        _clean_extension_options(extension, errors)
 
 
 def _clean_webhooks(manifest_data, errors):

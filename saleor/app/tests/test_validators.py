@@ -2,10 +2,14 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ... import __version__
-from ...app.validators import AppURLValidator
+from ...app.validators import (
+    AppExtensionOptions,
+    AppURLValidator,
+)
 from ..error_codes import AppErrorCode
 from ..manifest_validations import (
     _clean_author,
+    _clean_extension_options,
     _clean_extension_url,
     _clean_required_saleor_version,
     _parse_version,
@@ -103,3 +107,301 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
         _clean_extension_url(extension, app_manifest)
 
     assert error.value.message == "NEW_TAB target should be absolute path"
+
+
+@pytest.mark.parametrize(
+    ("extension", "manifest", "should_raise"),
+    [
+        # url starts with /, target APP_PAGE, appUrl provided
+        (
+            {"url": "/page", "target": AppExtensionTarget.APP_PAGE},
+            {
+                "tokenTargetUrl": "https://app.example.com",
+                "appUrl": "https://app.example.com",
+            },
+            False,
+        ),
+        # url starts with /, target NEW_TAB, should raise
+        (
+            {"url": "/tab", "target": AppExtensionTarget.NEW_TAB},
+            {
+                "tokenTargetUrl": "https://app.example.com",
+                "appUrl": "https://app.example.com",
+            },
+            True,
+        ),
+        # url starts with protocol, target APP_PAGE, should raise
+        (
+            {
+                "url": "https://app.example.com/page",
+                "target": AppExtensionTarget.APP_PAGE,
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            True,
+        ),
+        # url starts with protocol, target NEW_TAB, method POST, valid host
+        (
+            {
+                "url": "https://app.example.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            False,
+        ),
+        # url starts with protocol, target NEW_TAB, method POST, invalid host
+        (
+            {
+                "url": "https://other.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {"tokenTargetUrl": "https://app.example.com"},
+            True,
+        ),
+        # url is valid absolute, target POPUP
+        (
+            {"url": "https://app.example.com/page", "target": AppExtensionTarget.POPUP},
+            {"tokenTargetUrl": "https://app.example.com"},
+            False,
+        ),
+    ],
+)
+def test_clean_extension_url(extension, manifest, should_raise):
+    if should_raise:
+        with pytest.raises(ValidationError):
+            _clean_extension_url(extension, manifest)
+
+    else:
+        _clean_extension_url(extension, manifest)
+
+
+def test_clean_extension_url_https_only(settings):
+    settings.ENABLE_SSL = True
+
+    with pytest.raises(ValidationError):
+        _clean_extension_url(
+            {
+                "url": "http://app.example.com/page",
+                "target": AppExtensionTarget.NEW_TAB,
+                "options": {"newTabTarget": {"method": "POST"}},
+            },
+            {
+                "tokenTargetUrl": "https://app.example.com",
+                "appUrl": "https://app.example.com",
+            },
+        )
+
+
+def test_clean_extension_url_http_if_SSL_disabled(settings):
+    settings.ENABLE_SSL = False
+
+    result = _clean_extension_url(
+        {"url": "http://app.example.com/page", "target": AppExtensionTarget.NEW_TAB},
+        {
+            "tokenTargetUrl": "https://app.example.com",
+            "appUrl": "https://app.example.com",
+        },
+    )
+
+    assert result is None
+
+
+def test_app_extension_options_accepts_only_one():
+    parsed = AppExtensionOptions().model_validate({"widgetTarget": {"method": "GET"}})
+
+    assert parsed.new_tab_target is None
+    assert parsed.widget_target is not None
+
+    parsed = AppExtensionOptions().model_validate({"newTabTarget": {"method": "GET"}})
+
+    assert parsed.new_tab_target is not None
+    assert parsed.widget_target is None
+
+    with pytest.raises(
+        ValueError, match="Only one of 'newTabTarget' or 'widgetTarget' can be set."
+    ):
+        AppExtensionOptions.model_validate(
+            {
+                "newTabTarget": {"method": "GET"},
+                "widgetTarget": {"method": "GET"},
+            }
+        )
+
+    parsed = AppExtensionOptions().model_validate({})
+
+    assert parsed.new_tab_target is None
+    assert parsed.widget_target is None
+
+
+@pytest.mark.parametrize(
+    ("app_url", "extension_url", "should_raise"),
+    [
+        (None, "/some-path", True),  # Test missing token_target_url
+        ("https://example.com", "/some-path", False),  # Test valid token_target_url
+    ],
+)
+def test_clean_extension_url_token_target_url(app_url, extension_url, should_raise):
+    # Given
+    extension = {"url": extension_url, "target": "APP_PAGE"}
+    manifest_data = {"tokenTargetUrl": app_url, "appUrl": "https://example.com"}
+
+    # When & Then
+    if should_raise:
+        with pytest.raises(ValidationError, match="token_target_url is missing"):
+            _clean_extension_url(extension, manifest_data)
+    else:
+        # Should not raise ValidationError
+        _clean_extension_url(extension, manifest_data)
+
+
+def test_clean_extension_options_valid_widget_options():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.WIDGET,
+        "options": {"widgetTarget": {"method": "POST"}},
+    }
+    errors = {"extensions": []}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" in errors
+    assert len(errors["extensions"]) == 0
+    assert "options" in extension
+    assert "widget_target" in extension["options"]
+    assert extension["options"]["widget_target"]["method"] == "POST"
+
+
+def test_clean_extension_options_valid_new_tab_options():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.NEW_TAB,
+        "options": {"newTabTarget": {"method": "GET"}},
+    }
+    errors = {"extensions": []}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" in errors
+    assert len(errors["extensions"]) == 0
+    assert "options" in extension
+    assert "new_tab_target" in extension["options"]
+    assert extension["options"]["new_tab_target"]["method"] == "GET"
+
+
+def test_clean_extension_options_both_targets():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.NEW_TAB,
+        "options": {
+            "newTabTarget": {"method": "GET"},
+            "widgetTarget": {"method": "POST"},
+        },
+    }
+    errors = {"extensions": []}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" in errors
+    assert len(errors["extensions"]) == 1
+    assert (
+        "Only one of 'newTabTarget' or 'widgetTarget'"
+        in errors["extensions"][0].message
+    )
+
+
+def test_clean_extension_options_widget_target_with_wrong_target():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.NEW_TAB,
+        "options": {"widgetTarget": {"method": "POST"}},
+    }
+    errors = {"extensions": []}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" in errors
+    assert len(errors["extensions"]) == 1
+    assert (
+        "widgetTarget options must be set only on WIDGET target"
+        in errors["extensions"][0].message
+    )
+
+
+def test_clean_extension_options_new_tab_target_with_wrong_target():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.WIDGET,
+        "options": {"newTabTarget": {"method": "GET"}},
+    }
+    errors = {"extensions": []}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" in errors
+    assert len(errors["extensions"]) == 1
+    assert (
+        "newTabTarget options must be set only on NEW_TAB target"
+        in errors["extensions"][0].message
+    )
+
+
+def test_clean_extension_options_invalid_options():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.WIDGET,
+        "options": {
+            "widgetTarget": {
+                "method": "INVALID_METHOD"  # Only POST and GET are valid
+            }
+        },
+    }
+    errors = {"extensions": []}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" in errors
+    assert len(errors["extensions"]) == 1
+    assert "Invalid options field" in errors["extensions"][0].message
+
+
+def test_clean_extension_options_empty():
+    # Given
+    extension = {"target": AppExtensionTarget.WIDGET, "options": {}}
+    errors = {}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" not in errors
+    assert "options" in extension
+    assert extension["options"] == {}
+
+
+def test_clean_extension_options_no_options():
+    # Given
+    extension = {
+        "target": AppExtensionTarget.WIDGET,
+    }
+    errors = {}
+
+    # When
+    _clean_extension_options(extension, errors)
+
+    # Then
+    assert "extensions" not in errors
+    assert "options" in extension
+    assert extension["options"] == {}
