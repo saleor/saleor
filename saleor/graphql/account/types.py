@@ -483,6 +483,10 @@ class User(ModelObjectType[models.User]):
             required=True,
         ),
     )
+    customer_groups = NonNullList(
+        "saleor.graphql.account.types.CustomerGroup",
+        description="List of customer groups assigned to the user.",
+    )
 
     class Meta:
         description = "Represents user data."
@@ -591,6 +595,12 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     def resolve_permission_groups(root: models.User, info: ResolveInfo):
         return root.groups.using(get_database_connection_name(info.context)).all()
+
+    @staticmethod
+    def resolve_customer_groups(root: models.User, info: ResolveInfo):
+        return root.customer_groups.using(
+            get_database_connection_name(info.context)
+        ).all()
 
     @staticmethod
     def resolve_editable_groups(root: models.User, info: ResolveInfo):
@@ -1028,3 +1038,66 @@ class GroupCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         node = Group
+
+
+class CustomerGroupInput(BaseInputObjectType):
+    name = graphene.String(description="Customer group name.")
+
+
+class CustomerGroupUpdateInput(BaseInputObjectType):
+    name = graphene.String(
+        description="Name of the customer group. Must be unique.",
+    )
+    add_customers = NonNullList(
+        graphene.ID,
+        description="List of customer IDs to add to the group.",
+    )
+    remove_customers = NonNullList(
+        graphene.ID,
+        description="List of customer IDs to remove from the group.",
+    )
+
+
+@federated_entity("id")
+class CustomerGroup(ModelObjectType[models.CustomerGroup]):
+    id = graphene.GlobalID(required=True, description="The ID of the customer group.")
+    name = graphene.String(required=True, description="The name of the customer group.")
+    customers = ConnectionField(
+        UserCountableConnection,
+        description="List of customers in group",
+        permissions=[
+            AccountPermissions.MANAGE_USERS,
+        ],
+    )
+
+    class Meta:
+        description = "Represents customer group data."
+        interfaces = [relay.Node]
+        model = models.CustomerGroup
+
+    @staticmethod
+    def resolve_customers(root: models.CustomerGroup, info: ResolveInfo, **kwargs):
+        database_connection_name = get_database_connection_name(info.context)
+        qs = root.customers.using(database_connection_name)
+        return create_connection_slice(qs, info, kwargs, UserCountableConnection)
+
+    @staticmethod
+    def __resolve_references(roots: list["Group"], info: ResolveInfo):
+        from .resolvers import resolve_permission_groups
+
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor or (
+            not requestor.has_perm(AuthorizationFilters.AUTHENTICATED_STAFF_USER)
+            and not requestor.has_perm(AuthorizationFilters.AUTHENTICATED_APP)
+        ):
+            qs = models.CustomerGroup.objects.none()
+        else:
+            qs = resolve_permission_groups(info)
+
+        return resolve_federation_references(CustomerGroup, roots, qs)
+
+
+class CustomerGroupCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        node = CustomerGroup

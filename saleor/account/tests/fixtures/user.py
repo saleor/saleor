@@ -1,6 +1,6 @@
 import pytest
 
-from ....account.models import User
+from ....account.models import User, CustomerGroup
 
 
 @pytest.fixture
@@ -99,3 +99,12 @@ def staff_users(staff_user):
         ]
     )
     return [staff_user] + staff_users
+
+
+@pytest.fixture
+def customer_group_list():
+    """Return a customer group."""
+    return [
+        CustomerGroup.objects.create(name="Customer Group"),
+        CustomerGroup.objects.create(name="Customer Group 2"),
+    ]

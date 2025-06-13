@@ -18,7 +18,12 @@ from .bulk_mutations import (
     UserBulkSetActive,
 )
 from .enums import CountryCodeEnum
-from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
+from .filters import (
+    CustomerFilter,
+    CustomerGroupFilter,
+    PermissionGroupFilter,
+    StaffUserFilter,
+)
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -47,6 +52,7 @@ from .mutations.authentication import (
     SetPassword,
     VerifyToken,
 )
+from .mutations.customer_group import CustomerGroupCreate, CustomerGroupUpdate
 from .mutations.permission_group import (
     PermissionGroupCreate,
     PermissionGroupDelete,
@@ -69,6 +75,7 @@ from .mutations.staff import (
 from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
+    resolve_customer_groups,
     resolve_customers,
     resolve_permission_group,
     resolve_permission_groups,
@@ -79,6 +86,7 @@ from .sorters import PermissionGroupSortingInput, UserSortingInput
 from .types import (
     Address,
     AddressValidationData,
+    CustomerGroupCountableConnection,
     Group,
     GroupCountableConnection,
     User,
@@ -90,6 +98,12 @@ class CustomerFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerFilter
+
+
+class CustomerGroupFilterInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        filterset_class = CustomerGroupFilter
 
 
 class PermissionGroupFilterInput(FilterInputObjectType):
@@ -131,6 +145,18 @@ class AccountQueries(graphene.ObjectType):
         + message_one_of_permissions_required(
             [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
         ),
+        doc_category=DOC_CATEGORY_USERS,
+    )
+    customer_groups = FilterConnectionField(
+        CustomerGroupCountableConnection,
+        filter=CustomerGroupFilterInput(
+            description="Filtering options for customer groups."
+        ),
+        description="List of customer groups.",
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
         doc_category=DOC_CATEGORY_USERS,
     )
     customers = FilterConnectionField(
@@ -216,6 +242,16 @@ class AccountQueries(graphene.ObjectType):
             qs, kwargs, allow_replica=info.context.allow_replica
         )
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
+
+    @staticmethod
+    def resolve_customer_groups(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_customer_groups(info)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(
+            qs, info, kwargs, CustomerGroupCountableConnection
+        )
 
     @staticmethod
     def resolve_permission_groups(_root, info: ResolveInfo, **kwargs):
@@ -316,3 +352,6 @@ class AccountMutations(graphene.ObjectType):
     permission_group_create = PermissionGroupCreate.Field()
     permission_group_update = PermissionGroupUpdate.Field()
     permission_group_delete = PermissionGroupDelete.Field()
+
+    customer_group_create = CustomerGroupCreate.Field()
+    customer_group_update = CustomerGroupUpdate.Field()

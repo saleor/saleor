@@ -432,3 +432,22 @@ class Group(models.Model):
 
     def natural_key(self):
         return (self.name,)
+
+
+class CustomerGroup(models.Model):
+    """The system provides a way to group customers.
+
+    Groups can be used to apply group specific discounts or to limit
+    access to channels.
+    """
+
+    name = models.CharField("name", max_length=150, unique=True)
+    customers = models.ManyToManyField(
+        User,
+        verbose_name="customers",
+        blank=True,
+        related_name="customer_groups",
+    )
+
+    def __str__(self):
+        return self.name

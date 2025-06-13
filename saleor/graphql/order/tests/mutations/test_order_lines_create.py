@@ -1210,6 +1210,9 @@ def test_order_lines_create_with_custom_price_force_new_line_and_catalogue_disco
     variant_listings = variant.channel_listings.get(channel=order.channel)
     promotion_rule = variant_listings.promotion_rules.first()
     promotion_rule.variants.add(variant)
+    PromotionRule.objects.filter(reward_value_type=RewardValueType.PERCENTAGE).update(
+        reward_value=Decimal("5.00")
+    )  # Avoid percentage rule being better than fixed
     reward_value = promotion_rule.reward_value
     assert promotion_rule.reward_value_type == DiscountValueType.FIXED
 

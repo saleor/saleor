@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import graphene
 
+from ....account.models import CustomerGroup
 from ....product.models import ProductVariant
 from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ... import PromotionRuleInfo, RewardValueType
@@ -155,3 +156,121 @@ def test_get_variants_to_promotions_map_no_matching_rules(
 
     # then
     assert not rules_info_per_variant
+
+
+def test_get_variants_to_promotions_map_without_customer_group(
+    catalogue_promotion_without_rules,
+    product,
+    product_with_two_variants,
+    channel_USD,
+    customer_group_list,
+):
+    # given
+    promotion = catalogue_promotion_without_rules
+    variant = product.variants.first()
+
+    percentage_reward_value = Decimal("10")
+    reward_value = Decimal("2")
+    rule_1 = promotion.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=percentage_reward_value,
+    )
+    rule_2 = promotion.rules.create(
+        name="Fixed promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id("Product", product_with_two_variants.id)
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule_1.customer_groups.add(customer_group_list[0])
+    rule_1.channels.add(channel_USD)
+    rule_2.channels.add(channel_USD)
+    rule_1.variants.add(variant)
+    rule_2.variants.add(variant)
+
+    variants = ProductVariant.objects.all()
+
+    # when
+    rules_info_per_variant = get_variants_to_promotion_rules_map(variants)
+
+    # then
+    assert len(rules_info_per_variant) == 1
+    assert rules_info_per_variant[variant.id] == [
+        PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id]),
+        PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
+    ]
+
+    for variant in product_with_two_variants.variants.all():
+        assert rules_info_per_variant[variant.id] == []
+
+
+def test_get_variants_to_promotions_map_with_customer_group(
+    catalogue_promotion_without_rules,
+    product,
+    product_with_two_variants,
+    channel_USD,
+    customer_group_list,
+):
+    # given
+    promotion = catalogue_promotion_without_rules
+    variant = product.variants.first()
+
+    percentage_reward_value = Decimal("10")
+    reward_value = Decimal("2")
+    rule_1 = promotion.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=percentage_reward_value,
+    )
+    rule_2 = promotion.rules.create(
+        name="Fixed promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [
+                    graphene.Node.to_global_id("Product", product_with_two_variants.id)
+                ]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule_1.customer_groups.add(customer_group_list[0])
+    rule_1.channels.add(channel_USD)
+    rule_2.channels.add(channel_USD)
+    rule_1.variants.add(variant)
+    rule_2.variants.add(variant, *product_with_two_variants.variants.all())
+
+    variants = ProductVariant.objects.all()
+
+    # when
+    rules_info_per_variant = get_variants_to_promotion_rules_map(
+        variants, CustomerGroup.objects.filter(id=customer_group_list[0].id)
+    )
+
+    # then
+    assert len(rules_info_per_variant) == 3
+    assert rules_info_per_variant[variant.id] == [
+        PromotionRuleInfo(rule=rule_1, channel_ids=[channel_USD.id]),
+        PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
+    ]
+
+    for variant in product_with_two_variants.variants.all():
+        assert rules_info_per_variant[variant.id] == [
+            PromotionRuleInfo(rule=rule_2, channel_ids=[channel_USD.id]),
+        ]

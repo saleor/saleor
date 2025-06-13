@@ -83,7 +83,7 @@ def test_fetch_draft_order_lines_info_extended(
     )
 
     # when
-    with django_assert_num_queries(14):
+    with django_assert_num_queries(15):
         lines_info = fetch_draft_order_lines_info(order, fetch_actual_prices=True)
 
     # then

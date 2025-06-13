@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, NamedTuple, Optional
 
+from django.db.models import Q
+
+from ..account.models import User
 from . import DiscountType, DiscountValueType
 from .models import PromotionRule, Voucher
 
@@ -79,20 +82,30 @@ class VariantPromotionRuleInfo(NamedTuple):
 def fetch_variant_rules_info(
     variant_channel_listing: Optional["ProductVariantChannelListing"],
     translation_language_code: str,
+    user: User | None = None,
 ) -> list[VariantPromotionRuleInfo]:
-    listings_rules = (
-        variant_channel_listing.variantlistingpromotionrule.all()
-        if variant_channel_listing
-        else []
-    )
+    relevant_listings_rules = []
+    if variant_channel_listing:
+        listings_rules = variant_channel_listing.variantlistingpromotionrule.all()
+
+        for rule in listings_rules:
+            rule_group_ids = {
+                group.id for group in rule.promotion_rule.customer_groups.all()
+            }
+            if len(rule_group_ids) == 0:
+                relevant_listings_rules.append(rule)
+            elif user:
+                user_group_ids = {group.id for group in user.customer_groups.all()}
+                if len(user_group_ids.intersection(rule_group_ids)) > 0:
+                    relevant_listings_rules.append(rule)
 
     rules_info = []
-    if listings_rules:
+    if len(relevant_listings_rules) > 0:
         # Before introducing unique_type on discount models, there was possibility
         # to have multiple catalogue discount associated with single line. In such a
         # case, we should pick the best discount (with the highest discount amount)
         listing_promotion_rule = max(
-            list(listings_rules),
+            relevant_listings_rules,
             key=lambda x: x.discount_amount,
         )
         promotion = listing_promotion_rule.promotion_rule.promotion

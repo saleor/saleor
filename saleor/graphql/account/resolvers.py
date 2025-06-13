@@ -42,6 +42,12 @@ def resolve_customers(info):
     )
 
 
+def resolve_customer_groups(info):
+    return models.CustomerGroup.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
+
+
 def resolve_permission_group(info, id):
     return (
         models.Group.objects.using(get_database_connection_name(info.context))
