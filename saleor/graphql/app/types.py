@@ -4,7 +4,6 @@ import datetime
 import graphene
 
 from ...app import models
-from ...app.models import App as AppModel
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
@@ -173,24 +172,21 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
     @staticmethod
     @app_promise_callback
-    def resolve_app(root, info: ResolveInfo, app):
+    def resolve_app(root, info: ResolveInfo, app_requestor):
         # Resolve if app from context is the same as requested app
-        if app and app.id == root.app_id:
+        if app_requestor and app_requestor.id == root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
 
         # Reject if app from context is different from requested app
-        if app and app.id != root.app_id:
+        if app_requestor and app_requestor.id != root.app_id:
             raise PermissionDenied(permissions=[AuthorizationFilters.OWNER])
 
-        # Resolve app if user from the context is authenticated
-        requestor = get_user_or_app_from_context(info.context)
-
-        # Check if requestor is an app and is the same as requested app
-        if isinstance(requestor, AppModel) and requestor.id == root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id)
+        # Resolve app if a user from the context is authenticated
+        # At this point, it's always user, because we exit for app in checks above
+        maybe_user = get_user_or_app_from_context(info.context)
 
         # Allow staff users to access app data, no MANAGE_APPS needed
-        if requestor and is_staff_user(info.context):
+        if maybe_user and is_staff_user(info.context):
             return AppByIdLoader(info.context).load(root.app_id)
 
         # If none of the conditions are met, reject with permission denied
