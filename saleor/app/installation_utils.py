@@ -231,12 +231,35 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
+        # Manifest is already "clean" so values are snake case
+        options = extension_data.get("options", {})
+        new_tab_target = options.get("new_tab_target")
+        widget_target = options.get("widget_target")
+
+        # Ensure proper extraction of the method values from the options
+        http_target_method = None
+
+        if (
+            new_tab_target
+            and isinstance(new_tab_target, dict)
+            and "method" in new_tab_target
+        ):
+            http_target_method = new_tab_target["method"]
+
+        if (
+            widget_target
+            and isinstance(widget_target, dict)
+            and "method" in widget_target
+        ):
+            http_target_method = widget_target["method"]
+
         extension = AppExtension.objects.create(
             app=app,
             label=extension_data.get("label"),
             url=extension_data.get("url"),
             mount=extension_data.get("mount"),
             target=extension_data.get("target", AppExtensionTarget.POPUP),
+            http_target_method=http_target_method,
         )
         extension.permissions.set(extension_data.get("permissions", []))
 

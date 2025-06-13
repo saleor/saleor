@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Stripe Plugin has been deprecated. It will be removed in the future. Please use [the Stripe App](https://docs.saleor.io/developer/app-store/apps/stripe/overview) instead
 - App Extensions: Added new allowed extension target: NEW_TAB. Once handled in the Dashboard, an extension will be able to open a link in new tab
 - App Extensions: New mount points for Dashboard categories, collections, gift cards, draft orders, discounts, vouchers, pages, pages types and menus
+- App Extensions: Now mount point types have been added, meant to be used as widgets. Additionally, a new target `WIDGET` has been added. For `NEW_TAB` and `WIDGET` targets, new field `options`. See [docs](todo) to learn more
 - Changed logging settings of failed requests to reduce logs amount in production:
 
   - Downgraded the "A query had an error" log from INFO to DEBUG level.

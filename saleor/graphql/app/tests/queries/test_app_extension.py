@@ -1,7 +1,7 @@
 import graphene
 
 from .....app.models import AppExtension
-from .....app.types import AppExtensionMount
+from .....app.types import AppExtensionMount, AppExtensionTarget
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -17,6 +17,19 @@ query ($id: ID!){
         permissions{
             code
         }
+        options {
+          ... on AppExtensionOptionsWidget{
+            widgetTarget {
+              method
+            }
+          }
+          ...on AppExtensionOptionsNewTab {
+            newTabTarget{
+              method
+            }
+          }
+
+        }
     }
 }
 """
@@ -29,6 +42,8 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        http_target_method="POST",
+        target=AppExtensionTarget.WIDGET,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -52,6 +67,8 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
     assert len(extension_data["permissions"]) == 1
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
+
+    assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
 
 def test_app_extension_by_app(app, app_api_client, permission_manage_products):
