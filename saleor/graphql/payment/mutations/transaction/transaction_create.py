@@ -7,8 +7,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import Model
 
-from saleor.payment.interface import PaymentMethodDetails
-
 from .....checkout import models as checkout_models
 from .....checkout.actions import transaction_amounts_for_checkout_updated
 from .....core.prices import quantize_price
@@ -22,6 +20,7 @@ from .....order.utils import update_order_status, updates_amounts_for_order
 from .....payment import TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionCreateErrorCode
+from .....payment.interface import PaymentMethodDetails
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     create_manual_adjustment_events,
