@@ -1,11 +1,13 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import graphene
 import pytest
 from prices import Money, TaxedMoney
 
 from .....core.postgres import FlatConcatSearchVector
 from .....discount.models import OrderDiscount
+from .....invoice.models import Invoice
 from .....order import OrderStatus
 from .....order.events import (
     draft_order_created_from_replace_event,
@@ -285,6 +287,7 @@ ORDERS_QUERY_WITH_SEARCH = """
         ("test@mirumee.com", 1),
         ("Leslie", 1),
         ("Wade", 1),
+        ("Leslie Wade", 1),
         ("", 3),
         ("ExternalID", 1),
         ("SKU_A", 1),
@@ -383,3 +386,58 @@ def test_orders_query_with_search(
     # then
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == count
+
+
+def test_orders_query_with_search_by_order_id(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+):
+    # given
+    for order in order_list:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(order_list, ["search_vector"])
+
+    search_value = graphene.Node.to_global_id("Order", order_list[1].pk)
+    variables = {"search": search_value}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+    assert content["data"]["orders"]["edges"][0]["node"]["id"] == search_value
+
+
+def test_orders_query_with_search_by_invoice_id(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+):
+    # given
+    invoices = Invoice.objects.bulk_create(
+        [Invoice(order=order, number=f"INV-{order.pk}") for order in order_list]
+    )
+    for order in order_list:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(order_list, ["search_vector"])
+
+    search_value = graphene.Node.to_global_id("Invoice", invoices[2].pk)
+    variables = {"search": search_value}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+    assert content["data"]["orders"]["edges"][0]["node"][
+        "id"
+    ] == graphene.Node.to_global_id("Order", order_list[2].pk)

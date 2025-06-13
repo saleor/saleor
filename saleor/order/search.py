@@ -35,9 +35,15 @@ def prepare_order_search_vector_value(
             "discounts",
             "lines",
             "payment_transactions__events",
+            "invoices",
         )
     search_vectors = [
-        NoValidationSearchVector(Value(str(order.number)), config="simple", weight="A")
+        NoValidationSearchVector(Value(str(order.number)), config="simple", weight="A"),
+        NoValidationSearchVector(
+            Value(graphene.Node.to_global_id("Order", order.id)),
+            config="simple",
+            weight="A",
+        ),
     ]
     if order.user_email:
         search_vectors.append(
@@ -77,6 +83,7 @@ def prepare_order_search_vector_value(
     search_vectors += generate_order_discounts_search_vector_value(order)
     search_vectors += generate_order_lines_search_vector_value(order)
     search_vectors += generate_order_transactions_search_vector_value(order)
+    search_vectors += generate_order_invoices_search_vector_value(order)
     return search_vectors
 
 
@@ -211,6 +218,21 @@ def generate_order_lines_search_vector_value(
                 )
             )
     return line_vectors
+
+
+def generate_order_invoices_search_vector_value(
+    order: "Order",
+) -> list[NoValidationSearchVector]:
+    invoice_vectors = []
+    for invoice in order.invoices.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_INVOICES]:
+        invoice_vectors.append(
+            NoValidationSearchVector(
+                Value(graphene.Node.to_global_id("Invoice", invoice.id)),
+                config="simple",
+                weight="D",
+            )
+        )
+    return invoice_vectors
 
 
 def search_orders(qs: "QuerySet[Order]", value) -> "QuerySet[Order]":
