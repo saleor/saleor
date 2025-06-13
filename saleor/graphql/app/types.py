@@ -268,6 +268,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     def resolve_options(root: models.AppExtension, _info: ResolveInfo):
         new_tab_method = getattr(root, "new_tab_target_method", None)
         widget_method = getattr(root, "widget_target_method", None)
+
         if new_tab_method:
             return AppExtensionOptionsNewTab(
                 new_tab_target=NewTabTargetOptions(method=new_tab_method),
