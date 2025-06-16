@@ -452,3 +452,24 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
     response = get_graphql_content(response)
 
     assert response["data"]["appExtension"]["id"] == id
+
+
+def test_app_extension_with_app_query_by_customer_without_permissions(
+    external_app, app, api_client, permission_group_manage_apps
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=external_app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = api_client.post_graphql(QUERY_APP_EXTENSION_WITH_APP, variables)
+
+    # then
+    assert_no_permission(response)
