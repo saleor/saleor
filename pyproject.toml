@@ -73,7 +73,7 @@ package-mode = false
   dj-email-url = "^1"
   django = {extras = ["bcrypt"], version = "^5.2"}
   django-cache-url = "^3.1.2"
-  django-celery-beat = "^2.8.0"
+  django-celery-beat = "^2.8.1"
   django-countries = "^7.2"
   django-filter = "^24.3"
   django-measurement = "^3.0"
