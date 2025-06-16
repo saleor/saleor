@@ -22,6 +22,27 @@ from .....order.search import (
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 
+@pytest.fixture
+def orders_with_fulfillments(order_list):
+    statuses = [
+        FulfillmentStatus.FULFILLED,
+        FulfillmentStatus.REFUNDED,
+        FulfillmentStatus.RETURNED,
+    ]
+    metadata_values = [
+        {"foo": "bar"},
+        {"foo": "zaz"},
+        {},
+    ]
+    for order, status, metadata in zip(
+        order_list, statuses, metadata_values, strict=True
+    ):
+        order.fulfillments.create(
+            tracking_number="123", status=status, metadata=metadata
+        )
+    return order_list
+
+
 def test_order_query_with_filter_and_where(
     staff_api_client,
     permission_group_manage_orders,
@@ -1662,115 +1683,237 @@ def test_orders_filter_by_fulfillment_metadata(
     assert numbers == {str(order_list[i].number) for i in expected_indexes}
 
 
-@pytest.mark.parametrize(
-    ("status_where", "metadata_where", "expected_indexes"),
-    [
-        # Both status and metadata match
-        (
-            {"eq": FulfillmentStatus.FULFILLED.upper()},
-            {"key": "foo", "value": {"eq": "bar"}},
-            [0],
-        ),
-        # Status matches, metadata does not
-        (
-            {"eq": FulfillmentStatus.FULFILLED.upper()},
-            {"key": "foo", "value": {"eq": "notfound"}},
-            [],
-        ),
-        # Metadata matches, status does not
-        (
-            {"eq": FulfillmentStatus.REFUNDED.upper()},
-            {"key": "foo", "value": {"eq": "bar"}},
-            [],
-        ),
-        # Both status and metadata do not match
-        (
-            {"eq": FulfillmentStatus.RETURNED.upper()},
-            {"key": "foo", "value": {"eq": "baz"}},
-            [],
-        ),
-        # Status matches, metadata is None
-        (
-            {"eq": FulfillmentStatus.FULFILLED.upper()},
-            None,
-            [0],
-        ),
-        # Metadata matches, status is None
-        (
-            None,
-            {"key": "foo", "value": {"eq": "bar"}},
-            [0],
-        ),
-        # Both status and metadata are None (should return nothing)
-        (
-            None,
-            None,
-            [],
-        ),
-        # Status oneOf, metadata oneOf
-        (
-            {
-                "oneOf": [
-                    FulfillmentStatus.FULFILLED.upper(),
-                    FulfillmentStatus.REFUNDED.upper(),
-                ]
-            },
-            {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}},
-            [0, 1],
-        ),
-        # Status oneOf, metadata notOneOf
-        (
-            {
-                "oneOf": [
-                    FulfillmentStatus.FULFILLED.upper(),
-                    FulfillmentStatus.REFUNDED.upper(),
-                ]
-            },
-            {"key": "foo", "value": {"notOneOf": ["bar"]}},
-            [1],
-        ),
-    ],
-)
-def test_orders_filter_by_fulfillment_status_and_metadata(
-    status_where,
-    metadata_where,
-    expected_indexes,
-    order_list,
-    staff_api_client,
-    permission_group_manage_orders,
+def test_orders_filter_fulfillment_status_and_metadata_both_match(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
 ):
     # given
-    statuses = [
-        FulfillmentStatus.FULFILLED,
-        FulfillmentStatus.REFUNDED,
-        FulfillmentStatus.RETURNED,
-    ]
-    metadata_values = [
-        {"foo": "bar"},
-        {"foo": "zaz"},
-        {},
-    ]
-    for order, status, metadata in zip(
-        order_list, statuses, metadata_values, strict=True
-    ):
-        order.fulfillments.create(
-            tracking_number="123", status=status, metadata=metadata
-        )
-
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
-        "where": {"fulfillments": {"status": status_where, "metadata": metadata_where}}
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "bar"}},
+            }
+        }
     }
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
-
-    # then
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
-    assert len(orders) == len(expected_indexes)
-    numbers = {node["node"]["number"] for node in orders}
-    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number)
+    }
+
+
+def test_orders_filter_fulfillment_status_matches_metadata_not(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "notfound"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_metadata_matches_status_not(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.REFUNDED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "bar"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_status_and_metadata_both_not_match(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.RETURNED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "baz"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_status_matches_metadata_none(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                "metadata": None,
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number)
+    }
+
+
+def test_orders_filter_fulfillment_metadata_matches_status_none(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": None,
+                "metadata": {"key": "foo", "value": {"eq": "bar"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number)
+    }
+
+
+def test_orders_filter_fulfillment_status_and_metadata_both_none(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": None,
+                "metadata": None,
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_status_oneof_metadata_oneof(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {
+                    "oneOf": [
+                        FulfillmentStatus.FULFILLED.upper(),
+                        FulfillmentStatus.REFUNDED.upper(),
+                    ]
+                },
+                "metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 2
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number),
+        str(orders_with_fulfillments[1].number),
+    }
+
+
+def test_orders_filter_fulfillment_status_oneof_metadata_notoneof(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {
+                    "oneOf": [
+                        FulfillmentStatus.FULFILLED.upper(),
+                        FulfillmentStatus.REFUNDED.upper(),
+                    ]
+                },
+                "metadata": {"key": "foo", "value": {"notOneOf": ["bar"]}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[1].number)
+    }
 
 
 @pytest.mark.parametrize(
