@@ -175,4 +175,16 @@ class MetadataFilterInput(graphene.InputObjectType):
     )
 
     class Meta:
-        description = "Define the filtering options for metadata fields."
+        description = """Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+        - `{key: "tags", value: {notOneOf: ["archived", "deleted"]}}`
+          Matches objects where the metadata key "tags" is not set to either "archived" or "deleted",
+          as well as objects where the "tags" key is not present at all.
+        """

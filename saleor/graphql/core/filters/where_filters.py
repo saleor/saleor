@@ -152,7 +152,15 @@ class MetadataWhereFilterBase(WhereFilterSet):
 
 
 def filter_where_metadata(qs, _, value):
-    """Filter queryset by metadata."""
+    """Filter queryset by metadata.
+
+    We are allowing to filter metadata by:
+    - Key existence: returns items where the specified key exists (when no value is provided)
+    - Equals (`eq`): returns items where the key matches the given value
+    - One of (`one_of`): returns items where the key matches any value in the provided list
+    - Not one of (`not_one_of`): excludes items where the key matches any value in the provided list;
+        items where the key is missing will be returned
+    """
     if not value:
         return qs.none()
     key = value["key"]
