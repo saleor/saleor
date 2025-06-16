@@ -8,7 +8,7 @@ from prices import Money, TaxedMoney
 from .....core.postgres import FlatConcatSearchVector
 from .....discount.models import OrderDiscount
 from .....invoice.models import Invoice
-from .....order import OrderStatus
+from .....order import OrderEvents, OrderStatus
 from .....order.events import (
     draft_order_created_from_replace_event,
     fulfillment_fulfilled_items_event,
@@ -441,3 +441,38 @@ def test_orders_query_with_search_by_invoice_id(
     assert content["data"]["orders"]["edges"][0]["node"][
         "id"
     ] == graphene.Node.to_global_id("Order", order_list[2].pk)
+
+
+def test_orders_query_with_search_by_order_event_message(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+):
+    # given
+    event_message = "Special event message for search"
+    order = order_list[0]
+    order.events.create(
+        type=OrderEvents.NOTE_ADDED,
+        user=None,
+        parameters={"message": event_message},
+    )
+
+    # Update search vector for all orders
+    for order in order_list:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(order_list, ["search_vector"])
+
+    variables = {"search": "Special event message"}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+    assert content["data"]["orders"]["edges"][0]["node"][
+        "id"
+    ] == graphene.Node.to_global_id("Order", order_list[0].pk)

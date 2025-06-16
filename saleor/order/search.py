@@ -36,6 +36,7 @@ def prepare_order_search_vector_value(
             "lines",
             "payment_transactions__events",
             "invoices",
+            "events",
         )
     search_vectors = [
         NoValidationSearchVector(Value(str(order.number)), config="simple", weight="A"),
@@ -84,6 +85,7 @@ def prepare_order_search_vector_value(
     search_vectors += generate_order_lines_search_vector_value(order)
     search_vectors += generate_order_transactions_search_vector_value(order)
     search_vectors += generate_order_invoices_search_vector_value(order)
+    search_vectors += generate_order_events_search_vector_value(order)
     return search_vectors
 
 
@@ -233,6 +235,22 @@ def generate_order_invoices_search_vector_value(
             )
         )
     return invoice_vectors
+
+
+def generate_order_events_search_vector_value(
+    order: "Order",
+) -> list[NoValidationSearchVector]:
+    event_vectors = []
+    for event in order.events.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_EVENTS]:
+        message = event.parameters.get("message")
+        event_vectors.append(
+            NoValidationSearchVector(
+                Value(message),
+                config="simple",
+                weight="D",
+            )
+        )
+    return event_vectors
 
 
 def search_orders(qs: "QuerySet[Order]", value) -> "QuerySet[Order]":
