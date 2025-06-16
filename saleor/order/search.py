@@ -71,6 +71,13 @@ def prepare_order_search_vector_value(
                 )
             )
 
+    if order.customer_note:
+        search_vectors.append(
+            NoValidationSearchVector(
+                Value(order.customer_note), config="simple", weight="B"
+            )
+        )
+
     if order.billing_address:
         search_vectors += generate_address_search_vector_value(
             order.billing_address, weight="B"
