@@ -69,9 +69,9 @@ def generate_address_search_vector_value(
         NoValidationSearchVector(
             Value(address.first_name),
             Value(address.last_name),
+            Value(address.street_address_1),
             Value(address.country.name),
             Value(address.country.code),
-            Value(address.street_address_1),
             config="simple",
             weight=weight,
         ),
