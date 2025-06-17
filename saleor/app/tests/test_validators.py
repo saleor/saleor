@@ -11,6 +11,7 @@ from ..manifest_validations import (
     _clean_author,
     _clean_extension_options,
     _clean_extension_url,
+    _clean_extensions,
     _clean_required_saleor_version,
     _parse_version,
 )
@@ -405,3 +406,38 @@ def test_clean_extension_options_no_options():
     assert "extensions" not in errors
     assert "options" in extension
     assert extension["options"] == {}
+
+
+@pytest.mark.parametrize(
+    ("mount", "should_raise"),
+    [
+        ("ORDER_DETAILS_WIDGETS", False),
+        ("PRODUCT_DETAILS_WIDGETS", False),
+        ("VOUCHER_DETAILS_WIDGETS", False),
+        ("DRAFT_ORDER_DETAILS_WIDGETS", False),
+        ("GIFT_CARD_DETAILS_WIDGETS", False),
+        ("CUSTOMER_DETAILS_WIDGETS", False),
+        ("COLLECTION_DETAILS_WIDGETS", False),
+        ("CATEGORY_OVERVIEW_CREATE", True),
+    ],
+)
+def test_widget_target_available_mounts(mount, should_raise, app_manifest):
+    # Given
+    extension = {
+        "target": "WIDGET",
+        "mount": mount,
+        "url": "https://example.com/widget",
+        "label": "label",
+    }
+    errors = {"extensions": []}
+
+    app_manifest["extensions"] = [extension]
+
+    # When
+    _clean_extensions(app_manifest, [], errors)
+
+    # Then
+    if should_raise:
+        assert "extensions" in errors
+    else:
+        assert len(errors["extensions"]) == 0

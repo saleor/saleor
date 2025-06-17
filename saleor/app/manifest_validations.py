@@ -268,6 +268,28 @@ def _clean_extension_options(extension, errors):
         )
 
 
+def _validate_mounts_for_widget(mount: str):
+    widget_available_mounts = [
+        AppExtensionMount.ORDER_DETAILS_WIDGETS,
+        AppExtensionMount.PRODUCT_DETAILS_WIDGETS,
+        AppExtensionMount.VOUCHER_DETAILS_WIDGETS,
+        AppExtensionMount.DRAFT_ORDER_DETAILS_WIDGETS,
+        AppExtensionMount.GIFT_CARD_DETAILS_WIDGETS,
+        AppExtensionMount.CUSTOMER_DETAILS_WIDGETS,
+        AppExtensionMount.COLLECTION_DETAILS_WIDGETS,
+    ]
+
+    if mount not in widget_available_mounts:
+        raise ValidationError(
+            {
+                "mount": ValidationError(
+                    f"Mount {mount} is not available for WIDGET target.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            }
+        )
+
+
 def _clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
 
@@ -278,6 +300,17 @@ def _clean_extensions(manifest_data, app_permissions, errors):
             _clean_extension_enum_field(AppExtensionTarget, "target", extension, errors)
 
         _clean_extension_enum_field(AppExtensionMount, "mount", extension, errors)
+
+        try:
+            if extension["target"] == AppExtensionTarget.WIDGET:
+                _validate_mounts_for_widget(extension["mount"])
+        except ValidationError:
+            errors["extensions"].append(
+                ValidationError(
+                    "This mount can't be used with WIDGET target.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
 
         try:
             _clean_extension_url(extension, manifest_data)
