@@ -249,14 +249,14 @@ def generate_order_events_search_vector_value(
 ) -> list[NoValidationSearchVector]:
     event_vectors = []
     for event in order.events.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_EVENTS]:
-        message = event.parameters.get("message")
-        event_vectors.append(
-            NoValidationSearchVector(
-                Value(message),
-                config="simple",
-                weight="D",
+        if message := event.parameters.get("message"):
+            event_vectors.append(
+                NoValidationSearchVector(
+                    Value(message),
+                    config="simple",
+                    weight="D",
+                )
             )
-        )
     return event_vectors
 
 
