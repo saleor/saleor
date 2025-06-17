@@ -174,7 +174,7 @@ package-mode = false
   types-python-dateutil = "^2.9.0"
   types-redis = "^4.6.0"
   types-requests = "^2.32.0"
-  types-six = "^1.16.17"
+  types-six = "^1.17.0"
   # vcrpy v7.0.0 requires urllib3 v1.x on PyPy but urllib3 v1.x & PyPy are incompatible
   # with our project. We cannot tell Poetry that we only support CPython,
   # thus we can only trick it using a marker in order to match marker
