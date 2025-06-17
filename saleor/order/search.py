@@ -86,6 +86,12 @@ def prepare_order_search_vector_value(
         search_vectors += generate_address_search_vector_value(
             order.shipping_address, weight="B"
         )
+    if order.external_reference:
+        search_vectors.append(
+            NoValidationSearchVector(
+                Value(order.external_reference), config="simple", weight="B"
+            )
+        )
 
     search_vectors += generate_order_payments_search_vector_value(order)
     search_vectors += generate_order_discounts_search_vector_value(order)
@@ -248,6 +254,7 @@ def generate_order_events_search_vector_value(
     order: "Order",
 ) -> list[NoValidationSearchVector]:
     event_vectors = []
+    # TODO: filter by specific event types
     for event in order.events.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_EVENTS]:
         if message := event.parameters.get("message"):
             event_vectors.append(

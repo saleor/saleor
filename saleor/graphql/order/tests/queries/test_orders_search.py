@@ -19,6 +19,7 @@ ORDERS_QUERY_WITH_SEARCH = """
       edges {
         node {
           id
+          number
         }
       }
     }
@@ -493,3 +494,43 @@ def test_orders_query_with_search_by_shipping_address_fields(
     # then
     content = get_graphql_content(response)
     assert content["data"]["orders"]["totalCount"] == expected_count
+
+
+@pytest.mark.parametrize(
+    ("search_value", "expected_order_idxes"),
+    [
+        ("EXT-REF-12345", [0]),
+        ("REF", [0, 1]),
+        ("ANOTHER-REF-67890", [1]),
+        ("nonexistent-ref", []),
+    ],
+)
+def test_orders_query_with_search_by_external_reference(
+    search_value,
+    expected_order_idxes,
+    staff_api_client,
+    permission_group_manage_orders,
+    order_list,
+):
+    # given
+    external_references = ["EXT-REF-12345", "ANOTHER-REF-67890", ""]
+    for order, ext_ref in zip(order_list, external_references, strict=True):
+        order.external_reference = ext_ref
+    Order.objects.bulk_update(order_list, ["external_reference"])
+
+    update_orders_search_vector(order_list)
+
+    variables = {"search": search_value}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == len(expected_order_idxes)
+    returned_numbers = [
+        edge["node"]["number"] for edge in content["data"]["orders"]["edges"]
+    ]
+    expected_numbers = [str(order_list[idx].number) for idx in expected_order_idxes]
+    assert set(returned_numbers) == set(expected_numbers)

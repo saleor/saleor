@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - IDs of invoices linked to the order
   - Messages from related order events
   - The content of customer note
+  - The order external reference
 
 ### Webhooks
 
