@@ -3556,6 +3556,30 @@ def test_transaction_event_report_checkout_completed_race_condition(
     assert order.total_charged.amount == checkout.total.gross.amount
 
 
+TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY = (
+    MUTATION_DATA_FRAGMENT
+    + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+        $paymentMethodDetails: PaymentMethodDetailsInput
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+            paymentMethodDetails: $paymentMethodDetails
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+)
+
+
 @pytest.mark.parametrize(
     (
         "card_brand",
@@ -3617,31 +3641,11 @@ def test_transaction_event_report_with_card_payment_method_details(
             }
         },
     }
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
@@ -3705,31 +3709,12 @@ def test_transaction_event_report_with_other_payment_method_details(
             }
         },
     }
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
+
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
@@ -3782,31 +3767,12 @@ def test_transaction_event_report_with_both_payment_method_details_inputs(
             },
         },
     }
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
+
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
@@ -3872,31 +3838,12 @@ def test_transaction_event_report_with_invalid_card_payment_method_details(
             }
         },
     }
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
+
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
@@ -3934,31 +3881,12 @@ def test_transaction_event_report_with_invalid_other_payment_method_details(
             }
         },
     }
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
+
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
@@ -4007,31 +3935,11 @@ def test_transaction_event_report_event_already_exists_updates_card_payment_meth
         },
     }
 
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID!
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
@@ -4086,31 +3994,11 @@ def test_transaction_event_report_event_already_exists_updates_other_payment_met
         },
     }
 
-    query = (
-        MUTATION_DATA_FRAGMENT
-        + """
-    mutation TransactionEventReport(
-        $id: ID!
-        $type: TransactionEventTypeEnum!
-        $amount: PositiveDecimal!
-        $pspReference: String!
-        $paymentMethodDetails: PaymentMethodDetailsInput
-    ) {
-        transactionEventReport(
-            id: $id
-            type: $type
-            amount: $amount
-            pspReference: $pspReference
-            paymentMethodDetails: $paymentMethodDetails
-        ) {
-            ...TransactionEventData
-        }
-    }
-    """
-    )
     # when
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_payments]
+        TRANSACTION_EVENT_REPORT_WITH_CARD_PAYMENT_METHOD_DETAILS_QUERY,
+        variables,
+        permissions=[permission_manage_payments],
     )
 
     # then
