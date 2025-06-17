@@ -7,6 +7,7 @@ from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..account.search import generate_address_search_vector_value
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
+from . import OrderEvents
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -254,8 +255,10 @@ def generate_order_events_search_vector_value(
     order: "Order",
 ) -> list[NoValidationSearchVector]:
     event_vectors = []
-    # TODO: filter by specific event types
-    for event in order.events.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_EVENTS]:
+    events = order.events.filter(
+        type__in=[OrderEvents.NOTE_ADDED, OrderEvents.NOTE_UPDATED]
+    )
+    for event in events[: settings.SEARCH_ORDERS_MAX_INDEXED_EVENTS]:
         if message := event.parameters.get("message"):
             event_vectors.append(
                 NoValidationSearchVector(
