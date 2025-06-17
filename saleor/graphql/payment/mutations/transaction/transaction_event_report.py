@@ -79,11 +79,11 @@ class CardPaymentMethodDetailsInput(BaseInputObjectType):
         required=False,
     )
     exp_month = graphene.Int(
-        description="Expiration month of the card used for the transaction. Must be between 1 and 12.",
+        description="Expiration month of the card used for the transaction. Value must be between 1 and 12.",
         required=False,
     )
     exp_year = graphene.Int(
-        description="Expiration year of the card used for the transaction. Must be between 2000 and 9999.",
+        description="Expiration year of the card used for the transaction. Value must be between 2000 and 9999.",
         required=False,
     )
 

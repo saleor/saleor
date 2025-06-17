@@ -22936,12 +22936,12 @@ input CardPaymentMethodDetailsInput {
   lastDigits: String
 
   """
-  Expiration month of the card used for the transaction. Must be between 1 and 12.
+  Expiration month of the card used for the transaction. Value must be between 1 and 12.
   """
   expMonth: Int
 
   """
-  Expiration year of the card used for the transaction. Must be between 2000 and 9999.
+  Expiration year of the card used for the transaction. Value must be between 2000 and 9999.
   """
   expYear: Int
 }
