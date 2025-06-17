@@ -5,6 +5,7 @@ from ....core import JobStatus
 from ....invoice import events, models
 from ....invoice.error_codes import InvoiceErrorCode
 from ....order import events as order_events
+from ....order.search import update_order_search_vector
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
@@ -134,4 +135,5 @@ class InvoiceCreate(DeprecatedModelMutation):
             app=app,
             invoice_number=cleaned_input["number"],
         )
+        update_order_search_vector(order)
         return InvoiceCreate(invoice=invoice)
