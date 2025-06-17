@@ -51,7 +51,7 @@ def _clean_extension_url_with_only_path(
     if target == AppExtensionTarget.APP_PAGE:
         return
     if target == AppExtensionTarget.NEW_TAB:
-        raise ValidationError("NEW_TAB target should be absolute path")
+        return
     if manifest_data["appUrl"]:
         _clean_app_url(manifest_data["appUrl"])
     else:
@@ -94,9 +94,9 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
         msg = "Url cannot start with protocol when target == APP_PAGE"
         logger.warning(msg)
         raise ValidationError(msg)
-    elif (target == AppExtensionTarget.NEW_TAB and new_tab_method_post) or (
-        target == AppExtensionTarget.WIDGET and widget_method_post
-    ):
+    elif (
+        target.upper() == AppExtensionTarget.NEW_TAB.upper() and new_tab_method_post
+    ) or (target.upper() == AppExtensionTarget.WIDGET.upper() and widget_method_post):
         parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
 
@@ -243,7 +243,7 @@ def _clean_extension_options(extension, errors):
 
         if (
             validated_options.widget_target
-            and extension.get("target") != AppExtensionTarget.WIDGET
+            and extension.get("target").upper() != AppExtensionTarget.WIDGET.upper()
         ):
             raise ValidationError(
                 "widgetTarget options must be set only on WIDGET target"
@@ -251,7 +251,7 @@ def _clean_extension_options(extension, errors):
 
         if (
             validated_options.new_tab_target
-            and extension.get("target") != AppExtensionTarget.NEW_TAB
+            and extension.get("target").upper() != AppExtensionTarget.NEW_TAB.upper()
         ):
             raise ValidationError(
                 "newTabTarget options must be set only on NEW_TAB target"
@@ -307,7 +307,7 @@ def _clean_extensions(manifest_data, app_permissions, errors):
         except ValidationError:
             errors["extensions"].append(
                 ValidationError(
-                    "This mount can't be used with WIDGET target.",
+                    f"The {extension['mount']} can't be used with WIDGET target.",
                     code=AppErrorCode.INVALID.value,
                 )
             )
