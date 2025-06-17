@@ -53,3 +53,5 @@ All notable, unreleased changes to this project will be documented in this file.
   ```
 
   To see details of why a GraphQL request is failing, you can use OpenTelemetry tracing, where each span for a failing request will be marked with an error flag and will include an error message.
+
+- Fixed bug when not-authenticated staff user couldn't fetch `appExtension.app` without `MANAGE_APPS`. Now apps access is available by staff users and the app itself (for app and extension it owns)
