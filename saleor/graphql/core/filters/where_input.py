@@ -54,7 +54,6 @@ class WhereInputObjectType(FilterInputObjectType):
 class FilterInputDescriptions:
     EQ = "The value equal to."
     ONE_OF = "The value included in."
-    NOT_ONE_OF = "The value not included in."
     RANGE = "The value in range."
 
 
@@ -156,9 +155,6 @@ class MetadataValueFilterInput(graphene.InputObjectType):
     one_of = NonNullList(
         graphene.String, description=FilterInputDescriptions.ONE_OF, required=False
     )
-    not_one_of = NonNullList(
-        graphene.String, description=FilterInputDescriptions.NOT_ONE_OF, required=False
-    )
 
     class Meta:
         description = "Define the filtering options for metadata value fields."
@@ -184,7 +180,4 @@ class MetadataFilterInput(graphene.InputObjectType):
           Matches objects where the metadata key "color" is set to either "blue" or "green".
         - `{key: "status", value: {eq: "active"}}`
           Matches objects where the metadata key "status" is set to "active".
-        - `{key: "tags", value: {notOneOf: ["archived", "deleted"]}}`
-          Matches objects where the metadata key "tags" is not set to either "archived" or "deleted",
-          as well as objects where the "tags" key is not present at all.
         """

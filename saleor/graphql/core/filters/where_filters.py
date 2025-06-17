@@ -158,8 +158,6 @@ def filter_where_metadata(qs, _, value):
     - Key existence: returns items where the specified key exists (when no value is provided)
     - Equals (`eq`): returns items where the key matches the given value
     - One of (`one_of`): returns items where the key matches any value in the provided list
-    - Not one of (`not_one_of`): excludes items where the key matches any value in the provided list;
-        items where the key is missing will be returned
     """
     if not value:
         return qs.none()
@@ -174,11 +172,6 @@ def filter_where_metadata(qs, _, value):
         for item in one_of:
             lookup |= models.Q(metadata__contains={key: item})
         return qs.filter(lookup)
-    if (not_one_of := value_data.get("not_one_of")) is not None:
-        lookup = models.Q()
-        for item in not_one_of:
-            lookup |= models.Q(metadata__contains={key: item})
-        return qs.exclude(lookup)
     return qs.none()
 
 
