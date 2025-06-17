@@ -545,9 +545,12 @@ class TransactionEventReport(DeprecatedModelMutation):
 
     @classmethod
     def get_payment_method_details(
-        cls, payment_method_details_input: PaymentMethodDetailsInput
+        cls, payment_method_details_input: PaymentMethodDetailsInput | None
     ) -> PaymentMethodDetails | None:
         """Get the payment method details dataclass from the input."""
+
+        if not payment_method_details_input:
+            return None
 
         payment_details_data: PaymentMethodDetails | None = None
         if payment_method_details_input.card:
