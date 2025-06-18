@@ -12817,20 +12817,20 @@ enum OrderSortField @doc(category: "Orders") {
   """Sort orders by creation date."""
   CREATED_AT
 
-  """Sort orders by last modified at."""
+  """Sort orders by last modified date."""
   LAST_MODIFIED_AT
 
   """Sort orders by customer."""
   CUSTOMER
 
-  """Sort orders by payment."""
+  """Sort orders by payment status."""
   PAYMENT
 
   """Sort orders by fulfillment status."""
   FULFILLMENT_STATUS
 
   """
-  Sort orders by status. 
+  Sort orders by order status. 
   
   Added in Saleor 3.22.
   """
