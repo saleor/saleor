@@ -12995,6 +12995,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
+  """Filter by transaction data associated with the order."""
+  transactions: TransactionFilterInput
+
   """Filter by total gross amount of the order."""
   totalGross: PriceFilterInput
 
@@ -13120,6 +13123,47 @@ input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
 input LinesFilterInput @doc(category: "Orders") {
   """Filter by metadata fields of order lines."""
   metadata: MetadataFilterInput
+}
+
+"""Filter input for transactions."""
+input TransactionFilterInput @doc(category: "Orders") {
+  """Filter by payment method details used to pay for the order."""
+  paymentMethodDetails: PaymentMethodDetailsFilterInput
+}
+
+input PaymentMethodDetailsFilterInput {
+  """Filter by payment method type used to pay for the order."""
+  type: PaymentMethodTypeEnumFilterInput
+
+  """
+  Filter by card details used to pay for the order. Skips `type` filter if provided.
+  """
+  card: PaymentMethodDetailsCardFilterInput
+}
+
+input PaymentMethodTypeEnumFilterInput {
+  """The value equal to."""
+  eq: PaymentMethodTypeEnum
+
+  """The value included in."""
+  oneOf: [PaymentMethodTypeEnum!]
+}
+
+"""
+Represents possible payment method types.
+
+    The following types are possible:
+    CARD - represents a card payment method.
+    OTHER - represents any payment method that is not a card payment.
+"""
+enum PaymentMethodTypeEnum @doc(category: "Payments") {
+  CARD
+  OTHER
+}
+
+input PaymentMethodDetailsCardFilterInput {
+  """Filter by payment method brand used to pay for the order."""
+  brand: StringFilterInput
 }
 
 input PriceFilterInput {

@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -180,6 +180,8 @@ class TransactionItem(ModelWithMetadata):
         ordering = ("pk",)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(fields=["payment_method_type"], name="payment_method_type_ids"),
+            BTreeIndex(fields=["cc_brand"], name="cc_brand_idx"),
         ]
         constraints = [
             models.UniqueConstraint(
