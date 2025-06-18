@@ -147,15 +147,10 @@ def validate_card_payment_method_details_input(
 
 def validate_payment_method_details_input(
     payment_method_details_input: PaymentMethodDetailsInput,
-    error_code_class: type[
-        TransactionEventReportErrorCode
-        | TransactionCreateErrorCode
-        | TransactionUpdateErrorCode
-    ],
+    error_code_class: type[TransactionEventReportErrorCode]
+    | type[TransactionCreateErrorCode]
+    | type[TransactionUpdateErrorCode],
 ):
-    if not payment_method_details_input:
-        return
-
     if (
         payment_method_details_input.card is None
         and payment_method_details_input.other is None
