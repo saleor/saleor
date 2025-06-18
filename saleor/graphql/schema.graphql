@@ -15718,6 +15718,13 @@ type Mutation {
     """
     message: String
 
+    """
+    Details of the payment method used for the transaction.
+    
+    Added in Saleor 3.22.
+    """
+    paymentMethodDetails: PaymentMethodDetailsInput
+
     """PSP Reference of the event to report."""
     pspReference: String!
 
@@ -22892,6 +22899,56 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
   INCORRECT_DETAILS
   ALREADY_EXISTS
   REQUIRED
+}
+
+"""
+Details of the payment method used for the transaction. One of `card` or `other` is required.
+
+Added in Saleor 3.22.
+"""
+input PaymentMethodDetailsInput {
+  """Details of the card payment method used for the transaction."""
+  card: CardPaymentMethodDetailsInput
+
+  """Details of the non-card payment method used for this transaction."""
+  other: OtherPaymentMethodDetailsInput
+}
+
+input CardPaymentMethodDetailsInput {
+  """
+  Name of the payment method used for the transaction. Max length is 256 characters.
+  """
+  name: String!
+
+  """
+  Brand of the payment method used for the transaction. Max length is 40 characters.
+  """
+  brand: String
+
+  """
+  First digits of the card used for the transaction. Max length is 4 characters.
+  """
+  firstDigits: String
+
+  """
+  Last digits of the card used for the transaction. Max length is 4 characters.
+  """
+  lastDigits: String
+
+  """
+  Expiration month of the card used for the transaction. Value must be between 1 and 12.
+  """
+  expMonth: Int
+
+  """
+  Expiration year of the card used for the transaction. Value must be between 2000 and 9999.
+  """
+  expYear: Int
+}
+
+input OtherPaymentMethodDetailsInput {
+  """Name of the payment method used for the transaction."""
+  name: String!
 }
 
 """
