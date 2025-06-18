@@ -1,7 +1,7 @@
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.types import BaseEnum, SortInputObjectType
 
@@ -15,6 +15,7 @@ class OrderSortField(BaseEnum):
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "status", "pk"]
     FULFILLMENT_STATUS = ["status", "user_email", "pk"]
+    STATUS = ["status", "pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -27,6 +28,9 @@ class OrderSortField(BaseEnum):
             ),
             OrderSortField.CREATION_DATE.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 f"creation date. {DEPRECATED_IN_3X_INPUT}"
+            ),
+            OrderSortField.STATUS.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                f"status. {ADDED_IN_322}"
             ),
         }
 

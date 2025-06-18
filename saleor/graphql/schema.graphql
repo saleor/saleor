@@ -12828,6 +12828,13 @@ enum OrderSortField @doc(category: "Orders") {
 
   """Sort orders by fulfillment status."""
   FULFILLMENT_STATUS
+
+  """
+  Sort orders by status. 
+  
+  Added in Saleor 3.22.
+  """
+  STATUS
 }
 
 input OrderFilterInput @doc(category: "Orders") {
