@@ -2136,3 +2136,163 @@ def test_orders_filter_by_metadata(
     assert len(orders) == len(expected_indexes)
     numbers = {node["node"]["number"] for node in orders}
     assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+def test_orders_filter_by_product_type_id(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    product_type_id = graphene.Node.to_global_id("ProductType", 4)
+    variables = {"where": {"productTypeId": {"eq": product_type_id}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert str(order_list[1].number) == orders[0]["node"]["number"]
+
+
+def test_orders_filter_by_product_type_ids(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    product_type_ids = [
+        graphene.Node.to_global_id("ProductType", id) for id in product_type_ids[:2]
+    ]
+    variables = {"where": {"productTypeId": {"oneOf": product_type_ids}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(order_list[:2])
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order.number) for order in order_list[:2]}
+
+
+def test_orders_filter_by_product_type_ids_nothing_match(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    product_type_ids = [graphene.Node.to_global_id("ProductType", id) for id in [6, 7]]
+    variables = {"where": {"productTypeId": {"oneOf": product_type_ids}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
+def test_orders_filter_by_product_type_none(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"productTypeId": {"eq": None}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0

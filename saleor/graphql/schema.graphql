@@ -12940,6 +12940,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by total net amount of the order."""
   totalNet: PriceFilterInput
 
+  """Filter by the product type of related order lines."""
+  productTypeId: GlobalIDFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 

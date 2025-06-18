@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by order total gross and net price amount.
     - Filter by order metadata.
     - Filter by order by associated lines metadata.
+    - Filter by the product type of related order lines.
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 
 ### Webhooks

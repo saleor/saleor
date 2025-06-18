@@ -549,6 +549,11 @@ class OrderWhere(MetadataWhereBase):
         method="filter_total_net",
         help_text="Filter by total net amount of the order.",
     )
+    product_type_id = OperationObjectTypeWhereFilter(
+        input_class=GlobalIDFilterInput,
+        method="filter_product_type_id",
+        help_text="Filter by the product type of related order lines.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -669,6 +674,16 @@ class OrderWhere(MetadataWhereBase):
     @staticmethod
     def filter_total_net(qs, _, value):
         return filter_where_by_price_field(qs, "total_net_amount", value)
+
+    @staticmethod
+    def filter_product_type_id(qs, _, value):
+        if not value:
+            return qs
+
+        line_qs = filter_where_by_id_field(
+            OrderLine.objects.using(qs.db), "product_type_id", value, "ProductType"
+        )
+        return qs.filter(Exists(line_qs.filter(order_id=OuterRef("id"))))
 
 
 class OrderWhereInput(WhereInputObjectType):
