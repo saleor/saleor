@@ -240,7 +240,9 @@ def generate_order_invoices_search_vector_value(
     order: "Order",
 ) -> list[NoValidationSearchVector]:
     invoice_vectors = []
-    for invoice in order.invoices.all()[: settings.SEARCH_ORDERS_MAX_INDEXED_INVOICES]:
+    for invoice in order.invoices.all().order_by("-created_at")[
+        : settings.SEARCH_ORDERS_MAX_INDEXED_INVOICES
+    ]:
         invoice_vectors.append(
             NoValidationSearchVector(
                 Value(graphene.Node.to_global_id("Invoice", invoice.id)),
@@ -257,7 +259,7 @@ def generate_order_events_search_vector_value(
     event_vectors = []
     events = order.events.filter(
         type__in=[OrderEvents.NOTE_ADDED, OrderEvents.NOTE_UPDATED]
-    )
+    ).order_by("-date")
     for event in events[: settings.SEARCH_ORDERS_MAX_INDEXED_EVENTS]:
         if message := event.parameters.get("message"):
             event_vectors.append(
