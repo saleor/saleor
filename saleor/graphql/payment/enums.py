@@ -2,6 +2,7 @@ import graphene
 
 from ...payment import (
     ChargeStatus,
+    PaymentMethodType,
     StorePaymentMethod,
     TokenizedPaymentFlow,
     TransactionAction,
@@ -34,6 +35,13 @@ TransactionEventTypeEnum = to_enum(
     TransactionEventType, description=TransactionEventType.__doc__
 )
 TransactionEventTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentMethodTypeEnum = to_enum(
+    PaymentMethodType,
+    type_name="PaymentMethodTypeEnum",
+    description=PaymentMethodType.__doc__,
+)
+PaymentMethodTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class OrderAction(BaseEnum):
