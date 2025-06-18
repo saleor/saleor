@@ -404,6 +404,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 fields=["total_net_amount"],
                 name="order_totalnetamount_idx",
             ),
+            BTreeIndex(fields=["status"], name="order_status_idx"),
         ]
 
     def is_fully_paid(self):
