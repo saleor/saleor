@@ -12,7 +12,7 @@ from .. import forms, i18n
 from ..i18n_valid_address_extension import VALID_ADDRESS_EXTENSION_MAP
 from ..models import User
 from ..validators import validate_possible_number
-
+from saleor.account.models import Address, User
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
 def test_address_form_for_country(country):
@@ -391,3 +391,69 @@ def test_substitute_invalid_values(country_area_input, country_area_output, is_v
         assert "country_area" in errors
     else:
         assert not errors
+
+def test_address_form_with_metadata():
+    # given
+    data = {
+        "first_name": "Meta",
+        "last_name": "Data",
+        "street_address_1": "123 Main St",
+        "city": "Warsaw",
+        "postal_code": "00-001",
+        "country": "PL",
+        "metadata": {"key": "value"},
+    }
+
+    # when
+    form = forms.get_address_form(data, country_code="PL")
+
+    # then
+    assert form.is_valid()
+    assert form.cleaned_data.get("metadata") == {"key": "value"}
+
+
+def test_address_form_with_unknown_country_code():
+    # given
+    data = {
+        "first_name": "Unknown",
+        "last_name": "Nation",
+        "street_address_1": "Unknown Street",
+        "city": "Nowhere",
+        "postal_code": "00000",
+        "country": "XX",
+    }
+
+    # when
+    form = forms.get_address_form(data, country_code="XX")
+    errors = form.errors
+
+    # then
+    assert not form.is_valid()
+    assert "country" in errors
+
+
+@pytest.mark.django_db
+def test_deleting_default_address_clears_it_from_user():
+    # given
+    user = User.objects.create_user(email="user@example.com", password="1234")
+    address = Address.objects.create(
+        first_name="John",
+        last_name="Doe",
+        street_address_1="123 Main St",
+        city="Testville",
+        postal_code="12345",
+        country="US"
+    )
+    user.default_shipping_address = address
+    user.default_billing_address = address
+    user.save()
+    user.addresses.add(address)
+
+    # when
+    user.addresses.remove(address)
+    address.delete()
+    user.refresh_from_db()
+
+    # then
+    assert user.default_shipping_address is None
+    assert user.default_billing_address is None
