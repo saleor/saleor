@@ -12862,6 +12862,8 @@ enum OrderStatusFilter @doc(category: "Orders") {
 }
 
 input OrderWhereInput @doc(category: "Orders") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
   ids: [ID!]
 
   """Filter by order number."""
@@ -12926,6 +12928,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by fulfillment data associated with the order."""
   fulfillments: FulfillmentFilterInput
 
+  """Filter by metadata fields of order lines."""
+  lines: LinesFilterInput
+
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
@@ -12940,6 +12945,36 @@ input OrderWhereInput @doc(category: "Orders") {
 
   """A list of conditions of which at least one must be met."""
   OR: [OrderWhereInput!]
+}
+
+"""
+Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+"""
+input MetadataFilterInput {
+  """
+  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
+  """
+  key: String!
+
+  """Value to filter by."""
+  value: MetadataValueFilterInput
+}
+
+"""Define the filtering options for metadata value fields."""
+input MetadataValueFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
 }
 
 """Define the filtering options for integer fields."""
@@ -12996,10 +13031,13 @@ input InvoiceFilterInput @doc(category: "Orders") {
   createdAt: DateTimeRangeInput
 }
 
-"""Filter input for fulfillments."""
+"""Filter input for order fulfillments data."""
 input FulfillmentFilterInput @doc(category: "Orders") {
   """Filter by fulfillment status."""
   status: FulfillmentStatusEnumFilterInput
+
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
 }
 
 """Filter by fulfillment status."""
@@ -13009,6 +13047,12 @@ input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
 
   """The value included in."""
   oneOf: [FulfillmentStatus!]
+}
+
+"""Filter input for order lines data."""
+input LinesFilterInput @doc(category: "Orders") {
+  """Filter by metadata fields of order lines."""
+  metadata: MetadataFilterInput
 }
 
 input PriceFilterInput {

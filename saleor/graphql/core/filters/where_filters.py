@@ -17,6 +17,7 @@ from .shared_filters import (
     GlobalIDMultipleChoiceField,
     filter_metadata,
 )
+from .where_input import MetadataFilterInput
 
 
 class WhereFilterSet(django_filters.FilterSet):
@@ -148,3 +149,35 @@ class MetadataWhereFilterBase(WhereFilterSet):
 
     class Meta:
         abstract = True
+
+
+def filter_where_metadata(qs, _, value):
+    """Filter queryset by metadata.
+
+    We are allowing to filter metadata by:
+    - Key existence: returns items where the specified key exists (when no value is provided)
+    - Equals (`eq`): returns items where the key matches the given value
+    - One of (`one_of`): returns items where the key matches any value in the provided list
+    """
+    if not value:
+        return qs.none()
+    key = value["key"]
+    value_data = value.get("value")
+    if not value_data:
+        return qs.filter(metadata__has_key=key)
+    if eq := value_data.get("eq"):
+        return qs.filter(metadata__contains={key: eq})
+    if one_of := value_data.get("one_of"):
+        lookup = models.Q()
+        for item in one_of:
+            lookup |= models.Q(metadata__contains={key: item})
+        return qs.filter(lookup)
+    return qs.none()
+
+
+class MetadataWhereBase(WhereFilterSet):
+    metadata = ObjectTypeWhereFilter(
+        input_class=MetadataFilterInput,
+        method=filter_where_metadata,
+        help_text="Filter by metadata fields.",
+    )
