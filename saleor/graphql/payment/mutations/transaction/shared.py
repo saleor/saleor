@@ -2,13 +2,13 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....payment import PaymentMethodType
-from .....payment.interface import PaymentMethodDetails
-from ....core.descriptions import ADDED_IN_322
-from ....core.enums import (
+from .....payment.error_codes import (
     TransactionCreateErrorCode,
     TransactionEventReportErrorCode,
     TransactionUpdateErrorCode,
 )
+from .....payment.interface import PaymentMethodDetails
+from ....core.descriptions import ADDED_IN_322
 from ....core.types.base import BaseInputObjectType
 from ....core.validators import validate_one_of_args_is_in_mutation
 
@@ -68,11 +68,9 @@ class PaymentMethodDetailsInput(BaseInputObjectType):
 
 def validate_card_payment_method_details_input(
     card_method_details_input: CardPaymentMethodDetailsInput,
-    error_code_class: type[
-        TransactionEventReportErrorCode
-        | TransactionCreateErrorCode
-        | TransactionUpdateErrorCode
-    ],
+    error_code_class: type[TransactionEventReportErrorCode]
+    | type[TransactionCreateErrorCode]
+    | type[TransactionUpdateErrorCode],
 ):
     errors = []
     if len(card_method_details_input.name) > 256:
@@ -159,7 +157,7 @@ def validate_payment_method_details_input(
             {
                 "payment_method_details": ValidationError(
                     "One of `card` or `other` is required.",
-                    code=error_code_class.REQUIRED.value,
+                    code=error_code_class.INVALID.value,
                 )
             }
         )
@@ -188,7 +186,7 @@ def validate_payment_method_details_input(
                 {
                     "name": ValidationError(
                         "The `name` field must be less than 256 characters.",
-                        code=TransactionEventReportErrorCode.INVALID.value,
+                        code=error_code_class.INVALID.value,
                     )
                 }
             )
