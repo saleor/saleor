@@ -12811,8 +12811,8 @@ enum OrderSortField @doc(category: "Orders") {
   """
   RANK
 
-  """Sort orders by creation date."""
-  CREATION_DATE
+  """Sort orders by creation date"""
+  CREATION_DATE @deprecated(reason: "Use `createdAt` instead.")
 
   """Sort orders by creation date."""
   CREATED_AT
@@ -12827,7 +12827,7 @@ enum OrderSortField @doc(category: "Orders") {
   PAYMENT
 
   """Sort orders by fulfillment status."""
-  FULFILLMENT_STATUS
+  FULFILLMENT_STATUS @deprecated(reason: "Use `status` instead.")
 
   """
   Sort orders by order status. 
