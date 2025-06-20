@@ -8,8 +8,6 @@ from django.db.models import Exists, OuterRef, Q, Value
 from django.utils import timezone
 from graphql.error import GraphQLError
 
-from saleor.payment.models import TransactionItem
-
 from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
@@ -17,6 +15,7 @@ from ...invoice.models import Invoice
 from ...order.models import Fulfillment, Order, OrderEvent, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus, PaymentMethodType
+from ...payment.models import TransactionItem
 from ...product.models import ProductVariant
 from ..channel.filters import get_currency_from_filter_data
 from ..core.doc_category import DOC_CATEGORY_ORDERS
