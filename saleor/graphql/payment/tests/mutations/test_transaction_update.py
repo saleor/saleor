@@ -3513,6 +3513,14 @@ def test_transaction_update_with_card_payment_method_details(
 ):
     # given
     transaction = transaction_item_created_by_app
+    transaction.payment_method_type = PaymentMethodType.CARD
+    transaction.payment_method_name = "Payment Method Name"
+    transaction.cc_brand = None
+    transaction.cc_first_digits = "9999"
+    transaction.cc_last_digits = "8888"
+    transaction.cc_exp_month = 6
+    transaction.cc_exp_year = 2010
+    transaction.save()
 
     card_name = "Payment Method Name"
     variables = {
@@ -3564,6 +3572,14 @@ def test_transaction_update_with_other_payment_method_details(
 ):
     # given
     transaction = transaction_item_created_by_app
+    transaction.payment_method_type = PaymentMethodType.CARD
+    transaction.payment_method_name = "Payment Method Name"
+    transaction.cc_brand = None
+    transaction.cc_first_digits = "9999"
+    transaction.cc_last_digits = "8888"
+    transaction.cc_exp_month = 6
+    transaction.cc_exp_year = 2010
+    transaction.save()
 
     other_name = "Payment Method Name"
 
