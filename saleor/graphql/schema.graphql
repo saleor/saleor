@@ -784,7 +784,7 @@ type Query {
     filter: OrderFilterInput
 
     """
-    Where filtering options for draft orders.
+    Where filtering options for orders.
     
     Added in Saleor 3.22.
     """
