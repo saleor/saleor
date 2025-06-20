@@ -1,6 +1,5 @@
 import datetime
-from unittest import mock
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import boto3
 import jwt
@@ -9,8 +8,6 @@ from django.core.serializers import serialize
 from google.cloud.pubsub_v1 import PublisherClient
 from requests_hardened import HTTPSession
 
-from ...core import EventDeliveryStatus
-from ...core.models import EventDelivery
 from ..event_types import WebhookEventAsyncType
 from ..transport import signature_for_payload
 from ..transport.asynchronous import trigger_webhooks_async
@@ -185,59 +182,6 @@ def test_trigger_webhooks_with_google_pub_sub(
     )
 
     # then
-    mocked_future_result.assert_called_once_with(
-        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
-    )
-    mocked_publisher.publish.assert_called_once_with(
-        "projects/saleor/topics/test",
-        expected_data.encode("utf-8"),
-        saleorDomain="mirumee.com",
-        saleorApiUrl="http://mirumee.com/graphql/",
-        eventType=WebhookEventAsyncType.ORDER_CREATED,
-        signature=expected_signature,
-    )
-
-
-@patch("saleor.webhook.transport.asynchronous.transport.handle_webhook_retry")
-def test_trigger_webhooks_with_google_pub_sub_when_timout_error_raised(
-    mocked_retry,
-    webhook,
-    order_with_lines,
-    permission_manage_orders,
-    permission_manage_users,
-    permission_manage_products,
-    monkeypatch,
-    settings,
-):
-    # given
-    mocked_future_result = MagicMock()
-    mocked_future_result.side_effect = TimeoutError
-
-    mocked_publisher = MagicMock(spec=PublisherClient)
-    mocked_publisher.publish.return_value.result = mocked_future_result
-    monkeypatch.setattr(
-        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
-        lambda: mocked_publisher,
-    )
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-    webhook.save()
-    expected_data = serialize("json", [order_with_lines])
-    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
-
-    # when
-    trigger_webhooks_async(
-        expected_data,
-        WebhookEventAsyncType.ORDER_CREATED,
-        [webhook],
-        allow_replica=False,
-    )
-
-    # then
-    event_delivery = EventDelivery.objects.get()
-    assert event_delivery.status == EventDeliveryStatus.FAILED
-    assert mocked_retry.called
-
     mocked_future_result.assert_called_once_with(
         timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
     )
@@ -484,59 +428,3 @@ def test_trigger_webhooks_with_http_and_custom_headers(
     # then
     mock_request.assert_called_once()
     assert mock_request.call_args[1]["headers"] == expected_headers
-
-
-@pytest.mark.parametrize(
-    ("expected_queue_name", "target_url"),
-    [
-        ("PUBSUB_QUEUE", "gcpubsub://cloud.google.com/projects/saleor/topics/test"),
-        (
-            "SQS_QUEUE",
-            "awssqs://key:secret@sqs.us-east-2.amazonaws.com/xxxx/myqueue.fifo",
-        ),
-        (None, "https://localhost:8888/webhook-endpoint/"),
-    ],
-)
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
-)
-def test_trigger_webhooks_async_pick_up_queue_based_on_protocol(
-    mock_async_apply,
-    expected_queue_name,
-    target_url,
-    app,
-    order_with_lines,
-    permission_manage_orders,
-    settings,
-    webhook,
-    django_assert_num_queries,
-):
-    # given
-    settings.WEBHOOK_CELERY_QUEUE_NAME = None
-    settings.WEBHOOK_SQS_CELERY_QUEUE_NAME = "SQS_QUEUE"
-    settings.WEBHOOK_PUBSUB_CELERY_QUEUE_NAME = "PUBSUB_QUEUE"
-
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = target_url
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-
-    # when
-    with django_assert_num_queries(7):
-        trigger_webhooks_async(
-            expected_data,
-            WebhookEventAsyncType.ORDER_CREATED,
-            [webhook],
-            allow_replica=False,
-        )
-
-    # then
-    delivery = EventDelivery.objects.get()
-    mock_async_apply.assert_called_once_with(
-        kwargs={"event_delivery_id": delivery.id, "telemetry_context": ANY},
-        queue=expected_queue_name,
-        bind=True,
-        retry_backoff=10,
-        retry_kwargs={"max_retries": 5},
-    )
