@@ -6,6 +6,7 @@ from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
@@ -18,7 +19,12 @@ from .bulk_mutations import (
     UserBulkSetActive,
 )
 from .enums import CountryCodeEnum
-from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
+from .filters import (
+    CustomerFilter,
+    CustomerWhereInput,
+    PermissionGroupFilter,
+    StaffUserFilter,
+)
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -136,6 +142,9 @@ class AccountQueries(graphene.ObjectType):
     customers = FilterConnectionField(
         UserCountableConnection,
         filter=CustomerFilterInput(description="Filtering options for customers."),
+        where=CustomerWhereInput(
+            description="Where filtering options for customers." + ADDED_IN_322
+        ),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
         permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],

@@ -1488,6 +1488,13 @@ type Query {
     """Filtering options for customers."""
     filter: CustomerFilterInput
 
+    """
+    Where filtering options for customers.
+    
+    Added in Saleor 3.22.
+    """
+    where: CustomerWhereInput
+
     """Sort customers."""
     sortBy: UserSortingInput
 
@@ -14365,6 +14372,19 @@ input CustomerFilterInput @doc(category: "Users") {
   """Filter by ids."""
   ids: [ID!]
   updatedAt: DateTimeRangeInput
+}
+
+input CustomerWhereInput @doc(category: "Users") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+  dateJoined: DateTimeRangeInput
+
+  """List of conditions that must be met."""
+  AND: [CustomerWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CustomerWhereInput!]
 }
 
 input UserSortingInput @doc(category: "Users") {
