@@ -444,8 +444,8 @@ class OrderEventTypeEnumFilterInput(BaseInputObjectType):
 
 
 class OrderEventFilterInput(BaseInputObjectType):
-    created_at = DateTimeRangeInput(
-        description="Filter order events by creation date.",
+    date = DateTimeRangeInput(
+        description="Filter order events by date.",
     )
     type = OrderEventTypeEnumFilterInput(
         description="Filter order events by type.",
@@ -717,9 +717,9 @@ class OrderWhere(MetadataWhereBase):
     def filter_events(qs, _, value):
         if not value:
             return qs.none()
-        if not {"created_at", "type"}.intersection(value.keys()):
+        if not {"date", "type"}.intersection(value.keys()):
             return qs.none()
-        if filter_value := value.get("created_at"):
+        if filter_value := value.get("date"):
             events = filter_where_by_range_field(
                 OrderEvent.objects.using(qs.db), "date", filter_value
             )

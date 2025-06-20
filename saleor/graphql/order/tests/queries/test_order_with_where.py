@@ -2302,27 +2302,27 @@ def test_orders_filter_by_product_type_none(
     [
         (
             {
-                "createdAt": {"gte": "2025-01-01T00:00:00Z"},
+                "date": {"gte": "2025-01-01T00:00:00Z"},
                 "type": {"eq": OrderEvents.PLACED.upper()},
             },
             [0, 1, 2],
         ),
         (
             {
-                "createdAt": {"gte": "2025-01-01T00:00:00Z"},
+                "date": {"gte": "2025-01-01T00:00:00Z"},
                 "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
             },
             [0, 1],
         ),
         (
             {
-                "createdAt": {"gte": "2026-01-01T00:00:00Z"},
+                "date": {"gte": "2026-01-01T00:00:00Z"},
             },
             [],
         ),
         (
             {
-                "createdAt": {"gte": "2020-01-01T00:00:00Z"},
+                "date": {"gte": "2020-01-01T00:00:00Z"},
             },
             [0, 1, 2],
         ),

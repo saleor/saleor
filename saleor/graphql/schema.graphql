@@ -13071,8 +13071,8 @@ input PriceFilterInput {
 
 """Filter input for order events data."""
 input OrderEventFilterInput @doc(category: "Orders") {
-  """Filter order events by creation date."""
-  createdAt: DateTimeRangeInput
+  """Filter order events by date."""
+  date: DateTimeRangeInput
 
   """Filter order events by type."""
   type: OrderEventTypeEnumFilterInput
