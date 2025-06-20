@@ -24,6 +24,12 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by order by associated lines metadata.
     - Filter by the product type of related order lines.
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
+- Enhanced order search options. Orders can now be searched using:
+  - The order's ID
+  - IDs of invoices linked to the order
+  - Messages from related order events
+  - The content of customer note
+  - The order external reference
 
 ### Webhooks
 
