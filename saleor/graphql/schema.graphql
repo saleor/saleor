@@ -14379,6 +14379,8 @@ input CustomerWhereInput @doc(category: "Users") {
   metadata: MetadataFilterInput
   ids: [ID!]
   dateJoined: DateTimeRangeInput
+  updatedAt: DateTimeRangeInput
+  placedOrdersAt: DateTimeRangeInput
 
   """List of conditions that must be met."""
   AND: [CustomerWhereInput!]

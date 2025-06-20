@@ -1,8 +1,9 @@
 import django_filters
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
 
 from ...account.models import User
 from ...account.search import search_users
+from ...order.models import Order
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.filters import (
     EnumFilter,
@@ -93,9 +94,26 @@ class CustomerWhereFilterInput(MetadataWhereBase):
     date_joined = ObjectTypeWhereFilter(
         input_class=DateTimeRangeInput, method="filter_date_joined"
     )
+    updated_at = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput, method="filter_updated_at"
+    )
+    placed_orders_at = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput, method="filter_placed_orders_at"
+    )
 
     def filter_date_joined(self, qs, _, value):
         return filter_where_by_range_field(qs, "date_joined", value)
+
+    def filter_updated_at(self, qs, _, value):
+        return filter_where_by_range_field(qs, "updated_at", value)
+
+    def filter_placed_orders_at(self, qs, _, value):
+        if value is None:
+            return qs.none()
+        orders = filter_where_by_range_field(
+            Order.objects.using(qs.db), "created_at", value
+        )
+        return qs.filter(Exists(orders.filter(user_id=OuterRef("id"))))
 
 
 class CustomerWhereInput(WhereInputObjectType):
