@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("account", "0087_alter_address_metadata_and_more"),
         ("app", "0032_appextension_http_target_method_and_more"),
-        ("order", "0212_orderline_product_type_id_btree_idx"),
+        ("order", "0213_auto_20250618_1246"),
     ]
 
     operations = [
