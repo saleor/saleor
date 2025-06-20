@@ -1,6 +1,5 @@
 import graphene
 
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.types import SortInputObjectType
 
 
@@ -8,7 +7,7 @@ class ExportFileSortField(graphene.Enum):
     STATUS = ["status"]
     CREATED_AT = ["created_at"]
     UPDATED_AT = ["updated_at"]
-    LAST_MODIFIED_AT = ["updated_at"]
+    LAST_MODIFIED_AT = ["updated_at", "pk"]
 
     @property
     def description(self):
@@ -16,15 +15,22 @@ class ExportFileSortField(graphene.Enum):
         descriptions = {
             ExportFileSortField.STATUS.name: "status.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ExportFileSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            ExportFileSortField.UPDATED_AT.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                f"update date. {DEPRECATED_IN_3X_INPUT}"
-            ),
+            ExportFileSortField.UPDATED_AT.name: "update date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ExportFileSortField.LAST_MODIFIED_AT.name: "update date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
 
         for self.name in ExportFileSortField.__enum__._member_names_:
             return f"Sort export file by {descriptions[self.name]}"
         raise ValueError(f"Unsupported enum value: {self.value}")
+
+    @property
+    def deprecation_reason(self):
+        deprecations = {
+            ExportFileSortField.UPDATED_AT.name: "Use `LAST_MODIFIED_AT` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        }
+        if self.name in deprecations:
+            return deprecations[self.name]
+        return None
 
 
 class ExportFileSortingInput(SortInputObjectType):
