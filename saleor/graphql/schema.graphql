@@ -1498,6 +1498,13 @@ type Query {
     """Sort customers."""
     sortBy: UserSortingInput
 
+    """
+    Search customers.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
