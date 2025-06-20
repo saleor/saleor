@@ -12943,6 +12943,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by the product type of related order lines."""
   productTypeId: GlobalIDFilterInput
 
+  """Filter by order events."""
+  events: OrderEventFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
@@ -13064,6 +13067,23 @@ input PriceFilterInput {
 
   """The amount of the price to filter by."""
   amount: DecimalFilterInput!
+}
+
+"""Filter input for order events data."""
+input OrderEventFilterInput @doc(category: "Orders") {
+  """Filter order events by date."""
+  date: DateTimeRangeInput
+
+  """Filter order events by type."""
+  type: OrderEventTypeEnumFilterInput
+}
+
+input OrderEventTypeEnumFilterInput {
+  """The value equal to."""
+  eq: OrderEventsEnum
+
+  """The value included in."""
+  oneOf: [OrderEventsEnum!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {

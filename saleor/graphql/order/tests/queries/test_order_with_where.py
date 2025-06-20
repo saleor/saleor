@@ -13,12 +13,11 @@ from .....order import (
     FulfillmentStatus,
     OrderAuthorizeStatus,
     OrderChargeStatus,
+    OrderEvents,
     OrderStatus,
 )
-from .....order.models import Order, OrderLine
-from .....order.search import (
-    prepare_order_search_vector_value,
-)
+from .....order.models import Order, OrderEvent, OrderLine
+from .....order.search import prepare_order_search_vector_value
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 
@@ -2296,3 +2295,80 @@ def test_orders_filter_by_product_type_none(
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
     assert len(orders) == 0
+
+
+@pytest.mark.parametrize(
+    ("event_input", "expected_indexes"),
+    [
+        (
+            {
+                "date": {"gte": "2025-01-01T00:00:00Z"},
+                "type": {"eq": OrderEvents.PLACED.upper()},
+            },
+            [0, 1, 2],
+        ),
+        (
+            {
+                "date": {"gte": "2025-01-01T00:00:00Z"},
+                "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
+            },
+            [0, 1],
+        ),
+        (
+            {
+                "date": {"gte": "2026-01-01T00:00:00Z"},
+            },
+            [],
+        ),
+        (
+            {
+                "date": {"gte": "2020-01-01T00:00:00Z"},
+            },
+            [0, 1, 2],
+        ),
+        (
+            {
+                "type": {
+                    "oneOf": [
+                        OrderEvents.PLACED.upper(),
+                        OrderEvents.ORDER_FULLY_PAID.upper(),
+                    ]
+                },
+            },
+            [0, 1, 2],
+        ),
+    ],
+)
+def test_orders_filter_by_order_events(
+    event_input,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    with freeze_time("2025-01-01T00:00:00Z"):
+        OrderEvent.objects.bulk_create(
+            [OrderEvent(order=order, type=OrderEvents.PLACED) for order in order_list]
+        )
+
+    with freeze_time("2025-02-02T00:00:00Z"):
+        OrderEvent.objects.bulk_create(
+            [
+                OrderEvent(order=order, type=OrderEvents.ORDER_FULLY_PAID)
+                for order in order_list[:2]
+            ]
+        )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"events": event_input}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
