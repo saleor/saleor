@@ -57,6 +57,7 @@ from .interface import (
     PaymentGatewayData,
     PaymentLineData,
     PaymentLinesData,
+    PaymentMethodDetails,
     PaymentMethodInfo,
     RefundData,
     StorePaymentMethodEnum,
@@ -916,10 +917,32 @@ def parse_transaction_action_data_for_session_webhook(
         external_url=str(response_data_model.external_url),
         message=response_data_model.message,
     )
+
+    payment_method_details = None
+    if parsed_payment_method_details := response_data_model.payment_method_details:
+        payment_method_details = PaymentMethodDetails(
+            type=parsed_payment_method_details.type,
+            name=parsed_payment_method_details.name,
+        )
+        if isinstance(
+            parsed_payment_method_details,
+            transaction_schemas.CardPaymentMethodDetails,
+        ):
+            payment_method_details.brand = parsed_payment_method_details.brand
+            payment_method_details.first_digits = (
+                parsed_payment_method_details.first_digits
+            )
+            payment_method_details.last_digits = (
+                parsed_payment_method_details.last_digits
+            )
+            payment_method_details.exp_month = parsed_payment_method_details.exp_month
+            payment_method_details.exp_year = parsed_payment_method_details.exp_year
+
     return (
         TransactionSessionResponse(
             psp_reference=response_data_model.psp_reference,
             available_actions=response_data_model.actions,
+            payment_method_details=payment_method_details,
             event=event,
         ),
         None,
@@ -1249,6 +1272,39 @@ def update_order_with_transaction_details(transaction: TransactionItem):
         )
 
 
+def update_transaction_item_with_payment_method_details(
+    transaction_item: TransactionItem,
+    payment_method_details: PaymentMethodDetails,
+) -> list[str]:
+    """Assign the payment method details to the transaction item.
+
+    Returns the list of updated fields.
+    """
+    updated_fields = []
+    if payment_method_details.type != transaction_item.payment_method_type:
+        transaction_item.payment_method_type = payment_method_details.type
+        updated_fields.append("payment_method_type")
+    if payment_method_details.name != transaction_item.payment_method_name:
+        transaction_item.payment_method_name = payment_method_details.name
+        updated_fields.append("payment_method_name")
+    if payment_method_details.brand != transaction_item.cc_brand:
+        transaction_item.cc_brand = payment_method_details.brand
+        updated_fields.append("cc_brand")
+    if payment_method_details.first_digits != transaction_item.cc_first_digits:
+        transaction_item.cc_first_digits = payment_method_details.first_digits
+        updated_fields.append("cc_first_digits")
+    if payment_method_details.last_digits != transaction_item.cc_last_digits:
+        transaction_item.cc_last_digits = payment_method_details.last_digits
+        updated_fields.append("cc_last_digits")
+    if payment_method_details.exp_month != transaction_item.cc_exp_month:
+        transaction_item.cc_exp_month = payment_method_details.exp_month
+        updated_fields.append("cc_exp_month")
+    if payment_method_details.exp_year != transaction_item.cc_exp_year:
+        transaction_item.cc_exp_year = payment_method_details.exp_year
+        updated_fields.append("cc_exp_year")
+    return updated_fields
+
+
 def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
@@ -1311,6 +1367,14 @@ def create_transaction_event_for_transaction_session(
         request_event.save(update_fields=request_event_update_fields)
 
     transaction_item = event.transaction
+    transaction_item_updated_fields = []
+    if transaction_request_response.payment_method_details:
+        transaction_item_updated_fields.extend(
+            update_transaction_item_with_payment_method_details(
+                transaction_item, transaction_request_response.payment_method_details
+            )
+        )
+
     if event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.AUTHORIZATION_SUCCESS,
@@ -1341,6 +1405,7 @@ def create_transaction_event_for_transaction_session(
                 "available_actions",
                 "modified_at",
             ]
+            + transaction_item_updated_fields
         )
         if transaction_item.order_id:
             # circular import
@@ -1365,10 +1430,15 @@ def create_transaction_event_for_transaction_session(
             )
     elif event.psp_reference and transaction_item.psp_reference != event.psp_reference:
         transaction_item.psp_reference = event.psp_reference
-        transaction_item.save(update_fields=["psp_reference", "modified_at"])
+        transaction_item.save(
+            update_fields=["psp_reference", "modified_at"]
+            + transaction_item_updated_fields
+        )
         if transaction_item.checkout_id:
             checkout = cast(Checkout, transaction_item.checkout)
             update_last_transaction_modified_at_for_checkout(checkout, transaction_item)
+    elif transaction_item_updated_fields:
+        transaction_item.save(update_fields=transaction_item_updated_fields)
 
     return event
 

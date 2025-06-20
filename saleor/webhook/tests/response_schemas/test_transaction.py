@@ -632,6 +632,131 @@ def test_transaction_session_action_required_schema_valid_result(result):
 @pytest.mark.parametrize(
     "result",
     [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "firstDigits": "1234",
+            "lastDigits": "5678",
+            "expMonth": 12,
+            "expYear": 2025,
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "lastDigits": "5678",
+        },
+        {
+            "type": "OTHER",
+            "name": "Test Other",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": None,
+            "firstDigits": None,
+            "lastDigits": None,
+            "expMonth": None,
+            "expYear": None,
+        },
+    ],
+)
+def test_transaction_session_action_required_schema_valid_payment_method_details(
+    payment_method_details, result
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": result.upper(),
+        "data": "test-data",
+        "paymentMethodDetails": payment_method_details,
+    }
+
+    # when
+    parsed_transaction = TransactionSessionActionRequiredSchema.model_validate(data)
+
+    # then
+    assert parsed_transaction.result == result
+    assert parsed_transaction.payment_method_details
+    parsed_payment_method_details = parsed_transaction.payment_method_details
+
+    assert parsed_payment_method_details.type == payment_method_details["type"].lower()
+    assert parsed_payment_method_details.name == payment_method_details["name"]
+    assert getattr(
+        parsed_payment_method_details, "brand", None
+    ) == payment_method_details.get("brand")
+    assert getattr(
+        parsed_payment_method_details, "first_digits", None
+    ) == payment_method_details.get("firstDigits")
+    assert getattr(
+        parsed_payment_method_details, "last_digits", None
+    ) == payment_method_details.get("lastDigits")
+    assert getattr(
+        parsed_payment_method_details, "exp_month", None
+    ) == payment_method_details.get("expMonth")
+    assert getattr(
+        parsed_payment_method_details, "exp_year", None
+    ) == payment_method_details.get("expYear")
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        # unknown type
+        {
+            "type": "WRONG-TYPE",
+            "name": "Test Card",
+        },
+        # Missing name
+        {
+            "type": "CARD",
+        },
+        # Missing type
+        {
+            "name": "Test Card",
+        },
+    ],
+)
+def test_transaction_session_action_required_schema_invalid_payment_method_details(
+    payment_method_details, result
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": result.upper(),
+        "data": "test-data",
+        "paymentMethodDetails": payment_method_details,
+    }
+
+    # when & then
+    with pytest.raises(ValidationError):
+        TransactionSessionActionRequiredSchema.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
         TransactionEventType.AUTHORIZATION_SUCCESS,
         TransactionEventType.CHARGE_SUCCESS,
         TransactionEventType.AUTHORIZATION_FAILURE,
@@ -688,6 +813,133 @@ def test_transaction_session_success_schema_valid_result(result):
 @pytest.mark.parametrize(
     "result",
     [
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_REQUEST,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "firstDigits": "1234",
+            "lastDigits": "5678",
+            "expMonth": 12,
+            "expYear": 2025,
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "lastDigits": "5678",
+        },
+        {
+            "type": "OTHER",
+            "name": "Test Other",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": None,
+            "firstDigits": None,
+            "lastDigits": None,
+            "expMonth": None,
+            "expYear": None,
+        },
+    ],
+)
+def test_transaction_session_success_schema_valid_payment_method_details(
+    payment_method_details, result
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": result.upper(),
+        "data": "test-data",
+        "paymentMethodDetails": payment_method_details,
+    }
+
+    # when
+    parsed_transaction = TransactionSessionSuccessSchema.model_validate(data)
+
+    # then
+    assert parsed_transaction.result == result
+    assert parsed_transaction.payment_method_details
+    parsed_payment_method_details = parsed_transaction.payment_method_details
+
+    assert parsed_payment_method_details.type == payment_method_details["type"].lower()
+    assert parsed_payment_method_details.name == payment_method_details["name"]
+    assert getattr(
+        parsed_payment_method_details, "brand", None
+    ) == payment_method_details.get("brand")
+    assert getattr(
+        parsed_payment_method_details, "first_digits", None
+    ) == payment_method_details.get("firstDigits")
+    assert getattr(
+        parsed_payment_method_details, "last_digits", None
+    ) == payment_method_details.get("lastDigits")
+    assert getattr(
+        parsed_payment_method_details, "exp_month", None
+    ) == payment_method_details.get("expMonth")
+    assert getattr(
+        parsed_payment_method_details, "exp_year", None
+    ) == payment_method_details.get("expYear")
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_SUCCESS,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        # unknown type
+        {
+            "type": "WRONG-TYPE",
+            "name": "Test Card",
+        },
+        # Missing name
+        {
+            "type": "CARD",
+        },
+        # Missing type
+        {
+            "name": "Test Card",
+        },
+    ],
+)
+def test_transaction_session_success_schema_invalid_payment_method_details(
+    payment_method_details, result
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": result.upper(),
+        "data": "test-data",
+        "paymentMethodDetails": payment_method_details,
+    }
+
+    # when & then
+    with pytest.raises(ValidationError):
+        TransactionSessionSuccessSchema.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
         TransactionEventType.AUTHORIZATION_FAILURE,
         TransactionEventType.CHARGE_FAILURE,
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
@@ -735,6 +987,132 @@ def test_transaction_session_failure_schema_valid_result(result):
 
     # then
     assert transaction.result == result
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_FAILURE,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "firstDigits": "1234",
+            "lastDigits": "5678",
+            "expMonth": 12,
+            "expYear": 2025,
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": "Brand",
+            "lastDigits": "5678",
+        },
+        {
+            "type": "OTHER",
+            "name": "Test Other",
+        },
+        {
+            "type": "CARD",
+            "name": "Test Card",
+            "brand": None,
+            "firstDigits": None,
+            "lastDigits": None,
+            "expMonth": None,
+            "expYear": None,
+        },
+    ],
+)
+def test_transaction_session_failure_schema_valid_payment_method_details(
+    payment_method_details, result
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": result.upper(),
+        "data": "test-data",
+        "paymentMethodDetails": payment_method_details,
+    }
+
+    # when
+    parsed_transaction = TransactionSessionFailureSchema.model_validate(data)
+
+    # then
+
+    assert parsed_transaction.result == result
+    assert parsed_transaction.payment_method_details
+    parsed_payment_method_details = parsed_transaction.payment_method_details
+
+    assert parsed_payment_method_details.type == payment_method_details["type"].lower()
+    assert parsed_payment_method_details.name == payment_method_details["name"]
+    assert getattr(
+        parsed_payment_method_details, "brand", None
+    ) == payment_method_details.get("brand")
+    assert getattr(
+        parsed_payment_method_details, "first_digits", None
+    ) == payment_method_details.get("firstDigits")
+    assert getattr(
+        parsed_payment_method_details, "last_digits", None
+    ) == payment_method_details.get("lastDigits")
+    assert getattr(
+        parsed_payment_method_details, "exp_month", None
+    ) == payment_method_details.get("expMonth")
+    assert getattr(
+        parsed_payment_method_details, "exp_year", None
+    ) == payment_method_details.get("expYear")
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+    ],
+)
+@pytest.mark.parametrize(
+    "payment_method_details",
+    [
+        # unknown type
+        {
+            "type": "WRONG-TYPE",
+            "name": "Test Card",
+        },
+        # Missing name
+        {
+            "type": "CARD",
+        },
+        # Missing type
+        {
+            "name": "Test Card",
+        },
+    ],
+)
+def test_transaction_session_failure_schema_invalid_payment_method_details(
+    payment_method_details, result
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": result.upper(),
+        "data": "test-data",
+        "paymentMethodDetails": payment_method_details,
+    }
+
+    # when & then
+    with pytest.raises(ValidationError):
+        TransactionSessionFailureSchema.model_validate(data)
 
 
 @pytest.mark.parametrize(

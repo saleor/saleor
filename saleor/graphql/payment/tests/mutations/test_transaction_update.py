@@ -11,7 +11,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
-from .....payment import TransactionEventType
+from .....payment import PaymentMethodType, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -71,6 +71,21 @@ mutation TransactionUpdate(
                     }
                     ... on App {
                         id
+                    }
+                }
+                paymentMethodDetails{
+                    ...on CardPaymentMethodDetails{
+                        __typename
+                        name
+                        brand
+                        firstDigits
+                        lastDigits
+                        expMonth
+                        expYear
+                    }
+                    ...on OtherPaymentMethodDetails{
+                        __typename
+                        name
                     }
                 }
                 events{
@@ -3468,3 +3483,269 @@ def test_transaction_uodate_transaction_event_empty_message(
     event = transaction.events.last()
     assert event.message == ""
     assert event.psp_reference == transaction_reference
+
+
+@pytest.mark.parametrize(
+    (
+        "card_brand",
+        "card_first_digits",
+        "card_last_digits",
+        "card_exp_month",
+        "card_exp_year",
+    ),
+    [
+        ("Brand", "1234", "5678", 12, 2025),
+        (None, "1111", "0000", 1, 2001),
+        (None, None, None, None, None),
+        ("", "", "", None, None),
+        (None, None, "1234", None, None),
+    ],
+)
+def test_transaction_update_with_card_payment_method_details(
+    card_brand,
+    card_first_digits,
+    card_last_digits,
+    card_exp_month,
+    card_exp_year,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = transaction_item_created_by_app
+    transaction.payment_method_type = PaymentMethodType.CARD
+    transaction.payment_method_name = "Payment Method Name"
+    transaction.cc_brand = None
+    transaction.cc_first_digits = "9999"
+    transaction.cc_last_digits = "8888"
+    transaction.cc_exp_month = 6
+    transaction.cc_exp_year = 2010
+    transaction.save()
+
+    card_name = "Payment Method Name"
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "paymentMethodDetails": {
+                "card": {
+                    "name": card_name,
+                    "brand": card_brand,
+                    "firstDigits": card_first_digits,
+                    "lastDigits": card_last_digits,
+                    "expMonth": card_exp_month,
+                    "expYear": card_exp_year,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    transaction_data = content["data"]["transactionUpdate"]["transaction"]
+
+    payment_method_details_data = transaction_data["paymentMethodDetails"]
+    assert payment_method_details_data["__typename"] == "CardPaymentMethodDetails"
+    assert payment_method_details_data["name"] == card_name
+    assert payment_method_details_data["brand"] == card_brand
+    assert payment_method_details_data["firstDigits"] == card_first_digits
+    assert payment_method_details_data["lastDigits"] == card_last_digits
+    assert payment_method_details_data["expMonth"] == card_exp_month
+    assert payment_method_details_data["expYear"] == card_exp_year
+
+    assert transaction.payment_method_type == PaymentMethodType.CARD
+    assert transaction.payment_method_name == card_name
+    assert transaction.cc_brand == card_brand
+    assert transaction.cc_first_digits == card_first_digits
+    assert transaction.cc_last_digits == card_last_digits
+    assert transaction.cc_exp_month == card_exp_month
+    assert transaction.cc_exp_year == card_exp_year
+
+
+def test_transaction_update_with_other_payment_method_details(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    transaction.payment_method_type = PaymentMethodType.CARD
+    transaction.payment_method_name = "Payment Method Name"
+    transaction.cc_brand = None
+    transaction.cc_first_digits = "9999"
+    transaction.cc_last_digits = "8888"
+    transaction.cc_exp_month = 6
+    transaction.cc_exp_year = 2010
+    transaction.save()
+
+    other_name = "Payment Method Name"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "paymentMethodDetails": {
+                "other": {
+                    "name": other_name,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    transaction_data = content["data"]["transactionUpdate"]["transaction"]
+    assert transaction_data
+    assert not content["data"]["transactionUpdate"]["errors"]
+
+    payment_method_details_data = transaction_data["paymentMethodDetails"]
+    assert payment_method_details_data["__typename"] == "OtherPaymentMethodDetails"
+    assert payment_method_details_data["name"] == other_name
+
+    transaction.refresh_from_db()
+    assert transaction.payment_method_type == PaymentMethodType.OTHER
+    assert transaction.payment_method_name == other_name
+    assert transaction.cc_brand is None
+    assert transaction.cc_first_digits is None
+    assert transaction.cc_last_digits is None
+    assert transaction.cc_exp_month is None
+    assert transaction.cc_exp_year is None
+
+
+def test_transaction_update_with_both_payment_method_details_inputs(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "paymentMethodDetails": {
+                "other": {
+                    "name": "Other",
+                },
+                "card": {
+                    "name": "Name",
+                },
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionUpdate"]
+    assert transaction_data["errors"]
+    assert len(transaction_data["errors"]) == 1
+    assert transaction_data["errors"][0]["code"] == "INVALID"
+
+
+@pytest.mark.parametrize(
+    (
+        "card_brand_length",
+        "card_first_digits",
+        "card_last_digits",
+        "card_exp_month",
+        "card_exp_year",
+        "card_name_length",
+    ),
+    [
+        (41, "12345", "56780", 33, 12025, 257),
+        (41, None, None, None, None, None),
+        (None, "12345", None, None, None, None),
+        (None, None, "56780", None, None, None),
+        (None, None, None, 33, None, None),
+        (None, None, None, None, 12025, None),
+        (None, None, None, None, None, 257),
+    ],
+)
+def test_transaction_update_with_invalid_card_payment_method_details(
+    card_brand_length,
+    card_first_digits,
+    card_last_digits,
+    card_exp_month,
+    card_exp_year,
+    card_name_length,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = transaction_item_created_by_app
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "paymentMethodDetails": {
+                "card": {
+                    "name": "N" * (card_name_length or 0),
+                    "brand": "B" * (card_brand_length or 0),
+                    "firstDigits": card_first_digits,
+                    "lastDigits": card_last_digits,
+                    "expMonth": card_exp_month,
+                    "expYear": card_exp_year,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionUpdate"]
+    assert transaction_data["errors"]
+
+    for error in transaction_data["errors"]:
+        assert error["code"] == "INVALID"
+        assert error["field"] == "paymentMethodDetails"
+
+
+def test_transaction_update_with_invalid_other_payment_method_details(
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = transaction_item_created_by_app
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "paymentMethodDetails": {
+                "other": {
+                    "name": "N" * 257,
+                }
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_data = response["data"]["transactionUpdate"]
+    assert transaction_data["errors"]
+    assert len(transaction_data["errors"]) == 1
+    error = transaction_data["errors"][0]
+    assert error["code"] == "INVALID"
+    assert error["field"] == "paymentMethodDetails"

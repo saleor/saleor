@@ -6,7 +6,8 @@ from django.db.models import Q
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...payment import models
+from ...graphql.core.descriptions import ADDED_IN_322
+from ...payment import PaymentMethodType, models
 from ...payment.interface import PaymentMethodData
 from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
@@ -427,6 +428,84 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
         return None
 
 
+class GenericPaymentMethodDetails(graphene.Interface):
+    name = graphene.String(required=True, description="Name of the payment method.")
+
+    class Meta:
+        description = (
+            "Represents a payment method used for a transaction." + ADDED_IN_322
+        )
+
+    def resolve_name(root: models.TransactionItem, _info):
+        return root.payment_method_name or ""
+
+
+class CardPaymentMethodDetails(BaseObjectType):
+    name = graphene.String(required=True, description="Name of the payment method.")
+    brand = graphene.String(description="Card brand.", required=False)
+    first_digits = graphene.String(
+        description="First 4 digits of the card number.", required=False
+    )
+    last_digits = graphene.String(
+        description="Last 4 digits of the card number.", required=False
+    )
+    exp_month = graphene.Int(
+        description="Two-digit number representing the card’s expiration month.",
+        required=False,
+    )
+    exp_year = graphene.Int(
+        description="Four-digit number representing the card’s expiration year.",
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Represents a card payment method used for a transaction." + ADDED_IN_322
+        )
+        interfaces = [GenericPaymentMethodDetails]
+
+    @staticmethod
+    def resolve_brand(root: models.TransactionItem, _info):
+        return root.cc_brand
+
+    @staticmethod
+    def resolve_first_digits(root: models.TransactionItem, _info):
+        return root.cc_first_digits
+
+    @staticmethod
+    def resolve_last_digits(root: models.TransactionItem, _info):
+        return root.cc_last_digits
+
+    @staticmethod
+    def resolve_exp_month(root: models.TransactionItem, _info):
+        return root.cc_exp_month
+
+    @staticmethod
+    def resolve_exp_year(root: models.TransactionItem, _info):
+        return root.cc_exp_year
+
+
+class OtherPaymentMethodDetails(BaseObjectType):
+    name = graphene.String(required=True, description="Name of the payment method.")
+
+    class Meta:
+        description = (
+            "Represents a payment method used for a transaction." + ADDED_IN_322
+        )
+        interfaces = [GenericPaymentMethodDetails]
+
+
+class PaymentMethodDetails(graphene.Union):
+    class Meta:
+        types = (CardPaymentMethodDetails, OtherPaymentMethodDetails)
+
+    @classmethod
+    def resolve_type(cls, instance, info: graphene.ResolveInfo):
+        if instance.payment_method_type == PaymentMethodType.CARD:
+            return CardPaymentMethodDetails
+        return OtherPaymentMethodDetails
+
+
 class TransactionItem(ModelObjectType[models.TransactionItem]):
     token = graphene.Field(
         UUIDScalar, description="The transaction token.", required=True
@@ -514,10 +593,21 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         required=True,
     )
 
+    payment_method_details = graphene.Field(
+        PaymentMethodDetails,
+        description="The payment method used for this transaction." + ADDED_IN_322,
+    )
+
     class Meta:
         description = "Represents a payment transaction."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.TransactionItem
+
+    @staticmethod
+    def resolve_payment_method_details(root: models.TransactionItem, info):
+        if not root.payment_method_type:
+            return None
+        return root
 
     @staticmethod
     def resolve_id(root: models.TransactionItem, _info: ResolveInfo):
