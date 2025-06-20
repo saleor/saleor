@@ -30,8 +30,10 @@ All notable, unreleased changes to this project will be documented in this file.
   - Messages from related order events
   - The content of customer note
   - The order external reference
+- Add support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
 
 ### Webhooks
+- Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
 
 ### Other changes
 - Add JSON schemas for synchronous webhooks, now available in `saleor/json_schemas.py`. These schemas define the expected structure of webhook responses sent back to Saleor, enabling improved validation and tooling support for integrations. This change helps ensure that responses from webhook consumers meet Saleor’s expectations and can be reliably processed.
