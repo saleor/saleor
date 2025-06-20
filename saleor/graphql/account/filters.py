@@ -3,14 +3,26 @@ from django.db.models import Count
 
 from ...account.models import User
 from ...account.search import search_users
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
+    GlobalIDMultipleChoiceWhereFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    ObjectTypeWhereFilter,
+)
+from ..core.filters.where_filters import MetadataWhereBase
+from ..core.filters.where_input import (
+    WhereInputObjectType,
 )
 from ..core.types import DateRangeInput, DateTimeRangeInput, IntRangeInput
-from ..utils.filters import filter_by_id, filter_range_field
+from ..utils.filters import (
+    filter_by_id,
+    filter_by_ids,
+    filter_range_field,
+    filter_where_by_range_field,
+)
 from . import types as account_types
 from .enums import StaffMemberStatus
 
@@ -74,6 +86,22 @@ class CustomerFilter(MetadataFilterBase):
             "placed_orders",
             "search",
         ]
+
+
+class CustomerWhereFilterInput(MetadataWhereBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("User"))
+    date_joined = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput, method="filter_date_joined"
+    )
+
+    def filter_date_joined(self, qs, _, value):
+        return filter_where_by_range_field(qs, "date_joined", value)
+
+
+class CustomerWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        filterset_class = CustomerWhereFilterInput
 
 
 class PermissionGroupFilter(django_filters.FilterSet):
