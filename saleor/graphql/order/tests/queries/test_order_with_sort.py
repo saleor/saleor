@@ -34,6 +34,8 @@ QUERY_ORDER_WITH_SORT = """
         ({"field": "CUSTOMER", "direction": "DESC"}, [3, 1, 0, 2]),
         ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0, 3]),
         ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [3, 0, 1, 2]),
+        ({"field": "STATUS", "direction": "ASC"}, [2, 1, 0, 3]),
+        ({"field": "STATUS", "direction": "DESC"}, [3, 0, 1, 2]),
     ],
 )
 def test_query_orders_with_sort(

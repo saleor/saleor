@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Messages from related order events
   - The content of customer note
   - The order external reference
+- Extend sorting options. You can now sort orders by their status.
 
 ### Webhooks
 
