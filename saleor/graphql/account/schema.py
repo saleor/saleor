@@ -1,5 +1,6 @@
 import graphene
 
+from ...account.search import search_users
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, OrderPermissions
 from ...permission.utils import message_one_of_permissions_required
@@ -146,6 +147,7 @@ class AccountQueries(graphene.ObjectType):
             description="Where filtering options for customers." + ADDED_IN_322
         ),
         sort_by=UserSortingInput(description="Sort customers."),
+        search=graphene.String(description="Search customers." + ADDED_IN_322),
         description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
         permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
         doc_category=DOC_CATEGORY_USERS,
@@ -220,7 +222,10 @@ class AccountQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_customers(_root, info: ResolveInfo, **kwargs):
+        search = kwargs.get("search")
         qs = resolve_customers(info)
+        if search:
+            qs = search_users(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
