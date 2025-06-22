@@ -1,4 +1,8 @@
 import pillow_avif  # noqa: F401 # imported for side effects
+import os
+import sys
+
+print("Saleor application starting...")
 
 from .celeryconf import app as celery_app
 
@@ -23,3 +27,6 @@ class PatchedSubscriberExecutionContext:
 _major, _minor, _ = __version__.split(".", 2)
 schema_version = f"{_major}.{_minor}"
 user_agent_version = f"Saleor/{schema_version}"
+
+if __name__ == "__main__":
+    pass  # TODO: implement main execution logic

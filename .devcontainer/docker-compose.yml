@@ -1,51 +1,113 @@
 version: "3.4"
 
 services:
-  saleor:
-    image: saleor
-    build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
-    command: sleep infinity
-    env_file:
-      - common.env
-      - backend.env
+  api:
+    image: saleor:locallatest
+    ports:
+      - 8000:8000
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    stdin_open: true
+    tty: true
     depends_on:
       - db
       - redis
+      - jaeger
     volumes:
-      - ..:/app
+      # shared volume between worker and api for media
+      - saleor-media:/app/media
+      # Add local project directory mapping
+      - ../:/app
+    env_file:
+      - common.env
+      - backend.env
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - DASHBOARD_URL=http://localhost:9000/
+      - ALLOWED_HOSTS=localhost,api
+      - DJANGO_DEBUG=True
+      - DEBUG=True
 
   dashboard:
-    image: ghcr.io/saleor/saleor-dashboard:3.15.2
-    restart: unless-stopped
+    image: ghcr.io/saleor/saleor-dashboard:latest
     ports:
       - 9000:80
+    restart: unless-stopped
 
   db:
     image: library/postgres:15-alpine
+    ports:
+      - 5432:5432
     restart: unless-stopped
+    networks:
+      - saleor-backend-tier
     volumes:
       - saleor-db:/var/lib/postgresql/data
+      - ./replica_user.sql:/docker-entrypoint-initdb.d/replica_user.sql
     environment:
       - POSTGRES_USER=saleor
       - POSTGRES_PASSWORD=saleor
 
   redis:
     image: library/redis:7.0-alpine
+    ports:
+      - 6379:6379
     restart: unless-stopped
+    networks:
+      - saleor-backend-tier
     volumes:
       - saleor-redis:/data
+
+  worker:
+    image: ghcr.io/saleor/saleor:3.20
+    command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    env_file:
+      - common.env
+      - backend.env
+    depends_on:
+      - redis
+      - mailpit
+    volumes:
+      # shared volume between worker and api for media
+      - saleor-media:/app/media
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    restart: unless-stopped
+    networks:
+      - saleor-backend-tier
+    volumes:
+      - type: tmpfs
+        target: /tmp
 
   mailpit:
     image: axllent/mailpit
     ports:
-      - "1025" # SMTP Server
-      - "8025" # Mailpit UI
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui. Visit http://localhost:8025/ to check emails
     restart: unless-stopped
+    networks:
+      - saleor-backend-tier
 
 volumes:
   saleor-db:
     driver: local
   saleor-redis:
     driver: local
+  saleor-media:
+
+networks:
+  saleor-backend-tier:
+    driver: bridge

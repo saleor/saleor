@@ -8,6 +8,13 @@ https://docs.djangoproject.com/en/3.1/howto/deployment/asgi/
 
 import gc
 import os
+import sys
+
+print("Saleor ASGI application starting...123")
+print("Python version:", sys.version)
+print("Current working directory:", os.getcwd())
+print("DJANGO_SETTINGS_MODULE:", os.environ.get("DJANGO_SETTINGS_MODULE"))
+print("=" * 50)
 
 from django.core.asgi import get_asgi_application
 

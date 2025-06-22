@@ -9,6 +9,9 @@ from .password_change import PasswordChange
 from .refresh_token import RefreshToken
 from .request_password_reset import RequestPasswordReset
 from .set_password import SetPassword
+from .telegram_token_create import TelegramTokenCreate
+from .telegram_email_change_request import TelegramEmailChangeRequest
+from .telegram_email_change_confirm import TelegramEmailChangeConfirm
 from .verify_token import VerifyToken
 
 __all__ = [
@@ -23,5 +26,8 @@ __all__ = [
     "RefreshToken",
     "RequestPasswordReset",
     "SetPassword",
+    "TelegramTokenCreate",
+    "TelegramEmailChangeRequest",
+    "TelegramEmailChangeConfirm",
     "VerifyToken",
 ]

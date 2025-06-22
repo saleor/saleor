@@ -46,6 +46,9 @@ from .mutations.authentication import (
     RefreshToken,
     RequestPasswordReset,
     SetPassword,
+    TelegramTokenCreate,
+    TelegramEmailChangeRequest,
+    TelegramEmailChangeConfirm,
     VerifyToken,
 )
 from .mutations.permission_group import (
@@ -265,6 +268,9 @@ class AccountMutations(graphene.ObjectType):
     token_refresh = RefreshToken.Field()
     token_verify = VerifyToken.Field()
     tokens_deactivate_all = DeactivateAllUserTokens.Field()
+    telegram_token_create = TelegramTokenCreate.Field()
+    telegram_email_change_request = TelegramEmailChangeRequest.Field()
+    telegram_email_change_confirm = TelegramEmailChangeConfirm.Field()
 
     external_authentication_url = ExternalAuthenticationUrl.Field()
     external_obtain_access_tokens = ExternalObtainAccessTokens.Field()

@@ -98,6 +98,9 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):
+        print("=" * 50)
+        print("AccountRegister mutate", data)
+        print("=" * 50)
         site = get_site_promise(info.context).get()
         response = super().mutate(root, info, **data)
         response.requires_confirmation = (

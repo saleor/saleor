@@ -44,6 +44,62 @@ from .plugins.openid_connect.patch import patch_authlib
 
 django_stubs_ext.monkeypatch()
 
+# Environment variable management - supports loading from .env file in development
+
+"""Load environment variables from .env file (development only)"""
+
+
+def load_env_file():
+    # Determine if it's production environment
+    is_production = any(
+        [
+            os.environ.get("PRODUCTION"),
+            os.environ.get("STAGING"),
+            os.environ.get("DEPLOYMENT"),
+            os.environ.get("DOCKER"),
+            os.environ.get("KUBERNETES"),
+            os.environ.get("AWS"),
+            os.environ.get("GCP"),
+            os.environ.get("AZURE"),
+        ]
+    )
+
+    # Production environment: don't read from .env file, only use container environment variables
+    if is_production:
+        print(
+            "🔧 Production environment detected, using container environment variables"
+        )
+        return
+
+    # Development environment: load from .env file
+    env_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+    if os.path.exists(env_file):
+        print("🔧 Development environment detected, loading from .env file")
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip()
+
+                    # Remove quotes
+                    if value.startswith('"') and value.endswith('"'):
+                        value = value[1:-1]
+                    elif value.startswith("'") and value.endswith("'"):
+                        value = value[1:-1]
+
+                    # Set environment variable (if not already set)
+                    if key and not os.environ.get(key):
+                        os.environ[key] = value
+                        print(f"✓ Loaded {key} from .env")
+    else:
+        print("⚠ .env file not found, using system environment variables")
+
+
+# Load environment variables
+load_env_file()
+
 
 def get_list(text):
     return [item.strip() for item in text.split(",")]
@@ -1057,3 +1113,10 @@ patch_execution_context()
 # Patch `ExecutionResult` to remove all references that could result in reference cycles,
 # allowing memory to be freed immediately, without the need of a deep garbage collection cycle.
 patch_execution_result()
+
+
+# Telegram Bot configuration
+# Get Bot Token from environment variable, use default value if not set
+TELEGRAM_BOT_TOKEN = os.environ.get(
+    "TELEGRAM_BOT_TOKEN", "8014119913:AAFyzp17QSynAxUmo51_oZrpypiKWckiFBA"
+)
