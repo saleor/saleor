@@ -87,6 +87,7 @@ QUERY_PAGES_WITH_SEARCH = """
 def test_pages_query_with_search(
     search, count, staff_api_client, permission_manage_pages, page_type
 ):
+    # given
     query = QUERY_PAGES_WITH_SEARCH
     Page.objects.create(
         title="Page1",
@@ -108,7 +109,11 @@ def test_pages_query_with_search(
     )
     variables = {"search": search}
     staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["pages"]["totalCount"] == count
 
