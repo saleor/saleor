@@ -314,3 +314,82 @@ def test_customers_filter_by_placed_orders_at(
     assert len(customers) == len(indexes)
     emails = {node["node"]["email"] for node in customers}
     assert emails == {customer_users[index].email for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("email_filter", "expected_indexes"),
+    [
+        ({"eq": "test1@example.com"}, [0]),
+        ({"eq": "test2@example.com"}, [1]),
+        ({"eq": "notfound@example.com"}, []),
+        ({"oneOf": ["test1@example.com", "test3@example.com"]}, [0, 2]),
+        ({"oneOf": ["notfound@example.com"]}, []),
+        (None, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
+    ],
+)
+def test_customers_filter_by_email(
+    email_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    customer_emails = [
+        "test1@example.com",
+        "test2@example.com",
+        "test3@example.com",
+    ]
+    for user, email in zip(customer_users, customer_emails, strict=True):
+        user.email = email
+        user.save(update_fields=["email"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"email": email_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("is_active_filter", "expected_indexes"),
+    [
+        (True, [0, 1]),
+        (False, [2]),
+        (None, []),
+    ],
+)
+def test_customers_filter_by_is_active(
+    is_active_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    is_active_values = [True, True, False]
+    for user, is_active in zip(customer_users, is_active_values, strict=True):
+        user.is_active = is_active
+        user.save(update_fields=["is_active"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"isActive": is_active_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}

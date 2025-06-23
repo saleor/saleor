@@ -14418,6 +14418,12 @@ input CustomerWhereInput @doc(category: "Users") {
   metadata: MetadataFilterInput
   ids: [ID!]
 
+  """Filter by email address."""
+  email: StringFilterInput
+
+  """Filter by whether the user is active."""
+  isActive: Boolean
+
   """Filter by date joined."""
   dateJoined: DateTimeRangeInput
 

@@ -6,6 +6,7 @@ from ...account.search import search_users
 from ...order.models import Order
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.filters import (
+    BooleanWhereFilter,
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
     GlobalIDMultipleChoiceWhereFilter,
@@ -15,6 +16,7 @@ from ..core.filters import (
 )
 from ..core.filters.where_filters import MetadataWhereBase
 from ..core.filters.where_input import (
+    StringFilterInput,
     WhereInputObjectType,
 )
 from ..core.types import DateRangeInput, DateTimeRangeInput, IntRangeInput
@@ -23,6 +25,7 @@ from ..utils.filters import (
     filter_by_ids,
     filter_range_field,
     filter_where_by_range_field,
+    filter_where_by_value_field,
 )
 from . import types as account_types
 from .enums import StaffMemberStatus
@@ -91,6 +94,15 @@ class CustomerFilter(MetadataFilterBase):
 
 class CustomerWhereFilterInput(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("User"))
+    email = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_email",
+        help_text="Filter by email address.",
+    )
+    is_active = BooleanWhereFilter(
+        field_name="is_active",
+        help_text="Filter by whether the user is active.",
+    )
     date_joined = ObjectTypeWhereFilter(
         input_class=DateTimeRangeInput,
         method="filter_date_joined",
@@ -106,6 +118,16 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         method="filter_placed_orders_at",
         help_text="Filter by date when orders were placed.",
     )
+
+    def filter_email(self, qs, _, value):
+        if not value:
+            return qs.none()
+        return filter_where_by_value_field(qs, "email", value)
+
+    def filter_is_active(self, qs, _, value):
+        if value is None:
+            return qs.none()
+        return qs.filter(is_active=value)
 
     def filter_date_joined(self, qs, _, value):
         return filter_where_by_range_field(qs, "date_joined", value)
