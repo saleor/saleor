@@ -2098,7 +2098,7 @@ def test_order_transaction_updated_order_partially_paid(
     # given
     order_info = fetch_order_info(order_with_lines)
     transaction_item = transaction_item_generator(
-        order_id=order_with_lines.pk, charged_value=Decimal("10")
+        order_id=order_with_lines.pk, charged_value=Decimal(10)
     )
     manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
@@ -2134,11 +2134,9 @@ def test_order_transaction_updated_order_partially_paid_and_multiple_transaction
 ):
     # given
     order_info = fetch_order_info(order_with_lines)
-    transaction_item_generator(
-        order_id=order_with_lines.pk, charged_value=Decimal("10")
-    )
+    transaction_item_generator(order_id=order_with_lines.pk, charged_value=Decimal(10))
     transaction_item = transaction_item_generator(
-        order_id=order_with_lines.pk, charged_value=Decimal("5")
+        order_id=order_with_lines.pk, charged_value=Decimal(5)
     )
     manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
@@ -2174,7 +2172,7 @@ def test_order_transaction_updated_with_the_same_transaction_charged_amount(
 ):
     # given
     order_info = fetch_order_info(order_with_lines)
-    charged_value = Decimal("5")
+    charged_value = Decimal(5)
 
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, charged_value=charged_value
@@ -2252,10 +2250,10 @@ def test_order_transaction_updated_order_partially_authorized_and_multiple_trans
     # given
     order_info = fetch_order_info(order_with_lines)
     transaction_item_generator(
-        order_id=order_with_lines.pk, authorized_value=Decimal("10")
+        order_id=order_with_lines.pk, authorized_value=Decimal(10)
     )
     transaction_item = transaction_item_generator(
-        order_id=order_with_lines.pk, authorized_value=Decimal("5")
+        order_id=order_with_lines.pk, authorized_value=Decimal(5)
     )
     manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
@@ -2291,7 +2289,7 @@ def test_order_transaction_updated_with_the_same_transaction_authorized_amount(
 ):
     # given
     order_info = fetch_order_info(order_with_lines)
-    authorized_value = Decimal("5")
+    authorized_value = Decimal(5)
 
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk, authorized_value=authorized_value
@@ -2404,12 +2402,10 @@ def test_order_transaction_updated_order_fully_refunded_and_multiple_transaction
 ):
     # given
     order_info = fetch_order_info(order_with_lines)
-    transaction_item_generator(
-        order_id=order_with_lines.pk, refunded_value=Decimal("10")
-    )
+    transaction_item_generator(order_id=order_with_lines.pk, refunded_value=Decimal(10))
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk,
-        refunded_value=order_with_lines.total.gross.amount - Decimal("10"),
+        refunded_value=order_with_lines.total.gross.amount - Decimal(10),
     )
     manager = get_plugins_manager(allow_replica=False)
     updates_amounts_for_order(
@@ -2452,7 +2448,7 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
     payment.save()
 
     payment.transactions.create(
-        amount=Decimal("10"),
+        amount=Decimal(10),
         currency=payment.currency,
         kind=TransactionKind.REFUND,
         gateway_response={},
@@ -2462,7 +2458,7 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
     order_info = fetch_order_info(order_with_lines)
     transaction_item = transaction_item_generator(
         order_id=order_with_lines.pk,
-        refunded_value=order_with_lines.total.gross.amount - Decimal("10"),
+        refunded_value=order_with_lines.total.gross.amount - Decimal(10),
     )
 
     manager = get_plugins_manager(allow_replica=False)

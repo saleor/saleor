@@ -178,7 +178,7 @@ def test_calculate_base_line_unit_price_with_percentage_voucher(
     unit_price = calculate_base_line_unit_price(checkout_line_info)
 
     # then
-    expected_voucher_amount = Money(Decimal("1"), checkout_with_single_item.currency)
+    expected_voucher_amount = Money(Decimal(1), checkout_with_single_item.currency)
     expected_price = variant.get_price(
         channel_listing=checkout_line_info.channel_listing,
     )
@@ -403,7 +403,7 @@ def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_di
     checkout_line.save()
 
     rule = PromotionRule.objects.first()
-    rule.reward_value = Decimal("10")
+    rule.reward_value = Decimal(10)
     rule.reward_value_type = RewardValueType.PERCENTAGE
 
     # Set product price to 0.01 USD
@@ -502,7 +502,7 @@ def test_calculate_base_line_total_price_with_percentage_voucher(
     total_price = calculate_base_line_total_price(checkout_line_info)
 
     # then
-    expected_voucher_amount = Money(Decimal("1"), checkout_with_single_item.currency)
+    expected_voucher_amount = Money(Decimal(1), checkout_with_single_item.currency)
     expected_unit_price = variant.get_price(
         channel_listing=checkout_line_info.channel_listing,
     )
@@ -541,7 +541,7 @@ def test_calculate_base_line_total_price_with_discounts_apply_once_per_order(
     total_price = calculate_base_line_total_price(checkout_line_info)
 
     # then
-    expected_voucher_amount = Money(Decimal("1"), checkout_with_single_item.currency)
+    expected_voucher_amount = Money(Decimal(1), checkout_with_single_item.currency)
     expected_unit_price = variant.get_price(
         channel_listing=checkout_line_info.channel_listing,
     )

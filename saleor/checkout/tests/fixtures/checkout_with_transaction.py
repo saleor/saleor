@@ -13,6 +13,6 @@ def checkout_with_item_and_transaction_item(checkout_with_item):
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout_with_item.pk,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
     )
     return checkout_with_item

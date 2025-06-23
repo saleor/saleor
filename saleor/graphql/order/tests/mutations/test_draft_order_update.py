@@ -2899,7 +2899,7 @@ def test_draft_order_update_with_voucher_specific_product_and_manual_line_discou
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_value = Decimal("2")
+    voucher_discount_value = Decimal(2)
     voucher_listing.discount_value = voucher_discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -2911,7 +2911,7 @@ def test_draft_order_update_with_voucher_specific_product_and_manual_line_discou
     voucher.variants.add(discounted_line.variant)
 
     # create manual order line discount
-    manual_line_discount_value = Decimal("3")
+    manual_line_discount_value = Decimal(3)
     update_discount_for_order_line(
         discounted_line,
         order=order,
@@ -3047,7 +3047,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_value = Decimal("3")
+    voucher_discount_value = Decimal(3)
     voucher_listing.discount_value = voucher_discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -3059,7 +3059,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
     discounted_line, line_1 = lines
 
     # create manual order line discount
-    manual_line_discount_value = Decimal("3")
+    manual_line_discount_value = Decimal(3)
     update_discount_for_order_line(
         discounted_line,
         order=order,

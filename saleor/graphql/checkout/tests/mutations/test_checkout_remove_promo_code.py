@@ -671,7 +671,7 @@ def test_checkout_remove_voucher_code_order_promotion_discount_applied(
 ):
     # given
     checkout = checkout_with_voucher
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     order_promotion_rule.reward_value = reward_value
     order_promotion_rule.reward_value_type = RewardValueType.FIXED
     order_promotion_rule.save(update_fields=["reward_value", "reward_value_type"])

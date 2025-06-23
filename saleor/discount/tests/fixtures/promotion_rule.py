@@ -21,7 +21,7 @@ def promotion_rule(channel_USD, catalogue_promotion, product):
             }
         },
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("25"),
+        reward_value=Decimal(25),
     )
     rule.channels.add(channel_USD)
     return rule
@@ -36,7 +36,7 @@ def order_promotion_rule(channel_USD, order_promotion_without_rules):
             "discountedObjectPredicate": {"baseSubtotalPrice": {"range": {"gte": 20}}}
         },
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("25"),
+        reward_value=Decimal(25),
         reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule.channels.add(channel_USD)
@@ -69,7 +69,7 @@ def rule_info(
     variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
     listing_promotion_rule = variant_channel_listing.variantlistingpromotionrule.create(
         promotion_rule=promotion_rule,
-        discount_amount=Decimal("10"),
+        discount_amount=Decimal(10),
         currency=channel_USD.currency_code,
     )
     return VariantPromotionRuleInfo(

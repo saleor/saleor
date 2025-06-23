@@ -49,7 +49,7 @@ def test_promotion_rule_update(
         ]
     }
     collection.products.add(product_list[2])
-    reward_value = Decimal("10")
+    reward_value = Decimal(10)
     reward_value_type = RewardValueTypeEnum.FIXED.name
 
     variables = {

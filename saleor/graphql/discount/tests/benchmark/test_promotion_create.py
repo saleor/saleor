@@ -49,7 +49,7 @@ def test_promotion_create(
     rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
     rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
 
-    reward_value = Decimal("10")
+    reward_value = Decimal(10)
 
     catalogue_predicate = {
         "OR": [
@@ -166,7 +166,7 @@ def test_promotion_create_order_promotion(
                     "channels": channel_ids,
                     "rewardType": RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
                     "rewardValueType": RewardValueTypeEnum.FIXED.name,
-                    "rewardValue": Decimal("1"),
+                    "rewardValue": Decimal(1),
                     "orderPredicate": order_predicate_0,
                 },
                 {
@@ -174,7 +174,7 @@ def test_promotion_create_order_promotion(
                     "channels": channel_ids,
                     "rewardType": RewardTypeEnum.SUBTOTAL_DISCOUNT.name,
                     "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
-                    "rewardValue": Decimal("10"),
+                    "rewardValue": Decimal(10),
                     "orderPredicate": order_predicate_0,
                 },
                 {

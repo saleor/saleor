@@ -771,7 +771,7 @@ def test_checkout_lines_update_with_custom_price_and_fixed_catalogue_promotion(
     reward_value = line_discount.value
 
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
-    custom_price = Decimal("15")
+    custom_price = Decimal(15)
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -822,13 +822,13 @@ def test_checkout_lines_update_with_custom_price_and_percentage_catalogue_promot
 
     promotion_rule = line_discount.promotion_rule
     reward_value_type = RewardValueType.PERCENTAGE
-    reward_value = Decimal("50")
+    reward_value = Decimal(50)
     promotion_rule.reward_value_type = reward_value_type
     promotion_rule.reward_value = reward_value
     promotion_rule.save(update_fields=["reward_value_type", "reward_value"])
 
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
-    custom_price = Decimal("40")
+    custom_price = Decimal(40)
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -886,7 +886,7 @@ def test_checkout_lines_update_with_0_custom_price_and_catalogue_promotion(
     line_discount = line.discounts.first()
 
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
-    custom_price = Decimal("0")
+    custom_price = Decimal(0)
 
     variables = {
         "id": to_global_id_or_none(checkout),

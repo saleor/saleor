@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             model_name="productvariant",
             name="quantity",
             field=models.IntegerField(
-                default=Decimal("1"),
+                default=Decimal(1),
                 validators=[django.core.validators.MinValueValidator(0)],
             ),
         ),
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             model_name="productvariant",
             name="quantity_allocated",
             field=models.IntegerField(
-                default=Decimal("0"),
+                default=Decimal(0),
                 validators=[django.core.validators.MinValueValidator(0)],
             ),
         ),

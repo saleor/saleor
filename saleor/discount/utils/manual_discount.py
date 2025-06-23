@@ -12,7 +12,7 @@ from ..models import OrderDiscount
 T = TypeVar("T", Money, TaxedMoney)
 
 
-def apply_discount_to_value(
+def apply_discount_to_value[T: (Money, TaxedMoney)](
     value: Decimal,
     value_type: str | None,
     currency: str,

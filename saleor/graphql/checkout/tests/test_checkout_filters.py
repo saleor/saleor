@@ -454,52 +454,52 @@ def test_checkouts_query_with_filter_search_by_token(
     ("transaction_data", "statuses", "expected_count"),
     [
         (
-            {"authorized_value": Decimal("10")},
+            {"authorized_value": Decimal(10)},
             [CheckoutAuthorizeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"charged_value": Decimal("10")},
+            {"charged_value": Decimal(10)},
             [CheckoutAuthorizeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"authorize_pending_value": Decimal("10")},
+            {"authorize_pending_value": Decimal(10)},
             [CheckoutAuthorizeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"charge_pending_value": Decimal("10")},
+            {"charge_pending_value": Decimal(10)},
             [CheckoutAuthorizeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"authorized_value": Decimal("0")},
+            {"authorized_value": Decimal(0)},
             [CheckoutAuthorizeStatusEnum.NONE.name],
             1,
         ),
         (
-            {"authorized_value": Decimal("200")},
+            {"authorized_value": Decimal(200)},
             [CheckoutAuthorizeStatusEnum.FULL.name],
             2,
         ),
         (
-            {"charged_value": Decimal("200")},
+            {"charged_value": Decimal(200)},
             [CheckoutAuthorizeStatusEnum.FULL.name],
             2,
         ),
         (
-            {"authorize_pending_value": Decimal("200")},
+            {"authorize_pending_value": Decimal(200)},
             [CheckoutAuthorizeStatusEnum.FULL.name],
             2,
         ),
         (
-            {"charge_pending_value": Decimal("200")},
+            {"charge_pending_value": Decimal(200)},
             [CheckoutAuthorizeStatusEnum.FULL.name],
             2,
         ),
         (
-            {"authorized_value": Decimal("10")},
+            {"authorized_value": Decimal(10)},
             [
                 CheckoutAuthorizeStatusEnum.FULL.name,
                 CheckoutAuthorizeStatusEnum.PARTIAL.name,
@@ -507,7 +507,7 @@ def test_checkouts_query_with_filter_search_by_token(
             2,
         ),
         (
-            {"authorized_value": Decimal("0")},
+            {"authorized_value": Decimal(0)},
             [
                 CheckoutAuthorizeStatusEnum.FULL.name,
                 CheckoutAuthorizeStatusEnum.NONE.name,
@@ -515,7 +515,7 @@ def test_checkouts_query_with_filter_search_by_token(
             2,
         ),
         (
-            {"authorized_value": Decimal("10"), "charged_value": Decimal("90")},
+            {"authorized_value": Decimal(10), "charged_value": Decimal(90)},
             [CheckoutAuthorizeStatusEnum.PARTIAL.name],
             1,
         ),
@@ -537,7 +537,7 @@ def test_checkouts_query_with_filter_authorize_status(
         currency=channel_USD.currency_code, channel=channel_USD
     )
     first_checkout.payment_transactions.create(
-        currency=checkout_with_prices.currency, authorized_value=Decimal("10")
+        currency=checkout_with_prices.currency, authorized_value=Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -566,17 +566,17 @@ def test_checkouts_query_with_filter_authorize_status(
     ("transaction_data", "statuses", "expected_count"),
     [
         (
-            {"charged_value": Decimal("10")},
+            {"charged_value": Decimal(10)},
             [CheckoutChargeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"charge_pending_value": Decimal("10")},
+            {"charge_pending_value": Decimal(10)},
             [CheckoutChargeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"charged_value": Decimal("00")},
+            {"charged_value": Decimal(0)},
             [CheckoutChargeStatusEnum.PARTIAL.name],
             0,
         ),
@@ -604,12 +604,12 @@ def test_checkouts_query_with_filter_authorize_status(
             1,
         ),
         (
-            {"charged_value": Decimal("10")},
+            {"charged_value": Decimal(10)},
             [CheckoutChargeStatusEnum.FULL.name, CheckoutChargeStatusEnum.PARTIAL.name],
             1,
         ),
         (
-            {"charged_value": Decimal("0")},
+            {"charged_value": Decimal(0)},
             [CheckoutChargeStatusEnum.FULL.name, CheckoutChargeStatusEnum.NONE.name],
             1,
         ),
@@ -638,7 +638,7 @@ def test_checkouts_query_with_filter_charge_status(
         currency=channel_USD.currency_code, channel=channel_USD
     )
     first_checkout.payment_transactions.create(
-        currency=checkout_with_prices.currency, charged_value=Decimal("10")
+        currency=checkout_with_prices.currency, charged_value=Decimal(10)
     )
 
     update_checkout_payment_statuses(

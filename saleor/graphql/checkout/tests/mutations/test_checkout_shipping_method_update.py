@@ -123,7 +123,7 @@ def test_checkout_shipping_method_update_external_shipping_method(
 ):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     response_method_id = "abcd"
-    method_price = Decimal("10")
+    method_price = Decimal(10)
     method_name = "Provider - Economy"
     mock_json_response = [
         {
@@ -177,7 +177,7 @@ def test_checkout_shipping_method_update_overwrites_external_shipping(
     # given
     checkout = checkout_with_item_and_shipping_method
     checkout.external_shipping_method_id = "ext-ship"
-    checkout.undiscounted_base_shipping_price_amount = Decimal("110")
+    checkout.undiscounted_base_shipping_price_amount = Decimal(110)
     checkout.shipping_method_name = "Ext shipping"
     checkout.shipping_address = address
     checkout.save()
@@ -361,7 +361,7 @@ def test_checkout_shipping_method_update_excluded_webhook(
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
     assert checkout.external_shipping_method_id is None
-    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
 
 
@@ -396,7 +396,7 @@ def test_checkout_shipping_method_update_excluded_postal_code(
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
     assert checkout.external_shipping_method_id is None
-    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
     assert (
         mock_is_shipping_method_available.call_count
@@ -566,7 +566,7 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
     assert errors[0]["code"] == CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
     assert checkout.shipping_method is None
     assert checkout.external_shipping_method_id is None
-    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
 
 
@@ -643,7 +643,7 @@ def test_checkout_update_shipping_method_with_digital(
     checkout.refresh_from_db(fields=["shipping_method"])
     assert checkout.shipping_method is None
     assert checkout.external_shipping_method_id is None
-    assert checkout.undiscounted_base_shipping_price_amount == Decimal("0")
+    assert checkout.undiscounted_base_shipping_price_amount == Decimal(0)
     assert checkout.shipping_method_name is None
 
 

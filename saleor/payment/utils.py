@@ -723,7 +723,7 @@ def price_to_minor_unit(value: Decimal, currency: str):
     precision = get_currency_precision(currency)
     number_places = Decimal("10.0") ** precision
     value_without_comma = value * number_places
-    return str(value_without_comma.quantize(Decimal("1")))
+    return str(value_without_comma.quantize(Decimal(1)))
 
 
 def get_channel_slug_from_payment(payment: Payment) -> str | None:

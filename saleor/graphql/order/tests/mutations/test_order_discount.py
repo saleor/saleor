@@ -41,8 +41,8 @@ mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
 @pytest.mark.parametrize(
     ("value", "value_type"),
     [
-        (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
-        (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
+        (Decimal(2222222), DiscountValueTypeEnum.FIXED.name),
+        (Decimal(101), DiscountValueTypeEnum.PERCENTAGE.name),
     ],
 )
 def test_add_order_discount_incorrect_values(
@@ -72,7 +72,7 @@ def test_add_fixed_order_discount_order_is_not_draft(
     order_with_lines, staff_api_client, permission_group_manage_orders
 ):
     # given
-    value = Decimal("10")
+    value = Decimal(10)
     variables = {
         "orderId": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": value},
@@ -308,7 +308,7 @@ def test_add_manual_discount_replaces_entire_voucher(
     order.status = OrderStatus.DRAFT
     order.save(update_fields=["status", "should_refresh_prices"])
 
-    expected_voucher_discount_amount = Decimal("12")
+    expected_voucher_discount_amount = Decimal(12)
     assert voucher.type == VoucherType.ENTIRE_ORDER
     assert voucher.discount_value_type == DiscountValueType.FIXED
 
@@ -398,7 +398,7 @@ def test_add_manual_discount_keeps_shipping_voucher(
     assert order.discounts.count() == 2
 
     shipping_discount = order.discounts.get(type=DiscountType.VOUCHER)
-    assert shipping_discount.value == Decimal("100")
+    assert shipping_discount.value == Decimal(100)
     assert shipping_discount.value_type == DiscountValueType.PERCENTAGE
     assert shipping_discount.amount == order.undiscounted_base_shipping_price
 
@@ -688,7 +688,7 @@ def test_update_order_discount_order_is_not_draft(
 
     order_discount = draft_order_with_fixed_discount_order.discounts.get()
 
-    value = Decimal("50")
+    value = Decimal(50)
     variables = {
         "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
         "input": {
@@ -712,8 +712,8 @@ def test_update_order_discount_order_is_not_draft(
 @pytest.mark.parametrize(
     ("value", "value_type"),
     [
-        (Decimal("2222222"), DiscountValueTypeEnum.FIXED.name),
-        (Decimal("101"), DiscountValueTypeEnum.PERCENTAGE.name),
+        (Decimal(2222222), DiscountValueTypeEnum.FIXED.name),
+        (Decimal(101), DiscountValueTypeEnum.PERCENTAGE.name),
     ],
 )
 def test_update_order_discount_incorrect_values(
@@ -1213,7 +1213,7 @@ def test_update_order_line_discount(
 
     line_price_before_discount = line_to_discount.unit_price
 
-    value = Decimal("5")
+    value = Decimal(5)
     value_type = DiscountValueTypeEnum.FIXED
     reason = "New reason for unit discount"
     variables = {
@@ -1312,7 +1312,7 @@ def test_update_order_line_discount_by_user_no_channel_access(
     order.save(update_fields=["status", "channel"])
     line_to_discount = order.lines.first()
 
-    value = Decimal("5")
+    value = Decimal(5)
     reason = "New reason for unit discount"
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
@@ -1349,7 +1349,7 @@ def test_update_order_line_discount_by_app(
     order.save(update_fields=["status", "channel"])
     line_to_discount = order.lines.first()
 
-    value = Decimal("5")
+    value = Decimal(5)
     value_type = DiscountValueTypeEnum.FIXED
     reason = "New reason for unit discount"
     variables = {
@@ -1447,7 +1447,7 @@ def test_update_order_line_discount_line_with_discount(
 
     line_undiscounted_price = line_to_discount.undiscounted_unit_price
 
-    value = Decimal("50")
+    value = Decimal(50)
     value_type = DiscountValueTypeEnum.PERCENTAGE
     reason = "New reason for unit discount"
     variables = {
@@ -1530,7 +1530,7 @@ def test_update_order_line_discount_line_with_catalogue_promotion(
     unidscounted_unit_price = line.undiscounted_base_unit_price.amount
     tax_rate = Decimal("1.23")
 
-    manual_discount_value = Decimal("5")
+    manual_discount_value = Decimal(5)
     value_type = DiscountValueTypeEnum.FIXED
     reason = "Manual fixed line discount"
     variables = {
@@ -1603,7 +1603,7 @@ def test_update_order_line_discount_order_is_not_draft(
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
         "input": {
             "valueType": DiscountValueTypeEnum.FIXED.name,
-            "value": Decimal("5"),
+            "value": Decimal(5),
             "reason": "New reason for unit discount",
         },
     }
@@ -1621,7 +1621,7 @@ def test_update_order_line_discount_order_is_not_draft(
     assert error["field"] == "orderId"
     assert error["code"] == OrderErrorCode.CANNOT_DISCOUNT.name
 
-    assert line_to_discount.unit_discount_amount == Decimal("0")
+    assert line_to_discount.unit_discount_amount == Decimal(0)
 
 
 def test_add_manual_line_discount_order_with_voucher_specific_product(
@@ -1640,7 +1640,7 @@ def test_add_manual_line_discount_order_with_voucher_specific_product(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_value = Decimal("2")
+    voucher_discount_value = Decimal(2)
     voucher_listing.discount_value = voucher_discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1661,7 +1661,7 @@ def test_add_manual_line_discount_order_with_voucher_specific_product(
         undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    manual_line_discount_value = Decimal("3")
+    manual_line_discount_value = Decimal(3)
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", discounted_line.pk),
         "input": {
@@ -1782,7 +1782,7 @@ def test_add_manual_line_discount_order_with_voucher_apply_once_per_order(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_value = Decimal("3")
+    voucher_discount_value = Decimal(3)
     voucher_listing.discount_value = voucher_discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1803,7 +1803,7 @@ def test_add_manual_line_discount_order_with_voucher_apply_once_per_order(
         undiscounted_subtotal += line.undiscounted_base_unit_price * line.quantity
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    manual_line_discount_value = Decimal("3")
+    manual_line_discount_value = Decimal(3)
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", discounted_line.pk),
         "input": {

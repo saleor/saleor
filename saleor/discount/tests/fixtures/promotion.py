@@ -33,7 +33,7 @@ def catalogue_promotion(channel_USD, product, collection):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("10"),
+                reward_value=Decimal(10),
             ),
             PromotionRule(
                 name="Fixed promotion rule",
@@ -47,7 +47,7 @@ def catalogue_promotion(channel_USD, product, collection):
                     }
                 },
                 reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("5"),
+                reward_value=Decimal(5),
             ),
         ]
     )
@@ -156,7 +156,7 @@ def promotion_list(channel_USD, product, collection):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("10"),
+                reward_value=Decimal(10),
             ),
             PromotionRule(
                 name="Promotion 1 fixed rule",
@@ -170,7 +170,7 @@ def promotion_list(channel_USD, product, collection):
                     }
                 },
                 reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("5"),
+                reward_value=Decimal(5),
             ),
             PromotionRule(
                 name="Promotion 2 percentage rule",
@@ -184,7 +184,7 @@ def promotion_list(channel_USD, product, collection):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("10"),
+                reward_value=Decimal(10),
             ),
             PromotionRule(
                 name="Promotion 3 fixed rule",
@@ -198,7 +198,7 @@ def promotion_list(channel_USD, product, collection):
                     }
                 },
                 reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("5"),
+                reward_value=Decimal(5),
             ),
         ]
     )
@@ -225,7 +225,7 @@ def promotion_10_percentage(channel_USD, product_list, product):
             }
         },
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("10"),
+        reward_value=Decimal(10),
     )
     rule.channels.add(channel_USD)
     return promotion
@@ -324,7 +324,7 @@ def promotion_converted_from_sale_list(channel_USD, product_list, category, coll
             promotion=promotion,
             catalogue_predicate=predicate,
             reward_value_type=RewardValueType.FIXED,
-            reward_value=Decimal("5"),
+            reward_value=Decimal(5),
         )
         for promotion, predicate in zip(promotions, predicates, strict=False)
     ]

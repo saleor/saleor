@@ -32,7 +32,7 @@ def available_shipping_methods_factory():
             methods.append(
                 ShippingMethodData(
                     id=str(i),
-                    price=Money(Decimal("10"), "usd"),
+                    price=Money(Decimal(10), "usd"),
                     name=uuid.uuid4().hex,
                     maximum_order_weight=Weight(kg=0),
                     minimum_order_weight=Weight(kg=0),

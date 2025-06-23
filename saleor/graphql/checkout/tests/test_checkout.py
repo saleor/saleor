@@ -4304,7 +4304,7 @@ def test_checkout_transactions_missing_permission(api_client, checkout):
         name="Credit card",
         psp_reference="123",
         currency="USD",
-        authorized_value=Decimal("15"),
+        authorized_value=Decimal(15),
         available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
@@ -4325,7 +4325,7 @@ def test_checkout_transactions_with_manage_checkouts(
         name="Credit card",
         psp_reference="123",
         currency="USD",
-        authorized_value=Decimal("15"),
+        authorized_value=Decimal(15),
         available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
@@ -4353,7 +4353,7 @@ def test_checkout_transactions_with_handle_payments(
         name="Credit card",
         psp_reference="123",
         currency="USD",
-        authorized_value=Decimal("15"),
+        authorized_value=Decimal(15),
         available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
@@ -4397,9 +4397,9 @@ def test_checkout_payment_statuses(
         name="Credit card",
         psp_reference="123",
         currency="USD",
-        authorized_value=Decimal("15"),
-        charged_value=Decimal("5"),
-        charge_pending_value=Decimal("6"),
+        authorized_value=Decimal(15),
+        charged_value=Decimal(5),
+        charge_pending_value=Decimal(6),
         available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
@@ -4433,9 +4433,9 @@ def test_checkout_balance(
         name="Credit card",
         psp_reference="123",
         currency="USD",
-        authorized_value=Decimal("15"),
-        charged_value=Decimal("5"),
-        charge_pending_value=Decimal("6"),
+        authorized_value=Decimal(15),
+        charged_value=Decimal(5),
+        charge_pending_value=Decimal(6),
         available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_STATUSES_AND_BALANCE

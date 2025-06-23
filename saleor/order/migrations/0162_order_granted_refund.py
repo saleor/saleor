@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 (
                     "amount_value",
                     models.DecimalField(
-                        decimal_places=3, default=Decimal("0"), max_digits=12
+                        decimal_places=3, default=Decimal(0), max_digits=12
                     ),
                 ),
                 ("currency", models.CharField(max_length=3)),

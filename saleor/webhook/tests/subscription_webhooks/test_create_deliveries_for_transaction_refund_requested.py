@@ -76,7 +76,7 @@ def test_order_transaction_refund_request(
     order, webhook_app, permission_manage_payments
 ):
     # given
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         name="Credit card",
@@ -153,7 +153,7 @@ def test_checkout_transaction_refund_request(
     # given
     checkout_with_items.price_expiration = timezone.now() - timezone.timedelta(hours=10)
     checkout_with_items.save()
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         name="Credit card",
@@ -239,7 +239,7 @@ def test_transaction_refund_request_with_granted_refund(
     order_with_lines, webhook_app, permission_manage_payments
 ):
     # given
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         name="Credit card",
