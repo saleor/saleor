@@ -1,3 +1,13 @@
+Saleor application starting...
+Python version: 3.12.11 (main, Jun  3 2025, 15:41:47) [Clang 17.0.0 (clang-1700.0.13.3)]
+Current working directory: /Users/svenlai/Desktop/saleor
+Saleor application starting...
+🔧 Development environment detected, loading from .env file
+✓ Loaded TELEGRAM_BOT_TOKEN from .env
+✓ Loaded EMAIL_URL from .env
+✓ Loaded ENVIRONMENT from .env
+✓ Loaded DEBUG from .env
+✓ Loaded REDIS_URL from .env
 schema {
   query: Query
   mutation: Mutation
@@ -19977,6 +19987,39 @@ type Mutation {
   """
   tokensDeactivateAll: DeactivateAllUserTokens @doc(category: "Authentication")
 
+  """Authenticate user via Telegram WebApp"""
+  telegramTokenCreate(
+    """Telegram WebApp initDataRaw string"""
+    initDataRaw: String!
+  ): TelegramTokenCreate @doc(category: "Authentication")
+
+  """Request email change for Telegram user with verification code"""
+  telegramEmailChangeRequest(
+    """Telegram WebApp initDataRaw string"""
+    initDataRaw: String!
+
+    """New email address to change to"""
+    newEmail: String!
+
+    """Current email address (telegram_xxx@telegram.local format)"""
+    oldEmail: String!
+  ): TelegramEmailChangeRequest @doc(category: "Authentication")
+
+  """Confirm email change for Telegram user with verification code"""
+  telegramEmailChangeConfirm(
+    """Telegram WebApp initDataRaw string"""
+    initDataRaw: String!
+
+    """New email address to change to"""
+    newEmail: String!
+
+    """Current email address (telegram_xxx@telegram.local format)"""
+    oldEmail: String!
+
+    """Verification code received via email"""
+    verificationCode: String!
+  ): TelegramEmailChangeConfirm @doc(category: "Authentication")
+
   """Prepare external authentication URL for user by custom plugin."""
   externalAuthenticationUrl(
     """The data required by plugin to create external authentication url."""
@@ -31264,6 +31307,51 @@ Deactivate all JWT tokens of the currently authenticated user.
 Requires one of the following permissions: AUTHENTICATED_USER.
 """
 type DeactivateAllUserTokens @doc(category: "Authentication") {
+  accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [AccountError!]!
+}
+
+"""Authenticate user via Telegram WebApp"""
+type TelegramTokenCreate @doc(category: "Authentication") {
+  """JWT access token"""
+  token: String
+
+  """JWT refresh token"""
+  refreshToken: String
+
+  """CSRF token"""
+  csrfToken: String
+
+  """Authenticated user"""
+  user: User
+  accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [AccountError!]!
+}
+
+"""Request email change for Telegram user with verification code"""
+type TelegramEmailChangeRequest @doc(category: "Authentication") {
+  """User requesting email change"""
+  user: User
+
+  """Verification code sent to new email"""
+  verificationCode: String
+
+  """When the verification code expires"""
+  expiresAt: DateTime
+  accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [AccountError!]!
+}
+
+"""Confirm email change for Telegram user with verification code"""
+type TelegramEmailChangeConfirm @doc(category: "Authentication") {
+  """User with updated email"""
+  user: User
+
+  """Whether the email change was successful"""
+  success: Boolean
+
+  """JWT token for the user"""
+  token: String
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }

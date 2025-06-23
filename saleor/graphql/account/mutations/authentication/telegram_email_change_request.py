@@ -137,7 +137,7 @@ class TelegramEmailChangeRequest(BaseMutation):
 
     @classmethod
     def validate_email_change_request(cls, telegram_id, old_email, new_email, user):
-        """Validate completeness and consistency of email change request"""
+        """Validate completeness and consistency of email change request with enhanced uniqueness checks"""
         try:
             # 1. Validate consistency between Telegram ID and email format
             expected_old_email = f"telegram_{telegram_id}@telegram.local"
@@ -166,10 +166,14 @@ class TelegramEmailChangeRequest(BaseMutation):
                 print(f"❌ New email cannot be Telegram format: {new_email}")
                 raise ValidationError("New email cannot be a Telegram format email")
 
-            # 5. Validate new email uniqueness
-            if models.User.objects.filter(email=new_email).exists():
-                print(f"❌ New email already in use: {new_email}")
-                raise ValidationError("New email is already used by another user")
+            # 5. Enhanced new email uniqueness validation
+            cls.validate_new_email_uniqueness(new_email, user.pk)
+
+            # 6. Check if new email is already bound to another telegram user
+            cls.validate_new_email_not_bound_to_telegram(new_email)
+
+            # 7. Check if there's already a pending email change request for this user
+            cls.validate_no_pending_email_change(telegram_id)
 
             print(f"✅ Email change request validation passed")
             return True
@@ -179,6 +183,85 @@ class TelegramEmailChangeRequest(BaseMutation):
         except Exception as e:
             print(f"❌ Email change request validation failed: {e}")
             raise ValidationError(f"Email change request validation failed: {str(e)}")
+
+    @classmethod
+    def validate_new_email_uniqueness(cls, new_email, current_user_id):
+        """Validate that new email is unique and not used by any other user"""
+        try:
+            # Check if email is already used by another user
+            existing_user = models.User.objects.filter(email=new_email).first()
+            
+            if existing_user:
+                if existing_user.pk == current_user_id:
+                    print(f"❌ New email is the same as current email: {new_email}")
+                    raise ValidationError("New email cannot be the same as current email")
+                else:
+                    print(f"❌ New email already used by another user: {new_email}")
+                    print(f"   Existing user ID: {existing_user.pk}")
+                    print(f"   Existing user email: {existing_user.email}")
+                    raise ValidationError("New email is already used by another user")
+            
+            # Check if email is in any pending email change requests
+            redis_cache = get_redis_cache()
+            pending_requests = []
+            
+            # This is a simplified check - in production you might want to scan all keys
+            # For now, we'll rely on the uniqueness check above
+            
+            print(f"✅ New email uniqueness validation passed: {new_email}")
+            return True
+            
+        except ValidationError:
+            raise
+        except Exception as e:
+            print(f"❌ New email uniqueness validation failed: {e}")
+            raise ValidationError(f"New email uniqueness validation failed: {str(e)}")
+
+    @classmethod
+    def validate_new_email_not_bound_to_telegram(cls, new_email):
+        """Validate that new email is not already bound to another telegram user"""
+        try:
+            # Check if any user with this email has telegram metadata
+            users_with_email = models.User.objects.filter(email=new_email)
+            
+            for user in users_with_email:
+                private_metadata = user.get_private_metadata()
+                if private_metadata.get("created_via_telegram") or private_metadata.get("telegram_id"):
+                    print(f"❌ New email is already bound to telegram user: {new_email}")
+                    print(f"   Telegram user ID: {private_metadata.get('telegram_id')}")
+                    raise ValidationError("New email is already bound to another telegram user")
+            
+            print(f"✅ New email not bound to telegram validation passed: {new_email}")
+            return True
+            
+        except ValidationError:
+            raise
+        except Exception as e:
+            print(f"❌ New email telegram binding validation failed: {e}")
+            raise ValidationError(f"New email telegram binding validation failed: {str(e)}")
+
+    @classmethod
+    def validate_no_pending_email_change(cls, telegram_id):
+        """Validate that there's no pending email change request for this user"""
+        try:
+            redis_cache = get_redis_cache()
+            cache_key = f"email_change_verification:{telegram_id}"
+            
+            existing_request = redis_cache.get(cache_key)
+            if existing_request:
+                print(f"❌ Pending email change request already exists for telegram_id: {telegram_id}")
+                print(f"   Pending new email: {existing_request.get('new_email')}")
+                print(f"   Created at: {existing_request.get('created_at')}")
+                raise ValidationError("A pending email change request already exists. Please wait for the current request to expire or use the existing verification code.")
+            
+            print(f"✅ No pending email change request found for telegram_id: {telegram_id}")
+            return True
+            
+        except ValidationError:
+            raise
+        except Exception as e:
+            print(f"❌ Pending email change validation failed: {e}")
+            raise ValidationError(f"Pending email change validation failed: {str(e)}")
 
     @classmethod
     def is_valid_email_format(cls, email):
