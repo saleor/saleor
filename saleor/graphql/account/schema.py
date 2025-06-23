@@ -7,7 +7,7 @@ from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_322
+from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
@@ -142,7 +142,12 @@ class AccountQueries(graphene.ObjectType):
     )
     customers = FilterConnectionField(
         UserCountableConnection,
-        filter=CustomerFilterInput(description="Filtering options for customers."),
+        filter=CustomerFilterInput(
+            description=(
+                f"Filtering options for customers. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=CustomerWhereInput(
             description="Where filtering options for customers." + ADDED_IN_322
         ),
