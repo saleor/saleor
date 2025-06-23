@@ -385,10 +385,14 @@ class TelegramEmailChangeConfirm(BaseMutation):
 
             # 11. Update user email with transaction to ensure atomicity
             from django.db import transaction
-            
+
             with transaction.atomic():
                 # Final check for email uniqueness within transaction
-                if models.User.objects.filter(email=new_email).exclude(pk=user.pk).exists():
+                if (
+                    models.User.objects.filter(email=new_email)
+                    .exclude(pk=user.pk)
+                    .exists()
+                ):
                     raise ValidationError(
                         {
                             "new_email": ValidationError(
@@ -397,14 +401,14 @@ class TelegramEmailChangeConfirm(BaseMutation):
                             )
                         }
                     )
-                
+
                 # Check if email is now bound to another telegram user
                 cls.validate_email_not_bound_to_other_telegram(new_email, telegram_id)
-                
+
                 # Update user email
                 user.email = new_email
                 user.save(update_fields=["email"])
-                
+
                 # Update metadata to reflect email change
                 user.store_value_in_private_metadata(
                     {
@@ -455,20 +459,26 @@ class TelegramEmailChangeConfirm(BaseMutation):
         """Final validation of email uniqueness before updating user email"""
         try:
             # Check if email is already used by another user
-            existing_user = models.User.objects.filter(email=new_email).exclude(pk=current_user_id).first()
-            
+            existing_user = (
+                models.User.objects.filter(email=new_email)
+                .exclude(pk=current_user_id)
+                .first()
+            )
+
             if existing_user:
-                print(f"❌ Final check: New email already used by another user: {new_email}")
+                print(
+                    f"❌ Final check: New email already used by another user: {new_email}"
+                )
                 print(f"   Existing user ID: {existing_user.pk}")
                 print(f"   Existing user email: {existing_user.email}")
                 raise ValidationError("New email is already used by another user")
-            
+
             # Check if email is in any pending email change requests for other users
             cls.validate_no_conflicting_pending_requests(new_email, telegram_id)
-            
+
             print(f"✅ Final email uniqueness validation passed: {new_email}")
             return True
-            
+
         except ValidationError:
             raise
         except Exception as e:
@@ -481,20 +491,26 @@ class TelegramEmailChangeConfirm(BaseMutation):
         try:
             # Check if any user with this email has telegram metadata
             users_with_email = models.User.objects.filter(email=new_email)
-            
+
             for user in users_with_email:
                 private_metadata = user.get_private_metadata()
                 stored_telegram_id = private_metadata.get("telegram_id")
-                
+
                 if stored_telegram_id and stored_telegram_id != current_telegram_id:
-                    print(f"❌ New email is bound to another telegram user: {new_email}")
+                    print(
+                        f"❌ New email is bound to another telegram user: {new_email}"
+                    )
                     print(f"   Current telegram ID: {current_telegram_id}")
                     print(f"   Bound to telegram ID: {stored_telegram_id}")
-                    raise ValidationError("New email is already bound to another telegram user")
-            
-            print(f"✅ Email not bound to other telegram validation passed: {new_email}")
+                    raise ValidationError(
+                        "New email is already bound to another telegram user"
+                    )
+
+            print(
+                f"✅ Email not bound to other telegram validation passed: {new_email}"
+            )
             return True
-            
+
         except ValidationError:
             raise
         except Exception as e:
@@ -506,14 +522,16 @@ class TelegramEmailChangeConfirm(BaseMutation):
         """Validate that there are no conflicting pending email change requests"""
         try:
             redis_cache = get_redis_cache()
-            
+
             # This is a simplified check - in a production environment, you might want to
             # scan all email change verification keys to check for conflicts
             # For now, we'll rely on the database uniqueness check above
-            
+
             print(f"✅ No conflicting pending requests found for email: {new_email}")
             return True
-            
+
         except Exception as e:
             print(f"❌ Conflicting pending requests validation failed: {e}")
-            raise ValidationError(f"Conflicting pending requests validation failed: {str(e)}")
+            raise ValidationError(
+                f"Conflicting pending requests validation failed: {str(e)}"
+            )

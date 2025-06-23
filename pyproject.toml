@@ -160,6 +160,7 @@ extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
   graphql-core = "graphql"
   pillow = "PIL"
   python-magic-bin = "magic"
+  python-telegram-bot = "telegram"
 
   [tool.deptry.per_rule_ignores]
   DEP001 = [ "pkg_resources" ]

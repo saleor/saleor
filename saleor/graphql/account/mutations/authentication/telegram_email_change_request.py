@@ -58,8 +58,11 @@ class TelegramEmailChangeRequest(BaseMutation):
         )
 
     user = graphene.Field(User, description="User requesting email change")
-    verification_code = graphene.String(
-        description="Verification code sent to new email"
+    success = graphene.Boolean(
+        description="Whether the email change request was successful"
+    )
+    target_email = graphene.String(
+        description="Email address where verification code was sent"
     )
     expires_at = DateTime(description="When the verification code expires")
 
@@ -190,27 +193,29 @@ class TelegramEmailChangeRequest(BaseMutation):
         try:
             # Check if email is already used by another user
             existing_user = models.User.objects.filter(email=new_email).first()
-            
+
             if existing_user:
                 if existing_user.pk == current_user_id:
                     print(f"❌ New email is the same as current email: {new_email}")
-                    raise ValidationError("New email cannot be the same as current email")
+                    raise ValidationError(
+                        "New email cannot be the same as current email"
+                    )
                 else:
                     print(f"❌ New email already used by another user: {new_email}")
                     print(f"   Existing user ID: {existing_user.pk}")
                     print(f"   Existing user email: {existing_user.email}")
                     raise ValidationError("New email is already used by another user")
-            
+
             # Check if email is in any pending email change requests
             redis_cache = get_redis_cache()
             pending_requests = []
-            
+
             # This is a simplified check - in production you might want to scan all keys
             # For now, we'll rely on the uniqueness check above
-            
+
             print(f"✅ New email uniqueness validation passed: {new_email}")
             return True
-            
+
         except ValidationError:
             raise
         except Exception as e:
@@ -223,22 +228,30 @@ class TelegramEmailChangeRequest(BaseMutation):
         try:
             # Check if any user with this email has telegram metadata
             users_with_email = models.User.objects.filter(email=new_email)
-            
+
             for user in users_with_email:
                 private_metadata = user.get_private_metadata()
-                if private_metadata.get("created_via_telegram") or private_metadata.get("telegram_id"):
-                    print(f"❌ New email is already bound to telegram user: {new_email}")
+                if private_metadata.get("created_via_telegram") or private_metadata.get(
+                    "telegram_id"
+                ):
+                    print(
+                        f"❌ New email is already bound to telegram user: {new_email}"
+                    )
                     print(f"   Telegram user ID: {private_metadata.get('telegram_id')}")
-                    raise ValidationError("New email is already bound to another telegram user")
-            
+                    raise ValidationError(
+                        "New email is already bound to another telegram user"
+                    )
+
             print(f"✅ New email not bound to telegram validation passed: {new_email}")
             return True
-            
+
         except ValidationError:
             raise
         except Exception as e:
             print(f"❌ New email telegram binding validation failed: {e}")
-            raise ValidationError(f"New email telegram binding validation failed: {str(e)}")
+            raise ValidationError(
+                f"New email telegram binding validation failed: {str(e)}"
+            )
 
     @classmethod
     def validate_no_pending_email_change(cls, telegram_id):
@@ -246,17 +259,23 @@ class TelegramEmailChangeRequest(BaseMutation):
         try:
             redis_cache = get_redis_cache()
             cache_key = f"email_change_verification:{telegram_id}"
-            
+
             existing_request = redis_cache.get(cache_key)
             if existing_request:
-                print(f"❌ Pending email change request already exists for telegram_id: {telegram_id}")
+                print(
+                    f"❌ Pending email change request already exists for telegram_id: {telegram_id}"
+                )
                 print(f"   Pending new email: {existing_request.get('new_email')}")
                 print(f"   Created at: {existing_request.get('created_at')}")
-                raise ValidationError("A pending email change request already exists. Please wait for the current request to expire or use the existing verification code.")
-            
-            print(f"✅ No pending email change request found for telegram_id: {telegram_id}")
+                raise ValidationError(
+                    "A pending email change request already exists. Please wait for the current request to expire or use the existing verification code."
+                )
+
+            print(
+                f"✅ No pending email change request found for telegram_id: {telegram_id}"
+            )
             return True
-            
+
         except ValidationError:
             raise
         except Exception as e:
@@ -376,7 +395,8 @@ The verification code will expire in 10 minutes.
 
             return cls(
                 user=user,
-                verification_code=verification_code,  # Return verification code in development environment
+                success=True,
+                target_email=new_email,
                 expires_at=expires_at,
                 errors=[],
             )
@@ -384,7 +404,8 @@ The verification code will expire in 10 minutes.
         except ValidationError as e:
             return cls(
                 user=None,
-                verification_code=None,
+                success=False,
+                target_email=None,
                 expires_at=None,
                 errors=[
                     {

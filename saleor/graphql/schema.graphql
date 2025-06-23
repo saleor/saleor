@@ -31333,8 +31333,11 @@ type TelegramEmailChangeRequest @doc(category: "Authentication") {
   """User requesting email change"""
   user: User
 
-  """Verification code sent to new email"""
-  verificationCode: String
+  """Whether the email change request was successful"""
+  success: Boolean
+
+  """Email address where verification code was sent"""
+  targetEmail: String
 
   """When the verification code expires"""
   expiresAt: DateTime
