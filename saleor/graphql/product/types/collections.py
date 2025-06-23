@@ -72,6 +72,7 @@ class Collection(ChannelContextType[models.Collection]):
             )
         ),
         where=ProductWhereInput(description="Filtering options for products."),
+        search=graphene.String(description="Search products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
@@ -146,7 +147,7 @@ class Collection(ChannelContextType[models.Collection]):
 
             if search:
                 qs = ChannelQsContext(
-                    qs=search_products(qs.qs, search), channel_slug=root.channel_slug
+                    qs=search_products(qs, search), channel_slug=root.channel_slug
                 )
             else:
                 qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)

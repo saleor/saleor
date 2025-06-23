@@ -339,7 +339,7 @@ type Query {
   """List of the shop's categories."""
   categories(
     """Filtering options for categories."""
-    filter: CategoryFilterInput @deprecated(reason: "Use `where` filter instead.")
+    filter: CategoryFilterInput
 
     """Where filtering options."""
     where: CategoryWhereInput
@@ -409,7 +409,7 @@ type Query {
   """
   collections(
     """Filtering options for collections."""
-    filter: CollectionFilterInput @deprecated(reason: "Use `where` filter instead.")
+    filter: CollectionFilterInput
 
     """Where filtering options."""
     where: CollectionWhereInput
@@ -559,7 +559,7 @@ type Query {
     filter: ProductVariantFilterInput
 
     """Where filtering options."""
-    where: ProductVariantWhereInput @deprecated(reason: "Use `where` filter instead.")
+    where: ProductVariantWhereInput
 
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
@@ -5655,7 +5655,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   productVariants(
     """Filtering options for product variant."""
-    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
+    filter: ProductVariantFilterInput
 
     """Where filtering options."""
     where: ProductVariantWhereInput
@@ -7972,6 +7972,9 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
 
     """Filtering options for products."""
     where: ProductWhereInput
+
+    """Search products."""
+    search: String
 
     """Sort products."""
     sortBy: ProductOrder

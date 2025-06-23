@@ -173,12 +173,7 @@ class ProductQueries(graphene.ObjectType):
     )
     categories = FilterConnectionField(
         CategoryCountableConnection,
-        filter=CategoryFilterInput(
-            description=(
-                f"Filtering options for categories. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
-        ),
+        filter=CategoryFilterInput(description="Filtering options for categories."),
         where=CategoryWhereInput(description="Where filtering options."),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
@@ -225,12 +220,7 @@ class ProductQueries(graphene.ObjectType):
     )
     collections = FilterConnectionField(
         CollectionCountableConnection,
-        filter=CollectionFilterInput(
-            description=(
-                f"Filtering options for collections. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
-        ),
+        filter=CollectionFilterInput(description="Filtering options for collections."),
         where=CollectionWhereInput(description="Where filtering options."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
@@ -339,12 +329,7 @@ class ProductQueries(graphene.ObjectType):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
-        where=ProductVariantWhereInput(
-            description=(
-                f"Where filtering options. {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
-            )
-        ),
+        where=ProductVariantWhereInput(description="Where filtering options."),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of product variants. Requires one of the following permissions to "
