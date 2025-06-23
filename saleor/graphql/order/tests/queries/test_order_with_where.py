@@ -13,13 +13,33 @@ from .....order import (
     FulfillmentStatus,
     OrderAuthorizeStatus,
     OrderChargeStatus,
+    OrderEvents,
     OrderStatus,
 )
-from .....order.models import Order
-from .....order.search import (
-    prepare_order_search_vector_value,
-)
+from .....order.models import Order, OrderEvent, OrderLine
+from .....order.search import prepare_order_search_vector_value
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+
+
+@pytest.fixture
+def orders_with_fulfillments(order_list):
+    statuses = [
+        FulfillmentStatus.FULFILLED,
+        FulfillmentStatus.REFUNDED,
+        FulfillmentStatus.RETURNED,
+    ]
+    metadata_values = [
+        {"foo": "bar"},
+        {"foo": "zaz"},
+        {},
+    ]
+    for order, status, metadata in zip(
+        order_list, statuses, metadata_values, strict=True
+    ):
+        order.fulfillments.create(
+            tracking_number="123", status=status, metadata=metadata
+        )
+    return order_list
 
 
 def test_order_query_with_filter_and_where(
@@ -1618,6 +1638,310 @@ def test_orders_filter_by_fulfillment_status(
 
 
 @pytest.mark.parametrize(
+    ("metadata", "expected_indexes"),
+    [
+        ({"key": "foo"}, [0, 1]),
+        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
+        ({"key": "foo", "value": {"eq": "baz"}}, []),
+        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
+        ({"key": "notfound"}, []),
+        ({"key": "foo", "value": {"eq": None}}, []),
+        ({"key": "foo", "value": {"oneOf": []}}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_fulfillment_metadata(
+    metadata,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    metadata_values = [
+        {"foo": "bar"},
+        {"foo": "zaz"},
+        {},
+    ]
+    for order, metadata_value in zip(order_list, metadata_values, strict=True):
+        order.fulfillments.create(tracking_number="123", metadata=metadata_value)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"fulfillments": {"metadata": metadata}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+def test_orders_filter_fulfillment_status_and_metadata_both_match(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "bar"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number)
+    }
+
+
+def test_orders_filter_fulfillment_status_matches_metadata_not(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "notfound"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_metadata_matches_status_not(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.REFUNDED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "bar"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_status_and_metadata_both_not_match(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.RETURNED.upper()},
+                "metadata": {"key": "foo", "value": {"eq": "baz"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_status_matches_metadata_none(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                "metadata": None,
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number)
+    }
+
+
+def test_orders_filter_fulfillment_metadata_matches_status_none(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": None,
+                "metadata": {"key": "foo", "value": {"eq": "bar"}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number)
+    }
+
+
+def test_orders_filter_fulfillment_status_and_metadata_both_none(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": None,
+                "metadata": None,
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 0
+
+
+def test_orders_filter_fulfillment_status_oneof_metadata_oneof(
+    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "fulfillments": {
+                "status": {
+                    "oneOf": [
+                        FulfillmentStatus.FULFILLED.upper(),
+                        FulfillmentStatus.REFUNDED.upper(),
+                    ]
+                },
+                "metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}},
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 2
+    assert {node["node"]["number"] for node in orders} == {
+        str(orders_with_fulfillments[0].number),
+        str(orders_with_fulfillments[1].number),
+    }
+
+
+@pytest.mark.parametrize(
+    ("metadata", "expected_indexes"),
+    [
+        ({"key": "foo"}, [0, 1]),
+        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
+        ({"key": "foo", "value": {"eq": "baz"}}, []),
+        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
+        ({"key": "notfound"}, []),
+        ({"key": "foo", "value": {"eq": None}}, []),
+        ({"key": "foo", "value": {"oneOf": []}}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_lines_metadata(
+    metadata,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    metadata_values = [
+        {"foo": "bar"},
+        {"foo": "zaz"},
+        {},
+    ]
+    for order, metadata_value in zip(order_list, metadata_values, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                metadata=metadata_value,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"lines": {"metadata": metadata}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
     ("where", "indexes"),
     [
         ({"range": {"gte": 2, "lte": 4}}, [1, 2]),
@@ -1771,3 +2095,280 @@ def test_orders_filter_by_total_net(
     assert len(orders) == len(indexes)
     numbers = {node["node"]["number"] for node in orders}
     assert numbers == {str(order_list[index].number) for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("metadata", "expected_indexes"),
+    [
+        ({"key": "foo"}, [0, 1]),
+        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
+        ({"key": "foo", "value": {"eq": "baz"}}, []),
+        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
+        ({"key": "notfound"}, []),
+        ({"key": "foo", "value": {"eq": None}}, []),
+        ({"key": "foo", "value": {"oneOf": []}}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_metadata(
+    metadata,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    order_list[0].metadata = {"foo": "bar"}
+    order_list[1].metadata = {"foo": "zaz"}
+    order_list[2].metadata = {}
+    Order.objects.bulk_update(order_list, ["metadata"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"metadata": metadata}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+def test_orders_filter_by_product_type_id(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    product_type_id = graphene.Node.to_global_id("ProductType", 4)
+    variables = {"where": {"productTypeId": {"eq": product_type_id}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 1
+    assert str(order_list[1].number) == orders[0]["node"]["number"]
+
+
+def test_orders_filter_by_product_type_ids(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    product_type_ids = [
+        graphene.Node.to_global_id("ProductType", id) for id in product_type_ids[:2]
+    ]
+    variables = {"where": {"productTypeId": {"oneOf": product_type_ids}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(order_list[:2])
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order.number) for order in order_list[:2]}
+
+
+def test_orders_filter_by_product_type_ids_nothing_match(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    product_type_ids = [graphene.Node.to_global_id("ProductType", id) for id in [6, 7]]
+    variables = {"where": {"productTypeId": {"oneOf": product_type_ids}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
+def test_orders_filter_by_product_type_none(
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    lines = []
+    product_type_ids = [3, 4, 5]
+    for order, product_type_id in zip(order_list, product_type_ids, strict=True):
+        lines.append(
+            OrderLine(
+                order=order,
+                product_name="Test Product",
+                is_shipping_required=True,
+                is_gift_card=False,
+                quantity=2,
+                currency="USD",
+                unit_price_net_amount="10.00",
+                unit_price_gross_amount="12.30",
+                total_price_net_amount="20.00",
+                total_price_gross_amount="24.60",
+                product_type_id=product_type_id,
+            )
+        )
+    OrderLine.objects.bulk_create(lines)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"productTypeId": {"eq": None}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == 0
+
+
+@pytest.mark.parametrize(
+    ("event_input", "expected_indexes"),
+    [
+        (
+            {
+                "date": {"gte": "2025-01-01T00:00:00Z"},
+                "type": {"eq": OrderEvents.PLACED.upper()},
+            },
+            [0, 1, 2],
+        ),
+        (
+            {
+                "date": {"gte": "2025-01-01T00:00:00Z"},
+                "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
+            },
+            [0, 1],
+        ),
+        (
+            {
+                "date": {"gte": "2026-01-01T00:00:00Z"},
+            },
+            [],
+        ),
+        (
+            {
+                "date": {"gte": "2020-01-01T00:00:00Z"},
+            },
+            [0, 1, 2],
+        ),
+        (
+            {
+                "type": {
+                    "oneOf": [
+                        OrderEvents.PLACED.upper(),
+                        OrderEvents.ORDER_FULLY_PAID.upper(),
+                    ]
+                },
+            },
+            [0, 1, 2],
+        ),
+    ],
+)
+def test_orders_filter_by_order_events(
+    event_input,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    with freeze_time("2025-01-01T00:00:00Z"):
+        OrderEvent.objects.bulk_create(
+            [OrderEvent(order=order, type=OrderEvents.PLACED) for order in order_list]
+        )
+
+    with freeze_time("2025-02-02T00:00:00Z"):
+        OrderEvent.objects.bulk_create(
+            [
+                OrderEvent(order=order, type=OrderEvents.ORDER_FULLY_PAID)
+                for order in order_list[:2]
+            ]
+        )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"events": event_input}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}

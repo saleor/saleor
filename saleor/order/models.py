@@ -404,6 +404,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 fields=["total_net_amount"],
                 name="order_totalnetamount_idx",
             ),
+            BTreeIndex(fields=["status"], name="order_status_idx"),
         ]
 
     def is_fully_paid(self):
@@ -747,6 +748,11 @@ class OrderLine(ModelWithMetadata):
     class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(fields=["product_type_id"], name="product_type_id_btree_idx"),
+        ]
+
     def __str__(self):
         return (
             f"{self.product_name} ({self.variant_name})"
@@ -893,6 +899,7 @@ class OrderEvent(models.Model):
         indexes = [
             BTreeIndex(fields=["related"], name="order_orderevent_related_id_idx"),
             models.Index(fields=["type"]),
+            BTreeIndex(fields=["date"], name="order_orderevent_date_idx"),
         ]
 
     def __repr__(self):

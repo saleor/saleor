@@ -784,7 +784,7 @@ type Query {
     filter: OrderFilterInput
 
     """
-    Where filtering options for draft orders.
+    Where filtering options for orders.
     
     Added in Saleor 3.22.
     """
@@ -6963,10 +6963,10 @@ enum ProductOrderField @doc(category: "Products") {
   MINIMAL_PRICE
 
   """Sort products by update date."""
-  LAST_MODIFIED
+  LAST_MODIFIED @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
 
   """Sort products by update date."""
-  DATE
+  DATE @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
 
   """Sort products by type."""
   TYPE
@@ -6983,7 +6983,7 @@ enum ProductOrderField @doc(category: "Products") {
   
   This option requires a channel filter to work as the values can vary between channels.
   """
-  PUBLICATION_DATE
+  PUBLICATION_DATE @deprecated(reason: "Use `PUBLISHED_AT` instead.")
 
   """
   Sort products by publication date.
@@ -7876,7 +7876,7 @@ input ProductVariantSortingInput @doc(category: "Products") {
 }
 
 enum ProductVariantSortField @doc(category: "Products") {
-  """Sort products variants by last modified at."""
+  """Sort product variants by last modification date."""
   LAST_MODIFIED_AT
 }
 
@@ -10710,6 +10710,13 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   The url that will allow to redirect user to payment provider page with transaction details.
   """
   externalUrl: String!
+
+  """
+  The payment method used for this transaction.
+  
+  Added in Saleor 3.22.
+  """
+  paymentMethodDetails: PaymentMethodDetails
 }
 
 """
@@ -12178,6 +12185,53 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
 
 union UserOrApp = User | App
 
+union PaymentMethodDetails = CardPaymentMethodDetails | OtherPaymentMethodDetails
+
+"""
+Represents a card payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+type CardPaymentMethodDetails implements GenericPaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
+
+  """Card brand."""
+  brand: String
+
+  """First 4 digits of the card number."""
+  firstDigits: String
+
+  """Last 4 digits of the card number."""
+  lastDigits: String
+
+  """Two-digit number representing the card’s expiration month."""
+  expMonth: Int
+
+  """Four-digit number representing the card’s expiration year."""
+  expYear: Int
+}
+
+"""
+Represents a payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+interface GenericPaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
+}
+
+"""
+Represents a payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+type OtherPaymentMethodDetails implements GenericPaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
+}
+
 """
 Determine a current authorize status for checkout.
 
@@ -12611,10 +12665,10 @@ enum CollectionSortField @doc(category: "Products") {
   
   This option requires a channel filter to work as the values can vary between channels.
   """
-  PUBLICATION_DATE
+  PUBLICATION_DATE @deprecated(reason: "Use `PUBLISHED_AT` instead.")
 
   """
-  Sort collections by publication date.
+  Sort collections by published at.
   
   This option requires a channel filter to work as the values can vary between channels.
   """
@@ -12719,10 +12773,10 @@ enum PageSortField @doc(category: "Pages") {
   VISIBILITY
 
   """Sort pages by creation date."""
-  CREATION_DATE
+  CREATION_DATE @deprecated(reason: "Use `CREATED_AT` instead.")
 
   """Sort pages by publication date."""
-  PUBLICATION_DATE
+  PUBLICATION_DATE @deprecated(reason: "Use `PUBLISHED_AT` instead.")
 
   """Sort pages by publication date."""
   PUBLISHED_AT
@@ -12811,23 +12865,30 @@ enum OrderSortField @doc(category: "Orders") {
   """
   RANK
 
-  """Sort orders by creation date."""
-  CREATION_DATE
+  """Sort orders by creation date"""
+  CREATION_DATE @deprecated(reason: "Use `CREATED_AT` instead.")
 
   """Sort orders by creation date."""
   CREATED_AT
 
-  """Sort orders by last modified at."""
+  """Sort orders by last modified date."""
   LAST_MODIFIED_AT
 
   """Sort orders by customer."""
   CUSTOMER
 
-  """Sort orders by payment."""
+  """Sort orders by payment status."""
   PAYMENT
 
   """Sort orders by fulfillment status."""
-  FULFILLMENT_STATUS
+  FULFILLMENT_STATUS @deprecated(reason: "Use `STATUS` instead.")
+
+  """
+  Sort orders by order status. 
+  
+  Added in Saleor 3.22.
+  """
+  STATUS
 }
 
 input OrderFilterInput @doc(category: "Orders") {
@@ -12862,6 +12923,8 @@ enum OrderStatusFilter @doc(category: "Orders") {
 }
 
 input OrderWhereInput @doc(category: "Orders") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
   ids: [ID!]
 
   """Filter by order number."""
@@ -12926,6 +12989,9 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by fulfillment data associated with the order."""
   fulfillments: FulfillmentFilterInput
 
+  """Filter by metadata fields of order lines."""
+  lines: LinesFilterInput
+
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
 
@@ -12935,11 +13001,47 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by total net amount of the order."""
   totalNet: PriceFilterInput
 
+  """Filter by the product type of related order lines."""
+  productTypeId: GlobalIDFilterInput
+
+  """Filter by order events."""
+  events: OrderEventFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [OrderWhereInput!]
+}
+
+"""
+Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+"""
+input MetadataFilterInput {
+  """
+  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
+  """
+  key: String!
+
+  """Value to filter by."""
+  value: MetadataValueFilterInput
+}
+
+"""Define the filtering options for metadata value fields."""
+input MetadataValueFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
 }
 
 """Define the filtering options for integer fields."""
@@ -12996,10 +13098,13 @@ input InvoiceFilterInput @doc(category: "Orders") {
   createdAt: DateTimeRangeInput
 }
 
-"""Filter input for fulfillments."""
+"""Filter input for order fulfillments data."""
 input FulfillmentFilterInput @doc(category: "Orders") {
   """Filter by fulfillment status."""
   status: FulfillmentStatusEnumFilterInput
+
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
 }
 
 """Filter by fulfillment status."""
@@ -13011,12 +13116,35 @@ input FulfillmentStatusEnumFilterInput @doc(category: "Orders") {
   oneOf: [FulfillmentStatus!]
 }
 
+"""Filter input for order lines data."""
+input LinesFilterInput @doc(category: "Orders") {
+  """Filter by metadata fields of order lines."""
+  metadata: MetadataFilterInput
+}
+
 input PriceFilterInput {
   """The currency of the price to filter by."""
   currency: String
 
   """The amount of the price to filter by."""
   amount: DecimalFilterInput!
+}
+
+"""Filter input for order events data."""
+input OrderEventFilterInput @doc(category: "Orders") {
+  """Filter order events by date."""
+  date: DateTimeRangeInput
+
+  """Filter order events by type."""
+  type: OrderEventTypeEnumFilterInput
+}
+
+input OrderEventTypeEnumFilterInput {
+  """The value equal to."""
+  eq: OrderEventsEnum
+
+  """The value included in."""
+  oneOf: [OrderEventsEnum!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
@@ -13326,10 +13454,10 @@ enum SaleSortField @doc(category: "Discounts") {
   """Sort sales by type."""
   TYPE
 
-  """Sort sales by created at."""
+  """Sort sales by creation date."""
   CREATED_AT
 
-  """Sort sales by last modified at."""
+  """Sort sales by last modification date."""
   LAST_MODIFIED_AT
 }
 
@@ -13379,7 +13507,7 @@ input VoucherSortingInput @doc(category: "Discounts") {
 
 enum VoucherSortField {
   """Sort vouchers by code."""
-  CODE
+  CODE @deprecated
 
   """
   Sort vouchers by name.
@@ -13830,7 +13958,7 @@ enum PromotionSortField @doc(category: "Discounts") {
   """Sort promotions by end date."""
   END_DATE
 
-  """Sort promotions by created at."""
+  """Sort promotions by creation date."""
   CREATED_AT
 }
 
@@ -13934,7 +14062,7 @@ input ExportFileSortingInput {
 enum ExportFileSortField {
   STATUS
   CREATED_AT
-  UPDATED_AT
+  UPDATED_AT @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
   LAST_MODIFIED_AT
 }
 
@@ -15723,6 +15851,13 @@ type Mutation {
     The message related to the event. The maximum length is 512 characters; any text exceeding this limit will be truncated.
     """
     message: String
+
+    """
+    Details of the payment method used for the transaction.
+    
+    Added in Saleor 3.22.
+    """
+    paymentMethodDetails: PaymentMethodDetailsInput
 
     """PSP Reference of the event to report."""
     pspReference: String!
@@ -22704,6 +22839,63 @@ input TransactionCreateInput @doc(category: "Payments") {
   The url that will allow to redirect user to payment provider page with transaction event details.
   """
   externalUrl: String
+
+  """
+  Details of the payment method used for the transaction.
+  
+  Added in Saleor 3.22.
+  """
+  paymentMethodDetails: PaymentMethodDetailsInput
+}
+
+"""
+Details of the payment method used for the transaction. One of `card` or `other` is required.
+
+Added in Saleor 3.22.
+"""
+input PaymentMethodDetailsInput {
+  """Details of the card payment method used for the transaction."""
+  card: CardPaymentMethodDetailsInput
+
+  """Details of the non-card payment method used for this transaction."""
+  other: OtherPaymentMethodDetailsInput
+}
+
+input CardPaymentMethodDetailsInput {
+  """
+  Name of the payment method used for the transaction. Max length is 256 characters.
+  """
+  name: String!
+
+  """
+  Brand of the payment method used for the transaction. Max length is 40 characters.
+  """
+  brand: String
+
+  """
+  First digits of the card used for the transaction. Max length is 4 characters.
+  """
+  firstDigits: String
+
+  """
+  Last digits of the card used for the transaction. Max length is 4 characters.
+  """
+  lastDigits: String
+
+  """
+  Expiration month of the card used for the transaction. Value must be between 1 and 12.
+  """
+  expMonth: Int
+
+  """
+  Expiration year of the card used for the transaction. Value must be between 2000 and 9999.
+  """
+  expYear: Int
+}
+
+input OtherPaymentMethodDetailsInput {
+  """Name of the payment method used for the transaction."""
+  name: String!
 }
 
 input TransactionEventInput @doc(category: "Payments") {
@@ -22789,6 +22981,13 @@ input TransactionUpdateInput @doc(category: "Payments") {
   The url that will allow to redirect user to payment provider page with transaction event details.
   """
   externalUrl: String
+
+  """
+  Details of the payment method used for the transaction.
+  
+  Added in Saleor 3.22.
+  """
+  paymentMethodDetails: PaymentMethodDetailsInput
 }
 
 """

@@ -1,6 +1,7 @@
 import graphene
 
 from ....invoice import events, models
+from ....order.search import update_order_search_vector
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
@@ -24,10 +25,12 @@ class InvoiceDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         invoice = cls.get_instance(info, **data)
-        cls.check_channel_permissions(info, [invoice.order.channel_id])
+        order = invoice.order
+        cls.check_channel_permissions(info, [order.channel_id])
         response = super().perform_mutation(_root, info, **data)
         app = get_app_promise(info.context).get()
         events.invoice_deleted_event(
             user=info.context.user, app=app, invoice_id=invoice.pk
         )
+        update_order_search_vector(order)
         return response

@@ -79,6 +79,7 @@ def test_order_note_update_as_staff_user(
 
     order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
+    assert order.search_vector
 
     assert OrderEvent.objects.filter(order=order).count() == 2
     new_note = OrderEvent.objects.filter(order=order).exclude(pk=note.pk).get()

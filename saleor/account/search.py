@@ -72,36 +72,51 @@ def generate_address_search_vector_value(
             Value(address.street_address_1),
             Value(address.country.name),
             Value(address.country.code),
+            config="simple",
             weight=weight,
-        )
+        ),
     ]
     if address.company_name:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.company_name), weight=weight)
+            NoValidationSearchVector(
+                Value(address.company_name), config="simple", weight=weight
+            )
         )
     if address.country_area:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.country_area), weight=weight)
+            NoValidationSearchVector(
+                Value(address.country_area), config="simple", weight=weight
+            )
         )
     if address.city:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.city), weight=weight)
+            NoValidationSearchVector(
+                Value(address.city), config="simple", weight=weight
+            )
         )
     if address.city_area:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.city_area), weight=weight)
+            NoValidationSearchVector(
+                Value(address.city_area), config="simple", weight=weight
+            )
         )
     if address.street_address_2:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.street_address_2), weight=weight)
+            NoValidationSearchVector(
+                Value(address.street_address_2), config="simple", weight=weight
+            )
         )
     if address.postal_code:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.postal_code), weight=weight)
+            NoValidationSearchVector(
+                Value(address.postal_code), config="simple", weight=weight
+            )
         )
     if address.phone:
         search_vectors.append(
-            NoValidationSearchVector(Value(address.phone.as_e164), weight=weight)
+            NoValidationSearchVector(
+                Value(address.phone.as_e164), config="simple", weight=weight
+            )
         )
     return search_vectors
 

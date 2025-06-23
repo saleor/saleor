@@ -119,6 +119,7 @@ __all__ = [
     "MediaInput",
     "MenuError",
     "MetadataError",
+    "MetadataFilterInput",
     "ModelObjectType",
     "Money",
     "MoneyRange",

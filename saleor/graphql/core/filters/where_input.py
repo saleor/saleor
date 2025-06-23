@@ -148,3 +148,36 @@ class PriceFilterInput(graphene.InputObjectType):
     amount = DecimalFilterInput(
         required=True, description="The amount of the price to filter by."
     )
+
+
+class MetadataValueFilterInput(graphene.InputObjectType):
+    eq = graphene.String(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.String, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+
+    class Meta:
+        description = "Define the filtering options for metadata value fields."
+
+
+class MetadataFilterInput(graphene.InputObjectType):
+    key = graphene.String(
+        required=True,
+        description="Key to filter by. If not other fields provided - checking the existence of the key in metadata.",
+    )
+    value = MetadataValueFilterInput(
+        required=False,
+        description="Value to filter by.",
+    )
+
+    class Meta:
+        description = """Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+        """
