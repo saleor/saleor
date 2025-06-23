@@ -14385,8 +14385,14 @@ input CustomerWhereInput @doc(category: "Users") {
   """Filter by metadata fields."""
   metadata: MetadataFilterInput
   ids: [ID!]
+
+  """Filter by date joined."""
   dateJoined: DateTimeRangeInput
+
+  """Filter by last updated date."""
   updatedAt: DateTimeRangeInput
+
+  """Filter by date when orders were placed."""
   placedOrdersAt: DateTimeRangeInput
 
   """List of conditions that must be met."""

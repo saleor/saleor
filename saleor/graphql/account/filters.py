@@ -92,13 +92,19 @@ class CustomerFilter(MetadataFilterBase):
 class CustomerWhereFilterInput(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("User"))
     date_joined = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput, method="filter_date_joined"
+        input_class=DateTimeRangeInput,
+        method="filter_date_joined",
+        help_text="Filter by date joined.",
     )
     updated_at = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput, method="filter_updated_at"
+        input_class=DateTimeRangeInput,
+        method="filter_updated_at",
+        help_text="Filter by last updated date.",
     )
     placed_orders_at = ObjectTypeWhereFilter(
-        input_class=DateTimeRangeInput, method="filter_placed_orders_at"
+        input_class=DateTimeRangeInput,
+        method="filter_placed_orders_at",
+        help_text="Filter by date when orders were placed.",
     )
 
     def filter_date_joined(self, qs, _, value):
