@@ -1085,7 +1085,7 @@ type Query {
   """
   sales(
     """Filtering options for sales."""
-    filter: SaleFilterInput @deprecated(reason: "Use `where` filter instead.")
+    filter: SaleFilterInput
 
     """Sort sales."""
     sortBy: SaleSortingInput
@@ -1178,7 +1178,7 @@ type Query {
   """
   promotions(
     """Where filtering options."""
-    where: PromotionWhereInput @deprecated(reason: "Use `where` filter instead.")
+    where: PromotionWhereInput
 
     """Sort promotions."""
     sortBy: PromotionSortingInput
@@ -5841,6 +5841,9 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
     """Where filtering options for attributes of this product type."""
     where: AttributeWhereInput
 
+    """Search attributes."""
+    search: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -8542,6 +8545,9 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
 
     """Filtering options for attributes."""
     where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String

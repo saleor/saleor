@@ -3,7 +3,11 @@ import graphene
 from ...attribute import models as attribute_models
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
-from ..attribute.filters import AttributeFilterInput, AttributeWhereInput
+from ..attribute.filters import (
+    AttributeFilterInput,
+    AttributeWhereInput,
+    filter_attribute_search,
+)
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -49,6 +53,7 @@ class PageType(ModelObjectType[models.PageType]):
             f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
         ),
         where=AttributeWhereInput(description="Filtering options for attributes."),
+        search=graphene.String(description="Search attributes."),
         description="Attributes that can be assigned to the page type.",
         permissions=[
             PagePermissions.MANAGE_PAGES,
@@ -91,7 +96,7 @@ class PageType(ModelObjectType[models.PageType]):
 
     @staticmethod
     def resolve_available_attributes(
-        root: models.PageType, info: ResolveInfo, **kwargs
+        root: models.PageType, info: ResolveInfo, search=None, **kwargs
     ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
@@ -99,6 +104,8 @@ class PageType(ModelObjectType[models.PageType]):
         qs = filter_connection_queryset(
             qs, kwargs, info.context, allow_replica=info.context.allow_replica
         )
+        if search:
+            qs = filter_attribute_search(qs, None, search)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
