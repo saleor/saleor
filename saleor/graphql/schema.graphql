@@ -339,7 +339,7 @@ type Query {
   """List of the shop's categories."""
   categories(
     """Filtering options for categories."""
-    filter: CategoryFilterInput
+    filter: CategoryFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options."""
     where: CategoryWhereInput
@@ -409,7 +409,7 @@ type Query {
   """
   collections(
     """Filtering options for collections."""
-    filter: CollectionFilterInput
+    filter: CollectionFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options."""
     where: CollectionWhereInput
@@ -466,7 +466,7 @@ type Query {
   """
   products(
     """Filtering options for products."""
-    filter: ProductFilterInput
+    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options."""
     where: ProductWhereInput
@@ -559,7 +559,7 @@ type Query {
     filter: ProductVariantFilterInput
 
     """Where filtering options."""
-    where: ProductVariantWhereInput
+    where: ProductVariantWhereInput @deprecated(reason: "Use `where` filter instead.")
 
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
@@ -781,7 +781,7 @@ type Query {
     sortBy: OrderSortingInput
 
     """Filtering options for orders."""
-    filter: OrderFilterInput
+    filter: OrderFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """
     Where filtering options for orders.
@@ -1085,7 +1085,7 @@ type Query {
   """
   sales(
     """Filtering options for sales."""
-    filter: SaleFilterInput
+    filter: SaleFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Sort sales."""
     sortBy: SaleSortingInput
@@ -1178,7 +1178,7 @@ type Query {
   """
   promotions(
     """Where filtering options."""
-    where: PromotionWhereInput
+    where: PromotionWhereInput @deprecated(reason: "Use `where` filter instead.")
 
     """Sort promotions."""
     sortBy: PromotionSortingInput
@@ -1329,7 +1329,7 @@ type Query {
   """List of the shop's attributes."""
   attributes(
     """Filtering options for attributes."""
-    filter: AttributeFilterInput
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Filtering options for attributes."""
     where: AttributeWhereInput
@@ -5655,7 +5655,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   productVariants(
     """Filtering options for product variant."""
-    filter: ProductVariantFilterInput
+    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options."""
     where: ProductVariantWhereInput
@@ -5835,7 +5835,10 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   availableAttributes(
-    filter: AttributeFilterInput
+    """Filtering options for attributes of this product type."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes of this product type."""
     where: AttributeWhereInput
 
     """Return the elements in the list that come before the specified cursor."""
@@ -6608,7 +6611,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     filter: ProductFilterInput
 
     """Filtering options for products."""
-    where: ProductWhereInput
+    where: ProductWhereInput @deprecated(reason: "Use `where` filter instead.")
 
     """Sort products."""
     sortBy: ProductOrder
@@ -7962,7 +7965,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   """List of products in this collection."""
   products(
     """Filtering options for products."""
-    filter: ProductFilterInput
+    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Filtering options for products."""
     where: ProductWhereInput
@@ -8534,7 +8537,10 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   availableAttributes(
-    filter: AttributeFilterInput
+    """Filtering options for attributes."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Filtering options for attributes."""
     where: AttributeWhereInput
 
     """Return the elements in the list that come before the specified cursor."""

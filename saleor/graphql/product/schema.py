@@ -13,6 +13,7 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.descriptions import (
     ADDED_IN_321,
     DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import LanguageCodeEnum, ReportingPeriod
@@ -172,7 +173,12 @@ class ProductQueries(graphene.ObjectType):
     )
     categories = FilterConnectionField(
         CategoryCountableConnection,
-        filter=CategoryFilterInput(description="Filtering options for categories."),
+        filter=CategoryFilterInput(
+            description=(
+                f"Filtering options for categories. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=CategoryWhereInput(description="Where filtering options."),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
@@ -219,7 +225,12 @@ class ProductQueries(graphene.ObjectType):
     )
     collections = FilterConnectionField(
         CollectionCountableConnection,
-        filter=CollectionFilterInput(description="Filtering options for collections."),
+        filter=CollectionFilterInput(
+            description=(
+                f"Filtering options for collections. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=CollectionWhereInput(description="Where filtering options."),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
@@ -259,7 +270,12 @@ class ProductQueries(graphene.ObjectType):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
+        filter=ProductFilterInput(
+            description=(
+                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=ProductWhereInput(description="Where filtering options."),
         sort_by=ProductOrder(description="Sort products."),
         search=graphene.String(description="Search products."),
@@ -323,7 +339,12 @@ class ProductQueries(graphene.ObjectType):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
-        where=ProductVariantWhereInput(description="Where filtering options."),
+        where=ProductVariantWhereInput(
+            description=(
+                f"Where filtering options. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of product variants. Requires one of the following permissions to "

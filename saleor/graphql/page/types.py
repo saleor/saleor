@@ -12,7 +12,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import RICH_CONTENT
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -44,8 +44,11 @@ class PageType(ModelObjectType[models.PageType]):
     )
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
-        filter=AttributeFilterInput(),
-        where=AttributeWhereInput(),
+        filter=AttributeFilterInput(
+            description="Filtering options for attributes. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
+        ),
+        where=AttributeWhereInput(description="Filtering options for attributes."),
         description="Attributes that can be assigned to the page type.",
         permissions=[
             PagePermissions.MANAGE_PAGES,

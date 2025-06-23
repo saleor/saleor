@@ -22,7 +22,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import get_database_connection_name
-from ...core.descriptions import RICH_CONTENT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -65,7 +65,12 @@ class Collection(ChannelContextType[models.Collection]):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
+        filter=ProductFilterInput(
+            description=(
+                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=ProductWhereInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",

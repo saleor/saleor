@@ -87,7 +87,12 @@ class DiscountQueries(graphene.ObjectType):
     )
     sales = FilterConnectionField(
         SaleCountableConnection,
-        filter=SaleFilterInput(description="Filtering options for sales."),
+        filter=SaleFilterInput(
+            description=(
+                f"Filtering options for sales. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         sort_by=SaleSortingInput(description="Sort sales."),
         query=graphene.String(
             description=(
@@ -151,7 +156,12 @@ class DiscountQueries(graphene.ObjectType):
     )
     promotions = FilterConnectionField(
         PromotionCountableConnection,
-        where=PromotionWhereInput(description="Where filtering options."),
+        where=PromotionWhereInput(
+            description=(
+                f"Where filtering options.  {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         sort_by=PromotionSortingInput(description="Sort promotions."),
         description="List of the promotions.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
