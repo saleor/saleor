@@ -16,10 +16,17 @@ class PageSortField(BaseEnum):
 
     @property
     def description(self):
-        if self.name in PageSortField.__enum__._member_names_:
-            sort_name = self.name.lower().replace("_", " ")
-            description = f"Sort pages by {sort_name}."
-            return description
+        descriptions = {
+            PageSortField.TITLE.name: "title.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.SLUG.name: "slug.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.VISIBILITY.name: "visibility.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.CREATION_DATE.name: "creation date.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.PUBLICATION_DATE.name: "publication date.",  # type: ignore[attr-defined] # noqa: E501
+            PageSortField.PUBLISHED_AT.name: "publication date.",  # type: ignore[attr-defined] # noqa: E501
+        }
+        if self.name in descriptions:
+            return f"Sort pages by {descriptions[self.name]}"
         raise ValueError(f"Unsupported enum value: {self.value}")
 
     @property

@@ -88,19 +88,16 @@ class CollectionSortField(BaseEnum):
 
     @property
     def description(self):
-        description_extras = {
-            CollectionSortField.AVAILABILITY.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            CollectionSortField.PUBLICATION_DATE.name: [  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                CHANNEL_REQUIRED,
-            ],
-            CollectionSortField.PUBLISHED_AT.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        descriptions = {
+            CollectionSortField.NAME.name: "name.",  # type: ignore[attr-defined] # noqa: E501
+            CollectionSortField.AVAILABILITY.name: "availability." + CHANNEL_REQUIRED,  # type: ignore[attr-defined] # noqa: E501
+            CollectionSortField.PRODUCT_COUNT.name: "product count.",  # type: ignore[attr-defined] # noqa: E501
+            CollectionSortField.PUBLICATION_DATE.name: "publication date."  # type: ignore[attr-defined] # noqa: E501
+            + CHANNEL_REQUIRED,
+            CollectionSortField.PUBLISHED_AT.name: "published at." + CHANNEL_REQUIRED,  # type: ignore[attr-defined] # noqa: E501
         }
-        if self.name in CollectionSortField.__enum__._member_names_:
-            sort_name = self.name.lower().replace("_", " ")
-            description = f"Sort collections by {sort_name}."
-            if extras := description_extras.get(self.name):
-                description += "".join(extras)
-            return description
+        if self.name in descriptions:
+            return f"Sort collections by {descriptions[self.name]}"
         raise ValueError(f"Unsupported enum value: {self.value}")
 
     @property
@@ -313,10 +310,11 @@ class ProductVariantSortField(BaseEnum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self.name in ProductVariantSortField.__enum__._member_names_:
-            sort_name = self.name.lower().replace("_", " ")
-            return f"Sort products variants by {sort_name}."
+        descriptions = {
+            ProductVariantSortField.LAST_MODIFIED_AT.name: "last modification date.",  # type: ignore[attr-defined] # noqa: E501
+        }
+        if self.name in descriptions:
+            return f"Sort product variants by {descriptions[self.name]}"
 
         raise ValueError(f"Unsupported enum value: {self.value}")
 

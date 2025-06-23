@@ -7876,7 +7876,7 @@ input ProductVariantSortingInput @doc(category: "Products") {
 }
 
 enum ProductVariantSortField @doc(category: "Products") {
-  """Sort products variants by last modified at."""
+  """Sort product variants by last modification date."""
   LAST_MODIFIED_AT
 }
 
@@ -12724,10 +12724,10 @@ enum PageSortField @doc(category: "Pages") {
   """Sort pages by publication date."""
   PUBLICATION_DATE @deprecated(reason: "Use `PUBLISHED_AT` instead.")
 
-  """Sort pages by published at."""
+  """Sort pages by publication date."""
   PUBLISHED_AT
 
-  """Sort pages by created at."""
+  """Sort pages by creation date."""
   CREATED_AT
 }
 
@@ -13400,10 +13400,10 @@ enum SaleSortField @doc(category: "Discounts") {
   """Sort sales by type."""
   TYPE
 
-  """Sort sales by created at."""
+  """Sort sales by creation date."""
   CREATED_AT
 
-  """Sort sales by last modified at."""
+  """Sort sales by last modification date."""
   LAST_MODIFIED_AT
 }
 
@@ -13904,7 +13904,7 @@ enum PromotionSortField @doc(category: "Discounts") {
   """Sort promotions by end date."""
   END_DATE
 
-  """Sort promotions by created at."""
+  """Sort promotions by creation date."""
   CREATED_AT
 }
 

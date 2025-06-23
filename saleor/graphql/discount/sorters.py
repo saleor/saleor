@@ -25,15 +25,17 @@ class SaleSortField(BaseEnum):
 
     @property
     def description(self):
-        descrption_extras = {
-            SaleSortField.VALUE.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        descriptions = {
+            SaleSortField.NAME.name: "name.",  # type: ignore[attr-defined] # noqa: E501
+            SaleSortField.START_DATE.name: "start date.",  # type: ignore[attr-defined] # noqa: E501
+            SaleSortField.END_DATE.name: "end date.",  # type: ignore[attr-defined] # noqa: E501
+            SaleSortField.VALUE.name: "value." + CHANNEL_REQUIRED,  # type: ignore[attr-defined] # noqa: E501
+            SaleSortField.TYPE.name: "type.",  # type: ignore[attr-defined] # noqa: E501
+            SaleSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # noqa: E501
+            SaleSortField.LAST_MODIFIED_AT.name: "last modification date.",  # type: ignore[attr-defined] # noqa: E501
         }
-        if self.name in SaleSortField.__enum__._member_names_:
-            sort_name = self.name.lower().replace("_", " ")
-            description = f"Sort sales by {sort_name}."
-            if extras := descrption_extras.get(self.name):
-                description += "".join(extras)
-            return description
+        if self.name in descriptions:
+            return f"Sort sales by {descriptions[self.name]}"
         raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
@@ -142,10 +144,14 @@ class PromotionSortField(BaseEnum):
 
     @property
     def description(self):
-        if self.name in PromotionSortField.__enum__._member_names_:
-            sort_name = self.name.lower().replace("_", " ")
-            description = f"Sort promotions by {sort_name}."
-            return description
+        descriptions = {
+            PromotionSortField.NAME.name: "name.",  # type: ignore[attr-defined] # noqa: E501
+            PromotionSortField.START_DATE.name: "start date.",  # type: ignore[attr-defined] # noqa: E501
+            PromotionSortField.END_DATE.name: "end date.",  # type: ignore[attr-defined] # noqa: E501
+            PromotionSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # noqa: E501
+        }
+        if self.name in descriptions:
+            return f"Sort promotions by {descriptions[self.name]}"
         raise ValueError(f"Unsupported enum value: {self.value}")
 
 
