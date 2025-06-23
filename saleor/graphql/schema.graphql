@@ -6619,6 +6619,9 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     """Sort products."""
     sortBy: ProductOrder
 
+    """Search products."""
+    search: String
+
     """Slug of a channel for which the data should be returned."""
     channel: String
 
