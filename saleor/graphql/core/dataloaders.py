@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
@@ -16,7 +16,7 @@ K = TypeVar("K")
 R = TypeVar("R")
 
 
-class DataLoader(BaseLoader, Generic[K, R]):
+class DataLoader[K, R](BaseLoader):
     context_key: str
     context: SaleorContext
     database_connection_name: str

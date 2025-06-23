@@ -1093,7 +1093,7 @@ def test_handle_transaction_request_task_request_event_included_in_calculations(
     app,
 ):
     # given
-    transaction = transaction_item_generator(charged_value=Decimal("100"))
+    transaction = transaction_item_generator(charged_value=Decimal(100))
     expected_psp_reference = "psp:ref:123"
     mocked_webhook_response.text = json.dumps({"pspReference": expected_psp_reference})
     mocked_webhook_response.content = json.dumps(

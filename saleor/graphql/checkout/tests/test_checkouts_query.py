@@ -87,7 +87,7 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_flat_rate
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     checkout = checkout_with_delivery_method_for_external_shipping
     checkout.price_expiration = timezone.now()
-    checkout.undiscounted_base_shipping_price_amount = Decimal("100")
+    checkout.undiscounted_base_shipping_price_amount = Decimal(100)
     checkout.save()
 
     # when
@@ -143,7 +143,7 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_tax_app(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     checkout = checkout_with_delivery_method_for_external_shipping
     checkout.price_expiration = timezone.now()
-    checkout.undiscounted_base_shipping_price_amount = Decimal("100")
+    checkout.undiscounted_base_shipping_price_amount = Decimal(100)
     checkout.save()
 
     # when
@@ -198,7 +198,7 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_flat_rate
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     checkout = checkout_with_delivery_method_for_external_shipping
     checkout.price_expiration = timezone.now()
-    checkout.undiscounted_base_shipping_price_amount = Decimal("100")
+    checkout.undiscounted_base_shipping_price_amount = Decimal(100)
     checkout.save()
 
     # when
@@ -253,7 +253,7 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_tax_app(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     checkout = checkout_with_delivery_method_for_external_shipping
     checkout.price_expiration = timezone.now()
-    checkout.undiscounted_base_shipping_price_amount = Decimal("100")
+    checkout.undiscounted_base_shipping_price_amount = Decimal(100)
     checkout.save()
 
     # when

@@ -44,7 +44,7 @@ def test_promotion_rule_create(
         graphene.Node.to_global_id("Channel", channel.pk)
         for channel in [channel_USD, channel_PLN]
     ]
-    reward_value = Decimal("10")
+    reward_value = Decimal(10)
 
     catalogue_predicate = {
         "OR": [

@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from django.conf import settings
 from django.db.models import QuerySet
@@ -72,7 +72,7 @@ N = TypeVar("N")
 
 
 @dataclass
-class BaseContext(Generic[N]):
+class BaseContext[N]:
     node: N
 
 

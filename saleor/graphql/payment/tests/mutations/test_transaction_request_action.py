@@ -104,7 +104,7 @@ def test_transaction_request_action_missing_permission(
         available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -133,7 +133,7 @@ def test_transaction_request_action_missing_event(
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    authorization_value = Decimal("10")
+    authorization_value = Decimal(10)
     transaction = TransactionItem.objects.create(
         name="Credit card",
         psp_reference="PSP ref",
@@ -190,7 +190,7 @@ def test_transaction_request_action_amount_with_lot_of_decimal_places(
         available_actions=[],
         currency="USD",
         order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
 
     charge_amount = Decimal("9.12345678")
@@ -259,7 +259,7 @@ def transaction_request_webhook(permission_manage_payments):
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
-        (Decimal("100"), Decimal("10.00")),
+        (Decimal(100), Decimal("10.00")),
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -287,7 +287,7 @@ def test_transaction_request_charge_for_order(
         available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -342,7 +342,7 @@ def test_transaction_request_charge_for_order(
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
-        (Decimal("100"), Decimal("10.00")),
+        (Decimal(100), Decimal("10.00")),
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -370,7 +370,7 @@ def test_transaction_request_charge_for_order_via_token(
         available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -425,7 +425,7 @@ def test_transaction_request_charge_for_order_via_token(
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
-        (Decimal("100"), Decimal("10.00")),
+        (Decimal(100), Decimal("10.00")),
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -453,7 +453,7 @@ def test_transaction_request_refund_for_order(
         available_actions=["refund"],
         currency="USD",
         order_id=order_with_lines.pk,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -524,7 +524,7 @@ def test_transaction_request_cancelation_for_order(
         available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -587,7 +587,7 @@ def test_transaction_request_cancelation_for_checkout(
     transaction_request_webhook.events.create(
         event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
     )
-    expected_amount = Decimal("10")
+    expected_amount = Decimal(10)
     transaction = TransactionItem.objects.create(
         name="Credit card",
         psp_reference="PSP ref",
@@ -642,7 +642,7 @@ def test_transaction_request_cancelation_for_checkout(
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
-        (Decimal("100"), Decimal("10.00")),
+        (Decimal(100), Decimal("10.00")),
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -670,7 +670,7 @@ def test_transaction_request_charge_for_checkout(
         available_actions=["charge", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -719,7 +719,7 @@ def test_transaction_request_charge_for_checkout(
     [
         (Decimal("8.00"), Decimal("8.00")),
         (None, Decimal("10.00")),
-        (Decimal("100"), Decimal("10.00")),
+        (Decimal(100), Decimal("10.00")),
     ],
 )
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
@@ -747,7 +747,7 @@ def test_transaction_request_refund_for_checkout(
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -816,7 +816,7 @@ def test_transaction_request_refund_when_app_reinstalled(
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=None,
     )
@@ -883,11 +883,11 @@ def test_transaction_request_uses_handle_payment_permission(
         available_actions=["refund"],
         currency="USD",
         checkout_id=checkout.pk,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
-    refund_amount = Decimal("1")
+    refund_amount = Decimal(1)
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
@@ -937,7 +937,7 @@ def test_transaction_request_missing_permission(
         available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=transaction_request_webhook.app.identifier,
         app=transaction_request_webhook.app,
     )
@@ -967,7 +967,7 @@ def test_transaction_request_missing_event(
     app,
 ):
     # given
-    authorization_value = Decimal("10")
+    authorization_value = Decimal(10)
     transaction = TransactionItem.objects.create(
         name="Credit card",
         psp_reference="PSP ref",
@@ -1039,7 +1039,7 @@ def test_transaction_request_refund_sets_app_to_request_event(
         charged_value=Decimal(10),
         app=transaction_request_webhook.app,
     )
-    refund_amount = Decimal("1")
+    refund_amount = Decimal(1)
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
@@ -1089,7 +1089,7 @@ def test_transaction_request_refund_sets_user_to_request_event(
         charged_value=Decimal(10),
         app=transaction_request_webhook.app,
     )
-    refund_amount = Decimal("1")
+    refund_amount = Decimal(1)
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
@@ -1138,7 +1138,7 @@ def test_transaction_request_charge_sets_app_to_request_event(
         authorized_value=Decimal(10),
         app=transaction_request_webhook.app,
     )
-    amount = Decimal("1")
+    amount = Decimal(1)
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
@@ -1188,7 +1188,7 @@ def test_transaction_request_charge_sets_user_to_request_event(
         authorized_value=Decimal(10),
         app=transaction_request_webhook.app,
     )
-    amount = Decimal("1")
+    amount = Decimal(1)
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,

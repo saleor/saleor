@@ -22,11 +22,11 @@ def update_order_charge_status(order, granted_refund_amount):
     the order.total - order granted refund
     We treat the order as not charged when the charged amount is 0.
     """
-    total_charged = order.total_charged_amount or Decimal("0")
+    total_charged = order.total_charged_amount or Decimal(0)
     total_charged = quantize_price(total_charged, order.currency)
 
     current_total_gross = order.total_gross_amount - granted_refund_amount
-    current_total_gross = max(current_total_gross, Decimal("0"))
+    current_total_gross = max(current_total_gross, Decimal(0))
     current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_charged == current_total_gross:

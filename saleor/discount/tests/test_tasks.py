@@ -93,7 +93,7 @@ def test_handle_promotion_toggle(
                     }
                 },
                 reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("5"),
+                reward_value=Decimal(5),
             )
         )
 

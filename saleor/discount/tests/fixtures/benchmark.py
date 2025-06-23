@@ -22,7 +22,7 @@ def promotion_list_for_benchmark(channel_USD, channel_PLN, product_list):
             promotion=promotion,
             catalogue_predicate={},
             reward_value_type=RewardValueType.PERCENTAGE,
-            reward_value=Decimal("10"),
+            reward_value=Decimal(10),
         )
         for promotion in promotions
     ]

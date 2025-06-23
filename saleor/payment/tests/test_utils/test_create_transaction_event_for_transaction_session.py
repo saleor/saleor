@@ -117,7 +117,7 @@ def test_create_transaction_event_for_transaction_session_success_response(
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -158,7 +158,7 @@ def test_create_transaction_event_for_transaction_session_success_response_with_
     plugins_manager,
 ):
     # given
-    request_event_amount = Decimal("12")
+    request_event_amount = Decimal(12)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
 
@@ -204,7 +204,7 @@ def test_create_transaction_event_for_transaction_session_success_response_with_
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("0")
+    expected_amount = Decimal(0)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -246,7 +246,7 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -269,10 +269,10 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     assert response_event.amount_value == expected_amount
     assert response_event.type in [response_result, TransactionEventType.CHARGE_FAILURE]
     transaction.refresh_from_db()
-    assert transaction.authorized_value == Decimal("0")
-    assert transaction.charged_value == Decimal("0")
-    assert transaction.authorize_pending_value == Decimal("0")
-    assert transaction.charge_pending_value == Decimal("0")
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.authorize_pending_value == Decimal(0)
+    assert transaction.charge_pending_value == Decimal(0)
 
 
 @pytest.mark.parametrize(
@@ -294,7 +294,7 @@ def test_create_transaction_event_for_transaction_session_not_success_events_wit
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = None
@@ -318,10 +318,10 @@ def test_create_transaction_event_for_transaction_session_not_success_events_wit
     assert response_event.amount_value == expected_amount
     assert response_event.type in [response_result, TransactionEventType.CHARGE_FAILURE]
     transaction.refresh_from_db()
-    assert transaction.authorized_value == Decimal("0")
-    assert transaction.charged_value == Decimal("0")
-    assert transaction.authorize_pending_value == Decimal("0")
-    assert transaction.charge_pending_value == Decimal("0")
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.authorize_pending_value == Decimal(0)
+    assert transaction.charge_pending_value == Decimal(0)
 
 
 @pytest.mark.parametrize(
@@ -358,7 +358,7 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -383,10 +383,10 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     assert response_event.type == TransactionEventType.CHARGE_FAILURE
     assert message in response_event.message
     transaction.refresh_from_db()
-    assert transaction.authorized_value == Decimal("0")
-    assert transaction.charged_value == Decimal("0")
-    assert transaction.authorize_pending_value == Decimal("0")
-    assert transaction.charge_pending_value == Decimal("0")
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.authorize_pending_value == Decimal(0)
+    assert transaction.charge_pending_value == Decimal(0)
 
 
 @pytest.mark.parametrize(
@@ -404,7 +404,7 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -428,10 +428,10 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
     assert response_event.amount_value == expected_amount
     assert response_event.type == response_result
     transaction.refresh_from_db()
-    assert transaction.authorized_value == Decimal("0")
-    assert transaction.charged_value == Decimal("0")
-    assert transaction.authorize_pending_value == Decimal("0")
-    assert transaction.charge_pending_value == Decimal("0")
+    assert transaction.authorized_value == Decimal(0)
+    assert transaction.charged_value == Decimal(0)
+    assert transaction.authorize_pending_value == Decimal(0)
+    assert transaction.charge_pending_value == Decimal(0)
 
 
 @pytest.mark.parametrize(
@@ -455,7 +455,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
     django_capture_on_commit_callbacks,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -531,7 +531,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -575,7 +575,7 @@ def test_create_transaction_event_for_transaction_session_failure_doesnt_set_act
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -616,7 +616,7 @@ def test_create_transaction_event_for_transaction_session_request_events_as_resp
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -656,7 +656,7 @@ def test_create_transaction_event_updates_transaction_modified_at(
     checkout,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["amount"] = expected_amount
 
@@ -690,7 +690,7 @@ def test_create_transaction_event_for_transaction_session_failure_set_psp_refere
 ):
     # given
     expected_psp_reference = "ABC"
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = TransactionEventType.CHARGE_FAILURE.upper()
     response["amount"] = expected_amount
@@ -728,7 +728,7 @@ def test_create_transaction_event_for_transaction_session_when_psp_ref_missing(
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     response["amount"] = expected_amount
@@ -766,7 +766,7 @@ def test_create_transaction_event_updates_transaction_modified_at_for_failure(
     checkout,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["amount"] = expected_amount
     response["result"] = TransactionEventType.CHARGE_FAILURE.upper()
@@ -802,7 +802,7 @@ def test_create_transaction_event_message_limit_exceeded(
     caplog,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     message = "m" * 1000
     response = transaction_session_response.copy()
     response["amount"] = expected_amount
@@ -848,7 +848,7 @@ def test_create_transaction_event_with_message(
     checkout,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["amount"] = expected_amount
     response["message"] = input_message
@@ -886,7 +886,7 @@ def test_create_transaction_event_with_invalid_message(
         def __str__(self):
             raise "こんにちは".encode("ascii")
 
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["amount"] = expected_amount
     response["message"] = NonParsableObject()
@@ -1096,7 +1096,7 @@ def test_create_transaction_event_for_transaction_session_sets_payment_method_de
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
@@ -1166,7 +1166,7 @@ def test_create_transaction_event_for_transaction_session_invalid_payment_method
     plugins_manager,
 ):
     # given
-    expected_amount = Decimal("15")
+    expected_amount = Decimal(15)
     response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount

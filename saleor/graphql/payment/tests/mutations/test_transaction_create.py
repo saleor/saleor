@@ -117,7 +117,7 @@ def test_transaction_create_updates_order_authorize_amounts(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -161,7 +161,7 @@ def test_transaction_create_for_order_by_app(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -222,7 +222,7 @@ def test_transaction_create_for_order_by_app_metadata_null_value(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
@@ -273,14 +273,14 @@ def test_transaction_create_for_order_updates_order_total_authorized_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     old_transaction = order_with_lines.payment_transactions.create(
         authorized_value=previously_authorized_value, currency=order_with_lines.currency
     )
 
     update_order_authorize_data(order_with_lines)
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -319,13 +319,13 @@ def test_transaction_create_for_order_updates_order_total_charged_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     old_transaction = order_with_lines.payment_transactions.create(
         charged_value=previously_charged_value, currency=order_with_lines.currency
     )
     update_order_charge_data(order_with_lines)
 
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -375,13 +375,13 @@ def test_transaction_create_for_draft_order(
     channel.automatically_confirm_all_new_orders = automatically_confirm_all_new_orders
     channel.save(update_fields=["automatically_confirm_all_new_orders"])
 
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     old_transaction = order_with_lines.payment_transactions.create(
         charged_value=previously_charged_value, currency=order_with_lines.currency
     )
     update_order_charge_data(order_with_lines)
 
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -427,7 +427,7 @@ def test_transaction_create_for_checkout_by_app(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -492,7 +492,7 @@ def test_transaction_create_for_checkout_by_app_metadata_null_value(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
@@ -562,7 +562,7 @@ def test_transaction_create_calculate_amount_by_app(
     # given
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
-    expected_value = Decimal("10")
+    expected_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -598,10 +598,10 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
-    charged_value = Decimal("11")
-    refunded_value = Decimal("12")
-    canceled_value = Decimal("13")
+    authorized_value = Decimal(10)
+    charged_value = Decimal(11)
+    refunded_value = Decimal(12)
+    canceled_value = Decimal(13)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -660,7 +660,7 @@ def test_transaction_create_create_event_for_order_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     transaction_reference = "transaction reference"
     transaction_name = "Processing transaction"
 
@@ -704,7 +704,7 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -749,7 +749,7 @@ def test_transaction_create_incorrect_currency_by_app(
     # given
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
-    expected_value = Decimal("10")
+    expected_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -787,7 +787,7 @@ def test_transaction_create_empty_metadata_key_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
     variables = {
@@ -828,7 +828,7 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "", "value": "321"}
     variables = {
@@ -867,7 +867,7 @@ def test_creates_transaction_event_for_order_by_app(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = []
-    authorized_value = Decimal("0")
+    authorized_value = Decimal(0)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -929,7 +929,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("0")
+    authorized_value = Decimal(0)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -991,7 +991,7 @@ def test_transaction_create_for_order_by_staff(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1043,14 +1043,14 @@ def test_transaction_create_for_order_updates_order_total_authorized_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     old_transaction = order_with_lines.payment_transactions.create(
         authorized_value=previously_authorized_value, currency=order_with_lines.currency
     )
 
     update_order_authorize_data(order_with_lines)
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1089,13 +1089,13 @@ def test_transaction_create_for_order_updates_order_total_charged_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     old_transaction = order_with_lines.payment_transactions.create(
         charged_value=previously_charged_value, currency=order_with_lines.currency
     )
     update_order_charge_data(order_with_lines)
 
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1140,7 +1140,7 @@ def test_transaction_create_for_checkout_by_staff(
         TransactionActionEnum.CHARGE.name,
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1443,7 +1443,7 @@ def test_transaction_create_calculate_amount_by_staff(
     # given
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
-    expected_value = Decimal("10")
+    expected_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1479,10 +1479,10 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
-    charged_value = Decimal("11")
-    refunded_value = Decimal("12")
-    canceled_value = Decimal("13")
+    authorized_value = Decimal(10)
+    charged_value = Decimal(11)
+    refunded_value = Decimal(12)
+    canceled_value = Decimal(13)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1541,7 +1541,7 @@ def test_transaction_create_create_event_for_order_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     transaction_reference = "transaction reference"
     transaction_name = "Processing transaction"
 
@@ -1586,7 +1586,7 @@ def test_transaction_create_missing_permission_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1631,7 +1631,7 @@ def test_transaction_create_incorrect_currency_by_staff(
     # given
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
-    expected_value = Decimal("10")
+    expected_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -1669,7 +1669,7 @@ def test_transaction_create_empty_metadata_key_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
     variables = {
@@ -1710,7 +1710,7 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "", "value": "321"}
     variables = {
@@ -1749,7 +1749,7 @@ def test_creates_transaction_event_for_order_by_staff(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = []
-    authorized_value = Decimal("0")
+    authorized_value = Decimal(0)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1811,7 +1811,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1881,7 +1881,7 @@ def test_creates_transaction_automatically_confirm(
     name = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = []
-    authorized_value = Decimal("0")
+    authorized_value = Decimal(0)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -1927,7 +1927,7 @@ def test_transaction_create_external_url_incorrect_url_format_by_app(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test", "value": "321"}
     external_url = "incorrect"
@@ -1967,10 +1967,10 @@ def test_transaction_create_creates_calculation_events(
     # given
     psp_reference = "PSP reference - 123"
     available_actions = []
-    authorized_value = Decimal("10")
-    charged_value = Decimal("8")
-    refunded_value = Decimal("5")
-    canceled_value = Decimal("2")
+    authorized_value = Decimal(10)
+    charged_value = Decimal(8)
+    refunded_value = Decimal(5)
+    canceled_value = Decimal(2)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -2105,7 +2105,7 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
     staff_api_client,
 ):
     # given
-    charged_value = Decimal("10")
+    charged_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -2145,7 +2145,7 @@ def test_transaction_create_for_order_triggers_webhook_when_authorized(
     staff_api_client,
 ):
     # given
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -2227,7 +2227,7 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     staff_api_client,
 ):
     # given
-    refunded_value = Decimal("10")
+    refunded_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -2263,7 +2263,7 @@ def test_transaction_create_for_checkout_updates_last_transaction_modified_at(
     # given
     assert checkout_with_items.last_transaction_modified_at is None
     psp_reference = "PSP reference - 123"
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
@@ -2292,7 +2292,7 @@ def test_transaction_create_null_available_actions(
     checkout_with_items, permission_manage_payments, app_api_client
 ):
     # given
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
         "transaction": {
@@ -2390,7 +2390,7 @@ def test_transaction_create_create_event_message_limit_exceeded(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     transaction_reference = "transaction reference"
     transaction_msg = "m" * 513
 
@@ -2441,7 +2441,7 @@ def test_transaction_create_create_event_message_is_empty(
     available_actions = [
         TransactionActionEnum.CHARGE.name,
     ]
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     transaction_reference = "transaction reference"
     transaction_msg = None
 
@@ -2513,7 +2513,7 @@ def test_transaction_create_with_card_payment_method_details(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     card_name = "Payment Method Name"
 
@@ -2578,7 +2578,7 @@ def test_transaction_create_with_other_payment_method_details(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     other_name = "Payment Method Name"
 
@@ -2634,7 +2634,7 @@ def test_transaction_create_with_both_payment_method_details_inputs(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -2703,7 +2703,7 @@ def test_transaction_create_with_invalid_card_payment_method_details(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
@@ -2751,7 +2751,7 @@ def test_transaction_create_with_invalid_other_payment_method_details(
     name = "Credit Card"
     psp_reference = "PSP reference - 123"
 
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
 
     other_name = "Payment Method Name"
 

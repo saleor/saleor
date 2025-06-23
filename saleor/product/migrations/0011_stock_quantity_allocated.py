@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             model_name="stock",
             name="quantity_allocated",
             field=models.IntegerField(
-                default=Decimal("0"),
+                default=Decimal(0),
                 validators=[django.core.validators.MinValueValidator(0)],
                 verbose_name="allocated quantity",
             ),

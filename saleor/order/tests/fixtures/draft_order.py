@@ -35,7 +35,7 @@ def draft_order(order_with_lines):
 
 @pytest.fixture
 def draft_order_with_fixed_discount_order(draft_order):
-    value = Decimal("20")
+    value = Decimal(20)
     discount = partial(fixed_discount, discount=Money(value, draft_order.currency))
     draft_order.total = discount(draft_order.total)
     draft_order.discounts.create(

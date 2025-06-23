@@ -388,7 +388,7 @@ def order_bulk_input(
             TransactionActionEnum.CANCEL.name,
         ],
         "amountAuthorized": {
-            "amount": Decimal("10"),
+            "amount": Decimal(10),
             "currency": "PLN",
         },
         "metadata": [{"key": "test-1", "value": "123"}],
@@ -506,8 +506,8 @@ def order_bulk_input_with_multiple_order_lines_and_fulfillments(
 @pytest.mark.parametrize(
     ("discount_type_enum", "discount_type", "discount_value"),
     [
-        (DiscountValueTypeEnum.FIXED, DiscountValueType.FIXED, Decimal("10")),
-        (DiscountValueTypeEnum.PERCENTAGE, DiscountValueType.PERCENTAGE, Decimal("50")),
+        (DiscountValueTypeEnum.FIXED, DiscountValueType.FIXED, Decimal(10)),
+        (DiscountValueTypeEnum.PERCENTAGE, DiscountValueType.PERCENTAGE, Decimal(50)),
     ],
 )
 def test_order_bulk_create_unit_discount(
@@ -769,7 +769,7 @@ def test_order_bulk_create(
     assert db_order.voucher_code == voucher_code
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
-    assert db_order.total_authorized_amount == Decimal("10")
+    assert db_order.total_authorized_amount == Decimal(10)
     assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
     assert db_order.shipping_address.validation_skipped is False
     assert db_order.billing_address.validation_skipped is False
@@ -907,10 +907,10 @@ def test_order_bulk_create(
     assert transaction["pspReference"] == "PSP reference - 123"
     assert transaction["message"] == "Credit Card"
     assert transaction["name"] == "Authorized for 10$"
-    assert transaction["authorizedAmount"]["amount"] == Decimal("10")
+    assert transaction["authorizedAmount"]["amount"] == Decimal(10)
     assert transaction["authorizedAmount"]["currency"] == "PLN"
     db_transaction = TransactionItem.objects.get()
-    assert db_transaction.authorized_value == Decimal("10")
+    assert db_transaction.authorized_value == Decimal(10)
     assert db_transaction.currency == "PLN"
     assert db_transaction.psp_reference == "PSP reference - 123"
     assert db_transaction.name == "Authorized for 10$"
@@ -920,12 +920,12 @@ def test_order_bulk_create(
     assert db_transaction.private_metadata == {"test-2": "321"}
 
     transaction_event = order["transactions"][0]["events"][0]
-    assert transaction_event["amount"]["amount"] == Decimal("10")
+    assert transaction_event["amount"]["amount"] == Decimal(10)
     assert (
         transaction_event["type"] == TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     )
     db_transaction_event = TransactionEvent.objects.get()
-    assert db_transaction_event.amount.amount == Decimal("10")
+    assert db_transaction_event.amount.amount == Decimal(10)
     assert db_transaction_event.type == TransactionEventType.AUTHORIZATION_SUCCESS
     assert db_transaction_event.transaction_id == db_transaction.id
 
@@ -1430,7 +1430,7 @@ def test_order_bulk_create_multiple_transactions(
 ):
     # given
     transactions_count = TransactionItem.objects.count()
-    authorized_amount = Decimal("80")
+    authorized_amount = Decimal(80)
     transaction_1 = {
         "name": "Authorized for 80$",
         "amountAuthorized": {
@@ -1439,7 +1439,7 @@ def test_order_bulk_create_multiple_transactions(
         },
     }
 
-    charged_amount = Decimal("100")
+    charged_amount = Decimal(100)
     transaction_2 = {
         "message": "Credit Card",
         "amountCharged": {
@@ -1448,7 +1448,7 @@ def test_order_bulk_create_multiple_transactions(
         },
     }
 
-    refunded_amount = Decimal("15")
+    refunded_amount = Decimal(15)
     transaction_3 = {
         "pspReference": "PSP reference - 123",
         "amountRefunded": {
@@ -1457,7 +1457,7 @@ def test_order_bulk_create_multiple_transactions(
         },
     }
 
-    canceled_amount = Decimal("20")
+    canceled_amount = Decimal(20)
     transaction_4 = {
         "amountCanceled": {
             "amount": canceled_amount,
@@ -1541,19 +1541,19 @@ def test_order_bulk_create_transactions_with_multiple_amounts(
 
     transaction = {
         "amountAuthorized": {
-            "amount": Decimal("10"),
+            "amount": Decimal(10),
             "currency": "PLN",
         },
         "amountCharged": {
-            "amount": Decimal("100"),
+            "amount": Decimal(100),
             "currency": "PLN",
         },
         "amountRefunded": {
-            "amount": Decimal("15"),
+            "amount": Decimal(15),
             "currency": "PLN",
         },
         "amountCanceled": {
-            "amount": Decimal("20"),
+            "amount": Decimal(20),
             "currency": "PLN",
         },
     }
@@ -1580,25 +1580,25 @@ def test_order_bulk_create_transactions_with_multiple_amounts(
     order = data[0]["order"]
 
     transaction = order["transactions"][0]
-    assert transaction["authorizedAmount"]["amount"] == Decimal("10")
+    assert transaction["authorizedAmount"]["amount"] == Decimal(10)
     assert transaction["authorizedAmount"]["currency"] == "PLN"
-    assert transaction["chargedAmount"]["amount"] == Decimal("100")
+    assert transaction["chargedAmount"]["amount"] == Decimal(100)
     assert transaction["chargedAmount"]["currency"] == "PLN"
-    assert transaction["refundedAmount"]["amount"] == Decimal("15")
+    assert transaction["refundedAmount"]["amount"] == Decimal(15)
     assert transaction["refundedAmount"]["currency"] == "PLN"
-    assert transaction["canceledAmount"]["amount"] == Decimal("20")
+    assert transaction["canceledAmount"]["amount"] == Decimal(20)
     assert transaction["canceledAmount"]["currency"] == "PLN"
 
     db_order = Order.objects.get()
     db_transaction = TransactionItem.objects.get()
-    assert db_transaction.authorized_value == Decimal("10")
-    assert db_transaction.charged_value == Decimal("100")
-    assert db_transaction.refunded_value == Decimal("15")
-    assert db_transaction.canceled_value == Decimal("20")
+    assert db_transaction.authorized_value == Decimal(10)
+    assert db_transaction.charged_value == Decimal(100)
+    assert db_transaction.refunded_value == Decimal(15)
+    assert db_transaction.canceled_value == Decimal(20)
     assert db_transaction.order_id == db_order.id
 
-    assert db_order.total_authorized_amount == Decimal("10")
-    assert db_order.total_charged_amount == Decimal("100")
+    assert db_order.total_authorized_amount == Decimal(10)
+    assert db_order.total_charged_amount == Decimal(100)
     assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
     assert db_order.charge_status == OrderChargeStatus.PARTIAL.lower()
 
@@ -3144,7 +3144,7 @@ def test_order_bulk_create_quantize_prices(
     assert db_order_line.unit_price.net.amount == Decimal("3.33")
     assert db_order_line.undiscounted_unit_price.gross.amount == Decimal("7.67")
     assert db_order_line.undiscounted_unit_price.net.amount == Decimal("4.33")
-    assert db_order_line.unit_discount_amount == Decimal("1")
+    assert db_order_line.unit_discount_amount == Decimal(1)
 
 
 def test_order_bulk_create_error_currency_mismatch_between_transaction_and_order(

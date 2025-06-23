@@ -15,14 +15,14 @@ class Migration(migrations.Migration):
             model_name="checkout",
             name="base_subtotal_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="base_total_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
@@ -36,49 +36,49 @@ class Migration(migrations.Migration):
             model_name="checkout",
             name="shipping_price_gross_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="shipping_price_net_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="subtotal_gross_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="subtotal_net_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="total_gross_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="total_net_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkout",
             name="undiscounted_base_shipping_price_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
@@ -92,14 +92,14 @@ class Migration(migrations.Migration):
             model_name="checkoutline",
             name="total_price_gross_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="checkoutline",
             name="total_price_net_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(

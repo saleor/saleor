@@ -333,10 +333,10 @@ def test_get_price_overridden_price_with_discount(
         price_amount=price_amount,
         currency=channel_USD.currency_code,
     )
-    price_override = Decimal("20")
+    price_override = Decimal(20)
 
-    reward_value_1 = Decimal("10")
-    reward_value_2 = Decimal("5")
+    reward_value_1 = Decimal(10)
+    reward_value_2 = Decimal(5)
     rule_1, rule_2 = PromotionRule.objects.bulk_create(
         [
             PromotionRule(

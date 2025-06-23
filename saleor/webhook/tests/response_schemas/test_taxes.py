@@ -89,7 +89,7 @@ def test_line_calculate_taxes_schema_valid(data):
         {
             "tax_rate": Decimal("20.00"),
             "total_gross_amount": Decimal("100.00"),
-            "total_net_amount": Decimal("100000000000000000000"),
+            "total_net_amount": Decimal(100000000000000000000),
         },
     ],
 )

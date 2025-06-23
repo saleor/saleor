@@ -24,7 +24,7 @@ def test_create_discount_for_voucher_specific_product_fixed(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    unit_discount_amount = Decimal("5")
+    unit_discount_amount = Decimal(5)
     voucher_listing.discount_value = unit_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
     voucher.discount_value_type = DiscountValueType.FIXED
@@ -124,7 +124,7 @@ def test_create_discount_for_voucher_specific_product_percentage(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("10")
+    discount_value = Decimal(10)
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
     voucher.discount_value_type = DiscountValueType.PERCENTAGE
@@ -228,7 +228,7 @@ def test_create_discount_for_voucher_apply_once_per_order_percentage(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("10")
+    discount_value = Decimal(10)
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -338,7 +338,7 @@ def test_create_discount_for_voucher_apply_once_per_order_fixed(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("5")
+    discount_amount = Decimal(5)
     voucher_listing.discount_value = discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -445,7 +445,7 @@ def test_create_discount_for_voucher_entire_order_fixed(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("35")
+    discount_amount = Decimal(35)
     voucher_listing.discount_value = discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -560,7 +560,7 @@ def test_create_discount_for_voucher_entire_order_multiple_lines(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("3")
+    discount_amount = Decimal(3)
     voucher_listing.discount_value = discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -655,7 +655,7 @@ def test_create_discount_for_voucher_entire_order_percentage(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("50")
+    discount_value = Decimal(50)
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -764,7 +764,7 @@ def test_create_discount_for_voucher_shipping_fixed(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("5")
+    discount_value = Decimal(5)
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -840,7 +840,7 @@ def test_create_discount_for_voucher_shipping_percentage(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_value = Decimal("50")
+    discount_value = Decimal(50)
     voucher_listing.discount_value = discount_value
     voucher_listing.save(update_fields=["discount_value"])
 

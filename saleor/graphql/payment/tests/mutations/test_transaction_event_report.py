@@ -109,7 +109,7 @@ def test_transaction_event_report_by_app(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -188,7 +188,7 @@ def test_transaction_event_report_by_app_via_token(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -415,7 +415,7 @@ def test_transaction_event_report_amount_with_lot_of_decimal_places(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -1014,7 +1014,7 @@ def test_transaction_event_updates_order_total_charged(
 ):
     # given
     order = order_with_lines
-    current_charged_value = Decimal("20")
+    current_charged_value = Decimal(20)
     psp_reference = "111-abc"
     amount = Decimal("11.00")
     transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
@@ -1269,7 +1269,7 @@ def test_transaction_event_updates_checkout_payment_statuses(
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     fetch_checkout_data(checkout_info, plugins_manager, lines)
 
-    current_charged_value = Decimal("20")
+    current_charged_value = Decimal(20)
     psp_reference = "111-abc"
     amount = Decimal("11.00")
     transaction = transaction_item_generator(
@@ -1896,7 +1896,7 @@ def test_transaction_event_report_with_info_event(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -1969,7 +1969,7 @@ def test_transaction_event_report_accepts_old_id_for_old_transaction(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10"), use_old_id=True
+        app=app_api_client.app, authorized_value=Decimal(10), use_old_id=True
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -2533,7 +2533,7 @@ def test_transaction_event_report_by_app_assign_app_owner(
     permission_manage_payments,
 ):
     # given
-    transaction = transaction_item_generator(authorized_value=Decimal("10"))
+    transaction = transaction_item_generator(authorized_value=Decimal(10))
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     message = "Sucesfull charge"
@@ -2613,7 +2613,7 @@ def test_transaction_event_report_assign_transaction_psp_reference_if_missing(
 ):
     # given
     transaction = transaction_item_generator(
-        authorized_value=Decimal("10"), psp_reference=transaction_psp_reference
+        authorized_value=Decimal(10), psp_reference=transaction_psp_reference
     )
     amount = Decimal("11.00")
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
@@ -2679,7 +2679,7 @@ def test_transaction_event_report_updates_granted_refund_status_when_needed(
     # given
     amount = Decimal("11.00")
     transaction = transaction_item_generator(
-        app=app_api_client.app, charged_value=Decimal("10"), order_id=order.pk
+        app=app_api_client.app, charged_value=Decimal(10), order_id=order.pk
     )
     granted_refund = order.granted_refunds.create(
         amount_value=amount, currency=order.currency, transaction_item=transaction
@@ -2746,7 +2746,7 @@ def test_transaction_event_report_missing_amount(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     psp_reference = "111-abc"
     expected_amount = 10
@@ -2809,7 +2809,7 @@ def test_transaction_event_report_missing_amount(
     assert event.psp_reference == psp_reference
     assert event.type == event_type
     expected_amount = (
-        expected_amount if event_type != TransactionEventType.INFO else Decimal("0")
+        expected_amount if event_type != TransactionEventType.INFO else Decimal(0)
     )
     assert event.amount_value == expected_amount
     assert event.currency == transaction.currency
@@ -2835,7 +2835,7 @@ def test_transaction_event_report_missing_amount_not_deduced_error_raised(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     psp_reference = "111-abc"
     transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
@@ -2894,7 +2894,7 @@ def test_transaction_event_report_missing_amount_error_raised(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     psp_reference = "111-abc"
     amount = 10
@@ -2964,7 +2964,7 @@ def test_transaction_event_report_update_transaction_metadata(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     psp_reference = "111-abc"
     amount = Decimal("11.00")
@@ -3037,7 +3037,7 @@ def test_transaction_event_report_metadata_not_provided(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     psp_reference = "111-abc"
     amount = Decimal("11.00")
@@ -3111,7 +3111,7 @@ def test_transaction_event_report_update_transaction_private_metadata(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     psp_reference = "111-abc"
     amount = Decimal("11.00")
@@ -3182,7 +3182,7 @@ def test_transaction_event_report_message_limit_exceeded(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -3262,7 +3262,7 @@ def test_transaction_event_report_empty_message(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
@@ -3586,7 +3586,7 @@ def test_transaction_event_report_with_card_payment_method_details(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     transaction.payment_method_type = PaymentMethodType.CARD
     transaction.payment_method_name = "Payment Method Name"
@@ -3659,7 +3659,7 @@ def test_transaction_event_report_with_other_payment_method_details(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
     transaction.payment_method_type = PaymentMethodType.CARD
     transaction.payment_method_name = "Payment Method Name"
@@ -3724,7 +3724,7 @@ def test_transaction_event_report_with_both_payment_method_details_inputs(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
 
     psp_reference = "111-abc"
@@ -3793,7 +3793,7 @@ def test_transaction_event_report_with_invalid_card_payment_method_details(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
 
     psp_reference = "111-abc"
@@ -3841,7 +3841,7 @@ def test_transaction_event_report_with_invalid_other_payment_method_details(
 ):
     # given
     transaction = transaction_item_generator(
-        app=app_api_client.app, authorized_value=Decimal("10")
+        app=app_api_client.app, authorized_value=Decimal(10)
     )
 
     psp_reference = "111-abc"

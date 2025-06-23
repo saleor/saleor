@@ -915,7 +915,7 @@ class OrderGrantedRefund(models.Model):
     amount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount = MoneyField(amount_field="amount_value", currency_field="currency")
     currency = models.CharField(
