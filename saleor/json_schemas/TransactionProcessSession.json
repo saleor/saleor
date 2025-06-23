@@ -78,6 +78,33 @@
           "$ref": "#/$defs/JsonValue",
           "default": null,
           "description": "The JSON data that will be returned to storefront"
+        },
+        "paymentMethodDetails": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CARD": "#/$defs/CardPaymentMethodDetails",
+                  "OTHER": "#/$defs/OtherPaymentMethodDetails"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OtherPaymentMethodDetails"
+                },
+                {
+                  "$ref": "#/$defs/CardPaymentMethodDetails"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Details of the payment method used for the transaction.",
+          "title": "Paymentmethoddetails"
         }
       },
       "required": [
@@ -163,6 +190,33 @@
           "$ref": "#/$defs/JsonValue",
           "default": null,
           "description": "The JSON data that will be returned to storefront"
+        },
+        "paymentMethodDetails": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CARD": "#/$defs/CardPaymentMethodDetails",
+                  "OTHER": "#/$defs/OtherPaymentMethodDetails"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OtherPaymentMethodDetails"
+                },
+                {
+                  "$ref": "#/$defs/CardPaymentMethodDetails"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Details of the payment method used for the transaction.",
+          "title": "Paymentmethoddetails"
         }
       },
       "required": [
@@ -247,6 +301,33 @@
           "$ref": "#/$defs/JsonValue",
           "default": null,
           "description": "The JSON data that will be returned to storefront"
+        },
+        "paymentMethodDetails": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CARD": "#/$defs/CardPaymentMethodDetails",
+                  "OTHER": "#/$defs/OtherPaymentMethodDetails"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OtherPaymentMethodDetails"
+                },
+                {
+                  "$ref": "#/$defs/CardPaymentMethodDetails"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Details of the payment method used for the transaction.",
+          "title": "Paymentmethoddetails"
         }
       },
       "required": [
@@ -257,6 +338,100 @@
     }
   ],
   "$defs": {
+    "CardPaymentMethodDetails": {
+      "properties": {
+        "type": {
+          "const": "CARD",
+          "description": "Type of the payment method used for the transaction.",
+          "maxLength": 32,
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the payment method used for the transaction.",
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        },
+        "brand": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Brand of the card used for the transaction.",
+          "title": "Brand"
+        },
+        "firstDigits": {
+          "anyOf": [
+            {
+              "maxLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "First digits of the card used for the transaction.",
+          "title": "Firstdigits"
+        },
+        "lastDigits": {
+          "anyOf": [
+            {
+              "maxLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Last digits of the card used for the transaction.",
+          "title": "Lastdigits"
+        },
+        "expMonth": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Expiration month of the card used for the transaction.",
+          "title": "Expmonth"
+        },
+        "expYear": {
+          "anyOf": [
+            {
+              "minimum": 2000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Expiration year of the card used for the transaction.",
+          "title": "Expyear"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "CardPaymentMethodDetails",
+      "type": "object"
+    },
     "JsonValue": {
       "anyOf": [
         {
@@ -284,6 +459,29 @@
         }
       ],
       "title": "JsonValue"
+    },
+    "OtherPaymentMethodDetails": {
+      "properties": {
+        "type": {
+          "const": "OTHER",
+          "description": "Type of the payment method used for the transaction.",
+          "maxLength": 32,
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the payment method used for the transaction.",
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "OtherPaymentMethodDetails",
+      "type": "object"
     }
   }
 }
