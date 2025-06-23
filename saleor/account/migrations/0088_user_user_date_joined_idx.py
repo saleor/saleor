@@ -11,7 +11,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("account", "0087_alter_address_metadata_and_more"),
-        ("permission", "0002_alter_permission_content_type"),
     ]
 
     operations = [
