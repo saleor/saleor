@@ -58,8 +58,8 @@ class PageWhere(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Page"))
     slug = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput,
-        method="filter_product_slug",
-        help_text="Filter by product slug.",
+        method="filter_page_slug",
+        help_text="Filter by page slug.",
     )
     page_type = OperationObjectTypeWhereFilter(
         input_class=GlobalIDFilterInput,
@@ -68,7 +68,7 @@ class PageWhere(MetadataWhereBase):
     )
 
     @staticmethod
-    def filter_product_slug(qs, _, value):
+    def filter_page_slug(qs, _, value):
         return filter_where_by_value_field(qs, "slug", value)
 
     @staticmethod

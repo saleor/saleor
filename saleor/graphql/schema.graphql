@@ -12758,7 +12758,7 @@ input PageWhereInput @doc(category: "Pages") {
   metadata: MetadataFilterInput
   ids: [ID!]
 
-  """Filter by product slug."""
+  """Filter by page slug."""
   slug: StringFilterInput
 
   """Filter by page type."""
