@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import TypeVar
 from uuid import UUID
 
 from django.db.models import Model, Q
@@ -16,7 +16,7 @@ class ModelObjectOptions(ObjectTypeOptions):
 MT = TypeVar("MT", bound=Model)
 
 
-class ModelObjectType(Generic[MT], BaseObjectType):
+class ModelObjectType[MT](BaseObjectType):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
