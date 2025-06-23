@@ -12,7 +12,7 @@ from ...core.postgres import FlatConcat
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...invoice.models import Invoice
-from ...order.models import Fulfillment, Order, OrderLine
+from ...order.models import Fulfillment, Order, OrderEvent, OrderLine
 from ...order.search import search_orders
 from ...payment import ChargeStatus
 from ...product.models import ProductVariant
@@ -63,6 +63,7 @@ from .enums import (
     FulfillmentStatusEnum,
     OrderAuthorizeStatusEnum,
     OrderChargeStatusEnum,
+    OrderEventsEnum,
     OrderStatusEnum,
     OrderStatusFilter,
 )
@@ -433,6 +434,28 @@ class LinesFilterInput(BaseInputObjectType):
         description = "Filter input for order lines data."
 
 
+class OrderEventTypeEnumFilterInput(BaseInputObjectType):
+    eq = OrderEventsEnum(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        OrderEventsEnum,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+
+class OrderEventFilterInput(BaseInputObjectType):
+    date = DateTimeRangeInput(
+        description="Filter order events by date.",
+    )
+    type = OrderEventTypeEnumFilterInput(
+        description="Filter order events by type.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        description = "Filter input for order events data."
+
+
 class OrderWhere(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Order"))
     number = OperationObjectTypeWhereFilter(
@@ -553,6 +576,11 @@ class OrderWhere(MetadataWhereBase):
         input_class=GlobalIDFilterInput,
         method="filter_product_type_id",
         help_text="Filter by the product type of related order lines.",
+    )
+    events = ObjectTypeWhereFilter(
+        input_class=OrderEventFilterInput,
+        method="filter_events",
+        help_text="Filter by order events.",
     )
 
     @staticmethod
@@ -684,6 +712,24 @@ class OrderWhere(MetadataWhereBase):
             OrderLine.objects.using(qs.db), "product_type_id", value, "ProductType"
         )
         return qs.filter(Exists(line_qs.filter(order_id=OuterRef("id"))))
+
+    @staticmethod
+    def filter_events(qs, _, value):
+        if not value:
+            return qs.none()
+        if not {"date", "type"}.intersection(value.keys()):
+            return qs.none()
+        if filter_value := value.get("date"):
+            events = filter_where_by_range_field(
+                OrderEvent.objects.using(qs.db), "date", filter_value
+            )
+            qs = qs.filter(Exists(events.filter(order_id=OuterRef("id"))))
+        if filter_value := value.get("type"):
+            events = filter_where_by_value_field(
+                OrderEvent.objects.using(qs.db), "type", filter_value
+            )
+            qs = qs.filter(Exists(events.filter(order_id=OuterRef("id"))))
+        return qs
 
 
 class OrderWhereInput(WhereInputObjectType):

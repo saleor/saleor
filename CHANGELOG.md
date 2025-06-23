@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by order metadata.
     - Filter by order by associated lines metadata.
     - Filter by the product type of related order lines.
+    - Filter by associated event type and date
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - Enhanced order search options. Orders can now be searched using:
   - The order's ID
@@ -30,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Messages from related order events
   - The content of customer note
   - The order external reference
+- Extend sorting options. You can now sort orders by their status.
 - Add support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
 
 ### Webhooks

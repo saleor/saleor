@@ -127,7 +127,7 @@ class OrderQueries(graphene.ObjectType):
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
         where=OrderWhereInput(
-            description="Where filtering options for draft orders." + ADDED_IN_322
+            description="Where filtering options for orders." + ADDED_IN_322
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."

@@ -784,7 +784,7 @@ type Query {
     filter: OrderFilterInput
 
     """
-    Where filtering options for draft orders.
+    Where filtering options for orders.
     
     Added in Saleor 3.22.
     """
@@ -12865,23 +12865,30 @@ enum OrderSortField @doc(category: "Orders") {
   """
   RANK
 
-  """Sort orders by creation date."""
-  CREATION_DATE
+  """Sort orders by creation date"""
+  CREATION_DATE @deprecated(reason: "Use `createdAt` instead.")
 
   """Sort orders by creation date."""
   CREATED_AT
 
-  """Sort orders by last modified at."""
+  """Sort orders by last modified date."""
   LAST_MODIFIED_AT
 
   """Sort orders by customer."""
   CUSTOMER
 
-  """Sort orders by payment."""
+  """Sort orders by payment status."""
   PAYMENT
 
   """Sort orders by fulfillment status."""
-  FULFILLMENT_STATUS
+  FULFILLMENT_STATUS @deprecated(reason: "Use `status` instead.")
+
+  """
+  Sort orders by order status. 
+  
+  Added in Saleor 3.22.
+  """
+  STATUS
 }
 
 input OrderFilterInput @doc(category: "Orders") {
@@ -12996,6 +13003,9 @@ input OrderWhereInput @doc(category: "Orders") {
 
   """Filter by the product type of related order lines."""
   productTypeId: GlobalIDFilterInput
+
+  """Filter by order events."""
+  events: OrderEventFilterInput
 
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
@@ -13118,6 +13128,23 @@ input PriceFilterInput {
 
   """The amount of the price to filter by."""
   amount: DecimalFilterInput!
+}
+
+"""Filter input for order events data."""
+input OrderEventFilterInput @doc(category: "Orders") {
+  """Filter order events by date."""
+  date: DateTimeRangeInput
+
+  """Filter order events by type."""
+  type: OrderEventTypeEnumFilterInput
+}
+
+input OrderEventTypeEnumFilterInput {
+  """The value equal to."""
+  eq: OrderEventsEnum
+
+  """The value included in."""
+  oneOf: [OrderEventsEnum!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
