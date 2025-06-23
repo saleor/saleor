@@ -2,7 +2,7 @@ import graphene
 
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_321, ADDED_IN_322
+from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField, FilterConnectionField
@@ -48,7 +48,12 @@ class PageQueries(graphene.ObjectType):
     pages = FilterConnectionField(
         PageCountableConnection,
         sort_by=PageSortingInput(description="Sort pages."),
-        filter=PageFilterInput(description="Filtering options for pages."),
+        filter=PageFilterInput(
+            description=(
+                "Filtering options for pages."
+                f"{DEPRECATED_IN_3X_INPUT} + Use `where` and `search` instead."
+            ),
+        ),
         search=graphene.String(
             description="Search pages. Overrides filter.search input." + ADDED_IN_322
         ),

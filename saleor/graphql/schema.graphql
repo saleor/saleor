@@ -685,7 +685,7 @@ type Query {
     sortBy: PageSortingInput
 
     """Filtering options for pages."""
-    filter: PageFilterInput
+    filter: PageFilterInput @deprecated(reason: "+ Use `where` and `search` instead.")
 
     """
     Search pages. Overrides filter.search input.
