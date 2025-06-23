@@ -23,27 +23,27 @@ class OrderSortField(BaseEnum):
     @property
     def description(self):
         descriptions = {
-            OrderSortField.NUMBER.name: "Sort orders by number.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.NUMBER.name: "number.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             OrderSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "Sort orders by rank. Note: This option is available only with the `search` filter."
+                "rank. Note: This option is available only with the `search` filter."
             ),
-            OrderSortField.CREATION_DATE.name: "Sort orders by creation date",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.CREATED_AT.name: "Sort orders by creation date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.LAST_MODIFIED_AT.name: "Sort orders by last modified date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.CUSTOMER.name: "Sort orders by customer.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.PAYMENT.name: "Sort orders by payment status.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.FULFILLMENT_STATUS.name: "Sort orders by fulfillment status.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.STATUS.name: f"Sort orders by order status. {ADDED_IN_322}",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.CREATION_DATE.name: "creation date",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.CREATED_AT.name: "creation date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.LAST_MODIFIED_AT.name: "last modified date.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.CUSTOMER.name: "customer.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.PAYMENT.name: "payment status.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.FULFILLMENT_STATUS.name: "fulfillment status.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.STATUS.name: f"order status. {ADDED_IN_322}",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
-            return descriptions[self.name]
+            return f"Sort orders by {descriptions[self.name]}"
         raise ValueError(f"Unsupported enum value: {self.value}")
 
     @property
     def deprecation_reason(self):
         deprecations = {
-            OrderSortField.CREATION_DATE.name: ("Use `createdAt` instead."),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            OrderSortField.FULFILLMENT_STATUS.name: ("Use `status` instead."),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.CREATION_DATE.name: ("Use `CREATED_AT` instead."),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.FULFILLMENT_STATUS.name: ("Use `STATUS` instead."),  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in deprecations:
             return deprecations[self.name]
