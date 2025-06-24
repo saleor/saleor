@@ -241,7 +241,6 @@ def generate_transactions_data(payment: Payment) -> list[TransactionData]:
             token=t.token,
             is_success=t.is_success,
             kind=t.kind,
-            gateway_response={},
             amount={
                 "amount": str(quantize_price(t.amount, t.currency)),
                 "currency": t.currency,

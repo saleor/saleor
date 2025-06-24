@@ -44,7 +44,6 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
                 chargeStatus
                 transactions {
                     error
-                    gatewayResponse
                     amount {
                         currency
                         amount

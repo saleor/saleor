@@ -1230,6 +1230,11 @@ def test_confirm_payment_for_webhook(kind, stripe_plugin, payment_stripe_for_che
     assert response.action_required_data is None
     assert response.transaction_already_processed is True
 
+    transaction = payment.transactions.filter(kind=kind, token=payment_intent_id).last()
+    assert transaction is not None
+    assert transaction.is_success
+    assert transaction.token == payment_intent_id
+
 
 @pytest.mark.parametrize(
     ("kind", "status"),

@@ -595,6 +595,7 @@ class AdyenGatewayPlugin(BasePlugin):
             # standard flow for confirming an additional action
             return self._process_additional_action(payment_information, kind)
 
+        # TODO We need to store reuslt code and payment method in DB instead
         result_code = transaction.gateway_response.get("resultCode", "").strip().lower()
         payment_method = (
             transaction.gateway_response.get("paymentMethod", "").strip().lower()

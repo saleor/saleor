@@ -367,6 +367,13 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
     assert response.amount == action_transaction.amount
     assert response.currency == action_transaction.currency
 
+    transaction = payment_adyen_for_order.transactions.filter(
+        kind=TransactionKind.AUTH
+    ).last()
+    assert transaction is not None
+    assert transaction.is_success
+    assert transaction.token == gateway_response.transaction_id
+
 
 def test_confirm_payment_pending_order(payment_adyen_for_checkout, adyen_plugin):
     payment_info = create_payment_information(
@@ -465,6 +472,13 @@ def test_confirm_payment_with_adyen_auto_capture(payment_adyen_for_order, adyen_
     assert response.kind == TransactionKind.CAPTURE
     assert response.amount == auth_transaction.amount
     assert response.currency == auth_transaction.currency
+
+    transaction = payment_adyen_for_order.transactions.filter(
+        kind=TransactionKind.CAPTURE
+    ).last()
+    assert transaction is not None
+    assert transaction.is_success
+    assert transaction.token == gateway_response.transaction_id
 
 
 @pytest.mark.vcr

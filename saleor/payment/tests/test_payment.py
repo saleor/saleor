@@ -417,7 +417,7 @@ def test_create_transaction_long_error_message(transaction_data_long_error_messa
 def test_create_transaction_no_gateway_response(transaction_data):
     transaction_data.pop("gateway_response")
     txn = create_transaction(**transaction_data)
-    assert txn.gateway_response == {}
+    assert not hasattr(txn, "gateway_response")
 
 
 @patch.object(PluginsManager, "capture_payment")
