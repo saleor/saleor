@@ -1500,10 +1500,24 @@ type Query {
   """
   customers(
     """Filtering options for customers."""
-    filter: CustomerFilterInput
+    filter: CustomerFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """
+    Where filtering options for customers.
+    
+    Added in Saleor 3.22.
+    """
+    where: CustomerWhereInput
 
     """Sort customers."""
     sortBy: UserSortingInput
+
+    """
+    Search customers.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -14397,6 +14411,27 @@ input CustomerFilterInput @doc(category: "Users") {
   """Filter by ids."""
   ids: [ID!]
   updatedAt: DateTimeRangeInput
+}
+
+input CustomerWhereInput @doc(category: "Users") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+
+  """Filter by date joined."""
+  dateJoined: DateTimeRangeInput
+
+  """Filter by last updated date."""
+  updatedAt: DateTimeRangeInput
+
+  """Filter by date when orders were placed."""
+  placedOrdersAt: DateTimeRangeInput
+
+  """List of conditions that must be met."""
+  AND: [CustomerWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CustomerWhereInput!]
 }
 
 input UserSortingInput @doc(category: "Users") {
