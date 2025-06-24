@@ -50,7 +50,6 @@ def checkout_with_charged_payment(checkout_with_billing_address):
     payment.transactions.create(
         amount=payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
 
@@ -85,7 +84,6 @@ def checkout_with_charged_payment_for_cc(checkout_with_billing_address_for_cc):
     payment.transactions.create(
         amount=payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
 
@@ -128,7 +126,6 @@ def checkout_preorder_with_charged_payment(
     payment.transactions.create(
         amount=payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
 
@@ -172,7 +169,6 @@ def checkout_with_digital_line_with_charged_payment(
     payment.transactions.create(
         amount=payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
     return checkout

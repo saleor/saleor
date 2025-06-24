@@ -104,7 +104,7 @@ def test_orders_query_with_search(
     payment = Payment.objects.create(
         order=order_with_payment, psp_reference="ExternalID"
     )
-    payment.transactions.create(gateway_response={}, is_success=True)
+    payment.transactions.create(is_success=True)
 
     order_with_orderline = orders[2]
     channel = order_with_orderline.channel

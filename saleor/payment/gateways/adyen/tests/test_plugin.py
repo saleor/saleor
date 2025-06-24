@@ -416,7 +416,6 @@ def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin
         payment=payment_adyen_for_order,
         payment_information=payment_info,
         kind=TransactionKind.ACTION_TO_CONFIRM,
-        gateway_response=gateway_response,
     )
     gateway_response.kind = TransactionKind.AUTH
     action_transaction = create_transaction(

@@ -278,7 +278,6 @@ def test_create_payment_information_for_payment_with_transactions(payment_dummy)
         amount=payment_dummy.total,
         currency=payment_dummy.currency,
         kind=TransactionKind.AUTH,
-        gateway_response={"status": "SUCCESS"},
         is_success=True,
     )
 
@@ -292,7 +291,6 @@ def test_create_payment_information_for_payment_with_transactions(payment_dummy)
                 token=transaction.token,
                 is_success=transaction.is_success,
                 kind=transaction.kind,
-                gateway_response=transaction.gateway_response,
                 amount={
                     "amount": str(
                         quantize_price(transaction.amount, transaction.currency)
@@ -643,7 +641,6 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
     payment.transactions.create(
         amount=payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
     assert payment.get_authorized_amount().amount == Decimal(0)

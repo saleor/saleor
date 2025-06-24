@@ -1405,7 +1405,6 @@ def test_payment_refund_or_void_refund_not_called_refund_already_started(
         amount=payment.total,
         currency=payment.currency,
         token="test",
-        gateway_response={},
     )
 
     # when
@@ -1433,7 +1432,6 @@ def test_payment_refund_or_void_refund_called_txn_exist(refund_mock, payment):
         amount=payment.captured_amount / 2,
         currency=payment.currency,
         token="test",
-        gateway_response={},
     )
 
     # when
@@ -1466,7 +1464,6 @@ def test_payment_refund_or_void_refund_called_no_txn_with_given_transaction_id(
         amount=payment.captured_amount,
         currency=payment.currency,
         token="test",
-        gateway_response={},
     )
 
     # when
@@ -1513,7 +1510,6 @@ def test_payment_refund_or_void_void_not_called_txn_exist(void_mock, payment):
         amount=payment.total,
         currency=payment.currency,
         token="test",
-        gateway_response={},
     )
 
     # when

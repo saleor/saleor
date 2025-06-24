@@ -392,7 +392,6 @@ def test_handle_authorization_for_checkout_that_cannot_be_finalized(
         action_required=False,
         currency=payment.currency,
         amount=payment.total,
-        gateway_response={},
     )
     payment.transactions.create(
         token="refund-reference",
@@ -401,7 +400,6 @@ def test_handle_authorization_for_checkout_that_cannot_be_finalized(
         action_required=False,
         currency=payment.currency,
         amount=payment.total,
-        gateway_response={},
     )
 
     checkout.lines.first().delete()
@@ -464,7 +462,6 @@ def test_handle_authorization_calls_refund_for_inactive_payment(
                 action_required=False,
                 currency=payment.currency,
                 amount=payment.total,
-                gateway_response={},
                 already_processed=True,
             ),
             Transaction(
@@ -475,7 +472,6 @@ def test_handle_authorization_calls_refund_for_inactive_payment(
                 action_required=False,
                 currency=payment.currency,
                 amount=payment.total,
-                gateway_response={},
                 already_processed=True,
             ),
             Transaction(
@@ -486,7 +482,6 @@ def test_handle_authorization_calls_refund_for_inactive_payment(
                 action_required=False,
                 currency=payment.currency,
                 amount=payment.total,
-                gateway_response={},
                 already_processed=True,
             ),
         ]
@@ -650,7 +645,6 @@ def test_handle_authorization_adyen_auto_capture_inactive_payment_and_captured_t
         amount=payment.total,
         currency=payment.currency,
         token=psp_reference,
-        gateway_response={},
     )
     update_payment_charge_status(payment, txn)
     captured_amount = payment.captured_amount
@@ -946,7 +940,6 @@ def test_handle_capture_inactive_payment_capture_txn_exists(
         amount=payment.total,
         currency=payment.currency,
         token=psp_reference,
-        gateway_response={},
     )
     update_payment_charge_status(payment, txn)
     captured_amount = payment.captured_amount
