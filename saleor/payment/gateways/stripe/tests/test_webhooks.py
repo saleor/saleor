@@ -440,7 +440,6 @@ def test_handle_successful_payment_intent_checkout_with_voucher_ongoing_completi
         amount=total.gross.amount,
         currency=total.gross.currency,
         error="",
-        gateway_response={},
         action_required_data={},
     )
 

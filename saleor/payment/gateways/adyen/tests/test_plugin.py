@@ -489,7 +489,6 @@ def test_confirm_payment_without_additional_data(payment_adyen_for_order, adyen_
         amount="100",
         currency="EUR",
         error="",
-        gateway_response={},
         action_required_data={},
     )
 
