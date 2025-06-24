@@ -1,12 +1,16 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
+from django.db import transaction as database_transaction
 from freezegun import freeze_time
+from psycopg.errors import QueryCanceled
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
+from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
@@ -16,6 +20,7 @@ from .....payment import TransactionEventType
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
+from ....order.enums import OrderChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 
@@ -2466,3 +2471,142 @@ def test_transaction_create_create_event_message_is_empty(
     event = transaction.events.last()
     assert event.message == ""
     assert event.psp_reference == transaction_reference
+
+
+# transaction=True is required to ensure that the order is locked without it second context will not
+# be able to trying to acquire a lock on the order.
+@pytest.mark.django_db(transaction=True)
+def test_lock_checkout_during_updating_checkout_amounts(
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
+        },
+    }
+
+    # when & then
+    def check_if_checkout_is_locked(*args, **kwargs):
+        # This function will be called when the order amounts are being updated
+        # We will try to acquire a lock on the order row to check if it's locked.
+        cxn = database_transaction.get_connection()
+        new_cxn = cxn.get_new_connection(cxn.get_connection_params())
+        with new_cxn.cursor() as cursor:
+            cursor.execute("SET statement_timeout = 100")
+            with pytest.raises(QueryCanceled):
+                cursor.execute(
+                    """
+                    SELECT *
+                    FROM "checkout_checkout"
+                    WHERE "checkout_checkout"."token" = %s
+                    FOR UPDATE;
+                    """,
+                    [checkout.pk],
+                )
+                cursor.close()
+                new_cxn.close()
+                # pytest.fail("END!")
+                assert False, "Checkout should be locked during transaction creation"
+                print("A" * 100)
+
+    # We use before_after.before to ensure that the lock is acquired before the transaction amounts are updated.
+    with before_after.before(
+        "saleor.graphql.payment.mutations.transaction."
+        "transaction_create.transaction_amounts_for_checkout_updated",
+        check_if_checkout_is_locked,
+    ):
+        app_api_client.post_graphql(
+            MUTATION_TRANSACTION_CREATE,
+            variables,
+            permissions=[permission_manage_payments],
+        )
+
+
+def test_transaction_create_create_checkout_completed_race_condition(
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    def complete_checkout(*args, **kwargs):
+        create_order_from_checkout(
+            checkout_info, plugins_manager, user=None, app=app_api_client.app
+        )
+
+    with before_after.after(
+        "saleor.graphql.payment.mutations.transaction.transaction_create.recalculate_transaction_amounts",
+        complete_checkout,
+    ):
+        response = app_api_client.post_graphql(
+            MUTATION_TRANSACTION_CREATE,
+            variables,
+            permissions=[permission_manage_payments],
+        )
+
+    # then
+    get_graphql_content(response)
+    order = Order.objects.get(checkout_token=checkout.pk)
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    assert order.total_charged.amount == checkout.total.gross.amount
