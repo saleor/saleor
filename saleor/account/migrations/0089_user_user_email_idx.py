@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("account", "0088_user_user_date_joined_idx"),
-        ("permission", "0002_alter_permission_content_type"),
     ]
 
     operations = [
