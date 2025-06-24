@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Count, Exists, OuterRef
 
-from ...account.models import User
+from ...account.models import Address, User
 from ...account.search import search_users
 from ...order.models import Order
 from ..core.doc_category import DOC_CATEGORY_USERS
@@ -19,7 +19,12 @@ from ..core.filters.where_input import (
     StringFilterInput,
     WhereInputObjectType,
 )
-from ..core.types import DateRangeInput, DateTimeRangeInput, IntRangeInput
+from ..core.types import (
+    BaseInputObjectType,
+    DateRangeInput,
+    DateTimeRangeInput,
+    IntRangeInput,
+)
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -92,6 +97,16 @@ class CustomerFilter(MetadataFilterBase):
         ]
 
 
+class AddressFilterInput(BaseInputObjectType):
+    phone_number = StringFilterInput(
+        help_text="Filter by phone number.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        description = "Filtering options for addresses."
+
+
 class CustomerWhereFilterInput(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("User"))
     email = ObjectTypeWhereFilter(
@@ -118,6 +133,11 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         method="filter_placed_orders_at",
         help_text="Filter by date when orders were placed.",
     )
+    addresses = ObjectTypeWhereFilter(
+        input_class=AddressFilterInput,
+        method="filter_addresses",
+        help_text="Filter by addresses data associated with user.",
+    )
 
     def filter_email(self, qs, _, value):
         if not value:
@@ -142,6 +162,20 @@ class CustomerWhereFilterInput(MetadataWhereBase):
             Order.objects.using(qs.db), "created_at", value
         )
         return qs.filter(Exists(orders.filter(user_id=OuterRef("id"))))
+
+    def filter_addresses(self, qs, _, value):
+        if not value:
+            return qs.none()
+        UserAddress = User.addresses.through
+        if (phone_number := value.get("phone_number")) is not None:
+            address_qs = filter_where_by_value_field(
+                Address.objects.using(qs.db), "phone", phone_number
+            )
+            user_address_qs = UserAddress.objects.using(qs.db).filter(
+                Exists(address_qs.filter(id=OuterRef("address_id"))),
+            )
+            return qs.filter(Exists(user_address_qs.filter(user_id=OuterRef("id"))))
+        return qs.none()
 
 
 class CustomerWhereInput(WhereInputObjectType):

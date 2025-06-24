@@ -14433,11 +14433,19 @@ input CustomerWhereInput @doc(category: "Users") {
   """Filter by date when orders were placed."""
   placedOrdersAt: DateTimeRangeInput
 
+  """Filter by addresses data associated with user."""
+  addresses: AddressFilterInput
+
   """List of conditions that must be met."""
   AND: [CustomerWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [CustomerWhereInput!]
+}
+
+"""Filtering options for addresses."""
+input AddressFilterInput @doc(category: "Users") {
+  phoneNumber: StringFilterInput
 }
 
 input UserSortingInput @doc(category: "Users") {
