@@ -39,6 +39,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
+  - Introduced new filtering options for customers:
+    - Filter by email address.
+    - Filter by active status (`isActive`).
+    - Filter by phone numbers associated with user addresses.
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
