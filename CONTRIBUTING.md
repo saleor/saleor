@@ -408,7 +408,7 @@ Also, do not forget about the docstring, especially in a complicated function.
 
 ### Locking objects
 
-To you want to lock an object, use the `select_for_update()` method on the queryset.
+If you want to lock an object, use the `select_for_update()` method on the queryset.
 If you want to lock multiple objects, they should all be locked in the same order to avoid deadlocks.
  - We should always use the same ordering e.g. by `pk`
  - We should also lock different models in the same order, e.g. if we lock `Order` and `OrderLine` models, we should always lock `Order` first, followed by `OrderLine`.
