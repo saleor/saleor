@@ -188,11 +188,14 @@ def test_checkout_complete(
         items={"accepted": "false"}
     )
     checkout.tax_exemption = True
+    checkout.user = customer_user
     checkout.save()
     checkout.metadata_storage.save()
 
     customer_user.addresses.clear()
     user_address_count = customer_user.addresses.count()
+
+    user_orders_count = customer_user.number_of_orders
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -315,6 +318,9 @@ def test_checkout_complete(
         set(customer_address_ids)
         & {order.billing_address.pk, order.shipping_address.pk}
     )
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_orders_count + 1
 
 
 @pytest.mark.integration

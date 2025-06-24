@@ -297,6 +297,10 @@ def order_created(
             extra={"tax_error": order.tax_error, "order_id": order_id},
         )
 
+    if order_user := order.user:
+        order_user.number_of_orders += 1
+        order_user.save(update_fields=["number_of_orders"])
+
     events.order_created_event(
         order=order, user=user, app=app, from_draft=from_draft, automatic=automatic
     )
