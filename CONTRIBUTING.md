@@ -406,6 +406,16 @@ otherwise to the main module directory, usually to the `utils.py` file.
 Try to find a name as descriptive as possible when writing such a method.
 Also, do not forget about the docstring, especially in a complicated function.
 
+### Locking objects
+
+To you want to lock an object, use the `select_for_update()` method on the queryset.
+If you want to lock multiple objects, they should all be locked in the same order to avoid deadlocks.
+ - We should always use the same ordering e.g. by `pk`
+ - We should also lock different models in the same order, e.g. if we lock `Order` and `OrderLine` models, we should always lock `Order` first, followed by `OrderLine`.
+
+To avoid deadlocks, we should wrap locked objects in helper functions. These functions should be in the `lock_objects.py` file in the `models.py` directory.
+If we are locking multiple objects, we should store the helper functions in a file dedicated to the last locked model e.g. if we are locking `Order` and `TransactionItem`, we should store them in `payment/lock_objects.py`.
+
 ### Searching
 
 So far, we have mainly used the `GinIndex` and `ilike` operators for searching, but currently, we are testing a new solution with the use of `SearchVector` and `SearchRank`.
