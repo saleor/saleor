@@ -7,6 +7,7 @@ from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
 from django.db.models.functions import Greatest
 from django.utils import timezone
 
+from ..account.lock_objects import user_qs_select_for_update
 from ..account.models import User
 from ..celeryconf import app
 from ..channel.models import Channel
@@ -226,10 +227,9 @@ def delete_expired_orders_task():
 @allow_writer()
 def reduce_user_number_of_orders(user_orders_count: dict[int, int]):
     user_ids = list(user_orders_count.keys())
-    users = User.objects.filter(id__in=user_ids).order_by("pk")
     users_to_update = []
     with traced_atomic_transaction():
-        _users = list(users.select_for_update(of=(["self"])))
+        users = user_qs_select_for_update().filter(id__in=user_ids)
         users_in_bulk = users.in_bulk()
         for user_id, order_count in user_orders_count.items():
             user = users_in_bulk.get(user_id)
