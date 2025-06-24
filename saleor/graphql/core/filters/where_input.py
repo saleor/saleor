@@ -25,8 +25,25 @@ class WhereInputObjectType(FilterInputObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, _meta=None, **options):
-        super().__init_subclass_with_meta__(_meta=_meta, **options)
+    def __init_subclass_with_meta__(
+        cls,
+        container=None,
+        _meta=None,
+        doc_category=None,
+        model=None,
+        filterset_class=None,
+        fields=None,
+        **options,
+    ):
+        super().__init_subclass_with_meta__(
+            container=container,
+            _meta=_meta,
+            doc_category=doc_category,
+            model=model,
+            filterset_class=filterset_class,
+            fields=fields,
+            **options,
+        )
         cls._meta.fields.update(
             {
                 "AND": graphene.Field(

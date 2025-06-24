@@ -6,6 +6,7 @@ from ....app import models
 from ....app.error_codes import AppErrorCode
 from ....permission.enums import AppPermission
 from ...account.utils import can_manage_app
+from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError, BaseInputObjectType
@@ -56,7 +57,7 @@ class AppTokenCreate(DeprecatedModelMutation):
         return response
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, *, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         app = cleaned_input.get("app")
         validate_app_is_not_removed(app, data.get("app"), "app")

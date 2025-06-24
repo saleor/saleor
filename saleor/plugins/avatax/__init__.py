@@ -344,7 +344,7 @@ def generate_request_data_from_checkout_lines(
         }
 
         append_line_to_data(
-            **append_line_to_data_kwargs,
+            **append_line_to_data_kwargs,  # type: ignore[arg-type]
             amount=checkout_line_total.amount,
             ref1=line_info.variant.sku,
         )

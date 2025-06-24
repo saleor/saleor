@@ -193,7 +193,7 @@ class OrderGrantRefundCreate(BaseMutation):
         reason = input.get("reason") or ""
         transaction_id = input.get("transaction_id")
         input_lines = input.get("lines", [])
-        grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
+        grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
 
         cls.validate_input(input)
 

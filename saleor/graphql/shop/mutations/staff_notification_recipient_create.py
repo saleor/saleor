@@ -39,7 +39,7 @@ class StaffNotificationRecipientCreate(DeprecatedModelMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance, data, *, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         cls.validate_input(instance, cleaned_input)
         email = cleaned_input.pop("email", None)

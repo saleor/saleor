@@ -5,6 +5,7 @@ from .....payment.interface import PaymentGatewayInitializeTokenizationRequestDa
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventSyncType
 from ....channel.utils import validate_channel
+from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import PaymentGatewayInitializeTokenizationErrorCode
 from ....core.mutations import BaseMutation
@@ -34,7 +35,6 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
             description="Slug of a channel related to tokenization request.",
             required=True,
         )
-
         data = graphene.Argument(
             JSON, description="The data that will be passed to the payment gateway."
         )
@@ -100,7 +100,10 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
         return cls(result=response.result, data=response.data, errors=errors)
 
     @classmethod
-    def perform_mutation(cls, root, info, id, channel, data=None):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **kwargs):
+        id = kwargs["id"]
+        channel = kwargs["channel"]
+        data = kwargs.get("data")
         try:
             return cls._perform_mutation(root, info, id, channel, data)
         except ValidationError as error:

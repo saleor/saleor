@@ -124,18 +124,14 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         )
 
     @classmethod
-    def perform_mutation(
-        cls,
-        _root,
-        info,
-        /,
-        shipping_address,
-        save_address,
-        validation_rules=None,
-        checkout_id=None,
-        token=None,
-        id=None,
-    ):
+    def perform_mutation(cls, _root, info, /, **data):
+        shipping_address = data["shipping_address"]
+        save_address = data["save_address"]
+        validation_rules = data.get("validation_rules")
+        checkout_id = data.get("checkout_id")
+        token = data.get("token")
+        id = data.get("id")
+
         checkout = get_checkout(
             cls,
             info,
