@@ -71,7 +71,7 @@ class Collection(ChannelContextType[models.Collection]):
                 "Use `where` filter instead."
             )
         ),
-        where=ProductWhereInput(description="Filtering options for products."),
+        where=ProductWhereInput(description="Where filtering options for products."),
         search=graphene.String(description="Search products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",

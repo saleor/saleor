@@ -341,7 +341,7 @@ type Query {
     """Filtering options for categories."""
     filter: CategoryFilterInput
 
-    """Where filtering options."""
+    """Where filtering options for categories."""
     where: CategoryWhereInput
 
     """Sort categories."""
@@ -411,7 +411,7 @@ type Query {
     """Filtering options for collections."""
     filter: CollectionFilterInput
 
-    """Where filtering options."""
+    """Where filtering options for collections."""
     where: CollectionWhereInput
 
     """Sort collections."""
@@ -468,7 +468,7 @@ type Query {
     """Filtering options for products."""
     filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-    """Where filtering options."""
+    """Where filtering options for products."""
     where: ProductWhereInput
 
     """Sort products."""
@@ -558,7 +558,7 @@ type Query {
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
 
-    """Where filtering options."""
+    """Where filtering options for product variants."""
     where: ProductVariantWhereInput
 
     """Sort products variants."""
@@ -1177,7 +1177,7 @@ type Query {
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   promotions(
-    """Where filtering options."""
+    """Where filtering options for promotions."""
     where: PromotionWhereInput
 
     """Sort promotions."""
@@ -1331,7 +1331,7 @@ type Query {
     """Filtering options for attributes."""
     filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-    """Filtering options for attributes."""
+    """Where filtering options for attributes."""
     where: AttributeWhereInput
 
     """Search attributes."""
@@ -5657,7 +5657,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
 
-    """Where filtering options."""
+    """Where filtering options for product variants."""
     where: ProductVariantWhereInput
 
     """Sort products variants."""
@@ -6610,11 +6610,13 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   products(
-    """Filtering options for products."""
+    """
+    Filtering options for products. {DEPRECATED_IN_3X_INPUT} Use `where` filter instead.
+    """
     filter: ProductFilterInput
 
-    """Filtering options for products."""
-    where: ProductWhereInput @deprecated(reason: "Use `where` filter instead.")
+    """Where filtering options for products."""
+    where: ProductWhereInput
 
     """Sort products."""
     sortBy: ProductOrder
@@ -7973,7 +7975,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     """Filtering options for products."""
     filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-    """Filtering options for products."""
+    """Where filtering options for products."""
     where: ProductWhereInput
 
     """Search products."""
@@ -8549,7 +8551,7 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
     """Filtering options for attributes."""
     filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-    """Filtering options for attributes."""
+    """Where filtering options for attributes."""
     where: AttributeWhereInput
 
     """Search attributes."""

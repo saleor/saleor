@@ -41,7 +41,9 @@ class AttributeQueries(graphene.ObjectType):
                 "Use `where` filter instead."
             )
         ),
-        where=AttributeWhereInput(description="Filtering options for attributes."),
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes."
+        ),
         search=graphene.String(description="Search attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(

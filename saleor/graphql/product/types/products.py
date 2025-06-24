@@ -962,7 +962,9 @@ class Product(ChannelContextType[models.Product]):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
-        where=ProductVariantWhereInput(description="Where filtering options."),
+        where=ProductVariantWhereInput(
+            description="Where filtering options for product variants."
+        ),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of variants for the product. Requires the following permissions to "

@@ -20,7 +20,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import get_database_connection_name
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -64,13 +64,12 @@ class Category(ModelObjectType[models.Category]):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
-        where=ProductWhereInput(
+        filter=ProductFilterInput(
             description=(
-                f"Filtering options for products.  {DEPRECATED_IN_3X_INPUT} "
-                "Use `where` filter instead."
+                "Filtering options for products. {DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
             )
         ),
+        where=ProductWhereInput(description="Where filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         search=graphene.String(description="Search products."),
         channel=graphene.String(

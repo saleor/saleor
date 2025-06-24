@@ -52,7 +52,9 @@ class PageType(ModelObjectType[models.PageType]):
             description="Filtering options for attributes. "
             f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
         ),
-        where=AttributeWhereInput(description="Filtering options for attributes."),
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes."
+        ),
         search=graphene.String(description="Search attributes."),
         description="Attributes that can be assigned to the page type.",
         permissions=[
