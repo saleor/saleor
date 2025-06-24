@@ -163,37 +163,56 @@ def _calculate_quantity_including_returns(order):
     return total_quantity, quantity_fulfilled, quantity_returned
 
 
+def refresh_order_status(order: Order):
+    """Refresh order status based on the most recent data.
+
+    This function recalculates the order status using the most up-to-date information
+    about fulfillments, returns, and replacements. It should always be called within
+    a transaction and with the order locked to ensure data consistency and prevent race conditions.
+
+    Returns
+        bool: True if the order status was changed, False otherwise.
+
+    """
+    old_status = order.status
+    # Calculate the quantities for the most recent data
+    (
+        total_quantity,
+        quantity_fulfilled,
+        quantity_returned,
+    ) = _calculate_quantity_including_returns(order)
+
+    # check if order contains any fulfillments that awaiting approval
+    awaiting_approval = order.fulfillments.filter(
+        status=FulfillmentStatus.WAITING_FOR_APPROVAL
+    ).exists()
+
+    order.status = determine_order_status(
+        order,
+        total_quantity,
+        quantity_fulfilled,
+        quantity_returned,
+        awaiting_approval,
+    )
+    return old_status != order.status
+
+
 def update_order_status(order: Order):
     """Update order status depending on fulfillments."""
     with transaction.atomic():
         # Add a transaction block to ensure that the order status won't be overridden by
         # another process.
         locked_order = Order.objects.select_for_update().get(pk=order.pk)
-        # Calculate the quantities for the most recent data
-        (
-            total_quantity,
-            quantity_fulfilled,
-            quantity_returned,
-        ) = _calculate_quantity_including_returns(locked_order)
 
-        # check if order contains any fulfillments that awaiting approval
-        awaiting_approval = locked_order.fulfillments.filter(
-            status=FulfillmentStatus.WAITING_FOR_APPROVAL
-        ).exists()
-
-        status = determine_order_status(
-            order,
-            total_quantity,
-            quantity_fulfilled,
-            quantity_returned,
-            awaiting_approval,
-        )
+        status_updated = refresh_order_status(order)
 
         # we would like to update the status for the order provided as the argument
         # to ensure that the reference order has up to date status
-        if status != order.status:
-            order.status = status
-            order.save(update_fields=["status", "updated_at"])
+        if status_updated:
+            # We need to update the order status in original order object to ensure that
+            # the status is updated in the mutation response.
+            order.status = locked_order.status
+            locked_order.save(update_fields=["status", "updated_at"])
 
 
 def determine_order_status(
