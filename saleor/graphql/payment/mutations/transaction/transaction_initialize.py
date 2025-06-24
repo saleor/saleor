@@ -137,18 +137,14 @@ class TransactionInitialize(TransactionSessionBase):
         return idempotency_key
 
     @classmethod
-    def perform_mutation(
-        cls,
-        root,
-        info,
-        *,
-        id,
-        payment_gateway,
-        amount=None,
-        action=None,
-        customer_ip_address=None,
-        idempotency_key=None,
-    ):
+    def perform_mutation(cls, root, info, /, **kwargs):
+        id = kwargs["id"]
+        payment_gateway = kwargs["payment_gateway"]
+        amount = kwargs.get("amount")
+        action = kwargs.get("action")
+        customer_ip_address = kwargs.get("customer_ip_address")
+        idempotency_key = kwargs.get("idempotency_key")
+
         manager = get_plugin_manager_promise(info.context).get()
         payment_gateway_data = PaymentGatewayData(
             app_identifier=payment_gateway["id"], data=payment_gateway.get("data")

@@ -30,7 +30,11 @@ class BaseObjectType(ObjectType):
 class BaseInputObjectType(InputObjectType):
     @classmethod
     def __init_subclass_with_meta__(
-        cls, container=None, _meta=None, doc_category=None, **options
+        cls,
+        container=None,
+        _meta=None,
+        doc_category=None,
+        **options,
     ):
         cls.doc_category = doc_category
         super().__init_subclass_with_meta__(container=container, _meta=_meta, **options)

@@ -320,7 +320,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     payment_token=input.get("token", ""),
                     total=amount,
                     currency=checkout.currency,
-                    email=checkout.get_customer_email(),
+                    email=checkout.get_customer_email(),  # type: ignore[arg-type]
                     extra_data=extra_data,
                     # FIXME this is not a customer IP address.
                     # It is a client storefront ip

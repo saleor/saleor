@@ -1,3 +1,5 @@
+from collections.abc import Collection
+
 import graphene
 from django.core.exceptions import ValidationError
 from graphql.error.base import GraphQLError
@@ -11,12 +13,13 @@ from ....discount import models as discount_models
 from ....discount.models import Promotion
 from ....menu import models as menu_models
 from ....order import models as order_models
+from ....permission.enums import BasePermissionEnum
 from ....product import models as product_models
 from ....shipping import models as shipping_models
 from ...core import ResolveInfo
 from ...core.context import BaseContext, ChannelContext, SyncWebhookControlContext
 from ...core.mutations import BaseMutation
-from ...core.utils import from_global_id_or_error
+from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ..extra_methods import TYPE_EXTRA_METHODS
 from ..permissions import AccountPermissions
 from ..types import ObjectWithMetadata
@@ -34,9 +37,21 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
+        auto_permission_message=True,
+        description=None,
+        doc_category=None,
+        permissions: Collection[BasePermissionEnum] | None = None,
+        _meta=None,
+        error_type_class=None,
+        error_type_field=None,
+        errors_mapping=None,
+        support_meta_field=False,
+        support_private_meta_field=False,
+        auto_webhook_events_message: bool = True,
+        webhook_events_info: list[WebhookEventInfo] | None = None,
+        exclude=None,
         arguments=None,
         permission_map=None,
-        _meta=None,
         **kwargs,
     ):
         if permission_map is None:
@@ -49,7 +64,22 @@ class BaseMetadataMutation(BaseMutation):
 
         _meta.permission_map = permission_map
 
-        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+        super().__init_subclass_with_meta__(
+            auto_permission_message=auto_permission_message,
+            description=description,
+            doc_category=doc_category,
+            permissions=permissions,
+            _meta=_meta,
+            error_type_class=error_type_class,
+            error_type_field=error_type_field,
+            errors_mapping=errors_mapping,
+            support_meta_field=support_meta_field,
+            support_private_meta_field=support_private_meta_field,
+            auto_webhook_events_message=auto_webhook_events_message,
+            webhook_events_info=webhook_events_info,
+            exclude=exclude,
+            **kwargs,
+        )
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
@@ -151,7 +181,9 @@ class BaseMetadataMutation(BaseMutation):
         return graphene_type._meta.model
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(
+        cls, context, permissions=None, require_all_permissions=False, **data
+    ):
         is_app = bool(getattr(context, "app", None))
         if is_app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
             raise PermissionDenied(

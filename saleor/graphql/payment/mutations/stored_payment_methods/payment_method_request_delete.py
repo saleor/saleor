@@ -47,7 +47,10 @@ class StoredPaymentMethodRequestDelete(BaseMutation):
         ]
 
     @classmethod
-    def perform_mutation(cls, root, info, id, channel):
+    def perform_mutation(cls, root, info, **kwargs):
+        id = kwargs["id"]
+        channel = kwargs["channel"]
+
         try:
             return cls._perform_mutation(root, info, id, channel)
         except ValidationError as error:

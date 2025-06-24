@@ -275,7 +275,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                 errors["addVariants"].append(error)
 
     @classmethod
-    def add_variants(cls, channel, add_variants: list[dict]):
+    def add_variants(cls, channel, add_variants: list[dict] | None):
         if not add_variants:
             return
         variants = cls.get_nodes_or_error(add_variants, "id", ProductVariant)
@@ -304,7 +304,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         product_channel_listing,
         product,
         channel,
-        remove_variants: list[dict],
+        remove_variants: list[dict] | None,
     ):
         if not remove_variants:
             return

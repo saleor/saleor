@@ -1311,7 +1311,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_unit_net=undiscounted_unit_price_net_amount,
             unit_discount_amount=unit_discount_amount,
             quantity=quantity,
-            tax_rate=tax_rate,
+            tax_rate=tax_rate,  # type: ignore[arg-type]
         )
 
     @classmethod

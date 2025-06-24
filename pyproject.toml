@@ -280,7 +280,8 @@ target-version = "py312"
     "E501", # Line too long
     "PT019", # Fixture without value is injected as parameter, use @pytest.mark.usefixtures instead
     "PYI041", # Use `float` instead of `int | float`
-    "RET504" # Unnecessary assignment before return statement
+    "RET504", # Unnecessary assignment before return statement
+    "UP046" # Parameter syntax for generic classes; not supported by mypy: https://github.com/python/mypy/issues/18507
   ]
 
   [tool.ruff.lint.flake8-pytest-style]

@@ -1,5 +1,4 @@
 from fnmatch import fnmatchcase
-from typing import cast
 
 from asgiref.typing import (
     ASGI3Application,
@@ -8,7 +7,6 @@ from asgiref.typing import (
     ASGISendEvent,
     HTTPResponseBodyEvent,
     HTTPResponseStartEvent,
-    HTTPScope,
     Scope,
 )
 from django.conf import settings
@@ -35,7 +33,6 @@ def cors_handler(application: ASGI3Application) -> ASGI3Application:
                     origin_match = True
                     break
         if scope["method"] == "OPTIONS":
-            scope = cast(HTTPScope, scope)
             response_headers: list[tuple[bytes, bytes]] = [
                 (b"access-control-allow-credentials", b"true"),
                 (

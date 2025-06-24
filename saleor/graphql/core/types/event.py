@@ -17,9 +17,14 @@ class SubscriptionObjectType(BaseObjectType):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
+        interfaces=(),
+        possible_types=(),
+        default_resolver=None,
+        _meta=None,
+        doc_category=None,
+        webhook_events_info=None,
         root_type=None,
         enable_dry_run=False,
-        _meta=None,
         **options,
     ):
         if not _meta:
@@ -28,16 +33,20 @@ class SubscriptionObjectType(BaseObjectType):
         _meta.root_type = root_type
         _meta.enable_dry_run = enable_dry_run
 
-        if (
-            "doc_category" not in options
-            and root_type
-            and root_type in DOC_CATEGORY_MODEL_MAP
-        ):
-            options["doc_category"] = DOC_CATEGORY_MODEL_MAP[root_type]
+        if not doc_category and root_type and root_type in DOC_CATEGORY_MODEL_MAP:
+            doc_category = DOC_CATEGORY_MODEL_MAP[root_type]
 
-        if "doc_category" not in options and root_type is None:
+        if not (doc_category or root_type):
             raise NotImplementedError(
                 f"SubscriptionObjectType {cls.__name__} must have a root_type defined."
             )
 
-        super().__init_subclass_with_meta__(_meta=_meta, **options)
+        super().__init_subclass_with_meta__(
+            interfaces=interfaces,
+            possible_types=possible_types,
+            default_resolver=default_resolver,
+            _meta=_meta,
+            doc_category=doc_category,
+            webhook_events_info=webhook_events_info,
+            **options,
+        )

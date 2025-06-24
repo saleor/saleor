@@ -43,7 +43,14 @@ class FilterInputObjectType(BaseInputObjectType):
 
     @classmethod
     def __init_subclass_with_meta__(
-        cls, _meta=None, model=None, filterset_class=None, fields=None, **options
+        cls,
+        container=None,
+        _meta=None,
+        doc_category=None,
+        model=None,
+        filterset_class=None,
+        fields=None,
+        **options,
     ):
         cls.custom_filterset_class = filterset_class
         cls.filterset_class = None
@@ -60,7 +67,9 @@ class FilterInputObjectType(BaseInputObjectType):
         else:
             _meta.fields = fields
 
-        super().__init_subclass_with_meta__(_meta=_meta, **options)
+        super().__init_subclass_with_meta__(
+            _meta=_meta, container=container, doc_category=doc_category, **options
+        )
 
     @classmethod
     def get_filtering_args_from_filterset(cls):
