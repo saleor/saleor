@@ -1,0 +1,35 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, dev, openweb3]
+    paths:
+      - ".github/workflows/github-ci.yml"
+  pull_request:
+    branches: [main, dev, openweb3]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          echo "build mini-hub"
+          docker build -f Dockerfile -t ${{ secrets.REPOSITORY_IMAGE }}:latest .
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.DOCKER_REGISTRY }}
+
+      - name: Push to ECR
+        run: |
+          echo "push image to ecr"
+          docker tag ${{ secrets.REPOSITORY_IMAGE }}:latest ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.REPOSITORY_IMAGE }}:latest 
+          docker push ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.REPOSITORY_IMAGE }}:latest
+
+      - name: Deploy to ECS
+        run: |
+          echo "deploy"
+          aws ecs update-service --region ${{ secrets.AWS_DEFAULT_REGION }} --cluster ${{ secrets.ECS_CLUSTER }} --service ${{ secrets.ECS_SERVICE }}  --task-definition ${{ secrets.ECS_TASK_DEFINITION }} --force-new-deployment
