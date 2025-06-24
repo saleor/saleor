@@ -8,7 +8,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.error_codes import StockBulkUpdateErrorCode
-from ....warehouse.management import stock_qs_select_for_update
+from ....warehouse.lock_objects import stock_qs_select_for_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
