@@ -81,13 +81,22 @@ async def validate_telegram_data_async(init_data_raw, bot_token):
         required_params = [
             "auth_date",
             "hash",
-            "chat_instance",
-            "chat_type",
-            "signature",
         ]
         for param in required_params:
             if param not in parsed_data:
                 raise ValidationError(f"Missing required parameter: {param}")
+
+        # Optional parameters (some WebApp implementations may not provide these)
+        optional_params = [
+            "chat_instance",
+            "chat_type",
+            "signature",
+        ]
+
+        # Check if optional parameters exist but are empty
+        for param in optional_params:
+            if param in parsed_data and not parsed_data.get(param, [None])[0]:
+                print(f"Warning: {param} parameter is empty")
 
         return {
             "user": user_info,
