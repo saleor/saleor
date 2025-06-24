@@ -61,9 +61,6 @@ class Transaction(ModelObjectType[models.Transaction]):
         required=True, description="Determines if the transaction was successful."
     )
     error = graphene.String(description="Error associated with transaction, if any.")
-    gateway_response = JSONString(
-        required=True, description="Response returned by payment gateway."
-    )
     amount = graphene.Field(Money, description="Total amount of the transaction.")
 
     class Meta:

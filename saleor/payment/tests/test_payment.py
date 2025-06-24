@@ -404,7 +404,6 @@ def test_create_transaction(transaction_data):
     assert txn.currency == gateway_response.currency
     assert txn.token == gateway_response.transaction_id
     assert txn.is_success == gateway_response.is_success
-    assert txn.gateway_response == gateway_response.raw_response
 
 
 def test_create_transaction_long_error_message(transaction_data_long_error_message):

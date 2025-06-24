@@ -6,6 +6,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Field `gatewayResponse` on `Transaction` type is gone. This is a part of sunsetting the legacy Payments API. This field was used by Payment Plugins. If you don't use them, no migration is needed. Otherwise, please remove this field from queries before updating to 3.22
+
 ### GraphQL API
 
 - Added support for filtering products by attribute value names. The `AttributeInput` now includes a `valueNames` field, enabling filtering by the names of attribute values, in addition to the existing filtering by value slugs.

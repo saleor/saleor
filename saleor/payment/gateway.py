@@ -294,6 +294,7 @@ def process_payment(
         action_required=action_required,
         payment_information=payment_data,
         error_msg=error,
+        gateway_response=response,
     )
 
 
@@ -330,6 +331,7 @@ def authorize(
         kind=TransactionKind.AUTH,
         payment_information=payment_data,
         error_msg=error,
+        gateway_response=response,
     )
 
 
