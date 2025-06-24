@@ -55,6 +55,7 @@ from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
 from . import AddressType, base_calculations, calculations
 from .error_codes import CheckoutErrorCode
+from .lock_objects import checkout_lines_qs_select_for_update
 from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
@@ -114,10 +115,6 @@ def invalidate_checkout_prices(
         checkout.save(update_fields=updated_fields)
 
     return updated_fields
-
-
-def checkout_lines_qs_select_for_update():
-    return CheckoutLine.objects.order_by("id").select_for_update(of=(["self"]))
 
 
 def checkout_lines_bulk_update(
