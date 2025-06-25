@@ -9,7 +9,6 @@ from .....app.models import App
 from .....checkout.actions import (
     transaction_amounts_for_checkout_updated_without_price_recalculation,
 )
-from .....checkout.models import Checkout
 from .....core.exceptions import PermissionDenied
 from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
@@ -25,6 +24,11 @@ from .....order.utils import (
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.interface import PaymentMethodDetails
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
+    transaction_item_qs_select_for_update,
+)
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     authorization_success_already_exists,
@@ -312,16 +316,9 @@ class TransactionEventReport(DeprecatedModelMutation):
     ):
         order = cast(order_models.Order, transaction.order)
         with traced_atomic_transaction():
-            order = (
-                order_models.Order.objects.prefetch_related(
-                    "payments", "payment_transactions", "granted_refunds"
-                )
-                .select_for_update()
-                .get(pk=order.pk)
+            order, transaction = get_order_and_transaction_item_locked_for_update(
+                order.pk, transaction.pk
             )
-            transaction = payment_models.TransactionItem.objects.select_for_update(
-                of=("self",)
-            ).get(pk=transaction.pk)
             updates_amounts_for_order(order)
         update_order_search_vector(order)
         order_info = fetch_order_info(order)
@@ -353,14 +350,11 @@ class TransactionEventReport(DeprecatedModelMutation):
         checkout_deleted = False
         if transaction.checkout_id:
             with traced_atomic_transaction():
-                locked_checkout = (
-                    Checkout.objects.select_for_update()
-                    .filter(pk=transaction.checkout_id)
-                    .first()
+                locked_checkout, transaction = (
+                    get_checkout_and_transaction_item_locked_for_update(
+                        transaction.checkout_id, transaction.pk
+                    )
                 )
-                transaction = payment_models.TransactionItem.objects.select_for_update(
-                    of=("self",)
-                ).get(pk=transaction.pk)
                 if transaction.checkout_id and locked_checkout:
                     transaction_amounts_for_checkout_updated_without_price_recalculation(
                         transaction, locked_checkout, manager, user, app
@@ -485,8 +479,8 @@ class TransactionEventReport(DeprecatedModelMutation):
             # thread race. We need to be sure, that we will always create a single event
             # on our side for specific action.
             _transaction = (
-                payment_models.TransactionItem.objects.filter(pk=transaction.pk)
-                .select_for_update(of=("self",))
+                transaction_item_qs_select_for_update()
+                .filter(pk=transaction.pk)
                 .first()
             )
 

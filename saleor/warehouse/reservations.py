@@ -11,7 +11,8 @@ from django.utils import timezone
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..product.models import ProductVariant, ProductVariantChannelListing
-from .management import sort_stocks, stock_qs_select_for_update
+from .lock_objects import stock_qs_select_for_update
+from .management import sort_stocks
 from .models import Allocation, PreorderReservation, Reservation
 
 if TYPE_CHECKING:

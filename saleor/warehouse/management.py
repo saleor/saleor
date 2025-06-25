@@ -23,6 +23,11 @@ from ..order.fetch import OrderLineInfo
 from ..order.models import OrderLine
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
+from .lock_objects import (
+    allocation_with_stock_qs_select_for_update,
+    stock_qs_select_for_update,
+    stock_select_for_update_for_existing_qs,
+)
 from .models import (
     Allocation,
     ChannelWarehouse,
@@ -40,14 +45,6 @@ if TYPE_CHECKING:
 class StockData(NamedTuple):
     pk: int
     quantity: int
-
-
-def stock_select_for_update_for_existing_qs(qs):
-    return qs.order_by("pk").select_for_update(of=(["self"]))
-
-
-def stock_qs_select_for_update():
-    return stock_select_for_update_for_existing_qs(Stock.objects.all())
 
 
 def delete_stocks(stock_pks_to_delete: list[int]):
@@ -68,19 +65,6 @@ def stock_bulk_update(stocks: list[Stock], fields_to_update: list[str]):
             .values_list("id", flat=True)
         )
         Stock.objects.bulk_update(stocks, fields_to_update)
-
-
-def allocation_with_stock_qs_select_for_update():
-    return (
-        Allocation.objects.select_related("stock")
-        .select_for_update(
-            of=(
-                "self",
-                "stock",
-            )
-        )
-        .order_by("stock__pk")
-    )
 
 
 def delete_allocations(allocation_pks_to_delete: list[int]):

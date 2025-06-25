@@ -13,8 +13,8 @@ from ....core.postgres import FlatConcatSearchVector
 from ....core.tracing import traced_atomic_transaction
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....order import events as order_events
+from ....order.lock_objects import order_lines_qs_select_for_update
 from ....order.tasks import recalculate_orders_task
-from ....order.utils import order_lines_qs_select_for_update
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.search import prepare_product_search_vector_value
