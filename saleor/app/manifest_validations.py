@@ -88,15 +88,16 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     if not app_url:
         raise ValidationError("Manifest is invalid, token_target_url is missing")
 
+    is_new_tab_post = target == AppExtensionTarget.NEW_TAB and new_tab_method_post
+    is_widget_post = target == AppExtensionTarget.WIDGET and widget_method_post
+
     if extension_url.startswith("/"):
         _clean_extension_url_with_only_path(manifest_data, target, extension_url)
     elif target == AppExtensionTarget.APP_PAGE:
         msg = "Url cannot start with protocol when target == APP_PAGE"
         logger.warning(msg)
         raise ValidationError(msg)
-    elif (
-        target.upper() == AppExtensionTarget.NEW_TAB.upper() and new_tab_method_post
-    ) or (target.upper() == AppExtensionTarget.WIDGET.upper() and widget_method_post):
+    elif (is_new_tab_post) or is_widget_post:
         parsed_app_url = urlparse(app_url)
         parsed_extension_url = urlparse(extension_url)
 
@@ -240,19 +241,15 @@ def _clean_extension_options(extension, errors):
     options = extension.get("options", {})
     try:
         validated_options = AppExtensionOptions.model_validate(options)
+        is_widget = extension.get("target") == AppExtensionTarget.WIDGET
+        is_new_tab = extension.get("target") == AppExtensionTarget.NEW_TAB
 
-        if (
-            validated_options.widget_target
-            and extension.get("target").upper() != AppExtensionTarget.WIDGET.upper()
-        ):
+        if validated_options.widget_target and not is_widget:
             raise ValidationError(
                 "widgetTarget options must be set only on WIDGET target"
             )
 
-        if (
-            validated_options.new_tab_target
-            and extension.get("target").upper() != AppExtensionTarget.NEW_TAB.upper()
-        ):
+        if validated_options.new_tab_target and not is_new_tab:
             raise ValidationError(
                 "newTabTarget options must be set only on NEW_TAB target"
             )
