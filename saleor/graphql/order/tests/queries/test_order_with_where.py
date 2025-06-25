@@ -2372,3 +2372,143 @@ def test_orders_filter_by_order_events(
     assert len(orders) == len(expected_indexes)
     numbers = {node["node"]["number"] for node in orders}
     assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("where", "indexes"),
+    [
+        (
+            {
+                "paymentMethodDetails": {
+                    "type": {"eq": "CARD"},
+                }
+            },
+            [0, 2],
+        ),
+        (
+            {
+                "paymentMethodDetails": {
+                    "type": {"eq": "OTHER"},
+                }
+            },
+            [1],
+        ),
+        (
+            {
+                "paymentMethodDetails": {
+                    "card": {
+                        "brand": {"eq": "Brand"},
+                    }
+                }
+            },
+            [0],
+        ),
+        (
+            {
+                "paymentMethodDetails": {
+                    "card": {
+                        "brand": {"eq": "Brand4"},
+                    }
+                }
+            },
+            [2],
+        ),
+        (
+            {
+                "paymentMethodDetails": {
+                    "card": {
+                        "brand": {"eq": "Brand2"},
+                    }
+                }
+            },
+            [0],
+        ),
+        (
+            {
+                "paymentMethodDetails": {
+                    "type": {"oneOf": ["CARD", "OTHER"]},
+                }
+            },
+            [0, 1, 2],
+        ),
+        (
+            {
+                "paymentMethodDetails": {
+                    "card": {
+                        "brand": {"oneOf": ["Brand2", "Brand4"]},
+                    }
+                }
+            },
+            [0, 2],
+        ),
+    ],
+)
+def test_orders_filter_by_transaction_payment_details(
+    where,
+    indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    transaction_item_generator,
+):
+    # given
+    # first_transaction
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        payment_method_type="card",
+        payment_method_name="Credit card",
+        cc_brand="Brand",
+        cc_first_digits="1234",
+        cc_last_digits="5678",
+        cc_exp_month=12,
+        cc_exp_year=2025,
+    )
+
+    # second_transaction
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        payment_method_type="card",
+        payment_method_name="Second Credit card",
+        cc_brand="Brand2",
+        cc_first_digits="1234",
+        cc_last_digits="5678",
+        cc_exp_month=12,
+        cc_exp_year=2025,
+    )
+
+    # third_transaction
+    transaction_item_generator(
+        order_id=order_list[1].pk,
+        charged_value=order_list[1].total.gross.amount,
+        payment_method_type="other",
+        payment_method_name="Third payment method",
+        cc_brand=None,
+        cc_first_digits=None,
+        cc_last_digits=None,
+        cc_exp_month=None,
+        cc_exp_year=None,
+    )
+
+    # fourth_transaction
+    transaction_item_generator(
+        order_id=order_list[2].pk,
+        charged_value=order_list[2].total.gross.amount,
+        payment_method_type="card",
+        payment_method_name="Fourth Credit card",
+        cc_brand="Brand4",
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"transactions": where}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[index].number) for index in indexes}

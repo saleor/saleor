@@ -14,7 +14,8 @@ from ...giftcard.models import GiftCardEvent
 from ...invoice.models import Invoice
 from ...order.models import Fulfillment, Order, OrderEvent, OrderLine
 from ...order.search import search_orders
-from ...payment import ChargeStatus
+from ...payment import ChargeStatus, PaymentMethodType
+from ...payment.models import TransactionItem
 from ...product.models import ProductVariant
 from ..channel.filters import get_currency_from_filter_data
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -48,7 +49,7 @@ from ..core.types import (
 )
 from ..core.utils import from_global_id_or_error
 from ..discount.filters import DiscountedObjectWhere
-from ..payment.enums import PaymentChargeStatusEnum
+from ..payment.enums import PaymentChargeStatusEnum, PaymentMethodTypeEnum
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_ids,
@@ -456,6 +457,75 @@ class OrderEventFilterInput(BaseInputObjectType):
         description = "Filter input for order events data."
 
 
+class PaymentMethodTypeEnumFilterInput(BaseInputObjectType):
+    eq = PaymentMethodTypeEnum(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        PaymentMethodTypeEnum,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+
+class PaymentMethodDetailsCardFilterInput(BaseInputObjectType):
+    brand = StringFilterInput(
+        description="Filter by payment method brand used to pay for the order.",
+    )
+
+
+class PaymentMethodDetailsFilterInput(BaseInputObjectType):
+    type = PaymentMethodTypeEnumFilterInput(
+        description="Filter by payment method type used to pay for the order.",
+    )
+    card = PaymentMethodDetailsCardFilterInput(
+        description="Filter by card details used to pay for the order. Skips `type` filter if provided.",
+    )
+
+    @staticmethod
+    def filter_card(qs, _, value):
+        if value is None:
+            return qs.none()
+        transaction_query = TransactionItem.objects.using(qs.db).filter(
+            payment_method_type=PaymentMethodType.CARD
+        )
+        if brand_filter_value := value.get("brand"):
+            transactions = filter_where_by_value_field(
+                transaction_query, "cc_brand", brand_filter_value
+            )
+        return qs.filter(Exists(transactions.filter(order_id=OuterRef("id"))))
+
+    @staticmethod
+    def filter_type(qs, _, value):
+        if value is None:
+            return qs.none()
+        transactions = filter_where_by_value_field(
+            TransactionItem.objects.using(qs.db),
+            "payment_method_type",
+            value,
+        )
+        return qs.filter(Exists(transactions.filter(order_id=OuterRef("id"))))
+
+
+class TransactionFilterInput(BaseInputObjectType):
+    payment_method_details = PaymentMethodDetailsFilterInput(
+        description="Filter by payment method details used to pay for the order.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+        description = "Filter input for transactions."
+
+    @staticmethod
+    def filter_payment_method_details(qs, _, value):
+        if value is None:
+            return qs.none()
+
+        if filter_value := value.get("card"):
+            return PaymentMethodDetailsFilterInput.filter_card(qs, _, filter_value)
+        if filter_value := value.get("type"):
+            return PaymentMethodDetailsFilterInput.filter_type(qs, _, filter_value)
+        return qs.none()
+
+
 class OrderWhere(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Order"))
     number = OperationObjectTypeWhereFilter(
@@ -561,6 +631,11 @@ class OrderWhere(MetadataWhereBase):
         input_class=IntFilterInput,
         method="filter_lines_count",
         help_text="Filter by number of lines in the order.",
+    )
+    transactions = ObjectTypeWhereFilter(
+        input_class=TransactionFilterInput,
+        method="filter_transactions",
+        help_text="Filter by transaction data associated with the order.",
     )
     total_gross = ObjectTypeWhereFilter(
         input_class=PriceFilterInput,
@@ -694,6 +769,16 @@ class OrderWhere(MetadataWhereBase):
     @staticmethod
     def filter_lines_count(qs, _, value):
         return filter_where_by_numeric_field(qs, "lines_count", value)
+
+    @staticmethod
+    def filter_transactions(qs, _, value):
+        if value is None:
+            return qs.none()
+        if filter_value := value.get("payment_method_details"):
+            return TransactionFilterInput.filter_payment_method_details(
+                qs, _, filter_value
+            )
+        return qs.none()
 
     @staticmethod
     def filter_total_gross(qs, _, value):
