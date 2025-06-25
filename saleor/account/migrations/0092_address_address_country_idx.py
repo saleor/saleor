@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("account", "0089_user_user_email_idx"),
+        ("account", "0091_populate_user_number_of_orders"),
     ]
 
     operations = [
