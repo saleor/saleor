@@ -11,6 +11,7 @@ from ..manifest_validations import (
     _clean_author,
     _clean_extension_options,
     _clean_extension_url,
+    _clean_extensions,
     _clean_required_saleor_version,
     _parse_version,
 )
@@ -98,15 +99,13 @@ def test_brand_validator_with_invalid_logo_url(url):
 
 
 def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
+    app_manifest["appUrl"] = "https://app.example.com"
     extension = {
         "url": "/relative/path",
         "target": AppExtensionTarget.NEW_TAB,
     }
 
-    with pytest.raises(ValidationError) as error:
-        _clean_extension_url(extension, app_manifest)
-
-    assert error.value.message == "NEW_TAB target should be absolute path"
+    _clean_extension_url(extension, app_manifest)
 
 
 @pytest.mark.parametrize(
@@ -121,14 +120,14 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
             },
             False,
         ),
-        # url starts with /, target NEW_TAB, should raise
+        # url starts with /, target NEW_TAB, should not raise
         (
             {"url": "/tab", "target": AppExtensionTarget.NEW_TAB},
             {
                 "tokenTargetUrl": "https://app.example.com",
                 "appUrl": "https://app.example.com",
             },
-            True,
+            False,
         ),
         # url starts with protocol, target APP_PAGE, should raise
         (
@@ -176,9 +175,27 @@ def test_clean_extension_url(extension, manifest, should_raise):
         _clean_extension_url(extension, manifest)
 
 
+def test_new_tab_relative_url_without_app_url(app_manifest):
+    # given
+    app_manifest["appUrl"] = None
+
+    extension = {
+        "url": "/relative/path",
+        "target": AppExtensionTarget.NEW_TAB,
+    }
+
+    app_manifest["extensions"] = [extension]
+
+    # when & then
+    with pytest.raises(ValidationError):
+        _clean_extension_url(extension, manifest_data=app_manifest)
+
+
 def test_clean_extension_url_https_only(settings):
+    # given
     settings.ENABLE_SSL = True
 
+    # when & then
     with pytest.raises(ValidationError):
         _clean_extension_url(
             {
@@ -194,8 +211,10 @@ def test_clean_extension_url_https_only(settings):
 
 
 def test_clean_extension_url_http_if_SSL_disabled(settings):
+    # given
     settings.ENABLE_SSL = False
 
+    # when
     result = _clean_extension_url(
         {"url": "http://app.example.com/page", "target": AppExtensionTarget.NEW_TAB},
         {
@@ -204,10 +223,12 @@ def test_clean_extension_url_http_if_SSL_disabled(settings):
         },
     )
 
+    # then
     assert result is None
 
 
 def test_app_extension_options_accepts_only_one():
+    # Given
     parsed = AppExtensionOptions().model_validate({"widgetTarget": {"method": "GET"}})
 
     assert parsed.new_tab_target is None
@@ -228,8 +249,10 @@ def test_app_extension_options_accepts_only_one():
             }
         )
 
+    # when
     parsed = AppExtensionOptions().model_validate({})
 
+    # then
     assert parsed.new_tab_target is None
     assert parsed.widget_target is None
 
@@ -405,3 +428,57 @@ def test_clean_extension_options_no_options():
     assert "extensions" not in errors
     assert "options" in extension
     assert extension["options"] == {}
+
+
+@pytest.mark.parametrize(
+    "mount",
+    [
+        "ORDER_DETAILS_WIDGETS",
+        "PRODUCT_DETAILS_WIDGETS",
+        "VOUCHER_DETAILS_WIDGETS",
+        "DRAFT_ORDER_DETAILS_WIDGETS",
+        "GIFT_CARD_DETAILS_WIDGETS",
+        "CUSTOMER_DETAILS_WIDGETS",
+        "COLLECTION_DETAILS_WIDGETS",
+    ],
+)
+def test_widget_target_available_mounts_valid(mount, app_manifest):
+    # Given
+    extension = {
+        "target": "WIDGET",
+        "mount": mount,
+        "url": "https://example.com/widget",
+        "label": "label",
+    }
+    errors = {"extensions": []}
+
+    app_manifest["extensions"] = [extension]
+
+    # When
+    _clean_extensions(app_manifest, [], errors)
+
+    # Then
+    assert len(errors["extensions"]) == 0
+
+
+@pytest.mark.parametrize(
+    "mount",
+    ["CATEGORY_OVERVIEW_CREATECATEGORY_OVERVIEW_MORE_ACTIONS"],
+)
+def test_widget_target_available_mounts_invalid(mount, app_manifest):
+    # Given
+    extension = {
+        "target": "WIDGET",
+        "mount": mount,
+        "url": "https://example.com/widget",
+        "label": "label",
+    }
+    errors = {"extensions": []}
+
+    app_manifest["extensions"] = [extension]
+
+    # When
+    _clean_extensions(app_manifest, [], errors)
+
+    # Then
+    assert "extensions" in errors

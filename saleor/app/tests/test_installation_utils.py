@@ -327,7 +327,7 @@ def test_install_app_with_extension_widget(
         {
             "label": label,
             "url": url,
-            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "mount": "PRODUCT_DETAILS_WIDGETS",
             "permissions": ["MANAGE_PRODUCTS"],
             "target": "WIDGET",
             "options": options,
@@ -352,7 +352,7 @@ def test_install_app_with_extension_widget(
 
     assert app_extension.label == label
     assert app_extension.url == url
-    assert app_extension.mount == AppExtensionMount.PRODUCT_OVERVIEW_CREATE
+    assert app_extension.mount == AppExtensionMount.PRODUCT_DETAILS_WIDGETS
     assert app_extension.target == AppExtensionTarget.WIDGET
     assert list(app_extension.permissions.all()) == [permission_manage_products]
     assert app_extension.http_target_method == "POST"
