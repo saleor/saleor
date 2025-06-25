@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from django.conf import settings
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, F, OuterRef
 
 from ..app.models import App
 from ..checkout import AddressType
@@ -208,7 +208,7 @@ def update_user_orders_count(user_orders_count: dict[int, int]):
             if count > 0:
                 user = users_in_bulk.get(user_id)
                 if user:
-                    user.number_of_orders += count
+                    user.number_of_orders = F("number_of_orders") + count
                     users_to_update.append(user)
 
         if users_to_update:

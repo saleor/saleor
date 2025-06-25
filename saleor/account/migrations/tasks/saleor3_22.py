@@ -31,8 +31,11 @@ def populate_user_number_of_orders_task(user_pk=0):
         user_total_orders[order["user_id"]] += 1
 
     with transaction.atomic():
-        users = User.objects.filter(pk__in=user_ids).order_by("pk")
-        _users = list(users.select_for_update(of=(["self"])))
+        users = (
+            User.objects.filter(pk__in=user_ids)
+            .order_by("pk")
+            .select_for_update(of=(["self"]))
+        )
         users_to_update = []
         for user in users:
             total_orders = user_total_orders.get(user.id)
