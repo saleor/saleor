@@ -280,7 +280,7 @@ def _validate_mounts_for_widget(mount: str):
         raise ValidationError(
             {
                 "mount": ValidationError(
-                    f"Mount {mount} is not available for WIDGET target.",
+                    f"Mount {mount.upper()} is not available for WIDGET target.",
                     code=AppErrorCode.INVALID.value,
                 )
             }
@@ -301,13 +301,8 @@ def _clean_extensions(manifest_data, app_permissions, errors):
         try:
             if extension["target"] == AppExtensionTarget.WIDGET:
                 _validate_mounts_for_widget(extension["mount"])
-        except ValidationError:
-            errors["extensions"].append(
-                ValidationError(
-                    f"The {extension['mount']} can't be used with WIDGET target.",
-                    code=AppErrorCode.INVALID.value,
-                )
-            )
+        except ValidationError as invalid_mount_error:
+            errors["extensions"].append(invalid_mount_error)
 
         try:
             _clean_extension_url(extension, manifest_data)
