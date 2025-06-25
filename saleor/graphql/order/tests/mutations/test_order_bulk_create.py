@@ -654,6 +654,7 @@ def test_order_bulk_create(
     invoice_count = Invoice.objects.count()
     discount_count = OrderDiscount.objects.count()
     voucher_code = "mirumee"
+    user_orders_count = customer_user.number_of_orders
 
     expected_shipping_net_price = Decimal(50)
     expected_shipping_gross_price = Decimal(60)
@@ -964,16 +965,21 @@ def test_order_bulk_create(
     assert Invoice.objects.count() == invoice_count + 1
     assert OrderDiscount.objects.count() == discount_count + 1
 
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_orders_count + 1
+
 
 def test_order_bulk_create_multiple_orders(
     staff_api_client,
     permission_manage_orders,
     permission_manage_orders_import,
     order_bulk_input,
+    customer_user,
 ):
     # given
     orders_count = Order.objects.count()
     order_lines_count = OrderLine.objects.count()
+    user_orders_count = customer_user.number_of_orders
 
     order_1 = order_bulk_input
     order_2 = order_bulk_input
@@ -1003,6 +1009,9 @@ def test_order_bulk_create_multiple_orders(
     assert order_2["lines"]
     assert Order.objects.count() == orders_count + 2
     assert OrderLine.objects.count() == order_lines_count + 2
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_orders_count + 2
 
 
 def test_order_bulk_create_multiple_lines(

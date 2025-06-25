@@ -2,13 +2,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from django.conf import settings
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, F, OuterRef
 
 from ..app.models import App
 from ..checkout import AddressType
+from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
+from .lock_objects import user_qs_select_for_update
 from .models import Group, User
 
 if TYPE_CHECKING:
@@ -194,3 +196,20 @@ def send_user_event(user: User, created: bool, updated: bool):
         event = manager.staff_updated if user.is_staff else manager.customer_updated
     if event:
         call_event(event, user)
+
+
+def update_user_orders_count(user_orders_count: dict[int, int]):
+    user_ids = [user_id for user_id, count in user_orders_count.items() if count > 0]
+    users_to_update = []
+    with traced_atomic_transaction():
+        users = user_qs_select_for_update().filter(id__in=user_ids)
+        users_in_bulk = users.in_bulk()
+        for user_id, count in user_orders_count.items():
+            if count > 0:
+                user = users_in_bulk.get(user_id)
+                if user:
+                    user.number_of_orders = F("number_of_orders") + count
+                    users_to_update.append(user)
+
+        if users_to_update:
+            User.objects.bulk_update(users_to_update, ["number_of_orders"])

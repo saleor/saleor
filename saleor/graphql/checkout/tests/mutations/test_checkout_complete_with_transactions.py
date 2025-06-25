@@ -337,6 +337,7 @@ def test_checkout_with_authorized(
     transaction_item_generator,
     address,
     shipping_method,
+    customer_user,
 ):
     # given
     checkout = checkout_with_gift_card
@@ -348,8 +349,11 @@ def test_checkout_with_authorized(
         items={"accepted": "false"}
     )
     checkout.tax_exemption = True
+    checkout.user = customer_user
     checkout.save()
     checkout.metadata_storage.save()
+
+    user_number_of_orders = customer_user.number_of_orders
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -436,6 +440,9 @@ def test_checkout_with_authorized(
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
 
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_number_of_orders + 1
+
 
 def test_checkout_with_charged(
     user_api_client,
@@ -444,6 +451,7 @@ def test_checkout_with_charged(
     transaction_item_generator,
     address,
     shipping_method,
+    customer_user,
 ):
     # given
     checkout = checkout_with_gift_card
@@ -455,8 +463,11 @@ def test_checkout_with_charged(
         items={"accepted": "false"}
     )
     checkout.tax_exemption = True
+    checkout.user = customer_user
     checkout.save()
     checkout.metadata_storage.save()
+
+    user_number_of_orders = customer_user.number_of_orders
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -536,6 +547,9 @@ def test_checkout_with_charged(
 
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_number_of_orders + 1
 
 
 def test_checkout_price_override(

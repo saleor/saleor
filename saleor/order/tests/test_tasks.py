@@ -7,6 +7,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...account.models import User
 from ...core.models import EventDelivery
 from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
@@ -703,6 +704,50 @@ def test_delete_expired_orders_task_schedule_itself(
     # then
     mocked_delay.assert_called_once_with()
     assert Order.objects.count() == 2
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_delete_expired_orders_task_customer_lines_count_adjusted(
+    order_list, allocations, channel_USD, customer_user, customer_user2
+):
+    # given
+    channel_USD.delete_expired_orders_after = datetime.timedelta(days=3)
+    channel_USD.save()
+
+    now = timezone.now()
+    order_1 = order_list[0]
+    order_1.expired_at = now
+    order_1.status = OrderStatus.EXPIRED
+    order_1.user = customer_user
+    order_1.save(update_fields=["expired_at", "status", "user"])
+
+    order_2 = order_list[1]
+    order_2.expired_at = now - datetime.timedelta(days=5)
+    order_2.status = OrderStatus.EXPIRED
+    order_2.user = customer_user
+    order_2.save(update_fields=["expired_at", "status", "user"])
+
+    order_3 = order_list[2]
+    order_3.expired_at = now - datetime.timedelta(days=7)
+    order_3.status = OrderStatus.EXPIRED
+    order_3.user = customer_user2
+    order_3.save(update_fields=["expired_at", "status", "user"])
+
+    customer_user.number_of_orders = 2
+    customer_user2.number_of_orders = 1
+    User.objects.bulk_update([customer_user, customer_user2], ["number_of_orders"])
+
+    # when
+    delete_expired_orders_task()
+
+    # then
+    assert Order.objects.count() == 1
+    assert order_1.id == Order.objects.get().id
+
+    customer_user.refresh_from_db()
+    customer_user2.refresh_from_db()
+    assert customer_user.number_of_orders == 1
+    assert customer_user2.number_of_orders == 0
 
 
 def test_bulk_release_voucher_usage_voucher_usage_mismatch(

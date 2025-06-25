@@ -11,12 +11,14 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from graphql import GraphQLError
 from prices import Money
 
 from ....account.models import Address, User
+from ....account.utils import update_user_orders_count
 from ....app.models import App
 from ....channel.models import Channel
 from ....core import JobStatus
@@ -2085,6 +2087,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_input,
         object_storage: dict[str, Any],
         info: ResolveInfo,
+        user_orders_count: dict[int, int],
     ) -> OrderBulkCreateData:
         order_data = OrderBulkCreateData()
         cls.validate_order_input(order_input, order_data, object_storage)
@@ -2142,6 +2145,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.created_at = order_input["created_at"]
         order_data.order.status = order_input["status"]
         order_data.order.user = order_data.user
+        if order_data.user:
+            user_orders_count[order_data.user.id] += 1
         order_data.order.billing_address = order_data.billing_address
         order_data.order.shipping_address = order_data.shipping_address
         order_data.order.language_code = order_input["language_code"]
@@ -2473,6 +2478,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             return OrderBulkCreate(count=0, results=result)
 
         orders_data: list[OrderBulkCreateData] = []
+        user_orders_count: dict[int, int] = defaultdict(int)
         with traced_atomic_transaction():
             # Create dictionary, which stores already resolved objects:
             #   - key for instances: "{model_name}.{key_name}.{key_value}"
@@ -2480,7 +2486,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage: dict[str, Any] = cls.get_all_instances(orders_input)
             for order_input in orders_input:
                 orders_data.append(
-                    cls.create_single_order(order_input, object_storage, info)
+                    cls.create_single_order(
+                        order_input, object_storage, info, user_orders_count
+                    )
                 )
 
             error_policy = data.get("error_policy") or ErrorPolicy.REJECT_EVERYTHING
@@ -2508,5 +2516,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 results.append(
                     OrderBulkCreateResult(order=order_detail, errors=order_data.errors)
                 )
-            count = sum([order_data.order is not None for order_data in orders_data])
-            return OrderBulkCreate(count=count, results=results)
+            transaction.on_commit(lambda: update_user_orders_count(user_orders_count))
+        count = sum([order_data.order is not None for order_data in orders_data])
+        return OrderBulkCreate(count=count, results=results)

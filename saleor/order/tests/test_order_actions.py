@@ -3701,7 +3701,12 @@ def test_order_created_triggers_webhooks(
     order.status = OrderStatus.UNCONFIRMED
     order.should_refresh_prices = True
     order.charge_status = OrderChargeStatus.FULL
-    order.save(update_fields=["status", "should_refresh_prices", "charge_status"])
+    order.user = customer_user
+    order.save(
+        update_fields=["status", "should_refresh_prices", "charge_status", "user"]
+    )
+
+    user_number_of_orders = customer_user.number_of_orders
 
     order.channel.automatically_confirm_all_new_orders = True
     order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
@@ -3810,6 +3815,9 @@ def test_order_created_triggers_webhooks(
         ],
         any_order=True,
     )
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_number_of_orders + 1
 
 
 @patch(

@@ -91,9 +91,13 @@ def test_draft_order_complete(
     permission_group_manage_orders,
     staff_user,
     draft_order,
+    customer_user,
 ):
     # given
     order = draft_order
+    order.user = customer_user
+    order.save(update_fields=["user"])
+
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created
@@ -101,6 +105,8 @@ def test_draft_order_complete(
 
     # Ensure no allocation were created
     assert not Allocation.objects.filter(order_line__order=order).exists()
+
+    user_orders_count = customer_user.number_of_orders
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -139,6 +145,9 @@ def test_draft_order_complete(
     )
     assert order_created_mock.called
     store_user_addresses_from_draft_order_mock.assert_called_once()
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_orders_count + 1
 
 
 def test_draft_order_complete_no_automatically_confirm_all_new_orders(
