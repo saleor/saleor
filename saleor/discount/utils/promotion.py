@@ -15,11 +15,13 @@ from prices import Money
 
 from ...channel.models import Channel
 from ...checkout.fetch import CheckoutLineInfo
+from ...checkout.lock_objects import checkout_lines_qs_select_for_update
 from ...checkout.models import Checkout, CheckoutLine
 from ...core.db.connection import allow_writer
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money
 from ...order.fetch import EditableOrderLineInfo
+from ...order.lock_objects import order_lines_qs_select_for_update
 from ...order.models import Order
 from ...product.models import (
     Product,
@@ -404,9 +406,6 @@ def _get_available_for_purchase_variant_ids(
 def delete_gift_lines_qs(
     order_or_checkout: Checkout | Order,
 ):
-    from ...checkout.utils import checkout_lines_qs_select_for_update
-    from ...order.utils import order_lines_qs_select_for_update
-
     with transaction.atomic():
         if isinstance(order_or_checkout, Checkout):
             locked_checkout_lines_qs = checkout_lines_qs_select_for_update()

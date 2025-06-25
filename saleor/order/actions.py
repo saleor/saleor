@@ -21,7 +21,7 @@ from ..core.utils.events import (
     webhook_async_event_requires_sync_webhooks_to_trigger,
 )
 from ..giftcard import GiftCardLineData
-from ..order.utils import order_lines_qs_select_for_update
+from ..order.lock_objects import order_lines_qs_select_for_update
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,

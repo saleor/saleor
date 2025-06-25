@@ -84,14 +84,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def order_qs_select_for_update():
-    return Order.objects.order_by("id").select_for_update(of=(["self"]))
-
-
-def order_lines_qs_select_for_update() -> QuerySet[OrderLine]:
-    return OrderLine.objects.order_by("pk").select_for_update(of=["self"])
-
-
 def get_order_country(order: Order) -> str:
     """Return country to which order will be shipped."""
     return get_active_country(
