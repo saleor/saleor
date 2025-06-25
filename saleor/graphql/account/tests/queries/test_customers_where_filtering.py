@@ -440,19 +440,21 @@ def test_customers_filter_by_addresses(
         "+86555555555",
     ]
     countries = ["GE", "US", "CN"]
-    for user, phone, country in zip(customer_users, phones, countries, strict=True):
-        user.addresses.add(
-            Address.objects.create(
-                first_name="John",
-                last_name="Doe",
-                company_name="Mirumee Software",
-                street_address_1="Tęczowa 7",
-                city="WROCŁAW",
-                postal_code="53-601",
-                country=country,
-                phone=phone,
-            )
+    addresses = [
+        Address.objects.create(
+            first_name="John",
+            last_name="Doe",
+            company_name="Mirumee Software",
+            street_address_1="Tęczowa 7",
+            city="WROCŁAW",
+            postal_code="53-601",
+            country=country,
+            phone=phone,
         )
+        for phone, country in zip(phones, countries, strict=True)
+    ]
+    for user, address in zip(customer_users, addresses, strict=True):
+        user.addresses.add(address)
 
     permission_group_manage_users.user_set.add(staff_api_client.user)
     variables = {"where": {"addresses": address_filter}}
