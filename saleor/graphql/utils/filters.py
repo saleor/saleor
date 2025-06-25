@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from django.db.models import Q
 from django.utils import timezone
 
 from ..core.enums import ReportingPeriod
@@ -108,6 +109,8 @@ def filter_where_by_value_field(
         return qs.filter(**{field: value["eq"]})
     if one_of := value.get("one_of"):
         return qs.filter(**{f"{field}__in": one_of})
+    if not_one_of := value.get("not_one_of"):
+        return qs.filter(~Q(**{f"{field}__in": not_one_of}))
     return qs.none()
 
 

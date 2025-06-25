@@ -93,6 +93,10 @@ class Address(ModelWithMetadata):
                 ],
                 opclasses=["gin_trgm_ops"] * 6,
             ),
+            BTreeIndex(
+                fields=["country"],
+                name="address_country_idx",
+            ),
         ]
 
     def __eq__(self, other):

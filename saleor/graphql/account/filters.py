@@ -16,6 +16,7 @@ from ..core.filters import (
 )
 from ..core.filters.where_filters import MetadataWhereBase
 from ..core.filters.where_input import (
+    FilterInputDescriptions,
     StringFilterInput,
     WhereInputObjectType,
 )
@@ -24,6 +25,7 @@ from ..core.types import (
     DateRangeInput,
     DateTimeRangeInput,
     IntRangeInput,
+    NonNullList,
 )
 from ..utils.filters import (
     filter_by_id,
@@ -33,7 +35,7 @@ from ..utils.filters import (
     filter_where_by_value_field,
 )
 from . import types as account_types
-from .enums import StaffMemberStatus
+from .enums import CountryCodeEnum, StaffMemberStatus
 
 
 def filter_date_joined(qs, _, value):
@@ -71,6 +73,17 @@ def filter_search(qs, _, value):
     return qs
 
 
+def filter_address(value):
+    if not value:
+        return Address.objects.none()
+    address_qs = Address.objects.all()
+    if (phone_number := value.get("phone_number")) is not None:
+        address_qs = filter_where_by_value_field(address_qs, "phone", phone_number)
+    if (country := value.get("country")) is not None:
+        address_qs = filter_where_by_value_field(address_qs, "country", country)
+    return address_qs
+
+
 class CustomerFilter(MetadataFilterBase):
     ids = GlobalIDMultipleChoiceFilter(field_name="id", help_text="Filter by ids.")
     date_joined = ObjectTypeFilter(
@@ -97,9 +110,30 @@ class CustomerFilter(MetadataFilterBase):
         ]
 
 
+class CountryCodeEnumFilterInput(BaseInputObjectType):
+    eq = CountryCodeEnum(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        CountryCodeEnum,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+    not_one_of = NonNullList(
+        CountryCodeEnum,
+        description=FilterInputDescriptions.NOT_ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        description = "Filter by country code."
+
+
 class AddressFilterInput(BaseInputObjectType):
     phone_number = StringFilterInput(
         help_text="Filter by phone number.",
+    )
+    country = CountryCodeEnumFilterInput(
+        help_text="Filter by country code.",
     )
 
     class Meta:
@@ -167,15 +201,11 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         if not value:
             return qs.none()
         UserAddress = User.addresses.through
-        if (phone_number := value.get("phone_number")) is not None:
-            address_qs = filter_where_by_value_field(
-                Address.objects.using(qs.db), "phone", phone_number
-            )
-            user_address_qs = UserAddress.objects.using(qs.db).filter(
-                Exists(address_qs.filter(id=OuterRef("address_id"))),
-            )
-            return qs.filter(Exists(user_address_qs.filter(user_id=OuterRef("id"))))
-        return qs.none()
+        address_qs = filter_address(value)
+        user_address_qs = UserAddress.objects.using(qs.db).filter(
+            Exists(address_qs.filter(id=OuterRef("address_id"))),
+        )
+        return qs.filter(Exists(user_address_qs.filter(user_id=OuterRef("id"))))
 
 
 class CustomerWhereInput(WhereInputObjectType):
