@@ -17,7 +17,7 @@ def populate_user_number_of_orders(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("account", "0089_user_number_of_orders"),
+        ("account", "0090_user_number_of_orders"),
     ]
 
     operations = [
