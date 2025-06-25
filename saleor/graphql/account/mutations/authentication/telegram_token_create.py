@@ -48,12 +48,20 @@ async def validate_telegram_data_async(init_data_raw, bot_token):
         print(decoded_data)
         print("=" * 50)
 
-        # Parse init_data_raw
-        parsed_data = parse_qs(decoded_data)
-        print(f"Parsed data: {parsed_data}")
+        # 更健壮的解析方式：user= 之后的所有内容都作为 user 字段
+        user_start = decoded_data.find("user=")
+        if user_start != -1:
+            before_user = decoded_data[:user_start].strip("&")
+            user_value = decoded_data[user_start + 5 :]  # 5 = len('user=')
+            # 解析前面的参数
+            params = dict(x.split("=", 1) for x in before_user.split("&") if "=" in x)
+            params["user"] = user_value
+        else:
+            params = dict(x.split("=", 1) for x in decoded_data.split("&") if "=" in x)
+        print(f"Parsed data: {params}")
 
         # Extract user data
-        user_data = parsed_data.get("user", [None])[0]
+        user_data = params.get("user", None)
         if not user_data:
             raise ValidationError("Missing user data in Telegram init data")
 
@@ -83,7 +91,7 @@ async def validate_telegram_data_async(init_data_raw, bot_token):
             "hash",
         ]
         for param in required_params:
-            if param not in parsed_data:
+            if param not in params:
                 raise ValidationError(f"Missing required parameter: {param}")
 
         # Optional parameters (some WebApp implementations may not provide these)
@@ -95,16 +103,16 @@ async def validate_telegram_data_async(init_data_raw, bot_token):
 
         # Check if optional parameters exist but are empty
         for param in optional_params:
-            if param in parsed_data and not parsed_data.get(param, [None])[0]:
+            if param in params and not params.get(param, None):
                 print(f"Warning: {param} parameter is empty")
 
         return {
             "user": user_info,
-            "auth_date": parsed_data.get("auth_date", [None])[0],
-            "hash": parsed_data.get("hash", [None])[0],
-            "chat_instance": parsed_data.get("chat_instance", [None])[0],
-            "chat_type": parsed_data.get("chat_type", [None])[0],
-            "signature": parsed_data.get("signature", [None])[0],
+            "auth_date": params.get("auth_date", None),
+            "hash": params.get("hash", None),
+            "chat_instance": params.get("chat_instance", None),
+            "chat_type": params.get("chat_type", None),
+            "signature": params.get("signature", None),
             "bot_info": {
                 "id": bot_info.id,
                 "first_name": bot_info.first_name,
