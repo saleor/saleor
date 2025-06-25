@@ -70,7 +70,7 @@ def filter_by_ids(object_type):
     return inner
 
 
-def filter_where_range_field(qs, field, value):
+def filter_where_range_field_with_conditions(qs, field, value):
     if value is None:
         return qs.none()
     range = value.get("range")
@@ -164,7 +164,7 @@ def filter_where_by_price_field(qs: "QuerySet", field: str, value: dict) -> "Que
         return qs.none()
     if currency := value.get("currency"):
         qs = qs.filter(currency=currency)
-    return filter_where_range_field(qs, field, value.get("amount", {}))
+    return filter_where_range_field_with_conditions(qs, field, value.get("amount", {}))
 
 
 def filter_slug_list(qs, _, values):

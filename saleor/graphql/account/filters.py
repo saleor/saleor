@@ -17,6 +17,7 @@ from ..core.filters import (
 from ..core.filters.where_filters import MetadataWhereBase
 from ..core.filters.where_input import (
     FilterInputDescriptions,
+    IntFilterInput,
     StringFilterInput,
     WhereInputObjectType,
 )
@@ -33,6 +34,7 @@ from ..utils.filters import (
     filter_range_field,
     filter_where_by_range_field,
     filter_where_by_value_field,
+    filter_where_range_field_with_conditions,
 )
 from . import types as account_types
 from .enums import CountryCodeEnum, StaffMemberStatus
@@ -172,24 +174,34 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         method="filter_addresses",
         help_text="Filter by addresses data associated with user.",
     )
+    number_of_orders = ObjectTypeWhereFilter(
+        input_class=IntFilterInput,
+        method="filter_number_of_orders",
+        help_text="Filter by number of orders placed by the user.",
+    )
 
-    def filter_email(self, qs, _, value):
+    @staticmethod
+    def filter_email(qs, _, value):
         if not value:
             return qs.none()
         return filter_where_by_value_field(qs, "email", value)
 
-    def filter_is_active(self, qs, _, value):
+    @staticmethod
+    def filter_is_active(qs, _, value):
         if value is None:
             return qs.none()
         return qs.filter(is_active=value)
 
-    def filter_date_joined(self, qs, _, value):
+    @staticmethod
+    def filter_date_joined(qs, _, value):
         return filter_where_by_range_field(qs, "date_joined", value)
 
-    def filter_updated_at(self, qs, _, value):
+    @staticmethod
+    def filter_updated_at(qs, _, value):
         return filter_where_by_range_field(qs, "updated_at", value)
 
-    def filter_placed_orders_at(self, qs, _, value):
+    @staticmethod
+    def filter_placed_orders_at(qs, _, value):
         if value is None:
             return qs.none()
         orders = filter_where_by_range_field(
@@ -197,7 +209,8 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         )
         return qs.filter(Exists(orders.filter(user_id=OuterRef("id"))))
 
-    def filter_addresses(self, qs, _, value):
+    @staticmethod
+    def filter_addresses(qs, _, value):
         if not value:
             return qs.none()
         UserAddress = User.addresses.through
@@ -206,6 +219,12 @@ class CustomerWhereFilterInput(MetadataWhereBase):
             Exists(address_qs.filter(id=OuterRef("address_id"))),
         )
         return qs.filter(Exists(user_address_qs.filter(user_id=OuterRef("id"))))
+
+    @staticmethod
+    def filter_number_of_orders(qs, _, value):
+        if value is None:
+            return qs.none()
+        return filter_where_range_field_with_conditions(qs, "number_of_orders", value)
 
 
 class CustomerWhereInput(WhereInputObjectType):

@@ -14524,6 +14524,9 @@ input CustomerWhereInput @doc(category: "Users") {
   """Filter by addresses data associated with user."""
   addresses: AddressFilterInput
 
+  """Filter by number of orders placed by the user."""
+  numberOfOrders: IntFilterInput
+
   """List of conditions that must be met."""
   AND: [CustomerWhereInput!]
 

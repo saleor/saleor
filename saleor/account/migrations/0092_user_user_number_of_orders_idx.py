@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("account", "0091_populate_user_number_of_orders"),
-        ("permission", "0002_alter_permission_content_type"),
     ]
 
     operations = [
