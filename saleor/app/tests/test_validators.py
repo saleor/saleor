@@ -102,7 +102,7 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
     app_manifest["appUrl"] = "https://app.example.com"
     extension = {
         "url": "/relative/path",
-        "target": "NEW_TAB",
+        "target": AppExtensionTarget.NEW_TAB,
     }
 
     _clean_extension_url(extension, app_manifest)
@@ -122,7 +122,7 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
         ),
         # url starts with /, target NEW_TAB, should not raise
         (
-            {"url": "/tab", "target": "NEW_TAB"},
+            {"url": "/tab", "target": AppExtensionTarget.NEW_TAB},
             {
                 "tokenTargetUrl": "https://app.example.com",
                 "appUrl": "https://app.example.com",
@@ -142,7 +142,7 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
         (
             {
                 "url": "https://app.example.com/page",
-                "target": "NEW_TAB",
+                "target": AppExtensionTarget.NEW_TAB,
                 "options": {"newTabTarget": {"method": "POST"}},
             },
             {"tokenTargetUrl": "https://app.example.com"},
@@ -152,7 +152,7 @@ def test_clean_extensions_new_tab_valid_relative_url(app_manifest):
         (
             {
                 "url": "https://other.com/page",
-                "target": "NEW_TAB",
+                "target": AppExtensionTarget.NEW_TAB,
                 "options": {"newTabTarget": {"method": "POST"}},
             },
             {"tokenTargetUrl": "https://app.example.com"},
@@ -176,27 +176,31 @@ def test_clean_extension_url(extension, manifest, should_raise):
 
 
 def test_new_tab_relative_url_without_app_url(app_manifest):
+    # given
     app_manifest["appUrl"] = None
 
     extension = {
         "url": "/relative/path",
-        "target": "NEW_TAB",
+        "target": AppExtensionTarget.NEW_TAB,
     }
 
     app_manifest["extensions"] = [extension]
 
+    # when & then
     with pytest.raises(ValidationError):
         _clean_extension_url(extension, manifest_data=app_manifest)
 
 
 def test_clean_extension_url_https_only(settings):
+    # given
     settings.ENABLE_SSL = True
 
+    # when & then
     with pytest.raises(ValidationError):
         _clean_extension_url(
             {
                 "url": "http://app.example.com/page",
-                "target": "NEW_TAB",
+                "target": AppExtensionTarget.NEW_TAB,
                 "options": {"newTabTarget": {"method": "POST"}},
             },
             {
@@ -207,20 +211,24 @@ def test_clean_extension_url_https_only(settings):
 
 
 def test_clean_extension_url_http_if_SSL_disabled(settings):
+    # given
     settings.ENABLE_SSL = False
 
+    # when
     result = _clean_extension_url(
-        {"url": "http://app.example.com/page", "target": "NEW_TAB"},
+        {"url": "http://app.example.com/page", "target": AppExtensionTarget.NEW_TAB},
         {
             "tokenTargetUrl": "https://app.example.com",
             "appUrl": "https://app.example.com",
         },
     )
 
+    # then
     assert result is None
 
 
 def test_app_extension_options_accepts_only_one():
+    # Given
     parsed = AppExtensionOptions().model_validate({"widgetTarget": {"method": "GET"}})
 
     assert parsed.new_tab_target is None
@@ -241,8 +249,10 @@ def test_app_extension_options_accepts_only_one():
             }
         )
 
+    # when
     parsed = AppExtensionOptions().model_validate({})
 
+    # then
     assert parsed.new_tab_target is None
     assert parsed.widget_target is None
 
@@ -290,7 +300,7 @@ def test_clean_extension_options_valid_widget_options():
 def test_clean_extension_options_valid_new_tab_options():
     # Given
     extension = {
-        "target": "NEW_TAB",
+        "target": AppExtensionTarget.NEW_TAB,
         "options": {"newTabTarget": {"method": "GET"}},
     }
     errors = {"extensions": []}
@@ -309,7 +319,7 @@ def test_clean_extension_options_valid_new_tab_options():
 def test_clean_extension_options_both_targets():
     # Given
     extension = {
-        "target": "NEW_TAB",
+        "target": AppExtensionTarget.NEW_TAB,
         "options": {
             "newTabTarget": {"method": "GET"},
             "widgetTarget": {"method": "POST"},
@@ -332,7 +342,7 @@ def test_clean_extension_options_both_targets():
 def test_clean_extension_options_widget_target_with_wrong_target():
     # Given
     extension = {
-        "target": "NEW_TAB",
+        "target": AppExtensionTarget.NEW_TAB,
         "options": {"widgetTarget": {"method": "POST"}},
     }
     errors = {"extensions": []}
@@ -421,19 +431,18 @@ def test_clean_extension_options_no_options():
 
 
 @pytest.mark.parametrize(
-    ("mount", "should_raise"),
+    "mount",
     [
-        ("ORDER_DETAILS_WIDGETS", False),
-        ("PRODUCT_DETAILS_WIDGETS", False),
-        ("VOUCHER_DETAILS_WIDGETS", False),
-        ("DRAFT_ORDER_DETAILS_WIDGETS", False),
-        ("GIFT_CARD_DETAILS_WIDGETS", False),
-        ("CUSTOMER_DETAILS_WIDGETS", False),
-        ("COLLECTION_DETAILS_WIDGETS", False),
-        ("CATEGORY_OVERVIEW_CREATE", True),
+        "ORDER_DETAILS_WIDGETS",
+        "PRODUCT_DETAILS_WIDGETS",
+        "VOUCHER_DETAILS_WIDGETS",
+        "DRAFT_ORDER_DETAILS_WIDGETS",
+        "GIFT_CARD_DETAILS_WIDGETS",
+        "CUSTOMER_DETAILS_WIDGETS",
+        "COLLECTION_DETAILS_WIDGETS",
     ],
 )
-def test_widget_target_available_mounts(mount, should_raise, app_manifest):
+def test_widget_target_available_mounts_valid(mount, app_manifest):
     # Given
     extension = {
         "target": "WIDGET",
@@ -449,7 +458,27 @@ def test_widget_target_available_mounts(mount, should_raise, app_manifest):
     _clean_extensions(app_manifest, [], errors)
 
     # Then
-    if should_raise:
-        assert "extensions" in errors
-    else:
-        assert len(errors["extensions"]) == 0
+    assert len(errors["extensions"]) == 0
+
+
+@pytest.mark.parametrize(
+    "mount",
+    ["CATEGORY_OVERVIEW_CREATECATEGORY_OVERVIEW_MORE_ACTIONS"],
+)
+def test_widget_target_available_mounts_invalid(mount, app_manifest):
+    # Given
+    extension = {
+        "target": "WIDGET",
+        "mount": mount,
+        "url": "https://example.com/widget",
+        "label": "label",
+    }
+    errors = {"extensions": []}
+
+    app_manifest["extensions"] = [extension]
+
+    # When
+    _clean_extensions(app_manifest, [], errors)
+
+    # Then
+    assert "extensions" in errors

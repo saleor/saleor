@@ -50,8 +50,8 @@ def _clean_extension_url_with_only_path(
 ):
     if target == AppExtensionTarget.APP_PAGE:
         return
-    if target == AppExtensionTarget.NEW_TAB:
-        return
+    # if target == AppExtensionTarget.NEW_TAB:
+    #     return
     if manifest_data["appUrl"]:
         _clean_app_url(manifest_data["appUrl"])
     else:
@@ -73,6 +73,7 @@ def _clean_extension_url(extension: dict, manifest_data: dict):
     - url cannot start with protocol when target == "APP_PAGE"
     """
     extension_url = extension["url"]
+    # At this point target should be already cleaned enum AppExtensionTarget
     target = extension.get("target") or AppExtensionTarget.POPUP
 
     # Assume app URL is the one that originally received the token.
