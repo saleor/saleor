@@ -685,7 +685,21 @@ type Query {
     sortBy: PageSortingInput
 
     """Filtering options for pages."""
-    filter: PageFilterInput
+    filter: PageFilterInput @deprecated(reason: "+ Use `where` and `search` instead.")
+
+    """
+    Search pages. Overrides filter.search input.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
+
+    """
+    Where filtering options for pages.
+    
+    Added in Saleor 3.22.
+    """
+    where: PageWhereInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -1486,10 +1500,24 @@ type Query {
   """
   customers(
     """Filtering options for customers."""
-    filter: CustomerFilterInput
+    filter: CustomerFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """
+    Where filtering options for customers.
+    
+    Added in Saleor 3.22.
+    """
+    where: CustomerWhereInput
 
     """Sort customers."""
     sortBy: UserSortingInput
+
+    """
+    Search customers.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -12793,6 +12821,54 @@ input PageFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
+input PageWhereInput @doc(category: "Pages") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+
+  """Filter by page slug."""
+  slug: StringFilterInput
+
+  """Filter by page type."""
+  pageType: GlobalIDFilterInput
+
+  """List of conditions that must be met."""
+  AND: [PageWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [PageWhereInput!]
+}
+
+"""
+Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+"""
+input MetadataFilterInput {
+  """
+  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
+  """
+  key: String!
+
+  """Value to filter by."""
+  value: MetadataValueFilterInput
+}
+
+"""Define the filtering options for metadata value fields."""
+input MetadataValueFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
 type PageTypeCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -13012,36 +13088,6 @@ input OrderWhereInput @doc(category: "Orders") {
 
   """A list of conditions of which at least one must be met."""
   OR: [OrderWhereInput!]
-}
-
-"""
-Allows filtering based on metadata key/value pairs.
-
-        Examples:
-        - `{key: "size"}`
-          Matches objects where the metadata key "size" exists, regardless of its value.
-        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
-          Matches objects where the metadata key "color" is set to either "blue" or "green".
-        - `{key: "status", value: {eq: "active"}}`
-          Matches objects where the metadata key "status" is set to "active".
-"""
-input MetadataFilterInput {
-  """
-  Key to filter by. If not other fields provided - checking the existence of the key in metadata.
-  """
-  key: String!
-
-  """Value to filter by."""
-  value: MetadataValueFilterInput
-}
-
-"""Define the filtering options for metadata value fields."""
-input MetadataValueFilterInput {
-  """The value equal to."""
-  eq: String
-
-  """The value included in."""
-  oneOf: [String!]
 }
 
 """Define the filtering options for integer fields."""
@@ -14365,6 +14411,27 @@ input CustomerFilterInput @doc(category: "Users") {
   """Filter by ids."""
   ids: [ID!]
   updatedAt: DateTimeRangeInput
+}
+
+input CustomerWhereInput @doc(category: "Users") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+
+  """Filter by date joined."""
+  dateJoined: DateTimeRangeInput
+
+  """Filter by last updated date."""
+  updatedAt: DateTimeRangeInput
+
+  """Filter by date when orders were placed."""
+  placedOrdersAt: DateTimeRangeInput
+
+  """List of conditions that must be met."""
+  AND: [CustomerWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CustomerWhereInput!]
 }
 
 input UserSortingInput @doc(category: "Users") {

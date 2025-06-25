@@ -1,16 +1,29 @@
 import django_filters
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
 
 from ...account.models import User
 from ...account.search import search_users
+from ...order.models import Order
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
+    GlobalIDMultipleChoiceWhereFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    ObjectTypeWhereFilter,
+)
+from ..core.filters.where_filters import MetadataWhereBase
+from ..core.filters.where_input import (
+    WhereInputObjectType,
 )
 from ..core.types import DateRangeInput, DateTimeRangeInput, IntRangeInput
-from ..utils.filters import filter_by_id, filter_range_field
+from ..utils.filters import (
+    filter_by_id,
+    filter_by_ids,
+    filter_range_field,
+    filter_where_by_range_field,
+)
 from . import types as account_types
 from .enums import StaffMemberStatus
 
@@ -74,6 +87,45 @@ class CustomerFilter(MetadataFilterBase):
             "placed_orders",
             "search",
         ]
+
+
+class CustomerWhereFilterInput(MetadataWhereBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("User"))
+    date_joined = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_date_joined",
+        help_text="Filter by date joined.",
+    )
+    updated_at = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_updated_at",
+        help_text="Filter by last updated date.",
+    )
+    placed_orders_at = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_placed_orders_at",
+        help_text="Filter by date when orders were placed.",
+    )
+
+    def filter_date_joined(self, qs, _, value):
+        return filter_where_by_range_field(qs, "date_joined", value)
+
+    def filter_updated_at(self, qs, _, value):
+        return filter_where_by_range_field(qs, "updated_at", value)
+
+    def filter_placed_orders_at(self, qs, _, value):
+        if value is None:
+            return qs.none()
+        orders = filter_where_by_range_field(
+            Order.objects.using(qs.db), "created_at", value
+        )
+        return qs.filter(Exists(orders.filter(user_id=OuterRef("id"))))
+
+
+class CustomerWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        filterset_class = CustomerWhereFilterInput
 
 
 class PermissionGroupFilter(django_filters.FilterSet):

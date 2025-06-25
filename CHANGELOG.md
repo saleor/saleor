@@ -9,6 +9,9 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added support for filtering products by attribute value names. The `AttributeInput` now includes a `valueNames` field, enabling filtering by the names of attribute values, in addition to the existing filtering by value slugs.
+- You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
+  - Use `search` to perform full-text search across relevant fields.
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
@@ -33,6 +36,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - The order external reference
 - Extend sorting options. You can now sort orders by their status.
 - Add support for payment method details in the Transaction API. The payment method details associated with a transaction can now be persisted on the Saleor side. See [docs](https://docs.saleor.io/developer/payments/transactions#via-transaction-mutations) to learn more.
+- You can now filter and search customers using the new `where` and `search` fields on the `customers` query.
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
+  - Use `search` to perform full-text search across relevant fields.
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
