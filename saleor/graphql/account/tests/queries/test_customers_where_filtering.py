@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....account.models import User
+from .....account.models import Address, User
 from .....order import OrderOrigin
 from ....tests.utils import get_graphql_content
 
@@ -314,3 +314,136 @@ def test_customers_filter_by_placed_orders_at(
     assert len(customers) == len(indexes)
     emails = {node["node"]["email"] for node in customers}
     assert emails == {customer_users[index].email for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("email_filter", "expected_indexes"),
+    [
+        ({"eq": "test1@example.com"}, [0]),
+        ({"eq": "test2@example.com"}, [1]),
+        ({"eq": "notfound@example.com"}, []),
+        ({"oneOf": ["test1@example.com", "test3@example.com"]}, [0, 2]),
+        ({"oneOf": ["notfound@example.com"]}, []),
+        (None, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
+    ],
+)
+def test_customers_filter_by_email(
+    email_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    customer_emails = [
+        "test1@example.com",
+        "test2@example.com",
+        "test3@example.com",
+    ]
+    for user, email in zip(customer_users, customer_emails, strict=True):
+        user.email = email
+        user.save(update_fields=["email"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"email": email_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("is_active_filter", "expected_indexes"),
+    [
+        (True, [0, 1]),
+        (False, [2]),
+        (None, []),
+    ],
+)
+def test_customers_filter_by_is_active(
+    is_active_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    is_active_values = [True, True, False]
+    for user, is_active in zip(customer_users, is_active_values, strict=True):
+        user.is_active = is_active
+        user.save(update_fields=["is_active"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"isActive": is_active_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("address_filter", "expected_indexes"),
+    [
+        ({"phoneNumber": {"eq": "+48123456789"}}, [0]),
+        ({"phoneNumber": {"eq": "+1987654321"}}, [1]),
+        ({"phoneNumber": {"eq": "notfound"}}, []),
+        ({"phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]}}, [0, 2]),
+        ({"phoneNumber": {"oneOf": ["notfound"]}}, []),
+        (None, []),
+        ({"phoneNumber": {"eq": None}}, []),
+        ({"phoneNumber": {"oneOf": []}}, []),
+    ],
+)
+def test_customers_filter_by_addresses(
+    address_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    phones = [
+        "+48123456789",
+        "+1987654321",
+        "+86555555555",
+    ]
+    for user, phone in zip(customer_users, phones, strict=True):
+        user.addresses.add(
+            Address.objects.create(
+                first_name="John",
+                last_name="Doe",
+                company_name="Mirumee Software",
+                street_address_1="Tęczowa 7",
+                city="WROCŁAW",
+                postal_code="53-601",
+                country="PL",
+                phone=phone,
+            )
+        )
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"addresses": address_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}

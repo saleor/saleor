@@ -237,6 +237,10 @@ class User(
                 fields=["date_joined"],
                 name="user_date_joined_idx",
             ),
+            BTreeIndex(
+                fields=["email"],
+                name="user_email_idx",
+            ),
         ]
 
     def __init__(self, *args, **kwargs):
