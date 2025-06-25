@@ -44,6 +44,18 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by email address.
     - Filter by active status (`isActive`).
     - Filter by phone numbers associated with user addresses.
+- Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
+  The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
+
+  The `filter` argument has been deprecated in the following queries:
+  - `attributes`
+  - `customers`
+  - `products`
+  - `orders`
+  - `productType.availableAttributes`
+  - `category.products`
+  - `collection.products`
+  - `pageType.availableAttributes`
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
