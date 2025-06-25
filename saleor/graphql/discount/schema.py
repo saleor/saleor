@@ -151,7 +151,9 @@ class DiscountQueries(graphene.ObjectType):
     )
     promotions = FilterConnectionField(
         PromotionCountableConnection,
-        where=PromotionWhereInput(description="Where filtering options."),
+        where=PromotionWhereInput(
+            description="Where filtering options for promotions."
+        ),
         sort_by=PromotionSortingInput(description="Sort promotions."),
         description="List of the promotions.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],

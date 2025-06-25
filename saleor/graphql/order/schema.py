@@ -13,7 +13,11 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
-from ..core.descriptions import ADDED_IN_322, DEFAULT_DEPRECATION_REASON
+from ..core.descriptions import (
+    ADDED_IN_322,
+    DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -125,7 +129,12 @@ class OrderQueries(graphene.ObjectType):
     orders = FilterConnectionField(
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort orders."),
-        filter=OrderFilterInput(description="Filtering options for orders."),
+        filter=OrderFilterInput(
+            description=(
+                f"Filtering options for orders. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=OrderWhereInput(
             description="Where filtering options for orders." + ADDED_IN_322
         ),

@@ -3,6 +3,7 @@ import graphene
 from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.fields import BaseField, FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
@@ -34,8 +35,15 @@ class AttributeQueries(graphene.ObjectType):
     attributes = FilterConnectionField(
         AttributeCountableConnection,
         description="List of the shop's attributes.",
-        filter=AttributeFilterInput(description="Filtering options for attributes."),
-        where=AttributeWhereInput(description="Filtering options for attributes."),
+        filter=AttributeFilterInput(
+            description=(
+                f"Filtering options for attributes. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes."
+        ),
         search=graphene.String(description="Search attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(

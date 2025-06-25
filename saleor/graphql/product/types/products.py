@@ -37,7 +37,11 @@ from ....thumbnail.utils import (
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
-from ...attribute.filters import AttributeFilterInput, AttributeWhereInput
+from ...attribute.filters import (
+    AttributeFilterInput,
+    AttributeWhereInput,
+    filter_attribute_search,
+)
 from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import (
     AssignedVariantAttribute,
@@ -958,7 +962,9 @@ class Product(ChannelContextType[models.Product]):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
-        where=ProductVariantWhereInput(description="Where filtering options."),
+        where=ProductVariantWhereInput(
+            description="Where filtering options for product variants."
+        ),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of variants for the product. Requires the following permissions to "
@@ -1733,8 +1739,16 @@ class ProductType(ModelObjectType[models.ProductType]):
     )
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
-        filter=AttributeFilterInput(),
-        where=AttributeWhereInput(),
+        filter=AttributeFilterInput(
+            description=(
+                "Filtering options for attributes of this product type. "
+                f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
+            )
+        ),
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes of this product type."
+        ),
+        search=graphene.String(description="Search attributes."),
         description="List of attributes which can be assigned to this product type.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
@@ -1890,7 +1904,9 @@ class ProductType(ModelObjectType[models.ProductType]):
         return _resolve_products(None)
 
     @staticmethod
-    def resolve_available_attributes(root: models.ProductType, info, **kwargs):
+    def resolve_available_attributes(
+        root: models.ProductType, info, search=None, **kwargs
+    ):
         qs = attribute_models.Attribute.objects.using(
             get_database_connection_name(info.context)
         ).get_unassigned_product_type_attributes(root.pk)
@@ -1898,6 +1914,8 @@ class ProductType(ModelObjectType[models.ProductType]):
         qs = filter_connection_queryset(
             qs, kwargs, info.context, allow_replica=info.context.allow_replica
         )
+        if search:
+            qs = filter_attribute_search(qs, None, search)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
