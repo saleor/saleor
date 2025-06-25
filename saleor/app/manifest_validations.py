@@ -50,8 +50,8 @@ def _clean_extension_url_with_only_path(
 ):
     if target == AppExtensionTarget.APP_PAGE:
         return
-    # if target == AppExtensionTarget.NEW_TAB:
-    #     return
+    if target == AppExtensionTarget.NEW_TAB and not manifest_data["appUrl"]:
+        raise ValidationError("To use relative URL, you must specify appUrl.")
     if manifest_data["appUrl"]:
         _clean_app_url(manifest_data["appUrl"])
     else:
