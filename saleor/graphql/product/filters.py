@@ -119,7 +119,7 @@ def _clean_product_attributes_filter_input(
 def _populate_value_map(
     database_connection_name, field, values, attribute_qs, attributes_pk_slug_map
 ):
-    value_maps: dict[str, dict[str, int]] = defaultdict(dict)
+    value_maps: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
     for (
         attr_pk,
         value_pk,
@@ -131,7 +131,7 @@ def _populate_value_map(
         .values_list("attribute_id", "pk", field)
     ):
         attr_slug = attributes_pk_slug_map[attr_pk]
-        value_maps[attr_slug][field_value] = value_pk
+        value_maps[attr_slug][field_value].append(value_pk)
 
     return value_maps
 
@@ -141,9 +141,10 @@ def _update_queries(queries, filter_values, attributes_slug_pk_map, value_maps):
         if attr_name not in attributes_slug_pk_map:
             raise ValueError(f"Unknown attribute name: {attr_name}")
         attr_pk = attributes_slug_pk_map[attr_name]
-        attr_val_pk = [
-            value_maps[attr_name][val] for val in vals if val in value_maps[attr_name]
-        ]
+        attr_val_pk = []
+        for val in vals:
+            if val in value_maps[attr_name]:
+                attr_val_pk.extend(value_maps[attr_name][val])
         queries[attr_pk] += attr_val_pk
 
 

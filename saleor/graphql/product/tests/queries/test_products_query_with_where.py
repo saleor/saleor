@@ -11,7 +11,11 @@ from .....attribute.tests.model_helpers import (
 )
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product import ProductTypeKind
-from .....product.models import Product, ProductChannelListing, ProductType
+from .....product.models import (
+    Product,
+    ProductChannelListing,
+    ProductType,
+)
 from .....warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ....tests.utils import get_graphql_content
 
@@ -668,12 +672,21 @@ def test_products_filter_by_attributes_value_slug(
     attr_value = AttributeValue.objects.create(
         attribute=attribute, name="First", slug="first"
     )
-    product = product_list[0]
-    product.product_type = product_type
-    product.save()
+    # Associate the same attribute value to two products
+    product1 = product_list[0]
+    product1.product_type = product_type
+    product1.save()
     associate_attribute_values_to_instance(
-        product,
-        {attribute.id: [attr_value]},
+        product1,
+        {attribute.pk: [attr_value]},
+    )
+
+    product2 = product_list[1]
+    product2.product_type = product_type
+    product2.save()
+    associate_attribute_values_to_instance(
+        product2,
+        {attribute.pk: [attr_value]},
     )
 
     variables = {
@@ -688,12 +701,13 @@ def test_products_filter_by_attributes_value_slug(
     content = get_graphql_content(response)
 
     # then
-    product_id = graphene.Node.to_global_id("Product", product.id)
+    product1_id = graphene.Node.to_global_id("Product", product1.id)
+    product2_id = graphene.Node.to_global_id("Product", product2.id)
     products = content["data"]["products"]["edges"]
 
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == product_id
-    assert products[0]["node"]["name"] == product.name
+    assert len(products) == 2
+    returned_ids = {product["node"]["id"] for product in products}
+    assert returned_ids == {product1_id, product2_id}
 
 
 def test_products_filter_by_attributes_value_name(
@@ -719,7 +733,7 @@ def test_products_filter_by_attributes_value_name(
     product.save()
     associate_attribute_values_to_instance(
         product,
-        {attribute.id: [attr_value]},
+        {attribute.pk: [attr_value]},
     )
 
     variables = {
@@ -765,7 +779,7 @@ def test_products_filter_by_attributes_empty_list(
     product.save()
     associate_attribute_values_to_instance(
         product,
-        {attribute.id: [attr_value]},
+        {attribute.pk: [attr_value]},
     )
 
     variables = {
