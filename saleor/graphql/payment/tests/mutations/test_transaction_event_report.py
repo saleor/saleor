@@ -7,10 +7,8 @@ import before_after
 import graphene
 import pytest
 import pytz
-from django.db import transaction as database_transaction
 from django.utils import timezone
 from freezegun import freeze_time
-from psycopg.errors import QueryCanceled
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
@@ -20,6 +18,10 @@ from .....checkout.models import Checkout
 from .....order import OrderEvents, OrderGrantedRefundStatus, OrderStatus
 from .....order.models import Order
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
+)
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.enums import TransactionEventReportErrorCode
@@ -3322,10 +3324,12 @@ def test_transaction_event_report_empty_message(
     assert event.message == ""
 
 
-# transaction=True is required to ensure that the order is locked without it second context will not
-# be able to trying to acquire a lock on the order.
-@pytest.mark.django_db(transaction=True)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_order_and_transaction_item_locked_for_update",
+    wraps=get_order_and_transaction_item_locked_for_update,
+)
 def test_lock_order_during_updating_order_amounts(
+    mocked_get_order_and_transaction_item_locked_for_update,
     transaction_item_generator,
     app_api_client,
     permission_manage_payments,
@@ -3367,41 +3371,28 @@ def test_lock_order_during_updating_order_amounts(
     """
     )
 
-    # when & then
-    def check_if_order_is_locked(*args, **kwargs):
-        # This function will be called when the order amounts are being updated
-        # We will try to acquire a lock on the order row to check if it's locked.
-        cxn = database_transaction.get_connection()
-        new_cxn = cxn.get_new_connection(cxn.get_connection_params())
-        with new_cxn.cursor() as cursor:
-            cursor.execute("SET statement_timeout = 100")
-            with pytest.raises(QueryCanceled):
-                cursor.execute(
-                    """
-                    SELECT *
-                    FROM "order_order"
-                    WHERE "order_order"."id" = %s
-                    FOR UPDATE
-                    """,
-                    [order.pk],
-                )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
 
-    with before_after.before(
-        "saleor.order.utils.update_order_charge_data",
-        check_if_order_is_locked,
-    ):
-        app_api_client.post_graphql(
-            query,
-            variables,
-            permissions=[permission_manage_payments],
-            check_no_permissions=False,
-        )
+    # then
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert order.total_charged.amount == amount
+    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    mocked_get_order_and_transaction_item_locked_for_update.assert_called_once_with(
+        order.pk, transaction.pk
+    )
 
 
-# transaction=True is required to ensure that the order is locked without it second context will not
-# be able to trying to acquire a lock on the order.
-@pytest.mark.django_db(transaction=True)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_checkout_and_transaction_item_locked_for_update",
+    wraps=get_checkout_and_transaction_item_locked_for_update,
+)
 def test_lock_checkout_during_updating_checkout_amounts(
+    mocked_get_checkout_and_transaction_item_locked_for_update,
     transaction_item_generator,
     app_api_client,
     permission_manage_payments,
@@ -3447,33 +3438,20 @@ def test_lock_checkout_during_updating_checkout_amounts(
     """
     )
 
-    # when & then
-    def check_if_checkout_is_locked(*args, **kwargs):
-        # This function will be called when the order amounts are being updated
-        # We will try to acquire a lock on the order row to check if it's locked.
-        cxn = database_transaction.get_connection()
-        new_cxn = cxn.get_new_connection(cxn.get_connection_params())
-        with new_cxn.cursor() as cursor:
-            cursor.execute("SET statement_timeout = 100")
-            with pytest.raises(QueryCanceled):
-                cursor.execute(
-                    """
-                    SELECT *
-                    FROM "checkout_checkout"
-                    WHERE "checkout_checkout"."token" = %s
-                    FOR UPDATE
-                    """,
-                    [checkout.pk],
-                )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
 
-    with before_after.before(
-        "saleor.graphql.payment.mutations.transaction."
-        "transaction_event_report.transaction_amounts_for_checkout_updated_without_price_recalculation",
-        check_if_checkout_is_locked,
-    ):
-        app_api_client.post_graphql(
-            query, variables, permissions=[permission_manage_payments]
-        )
+    # then
+    get_graphql_content(response)
+    checkout.refresh_from_db()
+
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_get_checkout_and_transaction_item_locked_for_update.assert_called_once_with(
+        checkout.pk, transaction.pk
+    )
 
 
 def test_transaction_event_report_checkout_completed_race_condition(
