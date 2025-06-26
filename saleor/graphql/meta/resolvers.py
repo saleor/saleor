@@ -97,10 +97,24 @@ def resolve_object_with_metadata_type(instance):
 
 
 def resolve_metadata(metadata: dict):
-    return sorted(
-        [{"key": k, "value": v} for k, v in metadata.items()],
-        key=itemgetter("key"),
-    )
+    """Resolve metadata with null value compatibility handling.
+
+    This function handles cases where metadata values might be None/null,
+    converting them to empty strings to avoid GraphQL schema validation errors.
+    """
+    if not metadata:
+        return []
+
+    # Filter out None values and convert them to empty strings for compatibility
+    filtered_items = []
+    for k, v in metadata.items():
+        # Convert None values to empty string to avoid GraphQL schema errors
+        if v is None:
+            filtered_items.append({"key": k, "value": ""})
+        else:
+            filtered_items.append({"key": k, "value": v})
+
+    return sorted(filtered_items, key=itemgetter("key"))
 
 
 def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo):

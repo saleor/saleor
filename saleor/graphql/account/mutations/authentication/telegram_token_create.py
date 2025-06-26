@@ -202,20 +202,30 @@ class TelegramTokenCreate(BaseMutation):
             password=make_password(random_password),  # Set random password
         )
 
+        # Prepare metadata, filtering out None values
+        metadata_items = {
+            "telegram_id": telegram_id,
+            "created_via_telegram": True,
+        }
+
+        # Add optional fields only if they have values
+        if user_info.get("username"):
+            metadata_items["telegram_username"] = user_info.get("username")
+        if user_info.get("language_code"):
+            metadata_items["telegram_language_code"] = user_info.get("language_code")
+        if user_info.get("photo_url"):
+            metadata_items["telegram_photo_url"] = user_info.get("photo_url")
+        if telegram_data.get("bot_info"):
+            metadata_items["bot_info"] = telegram_data.get("bot_info")
+        if telegram_data.get("chat_instance"):
+            metadata_items["chat_instance"] = telegram_data.get("chat_instance")
+        if telegram_data.get("chat_type"):
+            metadata_items["chat_type"] = telegram_data.get("chat_type")
+        if telegram_data.get("auth_date"):
+            metadata_items["auth_date"] = telegram_data.get("auth_date")
+
         # Update metadata
-        user.store_value_in_private_metadata(
-            {
-                "telegram_id": telegram_id,
-                "telegram_username": user_info.get("username"),
-                "telegram_language_code": user_info.get("language_code"),
-                "telegram_photo_url": user_info.get("photo_url"),
-                "bot_info": telegram_data.get("bot_info", {}),
-                "chat_instance": telegram_data.get("chat_instance"),
-                "chat_type": telegram_data.get("chat_type"),
-                "auth_date": telegram_data.get("auth_date"),
-                "created_via_telegram": True,
-            }
-        )
+        user.store_value_in_private_metadata(metadata_items)
         user.save(update_fields=["private_metadata"])
 
         return user
@@ -266,19 +276,31 @@ class TelegramTokenCreate(BaseMutation):
                 user.last_name = user_info.get("last_name", "")
                 user.save(update_fields=["first_name", "last_name"])
 
-                # Update metadata
-                user.store_value_in_private_metadata(
-                    {
-                        "telegram_username": user_info.get("username"),
-                        "telegram_language_code": user_info.get("language_code"),
-                        "telegram_photo_url": user_info.get("photo_url"),
-                        "bot_info": telegram_data.get("bot_info", {}),
-                        "chat_instance": telegram_data.get("chat_instance"),
-                        "chat_type": telegram_data.get("chat_type"),
-                        "auth_date": telegram_data.get("auth_date"),
-                    }
-                )
-                user.save(update_fields=["private_metadata"])
+                # Prepare metadata for update, filtering out None values
+                metadata_items = {}
+
+                # Add optional fields only if they have values
+                if user_info.get("username"):
+                    metadata_items["telegram_username"] = user_info.get("username")
+                if user_info.get("language_code"):
+                    metadata_items["telegram_language_code"] = user_info.get(
+                        "language_code"
+                    )
+                if user_info.get("photo_url"):
+                    metadata_items["telegram_photo_url"] = user_info.get("photo_url")
+                if telegram_data.get("bot_info"):
+                    metadata_items["bot_info"] = telegram_data.get("bot_info")
+                if telegram_data.get("chat_instance"):
+                    metadata_items["chat_instance"] = telegram_data.get("chat_instance")
+                if telegram_data.get("chat_type"):
+                    metadata_items["chat_type"] = telegram_data.get("chat_type")
+                if telegram_data.get("auth_date"):
+                    metadata_items["auth_date"] = telegram_data.get("auth_date")
+
+                # Update metadata only if there are items to update
+                if metadata_items:
+                    user.store_value_in_private_metadata(metadata_items)
+                    user.save(update_fields=["private_metadata"])
 
             # 4. Update last login time
             update_user_last_login_if_required(user)
