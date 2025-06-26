@@ -13,7 +13,49 @@ from .....order import (
     OrderStatus,
 )
 from .....order.models import Order, OrderEvent, OrderLine
-from ....tests.utils import get_graphql_content
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+
+
+def test_order_query_with_filter_and_where(
+    staff_api_client,
+    permission_group_manage_orders,
+    orders,
+    draft_order,
+):
+    # given
+    query = """
+        query ($where: DraftOrderWhereInput!, $filter: OrderDraftFilterInput!) {
+            draftOrders(first: 10, where: $where, filter: $filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    variables = {
+        "where": {
+            "number": {
+                "eq": draft_order.number,
+            },
+        },
+        "filter": {
+            "search": "test",
+        },
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    error_message = "Only one filtering argument (filter or where) can be specified."
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert content["errors"][0]["message"] == error_message
+    assert not content["data"]["draftOrders"]
+
 
 DRAFT_ORDERS_WHERE_QUERY = """
     query($where: DraftOrderWhereInput!) {

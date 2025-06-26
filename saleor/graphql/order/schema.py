@@ -164,6 +164,7 @@ class OrderQueries(graphene.ObjectType):
         where=DraftOrderWhereInput(
             description="Where filtering options for draft orders." + ADDED_IN_322
         ),
+        search=graphene.String(description="Search orders." + ADDED_IN_322),
         description=(
             "List of draft orders. The query will not initiate any external requests, "
             "including filtering available shipping methods, or performing external "
@@ -264,7 +265,10 @@ class OrderQueries(graphene.ObjectType):
             kwargs["sort_by"] = product_type.create_container(
                 {"direction": "-", "field": ["search_rank", "id"]}
             )
+        search = kwargs.get("search")
         qs = resolve_draft_orders(info)
+        if search:
+            qs = search_orders(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
