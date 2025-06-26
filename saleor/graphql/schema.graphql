@@ -14509,6 +14509,12 @@ input CustomerWhereInput @doc(category: "Users") {
   """Filter by email address."""
   email: StringFilterInput
 
+  """Filter by first name."""
+  firstName: StringFilterInput
+
+  """Filter by last name."""
+  lastName: StringFilterInput
+
   """Filter by whether the user is active."""
   isActive: Boolean
 

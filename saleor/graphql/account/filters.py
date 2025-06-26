@@ -150,6 +150,16 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         method="filter_email",
         help_text="Filter by email address.",
     )
+    first_name = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_first_name",
+        help_text="Filter by first name.",
+    )
+    last_name = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_last_name",
+        help_text="Filter by last name.",
+    )
     is_active = BooleanWhereFilter(
         field_name="is_active",
         help_text="Filter by whether the user is active.",
@@ -182,9 +192,15 @@ class CustomerWhereFilterInput(MetadataWhereBase):
 
     @staticmethod
     def filter_email(qs, _, value):
-        if not value:
-            return qs.none()
         return filter_where_by_value_field(qs, "email", value)
+
+    @staticmethod
+    def filter_first_name(qs, _, value):
+        return filter_where_by_value_field(qs, "first_name", value)
+
+    @staticmethod
+    def filter_last_name(qs, _, value):
+        return filter_where_by_value_field(qs, "last_name", value)
 
     @staticmethod
     def filter_is_active(qs, _, value):
