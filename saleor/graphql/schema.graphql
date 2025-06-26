@@ -13061,9 +13061,6 @@ input OrderWhereInput @doc(category: "Orders") {
   """
   isClickAndCollect: Boolean
 
-  """Filter by whether the order contains preorder items."""
-  isPreorder: Boolean
-
   """Filter based on whether a gift card was used in the order."""
   isGiftCardUsed: Boolean
 

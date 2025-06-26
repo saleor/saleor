@@ -588,10 +588,6 @@ class OrderWhere(MetadataWhereBase):
         method="filter_is_click_and_collect",
         help_text="Filter by whether the order uses the click and collect delivery method.",
     )
-    is_preorder = BooleanWhereFilter(
-        method="filter_is_preorder",
-        help_text="Filter by whether the order contains preorder items.",
-    )
     is_gift_card_used = BooleanWhereFilter(
         method="filter_is_gift_card_used",
         help_text="Filter based on whether a gift card was used in the order.",
@@ -720,12 +716,6 @@ class OrderWhere(MetadataWhereBase):
         if value is None:
             return qs.none()
         return filter_is_click_and_collect(qs, _, value)
-
-    @staticmethod
-    def filter_is_preorder(qs, _, value):
-        if value is None:
-            return qs.none()
-        return filter_is_preorder(qs, _, value)
 
     @staticmethod
     def filter_is_gift_card_used(qs, _, value):
