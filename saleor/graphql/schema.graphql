@@ -13106,6 +13106,12 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by order events."""
   events: OrderEventFilterInput
 
+  """Filter by billing address of the order."""
+  billingAddress: AddressFilterInput
+
+  """Filter by shipping address of the order."""
+  shippingAddress: AddressFilterInput
+
   """List of conditions that must be met."""
   AND: [OrderWhereInput!]
 
@@ -13255,6 +13261,24 @@ input OrderEventTypeEnumFilterInput {
 
   """The value included in."""
   oneOf: [OrderEventsEnum!]
+}
+
+"""Filtering options for addresses."""
+input AddressFilterInput @doc(category: "Users") {
+  phoneNumber: StringFilterInput
+  country: CountryCodeEnumFilterInput
+}
+
+"""Filter by country code."""
+input CountryCodeEnumFilterInput @doc(category: "Users") {
+  """The value equal to."""
+  eq: CountryCode
+
+  """The value included in."""
+  oneOf: [CountryCode!]
+
+  """The value not included in."""
+  notOneOf: [CountryCode!]
 }
 
 input OrderDraftFilterInput @doc(category: "Orders") {
@@ -14505,11 +14529,6 @@ input CustomerWhereInput @doc(category: "Users") {
 
   """A list of conditions of which at least one must be met."""
   OR: [CustomerWhereInput!]
-}
-
-"""Filtering options for addresses."""
-input AddressFilterInput @doc(category: "Users") {
-  phoneNumber: StringFilterInput
 }
 
 input UserSortingInput @doc(category: "Users") {

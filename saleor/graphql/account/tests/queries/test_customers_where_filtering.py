@@ -403,9 +403,27 @@ def test_customers_filter_by_is_active(
         ({"phoneNumber": {"eq": "notfound"}}, []),
         ({"phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]}}, [0, 2]),
         ({"phoneNumber": {"oneOf": ["notfound"]}}, []),
+        ({"country": {"eq": "GE"}}, [0]),
+        ({"country": {"eq": "US"}}, [1]),
+        ({"country": {"eq": "CN"}}, [2]),
+        ({"country": {"eq": "JP"}}, []),
+        ({"country": {"oneOf": ["GE", "CN"]}}, [0, 2]),
+        ({"country": {"oneOf": ["JP"]}}, []),
+        ({"country": {"notOneOf": ["GE", "CN", "PL"]}}, [1]),
+        ({"phoneNumber": {"eq": "+48123456789"}, "country": {"eq": "GE"}}, [0]),
+        ({"phoneNumber": {"eq": "+48123456789"}, "country": {"eq": "US"}}, []),
+        (
+            {
+                "phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]},
+                "country": {"notOneOf": ["GE"]},
+            },
+            [2],
+        ),
         (None, []),
         ({"phoneNumber": {"eq": None}}, []),
         ({"phoneNumber": {"oneOf": []}}, []),
+        ({"country": {"eq": None}}, []),
+        ({"country": {"oneOf": []}}, []),
     ],
 )
 def test_customers_filter_by_addresses(
@@ -421,19 +439,22 @@ def test_customers_filter_by_addresses(
         "+1987654321",
         "+86555555555",
     ]
-    for user, phone in zip(customer_users, phones, strict=True):
-        user.addresses.add(
-            Address.objects.create(
-                first_name="John",
-                last_name="Doe",
-                company_name="Mirumee Software",
-                street_address_1="Tęczowa 7",
-                city="WROCŁAW",
-                postal_code="53-601",
-                country="PL",
-                phone=phone,
-            )
+    countries = ["GE", "US", "CN"]
+    addresses = [
+        Address.objects.create(
+            first_name="John",
+            last_name="Doe",
+            company_name="Mirumee Software",
+            street_address_1="Tęczowa 7",
+            city="WROCŁAW",
+            postal_code="53-601",
+            country=country,
+            phone=phone,
         )
+        for phone, country in zip(phones, countries, strict=True)
+    ]
+    for user, address in zip(customer_users, addresses, strict=True):
+        user.addresses.add(address)
 
     permission_group_manage_users.user_set.add(staff_api_client.user)
     variables = {"where": {"addresses": address_filter}}

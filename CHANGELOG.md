@@ -26,8 +26,9 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by order metadata.
     - Filter by order by associated lines metadata.
     - Filter by the product type of related order lines.
-    - Filter by associated event type and date
-    - Filter by associated payment method name and type
+    - Filter by associated event type and date.
+    - Filter by associated payment method name and type.
+    - Filter by associated billing and shipping address phone number and country code.
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - Enhanced order search options. Orders can now be searched using:
   - The order's ID
@@ -43,10 +44,9 @@ All notable, unreleased changes to this project will be documented in this file.
   - Introduced new filtering options for customers:
     - Filter by email address.
     - Filter by active status (`isActive`).
-    - Filter by phone numbers associated with user addresses.
+    - Filter by phone numbers and country of associated user addresses.
 - Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
   The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
-
   The `filter` argument has been deprecated in the following queries:
   - `attributes`
   - `customers`

@@ -6,6 +6,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....account.models import Address
 from .....core.postgres import FlatConcatSearchVector
 from .....giftcard.events import gift_cards_bought_event, gift_cards_used_in_order_event
 from .....invoice.models import Invoice
@@ -2512,3 +2513,155 @@ def test_orders_filter_by_transaction_payment_details(
     assert len(orders) == len(indexes)
     numbers = {node["node"]["number"] for node in orders}
     assert numbers == {str(order_list[index].number) for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("address_filter", "expected_indexes"),
+    [
+        ({"phoneNumber": {"eq": "+48123456789"}}, [0]),
+        ({"phoneNumber": {"eq": "+1987654321"}}, [1]),
+        ({"phoneNumber": {"eq": "notfound"}}, []),
+        ({"phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]}}, [0, 2]),
+        ({"phoneNumber": {"oneOf": ["notfound"]}}, []),
+        ({"country": {"eq": "GE"}}, [0]),
+        ({"country": {"eq": "US"}}, [1]),
+        ({"country": {"eq": "CN"}}, [2]),
+        ({"country": {"eq": "JP"}}, []),
+        ({"country": {"oneOf": ["GE", "CN"]}}, [0, 2]),
+        ({"country": {"oneOf": ["JP"]}}, []),
+        ({"country": {"notOneOf": ["GE", "CN", "PL"]}}, [1]),
+        ({"phoneNumber": {"eq": "+48123456789"}, "country": {"eq": "GE"}}, [0]),
+        ({"phoneNumber": {"eq": "+48123456789"}, "country": {"eq": "US"}}, []),
+        (
+            {
+                "phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]},
+                "country": {"notOneOf": ["GE"]},
+            },
+            [2],
+        ),
+        (None, []),
+        ({"phoneNumber": {"eq": None}}, []),
+        ({"phoneNumber": {"oneOf": []}}, []),
+        ({"country": {"eq": None}}, []),
+        ({"country": {"oneOf": []}}, []),
+    ],
+)
+def test_orders_filter_by_billing_address(
+    address_filter,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    phones = [
+        "+48123456789",
+        "+1987654321",
+        "+86555555555",
+    ]
+    countries = ["GE", "US", "CN"]
+    addresses = [
+        Address.objects.create(
+            first_name="John",
+            last_name="Doe",
+            company_name="Mirumee Software",
+            street_address_1="Tęczowa 7",
+            city="WROCŁAW",
+            postal_code="53-601",
+            country=country,
+            phone=phone,
+        )
+        for phone, country in zip(phones, countries, strict=True)
+    ]
+    for order, address in zip(order_list, addresses, strict=True):
+        order.billing_address = address
+    Order.objects.bulk_update(order_list, ["billing_address"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"billingAddress": address_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("address_filter", "expected_indexes"),
+    [
+        ({"phoneNumber": {"eq": "+48123456789"}}, [0]),
+        ({"phoneNumber": {"eq": "+1987654321"}}, [1]),
+        ({"phoneNumber": {"eq": "notfound"}}, []),
+        ({"phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]}}, [0, 2]),
+        ({"phoneNumber": {"oneOf": ["notfound"]}}, []),
+        ({"country": {"eq": "GE"}}, [0]),
+        ({"country": {"eq": "US"}}, [1]),
+        ({"country": {"eq": "CN"}}, [2]),
+        ({"country": {"eq": "JP"}}, []),
+        ({"country": {"oneOf": ["GE", "CN"]}}, [0, 2]),
+        ({"country": {"oneOf": ["JP"]}}, []),
+        ({"country": {"notOneOf": ["GE", "CN", "PL"]}}, [1]),
+        ({"phoneNumber": {"eq": "+48123456789"}, "country": {"eq": "GE"}}, [0]),
+        ({"phoneNumber": {"eq": "+48123456789"}, "country": {"eq": "US"}}, []),
+        (
+            {
+                "phoneNumber": {"oneOf": ["+48123456789", "+86555555555"]},
+                "country": {"notOneOf": ["GE"]},
+            },
+            [2],
+        ),
+        (None, []),
+        ({"phoneNumber": {"eq": None}}, []),
+        ({"phoneNumber": {"oneOf": []}}, []),
+        ({"country": {"eq": None}}, []),
+        ({"country": {"oneOf": []}}, []),
+    ],
+)
+def test_orders_filter_by_shipping_address(
+    address_filter,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    phones = [
+        "+48123456789",
+        "+1987654321",
+        "+86555555555",
+    ]
+    countries = ["GE", "US", "CN"]
+    addresses = [
+        Address.objects.create(
+            first_name="John",
+            last_name="Doe",
+            company_name="Mirumee Software",
+            street_address_1="Tęczowa 7",
+            city="WROCŁAW",
+            postal_code="53-601",
+            country=country,
+            phone=phone,
+        )
+        for phone, country in zip(phones, countries, strict=True)
+    ]
+    for order, address in zip(order_list, addresses, strict=True):
+        order.shipping_address = address
+    Order.objects.bulk_update(order_list, ["shipping_address"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"shippingAddress": address_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}

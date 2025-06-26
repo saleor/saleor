@@ -54,6 +54,7 @@ class WhereInputObjectType(FilterInputObjectType):
 class FilterInputDescriptions:
     EQ = "The value equal to."
     ONE_OF = "The value included in."
+    NOT_ONE_OF = "The value not included in."
     RANGE = "The value in range."
 
 

@@ -17,6 +17,7 @@ from ...order.search import search_orders
 from ...payment import ChargeStatus, PaymentMethodType
 from ...payment.models import TransactionItem
 from ...product.models import ProductVariant
+from ..account.filters import AddressFilterInput, filter_address
 from ..channel.filters import get_currency_from_filter_data
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.filters import (
@@ -657,6 +658,16 @@ class OrderWhere(MetadataWhereBase):
         method="filter_events",
         help_text="Filter by order events.",
     )
+    billing_address = ObjectTypeWhereFilter(
+        input_class=AddressFilterInput,
+        method="filter_billing_address",
+        help_text="Filter by billing address of the order.",
+    )
+    shipping_address = ObjectTypeWhereFilter(
+        input_class=AddressFilterInput,
+        method="filter_shipping_address",
+        help_text="Filter by shipping address of the order.",
+    )
 
     @staticmethod
     def filter_number(qs, _, value):
@@ -815,6 +826,20 @@ class OrderWhere(MetadataWhereBase):
             )
             qs = qs.filter(Exists(events.filter(order_id=OuterRef("id"))))
         return qs
+
+    @staticmethod
+    def filter_billing_address(qs, _, value):
+        if not value:
+            return qs.none()
+        address_qs = filter_address(value)
+        return qs.filter(Exists(address_qs.filter(id=OuterRef("billing_address_id"))))
+
+    @staticmethod
+    def filter_shipping_address(qs, _, value):
+        if not value:
+            return qs.none()
+        address_qs = filter_address(value)
+        return qs.filter(Exists(address_qs.filter(id=OuterRef("shipping_address_id"))))
 
 
 class OrderWhereInput(WhereInputObjectType):
