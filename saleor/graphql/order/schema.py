@@ -35,7 +35,12 @@ from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
 from .bulk_mutations.order_bulk_create import OrderBulkCreate
-from .filters import DraftOrderFilter, OrderFilter, OrderWhereInput
+from .filters import (
+    DraftOrderFilter,
+    DraftOrderWhereInput,
+    OrderFilter,
+    OrderWhereInput,
+)
 from .mutations.draft_order_complete import DraftOrderComplete
 from .mutations.draft_order_create import DraftOrderCreate
 from .mutations.draft_order_delete import DraftOrderDelete
@@ -156,6 +161,9 @@ class OrderQueries(graphene.ObjectType):
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
+        where=DraftOrderWhereInput(
+            description="Where filtering options for draft orders." + ADDED_IN_322
+        ),
         description=(
             "List of draft orders. The query will not initiate any external requests, "
             "including filtering available shipping methods, or performing external "
