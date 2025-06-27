@@ -70,7 +70,14 @@ def filter_by_ids(object_type):
     return inner
 
 
-def filter_where_range_field_with_conditions(qs, field, value):
+def filter_where_range_field_with_conditions(qs: "QuerySet", field: str, value: dict):
+    """Filter a queryset based on a range field or eq and oneOf conditions.
+
+    Allows filtering a queryset on a specified field and a set of conditions.
+    It supports filtering by a range (`gte` and `lte`), equality (`eq`),
+    or a list of values (`one_of`).
+    If no valid conditions are provided, it returns an empty queryset.
+    """
     if value is None:
         return qs.none()
     range = value.get("range")
@@ -88,6 +95,12 @@ def filter_where_range_field_with_conditions(qs, field, value):
 
 
 def filter_where_by_range_field(qs: "QuerySet", field: str, value: dict):
+    """Filter a queryset based on a range field.
+
+    Allows filtering a queryset on a specified field using a range of values.
+    It supports filtering by a range defined by `gte` and `lte` (less than or equal to).
+    If no valid conditions are provided, it returns an empty queryset.
+    """
     if value is None:
         return qs.none()
     gte, lte = value.get("gte"), value.get("lte")
