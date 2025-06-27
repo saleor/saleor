@@ -13201,6 +13201,9 @@ input LinesFilterInput @doc(category: "Orders") {
 input TransactionFilterInput @doc(category: "Orders") {
   """Filter by payment method details used to pay for the order."""
   paymentMethodDetails: PaymentMethodDetailsFilterInput
+
+  """Filter by metadata fields of transactions."""
+  metadata: MetadataFilterInput
 }
 
 input PaymentMethodDetailsFilterInput {
