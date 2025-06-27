@@ -1563,7 +1563,6 @@ def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
         amount=payment.total,
         currency=payment.currency,
         token="test",
-        gateway_response={},
     )
 
     checkout.user = customer_user
@@ -1616,7 +1615,6 @@ def test_complete_checkout_when_checkout_doesnt_exists(
         amount=payment.total,
         currency=payment.currency,
         token="test",
-        gateway_response={},
     )
 
     checkout.user = customer_user

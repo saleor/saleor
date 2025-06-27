@@ -367,6 +367,13 @@ def test_confirm_payment(payment_adyen_for_order, adyen_plugin):
     assert response.amount == action_transaction.amount
     assert response.currency == action_transaction.currency
 
+    transaction = payment_adyen_for_order.transactions.filter(
+        kind=TransactionKind.AUTH
+    ).last()
+    assert transaction is not None
+    assert transaction.is_success
+    assert transaction.token == gateway_response.transaction_id
+
 
 def test_confirm_payment_pending_order(payment_adyen_for_checkout, adyen_plugin):
     payment_info = create_payment_information(
@@ -416,7 +423,6 @@ def test_confirm_already_processed_payment(payment_adyen_for_order, adyen_plugin
         payment=payment_adyen_for_order,
         payment_information=payment_info,
         kind=TransactionKind.ACTION_TO_CONFIRM,
-        gateway_response=gateway_response,
     )
     gateway_response.kind = TransactionKind.AUTH
     action_transaction = create_transaction(
@@ -467,6 +473,13 @@ def test_confirm_payment_with_adyen_auto_capture(payment_adyen_for_order, adyen_
     assert response.amount == auth_transaction.amount
     assert response.currency == auth_transaction.currency
 
+    transaction = payment_adyen_for_order.transactions.filter(
+        kind=TransactionKind.CAPTURE
+    ).last()
+    assert transaction is not None
+    assert transaction.is_success
+    assert transaction.token == gateway_response.transaction_id
+
 
 @pytest.mark.vcr
 @pytest.mark.skip(reason="To finish when additional auth data schema will be known")
@@ -489,7 +502,6 @@ def test_confirm_payment_without_additional_data(payment_adyen_for_order, adyen_
         amount="100",
         currency="EUR",
         error="",
-        gateway_response={},
         action_required_data={},
     )
 

@@ -62,7 +62,6 @@ def charged_payment(razorpay_payment):
     razorpay_payment.transactions.create(
         amount=razorpay_payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
     return razorpay_payment

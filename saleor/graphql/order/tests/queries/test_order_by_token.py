@@ -581,10 +581,6 @@ QUERY_ORDER_BY_TOKEN_WITH_PAYMENT = """
               created
               modified
               paymentMethodType
-              transactions{
-                gatewayResponse
-
-              }
               actions
               capturedAmount{
                 amount
