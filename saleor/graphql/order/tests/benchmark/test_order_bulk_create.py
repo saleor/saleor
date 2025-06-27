@@ -44,7 +44,7 @@ def test_order_bulk_create(
     transaction_1 = {
         "name": "Authorized for 10$",
         "amountAuthorized": {
-            "amount": Decimal("20"),
+            "amount": Decimal(20),
             "currency": "PLN",
         },
     }
@@ -52,7 +52,7 @@ def test_order_bulk_create(
     transaction_2 = {
         "name": "Credit Card",
         "amountCharged": {
-            "amount": Decimal("100"),
+            "amount": Decimal(100),
             "currency": "PLN",
         },
     }

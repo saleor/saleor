@@ -131,8 +131,8 @@ def test_fulfillment_with_refund_details(
     order = fulfilled_order
     order_id = graphene.Node.to_global_id("Order", order.pk)
     fulfillment = order.fulfillments.first()
-    shipping_refund_amount = Decimal("10")
-    total_refund_amount = Decimal("15")
+    shipping_refund_amount = Decimal(10)
+    total_refund_amount = Decimal(15)
     fulfillment.shipping_refund_amount = shipping_refund_amount
     fulfillment.total_refund_amount = total_refund_amount
     fulfillment.save()

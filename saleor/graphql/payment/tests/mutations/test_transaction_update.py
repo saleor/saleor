@@ -627,10 +627,10 @@ def test_transaction_update_available_actions_by_app(
 @pytest.mark.parametrize(
     ("field_name", "response_field", "db_field_name", "value"),
     [
-        ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
-        ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
-        ("amountCanceled", "canceledAmount", "canceled_value", Decimal("14")),
-        ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
+        ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal(12)),
+        ("amountCharged", "chargedAmount", "charged_value", Decimal(13)),
+        ("amountCanceled", "canceledAmount", "canceled_value", Decimal(14)),
+        ("amountRefunded", "refundedAmount", "refunded_value", Decimal(15)),
     ],
 )
 def test_transaction_update_amounts_by_app(
@@ -645,10 +645,10 @@ def test_transaction_update_amounts_by_app(
     app,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
-    current_refunded_value = Decimal("3")
-    current_canceled_value = Decimal("4")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
+    current_refunded_value = Decimal(3)
+    current_canceled_value = Decimal(4)
 
     transaction = transaction_item_generator(
         order_id=order.pk,
@@ -711,16 +711,16 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_app(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
         authorized_value=previously_authorized_value,
     )
 
-    authorized_value = transaction.authorized_value + Decimal("10")
+    authorized_value = transaction.authorized_value + Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -762,16 +762,16 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_app(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
         authorized_value=previously_authorized_value,
     )
 
-    authorized_value = transaction.authorized_value - Decimal("5")
+    authorized_value = transaction.authorized_value - Decimal(5)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -813,16 +813,16 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
         authorized_value=previously_authorized_value,
     )
 
-    authorized_value = Decimal("0")
+    authorized_value = Decimal(0)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -861,16 +861,16 @@ def test_transaction_update_for_order_increases_order_total_charged_by_app(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
     )
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
         charged_value=previously_charged_value,
     )
 
-    charged_value = transaction.charged_value + Decimal("10")
+    charged_value = transaction.charged_value + Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -911,16 +911,16 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_app(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
-        charged_value=Decimal("30"),
+        charged_value=Decimal(30),
     )
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
         charged_value=previously_charged_value,
     )
 
-    charged_value = transaction.charged_value - Decimal("5")
+    charged_value = transaction.charged_value - Decimal(5)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -961,16 +961,16 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_app
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
-        charged_value=Decimal("30"),
+        charged_value=Decimal(30),
     )
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
         charged_value=previously_charged_value,
     )
 
-    charged_value = Decimal("0")
+    charged_value = Decimal(0)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1004,16 +1004,16 @@ def test_transaction_update_multiple_amounts_provided_by_app(
     transaction = transaction_item_generator(
         order_id=order.pk,
         app=app,
-        charged_value=Decimal("1"),
-        authorized_value=Decimal("2"),
-        refunded_value=Decimal("3"),
-        canceled_value=Decimal("4"),
+        charged_value=Decimal(1),
+        authorized_value=Decimal(2),
+        refunded_value=Decimal(3),
+        canceled_value=Decimal(4),
     )
 
-    authorized_value = Decimal("10")
-    charged_value = Decimal("11")
-    refunded_value = Decimal("12")
-    canceled_value = Decimal("13")
+    authorized_value = Decimal(10)
+    charged_value = Decimal(11)
+    refunded_value = Decimal(12)
+    canceled_value = Decimal(13)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1099,7 +1099,7 @@ def test_transaction_update_incorrect_currency_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
-    expected_value = Decimal("10")
+    expected_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1534,10 +1534,10 @@ def test_transaction_update_available_actions_by_staff(
 @pytest.mark.parametrize(
     ("field_name", "response_field", "db_field_name", "value"),
     [
-        ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
-        ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
-        ("amountCanceled", "canceledAmount", "canceled_value", Decimal("14")),
-        ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
+        ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal(12)),
+        ("amountCharged", "chargedAmount", "charged_value", Decimal(13)),
+        ("amountCanceled", "canceledAmount", "canceled_value", Decimal(14)),
+        ("amountRefunded", "refundedAmount", "refunded_value", Decimal(15)),
     ],
 )
 def test_transaction_update_amounts_by_staff(
@@ -1578,20 +1578,20 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_staff(
     staff_user,
 ):
     # given
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
         authorized_value=previously_authorized_value,
     )
 
-    authorized_value = transaction.authorized_value + Decimal("10")
+    authorized_value = transaction.authorized_value + Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1633,16 +1633,16 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_staff(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
         authorized_value=previously_authorized_value,
     )
 
-    authorized_value = transaction.authorized_value - Decimal("5")
+    authorized_value = transaction.authorized_value - Decimal(5)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1685,16 +1685,16 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
-    previously_authorized_value = Decimal("90")
+    previously_authorized_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
         authorized_value=previously_authorized_value,
     )
 
-    authorized_value = Decimal("0")
+    authorized_value = Decimal(0)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1733,15 +1733,15 @@ def test_transaction_update_for_order_increases_order_total_charged_by_staff(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
-        charged_value=Decimal("10"),
+        charged_value=Decimal(10),
     )
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
         charged_value=previously_charged_value,
     )
-    charged_value = transaction.charged_value + Decimal("10")
+    charged_value = transaction.charged_value + Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1783,15 +1783,15 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_staff(
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
-        charged_value=Decimal("30"),
+        charged_value=Decimal(30),
     )
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
         charged_value=previously_charged_value,
     )
-    charged_value = transaction.charged_value - Decimal("5")
+    charged_value = transaction.charged_value - Decimal(5)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1832,16 +1832,16 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_sta
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
-        charged_value=Decimal("30"),
+        charged_value=Decimal(30),
     )
-    previously_charged_value = Decimal("90")
+    previously_charged_value = Decimal(90)
     transaction_item_generator(
         order_id=order_with_lines.pk,
         user=staff_user,
         charged_value=previously_charged_value,
     )
 
-    charged_value = Decimal("0")
+    charged_value = Decimal(0)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1873,10 +1873,10 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
 ):
     # given
     transaction = transaction_item_created_by_user
-    authorized_value = Decimal("10")
-    charged_value = Decimal("11")
-    refunded_value = Decimal("12")
-    canceled_value = Decimal("13")
+    authorized_value = Decimal(10)
+    charged_value = Decimal(11)
+    refunded_value = Decimal(12)
+    canceled_value = Decimal(13)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1962,7 +1962,7 @@ def test_transaction_update_incorrect_currency_by_staff(
 ):
     # given
     transaction = transaction_item_created_by_user
-    expected_value = Decimal("10")
+    expected_value = Decimal(10)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -2274,10 +2274,10 @@ def test_transaction_update_creates_calculation_event(
     app,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
-    current_canceled_value = Decimal("3")
-    current_refunded_value = Decimal("4")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
+    current_canceled_value = Decimal(3)
+    current_refunded_value = Decimal(4)
     transaction = transaction_item_generator(
         order_id=order.pk,
         app=app,
@@ -2286,10 +2286,10 @@ def test_transaction_update_creates_calculation_event(
         canceled_value=current_canceled_value,
         refunded_value=current_refunded_value,
     )
-    authorized_value = Decimal("20")
-    charged_value = Decimal("17")
-    canceled_value = Decimal("14")
-    refunded_value = Decimal("15")
+    authorized_value = Decimal(20)
+    charged_value = Decimal(17)
+    canceled_value = Decimal(14)
+    refunded_value = Decimal(15)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -2376,201 +2376,201 @@ def test_transaction_update_creates_calculation_event(
             "amountAuthorized",
             "authorizedAmount",
             "authorized_value",
-            Decimal("12"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(12),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountAuthorized",
             "authorizedAmount",
             "authorized_value",
-            Decimal("12"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
+            Decimal(12),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
         ),
         (
             "amountAuthorized",
             "authorizedAmount",
             "authorized_value",
-            Decimal("12"),
-            Decimal("0"),
-            Decimal("3"),
-            Decimal("1"),
-            Decimal("0"),
+            Decimal(12),
+            Decimal(0),
+            Decimal(3),
+            Decimal(1),
+            Decimal(0),
         ),
         (
             "amountAuthorized",
             "authorizedAmount",
             "authorized_value",
-            Decimal("12"),
-            Decimal("100"),
-            Decimal("3"),
-            Decimal("1"),
-            Decimal("0"),
+            Decimal(12),
+            Decimal(100),
+            Decimal(3),
+            Decimal(1),
+            Decimal(0),
         ),
         (
             "amountAuthorized",
             "authorizedAmount",
             "authorized_value",
-            Decimal("0"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(0),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountAuthorized",
             "authorizedAmount",
             "authorized_value",
-            Decimal("1"),
-            Decimal("3"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(1),
+            Decimal(3),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountCharged",
             "chargedAmount",
             "charged_value",
-            Decimal("13"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(13),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountCharged",
             "chargedAmount",
             "charged_value",
-            Decimal("13"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
+            Decimal(13),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
         ),
         (
             "amountCharged",
             "chargedAmount",
             "charged_value",
-            Decimal("13"),
-            Decimal("0"),
-            Decimal("200"),
-            Decimal("0"),
-            Decimal("0"),
+            Decimal(13),
+            Decimal(0),
+            Decimal(200),
+            Decimal(0),
+            Decimal(0),
         ),
         (
             "amountCharged",
             "chargedAmount",
             "charged_value",
-            Decimal("0"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(0),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountCanceled",
             "canceledAmount",
             "canceled_value",
-            Decimal("1"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(1),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountCanceled",
             "canceledAmount",
             "canceled_value",
-            Decimal("14"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(14),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountCanceled",
             "canceledAmount",
             "canceled_value",
-            Decimal("14"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
+            Decimal(14),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
         ),
         (
             "amountCanceled",
             "canceledAmount",
             "canceled_value",
-            Decimal("14"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("100"),
+            Decimal(14),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
+            Decimal(100),
         ),
         (
             "amountCanceled",
             "canceledAmount",
             "canceled_value",
-            Decimal("0"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(0),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountRefunded",
             "refundedAmount",
             "refunded_value",
-            Decimal("15"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(15),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountRefunded",
             "refundedAmount",
             "refunded_value",
-            Decimal("15"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
+            Decimal(15),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
         ),
         (
             "amountRefunded",
             "refundedAmount",
             "refunded_value",
-            Decimal("15"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("0"),
-            Decimal("100"),
+            Decimal(15),
+            Decimal(0),
+            Decimal(0),
+            Decimal(0),
+            Decimal(100),
         ),
         (
             "amountRefunded",
             "refundedAmount",
             "refunded_value",
-            Decimal("0"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(0),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
         (
             "amountRefunded",
             "refundedAmount",
             "refunded_value",
-            Decimal("1"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
+            Decimal(1),
+            Decimal(1),
+            Decimal(2),
+            Decimal(3),
+            Decimal(4),
         ),
     ],
 )
@@ -2649,16 +2649,16 @@ def test_transaction_update_for_checkout_updates_payment_statuses(
     app,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         checkout_id=checkout_with_items.pk,
         app=app,
         authorized_value=current_authorized_value,
         charged_value=current_charged_value,
     )
-    authorized_value = Decimal("12")
-    charged_value = Decimal("13")
+    authorized_value = Decimal(12)
+    charged_value = Decimal(13)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -2698,8 +2698,8 @@ def test_transaction_update_for_checkout_fully_paid(
     plugins_manager,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         checkout_id=checkout_with_prices.pk,
         app=app,
@@ -2749,8 +2749,8 @@ def test_transaction_update_for_checkout_fully_paid_automatic_completion(
     plugins_manager,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         checkout_id=checkout_with_prices.pk,
         app=app,
@@ -2810,8 +2810,8 @@ def test_transaction_update_for_checkout_fully_authorized(
     plugins_manager,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         checkout_id=checkout_with_prices.pk,
         app=app,
@@ -2861,7 +2861,7 @@ def test_transaction_update_for_checkout_fully_authorized_automatic_completion(
     plugins_manager,
 ):
     # given
-    current_authorized_value = Decimal("1")
+    current_authorized_value = Decimal(1)
     transaction = transaction_item_generator(
         checkout_id=checkout_with_prices.pk,
         app=app,
@@ -2989,8 +2989,8 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
     order = unconfirmed_order_with_lines
     order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
     order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         order_id=order.pk,
         app=app,
@@ -3046,8 +3046,8 @@ def test_transaction_update_for_draft_order_triggers_webhooks_when_fully_paid(
     order = draft_order
     order.channel.automatically_confirm_all_new_orders = auto_order_confirmation
     order.channel.save(update_fields=["automatically_confirm_all_new_orders"])
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         order_id=order.pk,
         app=app,
@@ -3095,8 +3095,8 @@ def test_transaction_update_for_order_triggers_webhook_when_partially_paid(
     transaction_item_generator,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
@@ -3108,7 +3108,7 @@ def test_transaction_update_for_order_triggers_webhook_when_partially_paid(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
-                "amount": Decimal("10"),
+                "amount": Decimal(10),
                 "currency": "USD",
             },
         },
@@ -3142,8 +3142,8 @@ def test_transaction_update_for_order_triggers_webhook_when_authorized(
     transaction_item_generator,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
@@ -3155,7 +3155,7 @@ def test_transaction_update_for_order_triggers_webhook_when_authorized(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
-                "amount": Decimal("10"),
+                "amount": Decimal(10),
                 "currency": "USD",
             },
         },
@@ -3190,7 +3190,7 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_refunded(
     transaction_item_generator,
 ):
     # given
-    current_refunded_value = Decimal("2")
+    current_refunded_value = Decimal(2)
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
@@ -3236,7 +3236,7 @@ def test_transaction_update_for_order_triggers_webhook_when_partially_refunded(
     transaction_item_generator,
 ):
     # given
-    current_refunded_value = Decimal("2")
+    current_refunded_value = Decimal(2)
     transaction = transaction_item_generator(
         order_id=order_with_lines.pk,
         app=app,
@@ -3247,7 +3247,7 @@ def test_transaction_update_for_order_triggers_webhook_when_partially_refunded(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountRefunded": {
-                "amount": Decimal("10"),
+                "amount": Decimal(10),
                 "currency": "USD",
             },
         },
@@ -3306,8 +3306,8 @@ def test_transaction_update_for_checkout_updates_last_transaction_modified_at(
     app,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
         checkout_id=checkout_with_items.pk,
         app=app,
@@ -3320,8 +3320,8 @@ def test_transaction_update_for_checkout_updates_last_transaction_modified_at(
     checkout_with_items.last_transaction_modified_at = previous_modified_at
     checkout_with_items.save()
 
-    authorized_value = Decimal("12")
-    charged_value = Decimal("13")
+    authorized_value = Decimal(12)
+    charged_value = Decimal(13)
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -3370,10 +3370,10 @@ def test_transaction_update_amounts_with_lot_of_decimal_places(
     app,
 ):
     # given
-    current_authorized_value = Decimal("1")
-    current_charged_value = Decimal("2")
-    current_refunded_value = Decimal("3")
-    current_canceled_value = Decimal("4")
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
+    current_refunded_value = Decimal(3)
+    current_canceled_value = Decimal(4)
 
     transaction = transaction_item_generator(
         order_id=order.pk,

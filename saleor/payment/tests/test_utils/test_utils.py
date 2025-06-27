@@ -1611,10 +1611,10 @@ def test_create_transaction_event_from_request_and_webhook_invalid_message(
 @pytest.mark.parametrize(
     ("db_field_name", "value", "event_type"),
     [
-        ("authorized_value", Decimal("12"), TransactionEventType.AUTHORIZATION_SUCCESS),
-        ("charged_value", Decimal("13"), TransactionEventType.CHARGE_SUCCESS),
-        ("canceled_value", Decimal("14"), TransactionEventType.CANCEL_SUCCESS),
-        ("refunded_value", Decimal("15"), TransactionEventType.REFUND_SUCCESS),
+        ("authorized_value", Decimal(12), TransactionEventType.AUTHORIZATION_SUCCESS),
+        ("charged_value", Decimal(13), TransactionEventType.CHARGE_SUCCESS),
+        ("canceled_value", Decimal(14), TransactionEventType.CANCEL_SUCCESS),
+        ("refunded_value", Decimal(15), TransactionEventType.REFUND_SUCCESS),
     ],
 )
 def test_create_manual_adjustment_events_creates_calculation_events(
@@ -1639,8 +1639,8 @@ def test_create_manual_adjustment_events_additional_authorization(
     transaction_item_generator, app
 ):
     # given
-    authorized_value = Decimal("10")
-    transaction = transaction_item_generator(app=app, authorized_value=Decimal("2"))
+    authorized_value = Decimal(10)
+    transaction = transaction_item_generator(app=app, authorized_value=Decimal(2))
     money_data = {"authorized_value": authorized_value}
 
     # when
@@ -1660,8 +1660,8 @@ def test_create_manual_adjustment_events_additional_charge(
     transaction_item_generator, app
 ):
     # given
-    charged_value = Decimal("10")
-    current_charge_value = Decimal("2")
+    charged_value = Decimal(10)
+    current_charge_value = Decimal(2)
     transaction = transaction_item_generator(
         app=app, charged_value=current_charge_value
     )
@@ -1682,8 +1682,8 @@ def test_create_manual_adjustment_events_additional_refund(
     transaction_item_generator, app
 ):
     # given
-    refunded_value = Decimal("10")
-    current_refunded_value = Decimal("2")
+    refunded_value = Decimal(10)
+    current_refunded_value = Decimal(2)
     transaction = transaction_item_generator(
         app=app, refunded_value=current_refunded_value
     )
@@ -1704,8 +1704,8 @@ def test_create_manual_adjustment_events_additional_cancel(
     transaction_item_generator, app
 ):
     # given
-    canceled_value = Decimal("10")
-    current_canceled_value = Decimal("2")
+    canceled_value = Decimal(10)
+    current_canceled_value = Decimal(2)
     transaction = transaction_item_generator(
         app=app, canceled_value=current_canceled_value
     )
@@ -2369,7 +2369,7 @@ def test_deduplicate_event(transaction_events_generator, transaction_item, app):
     event = TransactionEvent(
         psp_reference="psp:123",
         type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=Decimal("10"),
+        amount_value=Decimal(10),
         transaction=transaction_item,
         currency=transaction_item.currency,
     )
@@ -2389,13 +2389,13 @@ def test_deduplicate_event_different_amount(
     events = transaction_events_generator(
         psp_references=["psp:123"],
         types=[TransactionEventType.CHARGE_SUCCESS],
-        amounts=[Decimal("10")],
+        amounts=[Decimal(10)],
         transaction=transaction_item,
     )
     event = TransactionEvent(
         psp_reference="psp:123",
         type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=Decimal("12"),
+        amount_value=Decimal(12),
         transaction=transaction_item,
         currency=transaction_item.currency,
     )
@@ -2420,13 +2420,13 @@ def test_deduplicate_event_authorization_already_exists(
     transaction_events_generator(
         psp_references=["psp:123"],
         types=[TransactionEventType.AUTHORIZATION_SUCCESS],
-        amounts=[Decimal("10")],
+        amounts=[Decimal(10)],
         transaction=transaction_item,
     )
     event = TransactionEvent(
         psp_reference="psp:111",
         type=TransactionEventType.AUTHORIZATION_SUCCESS,
-        amount_value=Decimal("10"),
+        amount_value=Decimal(10),
         transaction=transaction_item,
         currency=transaction_item.currency,
     )

@@ -234,7 +234,7 @@ def test_get_default_order_payload(order_line):
     order.total = subtotal + order.shipping_price
     tax = order.total_gross_amount - order.total_net_amount
 
-    value = Decimal("20")
+    value = Decimal(20)
     discount = partial(fixed_discount, discount=Money(value, order.currency))
     order.undiscounted_total = order.total
     order.total = discount(order.total)

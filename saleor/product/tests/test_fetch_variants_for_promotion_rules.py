@@ -20,8 +20,8 @@ def test_fetch_variants_for_promotion_rules_discount(
     variant = product.variants.first()
     promotion = catalogue_promotion_without_rules
 
-    percentage_reward_value = Decimal("10")
-    reward_value = Decimal("2")
+    percentage_reward_value = Decimal(10)
+    reward_value = Decimal(2)
     rule_1 = promotion.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
@@ -79,7 +79,7 @@ def test_fetch_variants_for_promotion_rules_empty_catalogue_predicate(
     # given
     promotion = catalogue_promotion_without_rules
 
-    percentage_reward_value = Decimal("10")
+    percentage_reward_value = Decimal(10)
     rule_1 = promotion.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={},
@@ -102,7 +102,7 @@ def test_fetch_variants_for_promotion_rules_no_applicable_variants(
     # given
     category.products.clear()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
@@ -149,7 +149,7 @@ def test_fetch_variants_for_promotion_rules_discount_race_condition(
     existing_variant = product_variant_list[0]
     new_variant = product_variant_list[1]
 
-    percentage_reward_value = Decimal("10")
+    percentage_reward_value = Decimal(10)
     rule = promotion.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={

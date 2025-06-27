@@ -49,7 +49,7 @@ def test_update_discounted_price_for_promotion_discount_on_variant(
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -97,7 +97,7 @@ def test_update_discounted_price_for_promotion_discount_on_product(
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("10")
+    reward_value = Decimal(10)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -146,8 +146,8 @@ def test_update_discounted_price_for_promotion_discount_multiple_applicable_rule
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    percentage_reward_value = Decimal("10")
-    reward_value = Decimal("2")
+    percentage_reward_value = Decimal(10)
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -260,7 +260,7 @@ def test_update_discounted_price_for_promotion_promotion_not_applicable_for_chan
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -301,7 +301,7 @@ def test_update_discounted_price_for_promotion_discount_updated(product, channel
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -322,7 +322,7 @@ def test_update_discounted_price_for_promotion_discount_updated(product, channel
     listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=variant_channel_listing,
         promotion_rule=rule,
-        discount_amount=Decimal("1"),
+        discount_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
 
@@ -355,7 +355,7 @@ def test_update_discounted_price_for_promotion_discount_not_valid_anymore(
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -371,7 +371,7 @@ def test_update_discounted_price_for_promotion_discount_not_valid_anymore(
     listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=variant_channel_listing,
         promotion_rule=rule,
-        discount_amount=Decimal("1"),
+        discount_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
 
@@ -402,8 +402,8 @@ def test_update_discounted_price_for_promotion_discount_one_rule_not_valid_anymo
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    percentage_reward_value = Decimal("10")
-    reward_value = Decimal("2")
+    percentage_reward_value = Decimal(10)
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -434,13 +434,13 @@ def test_update_discounted_price_for_promotion_discount_one_rule_not_valid_anymo
             VariantChannelListingPromotionRule(
                 variant_channel_listing=variant_channel_listing,
                 promotion_rule=rule_1,
-                discount_amount=Decimal("1"),
+                discount_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             ),
             VariantChannelListingPromotionRule(
                 variant_channel_listing=variant_channel_listing,
                 promotion_rule=rule_2,
-                discount_amount=Decimal("1"),
+                discount_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             ),
         ]
@@ -499,7 +499,7 @@ def test_update_discounted_price_for_promotion_promotion_rule_deleted_in_meantim
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -553,7 +553,7 @@ def test_update_discounted_price_rule_deleted_in_meantime_promotion_listing_exis
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )
@@ -574,7 +574,7 @@ def test_update_discounted_price_rule_deleted_in_meantime_promotion_listing_exis
     listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=variant_channel_listing,
         promotion_rule=rule,
-        discount_amount=Decimal("1"),
+        discount_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
 
@@ -626,7 +626,7 @@ def test_update_discounted_prices_for_promotion_only_dirty_products(
     variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )

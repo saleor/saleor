@@ -16,8 +16,8 @@ def test_get_variants_to_promotions_map(
     promotion = catalogue_promotion_without_rules
     variant = product.variants.first()
 
-    percentage_reward_value = Decimal("10")
-    reward_value = Decimal("2")
+    percentage_reward_value = Decimal(10)
+    reward_value = Decimal(2)
     rule_1 = promotion.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
@@ -72,8 +72,8 @@ def test_get_variants_to_promotions_map_from_different_promotions(
     )
     variant = product.variants.first()
 
-    percentage_reward_value = Decimal("10")
-    reward_value = Decimal("2")
+    percentage_reward_value = Decimal(10)
+    reward_value = Decimal(2)
     rule_1 = promotion.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
@@ -133,7 +133,7 @@ def test_get_variants_to_promotions_map_no_matching_rules(
     # given
     promotion = catalogue_promotion_without_rules
 
-    percentage_reward_value = Decimal("10")
+    percentage_reward_value = Decimal(10)
     rule = promotion.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={

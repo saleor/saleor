@@ -792,7 +792,7 @@ def test_order_line_returns_discount_object(
     staff_api_client, order_with_lines, permission_group_all_perms_all_channels
 ):
     # given
-    expected_amount = Decimal("6")
+    expected_amount = Decimal(6)
     expected_reason = "test"
 
     line = order_with_lines.lines.first()
@@ -836,7 +836,7 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin_and_legac
     channel_USD.use_legacy_line_discount_propagation_for_order = True
     channel_USD.save()
 
-    expected_amount = Decimal("6")
+    expected_amount = Decimal(6)
     expected_reason = "test"
 
     order_with_lines.origin = OrderOrigin.CHECKOUT
@@ -877,7 +877,7 @@ def test_order_line_skips_voucher_discount_object_when_checkout_origin(
     channel_USD.use_legacy_line_discount_propagation_for_order = False
     channel_USD.save()
 
-    expected_amount = Decimal("6")
+    expected_amount = Decimal(6)
     expected_reason = "test"
 
     order_with_lines.origin = OrderOrigin.CHECKOUT

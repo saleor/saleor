@@ -613,7 +613,7 @@ def test_order_lines_create_variant_on_promotion(
 
     variant = variant_with_many_stocks
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         name="Promotion rule",
         catalogue_predicate={
@@ -725,7 +725,7 @@ def test_order_lines_create_order_promotion(
     rule = order_promotion_rule
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
     assert rule.reward_value_type == RewardValueType.PERCENTAGE
-    assert rule.reward_value == Decimal("25")
+    assert rule.reward_value == Decimal(25)
 
     variant = variant_with_many_stocks
     quantity = 5
@@ -2077,7 +2077,7 @@ def test_order_lines_create_dont_set_price_expiration_time_when_price_overridden
 
     variant = variant_with_many_stocks
     quantity = 1
-    custom_price = Decimal("5")
+    custom_price = Decimal(5)
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
@@ -2161,7 +2161,7 @@ def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_d
     extra_quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    custom_price = Decimal("5")
+    custom_price = Decimal(5)
     variables = {
         "orderId": order_id,
         "variantId": variant_id,

@@ -45,7 +45,7 @@ def test_prepare_order_search_vector_value(
         value_type=DiscountValueType.FIXED,
         name="discount",
         translated_name="discount translated",
-        value=Decimal("20"),
+        value=Decimal(20),
         reason="Discount reason",
         amount=(order.undiscounted_total - order.total).gross,
     )
@@ -74,7 +74,7 @@ def test_prepare_order_search_vector_value_empty_relation_fields(
     order.save(update_fields=["shipping_address", "billing_address"])
     order.discounts.create(
         value_type=DiscountValueType.FIXED,
-        value=Decimal("20"),
+        value=Decimal(20),
         reason="Discount reason",
         amount=(order.undiscounted_total - order.total).gross,
     )

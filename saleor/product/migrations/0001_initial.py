@@ -270,7 +270,7 @@ class Migration(migrations.Migration):
                 (
                     "quantity",
                     models.IntegerField(
-                        default=Decimal("1"),
+                        default=Decimal(1),
                         verbose_name="quantity",
                         validators=[django.core.validators.MinValueValidator(0)],
                     ),

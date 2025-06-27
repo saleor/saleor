@@ -334,7 +334,7 @@ def test_order_query(
 ):
     # given
     order = fulfilled_order
-    shipping_net = Money(amount=Decimal("10"), currency="USD")
+    shipping_net = Money(amount=Decimal(10), currency="USD")
     shipping_gross = Money(
         amount=shipping_net.amount * Decimal(1.23), currency="USD"
     ).quantize()
@@ -608,7 +608,7 @@ def test_order_query_total_price_is_0(
     price = zero_taxed_money(order.currency)
     order.shipping_price = price
     order.total = price
-    shipping_tax_rate = Decimal("0")
+    shipping_tax_rate = Decimal(0)
     order.shipping_tax_rate = shipping_tax_rate
     private_value = "abc123"
     public_value = "123abc"
@@ -789,13 +789,13 @@ def test_order_query_customer(api_client):
 @pytest.mark.parametrize(
     ("total_authorized", "total_charged", "expected_status"),
     [
-        (Decimal("98.40"), Decimal("0"), OrderAuthorizeStatusEnum.FULL.name),
-        (Decimal("0"), Decimal("98.40"), OrderAuthorizeStatusEnum.FULL.name),
-        (Decimal("10"), Decimal("88.40"), OrderAuthorizeStatusEnum.FULL.name),
-        (Decimal("0"), Decimal("0"), OrderAuthorizeStatusEnum.NONE.name),
-        (Decimal("11"), Decimal("0"), OrderAuthorizeStatusEnum.PARTIAL.name),
-        (Decimal("0"), Decimal("50.00"), OrderAuthorizeStatusEnum.PARTIAL.name),
-        (Decimal("10"), Decimal("40.40"), OrderAuthorizeStatusEnum.PARTIAL.name),
+        (Decimal("98.40"), Decimal(0), OrderAuthorizeStatusEnum.FULL.name),
+        (Decimal(0), Decimal("98.40"), OrderAuthorizeStatusEnum.FULL.name),
+        (Decimal(10), Decimal("88.40"), OrderAuthorizeStatusEnum.FULL.name),
+        (Decimal(0), Decimal(0), OrderAuthorizeStatusEnum.NONE.name),
+        (Decimal(11), Decimal(0), OrderAuthorizeStatusEnum.PARTIAL.name),
+        (Decimal(0), Decimal("50.00"), OrderAuthorizeStatusEnum.PARTIAL.name),
+        (Decimal(10), Decimal("40.40"), OrderAuthorizeStatusEnum.PARTIAL.name),
     ],
 )
 def test_order_query_authorize_status(
@@ -829,12 +829,12 @@ def test_order_query_authorize_status(
 @pytest.mark.parametrize(
     ("total_authorized", "total_charged", "expected_status"),
     [
-        (Decimal("10.40"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
-        (Decimal("98.40"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
-        (Decimal("0"), Decimal("0"), OrderChargeStatusEnum.NONE.name),
-        (Decimal("0"), Decimal("11.00"), OrderChargeStatusEnum.PARTIAL.name),
+        (Decimal("10.40"), Decimal(0), OrderChargeStatusEnum.NONE.name),
+        (Decimal("98.40"), Decimal(0), OrderChargeStatusEnum.NONE.name),
+        (Decimal(0), Decimal(0), OrderChargeStatusEnum.NONE.name),
+        (Decimal(0), Decimal("11.00"), OrderChargeStatusEnum.PARTIAL.name),
         (Decimal("88.40"), Decimal("10.00"), OrderChargeStatusEnum.PARTIAL.name),
-        (Decimal("0"), Decimal("98.40"), OrderChargeStatusEnum.FULL.name),
+        (Decimal(0), Decimal("98.40"), OrderChargeStatusEnum.FULL.name),
     ],
 )
 def test_order_query_charge_status(
@@ -897,7 +897,7 @@ def test_order_query_with_transactions_details(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("100"), currency="USD")
+    net = Money(amount=Decimal(100), currency="USD")
     gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
     shipping_price = TaxedMoney(net=net, gross=gross)
     order.shipping_price = shipping_price
@@ -924,7 +924,7 @@ def test_order_query_with_transactions_details(
                 name="Credit card",
                 psp_reference="123",
                 currency="USD",
-                authorized_value=Decimal("15"),
+                authorized_value=Decimal(15),
                 available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
             ),
             TransactionItem(
@@ -933,7 +933,7 @@ def test_order_query_with_transactions_details(
                 name="Credit card",
                 psp_reference="321",
                 currency="USD",
-                authorized_value=Decimal("10"),
+                authorized_value=Decimal(10),
                 available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
             ),
             TransactionItem(
@@ -942,7 +942,7 @@ def test_order_query_with_transactions_details(
                 name="Credit card",
                 psp_reference="111",
                 currency="USD",
-                charged_value=Decimal("15"),
+                charged_value=Decimal(15),
                 available_actions=[TransactionAction.REFUND],
             ),
             TransactionItem(
@@ -951,7 +951,7 @@ def test_order_query_with_transactions_details(
                 name="Credit card",
                 psp_reference="111",
                 currency="USD",
-                canceled_value=Decimal("19"),
+                canceled_value=Decimal(19),
                 available_actions=[],
             ),
         ]
@@ -991,10 +991,10 @@ def test_order_query_with_transactions_details(
     assert order_data["isPaid"] == order.is_fully_paid()
 
     assert len(order_data["payments"]) == order.payments.count()
-    assert Decimal(order_data["totalAuthorized"]["amount"]) == Decimal("25")
-    assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal("15")
-    assert Decimal(order_data["totalCharged"]["amount"]) == Decimal("15")
-    assert Decimal(order_data["totalCanceled"]["amount"]) == Decimal("19")
+    assert Decimal(order_data["totalAuthorized"]["amount"]) == Decimal(25)
+    assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal(15)
+    assert Decimal(order_data["totalCharged"]["amount"]) == Decimal(15)
+    assert Decimal(order_data["totalCanceled"]["amount"]) == Decimal(19)
 
     assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
 

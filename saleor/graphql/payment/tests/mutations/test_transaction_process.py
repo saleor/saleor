@@ -941,7 +941,7 @@ def test_transaction_already_processed(
     webhook_app.save()
 
     transaction_item = transaction_item_generator(
-        order_id=order.pk, app=webhook_app, charged_value=Decimal("10")
+        order_id=order.pk, app=webhook_app, charged_value=Decimal(10)
     )
     transaction_event = transaction_item.events.get()
 
@@ -1017,7 +1017,7 @@ def test_transaction_doesnt_have_source_object(
     )
     TransactionEvent.objects.create(
         transaction=transaction_item,
-        amount_value=Decimal("10"),
+        amount_value=Decimal(10),
         currency=transaction_item.currency,
         type=TransactionEventType.CHARGE_REQUEST,
     )
@@ -1049,7 +1049,7 @@ def test_transaction_doesnt_have_app_identifier(
     transaction_item = transaction_item_generator(order_id=order_with_lines.pk)
     TransactionEvent.objects.create(
         transaction=transaction_item,
-        amount_value=Decimal("10"),
+        amount_value=Decimal(10),
         currency=transaction_item.currency,
         type=TransactionEventType.CHARGE_REQUEST,
     )
@@ -1090,7 +1090,7 @@ def test_app_attached_to_transaction_doesnt_exist(
     )
     TransactionEvent.objects.create(
         transaction=transaction_item,
-        amount_value=Decimal("10"),
+        amount_value=Decimal(10),
         currency=transaction_item.currency,
         type=TransactionEventType.CHARGE_REQUEST,
     )
@@ -2232,7 +2232,7 @@ def test_for_checkout_with_payments_transaction_process_failure(
         response_event_type=TransactionEventType.CHARGE_FAILURE,
         app_identifier=webhook_app.identifier,
         mocked_process=mocked_process,
-        charged_value=Decimal("0"),
+        charged_value=Decimal(0),
         data=None,
         returned_data=None,
     )

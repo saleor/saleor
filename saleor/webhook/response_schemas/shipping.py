@@ -37,7 +37,7 @@ class ShippingMethodSchema(BaseModel):
     amount: Annotated[
         Decimal,
         Field(
-            ge=Decimal("0"),
+            ge=Decimal(0),
             description="Non-negative price the customer pays for delivery using this shipping method.",
             examples=[Decimal("10.00")],
         ),

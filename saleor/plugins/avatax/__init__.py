@@ -344,7 +344,7 @@ def generate_request_data_from_checkout_lines(
         }
 
         append_line_to_data(
-            **append_line_to_data_kwargs,
+            **append_line_to_data_kwargs,  # type: ignore[arg-type]
             amount=checkout_line_total.amount,
             ref1=line_info.variant.sku,
         )
@@ -533,7 +533,7 @@ def _get_checkout_discount_amount(checkout_info, lines):
     Return the discount amount from the entire order or shipping voucher, or from
     order promotion discount if there is no voucher and any promotion is eligible.
     """
-    discount_amount = Decimal("0")
+    discount_amount = Decimal(0)
     if (voucher := checkout_info.voucher) or checkout_info.discounts:
         # for apply_once_per_order vouchers the discount is already applied on lines
         applicable_discount = True
@@ -553,7 +553,7 @@ def _get_checkout_discount_amount(checkout_info, lines):
         discount_amount = (
             checkout_info.checkout.discount_amount
             if applicable_discount
-            else Decimal("0")
+            else Decimal(0)
         )
     return discount_amount
 
@@ -614,7 +614,7 @@ def get_order_request_data(order: "Order", config: AvataxConfiguration):
         else TransactionType.ORDER
     )
     discount_amount = get_total_order_discount_excluding_shipping(order).amount
-    discounted_lines = discount_amount != Decimal("0")
+    discounted_lines = discount_amount != Decimal(0)
     lines = get_order_lines_data(order, config, discounted=discounted_lines)
     # if there is no lines to sent we do not want to send the request to avalara
     if not lines:

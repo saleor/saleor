@@ -1196,7 +1196,7 @@ def test_manager_transaction_initialize_session(
         transaction=transaction,
         source_object=checkout,
         action=TransactionProcessActionData(
-            amount=Decimal("10"),
+            amount=Decimal(10),
             currency=transaction.currency,
             action_type=action_type,
         ),
@@ -1238,7 +1238,7 @@ def test_manager_transaction_process_session(
         transaction=transaction,
         source_object=checkout,
         action=TransactionProcessActionData(
-            amount=Decimal("10"),
+            amount=Decimal(10),
             currency=transaction.currency,
             action_type=action_type,
         ),

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Generic, TypeVar, cast
+from typing import TypeVar, cast
 
 from ...account.models import Address, CustomerEvent, Group, User
 from ...channel.models import Channel
@@ -87,7 +87,7 @@ class PermissionByCodenameLoader(DataLoader[str, Permission]):
 K = TypeVar("K")
 
 
-class BaseAccessibleChannels(DataLoader[K, list[Channel]], Generic[K]):
+class BaseAccessibleChannels[K](DataLoader[K, list[Channel]]):
     def get_group_to_channels_map(self, group_ids):
         groups_with_no_channel_restriction = Group.objects.using(
             self.database_connection_name

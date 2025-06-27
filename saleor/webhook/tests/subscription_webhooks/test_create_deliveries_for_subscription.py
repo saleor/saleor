@@ -1885,8 +1885,8 @@ def test_fulfillment_with_refund_amounts(
     fulfillment, subscription_fulfillment_created_webhook
 ):
     # given
-    shipping_refund = Decimal("10")
-    total_refund = Decimal("15")
+    shipping_refund = Decimal(10)
+    total_refund = Decimal(15)
     fulfillment.shipping_refund_amount = shipping_refund
     fulfillment.total_refund_amount = total_refund
     fulfillment.save()

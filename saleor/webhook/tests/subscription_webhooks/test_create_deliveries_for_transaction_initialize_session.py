@@ -73,7 +73,7 @@ def test_transaction_initialize_session_checkout_with_data(
     event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = {"some": "json data"}
-    amount = Decimal("10")
+    amount = Decimal(10)
     transaction = transaction_item_generator(
         checkout_id=checkout.pk,
         app=webhook_app,
@@ -143,7 +143,7 @@ def test_transaction_initialize_session_checkout_without_data(
     event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = None
-    amount = Decimal("10")
+    amount = Decimal(10)
 
     transaction = transaction_item_generator(
         checkout_id=checkout.pk,
@@ -213,7 +213,7 @@ def test_transaction_initialize_session_order_with_data(
     event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = {"some": "json data"}
-    amount = Decimal("10")
+    amount = Decimal(10)
 
     transaction = transaction_item_generator(
         order_id=order.pk,
@@ -283,7 +283,7 @@ def test_transaction_initialize_session_order_without_data(
     event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = None
-    amount = Decimal("10")
+    amount = Decimal(10)
 
     transaction = transaction_item_generator(
         order_id=order.pk,
@@ -352,7 +352,7 @@ def test_transaction_initialize_session_empty_customer_ip_addess(
     event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = None
-    amount = Decimal("10")
+    amount = Decimal(10)
 
     transaction = transaction_item_generator(
         order_id=order.pk,

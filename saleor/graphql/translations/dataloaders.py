@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from ...attribute import models as attribute_models
 from ...discount import models as discount_models
@@ -13,9 +13,7 @@ from ..core.dataloaders import DataLoader
 T = TypeVar("T")
 
 
-class BaseTranslationByIdAndLanguageCodeLoader(
-    DataLoader[tuple[int, str], T], Generic[T]
-):
+class BaseTranslationByIdAndLanguageCodeLoader[T](DataLoader[tuple[int, str], T]):
     model = None
     relation_name = None
 

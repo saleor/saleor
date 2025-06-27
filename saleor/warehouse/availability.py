@@ -295,7 +295,7 @@ def check_stock_quantity_bulk(
             quantity += variants_quantities.get(variant.pk, 0)
 
         stocks = variant_stocks.get(variant.pk, [])
-        available_quantity = sum([stock.available_quantity for stock in stocks])
+        available_quantity = sum([stock.available_quantity for stock in stocks])  # type: ignore[attr-defined]
         available_quantity = max(
             available_quantity - variant_reservations[variant.pk], 0
         )

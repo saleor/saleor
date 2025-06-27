@@ -161,7 +161,7 @@ def test_query_promotion_with_complex_rule_2(
         description=dummy_editorjs("Test description for percentage promotion rule."),
         catalogue_predicate=catalogue_predicate,
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("10"),
+        reward_value=Decimal(10),
     )
 
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}

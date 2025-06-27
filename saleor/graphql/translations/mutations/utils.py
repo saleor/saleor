@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Collection
 
 import graphene
 from django.core.exceptions import ImproperlyConfigured, ValidationError
@@ -12,6 +13,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....discount import models as discount_models
 from ....menu import models as menu_models
 from ....page import models as page_models
+from ....permission.enums import BasePermissionEnum
 from ....product import models as product_models
 from ....shipping import models as shipping_models
 from ....webhook.event_types import WebhookEventAsyncType
@@ -22,7 +24,7 @@ from ...core.doc_category import DOC_CATEGORY_MAP
 from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
-from ...core.utils import from_global_id_or_error
+from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import types as translation_types
 
@@ -215,12 +217,24 @@ class BaseBulkTranslateMutation(BaseMutation):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
+        auto_permission_message=True,
+        description=None,
+        doc_category=None,
+        permissions: Collection[BasePermissionEnum] | None = None,
+        _meta=None,
+        error_type_class=None,
+        error_type_field=None,
+        errors_mapping=None,
+        support_meta_field=False,
+        support_private_meta_field=False,
+        auto_webhook_events_message: bool = True,
+        webhook_events_info: list[WebhookEventInfo] | None = None,
+        exclude=None,
         base_model=None,
         translation_model=None,
         translation_fields=None,
         base_model_relation_field=None,
         result_type=None,
-        _meta=None,
         **kwargs,
     ):
         if not base_model:
@@ -253,10 +267,25 @@ class BaseBulkTranslateMutation(BaseMutation):
         _meta.result_type = result_type
 
         doc_category_key = f"{base_model._meta.app_label}.{base_model.__name__}"
-        if "doc_category" not in kwargs and doc_category_key in DOC_CATEGORY_MAP:
-            kwargs["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
+        if not doc_category and doc_category_key in DOC_CATEGORY_MAP:
+            doc_category = DOC_CATEGORY_MAP[doc_category_key]
 
-        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
+        super().__init_subclass_with_meta__(
+            auto_permission_message=auto_permission_message,
+            description=description,
+            doc_category=doc_category,
+            permissions=permissions,
+            _meta=_meta,
+            error_type_class=error_type_class,
+            error_type_field=error_type_field,
+            errors_mapping=errors_mapping,
+            support_meta_field=support_meta_field,
+            support_private_meta_field=support_private_meta_field,
+            auto_webhook_events_message=auto_webhook_events_message,
+            webhook_events_info=webhook_events_info,
+            exclude=exclude,
+            **kwargs,
+        )
 
     @classmethod
     def clean_translations(cls, data_inputs, index_error_map):

@@ -543,7 +543,7 @@ def test_order_update_shipping_with_voucher_discount(
     order.status = OrderStatus.DRAFT
     assert order.shipping_method != shipping_method
 
-    new_undiscounted_shipping_price = Money(Decimal("16"), currency)
+    new_undiscounted_shipping_price = Money(Decimal(16), currency)
     assert new_undiscounted_shipping_price > order.undiscounted_base_shipping_price
     new_shipping_listing = shipping_method.channel_listings.get(
         channel_id=order.channel_id

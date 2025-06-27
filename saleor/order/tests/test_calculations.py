@@ -1821,9 +1821,9 @@ def test_fetch_order_prices_flat_rates_with_weighted_shipping_tax(
     second_line = lines[-1]
 
     # Set different tax rates for different lines
-    first_rate = Decimal("5")
-    second_rate = Decimal("60")
-    shipping_rate = Decimal("223")
+    first_rate = Decimal(5)
+    second_rate = Decimal(60)
+    shipping_rate = Decimal(223)
 
     first_line.tax_class.country_rates.filter(country=country).update(rate=first_rate)
 

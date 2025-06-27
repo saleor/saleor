@@ -78,7 +78,7 @@ def test_update_variant_relations_for_active_promotion_rules_task_when_not_valid
     rule = promotion.rules.create(
         name="Percentage promotion rule",
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("10"),
+        reward_value=Decimal(10),
         catalogue_predicate={
             "categoryPredicate": {"metadata": [{"key": "test", "value": "test"}]}
         },

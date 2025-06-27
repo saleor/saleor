@@ -48,7 +48,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_anonymous_checkout.channel_id, Decimal("11")
+                expired_anonymous_checkout.channel_id, Decimal(11)
             ),
         )
     )
@@ -64,7 +64,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                not_expired_checkout_1.channel_id, Decimal("11")
+                not_expired_checkout_1.channel_id, Decimal(11)
             ),
         )
     )
@@ -80,7 +80,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                not_expired_checkout_2.channel_id, Decimal("11")
+                not_expired_checkout_2.channel_id, Decimal(11)
             ),
         )
     )
@@ -96,7 +96,7 @@ def test_delete_expired_anonymous_checkouts(checkouts_list, variant, customer_us
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                not_expired_checkout_3.channel_id, Decimal("11")
+                not_expired_checkout_3.channel_id, Decimal(11)
             ),
         )
     )
@@ -148,7 +148,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_user_checkout_1.channel_id, Decimal("11")
+                expired_user_checkout_1.channel_id, Decimal(11)
             ),
         )
     )
@@ -164,7 +164,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_user_checkout_2.channel_id, Decimal("11")
+                expired_user_checkout_2.channel_id, Decimal(11)
             ),
         )
     )
@@ -180,7 +180,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                not_expired_checkout_1.channel_id, Decimal("11")
+                not_expired_checkout_1.channel_id, Decimal(11)
             ),
         )
     )
@@ -196,7 +196,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                not_expired_checkout_2.channel_id, Decimal("11")
+                not_expired_checkout_2.channel_id, Decimal(11)
             ),
         )
     )
@@ -212,7 +212,7 @@ def test_delete_expired_user_checkouts(checkouts_list, variant, customer_user):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                not_expired_checkout_3.channel_id, Decimal("11")
+                not_expired_checkout_3.channel_id, Decimal(11)
             ),
         )
     )
@@ -304,7 +304,7 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_anonymous_checkout.channel_id, Decimal("11")
+                expired_anonymous_checkout.channel_id, Decimal(11)
             ),
         )
     )
@@ -319,7 +319,7 @@ def test_delete_expired_checkouts(checkouts_list, customer_user, variant):
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_user_checkout.channel_id, Decimal("11")
+                expired_user_checkout.channel_id, Decimal(11)
             ),
         )
     )
@@ -404,7 +404,7 @@ def test_delete_expired_checkouts_doesnt_delete_when_transaction_amount_exists(
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_anonymous_checkout.channel_id, Decimal("11")
+                expired_anonymous_checkout.channel_id, Decimal(11)
             ),
         )
     )
@@ -444,7 +444,7 @@ def test_delete_expired_checkouts_doesnt_delete_when_transaction_amount_exists(
             variant=variant,
             quantity=1,
             undiscounted_unit_price_amount=variant_listings_map.get(
-                expired_user_checkout.channel_id, Decimal("11")
+                expired_user_checkout.channel_id, Decimal(11)
             ),
         )
     )

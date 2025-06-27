@@ -683,10 +683,10 @@ def test_checkout_paid_with_multiple_transactions(
     )
 
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
     )
     second_transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=Decimal("10")
+        checkout_id=checkout.pk, charged_value=Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -746,7 +746,7 @@ def test_checkout_partially_paid(
     )
 
     transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -799,7 +799,7 @@ def test_checkout_partially_paid_allow_unpaid_order(
     )
 
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -1808,7 +1808,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_gift_card.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout = prepare_checkout_for_test(
@@ -2182,7 +2182,7 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_voucher_percentage.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout = prepare_checkout_for_test(
@@ -2312,8 +2312,8 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal("1")
-    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal(1)
+    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal(1)
     gift_card.save()
 
     expected_gc_balance_amount = (
@@ -2384,7 +2384,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("1")),
+        (True, DiscountValueType.FIXED, Decimal(1)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -2510,7 +2510,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     code = voucher_percentage.codes.first()
@@ -2702,7 +2702,7 @@ def test_checkout_complete_with_shipping_voucher(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
     checkout.discount = shipping_listing.price
     checkout.save(update_fields=["discount_amount"])
@@ -2834,7 +2834,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     checkout_line_variant = checkout_line.variant
 
     channel = checkout.channel
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -2938,7 +2938,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("3")),
+        (True, DiscountValueType.FIXED, Decimal(3)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -3052,7 +3052,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_item_and_voucher_specific_products.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout = prepare_checkout_for_test(
@@ -3167,7 +3167,7 @@ def test_checkout_complete_product_on_promotion(
 
     channel = checkout.channel
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -3275,8 +3275,8 @@ def test_checkout_complete_multiple_rules_applied(
 
     channel = checkout.channel
 
-    reward_value_1 = Decimal("2")
-    reward_value_2 = Decimal("10")
+    reward_value_1 = Decimal(2)
+    reward_value_2 = Decimal(10)
     rule_1, rule_2 = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
@@ -3416,7 +3416,7 @@ def test_checkout_complete_multiple_rules_applied(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("3")),
+        (True, DiscountValueType.FIXED, Decimal(3)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )

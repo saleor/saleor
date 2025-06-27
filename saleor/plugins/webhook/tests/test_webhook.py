@@ -1101,7 +1101,7 @@ def test_checkout_payload_includes_promotions(
     variant = checkout_lines[0].variant
     channel_listing = variant.channel_listings.first()
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         name="Percentage promotion rule",
         catalogue_predicate={
@@ -1166,7 +1166,7 @@ def test_checkout_payload_includes_order_promotion_discount(
     variant = checkout_lines[0].variant
     channel_listing = variant.channel_listings.first()
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         name="Fixed promotion rule",
         order_predicate={
@@ -2092,7 +2092,7 @@ def test_transaction_charge_requested(
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=app.identifier,
         app=app,
     )
@@ -2145,7 +2145,7 @@ def test_transaction_refund_requested(
         ],
         currency="USD",
         order_id=order.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=app.identifier,
         app=app,
     )
@@ -2200,7 +2200,7 @@ def test_transaction_refund_requested_missing_app_owner_updated_refundable_for_c
         ],
         currency="USD",
         checkout_id=checkout.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=app.identifier,
         app=app,
     )
@@ -2252,7 +2252,7 @@ def test_transaction_cancel_requested_missing_app_owner_updated_refundable_for_c
         ],
         currency="USD",
         checkout_id=checkout.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=app.identifier,
         app=app,
     )
@@ -2302,7 +2302,7 @@ def test_transaction_cancelation_requested(
         ],
         currency="USD",
         order_id=order.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
         app_identifier=app.identifier,
         app=app,
     )
@@ -2451,8 +2451,8 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
 
     order_discount = draft_order.discounts.create(
         value_type=DiscountValueType.FIXED,
-        value=Decimal("10"),
-        amount_value=Decimal("10"),
+        value=Decimal(10),
+        amount_value=Decimal(10),
         currency=draft_order.currency,
         type=DiscountType.MANUAL,
     )
@@ -2461,7 +2461,7 @@ def test_trigger_webhook_sync_with_subscription_within_mutation_use_default_db(
         "discountId": graphene.Node.to_global_id("OrderDiscount", order_discount.pk),
         "input": {
             "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
-            "value": Decimal("50"),
+            "value": Decimal(50),
         },
     }
 

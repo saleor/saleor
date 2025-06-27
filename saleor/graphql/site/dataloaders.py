@@ -71,7 +71,7 @@ def ensure_that_site_is_not_none(request, host, site):
 T = TypeVar("T")
 
 
-def load_site_callback(func: Callable[..., T]) -> Callable[..., Promise[T]]:
+def load_site_callback[T](func: Callable[..., T]) -> Callable[..., Promise[T]]:
     def _wrapper(root, info, *args, **kwargs):
         return get_site_promise(info.context).then(
             partial(func, root, info, *args, **kwargs)

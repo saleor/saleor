@@ -42,7 +42,7 @@ def sales_for_pagination(channel_USD):
     for promotion in promotions:
         promotion.assign_old_sale_id()
 
-    values = [Decimal("1"), Decimal("7"), Decimal("5"), Decimal("5"), Decimal("25")]
+    values = [Decimal(1), Decimal(7), Decimal(5), Decimal(5), Decimal(25)]
     rules = PromotionRule.objects.bulk_create(
         [
             PromotionRule(

@@ -48,7 +48,7 @@ from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 @pytest.fixture
 def tax_data(checkout_with_items, checkout_lines):
     checkout = checkout_with_items
-    tax_rate = Decimal("23")
+    tax_rate = Decimal(23)
     net = Decimal("10.000")
     gross = Decimal("12.300")
     lines = checkout_lines

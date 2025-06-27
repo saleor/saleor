@@ -24,7 +24,7 @@ def test_update_rule_variant_relation(
         ]
         new_variant_ids = [variant.id for variant in new_variants]
 
-        percentage_reward_value = Decimal("10")
+        percentage_reward_value = Decimal(10)
         rule = promotion.rules.create(
             name="Percentage promotion rule",
             catalogue_predicate={"variantPredicate": {"ids": new_variant_global_ids}},

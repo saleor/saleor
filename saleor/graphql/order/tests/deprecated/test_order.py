@@ -600,7 +600,7 @@ def test_update_order_line_discount_old_id(
 
     line_price_before_discount = line_to_discount.unit_price
 
-    value = Decimal("5")
+    value = Decimal(5)
     reason = "New reason for unit discount"
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.old_id),

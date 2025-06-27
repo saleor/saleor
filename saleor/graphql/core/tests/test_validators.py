@@ -21,11 +21,11 @@ from ..validators import (
     [
         (Decimal("1.1200"), "USD"),
         (Decimal("1.12"), "USD"),
-        (Decimal("1"), "USD"),
-        (Decimal("1"), "ISK"),
+        (Decimal(1), "USD"),
+        (Decimal(1), "ISK"),
         (Decimal("1.00"), "ISK"),
         (Decimal("5.12"), None),
-        (Decimal("1000"), "USD"),
+        (Decimal(1000), "USD"),
     ],
 )
 def test_validate_price_precision(value, currency):

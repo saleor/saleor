@@ -87,14 +87,14 @@ def order_for_payload(fulfilled_order, voucher_percentage):
     order.discounts.create(
         type=DiscountType.MANUAL,
         value_type=DiscountValueType.PERCENTAGE,
-        value=Decimal("20"),
+        value=Decimal(20),
         amount_value=Decimal("33.0"),
         reason="Discount from staff",
     )
     discount = order.discounts.create(
         type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
-        value=Decimal("10"),
+        value=Decimal(10),
         amount_value=Decimal("16.5"),
         name="Voucher",
         voucher=voucher_percentage,
@@ -2683,7 +2683,7 @@ def test_generate_transaction_action_request_payload_for_order(
         available_actions=["capture", "cancel"],
         currency="USD",
         order_id=order.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
     requested_event = transaction.events.create(
         currency=transaction.currency,
@@ -2771,7 +2771,7 @@ def test_generate_transaction_action_request_payload_for_checkout(
         available_actions=["capture", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
-        authorized_value=Decimal("10"),
+        authorized_value=Decimal(10),
     )
     requested_event = transaction.events.create(
         currency=transaction.currency,

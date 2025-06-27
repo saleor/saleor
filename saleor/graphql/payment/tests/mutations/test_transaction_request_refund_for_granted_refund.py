@@ -578,7 +578,7 @@ def test_trigger_refund_request_with_assigned_transaction_item_and_not_enough_ch
         app=app,
     )
     granted_refund = order_with_lines.granted_refunds.create(
-        amount_value=available_charged_value + Decimal("1"),
+        amount_value=available_charged_value + Decimal(1),
         transaction_item=transaction_item,
     )
 
@@ -644,7 +644,7 @@ def test_trigger_refund_blocked_based_on_status_of_granted_refund(
         app=app,
     )
     granted_refund = order_with_lines.granted_refunds.create(
-        amount_value=available_charged_value - Decimal("1"),
+        amount_value=available_charged_value - Decimal(1),
         transaction_item=transaction_item,
         status=granted_refund_status,
     )

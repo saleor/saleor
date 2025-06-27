@@ -245,15 +245,15 @@ def test_draft_orders_query_with_filter_search(
             OrderDiscount(
                 order=orders[0],
                 name="Some discount name",
-                value=Decimal("1"),
-                amount_value=Decimal("1"),
+                value=Decimal(1),
+                amount_value=Decimal(1),
                 translated_name="translated",
             ),
             OrderDiscount(
                 order=orders[2],
                 name="Some other discount name",
-                value=Decimal("10"),
-                amount_value=Decimal("10"),
+                value=Decimal(10),
+                amount_value=Decimal(10),
                 translated_name="PL_name",
             ),
         ]
@@ -280,7 +280,7 @@ def test_draft_orders_query_with_filter_base_total_price_range(draft_order, gte,
     # given
     order = draft_order
     currency = order.currency
-    order.total_net_amount = Decimal("20")
+    order.total_net_amount = Decimal(20)
     order.save(update_fields=["total_net_amount"])
 
     qs = Order.objects.all()
@@ -315,7 +315,7 @@ def test_draft_orders_query_with_filter_base_subtotal_price_range(
     # given
     order = draft_order
     currency = order.currency
-    order.subtotal_net_amount = Decimal("20")
+    order.subtotal_net_amount = Decimal(20)
     order.save(update_fields=["subtotal_net_amount"])
 
     qs = Order.objects.all()
@@ -352,7 +352,7 @@ def test_draft_orders_query_with_filter_base_total_price_one_of(
     # given
     order = draft_order
     currency = order.currency
-    order.total_net_amount = Decimal("20")
+    order.total_net_amount = Decimal(20)
     order.save(update_fields=["total_net_amount"])
 
     qs = Order.objects.all()
@@ -385,7 +385,7 @@ def test_draft_orders_query_with_filter_base_subtotal_price_one_of(
     # given
     order = draft_order
     currency = order.currency
-    order.subtotal_net_amount = Decimal("20")
+    order.subtotal_net_amount = Decimal(20)
     order.save(update_fields=["subtotal_net_amount"])
 
     qs = Order.objects.all()
@@ -412,7 +412,7 @@ def test_draft_orders_query_with_filter_base_subtotal_price_one_of(
 def test_draft_orders_query_with_filter_base_total_price_missing_currency(draft_order):
     # given
     order = draft_order
-    order.total_net_amount = Decimal("20")
+    order.total_net_amount = Decimal(20)
     order.save(update_fields=["total_net_amount"])
 
     qs = Order.objects.all()
@@ -443,7 +443,7 @@ def test_draft_orders_query_with_filter_base_subtotal_price_missing_currency(
 ):
     # given
     order = draft_order
-    order.subtotal_net_amount = Decimal("20")
+    order.subtotal_net_amount = Decimal(20)
     order.save(update_fields=["subtotal_net_amount"])
 
     qs = Order.objects.all()
@@ -473,7 +473,7 @@ def test_draft_orders_query_with_filter_price_with_and_or(draft_order):
     # given
     order = draft_order
     currency = order.currency
-    order.total_net_amount = Decimal("20")
+    order.total_net_amount = Decimal(20)
     order.save(update_fields=["total_net_amount"])
 
     qs = Order.objects.all()

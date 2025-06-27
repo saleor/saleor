@@ -50,14 +50,14 @@ class Migration(migrations.Migration):
             model_name="order",
             name="subtotal_gross_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
             model_name="order",
             name="subtotal_net_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(
@@ -113,7 +113,7 @@ class Migration(migrations.Migration):
             model_name="ordergrantedrefund",
             name="amount_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=20
+                decimal_places=3, default=Decimal(0), max_digits=20
             ),
         ),
         migrations.AlterField(

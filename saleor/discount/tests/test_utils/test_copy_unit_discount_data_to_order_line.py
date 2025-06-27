@@ -23,7 +23,7 @@ def test_copy_unit_discount_data_to_order_line_multiple_discounts(
     rule_discount.reason = rule_discount_reason
     rule_discount.save(update_fields=["reason"])
 
-    manual_reward_value = Decimal("2")
+    manual_reward_value = Decimal(2)
     manual_discount_reason = "Manual discount"
     line.discounts.create(
         type=DiscountType.MANUAL,
