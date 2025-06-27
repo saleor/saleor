@@ -160,7 +160,12 @@ class OrderQueries(graphene.ObjectType):
     draft_orders = FilterConnectionField(
         OrderCountableConnection,
         sort_by=OrderSortingInput(description="Sort draft orders."),
-        filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
+        filter=OrderDraftFilterInput(
+            description=(
+                f"Filtering options for draft orders. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
         where=DraftOrderWhereInput(
             description="Where filtering options for draft orders." + ADDED_IN_322
         ),

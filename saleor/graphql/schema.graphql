@@ -841,7 +841,7 @@ type Query {
     sortBy: OrderSortingInput
 
     """Filtering options for draft orders."""
-    filter: OrderDraftFilterInput
+    filter: OrderDraftFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """
     Where filtering options for draft orders.
