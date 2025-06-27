@@ -257,6 +257,14 @@ def order_list(customer_user, channel_USD):
 
 
 @pytest.fixture
+def draft_order_list(order_list):
+    for order in order_list:
+        order.status = OrderStatus.DRAFT
+    Order.objects.bulk_update(order_list, ["status"])
+    return order_list
+
+
+@pytest.fixture
 def order_list_with_cc_orders(orders, warehouse_for_cc):
     order_1 = orders[0]
     order_1.collection_point = warehouse_for_cc

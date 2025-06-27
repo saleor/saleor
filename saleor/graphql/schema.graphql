@@ -841,7 +841,21 @@ type Query {
     sortBy: OrderSortingInput
 
     """Filtering options for draft orders."""
-    filter: OrderDraftFilterInput
+    filter: OrderDraftFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """
+    Where filtering options for draft orders.
+    
+    Added in Saleor 3.22.
+    """
+    where: DraftOrderWhereInput
+
+    """
+    Search orders.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -13287,6 +13301,77 @@ input OrderDraftFilterInput @doc(category: "Orders") {
   search: String
   metadata: [MetadataFilter!]
   channels: [ID!]
+}
+
+input DraftOrderWhereInput @doc(category: "Orders") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+
+  """Filter by order number."""
+  number: IntFilterInput
+
+  """Filter by channel."""
+  channelId: GlobalIDFilterInput
+
+  """Filter order by created at date."""
+  createdAt: DateTimeRangeInput
+
+  """Filter order by updated at date."""
+  updatedAt: DateTimeRangeInput
+
+  """Filter by user."""
+  user: GlobalIDFilterInput
+
+  """Filter by user email."""
+  userEmail: StringFilterInput
+
+  """Filter by authorize status."""
+  authorizeStatus: OrderAuthorizeStatusEnumFilterInput
+
+  """Filter by charge status."""
+  chargeStatus: OrderChargeStatusEnumFilterInput
+
+  """
+  Filter by whether the order uses the click and collect delivery method.
+  """
+  isClickAndCollect: Boolean
+
+  """Filter by voucher code used in the order."""
+  voucherCode: StringFilterInput
+
+  """Filter by metadata fields of order lines."""
+  lines: LinesFilterInput
+
+  """Filter by number of lines in the order."""
+  linesCount: IntFilterInput
+
+  """Filter by transaction data associated with the order."""
+  transactions: TransactionFilterInput
+
+  """Filter by total gross amount of the order."""
+  totalGross: PriceFilterInput
+
+  """Filter by total net amount of the order."""
+  totalNet: PriceFilterInput
+
+  """Filter by the product type of related order lines."""
+  productTypeId: GlobalIDFilterInput
+
+  """Filter by order events."""
+  events: OrderEventFilterInput
+
+  """Filter by billing address of the order."""
+  billingAddress: AddressFilterInput
+
+  """Filter by shipping address of the order."""
+  shippingAddress: AddressFilterInput
+
+  """List of conditions that must be met."""
+  AND: [DraftOrderWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [DraftOrderWhereInput!]
 }
 
 type MenuCountableConnection @doc(category: "Menu") {
