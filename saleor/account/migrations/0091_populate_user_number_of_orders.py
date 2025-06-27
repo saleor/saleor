@@ -8,5 +8,5 @@ class Migration(migrations.Migration):
         ("account", "0090_user_number_of_orders"),
     ]
 
-    # empty migration for consistency, the populating task called in 0093
+    # empty migration for consistency, the populating task called in 0094
     operations = []
