@@ -32,9 +32,12 @@ def transaction_item_generator():
         cc_last_digits=None,
         cc_exp_month=None,
         cc_exp_year=None,
+        metadata=None,
     ):
         if available_actions is None:
             available_actions = []
+        if metadata is None:
+            metadata = {}
         transaction = TransactionItem.objects.create(
             token=uuid.uuid4(),
             name=name,
@@ -56,6 +59,7 @@ def transaction_item_generator():
             cc_last_digits=cc_last_digits,
             cc_exp_month=cc_exp_month,
             cc_exp_year=cc_exp_year,
+            metadata=metadata,
         )
         create_manual_adjustment_events(
             transaction=transaction,

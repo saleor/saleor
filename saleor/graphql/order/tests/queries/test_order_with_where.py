@@ -2449,6 +2449,66 @@ def test_orders_filter_by_transaction_payment_details(
 
 
 @pytest.mark.parametrize(
+    ("metadata", "expected_indexes"),
+    [
+        ({"key": "foo"}, [0, 1]),
+        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
+        ({"key": "foo", "value": {"eq": "baz"}}, []),
+        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
+        ({"key": "notfound"}, []),
+        ({"key": "foo", "value": {"eq": None}}, []),
+        ({"key": "foo", "value": {"oneOf": []}}, []),
+        (None, []),
+    ],
+)
+def test_orders_filter_by_transaction_metadata(
+    metadata,
+    expected_indexes,
+    order_list,
+    staff_api_client,
+    permission_group_manage_orders,
+    transaction_item_generator,
+):
+    # given
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        metadata={"foo": "bar"},
+    )
+
+    transaction_item_generator(
+        order_id=order_list[0].pk,
+        charged_value=order_list[0].total.gross.amount,
+        metadata={},
+    )
+
+    transaction_item_generator(
+        order_id=order_list[1].pk,
+        charged_value=order_list[1].total.gross.amount,
+        metadata={"foo": "zaz"},
+    )
+
+    transaction_item_generator(
+        order_id=order_list[2].pk,
+        charged_value=order_list[2].total.gross.amount,
+        metadata={},
+    )
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"where": {"transactions": {"metadata": metadata}}}
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+    assert len(orders) == len(expected_indexes)
+    numbers = {node["node"]["number"] for node in orders}
+    assert numbers == {str(order_list[i].number) for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
     ("address_filter", "expected_indexes"),
     [
         ({"phoneNumber": {"eq": "+48123456789"}}, [0]),
