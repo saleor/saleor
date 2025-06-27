@@ -248,6 +248,10 @@ class User(
                 fields=["email"],
                 name="user_email_idx",
             ),
+            BTreeIndex(
+                fields=["number_of_orders"],
+                name="user_number_of_orders_idx",
+            ),
         ]
 
     def __init__(self, *args, **kwargs):

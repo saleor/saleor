@@ -75,7 +75,7 @@ from ..utils.filters import (
     filter_where_by_id_field,
     filter_where_by_numeric_field,
     filter_where_by_value_field,
-    filter_where_range_field,
+    filter_where_range_field_with_conditions,
 )
 from ..warehouse import types as warehouse_types
 from . import types as product_types
@@ -1103,7 +1103,7 @@ def where_filter_has_preordered_variants(qs, _, value):
 def where_filter_updated_at_range(qs, _, value):
     if value is None:
         return qs.none()
-    return filter_where_range_field(qs, "updated_at", value)
+    return filter_where_range_field_with_conditions(qs, "updated_at", value)
 
 
 class ProductWhere(MetadataWhereFilterBase):

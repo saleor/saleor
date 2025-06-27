@@ -224,7 +224,8 @@ def test_customers_filter_by_metadata(
     ]
     for user, metadata_value in zip(customer_users, metadata_values, strict=True):
         user.metadata = metadata_value
-        user.save(update_fields=["metadata"])
+
+    User.objects.bulk_update(customer_users, ["metadata"])
 
     permission_group_manage_users.user_set.add(staff_api_client.user)
     variables = {"where": {"metadata": metadata}}
@@ -344,7 +345,8 @@ def test_customers_filter_by_email(
     ]
     for user, email in zip(customer_users, customer_emails, strict=True):
         user.email = email
-        user.save(update_fields=["email"])
+
+    User.objects.bulk_update(customer_users, ["email"])
 
     permission_group_manage_users.user_set.add(staff_api_client.user)
     variables = {"where": {"email": email_filter}}
@@ -379,7 +381,8 @@ def test_customers_filter_by_is_active(
     is_active_values = [True, True, False]
     for user, is_active in zip(customer_users, is_active_values, strict=True):
         user.is_active = is_active
-        user.save(update_fields=["is_active"])
+
+    User.objects.bulk_update(customer_users, ["is_active"])
 
     permission_group_manage_users.user_set.add(staff_api_client.user)
     variables = {"where": {"isActive": is_active_filter}}
@@ -458,6 +461,143 @@ def test_customers_filter_by_addresses(
 
     permission_group_manage_users.user_set.add(staff_api_client.user)
     variables = {"where": {"addresses": address_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("orders_filter", "expected_indexes"),
+    [
+        ({"range": {"gte": 2}}, [0, 1]),
+        ({"range": {"lte": 1}}, [2]),
+        ({"range": {"gte": 2, "lte": 3}}, [0, 1]),
+        ({"eq": 3}, [0]),
+        ({"eq": 0}, []),
+        ({"range": {"gte": 4}}, []),
+        ({"oneOf": [3, 1]}, [0, 2]),
+        ({"oneOf": [2]}, [1]),
+        ({"oneOf": [4, 5]}, []),
+        ({"oneOf": []}, []),
+        (None, []),
+        ({"range": {"gte": None}}, []),
+        ({"range": {"lte": None}}, []),
+        ({"eq": None}, []),
+    ],
+)
+def test_customers_filter_by_number_of_orders(
+    orders_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    orders_counts = [3, 2, 1]
+    for user, orders_count in zip(customer_users, orders_counts, strict=True):
+        user.number_of_orders = orders_count
+
+    User.objects.bulk_update(customer_users, ["number_of_orders"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"numberOfOrders": orders_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("first_name_filter", "expected_indexes"),
+    [
+        ({"eq": "John"}, [0]),
+        ({"eq": "Leslie"}, [1]),
+        ({"eq": "NotFound"}, []),
+        ({"oneOf": ["John", "Jane"]}, [0, 2]),
+        ({"oneOf": ["NotFound"]}, []),
+        (None, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
+    ],
+)
+def test_customers_filter_by_first_name(
+    first_name_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    first_names = [
+        "John",
+        "Leslie",
+        "Jane",
+    ]
+    for user, first_name in zip(customer_users, first_names, strict=True):
+        user.first_name = first_name
+
+    User.objects.bulk_update(customer_users, ["first_name"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"firstName": first_name_filter}}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == len(expected_indexes)
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("last_name_filter", "expected_indexes"),
+    [
+        ({"eq": "Doe"}, [0]),
+        ({"eq": "Wade"}, [1]),
+        ({"eq": "NotFound"}, []),
+        ({"oneOf": ["Doe", "Smith"]}, [0, 2]),
+        ({"oneOf": ["NotFound"]}, []),
+        (None, []),
+        ({"eq": None}, []),
+        ({"oneOf": []}, []),
+    ],
+)
+def test_customers_filter_by_last_name(
+    last_name_filter,
+    expected_indexes,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+):
+    # given
+    last_names = [
+        "Doe",
+        "Wade",
+        "Smith",
+    ]
+    for user, last_name in zip(customer_users, last_names, strict=True):
+        user.last_name = last_name
+
+    User.objects.bulk_update(customer_users, ["last_name"])
+
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {"where": {"lastName": last_name_filter}}
 
     # when
     response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)

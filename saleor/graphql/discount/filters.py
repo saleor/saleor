@@ -43,7 +43,7 @@ from ..utils.filters import (
     filter_by_ids,
     filter_range_field,
     filter_where_by_value_field,
-    filter_where_range_field,
+    filter_where_range_field_with_conditions,
 )
 from .enums import (
     DiscountStatusEnum,
@@ -204,11 +204,11 @@ class PromotionWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_end_date_range(qs, _, value):
-        return filter_where_range_field(qs, "end_date", value)
+        return filter_where_range_field_with_conditions(qs, "end_date", value)
 
     @staticmethod
     def filter_start_date_range(qs, _, value):
-        return filter_where_range_field(qs, "start_date", value)
+        return filter_where_range_field_with_conditions(qs, "start_date", value)
 
     @staticmethod
     def filter_is_old_sale(qs, _, value):

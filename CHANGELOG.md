@@ -43,8 +43,11 @@ All notable, unreleased changes to this project will be documented in this file.
   - Use `search` to perform full-text search across relevant fields.
   - Introduced new filtering options for customers:
     - Filter by email address.
+    - Filter by first and last name.
     - Filter by active status (`isActive`).
     - Filter by phone numbers and country of associated user addresses.
+    - Filter by phone numbers associated with user addresses.
+    - Filter by number of orders placed by the user.
 - Deprecated the `filter` argument in favor of the new `where` and `search` arguments.
   The `where` argument introduces more flexible filtering, allowing complex conditions using `AND`/`OR` logic and operators such as `eq`, `oneOf`, and `range`.
   The `filter` argument has been deprecated in the following queries:
