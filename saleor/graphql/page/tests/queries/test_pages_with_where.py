@@ -304,9 +304,22 @@ def test_pages_query_with_attribute_value_name(
 @pytest.mark.parametrize(
     ("numeric_input", "expected_count"),
     [
-        ({"eq": 1.2}, 1),
-        ({"oneOf": [1.2, 2]}, 2),
-        ({"range": {"gte": 1, "lte": 2}}, 2),
+        ({"numeric": {"eq": 1.2}}, 1),
+        ({"numeric": {"oneOf": [1.2, 2]}}, 2),
+        ({"numeric": {"range": {"gte": 1, "lte": 2}}}, 2),
+        ({"numeric": {"eq": 1.2}, "name": {"eq": "1.2"}}, 1),
+        ({"numeric": {"eq": 1.2}, "slug": {"eq": "1.2"}}, 1),
+        ({"numeric": {"eq": 1.2}, "name": {"oneOf": ["1.2", "2"]}}, 1),
+        ({"numeric": {"eq": 1.2}, "slug": {"oneOf": ["1.2", "2"]}}, 1),
+        ({"numeric": {"eq": 1.2}, "name": {"eq": "1.2"}, "slug": {"eq": "1.2"}}, 1),
+        (
+            {
+                "numeric": {"eq": 1.2},
+                "name": {"oneOf": ["1.2", "2"]},
+                "slug": {"oneOf": ["1.2", "2"]},
+            },
+            1,
+        ),
     ],
 )
 def test_pages_query_with_attribute_value_numeric(
@@ -325,10 +338,12 @@ def test_pages_query_with_attribute_value_numeric(
 
     attr_value_1 = numeric_attribute_without_unit.values.first()
     attr_value_1.name = "1.2"
+    attr_value_1.slug = "1.2"
     attr_value_1.save()
 
     attr_value_2 = numeric_attribute_without_unit.values.last()
     attr_value_2.name = "2"
+    attr_value_2.slug = "2"
     attr_value_2.save()
 
     associate_attribute_values_to_instance(
@@ -344,7 +359,7 @@ def test_pages_query_with_attribute_value_numeric(
             "attributes": [
                 {
                     "slug": numeric_attribute_without_unit.slug,
-                    "value": {"numeric": numeric_input},
+                    "value": numeric_input,
                 }
             ]
         }
@@ -365,8 +380,38 @@ def test_pages_query_with_attribute_value_numeric(
 @pytest.mark.parametrize(
     ("date_input", "expected_count"),
     [
-        ({"gte": "2021-01-01"}, 2),
-        ({"gte": "2021-01-01", "lte": "2021-01-02"}, 1),
+        ({"date": {"gte": "2021-01-01"}}, 2),
+        ({"name": {"eq": "date-name-1"}, "date": {"gte": "2021-01-01"}}, 1),
+        ({"slug": {"eq": "date-slug-1"}, "date": {"gte": "2021-01-01"}}, 1),
+        (
+            {
+                "name": {"oneOf": ["date-name-1", "date-name-2"]},
+                "date": {
+                    "gte": "2021-01-01",
+                },
+            },
+            2,
+        ),
+        (
+            {
+                "slug": {"oneOf": ["date-slug-1", "date-slug-2"]},
+                "date": {
+                    "gte": "2021-01-01",
+                },
+            },
+            2,
+        ),
+        (
+            {
+                "slug": {"oneOf": ["date-slug-1", "date-slug-2"]},
+                "name": {"oneOf": ["date-name-1", "date-name-2"]},
+                "date": {
+                    "gte": "2021-01-01",
+                },
+            },
+            2,
+        ),
+        ({"date": {"gte": "2021-01-01", "lte": "2021-01-02"}}, 1),
     ],
 )
 def test_pages_query_with_attribute_value_date(
@@ -385,6 +430,8 @@ def test_pages_query_with_attribute_value_date(
 
     attr_value_1 = date_attribute.values.first()
     attr_value_1.date_time = datetime.datetime(2021, 1, 3, tzinfo=datetime.UTC)
+    attr_value_1.name = "date-name-1"
+    attr_value_1.slug = "date-slug-1"
     attr_value_1.save()
 
     associate_attribute_values_to_instance(
@@ -393,6 +440,8 @@ def test_pages_query_with_attribute_value_date(
 
     second_attr_value = date_attribute.values.last()
     second_attr_value.date_time = datetime.datetime(2021, 1, 1, tzinfo=datetime.UTC)
+    second_attr_value.name = "date-name-2"
+    second_attr_value.slug = "date-slug-2"
     second_attr_value.save()
 
     associate_attribute_values_to_instance(
@@ -400,9 +449,7 @@ def test_pages_query_with_attribute_value_date(
     )
 
     variables = {
-        "where": {
-            "attributes": [{"slug": date_attribute.slug, "value": {"date": date_input}}]
-        }
+        "where": {"attributes": [{"slug": date_attribute.slug, "value": date_input}]}
     }
 
     # when
@@ -420,8 +467,38 @@ def test_pages_query_with_attribute_value_date(
 @pytest.mark.parametrize(
     ("date_time_input", "expected_count"),
     [
-        ({"gte": "2021-01-01T00:00:00Z"}, 2),
-        ({"gte": "2021-01-01T00:00:00Z", "lte": "2021-01-02T00:00:00Z"}, 1),
+        (
+            {
+                "name": {"eq": "datetime-name-1"},
+                "dateTime": {"gte": "2021-01-01T00:00:00Z"},
+            },
+            1,
+        ),
+        (
+            {
+                "slug": {"eq": "datetime-slug-1"},
+                "dateTime": {"gte": "2021-01-01T00:00:00Z"},
+            },
+            1,
+        ),
+        (
+            {
+                "name": {"oneOf": ["datetime-name-1", "datetime-name-2"]},
+                "slug": {"oneOf": ["datetime-slug-1", "datetime-slug-2"]},
+                "dateTime": {"gte": "2021-01-01T00:00:00Z"},
+            },
+            2,
+        ),
+        ({"dateTime": {"gte": "2021-01-01T00:00:00Z"}}, 2),
+        (
+            {
+                "dateTime": {
+                    "gte": "2021-01-01T00:00:00Z",
+                    "lte": "2021-01-02T00:00:00Z",
+                }
+            },
+            1,
+        ),
     ],
 )
 def test_pages_query_with_attribute_value_date_time(
@@ -440,6 +517,8 @@ def test_pages_query_with_attribute_value_date_time(
 
     attr_value_1 = date_time_attribute.values.first()
     attr_value_1.date_time = datetime.datetime(2021, 1, 3, tzinfo=datetime.UTC)
+    attr_value_1.name = "datetime-name-1"
+    attr_value_1.slug = "datetime-slug-1"
     attr_value_1.save()
 
     associate_attribute_values_to_instance(
@@ -448,6 +527,8 @@ def test_pages_query_with_attribute_value_date_time(
 
     second_attr_value = date_time_attribute.values.last()
     second_attr_value.date_time = datetime.datetime(2021, 1, 1, tzinfo=datetime.UTC)
+    second_attr_value.name = "datetime-name-2"
+    second_attr_value.slug = "datetime-slug-2"
     second_attr_value.save()
 
     associate_attribute_values_to_instance(
@@ -459,7 +540,7 @@ def test_pages_query_with_attribute_value_date_time(
             "attributes": [
                 {
                     "slug": date_time_attribute.slug,
-                    "value": {"dateTime": date_time_input},
+                    "value": date_time_input,
                 }
             ]
         }
@@ -477,8 +558,23 @@ def test_pages_query_with_attribute_value_date_time(
     assert len(pages_nodes) == expected_count
 
 
+@pytest.mark.parametrize(
+    "boolean_input",
+    [
+        {"boolean": True},
+        {"name": {"eq": "True-name"}, "boolean": True},
+        {"slug": {"eq": "true_slug"}, "boolean": True},
+        {"name": {"oneOf": ["True-name", "True-name-2"]}, "boolean": True},
+        {"slug": {"oneOf": ["true_slug"]}, "boolean": True},
+        {"name": {"eq": "True-name"}, "slug": {"eq": "true_slug"}, "boolean": True},
+    ],
+)
 def test_pages_query_with_attribute_value_boolean(
-    staff_api_client, page_list, page_type, boolean_attribute
+    boolean_input,
+    staff_api_client,
+    page_list,
+    page_type,
+    boolean_attribute,
 ):
     # given
     boolean_attribute.type = "PAGE_TYPE"
@@ -487,7 +583,14 @@ def test_pages_query_with_attribute_value_boolean(
     page_type.page_attributes.add(boolean_attribute)
 
     true_value = boolean_attribute.values.filter(boolean=True).first()
+    true_value.name = "True-name"
+    true_value.slug = "true_slug"
+    true_value.save()
+
     false_value = boolean_attribute.values.filter(boolean=False).first()
+    false_value.name = "False-name"
+    false_value.slug = "false_slug"
+    false_value.save()
 
     associate_attribute_values_to_instance(
         page_list[0], {boolean_attribute.pk: [true_value]}
@@ -497,9 +600,7 @@ def test_pages_query_with_attribute_value_boolean(
         page_list[1], {boolean_attribute.pk: [false_value]}
     )
 
-    variables = {
-        "where": {"attributes": [{"slug": "boolean", "value": {"boolean": True}}]}
-    }
+    variables = {"where": {"attributes": [{"slug": "boolean", "value": boolean_input}]}}
 
     # when
     response = staff_api_client.post_graphql(
