@@ -79,14 +79,17 @@ def filter_by_slug_and_name(qs, attr_id, attr_value):
 
 
 def filter_by_numeric_attribute(qs, attr_id, attr_value):
-    if not {"slug", "name", "numeric"}.intersection(attr_value.keys()):
+    slug_value = attr_value.get("slug")
+    name_value = attr_value.get("name")
+    numeric_value = attr_value.get("numeric")
+    if not any([slug_value, name_value, numeric_value]):
         return Q()
 
     qs_by_numeric = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if "slug" in attr_value or "name" in attr_value:
+    if slug_value or name_value:
         qs_by_numeric = filter_by_slug_and_name(qs_by_numeric, attr_id, attr_value)
 
-    if "numeric" in attr_value:
+    if numeric_value:
         qs_by_numeric = qs_by_numeric.annotate(numeric_value=Cast("name", FloatField()))
         qs_by_numeric = filter_where_by_numeric_field(
             qs_by_numeric,
@@ -103,13 +106,16 @@ def filter_by_numeric_attribute(qs, attr_id, attr_value):
 
 
 def filter_by_boolean_attribute(qs, attr_id, attr_value):
-    if not {"slug", "name", "boolean"}.intersection(attr_value.keys()):
+    slug_value = attr_value.get("slug")
+    name_value = attr_value.get("name")
+    filter_over_boolean_value = "boolean" in attr_value
+    if not any([slug_value, name_value, filter_over_boolean_value]):
         return Q()
     qs_by_boolean = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if "slug" in attr_value or "name" in attr_value:
+    if slug_value or name_value:
         qs_by_boolean = filter_by_slug_and_name(qs_by_boolean, attr_id, attr_value)
 
-    if "boolean" in attr_value:
+    if filter_over_boolean_value:
         qs_by_boolean = qs_by_boolean.filter(boolean=attr_value["boolean"])
     assigned_attr_value = AssignedPageAttributeValue.objects.using(
         qs_by_boolean.db
@@ -121,14 +127,17 @@ def filter_by_boolean_attribute(qs, attr_id, attr_value):
 
 
 def filter_by_date_attribute(qs, attr_id, attr_value):
-    if not {"slug", "name", "date"}.intersection(attr_value.keys()):
+    slug_value = attr_value.get("slug")
+    name_value = attr_value.get("name")
+    date_value = attr_value.get("date")
+    if not any([slug_value, name_value, date_value]):
         return Q()
 
     qs_by_date = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if "slug" in attr_value or "name" in attr_value:
+    if slug_value or name_value:
         qs_by_date = filter_by_slug_and_name(qs_by_date, attr_id, attr_value)
 
-    if "date" in attr_value:
+    if date_value:
         qs_by_date = filter_range_field(
             qs_by_date,
             "date_time__date",
@@ -144,14 +153,17 @@ def filter_by_date_attribute(qs, attr_id, attr_value):
 
 
 def filter_by_date_time_attribute(qs, attr_id, attr_value):
-    if not {"slug", "name", "date_time"}.intersection(attr_value.keys()):
+    slug_value = attr_value.get("slug")
+    name_value = attr_value.get("name")
+    date_time_value = attr_value.get("date_time")
+    if not any([slug_value, name_value, date_time_value]):
         return Q()
 
     qs_by_date_time = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if "slug" in attr_value or "name" in attr_value:
+    if slug_value or name_value:
         qs_by_date_time = filter_by_slug_and_name(qs_by_date_time, attr_id, attr_value)
 
-    if "date_time" in attr_value:
+    if date_time_value:
         qs_by_date_time = filter_range_field(
             qs_by_date_time,
             "date_time",
@@ -193,7 +205,8 @@ def filter_pages_by_attributes(qs, value):
         attr_filter_expression = Q(Exists(assigned_attr_value))
 
     for attr_filter in value:
-        if "value" not in attr_filter:
+        attr_value = attr_filter.get("value")
+        if not attr_value:
             # attrs without value input are handled separately
             continue
         attr = attributes_map[attr_filter["slug"]]

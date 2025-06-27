@@ -622,8 +622,6 @@ def test_pages_query_with_attribute_value_boolean(
     [
         # Non-existing attribute slug
         [{"slug": "non-existing-attribute"}],
-        # Existing attribute with non-existing value slug
-        [{"slug": "page-size", "value": {"slug": {"eq": "non-existing-slug"}}}],
         # Existing attribute with non-existing value name
         [{"slug": "tag", "value": {"name": {"eq": "Non-existing Name"}}}],
         # Existing numeric attribute with out-of-range value
@@ -635,9 +633,28 @@ def test_pages_query_with_attribute_value_boolean(
             {"slug": "page-size", "value": {"slug": {"eq": "10"}}},
             {"slug": "non-existing-attr", "value": {"slug": {"eq": "some-value"}}},
         ],
+        # When input receives None
+        [{"slug": "page-size", "value": {"slug": None}}],
+        [{"slug": "page-size", "value": {"name": None}}],
+        # numeric attribute
+        [{"slug": "count", "value": {"numeric": None}}],
+        [{"slug": "count", "value": {"name": None}}],
+        [{"slug": "count", "value": {"slug": None}}],
+        # boolean attribute
+        [{"slug": "boolean", "value": {"boolean": None}}],
+        [{"slug": "boolean", "value": {"name": None}}],
+        [{"slug": "boolean", "value": {"slug": None}}],
+        # date attribute
+        [{"slug": "date", "value": {"date": None}}],
+        [{"slug": "date", "value": {"name": None}}],
+        [{"slug": "date", "value": {"slug": None}}],
+        # datetime attribute
+        [{"slug": "date_time", "value": {"dateTime": None}}],
+        [{"slug": "date_time", "value": {"name": None}}],
+        [{"slug": "date_time", "value": {"slug": None}}],
     ],
 )
-def test_pages_query_with_non_existing_attribute_data(
+def test_pages_query_with_non_matching_records(
     attribute_filter,
     staff_api_client,
     page_list,
@@ -646,6 +663,8 @@ def test_pages_query_with_non_existing_attribute_data(
     tag_page_attribute,
     boolean_attribute,
     numeric_attribute_without_unit,
+    date_attribute,
+    date_time_attribute,
 ):
     # given
     boolean_attribute.type = "PAGE_TYPE"
@@ -657,11 +676,20 @@ def test_pages_query_with_non_existing_attribute_data(
     page_type.page_attributes.add(tag_page_attribute)
     page_type.page_attributes.add(boolean_attribute)
     page_type.page_attributes.add(numeric_attribute_without_unit)
+    page_type.page_attributes.add(date_attribute)
+    page_type.page_attributes.add(date_time_attribute)
 
     size_value = size_page_attribute.values.get(slug="10")
     tag_value = tag_page_attribute.values.get(name="About")
     boolean_value = boolean_attribute.values.filter(boolean=True).first()
     numeric_value = numeric_attribute_without_unit.values.first()
+    date_time_value = date_time_attribute.values.first()
+    date_value = date_attribute.values.first()
+
+    date_attribute.slug = "date"
+    date_attribute.save()
+    date_time_attribute.slug = "date_time"
+    date_time_attribute.save()
 
     associate_attribute_values_to_instance(
         page_list[0],
@@ -670,6 +698,8 @@ def test_pages_query_with_non_existing_attribute_data(
             tag_page_attribute.pk: [tag_value],
             boolean_attribute.pk: [boolean_value],
             numeric_attribute_without_unit.pk: [numeric_value],
+            date_attribute.pk: [date_value],
+            date_time_attribute.pk: [date_time_value],
         },
     )
 
