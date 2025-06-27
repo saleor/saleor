@@ -38,7 +38,7 @@ def populate_user_number_of_orders_task(user_pk=0):
         )
         users_to_update = []
         for user in users:
-            total_orders = user_total_orders.get(user.id)
+            total_orders = user_total_orders.get(user.id, 0)
 
             # Skip if the total orders count is the same to avoid unnecessary updates
             if total_orders == user.number_of_orders:
