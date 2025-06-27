@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import graphene
 import pytz
@@ -30,48 +30,39 @@ def transactions_to_release_funds():
     now = datetime.now(pytz.UTC)
     channels = (
         Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(
-            release_funds_for_expired_checkouts=True,
+        .annotate(
+            last_transaction_modified_at=ExpressionWrapper(
+                OuterRef(
+                    "last_transaction_modified_at",
+                ),
+                output_field=DateTimeField(),
+            )
         )
-        .annotate()
+        .filter(
+            Q(release_funds_for_expired_checkouts=True)
+            & Q(
+                checkout_ttl_before_releasing_funds__lt=now - OuterRef("last_change")  # type: ignore[operator]
+            )
+            & (
+                Q(last_transaction_modified_at__isnull=True)
+                | Q(
+                    checkout_ttl_before_releasing_funds__lt=now
+                    - OuterRef("last_transaction_modified_at")  # type: ignore[operator]
+                )
+            )
+            & Q(pk=OuterRef("channel_id"))
+            & (
+                Q(checkout_release_funds_cut_off_date__isnull=True)
+                | Q(checkout_release_funds_cut_off_date__lt=OuterRef("last_change"))
+            )
+        )
     )
 
     checkouts = Checkout.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(
-        Q(
-            Exists(
-                channels.annotate(
-                    last_transaction_modified_at=ExpressionWrapper(
-                        OuterRef(
-                            "last_transaction_modified_at",
-                        ),
-                        output_field=DateTimeField(),
-                    )
-                ).filter(
-                    Q(
-                        checkout_ttl_before_releasing_funds__lt=now
-                        - OuterRef("last_change")  # type: ignore[operator]
-                    )
-                    & (
-                        Q(last_transaction_modified_at__isnull=True)
-                        | Q(
-                            checkout_ttl_before_releasing_funds__lt=now
-                            - OuterRef("last_transaction_modified_at")  # type: ignore[operator]
-                        )
-                    )
-                    & Q(pk=OuterRef("channel_id"))
-                    & (
-                        Q(checkout_release_funds_cut_off_date__isnull=True)
-                        | Q(
-                            checkout_release_funds_cut_off_date__lt=OuterRef(
-                                "last_change"
-                            )
-                        )
-                    )
-                )
-            ),
-        ),
+        Exists(channels),
+        last_change__gt=now - timedelta(days=365),
         automatically_refundable=True,
         authorize_status__in=[
             CheckoutAuthorizeStatus.PARTIAL,
