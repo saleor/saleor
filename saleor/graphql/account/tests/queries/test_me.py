@@ -5,6 +5,9 @@ import graphene
 import pytest
 from django.utils import timezone
 
+from .....attribute import AttributeType
+from .....attribute.models import Attribute, AttributeValue
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....checkout.calculations import _fetch_checkout_prices_if_expired
 from .....checkout.fetch import fetch_checkout_lines
 from .....order import OrderStatus
@@ -687,3 +690,168 @@ def test_me_query_stored_payment_methods(
             "data": payment_method_data,
         }
     ]
+
+
+QUERY_ME_WITH_ATTRIBUTE_QUERY = """
+{
+  me{
+    attribute(slug:"atr"){
+      attribute{
+        id
+        slug
+      }
+      values{
+        name
+        slug
+      }
+    }
+    attributes{
+      attribute{
+        id
+        slug
+      }
+      values{
+        name
+        slug
+      }
+    }
+  }
+}
+
+"""
+
+
+def test_user_attributes_not_visible_in_storefront_for_customer_is_not_returned(
+    user_api_client,
+):
+    # given
+    user = user_api_client.user
+    attribute = Attribute.objects.create(
+        slug="test-attr",
+        name="Test Attribute",
+        type=AttributeType.USER_TYPE,
+        visible_in_storefront=False,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value",
+    )
+
+    associate_attribute_values_to_instance(user, {attribute.pk: [attr_value]})
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_WITH_ATTRIBUTE_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["me"]["attributes"] is None
+
+
+def test_page_attributes_visible_in_storefront_for_customer_is_returned(
+    user_api_client,
+):
+    # given
+    user = user_api_client.user
+    attribute = Attribute.objects.create(
+        slug="test-attr",
+        name="Test Attribute",
+        type=AttributeType.USER_TYPE,
+        visible_in_storefront=True,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value",
+    )
+
+    associate_attribute_values_to_instance(user, {attribute.pk: [attr_value]})
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_WITH_ATTRIBUTE_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["me"]["attributes"]) == 1
+    attribute_data = content["data"]["me"]["attributes"][0]
+    assert attribute_data["attribute"] == {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "slug": attribute.slug,
+    }
+    assert len(attribute_data["values"]) == 1
+    assert attribute_data["values"][0] == {
+        "name": attr_value.name,
+        "slug": attr_value.slug,
+    }
+
+
+def test_page_attribute_not_visible_in_storefront_for_customer_is_not_returned(
+    user_api_client,
+):
+    # given
+    slug = "atr"
+
+    user = user_api_client.user
+    attribute = Attribute.objects.create(
+        slug=slug,
+        name="Test Attribute",
+        type=AttributeType.USER_TYPE,
+        visible_in_storefront=False,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value",
+    )
+
+    associate_attribute_values_to_instance(user, {attribute.pk: [attr_value]})
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_WITH_ATTRIBUTE_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    attribute_data = content["data"]["me"]["attribute"]
+    assert attribute_data is None
+
+
+def test_page_attribute_visible_in_storefront_for_customer_is_returned(user_api_client):
+    # given
+    slug = "atr"
+    user = user_api_client.user
+    attribute = Attribute.objects.create(
+        slug=slug,
+        name="Test Attribute",
+        type=AttributeType.USER_TYPE,
+        visible_in_storefront=True,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value",
+    )
+
+    associate_attribute_values_to_instance(user, {attribute.pk: [attr_value]})
+
+    # when
+    response = user_api_client.post_graphql(QUERY_ME_WITH_ATTRIBUTE_QUERY)
+
+    # then
+
+    content = get_graphql_content(response)
+    assert content["data"]["me"]["attribute"] is not None
+    attribute_data = content["data"]["me"]["attribute"]
+    assert attribute_data["attribute"] == {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "slug": attribute.slug,
+    }
+    assert len(attribute_data["values"]) == 1
+    assert attribute_data["values"][0] == {
+        "name": attr_value.name,
+        "slug": attr_value.slug,
+    }

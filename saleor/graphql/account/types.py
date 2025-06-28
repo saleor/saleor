@@ -24,6 +24,7 @@ from ...thumbnail.utils import (
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
+from ..attribute.types import SelectedAttribute
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
@@ -35,7 +36,7 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_319, ADDED_IN_322, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -66,6 +67,10 @@ from .dataloaders import (
     AddressByIdLoader,
     CustomerEventsByUserLoader,
     RestrictedChannelAccessByUserIdLoader,
+    SelectedAttributeByUserIdAttributeSlugLoader,
+    SelectedAttributesAllByUserIdLoader,
+    SelectedAttributesVisibleInStorefrontByUserIdLoader,
+    SelectedAttributeVisibleInStorefrontByUserIdAttributeSlugLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
@@ -483,6 +488,21 @@ class User(ModelObjectType[models.User]):
             required=True,
         ),
     )
+    # FIXME: Do we want to have it paginated?
+    attributes = NonNullList(
+        SelectedAttribute,
+        description="List of the user attributes." + ADDED_IN_322,
+    )
+    attribute = graphene.Field(
+        SelectedAttribute,
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description="Get a single attribute attached to user by attribute slug."
+        + ADDED_IN_322,
+    )
 
     class Meta:
         description = "Represents user data."
@@ -775,6 +795,34 @@ class User(ModelObjectType[models.User]):
                 root.default_shipping_address_id
             )
         return None
+
+    @staticmethod
+    def resolve_attributes(root: models.User, info: ResolveInfo):
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(AccountPermissions.MANAGE_USERS)
+        ):
+            return SelectedAttributesAllByUserIdLoader(info.context).load(root.id)
+        return SelectedAttributesVisibleInStorefrontByUserIdLoader(info.context).load(
+            root.id
+        )
+
+    @staticmethod
+    def resolve_attribute(root: models.User, info: ResolveInfo, slug: str):
+        requestor = get_user_or_app_from_context(info.context)
+        if (
+            requestor
+            and requestor.is_active
+            and requestor.has_perm(AccountPermissions.MANAGE_USERS)
+        ):
+            return SelectedAttributeByUserIdAttributeSlugLoader(info.context).load(
+                (root.id, slug)
+            )
+        return SelectedAttributeVisibleInStorefrontByUserIdAttributeSlugLoader(
+            info.context
+        ).load((root.id, slug))
 
 
 class UserCountableConnection(CountableConnection):
