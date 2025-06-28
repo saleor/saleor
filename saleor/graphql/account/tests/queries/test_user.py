@@ -6,6 +6,10 @@ import pytest
 from django.core.files import File
 
 from .....account.models import Group
+from .....attribute import AttributeType
+from .....attribute.models import Attribute, AttributeValue
+from .....attribute.models.user import AssignedUserAttributeValue
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....channel.models import Channel
 from .....order import OrderStatus
 from .....order.models import FulfillmentStatus, Order
@@ -1340,3 +1344,238 @@ def test_query_customer_stored_payment_methods(
     content = get_graphql_content(response)
 
     assert content["data"]["user"]["storedPaymentMethods"] == []
+
+
+USER_WITH_ATTRIBUTE_QUERY = """
+    query User($id: ID!) {
+        user(id: $id) {
+            email
+            attribute(slug:"atr"){
+                attribute{
+                    slug
+                }
+                values{
+                    id
+                    name
+                    slug
+                }
+            }
+            attributes{
+                attribute{
+                    id
+                    slug
+                }
+                values{
+                    id
+                    name
+                    slug
+                }
+            }
+        }
+    }
+"""
+
+
+def test_get_user_with_sorted_attribute_values(
+    staff_api_client,
+    customer_user,
+    product_list,
+    permission_manage_users,
+):
+    # given
+    user_attribute = Attribute.objects.create(
+        slug="product-reference",
+        name="Product reference",
+        type=AttributeType.USER_TYPE,
+    )
+    attr_value_1, attr_value_2, attr_value_3 = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=user_attribute,
+                name=product_list[0].name,
+                slug=f"{customer_user.pk}_{product_list[0].pk}",
+            ),
+            AttributeValue(
+                attribute=user_attribute,
+                name=product_list[1].name,
+                slug=f"{customer_user.pk}_{product_list[1].pk}",
+            ),
+            AttributeValue(
+                attribute=user_attribute,
+                name=product_list[2].name,
+                slug=f"{customer_user.pk}_{product_list[2].pk}",
+            ),
+        ]
+    )
+
+    attr_values = [attr_value_2, attr_value_1, attr_value_3]
+    associate_attribute_values_to_instance(
+        customer_user, {user_attribute.pk: attr_values}
+    )
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": user_id}
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+
+    # when
+    response = staff_api_client.post_graphql(USER_WITH_ATTRIBUTE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert len(data["attributes"]) == 1
+    values = data["attributes"][0]["values"]
+    assert len(values) == 3
+
+    expected_order = [attr_value_2, attr_value_1, attr_value_3]
+    assert [value["id"] for value in values] == [
+        graphene.Node.to_global_id("AttributeValue", val.pk) for val in expected_order
+    ]
+
+
+@pytest.mark.parametrize("visible_in_storefront", [False, True])
+def test_user_attributes_visible_in_storefront_for_staff_is_always_returned(
+    visible_in_storefront,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+):
+    # given
+    attribute = Attribute.objects.create(
+        slug="test-attr",
+        name="Test Attribute",
+        type=AttributeType.USER_TYPE,
+        visible_in_storefront=visible_in_storefront,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value",
+    )
+    associate_attribute_values_to_instance(customer_user, {attribute.pk: [attr_value]})
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.pk),
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        USER_WITH_ATTRIBUTE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["user"]["attributes"]) == 1
+    attribute_data = content["data"]["user"]["attributes"][0]["attribute"]
+    assert attribute_data == {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "slug": attribute.slug,
+    }
+
+
+def test_user_attribute_field_filtering(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    attribute = Attribute.objects.create(
+        slug="test-attribute-slug",
+        name="Test Attribute",
+        type=AttributeType.USER_TYPE,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value",
+    )
+
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=attr_value)
+
+    slug = "atr"
+    attribute.slug = slug
+    attribute.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.pk),
+        "slug": slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_WITH_ATTRIBUTE_QUERY,
+        variables,
+    )
+
+    # then
+    expected_slug = slug
+    content = get_graphql_content(response)
+    queried_slug = content["data"]["user"]["attribute"]["attribute"]["slug"]
+    assert queried_slug == expected_slug
+
+
+def test_user_attribute_field_filtering_not_found(
+    staff_api_client, customer_user, permission_manage_users
+):
+    # given
+    slug = "atr"
+
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.pk),
+        "slug": slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_WITH_ATTRIBUTE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["user"]["attribute"] is None
+
+
+@pytest.mark.parametrize("visible_in_storefront", [False, True])
+def test_user_attribute_visible_in_storefront_for_staff_is_always_returned(
+    visible_in_storefront,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+):
+    # given
+    attribute = Attribute.objects.create(
+        slug="test-attribute-single",
+        name="Test Attribute Single",
+        type=AttributeType.USER_TYPE,
+        visible_in_storefront=visible_in_storefront,
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute,
+        name="Test Value",
+        slug="test-value-single",
+    )
+
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=attr_value)
+
+    slug = "atr"
+    attribute.slug = slug
+    attribute.save()
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.pk),
+        "slug": slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        USER_WITH_ATTRIBUTE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["user"]["attribute"]["attribute"]["slug"] == attribute.slug

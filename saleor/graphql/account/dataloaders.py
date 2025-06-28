@@ -3,10 +3,17 @@ from collections.abc import Iterable
 from typing import Generic, TypeVar, cast
 
 from ...account.models import Address, CustomerEvent, Group, User
+from ...attribute.models.base import Attribute, AttributeValue
+from ...attribute.models.user import AssignedUserAttributeValue
 from ...channel.models import Channel
 from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
+from ..attribute.dataloaders import (
+    AttributesBySlugLoader,
+    AttributeValueByIdLoader,
+    AttributeValuesByAttributeIdLoader,
+)
 from ..core.dataloaders import DataLoader
 
 
@@ -183,3 +190,190 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader[int, bool]):
             ]
 
         return [user_to_restricted_access[user_id] for user_id in keys]
+
+
+class AssignedUserAttributeValueByUserIdLoader(
+    DataLoader[int, list[AssignedUserAttributeValue]]
+):
+    context_key = "assigneduserattributevalue_by_user_id"
+
+    def batch_load(self, keys):
+        user_attribute_values = AssignedUserAttributeValue.objects.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
+        response_map = defaultdict(list)
+        for assigned_attr_value in user_attribute_values:
+            response_map[assigned_attr_value.user_id].append(assigned_attr_value)
+        return [response_map.get(user_id, []) for user_id in keys]
+
+
+class SelectedAttributesAllByUserIdLoader(DataLoader[int, list[dict]]):
+    context_key = "selectedattributes_all_by_user_id"
+
+    def batch_load(self, keys):
+        def with_assigned_attr_values(
+            user_attribute_values: list[list[AssignedUserAttributeValue]],
+        ):
+            user_id_to_attr_value_ids = defaultdict(list)
+            value_ids = []
+            for assigned_attr_values in user_attribute_values:
+                for assigned_attr_value in assigned_attr_values:
+                    if not assigned_attr_value:
+                        continue
+                    user_id_to_attr_value_ids[assigned_attr_value.user_id].append(
+                        assigned_attr_value.value_id
+                    )
+                    value_ids.append(assigned_attr_value.value_id)
+
+            def with_atr_values(attr_values: list[AttributeValue]):
+                # FIXME: If we will decide to keep list instead of pagination, then this
+                # should be changed to dataloader
+                attr_value_map = {
+                    attr_value.id: attr_value for attr_value in attr_values
+                }
+                attributes_map = (
+                    Attribute.objects.using(self.database_connection_name)
+                    .filter(
+                        id__in=[attr_value.attribute_id for attr_value in attr_values]
+                    )
+                    .in_bulk()
+                )
+                response_map = defaultdict(list)
+                for (
+                    user_id,
+                    selected_attr_value_ids,
+                ) in user_id_to_attr_value_ids.items():
+                    user_selected_attr_id_to_values = defaultdict(list)
+                    for selected_attr_value_id in selected_attr_value_ids:
+                        selected_attr_value = attr_value_map.get(selected_attr_value_id)
+                        if not selected_attr_value:
+                            continue
+                        user_selected_attr_id_to_values[
+                            selected_attr_value.attribute_id
+                        ].append(selected_attr_value)
+
+                    for attr_id, attr_values in user_selected_attr_id_to_values.items():
+                        response_map[user_id].append(
+                            {
+                                "attribute": attributes_map[attr_id],
+                                "values": attr_values,
+                            }
+                        )
+
+                return [response_map[user_id] for user_id in keys]
+
+            return (
+                AttributeValueByIdLoader(self.context)
+                .load_many(value_ids)
+                .then(with_atr_values)
+            )
+
+        return (
+            AssignedUserAttributeValueByUserIdLoader(self.context)
+            .load_many(keys)
+            .then(with_assigned_attr_values)
+        )
+
+
+class SelectedAttributesVisibleInStorefrontByUserIdLoader(DataLoader[int, list[dict]]):
+    context_key = "selectedattributes_visible_in_storefront_by_user_id"
+
+    def batch_load(self, keys):
+        def with_all_attributes(attributes):
+            response_map = defaultdict(list)
+            for user_id, user_details in zip(keys, attributes, strict=False):
+                for attr_data in user_details:
+                    if attr_data["attribute"].visible_in_storefront:
+                        response_map[user_id].append(attr_data)
+
+            return [response_map.get(user_id) for user_id in keys]
+
+        return (
+            SelectedAttributesAllByUserIdLoader(self.context)
+            .load_many(keys)
+            .then(with_all_attributes)
+        )
+
+
+class SelectedAttributeByUserIdAttributeSlugLoader(DataLoader[tuple[int, int], dict]):
+    context_key = "selectedattribute_by_user_id_attribute_slug"
+
+    def batch_load(self, keys):
+        attribute_slugs = [attr_slug for _, attr_slug in keys]
+        user_ids = [user_id for user_id, _ in keys]
+
+        def with_attributes(attributes: list[Attribute]):
+            attribute_slugs_map = {attr.slug: attr for attr in attributes if attr}
+            attribute_ids = [attr.id for attr in attributes if attr]
+
+            def with_attribute_values(attribute_values: list[list[AttributeValue]]):
+                attribute_to_values_map = defaultdict(list)
+                attribute_value_ids = []
+                for attribute_id, attr_values in zip(
+                    attribute_ids, attribute_values, strict=False
+                ):
+                    attribute_to_values_map[attribute_id] = attr_values
+                    if attr_values:
+                        attribute_value_ids.extend(attr_values)
+
+                assigned_attribute_values = AssignedUserAttributeValue.objects.using(
+                    self.database_connection_name
+                ).filter(user_id__in=user_ids, value_id__in=attribute_value_ids)
+                assigned_values_per_user = defaultdict(list)
+                for assigned_attr_value in assigned_attribute_values:
+                    assigned_values_per_user[assigned_attr_value.user_id].append(
+                        assigned_attr_value.value_id
+                    )
+                response_map = {}
+                for user_id, attr_slug in keys:
+                    attribute = attribute_slugs_map.get(attr_slug)
+                    if not attribute:
+                        continue
+                    assigned_values = [
+                        value
+                        for value in attribute_to_values_map[attribute.id]
+                        if value.id in assigned_values_per_user[user_id]
+                    ]
+                    response_map[(user_id, attr_slug)] = {
+                        "attribute": attribute,
+                        "values": assigned_values,
+                    }
+                return [response_map.get(key) for key in keys]
+
+            return (
+                AttributeValuesByAttributeIdLoader(self.context)
+                .load_many(attribute_ids)
+                .then(with_attribute_values)
+            )
+
+        return (
+            AttributesBySlugLoader(self.context)
+            .load_many(attribute_slugs)
+            .then(with_attributes)
+        )
+
+
+class SelectedAttributeVisibleInStorefrontByUserIdAttributeSlugLoader(
+    DataLoader[tuple[int, int], dict]
+):
+    context_key = "selectedattribute_visible_in_storefront_by_user_id_attribute_slug"
+
+    def batch_load(self, keys):
+        def with_all_attributes(selected_attributes):
+            response_map = {}
+            user_ids = [user_id for user_id, _ in keys]
+            for user_id, selected_details in zip(
+                user_ids, selected_attributes, strict=False
+            ):
+                if not selected_details:
+                    continue
+                attribute = selected_details["attribute"]
+                if attribute.visible_in_storefront:
+                    response_map[(user_id, attribute.slug)] = selected_details
+            return [response_map.get(key) for key in keys]
+
+        return (
+            SelectedAttributeByUserIdAttributeSlugLoader(self.context)
+            .load_many(keys)
+            .then(with_all_attributes)
+        )

@@ -11,6 +11,7 @@ from .product_variant import (
     AssignedVariantAttributeValue,
     AttributeVariant,
 )
+from .user import AssignedUserAttributeValue
 
 __all__ = [
     "Attribute",
@@ -24,4 +25,5 @@ __all__ = [
     "AssignedVariantAttribute",
     "AssignedVariantAttributeValue",
     "AttributeVariant",
+    "AssignedUserAttributeValue",
 ]

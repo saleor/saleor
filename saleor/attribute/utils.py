@@ -3,34 +3,39 @@ from functools import reduce
 
 from django.db.models import Exists, OuterRef, Q
 
+from ..account.models import User
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
 from .models import (
     AssignedPageAttributeValue,
     AssignedProductAttributeValue,
+    AssignedUserAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
-    AttributePage,
-    AttributeProduct,
     AttributeValue,
     AttributeVariant,
 )
 
-T_INSTANCE = Product | ProductVariant | Page
+T_INSTANCE = Product | ProductVariant | Page | User
 
 
 instance_to_function_variables_mapping = {
     "Product": (
-        AttributeProduct,
         AssignedProductAttributeValue,
         "product",
     ),
     "ProductVariant": (
-        AttributeVariant,
         AssignedVariantAttributeValue,
         "variant",
     ),
-    "Page": (AttributePage, AssignedPageAttributeValue, "page"),
+    "Page": (
+        AssignedPageAttributeValue,
+        "page",
+    ),
+    "User": (
+        AssignedUserAttributeValue,
+        "user",
+    ),
 }
 
 
@@ -93,7 +98,6 @@ def _associate_attribute_to_instance(
         raise AssertionError(f"{instance_type} is unsupported")
 
     (
-        instance_attribute_model,
         value_model,
         instance_field_name,
     ) = variables
@@ -105,7 +109,7 @@ def _associate_attribute_to_instance(
             "attribute_id__in": list(attr_val_map.keys()),
             "product_type_id": prod_type_id,
         }
-        instance_attrs_ids = instance_attribute_model.objects.filter(  # type: ignore[attr-defined]
+        instance_attrs_ids = AttributeVariant.objects.filter(
             **attribute_filter
         ).values_list("pk", flat=True)
 

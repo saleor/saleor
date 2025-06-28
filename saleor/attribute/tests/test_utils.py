@@ -1,6 +1,6 @@
 import pytest
 
-from ...attribute.models import AssignedPageAttributeValue
+from ...attribute.models import AssignedPageAttributeValue, AssignedUserAttributeValue
 from ...product.models import ProductType
 from .. import AttributeInputType, AttributeType
 from ..models import Attribute, AttributeValue
@@ -264,3 +264,77 @@ def test_validate_attribute_owns_values(attribute_1, attribute_2):
         attribute_1.id: [attribute_1.values.first()],
         attribute_2.id: [attribute_2.values.first()],
     }
+
+
+def test_associate_attribute_to_user_instance(customer_user, product_list):
+    # given
+    user_attribute = Attribute.objects.create(
+        slug="product-reference",
+        name="Product reference",
+        type=AttributeType.USER_TYPE,
+    )
+    attr_value_1, attr_value_2, attr_value_3 = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=user_attribute,
+                name=product_list[0].name,
+                slug=f"{customer_user.pk}_{product_list[0].pk}",
+            ),
+            AttributeValue(
+                attribute=user_attribute,
+                name=product_list[1].name,
+                slug=f"{customer_user.pk}_{product_list[1].pk}",
+            ),
+            AttributeValue(
+                attribute=user_attribute,
+                name=product_list[2].name,
+                slug=f"{customer_user.pk}_{product_list[2].pk}",
+            ),
+        ]
+    )
+    # when
+    attr_values = [attr_value_2, attr_value_1, attr_value_3]
+    associate_attribute_values_to_instance(
+        customer_user, {user_attribute.pk: attr_values}
+    )
+
+    # then
+    assigned_values = (
+        AssignedUserAttributeValue.objects.filter(
+            user_id=customer_user.pk, value__attribute_id=user_attribute.id
+        )
+        .prefetch_related("value")
+        .order_by("sort_order")
+    )
+    assert len(assigned_values) == 3
+    assert assigned_values[0].value == attr_value_2
+    assert assigned_values[0].sort_order == 0
+    assert assigned_values[1].value == attr_value_1
+    assert assigned_values[1].sort_order == 1
+    assert assigned_values[2].value == attr_value_3
+    assert assigned_values[2].sort_order == 2
+
+
+def test_associate_attribute_to_user_instance_without_values(customer_user):
+    # given
+    user_attribute = Attribute.objects.create(
+        slug="product-reference",
+        name="Product reference",
+        type=AttributeType.USER_TYPE,
+    )
+    attr_value = AttributeValue.objects.create(
+        attribute=user_attribute,
+        name="Value 1",
+        slug="value-1",
+    )
+    associate_attribute_values_to_instance(
+        customer_user, {user_attribute.pk: [attr_value]}
+    )
+    assert customer_user.attributevalues.count() != 0
+
+    # when
+    associate_attribute_values_to_instance(customer_user, {user_attribute.pk: []})
+
+    # Ensure the values were cleared and no new assignment entry was created
+    assert Attribute.objects.filter(type=AttributeType.USER_TYPE).count() == 1
+    assert customer_user.attributevalues.count() == 0
