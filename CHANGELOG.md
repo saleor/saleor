@@ -46,7 +46,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend valid address values - #15877 by @zedzior
 - Skipped obsolete payload save and cleanup for successful sync webhooks - #16809 by @cmiacz
 - Added support for Kosovo country (`XK`) - #17890 by @krzysztofzuraw
-  
+
 # 3.19.0
 
 ### Highlights
