@@ -12,7 +12,7 @@ from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
 from ...permission.enums import PageTypePermissions, ProductTypePermissions
 from ...permission.utils import has_one_of_permissions
-from ...product.models import Product, ProductType, ProductVariant
+from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from .. import AttributeEntityType, AttributeInputType, AttributeType
 
 if TYPE_CHECKING:
@@ -372,9 +372,26 @@ class AttributeValue(ModelWithExternalReference):
         blank=True,
     )
 
+    reference_collection = models.ForeignKey(
+        Collection,
+        related_name="references",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    reference_category = models.ForeignKey(
+        Category,
+        related_name="references",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
     reference_page = models.ForeignKey(
         Page, related_name="references", on_delete=models.CASCADE, null=True, blank=True
     )
+
     sort_order = models.IntegerField(editable=False, db_index=True, null=True)
 
     objects = AttributeValueManager()
