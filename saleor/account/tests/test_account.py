@@ -14,7 +14,7 @@ from ..models import User
 from ..validators import validate_possible_number
 
 
-@pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
+@pytest.mark.parametrize("country", ["CN", "PL", "US", "IE", "XK"])
 def test_address_form_for_country(country):
     # given
     data = {
