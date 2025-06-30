@@ -22,6 +22,9 @@ build-schema.help = "Build GraphQL schema to saleor/graphql/schema.graphql file"
 migrate.cmd = "python manage.py migrate"
 migrate.help = "Run database migrations"
 
+make-migrations.cmd = "python manage.py makemigrations"
+make-migrations.help = "Create new migrations based on changes in models"
+
 release.shell = "npm run release"
 release.help = """
 Release new Saleor verison
