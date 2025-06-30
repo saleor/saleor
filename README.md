@@ -19,6 +19,15 @@
 <br>
 
 <div align="center">
+ Get to know Saleor: <br>
+  <a href="https://saleor.typeform.com/talk-with-us">Talk to a human</a>
+  <span> | </span>
+  <a href="https://twitter.com/getsaleor](https://auth.saleor.io/realms/saleor-cloud/protocol/openid-connect/registrations)">Talk to API</a>
+</div>
+
+<br>
+
+<div align="center">
   Join our community: <br>
   <a href="https://saleor.io/">Website</a>
   <span> | </span>
