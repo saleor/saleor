@@ -30,6 +30,22 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated payment method name and type.
     - Filter by associated billing and shipping address phone number and country code.
     - Filter by associated transactionItems metadata.
+- You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
+  - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
+  - Use `search` to perform full-text search across relevant fields.
+  - Added filtering options for draft orders:
+    - Filter by number.
+    - Filter by last update date.
+    - Filter by voucher codes.
+    - Filter by authorize and charge status.
+    - Filter by number of lines in the draft order.
+    - Filter by draft order total gross and net price amount.
+    - Filter by draft order metadata.
+    - Filter by draft order by associated lines metadata.
+    - Filter by the product type of related order lines.
+    - Filter by associated event type and date.
+    - Filter by associated payment method name and type.
+    - Filter by associated billing and shipping address phone number and country code.
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
 - Enhanced order search options. Orders can now be searched using:
   - The order's ID
@@ -56,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `customers`
   - `products`
   - `orders`
+  - `draftOrders`
   - `productType.availableAttributes`
   - `category.products`
   - `collection.products`
