@@ -471,7 +471,16 @@ DEFAULT_CURRENCY_CODE_LENGTH = 3
 # Following the recommendation of https://tools.ietf.org/html/rfc5322#section-2.1.1
 DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
-COUNTRIES_OVERRIDE = {"EU": "European Union"}
+COUNTRIES_OVERRIDE = {
+    "EU": "European Union",
+    "XK": {
+        "name": "Kosovo",
+        "alpha3": "XXK",
+        "ioc_code": "KOS",
+        "numeric": "383",
+        "numeric_padded": "0383",
+    },
+}
 
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
 
