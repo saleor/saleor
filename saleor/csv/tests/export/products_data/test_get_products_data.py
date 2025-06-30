@@ -251,6 +251,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     product_type_page_reference_attribute,
     product_type_product_reference_attribute,
     product_type_variant_reference_attribute,
+    product_type_category_reference_attribute,
+    product_type_collection_reference_attribute,
     numeric_attribute,
     product_with_image,
     product_with_variant_with_two_attributes,
@@ -261,6 +263,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     date_time_attribute,
     variant_with_many_stocks,
     swatch_attribute,
+    category,
+    collection,
 ):
     # given
     product.variants.add(variant_with_many_stocks)
@@ -269,6 +273,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
         product_type_variant_reference_attribute,
+        product_type_category_reference_attribute,
+        product_type_collection_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
         swatch_attribute,
@@ -281,6 +287,8 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
         product_type_variant_reference_attribute,
+        product_type_category_reference_attribute,
+        product_type_collection_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
         swatch_attribute,
@@ -394,6 +402,58 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     associate_attribute_values_to_instance(
         product,
         {product_type_variant_reference_attribute.pk: [product_variant_ref_value]},
+    )
+
+    # add category reference attribute
+    product_category_ref_value = AttributeValue.objects.create(
+        attribute=product_type_category_reference_attribute,
+        reference_category=category,
+        slug=f"product_{product.pk}_category_{category.pk}",
+        name=category.name,
+    )
+    variant_category_ref_value = AttributeValue.objects.create(
+        attribute=product_type_category_reference_attribute,
+        reference_category=category,
+        slug=f"variant_{variant_with_many_stocks.pk}_category_{category.pk}",
+        name=category.name,
+    )
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks,
+        {product_type_category_reference_attribute.pk: [variant_category_ref_value]},
+    )
+    associate_attribute_values_to_instance(
+        product,
+        {product_type_category_reference_attribute.pk: [product_category_ref_value]},
+    )
+
+    # add collection reference attribute
+    product_collection_ref_value = AttributeValue.objects.create(
+        attribute=product_type_collection_reference_attribute,
+        reference_collection=collection,
+        slug=f"product_{product.pk}_collection_{collection.pk}",
+        name=collection.name,
+    )
+    variant_collection_ref_value = AttributeValue.objects.create(
+        attribute=product_type_collection_reference_attribute,
+        reference_collection=collection,
+        slug=f"variant_{variant_with_many_stocks.pk}_collection_{collection.pk}",
+        name=collection.name,
+    )
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks,
+        {
+            product_type_collection_reference_attribute.pk: [
+                variant_collection_ref_value
+            ]
+        },
+    )
+    associate_attribute_values_to_instance(
+        product,
+        {
+            product_type_collection_reference_attribute.pk: [
+                product_collection_ref_value
+            ]
+        },
     )
 
     # add numeric attribute

@@ -44,7 +44,10 @@ def test_get_export_fields_and_headers_no_fields():
 
 
 def test_get_attributes_headers(
-    product_with_multiple_values_attributes, product_type_without_variant
+    product_with_multiple_values_attributes,
+    product_type_without_variant,
+    product_type_category_reference_attribute,
+    product_type_collection_reference_attribute,
 ):
     # given
     attribute_ids = Attribute.objects.values_list("id", flat=True)
@@ -52,7 +55,11 @@ def test_get_attributes_headers(
 
     product_type = product_with_multiple_values_attributes.product_type
     product_attribute = product_type.product_attributes.first()
-    product_type_without_variant.product_attributes.add(product_attribute)
+    product_type_without_variant.product_attributes.add(
+        product_attribute,
+        product_type_category_reference_attribute,
+        product_type_collection_reference_attribute,
+    )
 
     # when
     attributes_headers = get_attributes_headers(export_info)
