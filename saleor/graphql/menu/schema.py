@@ -1,9 +1,9 @@
 import graphene
 
-from ..channel import ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import ChannelQsContext
 from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import MenuItemTranslate

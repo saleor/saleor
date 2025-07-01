@@ -30,7 +30,6 @@ from ...warehouse.reservations import is_reservation_enabled
 from ...webhook.event_types import WebhookEventSyncType
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
-from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import (
@@ -40,6 +39,7 @@ from ..checkout.dataloaders import (
 )
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.context import ChannelContext
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,

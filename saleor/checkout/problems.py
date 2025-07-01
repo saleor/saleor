@@ -3,7 +3,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from ..graphql.channel import ChannelContext
+from ..graphql.core.context import ChannelContext
 from ..product.models import ProductChannelListing, ProductVariant
 from ..warehouse.models import Stock
 from .fetch import CheckoutInfo, CheckoutLineInfo

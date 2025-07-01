@@ -1,8 +1,8 @@
 import graphene
 
 from ....permission.enums import MenuPermissions, SitePermissions
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import BaseMutation
 from ...core.types import MenuError

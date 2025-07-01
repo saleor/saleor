@@ -3,8 +3,8 @@ import graphene
 from ....menu import models
 from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import MenuError
 from ...core.utils import WebhookEventInfo

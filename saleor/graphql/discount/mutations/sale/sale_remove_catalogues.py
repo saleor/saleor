@@ -1,7 +1,7 @@
 from .....core.tracing import traced_atomic_transaction
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
-from .....graphql.channel import ChannelContext
+from .....graphql.core.context import ChannelContext
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo

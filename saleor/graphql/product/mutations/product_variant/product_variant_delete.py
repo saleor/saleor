@@ -12,8 +12,8 @@ from .....order.tasks import recalculate_orders_task
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....app.dataloaders import get_app_promise
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error

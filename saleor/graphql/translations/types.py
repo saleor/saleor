@@ -20,8 +20,7 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
-from ..channel import ChannelContext
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelContext, get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_321,
     DEPRECATED_IN_3X_TYPE,

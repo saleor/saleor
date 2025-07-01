@@ -5,8 +5,8 @@ from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
 from .....product.utils import get_products_ids_without_variants
 from .....webhook.event_types import WebhookEventAsyncType
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList

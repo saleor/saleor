@@ -15,8 +15,8 @@ from ...attribute.mutations import (
     BaseReorderAttributeValuesMutation,
 )
 from ...attribute.types import Attribute
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation

@@ -4,8 +4,8 @@ from django.core.exceptions import ValidationError
 from ....discount import models as discount_models
 from ....discount.error_codes import DiscountErrorCode
 from ....permission.enums import SitePermissions
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...core.utils import from_global_id_or_error, raise_validation_error

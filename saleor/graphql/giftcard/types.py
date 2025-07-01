@@ -16,10 +16,9 @@ from ..account.utils import (
 )
 from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
-from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelContext, get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField

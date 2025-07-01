@@ -49,7 +49,6 @@ from ...attribute.types import (
     AttributeCountableConnection,
     SelectedAttribute,
 )
-from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.types import ChannelContextType
 from ...channel.utils import get_default_channel_slug_or_graphql_error
@@ -58,7 +57,11 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.context import get_database_connection_name
+from ...core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ReportingPeriod

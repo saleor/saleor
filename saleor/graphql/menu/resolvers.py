@@ -1,6 +1,9 @@
 from ...menu import models
-from ..channel import ChannelContext, ChannelQsContext
-from ..core.context import get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from .types import Menu

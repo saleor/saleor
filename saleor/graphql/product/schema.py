@@ -5,11 +5,11 @@ from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.search import search_products
-from ..channel import ChannelContext, ChannelQsContext
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
     ADDED_IN_321,
     DEFAULT_DEPRECATION_REASON,

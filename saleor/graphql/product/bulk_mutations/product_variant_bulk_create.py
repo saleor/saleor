@@ -21,7 +21,7 @@ from ...attribute.types import (
     AttributeValueSelectableTypeInput,
 )
 from ...attribute.utils import AttributeAssignmentMixin
-from ...channel import ChannelContext
+from ...core.context import ChannelContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum

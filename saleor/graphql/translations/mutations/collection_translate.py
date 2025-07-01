@@ -2,8 +2,8 @@ import graphene
 
 from ....permission.enums import SitePermissions
 from ....product import models as product_models
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...product.types import Collection

@@ -7,10 +7,9 @@ from ...permission.enums import OrderPermissions, ProductPermissions
 from ...warehouse import models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
-from ..channel import ChannelContext
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelContext, get_database_connection_name
 from ..core.descriptions import (
     ADDED_IN_320,
     DEPRECATED_IN_3X_INPUT,

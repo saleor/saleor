@@ -3,24 +3,25 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.conf import settings
+from django.db.models import QuerySet
+from django.db.models.base import Model
 from django.http import HttpRequest
 from django.utils.functional import empty
 
-from ...account.models import User
-from ...app.models import App
-
 if TYPE_CHECKING:
+    from ...account.models import User
+    from ...app.models import App
     from .dataloaders import DataLoader
 
 
 class SaleorContext(HttpRequest):
-    _cached_user: User | None
+    _cached_user: "User | None"
     decoded_auth_token: dict[str, Any] | None
     allow_replica: bool = True
     dataloaders: dict[str, "DataLoader"]
-    app: App | None
-    user: User | None  # type: ignore[assignment]
-    requestor: App | User | None
+    app: "App | None"
+    user: "User | None"  # type: ignore[assignment]
+    requestor: "App | User | None"
     request_time: datetime.datetime
 
     def __init__(self, *args, **kwargs):
@@ -82,3 +83,17 @@ class SyncWebhookControlContext(BaseContext[N]):
     def __init__(self, node: N, allow_sync_webhooks: bool = True):
         self.node = node
         self.allow_sync_webhooks = allow_sync_webhooks
+
+
+C = TypeVar("C", bound=Model)
+
+
+@dataclass
+class ChannelContext(BaseContext[C]):
+    channel_slug: str | None
+
+
+@dataclass
+class ChannelQsContext:
+    qs: QuerySet
+    channel_slug: str | None

@@ -8,8 +8,8 @@ from ....menu import models
 from ....menu.error_codes import MenuErrorCode
 from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_MENU
 from ...core.mutations import BaseMutation
 from ...core.types import MenuError, NonNullList

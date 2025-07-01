@@ -7,8 +7,8 @@ from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.mutations import ModelWithExtRefMutation
 from ....core.types.common import ProductError
 from ....core.validators import clean_seo_fields
