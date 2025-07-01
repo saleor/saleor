@@ -1,15 +1,17 @@
 import graphene
 import pytest
 from freezegun import freeze_time
+from graphql_relay import to_global_id
 
-from ....product.models import (
+from .....product.models import (
     Category,
     Product,
     ProductChannelListing,
     ProductVariantChannelListing,
 )
-from ....warehouse.models import Stock, Warehouse
-from ...tests.utils import get_graphql_content
+from .....tests.utils import dummy_editorjs
+from .....warehouse.models import Stock, Warehouse
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
@@ -843,3 +845,71 @@ def test_categories_where_by_ids_empty_list(api_client, category_list):
     data = get_graphql_content(response)
     categories = data["data"]["categories"]["edges"]
     assert len(categories) == 0
+
+
+@pytest.mark.parametrize(
+    ("category_filter", "count"),
+    [
+        ({"search": "slug_"}, 4),
+        ({"search": "Category1"}, 1),
+        ({"search": "cat1"}, 3),
+        ({"search": "Description cat1."}, 2),
+        ({"search": "Subcategory_description"}, 1),
+        ({"ids": [to_global_id("Category", 2), to_global_id("Category", 3)]}, 2),
+    ],
+)
+def test_categories_query_with_filter(
+    category_filter,
+    count,
+    staff_api_client,
+    permission_manage_products,
+):
+    query = """
+        query ($filter: CategoryFilterInput!, ) {
+              categories(first:5, filter: $filter) {
+                totalCount
+                edges{
+                  node{
+                    id
+                    name
+                  }
+                }
+              }
+            }
+    """
+
+    Category.objects.create(
+        id=1,
+        name="Category1",
+        slug="slug_category1",
+        description=dummy_editorjs("Description cat1."),
+        description_plaintext="Description cat1.",
+    )
+    Category.objects.create(
+        id=2,
+        name="Category2",
+        slug="slug_category2",
+        description=dummy_editorjs("Description cat2."),
+        description_plaintext="Description cat2.",
+    )
+
+    Category.objects.create(
+        id=3,
+        name="SubCategory",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Category1"),
+        description=dummy_editorjs("Subcategory_description of cat1."),
+        description_plaintext="Subcategory_description of cat1.",
+    )
+    Category.objects.create(
+        id=4,
+        name="DoubleSubCategory",
+        slug="slug_subcategory4",
+        description=dummy_editorjs("Super important Description cat1."),
+        description_plaintext="Super important Description cat1.",
+    )
+    variables = {"filter": category_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["categories"]["totalCount"] == count
