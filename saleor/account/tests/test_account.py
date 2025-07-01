@@ -14,7 +14,8 @@ from ..models import User
 from ..validators import validate_possible_number
 
 
-@pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
+# Don't remove `XK` from the list of countries, it is override defined in saleor.settings.COUNTRIES_OVERRIDE.
+@pytest.mark.parametrize("country", ["CN", "PL", "US", "IE", "XK"])
 def test_address_form_for_country(country):
     # given
     data = {
