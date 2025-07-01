@@ -316,7 +316,10 @@ class AttributePageWhereInput(BaseInputObjectType):
     slug = graphene.String(description="Filter by attribute slug.", required=True)
     value = AttributeValuePageInput(
         required=False,
-        description="Filter by values of the attribute.",
+        description=(
+            "Filter by value of the attribute. Only one value input field is allowed. "
+            "If provided more than one, the error will be raised."
+        ),
     )
 
 
