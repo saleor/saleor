@@ -1968,6 +1968,7 @@ def test_update_product_variant_with_category_reference_attribute(
     product_type_category_reference_attribute,
     permission_manage_products,
 ):
+    # given
     variant = product.variants.first()
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -1988,11 +1989,14 @@ def test_update_product_variant_with_category_reference_attribute(
         "attributes": [{"id": ref_attribute_id, "references": [reference]}],
     }
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_UPDATE_VARIANT_ATTRIBUTES,
         variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["productVariantUpdate"]

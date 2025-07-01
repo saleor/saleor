@@ -307,6 +307,7 @@ def test_category_delete_removes_reference_to_page(
     page_type_product_reference_attribute,
     permission_manage_products,
 ):
+    # given
     query = MUTATION_CATEGORY_DELETE
 
     page_type = page.page_type
@@ -326,9 +327,12 @@ def test_category_delete_removes_reference_to_page(
 
     variables = {"id": reference_id}
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["categoryDelete"]
 

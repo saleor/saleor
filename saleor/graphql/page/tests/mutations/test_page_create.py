@@ -1261,7 +1261,6 @@ def test_create_page_with_category_reference_attribute(
 
     values_count = page_type_category_reference_attribute.values.count()
 
-    # test creating root page
     variables = {
         "input": {
             "title": page_title,
@@ -1337,7 +1336,6 @@ def test_create_page_with_collection_reference_attribute(
 
     values_count = page_type_collection_reference_attribute.values.count()
 
-    # test creating root page
     variables = {
         "input": {
             "title": page_title,
