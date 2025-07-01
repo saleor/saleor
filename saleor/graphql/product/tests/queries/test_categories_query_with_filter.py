@@ -1,7 +1,6 @@
 import graphene
 import pytest
 from freezegun import freeze_time
-from graphql_relay import to_global_id
 
 from .....product.models import (
     Category,
@@ -855,7 +854,15 @@ def test_categories_where_by_ids_empty_list(api_client, category_list):
         ({"search": "cat1"}, 3),
         ({"search": "Description cat1."}, 2),
         ({"search": "Subcategory_description"}, 1),
-        ({"ids": [to_global_id("Category", 2), to_global_id("Category", 3)]}, 2),
+        (
+            {
+                "ids": [
+                    graphene.Node.to_global_id("Category", 2),
+                    graphene.Node.to_global_id("Category", 3),
+                ]
+            },
+            2,
+        ),
     ],
 )
 def test_categories_query_with_filter(

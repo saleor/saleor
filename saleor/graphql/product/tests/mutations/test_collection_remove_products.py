@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from graphql_relay import to_global_id
+import graphene
 
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from ....tests.utils import (
@@ -30,8 +30,10 @@ def test_remove_products_from_collection(
     # given
     query = COLLECTION_REMOVE_PRODUCTS_MUTATION
     collection.products.add(*product_list)
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
 
@@ -58,8 +60,10 @@ def test_remove_products_from_collection_trigger_product_updated_webhook(
 ):
     query = COLLECTION_REMOVE_PRODUCTS_MUTATION
     collection.products.add(*product_list)
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
