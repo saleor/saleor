@@ -204,7 +204,7 @@ def update_order_status(order: Order):
         # another process.
         locked_order = Order.objects.select_for_update().get(pk=order.pk)
 
-        status_updated = refresh_order_status(order)
+        status_updated = refresh_order_status(locked_order)
 
         # we would like to update the status for the order provided as the argument
         # to ensure that the reference order has up to date status
