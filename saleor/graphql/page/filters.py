@@ -2,6 +2,7 @@ import django_filters
 import graphene
 from django.db.models import Exists, FloatField, OuterRef, Q
 from django.db.models.functions import Cast
+from graphql import GraphQLError
 
 from ...attribute import AttributeInputType
 from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
@@ -63,10 +64,10 @@ def filter_page_type_search(qs, _, value):
     return qs.filter(Q(name__trigram_similar=value) | Q(slug__trigram_similar=value))
 
 
-def filter_by_slug_and_name(qs, attr_id, attr_value):
-    if not {"slug", "name"}.intersection(attr_value.keys()):
-        return AttributeValue.objects.none()
-    attribute_values = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
+def filter_by_slug_or_name(attr_id, attr_value, db_connection_name: str):
+    attribute_values = AttributeValue.objects.using(db_connection_name).filter(
+        attribute_id=attr_id
+    )
     if "slug" in attr_value:
         attribute_values = filter_where_by_value_field(
             attribute_values, "slug", attr_value["slug"]
@@ -75,29 +76,27 @@ def filter_by_slug_and_name(qs, attr_id, attr_value):
         attribute_values = filter_where_by_value_field(
             attribute_values, "name", attr_value["name"]
         )
-    return attribute_values
-
-
-def filter_by_numeric_attribute(qs, attr_id, attr_value):
-    slug_value = attr_value.get("slug")
-    name_value = attr_value.get("name")
-    numeric_value = attr_value.get("numeric")
-    if not any([slug_value, name_value, numeric_value]):
-        return Q()
-
-    qs_by_numeric = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if slug_value or name_value:
-        qs_by_numeric = filter_by_slug_and_name(qs_by_numeric, attr_id, attr_value)
-
-    if numeric_value:
-        qs_by_numeric = qs_by_numeric.annotate(numeric_value=Cast("name", FloatField()))
-        qs_by_numeric = filter_where_by_numeric_field(
-            qs_by_numeric,
-            "numeric_value",
-            attr_value["numeric"],
-        )
     assigned_attr_value = AssignedPageAttributeValue.objects.using(
-        qs_by_numeric.db
+        db_connection_name
+    ).filter(
+        Exists(attribute_values.filter(id=OuterRef("value_id"))),
+        page_id=OuterRef("id"),
+    )
+    return Q(Exists(assigned_attr_value))
+
+
+def filter_by_numeric_attribute(attr_id, numeric_value, db_connection_name: str):
+    qs_by_numeric = AttributeValue.objects.using(db_connection_name).filter(
+        attribute_id=attr_id
+    )
+    qs_by_numeric = qs_by_numeric.annotate(numeric_value=Cast("name", FloatField()))
+    qs_by_numeric = filter_where_by_numeric_field(
+        qs_by_numeric,
+        "numeric_value",
+        numeric_value,
+    )
+    assigned_attr_value = AssignedPageAttributeValue.objects.using(
+        db_connection_name
     ).filter(
         Exists(qs_by_numeric.filter(id=OuterRef("value_id"))),
         page_id=OuterRef("id"),
@@ -105,20 +104,13 @@ def filter_by_numeric_attribute(qs, attr_id, attr_value):
     return Q(Exists(assigned_attr_value))
 
 
-def filter_by_boolean_attribute(qs, attr_id, attr_value):
-    slug_value = attr_value.get("slug")
-    name_value = attr_value.get("name")
-    filter_over_boolean_value = "boolean" in attr_value
-    if not any([slug_value, name_value, filter_over_boolean_value]):
-        return Q()
-    qs_by_boolean = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if slug_value or name_value:
-        qs_by_boolean = filter_by_slug_and_name(qs_by_boolean, attr_id, attr_value)
-
-    if filter_over_boolean_value:
-        qs_by_boolean = qs_by_boolean.filter(boolean=attr_value["boolean"])
+def filter_by_boolean_attribute(attr_id, boolean_value, db_connection_name: str):
+    qs_by_boolean = AttributeValue.objects.using(db_connection_name).filter(
+        attribute_id=attr_id
+    )
+    qs_by_boolean = qs_by_boolean.filter(boolean=boolean_value)
     assigned_attr_value = AssignedPageAttributeValue.objects.using(
-        qs_by_boolean.db
+        db_connection_name
     ).filter(
         Exists(qs_by_boolean.filter(id=OuterRef("value_id"))),
         page_id=OuterRef("id"),
@@ -126,25 +118,17 @@ def filter_by_boolean_attribute(qs, attr_id, attr_value):
     return Q(Exists(assigned_attr_value))
 
 
-def filter_by_date_attribute(qs, attr_id, attr_value):
-    slug_value = attr_value.get("slug")
-    name_value = attr_value.get("name")
-    date_value = attr_value.get("date")
-    if not any([slug_value, name_value, date_value]):
-        return Q()
-
-    qs_by_date = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if slug_value or name_value:
-        qs_by_date = filter_by_slug_and_name(qs_by_date, attr_id, attr_value)
-
-    if date_value:
-        qs_by_date = filter_range_field(
-            qs_by_date,
-            "date_time__date",
-            attr_value["date"],
-        )
+def filter_by_date_attribute(attr_id, date_value, db_connection_name: str):
+    qs_by_date = AttributeValue.objects.using(db_connection_name).filter(
+        attribute_id=attr_id
+    )
+    qs_by_date = filter_range_field(
+        qs_by_date,
+        "date_time__date",
+        date_value,
+    )
     assigned_attr_value = AssignedPageAttributeValue.objects.using(
-        qs_by_date.db
+        db_connection_name
     ).filter(
         Exists(qs_by_date.filter(id=OuterRef("value_id"))),
         page_id=OuterRef("id"),
@@ -152,25 +136,17 @@ def filter_by_date_attribute(qs, attr_id, attr_value):
     return Q(Exists(assigned_attr_value))
 
 
-def filter_by_date_time_attribute(qs, attr_id, attr_value):
-    slug_value = attr_value.get("slug")
-    name_value = attr_value.get("name")
-    date_time_value = attr_value.get("date_time")
-    if not any([slug_value, name_value, date_time_value]):
-        return Q()
-
-    qs_by_date_time = AttributeValue.objects.using(qs.db).filter(attribute_id=attr_id)
-    if slug_value or name_value:
-        qs_by_date_time = filter_by_slug_and_name(qs_by_date_time, attr_id, attr_value)
-
-    if date_time_value:
-        qs_by_date_time = filter_range_field(
-            qs_by_date_time,
-            "date_time",
-            attr_value["date_time"],
-        )
+def filter_by_date_time_attribute(attr_id, date_time_value, db_connection_name: str):
+    qs_by_date_time = AttributeValue.objects.using(db_connection_name).filter(
+        attribute_id=attr_id
+    )
+    qs_by_date_time = filter_range_field(
+        qs_by_date_time,
+        "date_time",
+        date_time_value,
+    )
     assigned_attr_value = AssignedPageAttributeValue.objects.using(
-        qs_by_date_time.db
+        db_connection_name
     ).filter(
         Exists(qs_by_date_time.filter(id=OuterRef("value_id"))),
         page_id=OuterRef("id"),
@@ -209,38 +185,106 @@ def filter_pages_by_attributes(qs, value):
         if not attr_value:
             # attrs without value input are handled separately
             continue
+
         attr = attributes_map[attr_filter["slug"]]
         attr_value = attr_filter["value"]
-        if attr.input_type == AttributeInputType.NUMERIC:
+        if "slug" in attr_value or "name" in attr_value:
+            attr_filter_expression &= filter_by_slug_or_name(
+                attr.id,
+                attr_value,
+                qs.db,
+            )
+        elif attr.input_type == AttributeInputType.NUMERIC:
             attr_filter_expression &= filter_by_numeric_attribute(
-                qs, attr.id, attr_value
+                attr.id, attr_value["numeric"], qs.db
             )
         elif attr.input_type == AttributeInputType.BOOLEAN:
             attr_filter_expression &= filter_by_boolean_attribute(
-                qs, attr.id, attr_value
+                attr.id, attr_value["boolean"], qs.db
             )
         elif attr.input_type == AttributeInputType.DATE:
-            attr_filter_expression &= filter_by_date_attribute(qs, attr.id, attr_value)
+            attr_filter_expression &= filter_by_date_attribute(
+                attr.id, attr_value["date"], qs.db
+            )
         elif attr.input_type == AttributeInputType.DATE_TIME:
             attr_filter_expression &= filter_by_date_time_attribute(
-                qs, attr.id, attr_value
+                attr.id, attr_value["date_time"], qs.db
             )
-        elif "slug" in attr_value or "name" in attr_value:
-            filtered_attr_values = filter_by_slug_and_name(
-                AttributeValue.objects.using(qs.db).filter(attribute_id=attr.id),
-                attr.id,
-                attr_value,
-            )
-            assigned_attr_value = AssignedPageAttributeValue.objects.using(
-                qs.db
-            ).filter(
-                Exists(filtered_attr_values.filter(id=OuterRef("value_id"))),
-                page_id=OuterRef("id"),
-            )
-            attr_filter_expression &= Q(Exists(assigned_attr_value))
     if attr_filter_expression != Q():
         return qs.filter(attr_filter_expression)
     return qs.none()
+
+
+def validate_attribute_value_input(attributes: list[dict], db_connection_name: str):
+    slug_list = [attr["slug"] for attr in attributes]
+    value_as_empty_list = []
+    value_more_than_one_list = []
+    invalid_input_type_list = []
+    if len(slug_list) != len(set(slug_list)):
+        raise GraphQLError(
+            message="Duplicated attribute slugs in attribute 'where' input are not allowed."
+        )
+
+    type_specific_value_list = {}
+    for attr in attributes:
+        if "value" not in attr:
+            continue
+        value = attr["value"]
+        if not value:
+            value_as_empty_list.append(attr["slug"])
+            continue
+        value_keys = value.keys()
+        if len(value_keys) > 1:
+            value_more_than_one_list.append(attr["slug"])
+            continue
+        value_key = list(value_keys)[0]
+        if value_key not in ["slug", "name"]:
+            type_specific_value_list[attr["slug"]] = value_key
+        if value[value_key] is None:
+            value_as_empty_list.append(attr["slug"])
+            continue
+
+    if type_specific_value_list:
+        attribute_input_type_map = Attribute.objects.using(db_connection_name).in_bulk(
+            type_specific_value_list.keys(),
+            field_name="slug",
+        )
+
+        for attr_slug, value_key in type_specific_value_list.items():
+            if attr_slug not in attribute_input_type_map:
+                continue
+
+            input_type = attribute_input_type_map[attr_slug].input_type
+            if "numeric" == value_key and input_type != AttributeInputType.NUMERIC:
+                invalid_input_type_list.append(attr_slug)
+            if "date" == value_key and input_type != AttributeInputType.DATE:
+                invalid_input_type_list.append(attr_slug)
+            if "date_time" == value_key and input_type != AttributeInputType.DATE_TIME:
+                invalid_input_type_list.append(attr_slug)
+            if "boolean" == value_key and input_type != AttributeInputType.BOOLEAN:
+                invalid_input_type_list.append(attr_slug)
+
+    if value_as_empty_list:
+        raise GraphQLError(
+            message=(
+                f"Incorrect input for attributes with slugs: {','.join(value_as_empty_list)}. "
+                "Provided 'value' cannot be empty or null."
+            )
+        )
+    if value_more_than_one_list:
+        raise GraphQLError(
+            message=(
+                f"Incorrect input for attributes with slugs: {','.join(value_more_than_one_list)}. "
+                "Provided 'value' must have only one input key."
+            )
+        )
+    if invalid_input_type_list:
+        raise GraphQLError(
+            message=(
+                f"Incorrect input for attributes with slugs: {','.join(invalid_input_type_list)}. "
+                "Provided 'value' do not match the attribute input type."
+            )
+        )
 
 
 class AttributeValuePageInput(BaseInputObjectType):
@@ -309,6 +353,11 @@ class PageWhere(MetadataWhereBase):
         if not value:
             return qs
         return filter_pages_by_attributes(qs, value)
+
+    def is_valid(self):
+        if attributes := self.data.get("attributes"):
+            validate_attribute_value_input(attributes, self.queryset.db)
+        return super().is_valid()
 
 
 def filter_page_search(qs, _, value):
