@@ -380,18 +380,19 @@ class TransactionCreate(BaseMutation):
     ):
         checkout_deleted = False
         if transaction.checkout_id and money_data:
-            locked_checkout, transaction = (
-                get_checkout_and_transaction_item_locked_for_update(
-                    transaction.checkout_id, transaction.pk
+            with traced_atomic_transaction():
+                locked_checkout, transaction = (
+                    get_checkout_and_transaction_item_locked_for_update(
+                        transaction.checkout_id, transaction.pk
+                    )
                 )
-            )
-            if transaction.checkout_id and locked_checkout:
-                transaction_amounts_for_checkout_updated_without_price_recalculation(
-                    transaction, locked_checkout, manager, user, app
-                )
-            else:
-                checkout_deleted = True
-                # If the checkout was deleted, we still want to update the order associated with the transaction.
+                if transaction.checkout_id and locked_checkout:
+                    transaction_amounts_for_checkout_updated_without_price_recalculation(
+                        transaction, locked_checkout, manager, user, app
+                    )
+                else:
+                    checkout_deleted = True
+                    # If the checkout was deleted, we still want to update the order associated with the transaction.
 
         if (transaction.order_id or checkout_deleted) and money_data:
             cls.process_order_with_transaction(
