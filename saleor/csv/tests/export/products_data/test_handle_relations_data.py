@@ -84,7 +84,11 @@ def test_get_products_relations_data_attribute_ids(
     file_attribute,
     product_type_page_reference_attribute,
     product_type_product_reference_attribute,
+    product_type_collection_reference_attribute,
+    product_type_category_reference_attribute,
     page,
+    collection,
+    category,
 ):
     # given
     product = product_list[0]
@@ -92,6 +96,8 @@ def test_get_products_relations_data_attribute_ids(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        product_type_collection_reference_attribute,
+        product_type_category_reference_attribute,
     )
     associate_attribute_values_to_instance(
         product,
@@ -114,6 +120,22 @@ def test_get_products_relations_data_attribute_ids(
     associate_attribute_values_to_instance(
         product,
         {product_type_product_reference_attribute.id: [product_ref_value]},
+    )
+    collection_ref_value = AttributeValue.objects.create(
+        attribute=product_type_collection_reference_attribute,
+        reference_collection=collection,
+    )
+    associate_attribute_values_to_instance(
+        product,
+        {product_type_collection_reference_attribute.id: [collection_ref_value]},
+    )
+    category_ref_value = AttributeValue.objects.create(
+        attribute=product_type_category_reference_attribute,
+        reference_category=category,
+    )
+    associate_attribute_values_to_instance(
+        product,
+        {product_type_category_reference_attribute.id: [category_ref_value]},
     )
 
     qs = Product.objects.all()

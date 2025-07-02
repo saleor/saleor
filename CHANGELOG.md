@@ -78,6 +78,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `category.products`
   - `collection.products`
   - `pageType.availableAttributes`
+- Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign category and collection as a attribute reference.
 
 
 ### Webhooks

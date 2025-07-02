@@ -6160,6 +6160,8 @@ enum AttributeEntityTypeEnum @doc(category: "Attributes") {
   PAGE
   PRODUCT
   PRODUCT_VARIANT
+  CATEGORY
+  COLLECTION
 }
 
 enum AttributeTypeEnum @doc(category: "Attributes") {

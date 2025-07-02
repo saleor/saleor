@@ -637,6 +637,50 @@ def page_type_variant_reference_attribute(db):
 
 
 @pytest.fixture
+def product_type_category_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="category-reference",
+        name="Category reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.CATEGORY,
+    )
+
+
+@pytest.fixture
+def page_type_category_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="category-reference",
+        name="Category reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.CATEGORY,
+    )
+
+
+@pytest.fixture
+def product_type_collection_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="collection-reference",
+        name="Collection reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.COLLECTION,
+    )
+
+
+@pytest.fixture
+def page_type_collection_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="collection-reference",
+        name="Collection reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.COLLECTION,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size",

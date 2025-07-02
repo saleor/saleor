@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from graphql_relay import to_global_id
+import graphene
 
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import CollectionErrorCode
@@ -36,8 +36,10 @@ def test_add_products_to_collection(
     # given
     query = COLLECTION_ADD_PRODUCTS_MUTATION
 
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
 
@@ -63,8 +65,10 @@ def test_add_products_to_collection_trigger_product_updated_webhook(
     permission_manage_products,
 ):
     query = COLLECTION_ADD_PRODUCTS_MUTATION
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
@@ -80,8 +84,10 @@ def test_add_products_to_collection_on_sale_trigger_discounted_price_recalculati
     staff_api_client, collection, product_list, permission_manage_products
 ):
     query = COLLECTION_ADD_PRODUCTS_MUTATION
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     products_before = collection.products.count()
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
@@ -97,8 +103,10 @@ def test_add_products_to_collection_with_product_without_variants(
 ):
     query = COLLECTION_ADD_PRODUCTS_MUTATION
     product_list[0].variants.all().delete()
-    collection_id = to_global_id("Collection", collection.id)
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     variables = {"id": collection_id, "products": product_ids}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
