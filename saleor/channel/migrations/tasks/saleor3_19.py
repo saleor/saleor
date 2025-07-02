@@ -17,7 +17,7 @@ def migrate_env_variable_setting_to_channels():
     )
     ids = channels.values_list("pk", flat=True)[:BATCH_SIZE]
 
-    qs = Channel.objects.filter(pk__in=ids)
+    qs = Channel.objects.filter(pk__in=ids).order_by("pk")
     if ids:
         with transaction.atomic():
             # lock the batch of objects
