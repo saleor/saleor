@@ -77,6 +77,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `category.products`
   - `collection.products`
   - `pageType.availableAttributes`
+- Attribute values now expose the `referencedObject`, allowing for easier access to the linked entity.
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
