@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
-from typing import Optional, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -8,18 +9,25 @@ from django.core.validators import URLValidator
 from django.db.models import Model
 
 from .....checkout import models as checkout_models
-from .....checkout.actions import transaction_amounts_for_checkout_updated
+from .....checkout.actions import (
+    transaction_amounts_for_checkout_updated_without_price_recalculation,
+)
 from .....core.prices import quantize_price
+from .....core.tracing import traced_atomic_transaction
 from .....order import OrderStatus
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.events import transaction_event as order_transaction_event
 from .....order.fetch import fetch_order_info
 from .....order.search import update_order_search_vector
-from .....order.utils import update_order_status, updates_amounts_for_order
+from .....order.utils import refresh_order_status, updates_amounts_for_order
 from .....payment import TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionCreateErrorCode
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
+)
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     create_manual_adjustment_events,
@@ -39,6 +47,11 @@ from ...enums import TransactionActionEnum
 from ...types import TransactionItem
 from ...utils import metadata_contains_empty_key
 from ..payment.payment_check_balance import MoneyInput
+
+if TYPE_CHECKING:
+    from .....accounts.models import User
+    from .....app.models import App
+    from .....plugins.manager import PluginsManager
 
 
 class TransactionCreateInput(BaseInputObjectType):
@@ -304,38 +317,86 @@ class TransactionCreate(BaseMutation):
         )
 
     @classmethod
-    def update_order(
+    def process_order_with_transaction(
         cls,
-        order: order_models.Order,
-        money_data: dict,
-        update_search_vector: bool = True,
-    ) -> None:
-        update_fields = []
-        if money_data:
-            updates_amounts_for_order(order, save=False)
-            update_fields.extend(
-                [
-                    "total_authorized_amount",
-                    "total_charged_amount",
-                    "authorize_status",
-                    "charge_status",
-                ]
+        transaction: payment_models.TransactionItem,
+        manager: "PluginsManager",
+        user: Optional["User"],
+        app: Optional["App"],
+        money_data: dict[str, Decimal],
+    ):
+        order = None
+        # This is executed after we ensure that the transaction is not a checkout
+        # transaction, so we can safely cast the order_id to UUID.
+        order_id = cast(UUID, transaction.order_id)
+        with traced_atomic_transaction():
+            order, transaction = get_order_and_transaction_item_locked_for_update(
+                order_id, transaction.pk
             )
-        if (
-            order.channel.automatically_confirm_all_new_orders
-            and order.status == OrderStatus.UNCONFIRMED
-        ):
-            update_order_status(order)
+            update_fields = []
+            if money_data:
+                updates_amounts_for_order(order, save=False)
+                update_fields.extend(
+                    [
+                        "total_charged_amount",
+                        "charge_status",
+                        "total_authorized_amount",
+                        "authorize_status",
+                    ]
+                )
+            if (
+                order.channel.automatically_confirm_all_new_orders
+                and order.status == OrderStatus.UNCONFIRMED
+            ):
+                status_updated = refresh_order_status(order)
+                if status_updated:
+                    update_fields.append("status")
+            if update_fields:
+                update_fields.append("updated_at")
+                order.save(update_fields=update_fields)
 
-        if update_search_vector:
-            update_order_search_vector(order, save=False)
-            update_fields.append(
-                "search_vector",
+        update_order_search_vector(order)
+
+        order_info = fetch_order_info(order)
+        order_transaction_updated(
+            order_info=order_info,
+            transaction_item=transaction,
+            manager=manager,
+            user=user,
+            app=app,
+            previous_authorized_value=Decimal(0),
+            previous_charged_value=Decimal(0),
+            previous_refunded_value=Decimal(0),
+        )
+
+    @classmethod
+    def process_order_or_checkout_with_transaction(
+        cls,
+        transaction: payment_models.TransactionItem,
+        manager: "PluginsManager",
+        user: Optional["User"],
+        app: Optional["App"],
+        money_data: dict[str, Decimal],
+    ):
+        checkout_deleted = False
+        if transaction.checkout_id and money_data:
+            locked_checkout, transaction = (
+                get_checkout_and_transaction_item_locked_for_update(
+                    transaction.checkout_id, transaction.pk
+                )
             )
+            if transaction.checkout_id and locked_checkout:
+                transaction_amounts_for_checkout_updated_without_price_recalculation(
+                    transaction, locked_checkout, manager, user, app
+                )
+            else:
+                checkout_deleted = True
+                # If the checkout was deleted, we still want to update the order associated with the transaction.
 
-        if update_fields:
-            update_fields.append("updated_at")
-            order.save(update_fields=update_fields)
+        if (transaction.order_id or checkout_deleted) and money_data:
+            cls.process_order_with_transaction(
+                transaction, manager, user, app, money_data
+            )
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -381,25 +442,13 @@ class TransactionCreate(BaseMutation):
                 transaction=new_transaction, money_data=money_data, user=user, app=app
             )
             recalculate_transaction_amounts(new_transaction)
-        if transaction_data.get("order_id") and money_data:
-            order = cast(order_models.Order, new_transaction.order)
-            cls.update_order(order, money_data, update_search_vector=True)
-
-            order_info = fetch_order_info(order)
-            order_transaction_updated(
-                order_info=order_info,
-                transaction_item=new_transaction,
-                manager=manager,
-                user=user,
-                app=app,
-                previous_authorized_value=Decimal(0),
-                previous_charged_value=Decimal(0),
-                previous_refunded_value=Decimal(0),
-            )
-        if transaction_data.get("checkout_id") and money_data:
-            transaction_amounts_for_checkout_updated(
-                new_transaction, manager, user, app
-            )
+        cls.process_order_or_checkout_with_transaction(
+            new_transaction,
+            manager,
+            user,
+            app,
+            money_data,
+        )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)

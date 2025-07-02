@@ -15,7 +15,13 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....order import OrderEvents, OrderGrantedRefundStatus, OrderStatus
+from .....order import (
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderEvents,
+    OrderGrantedRefundStatus,
+    OrderStatus,
+)
 from .....order.models import Order
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment.lock_objects import (
@@ -26,7 +32,6 @@ from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.utils import to_global_id_or_none
-from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 
@@ -1047,7 +1052,7 @@ def test_transaction_event_updates_order_total_charged(
     order.refresh_from_db()
 
     assert order.total_charged.amount == current_charged_value + amount
-    assert order.charge_status == OrderChargeStatusEnum.PARTIAL.value
+    assert order.charge_status == OrderChargeStatus.PARTIAL
 
 
 def test_transaction_event_updates_order_total_authorized(
@@ -1103,7 +1108,7 @@ def test_transaction_event_updates_order_total_authorized(
     order.refresh_from_db()
 
     assert order.total_authorized.amount == order.total.gross.amount + amount
-    assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
 
 
 def test_transaction_event_updates_search_vector(
@@ -2163,7 +2168,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     order.refresh_from_db()
 
     assert order.status == excpected_order_status
-    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    assert order.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_paid.assert_called_once_with(order, webhooks=set())
@@ -2229,7 +2234,7 @@ def test_transaction_event_report_for_draft_order_triggers_webhooks_when_fully_p
     order.refresh_from_db()
 
     assert order.status == OrderStatus.DRAFT
-    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    assert order.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order, webhooks=set())
     mock_order_updated.assert_called_once_with(order, webhooks=set())
     mock_order_paid.assert_called_once_with(order, webhooks=set())
@@ -2285,7 +2290,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_pai
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert order.charge_status == OrderChargeStatusEnum.PARTIAL.value
+    assert order.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order, webhooks=set())
 
@@ -2340,7 +2345,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_partially_aut
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert order.authorize_status == OrderAuthorizeStatusEnum.PARTIAL.value
+    assert order.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order, webhooks=set())
 
@@ -2395,7 +2400,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_authori
     get_graphql_content(response)
     order.refresh_from_db()
 
-    assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order, webhooks=set())
 
@@ -3381,7 +3386,8 @@ def test_lock_order_during_updating_order_amounts(
     order.refresh_from_db()
 
     assert order.total_charged.amount == amount
-    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
     mocked_get_order_and_transaction_item_locked_for_update.assert_called_once_with(
         order.pk, transaction.pk
     )
@@ -3519,5 +3525,5 @@ def test_transaction_event_report_checkout_completed_race_condition(
     order = Order.objects.get(checkout_token=checkout.pk)
 
     assert order.status == OrderStatus.UNFULFILLED
-    assert order.charge_status == OrderChargeStatusEnum.FULL.value
+    assert order.charge_status == OrderChargeStatus.FULL
     assert order.total_charged.amount == checkout.total.gross.amount

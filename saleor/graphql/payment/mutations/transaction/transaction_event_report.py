@@ -1,11 +1,11 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
+from uuid import UUID as UUID_TYPE
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from .....app.models import App
 from .....checkout.actions import (
     transaction_amounts_for_checkout_updated_without_price_recalculation,
 )
@@ -64,6 +64,7 @@ from .utils import get_transaction_item
 
 if TYPE_CHECKING:
     from .....accounts.models import User
+    from .....app.models import App
     from .....plugins.manager import PluginsManager
 
 
@@ -299,16 +300,19 @@ class TransactionEventReport(ModelMutation):
         transaction: payment_models.TransactionItem,
         manager: "PluginsManager",
         user: Optional["User"],
-        app: Optional[App],
+        app: Optional["App"],
         previous_authorized_value: Decimal,
         previous_charged_value: Decimal,
         previous_refunded_value: Decimal,
         related_granted_refund: Optional[order_models.OrderGrantedRefund],
     ):
-        order = cast(order_models.Order, transaction.order)
+        order = None
+        # This is executed after we ensure that the transaction is not a checkout
+        # transaction, so we can safely cast the order_id to UUID.
+        order_id = cast(UUID_TYPE, transaction.order_id)
         with traced_atomic_transaction():
             order, transaction = get_order_and_transaction_item_locked_for_update(
-                order.pk, transaction.pk
+                order_id, transaction.pk
             )
             updates_amounts_for_order(order)
         update_order_search_vector(order)
@@ -332,7 +336,7 @@ class TransactionEventReport(ModelMutation):
         transaction: payment_models.TransactionItem,
         manager: "PluginsManager",
         user: Optional["User"],
-        app: Optional[App],
+        app: Optional["App"],
         previous_authorized_value: Decimal,
         previous_charged_value: Decimal,
         previous_refunded_value: Decimal,
