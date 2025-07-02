@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - You can now filter and search orders using the new `where` and `search` fields on the `pages` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
+- Add support for filtering `pages` by associated attributes
 - You can now filter and search orders using the new `where` and `search` fields on the `orders` query.
   - Use `where` to define complex conditions with `AND`/`OR` logic and operators like `eq`, `oneOf`, `range`.
   - Use `search` to perform full-text search across relevant fields.
@@ -77,6 +78,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `category.products`
   - `collection.products`
   - `pageType.availableAttributes`
+
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.

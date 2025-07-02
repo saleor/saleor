@@ -12867,6 +12867,9 @@ input PageWhereInput @doc(category: "Pages") {
   """Filter by page type."""
   pageType: GlobalIDFilterInput
 
+  """Filter by attributes associated with the page."""
+  attributes: [AttributePageWhereInput!]
+
   """List of conditions that must be met."""
   AND: [PageWhereInput!]
 
@@ -12902,6 +12905,36 @@ input MetadataValueFilterInput {
 
   """The value included in."""
   oneOf: [String!]
+}
+
+input AttributePageWhereInput {
+  """Filter by attribute slug."""
+  slug: String!
+
+  """
+  Filter by value of the attribute. Only one value input field is allowed. If provided more than one, the error will be raised.
+  """
+  value: AttributeValuePageInput
+}
+
+input AttributeValuePageInput {
+  """Filter by slug assigned to AttributeValue."""
+  slug: StringFilterInput
+
+  """Filter by name assigned to AttributeValue."""
+  name: StringFilterInput
+
+  """Filter by numeric value for attributes of numeric type."""
+  numeric: DecimalFilterInput
+
+  """Filter by date value for attributes of date type."""
+  date: DateRangeInput
+
+  """Filter by date time value for attributes of date time type."""
+  dateTime: DateTimeRangeInput
+
+  """Filter by boolean value for attributes of boolean type."""
+  boolean: Boolean
 }
 
 type PageTypeCountableConnection @doc(category: "Pages") {
