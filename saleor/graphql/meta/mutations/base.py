@@ -13,9 +13,8 @@ from ....menu import models as menu_models
 from ....order import models as order_models
 from ....product import models as product_models
 from ....shipping import models as shipping_models
-from ...channel import ChannelContext
 from ...core import ResolveInfo
-from ...core.context import BaseContext, SyncWebhookControlContext
+from ...core.context import BaseContext, ChannelContext, SyncWebhookControlContext
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 from ..extra_methods import TYPE_EXTRA_METHODS

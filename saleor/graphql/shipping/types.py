@@ -9,11 +9,10 @@ from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
 from ..account.enums import CountryCodeEnum
-from ..channel import ChannelQsContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel, ChannelContext, ChannelContextType
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelQsContext, get_database_connection_name
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField

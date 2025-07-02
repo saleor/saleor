@@ -2,8 +2,11 @@ from django.db.models import Exists, OuterRef, QuerySet
 
 from ...channel.models import Channel
 from ...discount import models
-from ..channel import ChannelContext, ChannelQsContext
-from ..core.context import get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from .filters import filter_sale_search, filter_voucher_search
 
 

@@ -11,7 +11,6 @@ from ....thumbnail.utils import (
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ...channel import ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -19,7 +18,7 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.context import get_database_connection_name
+from ...core.context import ChannelQsContext, get_database_connection_name
 from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references

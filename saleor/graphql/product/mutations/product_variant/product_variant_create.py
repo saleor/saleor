@@ -13,8 +13,8 @@ from ....attribute.utils import (
     AttributeAssignmentMixin,
     AttrValuesInput,
 )
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, WeightScalar

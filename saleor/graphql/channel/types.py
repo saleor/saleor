@@ -19,6 +19,7 @@ from ...permission.enums import (
 )
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
+from ..core.context import ChannelContext
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_320,
@@ -41,7 +42,6 @@ from ..tax.dataloaders import TaxConfigurationByChannelId
 from ..translations.resolvers import resolve_translation
 from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
-from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
 from .enums import (
     AllocationStrategyEnum,

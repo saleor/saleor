@@ -10,8 +10,8 @@ from .....discount.models import Promotion
 from .....discount.utils.promotion import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, PositiveDecimal

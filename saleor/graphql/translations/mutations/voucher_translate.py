@@ -2,8 +2,8 @@ import graphene
 
 from ....discount import models as discount_models
 from ....permission.enums import SitePermissions
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...discount.types import Voucher

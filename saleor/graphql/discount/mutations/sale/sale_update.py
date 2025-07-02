@@ -12,8 +12,8 @@ from .....permission.enums import DiscountPermissions
 from .....product import models as product_models
 from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import DiscountError

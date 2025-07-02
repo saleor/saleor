@@ -7,8 +7,8 @@ from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.descriptions import (
     ADDED_IN_318,
     DEPRECATED_IN_3X_INPUT,

@@ -10,8 +10,8 @@ from .....order.tasks import recalculate_orders_task
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....app.dataloaders import get_app_promise
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise

@@ -6,9 +6,8 @@ from ....core.exceptions import PermissionDenied
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ...channel import ChannelContext
 from ...core import ResolveInfo
-from ...core.context import disallow_replica_in_context
+from ...core.context import ChannelContext, disallow_replica_in_context
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload

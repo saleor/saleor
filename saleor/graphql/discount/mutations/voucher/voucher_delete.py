@@ -4,8 +4,8 @@ from saleor.discount import models
 
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
