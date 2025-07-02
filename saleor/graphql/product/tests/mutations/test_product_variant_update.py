@@ -1976,7 +1976,6 @@ def test_update_product_variant_with_category_reference_attribute(
     product_type = product.product_type
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(product_type_category_reference_attribute)
-
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     ref_attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type_category_reference_attribute.pk

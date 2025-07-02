@@ -1155,7 +1155,6 @@ def test_create_variant_with_category_reference_attribute(
             "quantity": 20,
         }
     ]
-
     variables = {
         "input": {
             "product": product_id,
@@ -1257,7 +1256,6 @@ def test_create_variant_with_collection_reference_attribute(
             "quantity": 20,
         }
     ]
-
     variables = {
         "input": {
             "product": product_id,

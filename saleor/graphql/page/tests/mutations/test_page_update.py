@@ -941,13 +941,11 @@ def test_update_page_with_category_reference_attribute_new_value(
 
     page_type = page.page_type
     page_type.page_attributes.add(page_type_category_reference_attribute)
-
     values_count = page_type_category_reference_attribute.values.count()
     ref_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_type_category_reference_attribute.pk
     )
     reference = graphene.Node.to_global_id("Category", category.pk)
-
     page_id = graphene.Node.to_global_id("Page", page.id)
 
     variables = {
@@ -996,13 +994,11 @@ def test_update_page_with_collection_reference_attribute_new_value(
 
     page_type = page.page_type
     page_type.page_attributes.add(page_type_collection_reference_attribute)
-
     values_count = page_type_collection_reference_attribute.values.count()
     ref_attribute_id = graphene.Node.to_global_id(
         "Attribute", page_type_collection_reference_attribute.pk
     )
     reference = graphene.Node.to_global_id("Collection", collection.pk)
-
     page_id = graphene.Node.to_global_id("Page", page.id)
 
     variables = {

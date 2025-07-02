@@ -1768,7 +1768,6 @@ def test_create_product_with_category_reference_attribute(
     query = CREATE_PRODUCT_MUTATION
 
     values_count = product_type_category_reference_attribute.values.count()
-
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
@@ -1781,7 +1780,6 @@ def test_create_product_with_category_reference_attribute(
     )
     reference = graphene.Node.to_global_id("Category", category.pk)
 
-    # test creating root product
     variables = {
         "input": {
             "productType": product_type_id,
@@ -1845,7 +1843,6 @@ def test_create_product_with_collection_reference_attribute(
     query = CREATE_PRODUCT_MUTATION
 
     values_count = product_type_collection_reference_attribute.values.count()
-
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
@@ -1858,7 +1855,6 @@ def test_create_product_with_collection_reference_attribute(
     )
     reference = graphene.Node.to_global_id("Collection", collection.pk)
 
-    # test creating root product
     variables = {
         "input": {
             "productType": product_type_id,

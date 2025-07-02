@@ -233,7 +233,6 @@ def test_category_delete_removes_reference_to_product(
     associate_attribute_values_to_instance(
         product, {product_type_product_reference_attribute.pk: [attr_value]}
     )
-
     reference_id = graphene.Node.to_global_id("Category", category.pk)
 
     variables = {"id": reference_id}
@@ -267,7 +266,6 @@ def test_category_delete_removes_reference_to_product_variant(
     query = MUTATION_CATEGORY_DELETE
 
     variant = product_list[0].variants.first()
-
     product_type.variant_attributes.set([product_type_product_reference_attribute])
     attr_value = AttributeValue.objects.create(
         attribute=product_type_product_reference_attribute,
@@ -278,7 +276,6 @@ def test_category_delete_removes_reference_to_product_variant(
     associate_attribute_values_to_instance(
         variant, {product_type_product_reference_attribute.pk: [attr_value]}
     )
-
     reference_id = graphene.Node.to_global_id("Category", category.pk)
 
     variables = {"id": reference_id}
@@ -312,7 +309,6 @@ def test_category_delete_removes_reference_to_page(
 
     page_type = page.page_type
     page_type.page_attributes.add(page_type_product_reference_attribute)
-
     attr_value = AttributeValue.objects.create(
         attribute=page_type_product_reference_attribute,
         name=page.title,
@@ -322,7 +318,6 @@ def test_category_delete_removes_reference_to_page(
     associate_attribute_values_to_instance(
         page, {page_type_product_reference_attribute.pk: [attr_value]}
     )
-
     reference_id = graphene.Node.to_global_id("Category", category.pk)
 
     variables = {"id": reference_id}
