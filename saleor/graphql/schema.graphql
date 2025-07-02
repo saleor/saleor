@@ -8200,6 +8200,12 @@ input ProductVariantWhereInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   ids: [ID!]
 
+  """Filter by product SKU."""
+  sku: StringFilterInput
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+
   """List of conditions that must be met."""
   AND: [ProductVariantWhereInput!]
 
