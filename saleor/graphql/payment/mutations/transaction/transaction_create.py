@@ -49,7 +49,7 @@ from ...utils import metadata_contains_empty_key
 from ..payment.payment_check_balance import MoneyInput
 
 if TYPE_CHECKING:
-    from .....accounts.models import User
+    from .....account.models import User
     from .....app.models import App
     from .....plugins.manager import PluginsManager
 
@@ -324,6 +324,9 @@ class TransactionCreate(BaseMutation):
         user: Optional["User"],
         app: Optional["App"],
         money_data: dict[str, Decimal],
+        previous_authorized_value: Decimal = Decimal(0),
+        previous_charged_value: Decimal = Decimal(0),
+        previous_refunded_value: Decimal = Decimal(0),
     ):
         order = None
         # This is executed after we ensure that the transaction is not a checkout
@@ -364,9 +367,9 @@ class TransactionCreate(BaseMutation):
             manager=manager,
             user=user,
             app=app,
-            previous_authorized_value=Decimal(0),
-            previous_charged_value=Decimal(0),
-            previous_refunded_value=Decimal(0),
+            previous_authorized_value=previous_authorized_value,
+            previous_charged_value=previous_charged_value,
+            previous_refunded_value=previous_refunded_value,
         )
 
     @classmethod
@@ -377,6 +380,9 @@ class TransactionCreate(BaseMutation):
         user: Optional["User"],
         app: Optional["App"],
         money_data: dict[str, Decimal],
+        previous_authorized_value: Decimal = Decimal(0),
+        previous_charged_value: Decimal = Decimal(0),
+        previous_refunded_value: Decimal = Decimal(0),
     ):
         checkout_deleted = False
         if transaction.checkout_id and money_data:
@@ -394,9 +400,16 @@ class TransactionCreate(BaseMutation):
                     checkout_deleted = True
                     # If the checkout was deleted, we still want to update the order associated with the transaction.
 
-        if (transaction.order_id or checkout_deleted) and money_data:
+        if transaction.order_id or checkout_deleted:
             cls.process_order_with_transaction(
-                transaction, manager, user, app, money_data
+                transaction,
+                manager,
+                user,
+                app,
+                money_data,
+                previous_authorized_value,
+                previous_charged_value,
+                previous_refunded_value,
             )
 
     @classmethod
