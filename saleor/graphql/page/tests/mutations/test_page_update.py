@@ -929,6 +929,112 @@ def test_update_page_with_variant_reference_attribute_existing_value(
     assert page_type_variant_reference_attribute.values.count() == values_count
 
 
+def test_update_page_with_category_reference_attribute_new_value(
+    staff_api_client,
+    permission_manage_pages,
+    page,
+    page_type_category_reference_attribute,
+    category,
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(page_type_category_reference_attribute)
+    values_count = page_type_category_reference_attribute.values.count()
+    ref_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_type_category_reference_attribute.pk
+    )
+    reference = graphene.Node.to_global_id("Category", category.pk)
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": ref_attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["errors"]
+    assert data["page"]
+    updated_attribute = {
+        "attribute": {"slug": page_type_category_reference_attribute.slug},
+        "values": [
+            {
+                "slug": f"{page.pk}_{category.pk}",
+                "name": category.name,
+                "file": None,
+                "plainText": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert updated_attribute in data["page"]["attributes"]
+
+    page_type_category_reference_attribute.refresh_from_db()
+    assert page_type_category_reference_attribute.values.count() == values_count + 1
+
+
+def test_update_page_with_collection_reference_attribute_new_value(
+    staff_api_client,
+    permission_manage_pages,
+    page,
+    page_type_collection_reference_attribute,
+    collection,
+):
+    # given
+    query = UPDATE_PAGE_MUTATION
+
+    page_type = page.page_type
+    page_type.page_attributes.add(page_type_collection_reference_attribute)
+    values_count = page_type_collection_reference_attribute.values.count()
+    ref_attribute_id = graphene.Node.to_global_id(
+        "Attribute", page_type_collection_reference_attribute.pk
+    )
+    reference = graphene.Node.to_global_id("Collection", collection.pk)
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    variables = {
+        "id": page_id,
+        "input": {"attributes": [{"id": ref_attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageUpdate"]
+
+    assert not data["errors"]
+    assert data["page"]
+    updated_attribute = {
+        "attribute": {"slug": page_type_collection_reference_attribute.slug},
+        "values": [
+            {
+                "slug": f"{page.pk}_{collection.pk}",
+                "name": collection.name,
+                "file": None,
+                "plainText": None,
+                "reference": reference,
+            }
+        ],
+    }
+    assert updated_attribute in data["page"]["attributes"]
+
+    page_type_collection_reference_attribute.refresh_from_db()
+    assert page_type_collection_reference_attribute.values.count() == values_count + 1
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_public_page_sets_publication_date(
     staff_api_client, permission_manage_pages, page_type

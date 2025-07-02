@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, Mock, patch
 import graphene
 import pytest
 from django.core.files import File
-from graphql_relay import to_global_id
 
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Collection
@@ -70,7 +69,7 @@ def test_update_collection(
         "name": name,
         "slug": slug,
         "description": description,
-        "id": to_global_id("Collection", collection.id),
+        "id": graphene.Node.to_global_id("Collection", collection.id),
         "metadata": [{"key": metadata_key, "value": metadata_value}],
         "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
     }
@@ -134,7 +133,7 @@ def test_update_collection_metadata_marks_prices_to_recalculate(
     collection.products.set([product])
 
     variables = {
-        "id": to_global_id("Collection", collection.id),
+        "id": graphene.Node.to_global_id("Collection", collection.id),
         "metadata": [{"key": metadata_key, "value": metadata_value}],
     }
 
@@ -204,7 +203,7 @@ def test_update_collection_with_background_image(
     variables = {
         "name": "new-name",
         "slug": "new-slug",
-        "id": to_global_id("Collection", collection.id),
+        "id": graphene.Node.to_global_id("Collection", collection.id),
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
     }
@@ -254,7 +253,7 @@ def test_update_collection_invalid_background_image_content_type(
     variables = {
         "name": "new-name",
         "slug": "new-slug",
-        "id": to_global_id("Collection", collection.id),
+        "id": graphene.Node.to_global_id("Collection", collection.id),
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
     }
@@ -307,7 +306,7 @@ def test_update_collection_invalid_background_image(
     variables = {
         "name": "new-name",
         "slug": "new-slug",
-        "id": to_global_id("Collection", collection.id),
+        "id": graphene.Node.to_global_id("Collection", collection.id),
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
     }
@@ -377,8 +376,8 @@ def test_update_collection_slug(
 
     assert old_slug != input_slug
 
-    node_id = graphene.Node.to_global_id("Collection", collection.id)
-    variables = {"slug": input_slug, "id": node_id}
+    Node_id = graphene.Node.to_global_id("Collection", collection.id)
+    variables = {"slug": input_slug, "id": Node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -408,8 +407,8 @@ def test_update_collection_slug_exists(
 
     assert input_slug != collection.slug
 
-    node_id = graphene.Node.to_global_id("Collection", collection.id)
-    variables = {"slug": input_slug, "id": node_id}
+    Node_id = graphene.Node.to_global_id("Collection", collection.id)
+    variables = {"slug": input_slug, "id": Node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -470,8 +469,8 @@ def test_update_collection_slug_and_name(
     assert input_slug != old_slug
     assert input_name != old_name
 
-    node_id = graphene.Node.to_global_id("Collection", collection.id)
-    variables = {"slug": input_slug, "name": input_name, "id": node_id}
+    Node_id = graphene.Node.to_global_id("Collection", collection.id)
+    variables = {"slug": input_slug, "name": input_name, "id": Node_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
@@ -512,7 +511,7 @@ def test_update_collection_mutation_remove_background_image(
     """
     assert collection_with_image.background_image
     variables = {
-        "id": to_global_id("Collection", collection_with_image.id),
+        "id": graphene.Node.to_global_id("Collection", collection_with_image.id),
         "backgroundImage": None,
     }
     response = staff_api_client.post_graphql(

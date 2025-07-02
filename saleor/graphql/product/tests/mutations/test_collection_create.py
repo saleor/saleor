@@ -1,8 +1,8 @@
 import os
 from unittest.mock import patch
 
+import graphene
 import pytest
-from graphql_relay import to_global_id
 
 from .....product.models import Collection
 from .....product.tests.utils import create_image
@@ -72,7 +72,9 @@ def test_create_collection(
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     image_file, image_name = create_image()
     image_alt = "Alt text for an image."
     name = "test-name"
@@ -130,7 +132,9 @@ def test_create_collection_trigger_product_update_webhook(
 ):
     query = CREATE_COLLECTION_MUTATION
 
-    product_ids = [to_global_id("Product", product.pk) for product in product_list]
+    product_ids = [
+        graphene.Node.to_global_id("Product", product.pk) for product in product_list
+    ]
     name = "test-name"
     slug = "test-slug"
     description = dummy_editorjs("description", True)

@@ -8,7 +8,6 @@ from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
-from graphql_relay import to_global_id
 
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....product.error_codes import ProductErrorCode
@@ -343,7 +342,7 @@ def test_category_update_mutation_invalid_background_image_content_type(
     variables = {
         "name": "new-name",
         "slug": "new-slug",
-        "id": to_global_id("Category", category.id),
+        "id": graphene.Node.to_global_id("Category", category.id),
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
         "isPublished": True,
@@ -397,7 +396,7 @@ def test_category_update_mutation_invalid_background_image(
     variables = {
         "name": "new-name",
         "slug": "new-slug",
-        "id": to_global_id("Category", category.id),
+        "id": graphene.Node.to_global_id("Category", category.id),
         "backgroundImage": image_name,
         "backgroundImageAlt": image_alt,
         "isPublished": True,
@@ -635,7 +634,7 @@ def test_update_category_mutation_remove_background_image(
     """
     assert category_with_image.background_image
     variables = {
-        "id": to_global_id("Category", category_with_image.id),
+        "id": graphene.Node.to_global_id("Category", category_with_image.id),
         "backgroundImage": None,
     }
     response = staff_api_client.post_graphql(

@@ -42,6 +42,8 @@ class ProductExportFields:
         "reference_page": "attributevalues__value__reference_page",
         "reference_product": "attributevalues__value__reference_product",
         "reference_variant": "attributevalues__value__reference_variant",
+        "reference_category": "attributevalues__value__reference_category",
+        "reference_collection": "attributevalues__value__reference_collection",
     }
 
     PRODUCT_CHANNEL_LISTING_FIELDS = {
@@ -77,6 +79,8 @@ class ProductExportFields:
         "reference_page": "values__reference_page",
         "reference_product": "values__reference_product",
         "reference_variant": "values__reference_variant",
+        "reference_category": "values__reference_category",
+        "reference_collection": "values__reference_collection",
     }
 
     VARIANT_CHANNEL_LISTING_FIELDS = {

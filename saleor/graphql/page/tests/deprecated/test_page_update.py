@@ -92,7 +92,6 @@ def test_page_update_mutation_publication_date_and_published_at_provided(
     )
     page_id = graphene.Node.to_global_id("Page", page.id)
 
-    # test creating root page
     variables = {
         "id": page_id,
         "input": {

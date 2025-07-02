@@ -107,6 +107,12 @@ class AttributeAssignmentMixin:
         AttributeEntityType.PRODUCT_VARIANT: EntityTypeData(
             product_models.ProductVariant, "name", "reference_variant"
         ),
+        AttributeEntityType.CATEGORY: EntityTypeData(
+            product_models.Category, "name", "reference_category"
+        ),
+        AttributeEntityType.COLLECTION: EntityTypeData(
+            product_models.Collection, "name", "reference_collection"
+        ),
     }
 
     @classmethod
