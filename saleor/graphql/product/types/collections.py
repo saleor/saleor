@@ -13,7 +13,6 @@ from ....thumbnail.utils import (
     get_thumbnail_size,
 )
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import ChannelContextType
 from ...core import ResolveInfo
 from ...core.connection import (
     CountableConnection,
@@ -30,6 +29,7 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
+from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
