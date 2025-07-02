@@ -226,3 +226,35 @@ def set_order_subtotal_for_orders_created_from_bulk():
     if order_ids:
         _set_subtotal_for_orders_created_from_bulk(order_ids)
         set_order_subtotal_for_orders_created_from_bulk.delay()
+
+
+@app.task
+def fix_negative_total_net_for_orders_using_gift_cards_task(start_pk=0):
+    # No memory usage tests were conducted here.
+    # It's assumed that loading 500 identifiers to memory is not straining the memory
+    # usage.
+    BATCH_SIZE = 500
+
+    with transaction.atomic():
+        # Following select query has been tested on database with 4.2m actual orders, it took ~5s.
+        order_pks = list(
+            Order.objects.filter(
+                pk__gt=start_pk,
+                total_net_amount__lt=Decimal("0.00"),
+            )
+            .exclude(gift_cards=None)
+            .order_by("pk")
+            .select_for_update()
+            .values_list("pk", flat=True)[:BATCH_SIZE]
+        )
+
+        if not order_pks:
+            return
+
+        Order.objects.filter(
+            pk__in=order_pks,
+        ).update(total_net_amount=Decimal("0.00"))
+
+        fix_negative_total_net_for_orders_using_gift_cards_task.delay(
+            start_pk=order_pks[-1]
+        )
