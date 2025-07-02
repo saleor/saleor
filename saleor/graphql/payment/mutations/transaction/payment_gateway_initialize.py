@@ -2,7 +2,6 @@ import graphene
 from django.conf import settings
 
 from .....payment.interface import PaymentGatewayData
-from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import PaymentGatewayInitializeErrorCode
 from ....core.scalars import JSON, PositiveDecimal
@@ -125,10 +124,7 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         return response
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        id = data["id"]
-        amount = data.get("amount")
-        payment_gateways = data.get("payment_gateways", None)
+    def perform_mutation(cls, root, info, *, id, amount=None, payment_gateways=None):  # type: ignore[override]
         manager = get_plugin_manager_promise(info.context).get()
         source_object = cls.clean_source_object(
             info,

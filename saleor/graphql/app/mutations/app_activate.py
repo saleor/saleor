@@ -3,7 +3,6 @@ import graphene
 from ....app import models
 from ....permission.enums import AppPermission
 from ....webhook.event_types import WebhookEventAsyncType
-from ...core import ResolveInfo
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AppError
 from ...core.utils import WebhookEventInfo
@@ -30,8 +29,7 @@ class AppActivate(DeprecatedModelMutation):
         ]
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        id = data["id"]
+    def perform_mutation(cls, _root, info, /, *, id):  # type: ignore[override]
         qs = models.App.objects.filter(removed_at__isnull=True)
         app = cls.get_instance(
             info,

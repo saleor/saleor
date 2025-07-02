@@ -18,14 +18,13 @@ MT = TypeVar("MT", bound=Model)
 
 class ModelObjectType(Generic[MT], BaseObjectType):
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls,
         interfaces=(),
         possible_types=(),
         default_resolver=None,
         _meta=None,
         doc_category=None,
-        webhook_events_info=None,
         **options,
     ):
         if not _meta:
@@ -57,7 +56,6 @@ class ModelObjectType(Generic[MT], BaseObjectType):
             possible_types=possible_types,
             default_resolver=default_resolver,
             _meta=_meta,
-            webhook_events_info=webhook_events_info,
             **options,
         )
 

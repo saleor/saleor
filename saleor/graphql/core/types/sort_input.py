@@ -23,23 +23,15 @@ class SortInputObjectType(BaseInputObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(
-        cls,
-        container=None,
-        _meta=None,
-        doc_category=None,
-        sort_enum=None,
-        type_name=None,
-        **options,
+    def __init_subclass_with_meta__(  # type: ignore[override]
+        cls, container=None, _meta=None, sort_enum=None, type_name=None, **options
     ):
         if not _meta:
             _meta = SortInputMeta(cls)
         if sort_enum:
             _meta.sort_enum = sort_enum
 
-        super().__init_subclass_with_meta__(
-            container=container, _meta=_meta, doc_category=doc_category, **options
-        )
+        super().__init_subclass_with_meta__(container, _meta, **options)
         if type_name:
             field = copy.copy(cls._meta.fields["direction"])
             field.description = f"Specifies the direction in which to sort {type_name}."

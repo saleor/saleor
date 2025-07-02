@@ -650,25 +650,13 @@ class DeprecatedModelMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls,
-        auto_permission_message=True,
-        description=None,
-        doc_category=None,
-        permissions: Collection[BasePermissionEnum] | None = None,
-        _meta=None,
-        error_type_class=None,
-        error_type_field=None,
-        errors_mapping=None,
-        support_meta_field=False,
-        support_private_meta_field=False,
-        auto_webhook_events_message: bool = True,
-        webhook_events_info: list[WebhookEventInfo] | None = None,
-        exclude=None,
         arguments=None,
         model=None,
         return_field_name=None,
         object_type=None,
+        _meta=None,
         **options,
     ):
         if not model:
@@ -677,8 +665,8 @@ class DeprecatedModelMutation(BaseMutation):
             _meta = ModelMutationOptions(cls)
 
         doc_category_key = f"{model._meta.app_label}.{model.__name__}"
-        if not doc_category and doc_category_key in DOC_CATEGORY_MAP:
-            doc_category = DOC_CATEGORY_MAP[doc_category_key]
+        if "doc_category" not in options and doc_category_key in DOC_CATEGORY_MAP:
+            options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         if not return_field_name:
             return_field_name = get_model_name(model)
@@ -688,22 +676,7 @@ class DeprecatedModelMutation(BaseMutation):
         _meta.model = model
         _meta.object_type = object_type
         _meta.return_field_name = return_field_name
-        super().__init_subclass_with_meta__(
-            auto_permission_message=auto_permission_message,
-            description=description,
-            doc_category=doc_category,
-            permissions=permissions,
-            _meta=_meta,
-            error_type_class=error_type_class,
-            error_type_field=error_type_field,
-            errors_mapping=errors_mapping,
-            support_meta_field=support_meta_field,
-            support_private_meta_field=support_private_meta_field,
-            auto_webhook_events_message=auto_webhook_events_message,
-            webhook_events_info=webhook_events_info,
-            exclude=exclude,
-            **options,
-        )
+        super().__init_subclass_with_meta__(_meta=_meta, **options)
 
         model_type = cls.get_type_for_model()
         if not model_type:
@@ -1008,24 +981,8 @@ class BaseBulkMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(
-        cls,
-        auto_permission_message=True,
-        description=None,
-        doc_category=None,
-        permissions: Collection[BasePermissionEnum] | None = None,
-        _meta=None,
-        error_type_class=None,
-        error_type_field=None,
-        errors_mapping=None,
-        support_meta_field=False,
-        support_private_meta_field=False,
-        auto_webhook_events_message: bool = True,
-        webhook_events_info: list[WebhookEventInfo] | None = None,
-        exclude=None,
-        model=None,
-        object_type=None,
-        **kwargs,
+    def __init_subclass_with_meta__(  # type: ignore[override]
+        cls, model=None, object_type=None, _meta=None, **kwargs
     ):
         if not model:
             raise ImproperlyConfigured("model is required for bulk mutation")
@@ -1036,27 +993,10 @@ class BaseBulkMutation(BaseMutation):
         _meta.object_type = object_type
 
         doc_category_key = f"{model._meta.app_label}.{model.__name__}"
-        if not doc_category and doc_category_key in DOC_CATEGORY_MAP:
-            doc_category = DOC_CATEGORY_MAP[doc_category_key]
+        if "doc_category" not in kwargs and doc_category_key in DOC_CATEGORY_MAP:
+            kwargs["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
-        super().__init_subclass_with_meta__(
-            auto_permission_message=auto_permission_message,
-            description=description,
-            doc_category=doc_category,
-            permissions=permissions,
-            _meta=_meta,
-            error_type_class=error_type_class,
-            error_type_field=error_type_field,
-            errors_mapping=errors_mapping,
-            support_meta_field=support_meta_field,
-            support_private_meta_field=support_private_meta_field,
-            auto_webhook_events_message=auto_webhook_events_message,
-            webhook_events_info=webhook_events_info,
-            exclude=exclude,
-            model=model,
-            object_type=object_type,
-            **kwargs,
-        )
+        super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
     @classmethod
     def get_type_for_model(cls):

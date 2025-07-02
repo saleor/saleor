@@ -678,12 +678,8 @@ class NonNullConnection(BaseConnection):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(
-        cls, node=None, name=None, doc_category=None, **options
-    ):
-        super().__init_subclass_with_meta__(
-            node=node, name=name, doc_category=doc_category, **options
-        )
+    def __init_subclass_with_meta__(cls, node=None, name=None, **options):  # type: ignore[override]
+        super().__init_subclass_with_meta__(node=node, name=name, **options)
 
         # Override the original EdgeBase type to make to `node` field required.
         class EdgeBase:
@@ -700,7 +696,7 @@ class NonNullConnection(BaseConnection):
         edge_name = cls.Edge._meta.name
         edge_bases = (EdgeBase, graphene.ObjectType)
         edge = type(edge_name, edge_bases, {})
-        edge.doc_category = doc_category  # type: ignore[attr-defined]
+        edge.doc_category = options.get("doc_category")  # type: ignore[attr-defined]
         cls.Edge = edge
 
         # Override the `edges` field to make it non-null list

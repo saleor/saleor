@@ -72,11 +72,7 @@ class PaymentMethodProcessTokenization(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **kwargs):
-        id = kwargs["id"]
-        channel = kwargs["channel"]
-        data = kwargs.get("data")
-
+    def perform_mutation(cls, root, info, id, channel, data=None):  # type: ignore[override]
         try:
             return cls._perform_mutation(root, info, id, channel, data)
         except ValidationError as error:

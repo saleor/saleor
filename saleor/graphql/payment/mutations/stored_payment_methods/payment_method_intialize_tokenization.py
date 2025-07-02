@@ -89,12 +89,9 @@ class PaymentMethodInitializeTokenization(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, root, info, **kwargs):
-        id = kwargs["id"]
-        channel = kwargs["channel"]
-        payment_flow_to_support = kwargs["payment_flow_to_support"]
-        data = kwargs.get("data")
-
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info, id, channel, payment_flow_to_support, data=None
+    ):
         try:
             return cls._perform_mutation(
                 root, info, id, channel, payment_flow_to_support, data
