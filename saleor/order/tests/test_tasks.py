@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import call, patch
 
@@ -14,6 +15,9 @@ from ...warehouse.models import Allocation
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .. import OrderEvents, OrderStatus
 from ..actions import call_order_event, call_order_events
+from ..migrations.tasks.saleor3_20 import (
+    fix_negative_total_net_for_orders_using_gift_cards_task,
+)
 from ..models import Order, OrderEvent, get_order_number
 from ..tasks import (
     _bulk_release_voucher_usage,
@@ -852,3 +856,45 @@ def test_send_order_updated(
     )
 
     assert wrapped_call_order_event.called
+
+
+@pytest.mark.parametrize(
+    (
+        "initial_total_net_amount",
+        "initial_total_gross_amount",
+        "has_gift_cards",
+        "expected_total_net_amount",
+        "expected_total_gross_amount",
+    ),
+    [
+        ("-2.00", "0.00", True, "0.00", "0.00"),
+        ("0.00", "0.00", True, "0.00", "0.00"),
+        ("1.00", "2.00", True, "1.00", "2.00"),
+        ("-2.00", "0.00", False, "-2.00", "0.00"),
+        ("0.00", "0.00", False, "0.00", "0.00"),
+        ("1.00", "2.00", False, "1.00", "2.00"),
+    ],
+)
+def test_fix_negative_total_net_for_orders_using_gift_cards_task(
+    request,
+    initial_total_net_amount,
+    initial_total_gross_amount,
+    has_gift_cards,
+    expected_total_net_amount,
+    expected_total_gross_amount,
+):
+    if has_gift_cards:
+        order = request.getfixturevalue("order_with_gift_card")
+    else:
+        order = request.getfixturevalue("order")
+
+    order.total_net_amount = Decimal(initial_total_net_amount)
+    order.total_gross_amount = Decimal(initial_total_gross_amount)
+    order.save(update_fields=["total_net_amount", "total_gross_amount"])
+
+    fix_negative_total_net_for_orders_using_gift_cards_task()
+
+    order.refresh_from_db(fields=["total_net_amount", "total_gross_amount"])
+
+    assert order.total_net_amount == Decimal(expected_total_net_amount)
+    assert order.total_gross_amount == Decimal(expected_total_gross_amount)
