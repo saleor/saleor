@@ -50,7 +50,6 @@ from ...attribute.types import (
     SelectedAttribute,
 )
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import ChannelContextType
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
     CountableConnection,
@@ -85,6 +84,7 @@ from ...core.types import (
     ThumbnailField,
     Weight,
 )
+from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_query
 from ...meta.types import ObjectWithMetadata

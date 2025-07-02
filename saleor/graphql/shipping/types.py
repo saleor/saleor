@@ -10,9 +10,13 @@ from ...shipping import models
 from ...shipping.interface import ShippingMethodData
 from ..account.enums import CountryCodeEnum
 from ..channel.dataloaders import ChannelByIdLoader
-from ..channel.types import Channel, ChannelContext, ChannelContextType
+from ..channel.types import Channel
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.context import ChannelQsContext, get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from ..core.descriptions import DEFAULT_DEPRECATION_REASON, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
@@ -26,6 +30,7 @@ from ..core.types import (
     NonNullList,
     Weight,
 )
+from ..core.types.context import ChannelContextType
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
 from ..tax.dataloaders import TaxClassByIdLoader

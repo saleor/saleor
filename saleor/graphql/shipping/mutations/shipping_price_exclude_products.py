@@ -3,8 +3,8 @@ import graphene
 from ....permission.enums import ShippingPermissions
 from ....product import models as product_models
 from ....shipping import models
-from ...channel.types import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, NonNullList, ShippingError
