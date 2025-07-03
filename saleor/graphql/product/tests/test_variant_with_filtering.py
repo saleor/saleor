@@ -5,6 +5,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import Product, ProductVariant
+from ....product.search import update_products_search_vector
 from ...tests.utils import get_graphql_content
 
 QUERY_VARIANTS_FILTER = """
@@ -115,6 +116,7 @@ def products_for_variant_filtering(product_type, category):
             ),
         ]
     )
+    update_products_search_vector([product.id for product in products])
     return products
 
 
