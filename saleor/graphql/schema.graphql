@@ -5759,6 +5759,27 @@ type PaymentSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+
+  """
+  Determine if the funds for expired checkouts should be released automatically.
+  
+  Added in Saleor 3.20.
+  """
+  releaseFundsForExpiredCheckouts: Boolean
+
+  """
+  The time in hours after which funds for expired checkouts will be released.
+  
+  Added in Saleor 3.20.
+  """
+  checkoutTtlBeforeReleasingFunds: Hour
+
+  """
+  The date after which the funds for expired checkouts will be released.No matter of the value of `checkout_release_funds_cut_off_date`, the funds will not be released for year old checkouts.
+  
+  Added in Saleor 3.20.
+  """
+  checkoutReleaseFundsCutOffDate: DateTime
 }
 
 """
@@ -5771,6 +5792,9 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
   AUTHORIZATION
   CHARGE
 }
+
+"""The `Hour` scalar type represents number of hours by integer value."""
+scalar Hour
 
 """
 Channel-specific tax configuration.
@@ -29935,6 +29959,27 @@ input PaymentSettingsInput @doc(category: "Payments") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
+
+  """
+  Determine if the funds for expired checkouts should be released automatically.
+  
+  Added in Saleor 3.20.
+  """
+  releaseFundsForExpiredCheckouts: Boolean
+
+  """
+  The time in hours after which funds for expired checkouts will be released.
+  
+  Added in Saleor 3.20.
+  """
+  checkoutTtlBeforeReleasingFunds: Hour
+
+  """
+  The date after which the funds for expired checkouts will be released.No matter of the value of `checkout_release_funds_cut_off_date`, the funds will not be released for year old checkouts.
+  
+  Added in Saleor 3.20.
+  """
+  checkoutReleaseFundsCutOffDate: DateTime
 }
 
 """

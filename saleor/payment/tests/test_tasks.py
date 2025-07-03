@@ -8,7 +8,10 @@ from freezegun import freeze_time
 from ...checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ...checkout.actions import transaction_amounts_for_checkout_updated
 from .. import TransactionAction, TransactionEventType
-from ..tasks import transaction_release_funds_for_checkout_task
+from ..tasks import (
+    transaction_release_funds_for_checkout_task,
+    transactions_to_release_funds,
+)
 
 
 @mock.patch("saleor.payment.tasks.request_cancelation_action")
@@ -415,3 +418,74 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_charge(
     )
     transaction_item.refresh_from_db()
     assert transaction_item.last_refund_success is False
+
+
+@freeze_time("2021-03-18 12:00:00")
+def test_transactions_to_release_funds_setting_toogle(
+    channel_USD,
+    channel_JPY,
+    checkout,
+    checkout_JPY,
+    settings,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    channel_USD.release_funds_for_expired_checkouts = False
+    channel_USD.save()
+    channel_JPY.release_funds_for_expired_checkouts = True
+    channel_JPY.save()
+
+    ttl_time = datetime.now(tz=pytz.utc) - timedelta(hours=6)
+    time_after_ttl = ttl_time - timedelta(seconds=1)
+    with freeze_time(time_after_ttl):
+        transactions_for_checkout = dict()
+        for checkout in (checkout, checkout_JPY):
+            transaction_item = transaction_item_generator(
+                checkout_id=checkout.pk,
+                charged_value=Decimal(100),
+                currency=checkout.channel.currency_code,
+            )
+            transaction_amounts_for_checkout_updated(
+                transaction_item, plugins_manager, user=None, app=None
+            )
+            checkout.automatically_refundable = True
+            checkout.save(update_fields=["automatically_refundable", "last_change"])
+            transactions_for_checkout[checkout.pk] = transaction_item
+
+    # when
+    transactions = transactions_to_release_funds()
+
+    # then
+    assert len(transactions) == 1
+    assert transactions[0].id == transactions_for_checkout[checkout_JPY.pk].id
+
+
+@freeze_time("2021-03-18 12:00:00")
+def test_transactions_to_release_funds_after_year(
+    channel_USD,
+    checkout,
+    checkout_JPY,
+    settings,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    ttl_time = datetime.now(tz=pytz.utc) - timedelta(days=365)
+    time_after_ttl = ttl_time - timedelta(seconds=1)
+    with freeze_time(time_after_ttl):
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk,
+            charged_value=Decimal(100),
+        )
+        transaction_amounts_for_checkout_updated(
+            transaction_item, plugins_manager, user=None, app=None
+        )
+        checkout.automatically_refundable = True
+        checkout.save(update_fields=["automatically_refundable", "last_change"])
+
+    # when
+    transactions = transactions_to_release_funds()
+
+    # then
+    assert len(transactions) == 0
