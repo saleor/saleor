@@ -375,6 +375,14 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
         app_label = "product"
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="variant_gin",
+                fields=["name", "sku"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name or self.sku or f"ID:{self.pk}"
