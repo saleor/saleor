@@ -16,6 +16,13 @@ class AssignedVariantAttributeValue(SortableModel):
         on_delete=models.CASCADE,
         related_name="variantvalueassignment",
     )
+    variant = models.ForeignKey(
+        ProductVariant,
+        related_name="attributevalues",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         unique_together = (("value", "assignment"),)
