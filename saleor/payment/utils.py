@@ -241,7 +241,6 @@ def generate_transactions_data(payment: Payment) -> list[TransactionData]:
             token=t.token,
             is_success=t.is_success,
             kind=t.kind,
-            gateway_response=t.gateway_response,
             amount={
                 "amount": str(quantize_price(t.amount, t.currency)),
                 "currency": t.currency,
@@ -473,7 +472,6 @@ def create_transaction(
             amount=payment_information.amount,
             currency=payment_information.currency,
             error=error_msg,
-            raw_response={},
         )
 
     txn = Transaction.objects.create(
@@ -486,7 +484,6 @@ def create_transaction(
         currency=gateway_response.currency,
         error=gateway_response.error,
         customer_id=gateway_response.customer_id,
-        gateway_response=gateway_response.raw_response or {},
         action_required_data=gateway_response.action_required_data or {},
     )
     return txn

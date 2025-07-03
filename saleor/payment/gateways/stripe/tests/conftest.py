@@ -60,7 +60,6 @@ def payment_stripe_for_order(payment_stripe_for_checkout, order_with_lines):
         amount=order_with_lines.total_gross_amount,
         currency=order_with_lines.currency,
         error="",
-        gateway_response={},
         action_required_data={},
     )
     return payment_stripe_for_checkout

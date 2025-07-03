@@ -21,10 +21,7 @@ def _prepare_payment_transactions(payments):
 
     for payment in payments:
         transactions.extend(
-            [
-                Transaction(payment=payment, gateway_response=str(index))
-                for index in range(TRANSACTIONS_PER_PAYMENT)
-            ]
+            [Transaction(payment=payment) for _index in range(TRANSACTIONS_PER_PAYMENT)]
         )
 
     return transactions

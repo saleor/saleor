@@ -385,7 +385,7 @@ def test_checkouts_query_with_filter_search(
     payment = Payment.objects.create(
         checkout=checkout_with_payment, psp_reference="ExternalID"
     )
-    payment.transactions.create(gateway_response={}, is_success=True)
+    payment.transactions.create(is_success=True)
     variables = {"filter": checkouts_filter}
     staff_api_client.user.user_permissions.add(permission_manage_checkouts)
 

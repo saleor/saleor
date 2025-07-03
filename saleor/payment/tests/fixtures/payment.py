@@ -130,7 +130,6 @@ def payment_txn_preauth(order_with_lines, payment_dummy):
         amount=payment.total,
         currency=payment.currency,
         kind=TransactionKind.AUTH,
-        gateway_response={},
         is_success=True,
     )
     return payment
@@ -149,7 +148,6 @@ def payment_txn_captured(order_with_lines, payment_dummy):
         amount=payment.total,
         currency=payment.currency,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
     return payment
@@ -167,12 +165,6 @@ def payment_txn_capture_failed(order_with_lines, payment_dummy):
         amount=payment.total,
         currency=payment.currency,
         kind=TransactionKind.CAPTURE_FAILED,
-        gateway_response={
-            "status": 403,
-            "errorCode": "901",
-            "message": "Invalid Merchant Account",
-            "errorType": "security",
-        },
         error="invalid",
         is_success=False,
     )
@@ -191,7 +183,6 @@ def payment_txn_to_confirm(order_with_lines, payment_dummy):
         amount=payment.total,
         currency=payment.currency,
         kind=TransactionKind.ACTION_TO_CONFIRM,
-        gateway_response={},
         is_success=True,
         action_required=True,
     )
@@ -211,7 +202,6 @@ def payment_txn_refunded(order_with_lines, payment_dummy):
         amount=payment.total,
         currency=payment.currency,
         kind=TransactionKind.REFUND,
-        gateway_response={},
         is_success=True,
     )
     return payment

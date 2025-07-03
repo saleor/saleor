@@ -278,7 +278,6 @@ def test_create_payment_information_for_payment_with_transactions(payment_dummy)
         amount=payment_dummy.total,
         currency=payment_dummy.currency,
         kind=TransactionKind.AUTH,
-        gateway_response={"status": "SUCCESS"},
         is_success=True,
     )
 
@@ -292,7 +291,6 @@ def test_create_payment_information_for_payment_with_transactions(payment_dummy)
                 token=transaction.token,
                 is_success=transaction.is_success,
                 kind=transaction.kind,
-                gateway_response=transaction.gateway_response,
                 amount={
                     "amount": str(
                         quantize_price(transaction.amount, transaction.currency)
@@ -406,7 +404,6 @@ def test_create_transaction(transaction_data):
     assert txn.currency == gateway_response.currency
     assert txn.token == gateway_response.transaction_id
     assert txn.is_success == gateway_response.is_success
-    assert txn.gateway_response == gateway_response.raw_response
 
 
 def test_create_transaction_long_error_message(transaction_data_long_error_message):
@@ -420,7 +417,7 @@ def test_create_transaction_long_error_message(transaction_data_long_error_messa
 def test_create_transaction_no_gateway_response(transaction_data):
     transaction_data.pop("gateway_response")
     txn = create_transaction(**transaction_data)
-    assert txn.gateway_response == {}
+    assert not hasattr(txn, "gateway_response")
 
 
 @patch.object(PluginsManager, "capture_payment")
@@ -643,7 +640,6 @@ def test_payment_get_authorized_amount(payment_txn_preauth):
     payment.transactions.create(
         amount=payment.total,
         kind=TransactionKind.CAPTURE,
-        gateway_response={},
         is_success=True,
     )
     assert payment.get_authorized_amount().amount == Decimal(0)
