@@ -7,6 +7,7 @@ from freezegun import freeze_time
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
+from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
@@ -14,7 +15,12 @@ from .....order.models import Order
 from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionEventType
 from .....payment.error_codes import TransactionCreateErrorCode
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
+)
 from .....payment.models import TransactionItem
+from .....tests import race_condition
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
@@ -403,7 +409,7 @@ def test_transaction_create_for_draft_order(
 
 
 def test_transaction_create_for_checkout_by_app(
-    checkout_with_items, permission_manage_payments, app_api_client
+    checkout_with_prices, permission_manage_payments, app_api_client, plugins_manager
 ):
     # given
     name = "Credit Card"
@@ -418,7 +424,7 @@ def test_transaction_create_for_checkout_by_app(
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_prices.pk),
         "transaction": {
             "name": name,
             "pspReference": psp_reference,
@@ -439,13 +445,13 @@ def test_transaction_create_for_checkout_by_app(
     )
 
     # then
-    checkout_with_items.refresh_from_db()
-    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
-    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    checkout_with_prices.refresh_from_db()
+    assert checkout_with_prices.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_prices.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
     available_actions = list(set(available_actions))
 
-    transaction = checkout_with_items.payment_transactions.first()
+    transaction = checkout_with_prices.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
@@ -468,7 +474,7 @@ def test_transaction_create_for_checkout_by_app(
 
 
 def test_transaction_create_for_checkout_by_app_metadata_null_value(
-    checkout_with_items, permission_manage_payments, app_api_client
+    checkout_with_prices, permission_manage_payments, app_api_client
 ):
     # given
     name = "Credit Card"
@@ -481,7 +487,7 @@ def test_transaction_create_for_checkout_by_app_metadata_null_value(
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_prices.pk),
         "transaction": {
             "name": name,
             "pspReference": psp_reference,
@@ -502,13 +508,13 @@ def test_transaction_create_for_checkout_by_app_metadata_null_value(
     )
 
     # then
-    checkout_with_items.refresh_from_db()
-    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
-    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    checkout_with_prices.refresh_from_db()
+    assert checkout_with_prices.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_prices.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
     available_actions = list(set(available_actions))
 
-    transaction = checkout_with_items.payment_transactions.first()
+    transaction = checkout_with_prices.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
@@ -1116,7 +1122,7 @@ def test_transaction_create_for_order_updates_order_total_charged_by_staff(
 
 
 def test_transaction_create_for_checkout_by_staff(
-    checkout_with_items, permission_manage_payments, staff_api_client
+    checkout_with_prices, permission_manage_payments, staff_api_client
 ):
     # given
     name = "Credit Card"
@@ -1130,7 +1136,7 @@ def test_transaction_create_for_checkout_by_staff(
     private_metadata = {"key": "test-2", "value": "321"}
 
     variables = {
-        "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_prices.pk),
         "transaction": {
             "name": name,
             "pspReference": psp_reference,
@@ -1152,10 +1158,10 @@ def test_transaction_create_for_checkout_by_staff(
     # then
     available_actions = list(set(available_actions))
 
-    checkout_with_items.refresh_from_db()
-    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
-    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
-    transaction = checkout_with_items.payment_transactions.first()
+    checkout_with_prices.refresh_from_db()
+    assert checkout_with_prices.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_prices.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    transaction = checkout_with_prices.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
@@ -2466,3 +2472,169 @@ def test_transaction_create_create_event_message_is_empty(
     event = transaction.events.last()
     assert event.message == ""
     assert event.psp_reference == transaction_reference
+
+
+# Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
+@pytest.mark.django_db(transaction=True)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_create.get_order_and_transaction_item_locked_for_update",
+    wraps=get_order_and_transaction_item_locked_for_update,
+)
+def test_lock_order_during_updating_order_amounts(
+    mocked_get_order_and_transaction_item_locked_for_update,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    charged_value = order.total.gross.amount
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+        "transaction": {
+            "name": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order.refresh_from_db()
+    transaction_pk = order.payment_transactions.get().pk
+    assert order.total_charged.amount == charged_value
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    mocked_get_order_and_transaction_item_locked_for_update.assert_called_once_with(
+        order.pk, transaction_pk
+    )
+
+
+# Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
+@pytest.mark.django_db(transaction=True)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.transaction_create.get_checkout_and_transaction_item_locked_for_update",
+    wraps=get_checkout_and_transaction_item_locked_for_update,
+)
+def test_lock_checkout_during_updating_checkout_amounts(
+    mocked_get_checkout_and_transaction_item_locked_for_update,
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+    plugins_manager,
+):
+    # given
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+    ]
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    checkout = checkout_with_items
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction_pk = checkout.payment_transactions.get().pk
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_get_checkout_and_transaction_item_locked_for_update.assert_called_once_with(
+        checkout.pk, transaction_pk
+    )
+
+
+def test_transaction_create_create_checkout_completed_race_condition(
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_prices,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    name = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CHARGE.name,
+    ]
+    authorized_value = Decimal(checkout_info.checkout.total.gross.amount)
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "transaction": {
+            "name": name,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    def complete_checkout(*args, **kwargs):
+        create_order_from_checkout(
+            checkout_info, plugins_manager, user=None, app=app_api_client.app
+        )
+
+    with race_condition.RunBefore(
+        "saleor.graphql.payment.mutations.transaction.transaction_create.recalculate_transaction_amounts",
+        complete_checkout,
+    ):
+        app_api_client.post_graphql(
+            MUTATION_TRANSACTION_CREATE,
+            variables,
+            permissions=[permission_manage_payments],
+        )
+
+    # then
+    order = Order.objects.get(checkout_token=checkout.pk)
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.charge_status == OrderChargeStatus.NONE
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
