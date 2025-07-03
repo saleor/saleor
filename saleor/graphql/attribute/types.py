@@ -13,7 +13,11 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.context import ChannelContext, get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from ..core.descriptions import (
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
@@ -30,9 +34,9 @@ from ..core.types import (
     DateTimeRangeInput,
     File,
     IntRangeInput,
-    ModelObjectType,
     NonNullList,
 )
+from ..core.types.context import ChannelContextType, ChannelContextTypeForObjectType
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
@@ -59,13 +63,15 @@ def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
     return reference_pk
 
 
-class AttributeValue(ModelObjectType[models.AttributeValue]):
+class AttributeValue(ChannelContextType[models.AttributeValue]):
     id = graphene.GlobalID(required=True, description="The ID of the attribute value.")
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     value = graphene.String(description=AttributeValueDescriptions.VALUE)
     translation = TranslationField(
-        AttributeValueTranslation, type_name="attribute value"
+        AttributeValueTranslation,
+        type_name="attribute value",
+        resolver=ChannelContextType.resolve_translation,
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     reference = graphene.ID(description="The ID of the referenced object.")
@@ -96,22 +102,27 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
     )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = "Represents a value of an attribute."
         interfaces = [graphene.relay.Node]
         model = models.AttributeValue
 
     @staticmethod
-    def resolve_referenced_object(root: models.AttributeValue, info: ResolveInfo):
+    def resolve_referenced_object(
+        root: ChannelContext[models.AttributeValue], info: ResolveInfo
+    ):
+        attr_value = root.node
+
         def prepare_referenced_object(attribute):
             if not attribute:
                 return None
-            reference_pk = get_reference_pk(attribute, root)
+            reference_pk = get_reference_pk(attribute, attr_value)
 
             if reference_pk is None:
                 return None
 
             def wrap_with_channel_context(_object):
-                return ChannelContext(node=_object, channel_slug=None)
+                return ChannelContext(node=_object, channel_slug=root.channel_slug)
 
             if attribute.entity_type == AttributeEntityType.PRODUCT:
                 return (
@@ -131,61 +142,76 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
 
         return (
             AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
+            .load(attr_value.attribute_id)
             .then(prepare_referenced_object)
         )
 
-    @staticmethod
-    def resolve_input_type(root: models.AttributeValue, info: ResolveInfo):
+    def resolve_input_type(
+        root: ChannelContext[models.AttributeValue], info: ResolveInfo
+    ):
+        attr_value = root.node
         return (
             AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
+            .load(attr_value.attribute_id)
             .then(lambda attribute: attribute.input_type)
         )
 
     @staticmethod
-    def resolve_file(root: models.AttributeValue, _info: ResolveInfo) -> None | File:
-        if not root.file_url:
+    def resolve_file(
+        root: ChannelContext[models.AttributeValue], _info: ResolveInfo
+    ) -> None | File:
+        attr_value = root.node
+        if not attr_value.file_url:
             return None
-        return File(url=root.file_url, content_type=root.content_type)
+        return File(url=attr_value.file_url, content_type=attr_value.content_type)
 
     @staticmethod
-    def resolve_reference(root: models.AttributeValue, info: ResolveInfo):
+    def resolve_reference(
+        root: ChannelContext[models.AttributeValue], info: ResolveInfo
+    ):
+        attr_value = root.node
+
         def prepare_reference(attribute) -> None | str:
-            reference_pk = get_reference_pk(attribute, root)
+            reference_pk = get_reference_pk(attribute, attr_value)
             if reference_pk is None:
                 return None
             return graphene.Node.to_global_id(attribute.entity_type, reference_pk)
 
         return (
             AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
+            .load(attr_value.attribute_id)
             .then(prepare_reference)
         )
 
     @staticmethod
-    def resolve_date_time(root: models.AttributeValue, info: ResolveInfo):
+    def resolve_date_time(
+        root: ChannelContext[models.AttributeValue], info: ResolveInfo
+    ):
+        attr_value = root.node
+
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE_TIME:
-                return root.date_time
+                return attr_value.date_time
             return None
 
         return (
             AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
+            .load(attr_value.attribute_id)
             .then(_resolve_date)
         )
 
     @staticmethod
-    def resolve_date(root: models.AttributeValue, info: ResolveInfo):
+    def resolve_date(root: ChannelContext[models.AttributeValue], info: ResolveInfo):
+        attr_value = root.node
+
         def _resolve_date(attribute):
             if attribute.input_type == AttributeInputType.DATE:
-                return root.date_time
+                return attr_value.date_time
             return None
 
         return (
             AttributesByAttributeId(info.context)
-            .load(root.attribute_id)
+            .load(attr_value.attribute_id)
             .then(_resolve_date)
         )
 
@@ -196,7 +222,7 @@ class AttributeValueCountableConnection(CountableConnection):
         node = AttributeValue
 
 
-class Attribute(ModelObjectType[models.Attribute]):
+class Attribute(ChannelContextType[models.Attribute]):
     id = graphene.GlobalID(required=True, description="The ID of the attribute.")
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
     entity_type = AttributeEntityTypeEnum(
@@ -279,7 +305,11 @@ class Attribute(ModelObjectType[models.Attribute]):
         required=True,
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
-    translation = TranslationField(AttributeTranslation, type_name="attribute")
+    translation = TranslationField(
+        AttributeTranslation,
+        type_name="attribute",
+        resolver=ChannelContextType.resolve_translation,
+    )
     with_choices = graphene.Boolean(
         description=AttributeDescriptions.WITH_CHOICES, required=True
     )
@@ -304,6 +334,7 @@ class Attribute(ModelObjectType[models.Attribute]):
     )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "Custom attribute of a product. Attributes can be assigned to products and "
             "variants at the product type level."
@@ -312,67 +343,89 @@ class Attribute(ModelObjectType[models.Attribute]):
         model = models.Attribute
 
     @staticmethod
-    def resolve_choices(root: models.Attribute, info: ResolveInfo, **kwargs):
-        if root.input_type in AttributeInputType.TYPES_WITH_CHOICES:
-            qs = root.values.using(get_database_connection_name(info.context)).all()
+    def resolve_choices(
+        root: ChannelContext[models.Attribute], info: ResolveInfo, **kwargs
+    ):
+        attr = root.node
+        if attr.input_type in AttributeInputType.TYPES_WITH_CHOICES:
+            qs = attr.values.using(get_database_connection_name(info.context)).all()
         else:
             qs = models.AttributeValue.objects.none()
 
-        qs = filter_connection_queryset(
-            qs, kwargs, allow_replica=info.context.allow_replica
+        channel_context_qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        channel_context_qs = filter_connection_queryset(
+            channel_context_qs, kwargs, allow_replica=info.context.allow_replica
         )
         return create_connection_slice(
-            qs, info, kwargs, AttributeValueCountableConnection
+            channel_context_qs, info, kwargs, AttributeValueCountableConnection
         )
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_value_required(root: models.Attribute, _info: ResolveInfo):
-        return root.value_required
+    def resolve_value_required(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.value_required
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_visible_in_storefront(root: models.Attribute, _info: ResolveInfo):
-        return root.visible_in_storefront
+    def resolve_visible_in_storefront(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.visible_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_storefront(root: models.Attribute, _info: ResolveInfo):
-        return root.filterable_in_storefront
+    def resolve_filterable_in_storefront(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.filterable_in_storefront
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_filterable_in_dashboard(root: models.Attribute, _info: ResolveInfo):
-        return root.filterable_in_dashboard
+    def resolve_filterable_in_dashboard(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.filterable_in_dashboard
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_storefront_search_position(root: models.Attribute, _info: ResolveInfo):
-        return root.storefront_search_position
+    def resolve_storefront_search_position(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.storefront_search_position
 
     @staticmethod
     @check_attribute_required_permissions()
-    def resolve_available_in_grid(root: models.Attribute, _info: ResolveInfo):
-        return root.available_in_grid
+    def resolve_available_in_grid(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.available_in_grid
 
     @staticmethod
-    def resolve_with_choices(root: models.Attribute, _info: ResolveInfo):
-        return root.input_type in AttributeInputType.TYPES_WITH_CHOICES
+    def resolve_with_choices(
+        root: ChannelContext[models.Attribute], _info: ResolveInfo
+    ):
+        return root.node.input_type in AttributeInputType.TYPES_WITH_CHOICES
 
     @staticmethod
-    def resolve_product_types(root: models.Attribute, info: ResolveInfo, **kwargs):
+    def resolve_product_types(
+        root: ChannelContext[models.Attribute], info: ResolveInfo, **kwargs
+    ):
         from ..product.types import ProductTypeCountableConnection
 
-        qs = root.product_types.using(get_database_connection_name(info.context)).all()
+        qs = root.node.product_types.using(
+            get_database_connection_name(info.context)
+        ).all()
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
     @staticmethod
     def resolve_product_variant_types(
-        root: models.Attribute, info: ResolveInfo, **kwargs
+        root: ChannelContext[models.Attribute], info: ResolveInfo, **kwargs
     ):
         from ..product.types import ProductTypeCountableConnection
 
-        qs = root.product_variant_types.using(
+        qs = root.node.product_variant_types.using(
             get_database_connection_name(info.context)
         ).all()
         return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
@@ -405,7 +458,7 @@ class AssignedVariantAttribute(BaseObjectType):
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class SelectedAttribute(BaseObjectType):
+class SelectedAttribute(ChannelContextTypeForObjectType):
     attribute = graphene.Field(
         Attribute,
         default_value=None,

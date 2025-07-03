@@ -21,11 +21,7 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import (
-    ADDED_IN_321,
-    DEPRECATED_IN_3X_TYPE,
-    RICH_CONTENT,
-)
+from ..core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_TYPE, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -173,7 +169,7 @@ class AttributeTranslatableContent(ModelObjectType[attribute_models.Attribute]):
 
     @staticmethod
     def resolve_attribute(root: attribute_models.Attribute, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
     def resolve_attribute_id(root: attribute_models.Attribute, _info):
@@ -219,7 +215,7 @@ class AttributeValueTranslatableContent(
 
     @staticmethod
     def resolve_attribute_value(root: attribute_models.AttributeValue, _info):
-        return root
+        return ChannelContext(node=root, channel_slug=None)
 
     @staticmethod
     def resolve_attribute(root: attribute_models.AttributeValue, info):

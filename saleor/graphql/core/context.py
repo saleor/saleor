@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.conf import settings
 from django.db.models import QuerySet
-from django.db.models.base import Model
 from django.http import HttpRequest
 from django.utils.functional import empty
 
@@ -85,11 +84,8 @@ class SyncWebhookControlContext(BaseContext[N]):
         self.allow_sync_webhooks = allow_sync_webhooks
 
 
-C = TypeVar("C", bound=Model)
-
-
 @dataclass
-class ChannelContext(BaseContext[C]):
+class ChannelContext(BaseContext[N]):
     channel_slug: str | None
 
 

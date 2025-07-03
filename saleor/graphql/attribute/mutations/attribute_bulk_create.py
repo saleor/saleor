@@ -14,6 +14,7 @@ from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
@@ -197,13 +198,21 @@ class AttributeBulkCreateResult(BaseObjectType):
 def get_results(
     instances_data_with_errors_list: list[dict], reject_everything: bool = False
 ) -> list[AttributeBulkCreateResult]:
-    return [
-        AttributeBulkCreateResult(
-            attribute=None if reject_everything else data.get("instance"),
-            errors=data.get("errors"),
+    results = []
+    for data in instances_data_with_errors_list:
+        if reject_everything:
+            attribute = None
+        else:
+            attribute = data.get("instance")
+            if attribute:
+                attribute = ChannelContext(attribute, None)
+        results.append(
+            AttributeBulkCreateResult(
+                attribute=attribute,
+                errors=data.get("errors"),
+            )
         )
-        for data in instances_data_with_errors_list
-    ]
+    return results
 
 
 class AttributeBulkCreate(BaseMutation):

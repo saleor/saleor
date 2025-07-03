@@ -3,6 +3,7 @@ import graphene
 from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.fields import BaseField, FilterConnectionField
@@ -69,14 +70,18 @@ class AttributeQueries(graphene.ObjectType):
         )
         if search:
             qs = filter_attribute_search(qs, None, search)
+        qs = ChannelQsContext(qs=qs, channel_slug=None)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(
         self, info: ResolveInfo, *, id=None, slug=None, external_reference=None
     ):
-        return resolve_by_global_id_slug_or_ext_ref(
+        attribute = resolve_by_global_id_slug_or_ext_ref(
             info, models.Attribute, id, slug, external_reference
         )
+        if attribute:
+            return ChannelContext(node=attribute, channel_slug=None)
+        return None
 
 
 class AttributeMutations(graphene.ObjectType):

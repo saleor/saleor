@@ -15,7 +15,11 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.context import get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
@@ -85,15 +89,24 @@ class PageType(ModelObjectType[models.PageType]):
 
     @staticmethod
     def resolve_attributes(root: models.PageType, info: ResolveInfo):
+        def wrap_with_channel_context(attributes):
+            return [ChannelContext(attribute, None) for attribute in attributes]
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return PageAttributesAllByPageTypeIdLoader(info.context).load(root.pk)
-        return PageAttributesVisibleInStorefrontByPageTypeIdLoader(info.context).load(
-            root.pk
+            return (
+                PageAttributesAllByPageTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(wrap_with_channel_context)
+            )
+        return (
+            PageAttributesVisibleInStorefrontByPageTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(wrap_with_channel_context)
         )
 
     @staticmethod
@@ -108,6 +121,7 @@ class PageType(ModelObjectType[models.PageType]):
         )
         if search:
             qs = filter_attribute_search(qs, None, search)
+        qs = ChannelQsContext(qs=qs, channel_slug=None)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
@@ -200,31 +214,68 @@ class Page(ModelObjectType[models.Page]):
 
     @staticmethod
     def resolve_attributes(root: models.Page, info: ResolveInfo):
+        def wrap_with_channel_context(
+            attributes: list[dict[str, list]] | None,
+        ) -> list[SelectedAttribute] | None:
+            if attributes is None:
+                return None
+            return [
+                SelectedAttribute(
+                    attribute=ChannelContext(attribute["attribute"], None),
+                    values=[
+                        ChannelContext(value, None) for value in attribute["values"]
+                    ],
+                )
+                for attribute in attributes
+            ]
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
-        return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
-            root.id
+            return (
+                SelectedAttributesAllByPageIdLoader(info.context)
+                .load(root.id)
+                .then(wrap_with_channel_context)
+            )
+        return (
+            SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
+            .load(root.id)
+            .then(wrap_with_channel_context)
         )
 
     @staticmethod
     def resolve_attribute(root: models.Page, info: ResolveInfo, slug: str):
+        def wrap_with_channel_context(
+            attribute_data: dict[str, dict | list[dict]] | None,
+        ) -> SelectedAttribute | None:
+            if attribute_data is None:
+                return None
+            return SelectedAttribute(
+                attribute=ChannelContext(attribute_data["attribute"], None),
+                values=[
+                    ChannelContext(value, None) for value in attribute_data["values"]
+                ],
+            )
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return SelectedAttributeAllByPageIdAttributeSlugLoader(info.context).load(
-                (root.id, slug)
+            return (
+                SelectedAttributeAllByPageIdAttributeSlugLoader(info.context)
+                .load((root.id, slug))
+                .then(wrap_with_channel_context)
             )
-        return SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(
-            info.context
-        ).load((root.id, slug))
+        return (
+            SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(info.context)
+            .load((root.id, slug))
+            .then(wrap_with_channel_context)
+        )
 
 
 class PageCountableConnection(CountableConnection):

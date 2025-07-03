@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from graphql.error.base import GraphQLError
 
+from ....attribute import models as attribute_models
 from ....checkout import models as checkout_models
 from ....core import models
 from ....core.db.connection import allow_writer
@@ -256,8 +257,11 @@ class BaseMetadataMutation(BaseMutation):
             | product_models.Product
             | product_models.ProductVariant
             | shipping_models.ShippingMethod
-            | shipping_models.ShippingZone,
+            | shipping_models.ShippingZone
+            | attribute_models.Attribute
+            | attribute_models.AttributeValue,
         )
+
         use_channel_context = use_channel_context or (
             # For old sales migrated into promotions
             isinstance(instance, Promotion) and instance.old_sale_id
