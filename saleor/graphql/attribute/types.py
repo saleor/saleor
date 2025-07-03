@@ -1,12 +1,13 @@
 import graphene
 
-from ...attribute import AttributeInputType, models
+from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
 )
+from ..channel.types import ChannelContext
 from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
@@ -35,6 +36,8 @@ from ..core.types import (
 )
 from ..decorators import check_attribute_required_permissions
 from ..meta.types import ObjectWithMetadata
+from ..page.dataloaders import PageByIdLoader
+from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
@@ -43,6 +46,18 @@ from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTyp
 from .filters import AttributeValueFilterInput
 from .sorters import AttributeChoicesSortingInput
 from .utils import AttributeAssignmentMixin
+
+
+def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
+    if attribute.input_type != AttributeInputType.REFERENCE:
+        return None
+    reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
+        attribute.entity_type
+    ].value_field
+    reference_pk = getattr(root, f"{reference_field}_id", None)
+    if reference_pk is None:
+        return None
+    return reference_pk
 
 
 class AttributeValue(ModelObjectType[models.AttributeValue]):
@@ -54,7 +69,12 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         AttributeValueTranslation, type_name="attribute value"
     )
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
-    reference = graphene.ID(description="The ID of the attribute reference.")
+    reference = graphene.ID(description="The ID of the referenced object.")
+    referenced_object = graphene.Field(
+        "saleor.graphql.attribute.unions.AttributeValueReferencedObject",
+        description="The object referenced by the attribute value." + ADDED_IN_322,
+    )
+
     file = graphene.Field(
         File, description=AttributeValueDescriptions.FILE, required=False
     )
@@ -82,6 +102,41 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
         model = models.AttributeValue
 
     @staticmethod
+    def resolve_referenced_object(root: models.AttributeValue, info: ResolveInfo):
+        def prepare_referenced_object(attribute):
+            if not attribute:
+                return None
+            reference_pk = get_reference_pk(attribute, root)
+
+            if reference_pk is None:
+                return None
+
+            def wrap_with_channel_context(_object):
+                return ChannelContext(node=_object, channel_slug=None)
+
+            if attribute.entity_type == AttributeEntityType.PRODUCT:
+                return (
+                    ProductByIdLoader(info.context)
+                    .load(reference_pk)
+                    .then(wrap_with_channel_context)
+                )
+            if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
+                return (
+                    ProductVariantByIdLoader(info.context)
+                    .load(reference_pk)
+                    .then(wrap_with_channel_context)
+                )
+            if attribute.entity_type == AttributeEntityType.PAGE:
+                return PageByIdLoader(info.context).load(reference_pk)
+            return None
+
+        return (
+            AttributesByAttributeId(info.context)
+            .load(root.attribute_id)
+            .then(prepare_referenced_object)
+        )
+
+    @staticmethod
     def resolve_input_type(root: models.AttributeValue, info: ResolveInfo):
         return (
             AttributesByAttributeId(info.context)
@@ -98,18 +153,10 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
     @staticmethod
     def resolve_reference(root: models.AttributeValue, info: ResolveInfo):
         def prepare_reference(attribute) -> None | str:
-            if attribute.input_type != AttributeInputType.REFERENCE:
-                return None
-            reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
-                attribute.entity_type
-            ].value_field
-            reference_pk = getattr(root, f"{reference_field}_id", None)
+            reference_pk = get_reference_pk(attribute, root)
             if reference_pk is None:
                 return None
-            reference_id = graphene.Node.to_global_id(
-                attribute.entity_type, reference_pk
-            )
-            return reference_id
+            return graphene.Node.to_global_id(attribute.entity_type, reference_pk)
 
         return (
             AttributesByAttributeId(info.context)
