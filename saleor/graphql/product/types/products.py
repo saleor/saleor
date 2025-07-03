@@ -963,7 +963,10 @@ class Product(ChannelContextType[models.Product]):
     product_variants = FilterConnectionField(
         ProductVariantCountableConnection,
         filter=ProductVariantFilterInput(
-            description="Filtering options for product variant."
+            description=(
+                f"Filtering options for product variant. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
         ),
         where=ProductVariantWhereInput(
             description="Where filtering options for product variants."

@@ -2994,3 +2994,46 @@ def test_product_tax_class_query_by_staff(staff_api_client, product, channel_USD
     assert data["product"]
     assert data["product"]["id"]
     assert data["product"]["taxClass"]["id"]
+
+
+QUERY_FETCH_PRODUCT_VARIANTS = """
+    query ($id: ID!, $channel: String, $where: ProductVariantWhereInput) {
+        product(id: $id, channel: $channel) {
+            id
+            productVariants(first: 10, where: $where) {
+                edges {
+                    node {
+                        id
+                        name
+                        sku
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_query_product_variants_with_where(
+    user_api_client, product_variant_list, channel_USD
+):
+    # given
+    product = product_variant_list[0].product
+    sku_value = product_variant_list[0].sku
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    variables = {
+        "id": product_id,
+        "channel": channel_USD.slug,
+        "where": {"sku": {"eq": sku_value}},
+    }
+
+    # when
+    response = user_api_client.post_graphql(QUERY_FETCH_PRODUCT_VARIANTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variants = content["data"]["product"]["productVariants"]["edges"]
+
+    assert len(variants) == 1
+    assert variants[0]["node"]["sku"] == sku_value

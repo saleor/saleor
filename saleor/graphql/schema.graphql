@@ -5701,7 +5701,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   productVariants(
     """Filtering options for product variant."""
-    filter: ProductVariantFilterInput
+    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options for product variants."""
     where: ProductVariantWhereInput
