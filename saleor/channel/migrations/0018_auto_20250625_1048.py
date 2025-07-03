@@ -29,6 +29,13 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             "ALTER TABLE channel_channel "
             "ALTER COLUMN checkout_ttl_before_releasing_funds "
-            "SET DEFAULT '0 days 21600.000000 seconds'::interval;"
+            "SET DEFAULT '0 days 21600.000000 seconds'::interval;",
+            reverse_sql=migrations.RunSQL.noop,
+        ),
+        migrations.RunSQL(
+            "ALTER TABLE channel_channel "
+            "ALTER COLUMN release_funds_for_expired_checkouts "
+            "SET DEFAULT True;",
+            reverse_sql=migrations.RunSQL.noop,
         ),
     ]
