@@ -84,6 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
 
+- Extend the `Attribute` type with a `values` field, allowing you to retrieve all values assigned to a specific attribute.
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
