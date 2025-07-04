@@ -64,36 +64,56 @@ def test_get_single_attribute_by_slug_as_customer(
 
 
 QUERY_ATTRIBUTE = """
-    query($id: ID!, $query: String) {
-        attribute(id: $id) {
-            id
-            slug
-            name
-            inputType
-            entityType
-            type
-            unit
-            choices(first: 10, filter: {search: $query}) {
-                edges {
-                    node {
-                        slug
-                        inputType
-                        value
-                        file {
-                            url
-                            contentType
-                        }
-                    }
-                }
-            }
-            valueRequired
-            visibleInStorefront
-            filterableInStorefront
-            filterableInDashboard
-            availableInGrid
-            storefrontSearchPosition
+query ($id: ID!, $query: String) {
+  attribute(id: $id) {
+    id
+    slug
+    name
+    inputType
+    entityType
+    type
+    unit
+    choices(first: 10, filter: {search: $query}) {
+      edges {
+        node {
+          slug
+          inputType
+          value
+          file {
+            url
+            contentType
+          }
         }
+      }
     }
+    valueRequired
+    visibleInStorefront
+    filterableInStorefront
+    filterableInDashboard
+    availableInGrid
+    storefrontSearchPosition
+    translation(languageCode: PL) {
+      id
+      name
+    }
+    withChoices
+    productTypes(first: 1) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+    productVariantTypes(first: 1) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+    externalReference
+  }
+}
 """
 
 
@@ -417,9 +437,11 @@ def test_get_single_swatch_attribute_by_staff(
                 "slug": value.slug,
                 "value": value.value,
                 "inputType": value.input_type.upper(),
-                "file": {"url": value.file_url, "contentType": value.content_type}
-                if value.file_url
-                else None,
+                "file": (
+                    {"url": value.file_url, "contentType": value.content_type}
+                    if value.file_url
+                    else None
+                ),
             }
         }
         attribute_value_data.append(data)
@@ -439,9 +461,29 @@ QUERY_ATTRIBUTES = """
                     choices(first: 10) {
                         edges {
                             node {
+                            id
+                            name
+                            slug
+                            inputType
+                            value
+                            file {
+                                url
+                                contentType
+                            }
+                            translation(languageCode: PL) {
                                 id
                                 name
-                                slug
+                                translatableContent {
+                                id
+                                }
+                            }
+                            reference
+                            richText
+                            plainText
+                            boolean
+                            date
+                            dateTime
+                            externalReference
                             }
                         }
                     }

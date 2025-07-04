@@ -2,6 +2,7 @@ import sys
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
+from typing import cast
 
 import graphene
 from graphene import relay
@@ -584,27 +585,55 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         info,
         variant_selection: str | None = None,
     ):
-        def apply_variant_selection_filter(selected_attributes):
+        def apply_variant_selection_filter(
+            selected_attributes,
+        ) -> list[SelectedAttribute]:
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
-                return selected_attributes
+                return [
+                    SelectedAttribute(
+                        attribute=ChannelContext(
+                            selected_att["attribute"], root.channel_slug
+                        ),
+                        values=[
+                            ChannelContext(value, root.channel_slug)
+                            for value in selected_att["values"]
+                        ],
+                    )
+                    for selected_att in selected_attributes
+                ]
             attributes = [
                 (selected_att["attribute"], selected_att["variant_selection"])
                 for selected_att in selected_attributes
             ]
+            attributes = cast(list[tuple[attribute_models.Attribute, bool]], attributes)
             variant_selection_attrs = [
                 attr for attr, _ in get_variant_selection_attributes(attributes)
             ]
 
             if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
-                return [
-                    selected_attribute
-                    for selected_attribute in selected_attributes
-                    if selected_attribute["attribute"] in variant_selection_attrs
+                attributes_to_return = [
+                    selected_att
+                    for selected_att in selected_attributes
+                    if selected_att["attribute"] in variant_selection_attrs
                 ]
+            else:
+                attributes_to_return = [
+                    selected_att
+                    for selected_att in selected_attributes
+                    if selected_att["attribute"] not in variant_selection_attrs
+                ]
+
             return [
-                selected_attribute
-                for selected_attribute in selected_attributes
-                if selected_attribute["attribute"] not in variant_selection_attrs
+                SelectedAttribute(
+                    attribute=ChannelContext(
+                        selected_att["attribute"], root.channel_slug
+                    ),
+                    values=[
+                        ChannelContext(value, root.channel_slug)
+                        for value in selected_att["values"]
+                    ],
+                )
+                for selected_att in attributes_to_return
             ]
 
         return (
@@ -1303,12 +1332,33 @@ class Product(ChannelContextType[models.Product]):
     @staticmethod
     def resolve_attribute(root: ChannelContext[models.Product], info, slug):
         def get_selected_attribute_by_slug(
-            attributes: list[SelectedAttribute],
+            attributes: (
+                list[
+                    dict[
+                        str,
+                        attribute_models.Attribute
+                        | list[attribute_models.AttributeValue],
+                    ]
+                ]
+                | None
+            ),
         ) -> SelectedAttribute | None:
-            return next(
-                (atr for atr in attributes if atr["attribute"].slug == slug),
-                None,
-            )
+            if attributes is None:
+                return None
+
+            for atr in attributes:
+                attribute = atr["attribute"]
+                attribute = cast(attribute_models.Attribute, attribute)
+                if attribute.slug == slug:
+                    values = atr["values"]
+                    values = cast(list[attribute_models.AttributeValue], values)
+                    return SelectedAttribute(
+                        attribute=ChannelContext(attribute, root.channel_slug),
+                        values=[
+                            ChannelContext(value, root.channel_slug) for value in values
+                        ],
+                    )
+            return None
 
         requestor = get_user_or_app_from_context(info.context)
         if (
@@ -1329,18 +1379,53 @@ class Product(ChannelContextType[models.Product]):
 
     @staticmethod
     def resolve_attributes(root: ChannelContext[models.Product], info):
+        def wrap_with_channel_context(
+            attributes: (
+                list[
+                    dict[
+                        str,
+                        attribute_models.Attribute
+                        | list[attribute_models.AttributeValue],
+                    ]
+                ]
+                | None
+            ),
+        ) -> list[SelectedAttribute] | None:
+            if attributes is None:
+                return None
+
+            response = []
+            for attr_data in attributes:
+                attribute = attr_data["attribute"]
+                attribute = cast(attribute_models.Attribute, attribute)
+                values = attr_data["values"]
+                values = cast(list[attribute_models.AttributeValue], values)
+                response.append(
+                    SelectedAttribute(
+                        attribute=ChannelContext(attribute, root.channel_slug),
+                        values=[
+                            ChannelContext(value, root.channel_slug) for value in values
+                        ],
+                    )
+                )
+            return response
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
         ):
-            return SelectedAttributesAllByProductIdLoader(info.context).load(
-                root.node.id
+            return (
+                SelectedAttributesAllByProductIdLoader(info.context)
+                .load(root.node.id)
+                .then(wrap_with_channel_context)
             )
-        return SelectedAttributesVisibleInStorefrontByProductIdLoader(
-            info.context
-        ).load(root.node.id)
+        return (
+            SelectedAttributesVisibleInStorefrontByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(wrap_with_channel_context)
+        )
 
     @staticmethod
     def resolve_media_by_id(root: ChannelContext[models.Product], info, *, id):
@@ -1787,7 +1872,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     @staticmethod
     def resolve_product_attributes(root: models.ProductType, info):
         def unpack_attributes(attributes):
-            return [attr for attr, *_ in attributes]
+            return [ChannelContext(attr, None) for attr, *_ in attributes]
 
         requestor = get_user_or_app_from_context(info.context)
         if (
@@ -1815,12 +1900,14 @@ class ProductType(ModelObjectType[models.ProductType]):
     ):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
-                return [attr for attr, *_ in attributes]
+                return [ChannelContext(attr, None) for attr, *_ in attributes]
             variant_selection_attrs = get_variant_selection_attributes(attributes)
             if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
-                return [attr for attr, *_ in variant_selection_attrs]
+                return [
+                    ChannelContext(attr, None) for attr, *_ in variant_selection_attrs
+                ]
             return [
-                attr
+                ChannelContext(attr, None)
                 for attr, variant_selection in attributes
                 if (attr, variant_selection) not in variant_selection_attrs
             ]
@@ -1852,17 +1939,26 @@ class ProductType(ModelObjectType[models.ProductType]):
         def apply_variant_selection_filter(attributes):
             if not variant_selection or variant_selection == VariantAttributeScope.ALL:
                 return [
-                    {"attribute": attr, "variant_selection": variant_selection}
+                    {
+                        "attribute": ChannelContext(attr, None),
+                        "variant_selection": variant_selection,
+                    }
                     for attr, variant_selection in attributes
                 ]
             variant_selection_attrs = get_variant_selection_attributes(attributes)
             if variant_selection == VariantAttributeScope.VARIANT_SELECTION:
                 return [
-                    {"attribute": attr, "variant_selection": variant_selection}
+                    {
+                        "attribute": ChannelContext(attr, None),
+                        "variant_selection": variant_selection,
+                    }
                     for attr, variant_selection in variant_selection_attrs
                 ]
             return [
-                {"attribute": attr, "variant_selection": variant_selection}
+                {
+                    "attribute": ChannelContext(attr, None),
+                    "variant_selection": variant_selection,
+                }
                 for attr, variant_selection in attributes
                 if (attr, variant_selection) not in variant_selection_attrs
             ]
@@ -1922,6 +2018,7 @@ class ProductType(ModelObjectType[models.ProductType]):
         )
         if search:
             qs = filter_attribute_search(qs, None, search)
+        qs = ChannelQsContext(qs=qs, channel_slug=None)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod

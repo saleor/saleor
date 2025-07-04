@@ -8,6 +8,7 @@ from ....core.exceptions import PermissionDenied
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
@@ -174,7 +175,7 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
         cls._save_m2m(info, instance, cleaned_input)
         cls.post_save_action(info, instance, cleaned_input)
         # Return the attribute that was created
-        return AttributeCreate(attribute=instance)
+        return AttributeCreate(attribute=ChannelContext(instance, None))
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

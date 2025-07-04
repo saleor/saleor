@@ -5,6 +5,7 @@ from functools import wraps
 from graphene import ResolveInfo
 
 from ..attribute import AttributeType
+from ..attribute.models import Attribute
 from ..core.exceptions import PermissionDenied
 from ..permission.auth_filters import is_app, is_staff_user
 from ..permission.enums import (
@@ -19,6 +20,7 @@ from ..permission.utils import (
     one_of_permissions_or_auth_filter_required,
 )
 from ..permission.utils import permission_required as core_permission_required
+from .core.context import ChannelContext
 from .utils import get_user_or_app_from_context
 
 
@@ -119,7 +121,8 @@ def check_attribute_required_permissions():
     different permissions need to be checked.
     """
 
-    def check_perms(context, attribute):
+    def check_perms(context, root: ChannelContext[Attribute]):
+        attribute = root.node
         requestor = get_user_or_app_from_context(context)
         permissions: list[BasePermissionEnum]
         if attribute.type == AttributeType.PAGE_TYPE:
