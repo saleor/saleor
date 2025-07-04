@@ -217,14 +217,29 @@ class Attribute(ModelObjectType[models.Attribute]):
         filter=AttributeValueFilterInput(
             description=(
                 f"Filtering options for attribute choices. {DEPRECATED_IN_3X_INPUT} "
-                "Use where filter instead."
+                "Use the `where` filter instead."
             ),
         ),
         where=AttributeValueWhereInput(
             description="Where filtering options for attribute choices." + ADDED_IN_322
         ),
         search=graphene.String(description="Search attribute choices." + ADDED_IN_322),
-        description=AttributeDescriptions.VALUES,
+        description=(
+            "A list of predefined attribute choices available for selection. "
+            "Available only for attributes with predefined choices."
+        ),
+    )
+    values = FilterConnectionField(
+        AttributeValueCountableConnection,
+        sort_by=AttributeChoicesSortingInput(description="Sort attribute values."),
+        where=AttributeValueWhereInput(
+            description="Where filtering options for attribute values."
+        ),
+        search=graphene.String(description="Search attribute values."),
+        description=(
+            "List of all existing attribute values. This includes all values"
+            " that have been assigned to attributes." + ADDED_IN_322
+        ),
     )
 
     value_required = graphene.Boolean(
@@ -328,6 +343,20 @@ class Attribute(ModelObjectType[models.Attribute]):
             qs = root.values.using(get_database_connection_name(info.context)).all()
         else:
             qs = models.AttributeValue.objects.none()
+
+        if search := kwargs.pop("search", None):
+            qs = search_attribute_values(qs, search)
+
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(
+            qs, info, kwargs, AttributeValueCountableConnection
+        )
+
+    @staticmethod
+    def resolve_values(root: models.Attribute, info: ResolveInfo, **kwargs):
+        qs = root.values.using(get_database_connection_name(info.context)).all()
 
         if search := kwargs.pop("search", None):
             qs = search_attribute_values(qs, search)
