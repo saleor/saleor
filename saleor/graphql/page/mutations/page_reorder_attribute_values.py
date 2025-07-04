@@ -8,6 +8,7 @@ from ....permission.enums import PagePermissions
 from ...attribute.mutations import BaseReorderAttributeValuesMutation
 from ...attribute.types import Attribute
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.inputs import ReorderInput
 from ...core.types import NonNullList, PageError
@@ -44,7 +45,7 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         page_id = data["page_id"]
         page = cls.perform(page_id, "page", data, "attributevalues", PageErrorCode)
-        return PageReorderAttributeValues(page=page)
+        return PageReorderAttributeValues(page=ChannelContext(page, channel_slug=None))
 
     @classmethod
     def perform(

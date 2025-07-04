@@ -137,7 +137,11 @@ class AttributeValue(ChannelContextType[models.AttributeValue]):
                     .then(wrap_with_channel_context)
                 )
             if attribute.entity_type == AttributeEntityType.PAGE:
-                return PageByIdLoader(info.context).load(reference_pk)
+                return (
+                    PageByIdLoader(info.context)
+                    .load(reference_pk)
+                    .then(wrap_with_channel_context)
+                )
             return None
 
         return (

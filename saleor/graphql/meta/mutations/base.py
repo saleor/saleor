@@ -12,6 +12,7 @@ from ....discount import models as discount_models
 from ....discount.models import Promotion
 from ....menu import models as menu_models
 from ....order import models as order_models
+from ....page import models as page_models
 from ....product import models as product_models
 from ....shipping import models as shipping_models
 from ...core import ResolveInfo
@@ -259,7 +260,8 @@ class BaseMetadataMutation(BaseMutation):
             | shipping_models.ShippingMethod
             | shipping_models.ShippingZone
             | attribute_models.Attribute
-            | attribute_models.AttributeValue,
+            | attribute_models.AttributeValue
+            | page_models.Page,
         )
 
         use_channel_context = use_channel_context or (

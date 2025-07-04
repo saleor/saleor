@@ -656,12 +656,15 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
 
     @staticmethod
     def resolve_page(root: page_models.Page, info):
-        return (
+        page = (
             page_models.Page.objects.using(get_database_connection_name(info.context))
             .visible_to_user(info.context.user)
             .filter(pk=root.id)
             .first()
         )
+        if not page:
+            return None
+        return ChannelContext(page, channel_slug=None)
 
     @staticmethod
     def resolve_content_json(root: page_models.Page, _info):

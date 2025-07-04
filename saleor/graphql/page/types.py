@@ -26,6 +26,7 @@ from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date, DateTime
 from ..core.types import ModelObjectType, NonNullList
+from ..core.types.context import ChannelContextType
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -146,7 +147,7 @@ class PageTypeCountableConnection(CountableConnection):
         node = PageType
 
 
-class Page(ModelObjectType[models.Page]):
+class Page(ChannelContextType[models.Page]):
     id = graphene.GlobalID(required=True, description="ID of the page.")
     seo_title = graphene.String(description="Title of the page for SEO.")
     seo_description = graphene.String(description="Description of the page for SEO.")
@@ -171,7 +172,11 @@ class Page(ModelObjectType[models.Page]):
         deprecation_reason="Use the `content` field instead.",
         required=True,
     )
-    translation = TranslationField(PageTranslation, type_name="page")
+    translation = TranslationField(
+        PageTranslation,
+        type_name="page",
+        resolver=ChannelContextType.resolve_translation,
+    )
     attribute = graphene.Field(
         SelectedAttribute,
         slug=graphene.Argument(
@@ -188,6 +193,7 @@ class Page(ModelObjectType[models.Page]):
     )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "A static page that can be manually added by a shop operator through the "
             "dashboard."
@@ -196,24 +202,26 @@ class Page(ModelObjectType[models.Page]):
         model = models.Page
 
     @staticmethod
-    def resolve_publication_date(root: models.Page, _info: ResolveInfo):
-        return root.published_at
+    def resolve_publication_date(root: ChannelContext[models.Page], _info: ResolveInfo):
+        return root.node.published_at
 
     @staticmethod
-    def resolve_created(root: models.Page, _info: ResolveInfo):
-        return root.created_at
+    def resolve_created(root: ChannelContext[models.Page], _info: ResolveInfo):
+        return root.node.created_at
 
     @staticmethod
-    def resolve_page_type(root: models.Page, info: ResolveInfo):
-        return PageTypeByIdLoader(info.context).load(root.page_type_id)
+    def resolve_page_type(root: ChannelContext[models.Page], info: ResolveInfo):
+        return PageTypeByIdLoader(info.context).load(root.node.page_type_id)
 
     @staticmethod
-    def resolve_content_json(root: models.Page, _info: ResolveInfo):
-        content = root.content
+    def resolve_content_json(root: ChannelContext[models.Page], _info: ResolveInfo):
+        content = root.node.content
         return content if content is not None else {}
 
     @staticmethod
-    def resolve_attributes(root: models.Page, info: ResolveInfo):
+    def resolve_attributes(root: ChannelContext[models.Page], info: ResolveInfo):
+        page = root.node
+
         def wrap_with_channel_context(
             attributes: list[dict[str, list]] | None,
         ) -> list[SelectedAttribute] | None:
@@ -221,9 +229,10 @@ class Page(ModelObjectType[models.Page]):
                 return None
             return [
                 SelectedAttribute(
-                    attribute=ChannelContext(attribute["attribute"], None),
+                    attribute=ChannelContext(attribute["attribute"], root.channel_slug),
                     values=[
-                        ChannelContext(value, None) for value in attribute["values"]
+                        ChannelContext(value, root.channel_slug)
+                        for value in attribute["values"]
                     ],
                 )
                 for attribute in attributes
@@ -237,26 +246,33 @@ class Page(ModelObjectType[models.Page]):
         ):
             return (
                 SelectedAttributesAllByPageIdLoader(info.context)
-                .load(root.id)
+                .load(page.id)
                 .then(wrap_with_channel_context)
             )
         return (
             SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
-            .load(root.id)
+            .load(page.id)
             .then(wrap_with_channel_context)
         )
 
     @staticmethod
-    def resolve_attribute(root: models.Page, info: ResolveInfo, slug: str):
+    def resolve_attribute(
+        root: ChannelContext[models.Page], info: ResolveInfo, slug: str
+    ):
+        page = root.node
+
         def wrap_with_channel_context(
             attribute_data: dict[str, dict | list[dict]] | None,
         ) -> SelectedAttribute | None:
             if attribute_data is None:
                 return None
             return SelectedAttribute(
-                attribute=ChannelContext(attribute_data["attribute"], None),
+                attribute=ChannelContext(
+                    attribute_data["attribute"], root.channel_slug
+                ),
                 values=[
-                    ChannelContext(value, None) for value in attribute_data["values"]
+                    ChannelContext(value, root.channel_slug)
+                    for value in attribute_data["values"]
                 ],
             )
 
@@ -268,12 +284,12 @@ class Page(ModelObjectType[models.Page]):
         ):
             return (
                 SelectedAttributeAllByPageIdAttributeSlugLoader(info.context)
-                .load((root.id, slug))
+                .load((page.id, slug))
                 .then(wrap_with_channel_context)
             )
         return (
             SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(info.context)
-            .load((root.id, slug))
+            .load((page.id, slug))
             .then(wrap_with_channel_context)
         )
 

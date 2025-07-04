@@ -1530,7 +1530,7 @@ class PageBase(AbstractType):
     @staticmethod
     def resolve_page(root, _info: ResolveInfo):
         _, page = root
-        return page
+        return ChannelContext(page, channel_slug=None)
 
 
 class PageCreated(SubscriptionObjectType, PageBase):
