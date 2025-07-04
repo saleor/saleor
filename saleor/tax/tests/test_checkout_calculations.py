@@ -1,8 +1,10 @@
 from decimal import Decimal
+from unittest import mock
 
 import pytest
 from prices import Money, TaxedMoney
 
+from ...checkout import calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
@@ -30,6 +32,64 @@ def _enable_flat_rates(
     tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
     tc.use_weighted_tax_for_shipping = use_weighted_tax_for_shipping
     tc.save()
+
+
+@pytest.mark.parametrize(
+    (
+        "checkout_total_net",
+        "checkout_total_gross",
+        "gift_card_balance",
+        "expected_total_net",
+        "expected_total_gross",
+    ),
+    [
+        ("0.00", "0.00", "0.00", "0.00", "0.00"),
+        ("0.00", "0.00", "10.00", "0.00", "0.00"),
+        ("10.00", "10.00", "5.00", "5.00", "5.00"),  # tax rate = 0%
+        ("10.00", "10.00", "10.00", "0.00", "0.00"),  # tax rate = 0%
+        ("10.00", "12.00", "10.00", "1.67", "2.00"),  # tax rate = 20%
+        ("10.00", "12.00", "12.00", "0.00", "0.00"),  # tax rate = 20%
+        ("30.00", "36.00", "12.00", "20", "24.00"),  # tax rate = 20%
+    ],
+)
+@mock.patch("saleor.checkout.calculations.checkout_total")
+def test_calculate_checkout_total_with_gift_cards(
+    checkout_total_mock,
+    checkout_total_net,
+    checkout_total_gross,
+    gift_card_balance,
+    expected_total_net,
+    expected_total_gross,
+    gift_card,
+    checkout_with_gift_card,
+    address,
+):
+    assert not gift_card.last_used_on
+    gift_card.current_balance_amount = Decimal(gift_card_balance)
+    gift_card.save(update_fields=["current_balance_amount"])
+
+    checkout = checkout_with_gift_card
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    checkout_total_mock.return_value = TaxedMoney(
+        net=Money(checkout_total_net, "USD"), gross=Money(checkout_total_gross, "USD")
+    )
+
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    assert total.net == Money(expected_total_net, "USD")
+    assert total.gross == Money(expected_total_gross, "USD")
 
 
 @pytest.mark.parametrize(

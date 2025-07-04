@@ -232,6 +232,12 @@ def order(order_generator):
 
 
 @pytest.fixture
+def order_with_gift_card(order, gift_card):
+    order.gift_cards.add(gift_card)
+    return order
+
+
+@pytest.fixture
 def order_unconfirmed(order):
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
