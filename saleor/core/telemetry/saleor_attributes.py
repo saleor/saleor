@@ -8,10 +8,11 @@ OPERATION_NAME: Final = "operation.name"
 
 # GraphQL
 GRAPHQL_DOCUMENT_FINGERPRINT: Final = "graphql.document_fingerprint"
-GRAPHQL_OPERATION_IDENTIFIER: Final = "graphql.operation.identifier"
-GRAPHQL_OPERATION_COST: Final = "graphql.operation.cost"
-GRAPHQL_PARENT_TYPE: Final = "graphql.parent_type"
 GRAPHQL_FIELD_NAME: Final = "graphql.field_name"
+GRAPHQL_OPERATION_COST: Final = "graphql.operation.cost"
+GRAPHQL_OPERATION_IDENTIFIER: Final = "graphql.operation.identifier"
+GRAPHQL_PARENT_TYPE: Final = "graphql.parent_type"
+GRAPHQL_RESOLVER_ROW_COUNT: Final = "graphql.resolver.row_count"
 
 # Http
 SALEOR_SOURCE_SERVICE_NAME: Final = "saleor.source.service.name"
