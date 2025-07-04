@@ -100,7 +100,7 @@ class PaymentGatewayInitializeTokenization(BaseMutation):
         return cls(result=response.result, data=response.data, errors=errors)
 
     @classmethod
-    def perform_mutation(cls, root, info, id, channel, data=None):
+    def perform_mutation(cls, root, info, id, channel, data=None):  # type: ignore[override]
         try:
             return cls._perform_mutation(root, info, id, channel, data)
         except ValidationError as error:

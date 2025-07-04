@@ -135,7 +135,7 @@ def transaction_release_funds_for_checkout_task():
 
             manager = get_plugins_manager(allow_replica=True)
             for transaction_item, event in transactions_with_cancel_request_events:
-                channel = checkout_id_to_channel[transaction_item.checkout_id]
+                channel = checkout_id_to_channel[transaction_item.checkout_id]  # type: ignore[index]
                 logger.info(
                     "Releasing funds for transaction %s - canceling",
                     transaction_item.token,
@@ -163,7 +163,7 @@ def transaction_release_funds_for_checkout_task():
                         str(e),
                     )
             for transaction_item, event in transactions_with_charge_request_events:
-                channel = checkout_id_to_channel[transaction_item.checkout_id]
+                channel = checkout_id_to_channel[transaction_item.checkout_id]  # type: ignore[index]
                 logger.info(
                     "Releasing funds for transaction %s - refunding",
                     transaction_item.token,

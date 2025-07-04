@@ -109,7 +109,7 @@ def test_valid_voucher_min_checkout_items_quantity(voucher):
 def test_percentage_discounts(product, channel_USD, catalogue_promotion_without_rules):
     # given
     variant = product.variants.get()
-    reward_value = Decimal("50")
+    reward_value = Decimal(50)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -123,10 +123,10 @@ def test_percentage_discounts(product, channel_USD, catalogue_promotion_without_
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     variant_channel_listing.variantlistingpromotionrule.create(
         promotion_rule=rule,
-        discount_amount=Decimal("5"),
+        discount_amount=Decimal(5),
         currency=channel_USD.currency_code,
     )
-    price = Decimal("10")
+    price = Decimal(10)
 
     # when
     final_price = variant.get_price(
@@ -142,7 +142,7 @@ def test_percentage_discounts(product, channel_USD, catalogue_promotion_without_
 def test_fixed_discounts(product, channel_USD, catalogue_promotion_without_rules):
     # given
     variant = product.variants.get()
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -156,10 +156,10 @@ def test_fixed_discounts(product, channel_USD, catalogue_promotion_without_rules
     variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     variant_channel_listing.variantlistingpromotionrule.create(
         promotion_rule=rule,
-        discount_amount=Decimal("1"),
+        discount_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
-    price = Decimal("10")
+    price = Decimal(10)
 
     # when
     final_price = variant.get_price(

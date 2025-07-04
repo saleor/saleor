@@ -139,7 +139,7 @@ class ChannelUpdate(DeprecatedModelMutation):
         return cleaned_input
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(cls, context, permissions=None, **data):  # type: ignore[override]
         permissions = [ChannelPermissions.MANAGE_CHANNELS]
         has_permission = super().check_permissions(
             context, permissions, require_all_permissions=False, **data

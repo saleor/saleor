@@ -40,7 +40,7 @@ def test_order_transaction_charge_request(
     order, webhook_app, permission_manage_payments
 ):
     # given
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         name="Credit card",
@@ -117,7 +117,7 @@ def test_checkout_transaction_charge_request(
     # given
     checkout_with_items.price_expiration = timezone.now() - timezone.timedelta(hours=10)
     checkout_with_items.save()
-    authorized_value = Decimal("10")
+    authorized_value = Decimal(10)
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         name="Credit card",

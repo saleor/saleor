@@ -96,14 +96,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls.call_event(manager.permission_group_updated, instance)
 
     @classmethod
-    def clean_input(
-        cls,
-        info,
-        instance,
-        data,
-    ):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         requestor = info.context.user
-        cls.ensure_requestor_can_manage_group(info, requestor, instance)
+        cls.ensure_requestor_can_manage_group(info, requestor, instance)  # type: ignore[arg-type]
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")

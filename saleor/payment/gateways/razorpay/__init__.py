@@ -32,7 +32,7 @@ def _generate_response(
 ) -> GatewayResponse:
     """Generate Saleor transaction information from the payload or from passed data."""
     return GatewayResponse(
-        transaction_id=data.get("id", payment_information.token),
+        transaction_id=data.get("id", payment_information.token),  # type: ignore[arg-type]
         action_required=False,
         kind=kind,
         amount=data.get("amount", payment_information.amount),

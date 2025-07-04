@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
                     model_name="transactionitem",
                     name="voided_value",
                     field=models.DecimalField(
-                        decimal_places=3, default=Decimal("0"), max_digits=12, null=True
+                        decimal_places=3, default=Decimal(0), max_digits=12, null=True
                     ),
                 ),
             ],

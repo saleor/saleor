@@ -18,7 +18,7 @@ MT = TypeVar("MT", bound=Model)
 
 class ModelObjectType(Generic[MT], BaseObjectType):
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls,
         interfaces=(),
         possible_types=(),

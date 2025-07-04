@@ -596,12 +596,12 @@ def _set_checkout_base_subtotal_and_total_on_checkout_creation(
             channel_id=checkout.channel_id,
         ).values_list("variant_id", "discounted_price_amount", "price_amount")
     }
-    subtotal = Decimal("0")
+    subtotal = Decimal(0)
     for line in checkout.lines.all():
         if price_amount := line.price_override:
             price = price_amount
         else:
-            price = variant_id_to_discounted_price.get(line.variant_id) or Decimal("0")
+            price = variant_id_to_discounted_price.get(line.variant_id) or Decimal(0)
         subtotal += price * line.quantity
     checkout.base_subtotal = Money(subtotal, checkout.currency)
     # base total and subtotal is the same, as there is no option to set the

@@ -48,7 +48,7 @@ class TransactionItem(ModelWithMetadata):
     charged_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount_authorized = MoneyField(
         amount_field="authorized_value", currency_field="currency"
@@ -56,7 +56,7 @@ class TransactionItem(ModelWithMetadata):
     authorized_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount_refunded = MoneyField(
         amount_field="refunded_value", currency_field="currency"
@@ -64,7 +64,7 @@ class TransactionItem(ModelWithMetadata):
     refunded_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount_canceled = MoneyField(
         amount_field="canceled_value", currency_field="currency"
@@ -72,7 +72,7 @@ class TransactionItem(ModelWithMetadata):
     canceled_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount_refund_pending = MoneyField(
         amount_field="refund_pending_value", currency_field="currency"
@@ -80,7 +80,7 @@ class TransactionItem(ModelWithMetadata):
     refund_pending_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
 
     amount_charge_pending = MoneyField(
@@ -89,7 +89,7 @@ class TransactionItem(ModelWithMetadata):
     charge_pending_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
 
     amount_authorize_pending = MoneyField(
@@ -98,13 +98,13 @@ class TransactionItem(ModelWithMetadata):
     authorize_pending_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
 
     cancel_pending_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount_cancel_pending = MoneyField(
         amount_field="cancel_pending_value", currency_field="currency"
@@ -210,7 +210,7 @@ class TransactionEvent(models.Model):
     amount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

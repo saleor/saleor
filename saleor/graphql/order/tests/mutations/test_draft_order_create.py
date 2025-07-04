@@ -3203,7 +3203,7 @@ def test_draft_order_create_order_promotion_flat_rates(
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
     assert rule.reward_value_type == RewardValueType.PERCENTAGE
     reward_value = rule.reward_value
-    assert rule.reward_value == Decimal("25")
+    assert rule.reward_value == Decimal(25)
 
     variant = variant_with_many_stocks
     user_id = graphene.Node.to_global_id("User", customer_user.id)

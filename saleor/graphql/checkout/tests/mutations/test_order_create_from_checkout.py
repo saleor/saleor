@@ -860,7 +860,7 @@ def test_order_from_checkout_with_voucher_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_voucher_percentage.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     code = voucher_percentage.codes.first()
@@ -1107,7 +1107,7 @@ def test_order_from_checkout_with_free_shipping_voucher_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id
     )
-    shipping_amount = Decimal("35")
+    shipping_amount = Decimal(35)
     shipping_listing.price_amount = shipping_amount
     shipping_listing.save(update_fields=["price_amount"])
 

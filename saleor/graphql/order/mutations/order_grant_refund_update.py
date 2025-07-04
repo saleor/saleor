@@ -162,8 +162,7 @@ class OrderGrantRefundUpdate(BaseMutation):
             and not only_reason_provided
         ):
             fields_from_input = set(input.keys())
-            if "reason" in fields_from_input:
-                fields_from_input.remove("reason")
+            fields_from_input.discard("reason")
             error_msg = (
                 "Only reason can be updated when `OrderGrantedRefund.status` is PENDING"
                 " or SUCCESS."

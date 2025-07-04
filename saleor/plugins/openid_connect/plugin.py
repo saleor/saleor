@@ -508,7 +508,7 @@ class OpenIDConnectPlugin(BasePlugin):
                 user = get_user_from_access_payload(payload, request)
             except (InvalidTokenError, DecodeError):
                 return previous_value
-            if user.is_staff:
+            if user and user.is_staff:
                 assign_staff_to_default_group_and_update_permissions(
                     user, self.config.default_group_name
                 )

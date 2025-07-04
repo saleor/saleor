@@ -148,6 +148,7 @@ def authorize(
     credit_card = gateway_response.get("credit_card", {})
     brand = credit_card.get("card_type", "")
     brand = brand.lower() if brand is not None else ""
+    transaction_id = gateway_response.get("transaction_id", payment_information.token)
 
     return GatewayResponse(
         is_success=result.is_success,
@@ -156,9 +157,7 @@ def authorize(
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
         customer_id=gateway_response.get("customer_id"),
-        transaction_id=gateway_response.get(
-            "transaction_id", payment_information.token
-        ),
+        transaction_id=transaction_id,  # type: ignore[arg-type]
         error=error,
         payment_method_info=PaymentMethodInfo(
             last_4=credit_card.get("last_4"),
@@ -251,7 +250,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         currency=gateway_response.get("currency", payment_information.currency),
         transaction_id=gateway_response.get(
             "transaction_id", payment_information.token
-        ),
+        ),  # type: ignore[arg-type]
         error=error,
         raw_response=gateway_response,
     )
@@ -278,7 +277,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
         currency=gateway_response.get("currency", payment_information.currency),
         transaction_id=gateway_response.get(
             "transaction_id", payment_information.token
-        ),
+        ),  # type: ignore[arg-type]
         error=error,
         raw_response=gateway_response,
     )
@@ -308,7 +307,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         currency=gateway_response.get("currency", payment_information.currency),
         transaction_id=gateway_response.get(
             "transaction_id", payment_information.token
-        ),
+        ),  # type: ignore[arg-type]
         error=error,
         raw_response=gateway_response,
     )

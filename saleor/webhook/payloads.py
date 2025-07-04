@@ -713,7 +713,7 @@ def _get_charge_taxes_for_product(product: "Product") -> bool:
     if tax_class_id:
         charge_taxes = (
             TaxClassCountryRate.objects.filter(tax_class_id=tax_class_id)
-            .exclude(rate=Decimal("0"))
+            .exclude(rate=Decimal(0))
             .exists()
         )
     return charge_taxes

@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             model_name="transactionevent",
             name="amount_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(
@@ -142,7 +142,7 @@ class Migration(migrations.Migration):
             model_name="transactionitem",
             name="authorize_pending_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(
@@ -157,7 +157,7 @@ class Migration(migrations.Migration):
             model_name="transactionitem",
             name="cancel_pending_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(
@@ -172,7 +172,7 @@ class Migration(migrations.Migration):
             model_name="transactionitem",
             name="canceled_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(
@@ -187,7 +187,7 @@ class Migration(migrations.Migration):
             model_name="transactionitem",
             name="charge_pending_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(
@@ -222,7 +222,7 @@ class Migration(migrations.Migration):
             model_name="transactionitem",
             name="refund_pending_value",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(

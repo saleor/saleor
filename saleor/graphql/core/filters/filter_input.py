@@ -42,7 +42,7 @@ class FilterInputObjectType(BaseInputObjectType):
     """
 
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls, _meta=None, model=None, filterset_class=None, fields=None, **options
     ):
         cls.custom_filterset_class = filterset_class

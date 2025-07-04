@@ -89,7 +89,7 @@ class PaymentMethodInitializeTokenization(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(
+    def perform_mutation(  # type: ignore[override]
         cls, root, info, id, channel, payment_flow_to_support, data=None
     ):
         try:

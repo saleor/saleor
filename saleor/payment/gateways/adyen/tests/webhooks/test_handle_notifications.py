@@ -507,7 +507,7 @@ def test_handle_authorization_calls_refund_for_inactive_payment(
     payment.refresh_from_db()
     assert not payment.order
     assert payment.checkout
-    assert payment.captured_amount == Decimal("0")
+    assert payment.captured_amount == Decimal(0)
     assert payment.transactions.count() == 3
 
 

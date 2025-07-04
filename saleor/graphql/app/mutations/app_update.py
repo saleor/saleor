@@ -46,7 +46,7 @@ class AppUpdate(DeprecatedModelMutation):
         return instance
 
     @classmethod
-    def clean_input(cls, info, instance, data, **kwargs):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         requestor = get_user_or_app_from_context(info.context)
         if not requestor_is_superuser(requestor) and not can_manage_app(

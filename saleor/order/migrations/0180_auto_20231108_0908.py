@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             model_name="order",
             name="subtotal_gross_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
             model_name="order",
             name="subtotal_net_amount",
             field=models.DecimalField(
-                decimal_places=3, default=Decimal("0"), max_digits=12
+                decimal_places=3, default=Decimal(0), max_digits=12
             ),
         ),
         migrations.RunSQL(

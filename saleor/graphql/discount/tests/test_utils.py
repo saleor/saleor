@@ -281,7 +281,7 @@ def test_get_variants_for_promotion(
     variant, product_with_two_variants, product_variant_list
 ):
     # given
-    reward_value = Decimal("2")
+    reward_value = Decimal(2)
     promotion = Promotion.objects.create(
         name="Promotion",
     )

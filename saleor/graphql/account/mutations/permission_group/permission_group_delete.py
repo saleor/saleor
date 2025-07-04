@@ -66,7 +66,9 @@ class PermissionGroupDelete(ModelDeleteMutation):
         cls.check_if_group_can_be_removed(requestor, instance)
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(
+        cls, context, permissions=None, require_all_permissions=False, **data
+    ):
         app = get_app_promise(context).get()
         if app:
             raise PermissionDenied(

@@ -451,15 +451,15 @@ def test_draft_orders_query_with_search(
             OrderDiscount(
                 order=orders[0],
                 name="Some discount name",
-                value=Decimal("1"),
-                amount_value=Decimal("1"),
+                value=Decimal(1),
+                amount_value=Decimal(1),
                 translated_name="translated",
             ),
             OrderDiscount(
                 order=orders[2],
                 name="Some other discount name",
-                value=Decimal("10"),
-                amount_value=Decimal("10"),
+                value=Decimal(10),
+                amount_value=Decimal(10),
                 translated_name="PL_name",
             ),
         ]

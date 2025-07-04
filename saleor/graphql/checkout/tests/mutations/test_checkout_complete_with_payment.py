@@ -1153,7 +1153,7 @@ def test_checkout_with_order_promotion_complete(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("1")),
+        (True, DiscountValueType.FIXED, Decimal(1)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -1312,7 +1312,7 @@ def test_checkout_with_voucher_complete_product_on_promotion(
     checkout_line_variant = checkout_line.variant
     channel = checkout.channel
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -1442,7 +1442,7 @@ def test_checkout_with_voucher_complete_product_on_promotion(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("3")),
+        (True, DiscountValueType.FIXED, Decimal(3)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -1831,8 +1831,8 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal("1")
-    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal(1)
+    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal(1)
     gift_card.save()
 
     expected_gc_balance_amount = (
@@ -1917,7 +1917,7 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout.gift_cards.add(gift_card)
@@ -2049,7 +2049,7 @@ def test_checkout_complete_product_on_promotion(
 
     channel = checkout.channel
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -2190,7 +2190,7 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
     checkout_line_variant = checkout_line.variant
 
     channel = checkout.channel
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -2424,7 +2424,7 @@ def test_checkout_complete_product_on_old_sale(
     catalogue_promotion_without_rules.old_sale_id = old_sale_id
     catalogue_promotion_without_rules.save(update_fields=["old_sale_id"])
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -2600,7 +2600,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
 
     channel = checkout.channel
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -4120,7 +4120,7 @@ def test_complete_checkout_raises_error_for_local_stock(
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
-    payment.total = Decimal("20")
+    payment.total = Decimal(20)
     payment.currency = checkout.currency
     payment.checkout = checkout
     payment.save()

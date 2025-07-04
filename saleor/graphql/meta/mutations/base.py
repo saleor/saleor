@@ -34,7 +34,7 @@ class BaseMetadataMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls,
         arguments=None,
         permission_map=None,
@@ -153,7 +153,7 @@ class BaseMetadataMutation(BaseMutation):
         return graphene_type._meta.model
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(cls, context, permissions=None, **data):  # type: ignore[override]
         is_app = bool(getattr(context, "app", None))
         if is_app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
             raise PermissionDenied(

@@ -1727,7 +1727,7 @@ def test_calculate_checkout_total_for_JPY_with_promotion(
     channel = checkout.channel
     promotion = Promotion.objects.create(name="Checkout promotion")
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = promotion.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -2644,7 +2644,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     method = shipping_zone.shipping_methods.get()
     shipping_channel_listings = method.channel_listings.get(channel=channel)
 
-    discount_amount = shipping_channel_listings.price.amount - Decimal("5")
+    discount_amount = shipping_channel_listings.price.amount - Decimal(5)
     order.discounts.create(
         type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
@@ -4226,7 +4226,7 @@ def test__get_item_tax_rate_handles_tax_zero_and_rate_value(
     plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
 
     # 0.36 == sum of two tax districts
-    assert Decimal("0") == plugin._get_item_tax_rate(
+    assert Decimal(0) == plugin._get_item_tax_rate(
         avalara_response_with_line_details_and_zero_tax_with_returned_rate,
         "123",
         Decimal(0.0),
@@ -5298,7 +5298,7 @@ def test_get_order_request_data_draft_order_with_voucher(
         assert line_data["discounted"] is True
     # shipping line shouldn't be discounted
     assert lines_data[-1]["discounted"] is False
-    assert Decimal(lines_data[-1]["amount"]) != Decimal("0")
+    assert Decimal(lines_data[-1]["amount"]) != Decimal(0)
 
 
 def test_get_order_request_data_draft_order_with_shipping_voucher(
@@ -5788,7 +5788,7 @@ def test_generate_request_data_from_checkout_lines_sets_different_tax_code_for_z
 
     line = checkout_with_item.lines.first()
     variant = line.variant
-    variant.channel_listings.all().update(price_amount=Decimal("0"))
+    variant.channel_listings.all().update(price_amount=Decimal(0))
     variant.product.tax_class.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
     )
@@ -5821,7 +5821,7 @@ def test_generate_request_data_from_checkout_lines_sets_different_tax_code_only_
     line.save()
 
     variant = line.variant
-    variant.channel_listings.all().update(price_amount=Decimal("11"))
+    variant.channel_listings.all().update(price_amount=Decimal(11))
     variant.product.tax_class.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
     )
@@ -5859,7 +5859,7 @@ def test_generate_request_data_from_checkout_lines_with_collection_point(
     line.save()
 
     variant = line.variant
-    variant.channel_listings.all().update(price_amount=Decimal("11"))
+    variant.channel_listings.all().update(price_amount=Decimal(11))
     variant.product.tax_class.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
     )
@@ -5899,7 +5899,7 @@ def test_generate_request_data_from_checkout_lines_with_shipping_method(
     line.save()
 
     variant = line.variant
-    variant.channel_listings.all().update(price_amount=Decimal("11"))
+    variant.channel_listings.all().update(price_amount=Decimal(11))
     variant.product.tax_class.store_value_in_metadata(
         {META_CODE_KEY: "taxcode", META_DESCRIPTION_KEY: "tax_description"}
     )
@@ -6012,8 +6012,8 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
     plugin_configuration(channel=channel_USD)
 
     line = order_with_lines.lines.first()
-    line.base_unit_price_amount = Decimal("0")
-    line.undiscounted_base_unit_price_amount = Decimal("0")
+    line.base_unit_price_amount = Decimal(0)
+    line.undiscounted_base_unit_price_amount = Decimal(0)
     line.save(
         update_fields=[
             "base_unit_price_amount",
@@ -6041,8 +6041,8 @@ def test_get_order_lines_data_with_discounted(
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(channel=channel_USD)
 
-    order_line.unit_price_gross_amount = Decimal("10")
-    order_line.undiscounted_unit_price_gross_amount = Decimal("20")
+    order_line.unit_price_gross_amount = Decimal(10)
+    order_line.undiscounted_unit_price_gross_amount = Decimal(20)
     order_line.quantity = 1
     order_line.save(
         update_fields=[
@@ -6113,7 +6113,7 @@ def test_get_order_lines_data_adds_lines_with_taxes_disabled_for_line(
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     plugin_configuration(channel=channel_USD)
 
-    order_with_lines.base_shipping_price_amount = Decimal("0")
+    order_with_lines.base_shipping_price_amount = Decimal(0)
     order_with_lines.save(update_fields=["base_shipping_price_amount"])
 
     line = order_with_lines.lines.first()

@@ -841,7 +841,7 @@ def test_fetch_order_prices_manual_discount_and_order_discount_flat_rates(
 
     tax_rate = Decimal("1.23")
 
-    discount_value = Decimal("50")
+    discount_value = Decimal(50)
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.PERCENTAGE,
         value=discount_value,
@@ -978,7 +978,7 @@ def test_fetch_order_prices_manual_discount_and_gift_discount_flat_rates(
 
     tax_rate = Decimal("1.23")
 
-    discount_value = Decimal("50")
+    discount_value = Decimal(50)
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.PERCENTAGE,
         value=discount_value,
@@ -1125,7 +1125,7 @@ def test_fetch_order_prices_manual_discount_and_catalogue_discount_flat_rates(
 
     tax_rate = Decimal("1.23")
 
-    manual_discount_value = Decimal("50")
+    manual_discount_value = Decimal(50)
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.PERCENTAGE,
         value=manual_discount_value,
@@ -1286,7 +1286,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    unit_discount_amount = Decimal("2")
+    unit_discount_amount = Decimal(2)
     voucher_listing.discount_value = unit_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1301,7 +1301,7 @@ def test_fetch_order_prices_manual_order_discount_voucher_specific_product(
     create_or_update_voucher_discount_objects_for_order(order)
 
     # create manual order discount
-    order_discount_amount = Decimal("10")
+    order_discount_amount = Decimal(10)
     order_discount = order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
@@ -1404,7 +1404,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    discount_amount = Decimal("3")
+    discount_amount = Decimal(3)
     voucher_listing.discount_value = discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1419,7 +1419,7 @@ def test_fetch_order_prices_manual_order_discount_and_voucher_apply_once_per_ord
     create_or_update_voucher_discount_objects_for_order(order)
 
     # create manual order discount
-    order_discount_amount = Decimal("8")
+    order_discount_amount = Decimal(8)
     order_discount = order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
@@ -1553,7 +1553,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_amount = Decimal("4")
+    voucher_discount_amount = Decimal(4)
     voucher_listing.discount_value = voucher_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1571,7 +1571,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed(
         undiscounted_subtotal += line.base_unit_price_amount * line.quantity
 
     # create manual order discount
-    manual_discount_amount = Decimal("10")
+    manual_discount_amount = Decimal(10)
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=manual_discount_amount,
@@ -1645,7 +1645,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_amount = Decimal("4")
+    voucher_discount_amount = Decimal(4)
     voucher_listing.discount_value = voucher_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1663,7 +1663,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_percentage(
         undiscounted_subtotal += line.base_unit_price_amount * line.quantity
 
     # create manual order discount
-    manual_discount_value = Decimal("10")
+    manual_discount_value = Decimal(10)
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.PERCENTAGE,
         value=manual_discount_value,
@@ -1740,7 +1740,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
     tax_rate = Decimal("1.23")
 
     voucher_listing = voucher.channel_listings.get(channel=order.channel)
-    voucher_discount_amount = Decimal("4")
+    voucher_discount_amount = Decimal(4)
     voucher_listing.discount_value = voucher_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
 
@@ -1758,7 +1758,7 @@ def test_fetch_order_prices_voucher_shipping_and_manual_discount_fixed_exceed_to
         undiscounted_subtotal += line.base_unit_price_amount * line.quantity
 
     # create manual order discount
-    manual_discount_value = Decimal("1000")
+    manual_discount_value = Decimal(1000)
     manual_discount = order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=manual_discount_value,

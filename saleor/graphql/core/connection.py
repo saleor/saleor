@@ -678,7 +678,7 @@ class NonNullConnection(BaseConnection):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, node=None, name=None, **options):
+    def __init_subclass_with_meta__(cls, node=None, name=None, **options):  # type: ignore[override]
         super().__init_subclass_with_meta__(node=node, name=name, **options)
 
         # Override the original EdgeBase type to make to `node` field required.
