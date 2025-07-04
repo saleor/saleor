@@ -46,7 +46,11 @@ from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
-from .filters import AttributeValueFilterInput
+from .filters import (
+    AttributeValueFilterInput,
+    AttributeValueWhereInput,
+    search_attribute_values,
+)
 from .sorters import AttributeChoicesSortingInput
 from .utils import AttributeAssignmentMixin
 
@@ -241,8 +245,15 @@ class Attribute(ChannelContextType[models.Attribute]):
         AttributeValueCountableConnection,
         sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
         filter=AttributeValueFilterInput(
-            description="Filtering options for attribute choices."
+            description=(
+                f"Filtering options for attribute choices. {DEPRECATED_IN_3X_INPUT} "
+                "Use where filter instead."
+            ),
         ),
+        where=AttributeValueWhereInput(
+            description="Where filtering options for attribute choices." + ADDED_IN_322
+        ),
+        search=graphene.String(description="Search attribute choices." + ADDED_IN_322),
         description=AttributeDescriptions.VALUES,
     )
 
@@ -355,6 +366,9 @@ class Attribute(ChannelContextType[models.Attribute]):
             qs = attr.values.using(get_database_connection_name(info.context)).all()
         else:
             qs = models.AttributeValue.objects.none()
+
+        if search := kwargs.pop("search", None):
+            qs = search_attribute_values(qs, search)
 
         channel_context_qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
         channel_context_qs = filter_connection_queryset(
