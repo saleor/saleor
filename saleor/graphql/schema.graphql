@@ -561,7 +561,11 @@ type Query {
     """Where filtering options for product variants."""
     where: ProductVariantWhereInput
 
-    """Search product variants."""
+    """
+    Search product variants.
+    
+    Added in Saleor 3.22.
+    """
     search: String
 
     """Sort products variants."""

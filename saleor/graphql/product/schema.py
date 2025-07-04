@@ -14,6 +14,7 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
     ADDED_IN_321,
+    ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -340,7 +341,7 @@ class ProductQueries(graphene.ObjectType):
         where=ProductVariantWhereInput(
             description="Where filtering options for product variants."
         ),
-        search=graphene.String(description="Search product variants."),
+        search=graphene.String(description="Search product variants." + ADDED_IN_322),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of product variants. Requires one of the following permissions to "
