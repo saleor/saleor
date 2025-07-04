@@ -4,7 +4,7 @@ import graphene
 import pytest
 
 from .....attribute import AttributeInputType, AttributeType
-from .....attribute.models import Attribute
+from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.units import MeasurementUnits
 from .....product import ProductTypeKind
@@ -1832,3 +1832,167 @@ def test_search_attributes_on_root_level(
     assert len(nodes) == len(indexes)
     returned_attrs = {node["node"]["slug"] for node in nodes}
     assert returned_attrs == {attributes[index].slug for index in indexes}
+
+
+ATTRIBUTE_VALUES_FILTER_QUERY = """
+query($id: ID!, $where: AttributeValueWhereInput, $search: String) {
+    attribute(id: $id) {
+        name
+        slug
+        choices(first: 10, where: $where, search: $search) {
+            edges {
+                node {
+                    name
+                    slug
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_attributes_filter_by_choices_ids(api_client, color_attribute):
+    # given
+    choices = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(slug="choice-1", name="Choice 1", attribute=color_attribute),
+            AttributeValue(slug="choice-2", name="Choice 2", attribute=color_attribute),
+            AttributeValue(slug="choice-3", name="Choice 3", attribute=color_attribute),
+        ]
+    )
+    lookup_values = [choices[0], choices[2]]
+    value_ids = [
+        graphene.Node.to_global_id("AttributeValue", value.pk)
+        for value in lookup_values
+    ]
+
+    variables = {
+        "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "where": {"ids": value_ids},
+    }
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    choices = data["data"]["attribute"]["choices"]["edges"]
+    assert len(choices) == len(lookup_values)
+    returned_choices = {node["node"]["slug"] for node in choices}
+    assert returned_choices == {value.slug for value in lookup_values}
+
+
+@pytest.mark.parametrize(
+    ("where", "indexes"),
+    [
+        ({"eq": "choice-1"}, [0]),
+        ({"eq": "non-existent-choice"}, []),
+        ({"oneOf": ["choice-1", "choice-2"]}, [0, 1]),
+        ({"oneOf": ["non-existent-choice"]}, []),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": None}, []),
+    ],
+)
+def test_attributes_filter_by_choices_slug(where, indexes, api_client, color_attribute):
+    # given
+    values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(slug="choice-1", name="Choice 1", attribute=color_attribute),
+            AttributeValue(slug="choice-2", name="Choice 2", attribute=color_attribute),
+            AttributeValue(slug="choice-3", name="Choice 3", attribute=color_attribute),
+        ]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "where": {"slug": where},
+    }
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    choices = data["data"]["attribute"]["choices"]["edges"]
+    assert len(choices) == len(indexes)
+    returned_choices = {node["node"]["slug"] for node in choices}
+    assert returned_choices == {values[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("where", "indexes"),
+    [
+        ({"eq": "Choice 1"}, [0]),
+        ({"eq": "Non-existent Choice"}, []),
+        ({"oneOf": ["Choice 1", "Choice 2"]}, [0, 1]),
+        ({"oneOf": ["Non-existent Choice"]}, []),
+        ({"oneOf": []}, []),
+        ({"oneOf": None}, []),
+        ({"eq": None}, []),
+    ],
+)
+def test_attributes_filter_by_choices_name(where, indexes, api_client, color_attribute):
+    # given
+    values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(slug="choice-1", name="Choice 1", attribute=color_attribute),
+            AttributeValue(slug="choice-2", name="Choice 2", attribute=color_attribute),
+            AttributeValue(slug="choice-3", name="Choice 3", attribute=color_attribute),
+        ]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "where": {"name": where},
+    }
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    choices = data["data"]["attribute"]["choices"]["edges"]
+    assert len(choices) == len(indexes)
+    returned_choices = {node["node"]["name"] for node in choices}
+    assert returned_choices == {values[index].name for index in indexes}
+
+
+@pytest.mark.parametrize(
+    ("search", "indexes"),
+    [
+        ("choice", [0, 1, 2]),
+        ("Choice", [0, 1, 2]),
+        ("choice-1", [0]),
+        ("Choice 2", [1]),
+        ("Choice 3", [2]),
+        ("Non-existent", []),
+    ],
+)
+def test_attributes_filter_by_choices_search(
+    search, indexes, api_client, color_attribute
+):
+    # given
+    values = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(slug="choice-1", name="Choice 1", attribute=color_attribute),
+            AttributeValue(slug="choice-2", name="Choice 2", attribute=color_attribute),
+            AttributeValue(slug="choice-3", name="Choice 3", attribute=color_attribute),
+        ]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "search": search,
+    }
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    choices = data["data"]["attribute"]["choices"]["edges"]
+    assert len(choices) == len(indexes)
+    returned_choices = {node["node"]["name"] for node in choices}
+    assert returned_choices == {values[index].name for index in indexes}
