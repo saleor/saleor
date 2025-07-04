@@ -684,6 +684,13 @@ type Query {
     Added in Saleor 3.21.
     """
     slugLanguageCode: LanguageCodeEnum
+
+    """
+    Slug of a channel for which the data should be returned.
+    
+    Added in Saleor 3.22.
+    """
+    channel: String
   ): Page @doc(category: "Pages")
 
   """List of the shop's pages."""
@@ -707,6 +714,13 @@ type Query {
     Added in Saleor 3.22.
     """
     where: PageWhereInput
+
+    """
+    Slug of a channel for which the data should be returned.
+    
+    Added in Saleor 3.22.
+    """
+    channel: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
