@@ -42,7 +42,11 @@ from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders import AttributesByAttributeId
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
-from .filters import AttributeValueFilterInput
+from .filters import (
+    AttributeValueFilterInput,
+    AttributeValueWhereInput,
+    search_attribute_values,
+)
 from .sorters import AttributeChoicesSortingInput
 from .utils import AttributeAssignmentMixin
 
@@ -211,9 +215,31 @@ class Attribute(ModelObjectType[models.Attribute]):
         AttributeValueCountableConnection,
         sort_by=AttributeChoicesSortingInput(description="Sort attribute choices."),
         filter=AttributeValueFilterInput(
-            description="Filtering options for attribute choices."
+            description=(
+                f"Filtering options for attribute choices. {DEPRECATED_IN_3X_INPUT} "
+                "Use the `where` filter instead."
+            ),
         ),
-        description=AttributeDescriptions.VALUES,
+        where=AttributeValueWhereInput(
+            description="Where filtering options for attribute choices." + ADDED_IN_322
+        ),
+        search=graphene.String(description="Search attribute choices." + ADDED_IN_322),
+        description=(
+            "A list of predefined attribute choices available for selection. "
+            "Available only for attributes with predefined choices."
+        ),
+    )
+    values = FilterConnectionField(
+        AttributeValueCountableConnection,
+        sort_by=AttributeChoicesSortingInput(description="Sort attribute values."),
+        where=AttributeValueWhereInput(
+            description="Where filtering options for attribute values."
+        ),
+        search=graphene.String(description="Search attribute values."),
+        description=(
+            "List of all existing attribute values. This includes all values"
+            " that have been assigned to attributes." + ADDED_IN_322
+        ),
     )
 
     value_required = graphene.Boolean(
@@ -317,6 +343,23 @@ class Attribute(ModelObjectType[models.Attribute]):
             qs = root.values.using(get_database_connection_name(info.context)).all()
         else:
             qs = models.AttributeValue.objects.none()
+
+        if search := kwargs.pop("search", None):
+            qs = search_attribute_values(qs, search)
+
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(
+            qs, info, kwargs, AttributeValueCountableConnection
+        )
+
+    @staticmethod
+    def resolve_values(root: models.Attribute, info: ResolveInfo, **kwargs):
+        qs = root.values.using(get_database_connection_name(info.context)).all()
+
+        if search := kwargs.pop("search", None):
+            qs = search_attribute_values(qs, search)
 
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
