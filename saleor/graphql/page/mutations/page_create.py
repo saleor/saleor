@@ -10,6 +10,7 @@ from ....permission.enums import PagePermissions
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import PageAttributeAssignmentMixin
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.fields import JSONString
@@ -134,3 +135,9 @@ class PageCreate(DeprecatedModelMutation):
         super().save(info, instance, cleaned_input)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_created, instance)
+
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.page = ChannelContext(instance, channel_slug=None)
+        return response

@@ -2,6 +2,7 @@ import graphene
 
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
@@ -83,7 +84,10 @@ class PageQueries(graphene.ObjectType):
     def resolve_page(
         _root, info: ResolveInfo, *, id=None, slug=None, slug_language_code=None
     ):
-        return resolve_page(info, id, slug, slug_language_code)
+        page = resolve_page(info, id, slug, slug_language_code)
+        if not page:
+            return None
+        return ChannelContext(page, channel_slug=None)
 
     @staticmethod
     def resolve_pages(_root, info: ResolveInfo, **kwargs):
@@ -91,6 +95,7 @@ class PageQueries(graphene.ObjectType):
         search = kwargs.get("search") or kwargs.get("filter", {}).get("search")
         if search:
             qs = search_pages(qs, search)
+        qs = ChannelQsContext(qs, channel_slug=None)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )

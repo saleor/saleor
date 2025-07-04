@@ -224,14 +224,16 @@ class MenuItem(ChannelContextType[models.MenuItem]):
                 and requestor.is_active
                 and requestor.has_perm(PagePermissions.MANAGE_PAGES)
             )
+
+            def resolve_page_with_channel(page):
+                if requestor_has_access_to_all or page.is_visible:
+                    return ChannelContext(node=page, channel_slug=root.channel_slug)
+                return None
+
             return (
                 PageByIdLoader(info.context)
                 .load(root.node.page_id)
-                .then(
-                    lambda page: (
-                        page if requestor_has_access_to_all or page.is_visible else None
-                    )
-                )
+                .then(resolve_page_with_channel)
             )
         return None
 
