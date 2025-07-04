@@ -72,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `attributes`
   - `customers`
   - `products`
+  - `productVariants`
   - `orders`
   - `draftOrders`
   - `productType.availableAttributes`

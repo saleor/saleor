@@ -555,11 +555,18 @@ type Query {
     """Slug of a channel for which the data should be returned."""
     channel: String
 
-    """Filtering options for product variant."""
-    filter: ProductVariantFilterInput
+    """Filtering options for product variants."""
+    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options for product variants."""
     where: ProductVariantWhereInput
+
+    """
+    Search product variants.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
 
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
@@ -5698,7 +5705,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   productVariants(
     """Filtering options for product variant."""
-    filter: ProductVariantFilterInput
+    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options for product variants."""
     where: ProductVariantWhereInput
@@ -7547,10 +7554,8 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   products(
-    """
-    Filtering options for products. {DEPRECATED_IN_3X_INPUT} Use `where` filter instead.
-    """
-    filter: ProductFilterInput
+    """Filtering options for products."""
+    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """Where filtering options for products."""
     where: ProductWhereInput
@@ -8199,6 +8204,12 @@ input ProductVariantFilterInput @doc(category: "Products") {
 input ProductVariantWhereInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   ids: [ID!]
+
+  """Filter by product SKU."""
+  sku: StringFilterInput
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
 
   """List of conditions that must be met."""
   AND: [ProductVariantWhereInput!]

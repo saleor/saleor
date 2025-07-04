@@ -74,6 +74,7 @@ from ..utils.filters import (
     filter_slug_list,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
+    filter_where_by_range_field,
     filter_where_by_value_field,
     filter_where_range_field_with_conditions,
 )
@@ -1337,10 +1338,28 @@ class ProductVariantFilter(MetadataFilterBase):
 
 class ProductVariantWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("ProductVariant"))
+    sku = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_product_sku",
+        help_text="Filter by product SKU.",
+    )
+    updated_at = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_updated_at",
+        help_text="Filter by when was the most recent update.",
+    )
 
     class Meta:
         model = ProductVariant
         fields = []
+
+    @staticmethod
+    def filter_product_sku(qs, _, value):
+        return filter_where_by_value_field(qs, "sku", value)
+
+    @staticmethod
+    def filter_updated_at(qs, _, value):
+        return filter_where_by_range_field(qs, "updated_at", value)
 
 
 class CollectionFilter(MetadataFilterBase):

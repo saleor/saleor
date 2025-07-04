@@ -19,7 +19,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import ChannelQsContext, get_database_connection_name
-from ...core.descriptions import RICH_CONTENT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -65,7 +65,8 @@ class Category(ModelObjectType[models.Category]):
         ProductCountableConnection,
         filter=ProductFilterInput(
             description=(
-                "Filtering options for products. {DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
+                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
             )
         ),
         where=ProductWhereInput(description="Where filtering options for products."),
