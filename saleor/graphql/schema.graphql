@@ -6045,7 +6045,21 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     sortBy: AttributeChoicesSortingInput
 
     """Filtering options for attribute choices."""
-    filter: AttributeValueFilterInput
+    filter: AttributeValueFilterInput @deprecated(reason: "Use where filter instead.")
+
+    """
+    Where filtering options for attribute choices.
+    
+    Added in Saleor 3.22.
+    """
+    where: AttributeValueWhereInput
+
+    """
+    Search attribute choices.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -7427,6 +7441,19 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
   search: String
   ids: [ID!]
   slugs: [String!]
+}
+
+"""Where filtering options for attribute values."""
+input AttributeValueWhereInput @doc(category: "Attributes") {
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [AttributeValueWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeValueWhereInput!]
 }
 
 type ProductTypeCountableConnection @doc(category: "Products") {

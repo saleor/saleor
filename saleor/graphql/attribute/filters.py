@@ -24,6 +24,7 @@ from ..core.filters import (
     MetadataFilterBase,
     MetadataWhereFilterBase,
     OperationObjectTypeWhereFilter,
+    WhereFilterSet,
 )
 from ..core.filters.where_input import (
     FilterInputDescriptions,
@@ -92,6 +93,11 @@ def filter_by_attribute_type(qs, _, value):
     return qs.filter(type=value)
 
 
+def search_attribute_values(qs, value):
+    name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
+    return qs.filter(name_slug_qs)
+
+
 class AttributeValueFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method="filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
@@ -103,11 +109,10 @@ class AttributeValueFilter(django_filters.FilterSet):
 
     @classmethod
     def filter_search(cls, queryset, _name, value):
+        """Filter attribute values by name or slug."""
         if not value:
             return queryset
-        name_slug_qs = Q(name__ilike=value) | Q(slug__ilike=value)
-
-        return queryset.filter(name_slug_qs)
+        return search_attribute_values(queryset, value)
 
 
 class AttributeFilter(MetadataFilterBase):
@@ -295,4 +300,33 @@ class AttributeWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeWhere
         description = "Where filtering options."
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+
+
+class AttributeValueWhere(WhereFilterSet):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("AttributeValue"))
+    name = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput, method="filter_by_name"
+    )
+    slug = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput, method="filter_by_slug"
+    )
+
+    class Meta:
+        model = AttributeValue
+        fields = []
+
+    @staticmethod
+    def filter_by_name(qs, name, value):
+        return filter_where_by_value_field(qs, "name", value)
+
+    @staticmethod
+    def filter_by_slug(qs, name, value):
+        return filter_where_by_value_field(qs, "slug", value)
+
+
+class AttributeValueWhereInput(WhereInputObjectType):
+    class Meta:
+        filterset_class = AttributeValueWhere
+        description = "Where filtering options for attribute values."
         doc_category = DOC_CATEGORY_ATTRIBUTES
