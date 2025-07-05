@@ -77,6 +77,11 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         payment_gateways_response: list[PaymentGatewayData],
     ) -> list[PaymentGatewayConfig]:
         response = []
+
+        # Fix: Ensure payment_gateways_response is a list
+        if payment_gateways_response is None:
+            payment_gateways_response = []
+
         payment_gateways_response_dict = {
             gateway.app_identifier: gateway for gateway in payment_gateways_response
         }
