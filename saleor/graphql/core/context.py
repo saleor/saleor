@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.conf import settings
 from django.db.models import Model, QuerySet
