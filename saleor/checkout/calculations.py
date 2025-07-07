@@ -146,9 +146,26 @@ def calculate_checkout_total_with_gift_cards(
         pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         force_update=force_update,
         allow_sync_webhooks=allow_sync_webhooks,
-    ) - checkout_info.checkout.get_total_gift_cards_balance(database_connection_name)
+    )
 
-    return max(total, zero_taxed_money(total.currency))
+    if total == zero_taxed_money(total.currency):
+        return total
+
+    # Calculate how many percent of total net value the total gross value is.
+    gross_percentage = total.gross / total.net
+
+    # Subtract gift cards value from total gross value.
+    total.gross -= checkout_info.checkout.get_total_gift_cards_balance(
+        database_connection_name
+    )
+
+    # Gross value cannot be below zero.
+    total.gross = max(total.gross, zero_money(total.currency))
+
+    # Adjusted total net value is proportional to potentially reduced total gross value.
+    total.net = quantize_price(total.gross / gross_percentage, total.currency)
+
+    return total
 
 
 def checkout_total(
