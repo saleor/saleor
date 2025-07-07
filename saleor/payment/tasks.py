@@ -53,7 +53,7 @@ def transactions_to_release_funds():
             & Q(pk=OuterRef("channel_id"))
             & (
                 Q(checkout_release_funds_cut_off_date__isnull=True)
-                | Q(checkout_release_funds_cut_off_date__lt=OuterRef("last_change"))
+                | Q(checkout_release_funds_cut_off_date__lt=OuterRef("created_at"))
             )
         )
     )
@@ -62,7 +62,7 @@ def transactions_to_release_funds():
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(
         Exists(channels),
-        last_change__gt=now - timedelta(days=365),
+        created_at__gt=now - timedelta(days=365),
         automatically_refundable=True,
         authorize_status__in=[
             CheckoutAuthorizeStatus.PARTIAL,

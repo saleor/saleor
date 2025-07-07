@@ -185,8 +185,7 @@ class PaymentSettingsInput(BaseInputObjectType):
             "Specifies the earliest date on which funds for expired checkouts can begin "
             "to be released. Expired checkouts dated before this cut-off will not have their "
             "funds released. Additionally, no funds will be released for checkouts that are "
-            "more than one year old after last change, regardless of the cut-off date."
-            + ADDED_IN_320
+            "more than one year old, regardless of the cut-off date." + ADDED_IN_320
         ),
     )
 

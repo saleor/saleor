@@ -471,7 +471,7 @@ def test_transactions_to_release_funds_after_year(
     plugins_manager,
 ):
     # given
-    ttl_time = datetime.now(tz=pytz.utc) - timedelta(days=365)
+    ttl_time = datetime.now(tz=pytz.utc)
     time_after_ttl = ttl_time - timedelta(seconds=1)
     with freeze_time(time_after_ttl):
         transaction_item = transaction_item_generator(
@@ -482,6 +482,7 @@ def test_transactions_to_release_funds_after_year(
             transaction_item, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
+        checkout.created_at = ttl_time - timedelta(days=366)
         checkout.save(update_fields=["automatically_refundable", "last_change"])
 
     # when
