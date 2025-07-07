@@ -532,3 +532,28 @@ def test_pages_attribute_with_referenced_product_object_and_channel_slug(
     assert value["referencedObject"]["__typename"] == "Product"
     # having pricing object means that we passed channel_slug to the product
     assert value["referencedObject"]["pricing"]
+
+
+def test_pages_attribute_with_incorrect_channel_slug(
+    staff_api_client,
+    page_type_variant_reference_attribute,
+    permission_manage_pages,
+    page,
+    product,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    query = PAGES_QUERY_WITH_ATTRIBUTE_AND_CHANNEL
+
+    # when
+    variables = {
+        "channel": "non-existing-channel-slug",
+    }
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    pages_data = content["data"]["pages"]["edges"]
+    assert len(pages_data) == 0
