@@ -17,7 +17,7 @@ def migrate_checkout_ttl_release_funds(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("channel", "0018_auto_20250625_1048"),
+        ("channel", "0019_auto_20250625_1048"),
     ]
 
     operations = [

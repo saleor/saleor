@@ -315,9 +315,11 @@ class PaymentSettings(ObjectType):
     checkout_release_funds_cut_off_date = DateTime(
         required=False,
         description=(
-            "The date after which the funds for expired checkouts will be released."
-            "No matter of the value of `checkout_release_funds_cut_off_date`, "
-            "the funds will not be released for year old checkouts." + ADDED_IN_320
+            "Specifies the earliest date on which funds for expired checkouts can begin "
+            "to be released. Expired checkouts dated before this cut-off will not have their "
+            "funds released. Additionally, no funds will be released for checkouts that are "
+            "more than one year old after last change, regardless of the cut-off date."
+            + ADDED_IN_320
         ),
     )
 

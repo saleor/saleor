@@ -129,9 +129,10 @@ def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):
             )
         )
 
-    if checkout_release_funds_cut_off_date := payment_settings.get(
-        "checkout_release_funds_cut_off_date"
-    ):
+    if "checkout_release_funds_cut_off_date" in payment_settings:
+        checkout_release_funds_cut_off_date = payment_settings[
+            "checkout_release_funds_cut_off_date"
+        ]
         cleaned_input["checkout_release_funds_cut_off_date"] = (
             checkout_release_funds_cut_off_date
         )

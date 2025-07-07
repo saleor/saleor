@@ -22,7 +22,9 @@ def migrate_env_variable_setting_to_channels():
         with transaction.atomic():
             # lock the batch of objects
             _channels = list(qs.select_for_update(of=(["self"])))
+            turn_on = settings.TRANSACTION_BATCH_FOR_RELEASING_FUNDS > 0
             qs.update(
-                checkout_ttl_before_releasing_funds=settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS
+                checkout_ttl_before_releasing_funds=settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS,
+                release_funds_for_expired_checkouts=turn_on,
             )
         migrate_env_variable_setting_to_channels.delay()

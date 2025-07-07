@@ -7,7 +7,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("channel", "0017_channel_include_draft_order_in_voucher_usage"),
+        ("channel", "0018_channel_automatically_complete_paid_checkouts"),
     ]
 
     operations = [
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="channel",
             name="release_funds_for_expired_checkouts",
-            field=models.BooleanField(default=True),
+            field=models.BooleanField(default=False),
         ),
         migrations.RunSQL(
             "ALTER TABLE channel_channel "
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             "ALTER TABLE channel_channel "
             "ALTER COLUMN release_funds_for_expired_checkouts "
-            "SET DEFAULT True;",
+            "SET DEFAULT False;",
             reverse_sql=migrations.RunSQL.noop,
         ),
     ]
