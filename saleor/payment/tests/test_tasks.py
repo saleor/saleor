@@ -443,7 +443,7 @@ def test_transactions_to_release_funds_setting_toogle(
             transaction_item = transaction_item_generator(
                 checkout_id=current_checkout.pk,
                 charged_value=Decimal(100),
-                currency=checkout.channel.currency_code,
+                currency=current_checkout.channel.currency_code,
             )
             transaction_amounts_for_checkout_updated(
                 transaction_item, plugins_manager, user=None, app=None
