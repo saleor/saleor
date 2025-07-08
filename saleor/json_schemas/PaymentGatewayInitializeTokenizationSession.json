@@ -1,0 +1,128 @@
+{
+  "title": "PaymentGatewayInitializeTokenizationSession",
+  "anyOf": [
+    {
+      "properties": {
+        "id": {
+          "description": "ID of the payment method.",
+          "title": "Id",
+          "type": "string"
+        },
+        "result": {
+          "description": "Result of the payment method tokenization.",
+          "enum": [
+            "SUCCESSFULLY_TOKENIZED",
+            "ADDITIONAL_ACTION_REQUIRED"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null,
+          "description": "A data passes to the client."
+        }
+      },
+      "required": [
+        "id",
+        "result"
+      ],
+      "title": "PaymentMethodTokenizationSuccess",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ID of the payment method.",
+          "title": "Id"
+        },
+        "result": {
+          "const": "PENDING",
+          "description": "Result of the payment method tokenization.",
+          "title": "Result",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null,
+          "description": "A data passes to the client."
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "PaymentMethodTokenizationPending",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "result": {
+          "description": "Result of the payment method tokenization.",
+          "enum": [
+            "FAILED_TO_TOKENIZE",
+            "FAILED_TO_DELIVER"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Error message that will be passed to the frontend.",
+          "title": "Error"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "PaymentMethodTokenizationFailed",
+      "type": "object"
+    }
+  ],
+  "$defs": {
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    }
+  }
+}

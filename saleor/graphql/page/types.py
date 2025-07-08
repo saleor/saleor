@@ -3,7 +3,11 @@ import graphene
 from ...attribute import models as attribute_models
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
-from ..attribute.filters import AttributeFilterInput, AttributeWhereInput
+from ..attribute.filters import (
+    AttributeFilterInput,
+    AttributeWhereInput,
+    filter_attribute_search,
+)
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -11,13 +15,18 @@ from ..core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ..core.context import get_database_connection_name
-from ..core.descriptions import RICH_CONTENT
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date, DateTime
 from ..core.types import ModelObjectType, NonNullList
+from ..core.types.context import ChannelContextType
 from ..meta.types import ObjectWithMetadata
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
@@ -44,8 +53,14 @@ class PageType(ModelObjectType[models.PageType]):
     )
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
-        filter=AttributeFilterInput(),
-        where=AttributeWhereInput(),
+        filter=AttributeFilterInput(
+            description="Filtering options for attributes. "
+            f"{DEPRECATED_IN_3X_INPUT} Use `where` filter instead."
+        ),
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes."
+        ),
+        search=graphene.String(description="Search attributes."),
         description="Attributes that can be assigned to the page type.",
         permissions=[
             PagePermissions.MANAGE_PAGES,
@@ -75,20 +90,29 @@ class PageType(ModelObjectType[models.PageType]):
 
     @staticmethod
     def resolve_attributes(root: models.PageType, info: ResolveInfo):
+        def wrap_with_channel_context(attributes):
+            return [ChannelContext(attribute, None) for attribute in attributes]
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return PageAttributesAllByPageTypeIdLoader(info.context).load(root.pk)
-        return PageAttributesVisibleInStorefrontByPageTypeIdLoader(info.context).load(
-            root.pk
+            return (
+                PageAttributesAllByPageTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(wrap_with_channel_context)
+            )
+        return (
+            PageAttributesVisibleInStorefrontByPageTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(wrap_with_channel_context)
         )
 
     @staticmethod
     def resolve_available_attributes(
-        root: models.PageType, info: ResolveInfo, **kwargs
+        root: models.PageType, info: ResolveInfo, search=None, **kwargs
     ):
         qs = attribute_models.Attribute.objects.get_unassigned_page_type_attributes(
             root.pk
@@ -96,6 +120,9 @@ class PageType(ModelObjectType[models.PageType]):
         qs = filter_connection_queryset(
             qs, kwargs, info.context, allow_replica=info.context.allow_replica
         )
+        if search:
+            qs = filter_attribute_search(qs, None, search)
+        qs = ChannelQsContext(qs=qs, channel_slug=None)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     @staticmethod
@@ -120,7 +147,7 @@ class PageTypeCountableConnection(CountableConnection):
         node = PageType
 
 
-class Page(ModelObjectType[models.Page]):
+class Page(ChannelContextType[models.Page]):
     id = graphene.GlobalID(required=True, description="ID of the page.")
     seo_title = graphene.String(description="Title of the page for SEO.")
     seo_description = graphene.String(description="Description of the page for SEO.")
@@ -145,7 +172,11 @@ class Page(ModelObjectType[models.Page]):
         deprecation_reason="Use the `content` field instead.",
         required=True,
     )
-    translation = TranslationField(PageTranslation, type_name="page")
+    translation = TranslationField(
+        PageTranslation,
+        type_name="page",
+        resolver=ChannelContextType.resolve_translation,
+    )
     attribute = graphene.Field(
         SelectedAttribute,
         slug=graphene.Argument(
@@ -162,6 +193,7 @@ class Page(ModelObjectType[models.Page]):
     )
 
     class Meta:
+        default_resolver = ChannelContextType.resolver_with_context
         description = (
             "A static page that can be manually added by a shop operator through the "
             "dashboard."
@@ -170,49 +202,96 @@ class Page(ModelObjectType[models.Page]):
         model = models.Page
 
     @staticmethod
-    def resolve_publication_date(root: models.Page, _info: ResolveInfo):
-        return root.published_at
+    def resolve_publication_date(root: ChannelContext[models.Page], _info: ResolveInfo):
+        return root.node.published_at
 
     @staticmethod
-    def resolve_created(root: models.Page, _info: ResolveInfo):
-        return root.created_at
+    def resolve_created(root: ChannelContext[models.Page], _info: ResolveInfo):
+        return root.node.created_at
 
     @staticmethod
-    def resolve_page_type(root: models.Page, info: ResolveInfo):
-        return PageTypeByIdLoader(info.context).load(root.page_type_id)
+    def resolve_page_type(root: ChannelContext[models.Page], info: ResolveInfo):
+        return PageTypeByIdLoader(info.context).load(root.node.page_type_id)
 
     @staticmethod
-    def resolve_content_json(root: models.Page, _info: ResolveInfo):
-        content = root.content
+    def resolve_content_json(root: ChannelContext[models.Page], _info: ResolveInfo):
+        content = root.node.content
         return content if content is not None else {}
 
     @staticmethod
-    def resolve_attributes(root: models.Page, info: ResolveInfo):
+    def resolve_attributes(root: ChannelContext[models.Page], info: ResolveInfo):
+        page = root.node
+
+        def wrap_with_channel_context(
+            attributes: list[dict[str, list]] | None,
+        ) -> list[SelectedAttribute] | None:
+            if attributes is None:
+                return None
+            return [
+                SelectedAttribute(
+                    attribute=ChannelContext(attribute["attribute"], root.channel_slug),
+                    values=[
+                        ChannelContext(value, root.channel_slug)
+                        for value in attribute["values"]
+                    ],
+                )
+                for attribute in attributes
+            ]
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return SelectedAttributesAllByPageIdLoader(info.context).load(root.id)
-        return SelectedAttributesVisibleInStorefrontPageIdLoader(info.context).load(
-            root.id
+            return (
+                SelectedAttributesAllByPageIdLoader(info.context)
+                .load(page.id)
+                .then(wrap_with_channel_context)
+            )
+        return (
+            SelectedAttributesVisibleInStorefrontPageIdLoader(info.context)
+            .load(page.id)
+            .then(wrap_with_channel_context)
         )
 
     @staticmethod
-    def resolve_attribute(root: models.Page, info: ResolveInfo, slug: str):
+    def resolve_attribute(
+        root: ChannelContext[models.Page], info: ResolveInfo, slug: str
+    ):
+        page = root.node
+
+        def wrap_with_channel_context(
+            attribute_data: dict[str, dict | list[dict]] | None,
+        ) -> SelectedAttribute | None:
+            if attribute_data is None:
+                return None
+            return SelectedAttribute(
+                attribute=ChannelContext(
+                    attribute_data["attribute"], root.channel_slug
+                ),
+                values=[
+                    ChannelContext(value, root.channel_slug)
+                    for value in attribute_data["values"]
+                ],
+            )
+
         requestor = get_user_or_app_from_context(info.context)
         if (
             requestor
             and requestor.is_active
             and requestor.has_perm(PagePermissions.MANAGE_PAGES)
         ):
-            return SelectedAttributeAllByPageIdAttributeSlugLoader(info.context).load(
-                (root.id, slug)
+            return (
+                SelectedAttributeAllByPageIdAttributeSlugLoader(info.context)
+                .load((page.id, slug))
+                .then(wrap_with_channel_context)
             )
-        return SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(
-            info.context
-        ).load((root.id, slug))
+        return (
+            SelectedAttributeVisibleInStorefrontPageIdAttributeSlugLoader(info.context)
+            .load((page.id, slug))
+            .then(wrap_with_channel_context)
+        )
 
 
 class PageCountableConnection(CountableConnection):

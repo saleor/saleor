@@ -1273,7 +1273,6 @@ def test_update_product_with_page_reference_attribute_existing_value(
     query = MUTATION_UPDATE_PRODUCT
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
-
     attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type_page_reference_attribute.pk
     )
@@ -1287,9 +1286,7 @@ def test_update_product_with_page_reference_attribute_existing_value(
     associate_attribute_values_to_instance(
         product, {product_type_page_reference_attribute.pk: [attr_value]}
     )
-
     values_count = product_type_page_reference_attribute.values.count()
-
     reference = graphene.Node.to_global_id("Page", page.pk)
 
     variables = {
@@ -1349,9 +1346,7 @@ def test_update_product_with_page_reference_attribute_value_not_given(
 
     product_type_page_reference_attribute.value_required = True
     product_type_page_reference_attribute.save(update_fields=["value_required"])
-
     product_id = graphene.Node.to_global_id("Product", product.pk)
-
     attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type_page_reference_attribute.pk
     )
@@ -1395,14 +1390,11 @@ def test_update_product_with_product_reference_attribute_value(
     product = product_list[0]
     product_id = graphene.Node.to_global_id("Product", product.pk)
     product_ref = product_list[1]
-
     attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type_product_reference_attribute.pk
     )
     product_type.product_attributes.add(product_type_product_reference_attribute)
-
     values_count = product_type_product_reference_attribute.values.count()
-
     reference = graphene.Node.to_global_id("Product", product_ref.pk)
 
     variables = {
@@ -1463,14 +1455,11 @@ def test_update_product_with_variant_reference_attribute_value(
     product = product_list[0]
     product_id = graphene.Node.to_global_id("Product", product.pk)
     variant_ref = product_list[1].variants.first()
-
     attribute_id = graphene.Node.to_global_id(
         "Attribute", product_type_variant_reference_attribute.pk
     )
     product_type.product_attributes.add(product_type_variant_reference_attribute)
-
     values_count = product_type_variant_reference_attribute.values.count()
-
     reference = graphene.Node.to_global_id("ProductVariant", variant_ref.pk)
 
     variables = {
@@ -1509,11 +1498,137 @@ def test_update_product_with_variant_reference_attribute_value(
         ],
     }
     assert expected_file_att_data in attributes
+    product_type_variant_reference_attribute.refresh_from_db()
+    assert product_type_variant_reference_attribute.values.count() == values_count + 1
 
     updated_webhook_mock.assert_called_once_with(product)
 
-    product_type_variant_reference_attribute.refresh_from_db()
-    assert product_type_variant_reference_attribute.values.count() == values_count + 1
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_category_reference_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_category_reference_attribute,
+    product,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_category_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_category_reference_attribute)
+    values_count = product_type_category_reference_attribute.values.count()
+    reference = graphene.Node.to_global_id("Category", category.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_category_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": ANY,
+                "name": category.name,
+                "slug": f"{product.id}_{category.id}",
+                "file": None,
+                "reference": reference,
+                "boolean": None,
+                "plainText": None,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+    product_type_category_reference_attribute.refresh_from_db()
+    assert product_type_category_reference_attribute.values.count() == values_count + 1
+
+    updated_webhook_mock.assert_called_once_with(product)
+
+
+@patch("saleor.plugins.manager.PluginsManager.product_updated")
+def test_update_product_with_collection_reference_attribute_value(
+    updated_webhook_mock,
+    staff_api_client,
+    product_type_collection_reference_attribute,
+    product,
+    product_type,
+    collection,
+    permission_manage_products,
+):
+    # given
+    query = MUTATION_UPDATE_PRODUCT
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_collection_reference_attribute.pk
+    )
+    product_type.product_attributes.add(product_type_collection_reference_attribute)
+    values_count = product_type_collection_reference_attribute.values.count()
+    reference = graphene.Node.to_global_id("Collection", collection.pk)
+
+    variables = {
+        "productId": product_id,
+        "input": {"attributes": [{"id": attribute_id, "references": [reference]}]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert data["errors"] == []
+
+    attributes = data["product"]["attributes"]
+    assert len(attributes) == 2
+    expected_file_att_data = {
+        "attribute": {
+            "id": attribute_id,
+            "name": product_type_collection_reference_attribute.name,
+        },
+        "values": [
+            {
+                "id": ANY,
+                "name": collection.name,
+                "slug": f"{product.id}_{collection.id}",
+                "file": None,
+                "reference": reference,
+                "boolean": None,
+                "plainText": None,
+            }
+        ],
+    }
+    assert expected_file_att_data in attributes
+    product_type_collection_reference_attribute.refresh_from_db()
+    assert (
+        product_type_collection_reference_attribute.values.count() == values_count + 1
+    )
+
+    updated_webhook_mock.assert_called_once_with(product)
 
 
 def test_update_product_with_attribute_without_id_or_external_ref(

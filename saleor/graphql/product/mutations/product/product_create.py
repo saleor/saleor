@@ -7,8 +7,8 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,

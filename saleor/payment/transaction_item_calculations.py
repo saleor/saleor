@@ -315,15 +315,15 @@ def _initilize_action_map(events: Iterable[TransactionEvent]) -> ActionEventMap:
 
 
 def _set_transaction_amounts_to_zero(transaction: TransactionItem):
-    transaction.authorized_value = Decimal("0")
-    transaction.charged_value = Decimal("0")
-    transaction.refunded_value = Decimal("0")
-    transaction.canceled_value = Decimal("0")
+    transaction.authorized_value = Decimal(0)
+    transaction.charged_value = Decimal(0)
+    transaction.refunded_value = Decimal(0)
+    transaction.canceled_value = Decimal(0)
 
-    transaction.authorize_pending_value = Decimal("0")
-    transaction.charge_pending_value = Decimal("0")
-    transaction.refund_pending_value = Decimal("0")
-    transaction.cancel_pending_value = Decimal("0")
+    transaction.authorize_pending_value = Decimal(0)
+    transaction.charge_pending_value = Decimal(0)
+    transaction.refund_pending_value = Decimal(0)
+    transaction.cancel_pending_value = Decimal(0)
 
 
 def calculate_transaction_amount_based_on_events(transaction: TransactionItem):
@@ -378,9 +378,9 @@ def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = T
     """
     calculate_transaction_amount_based_on_events(transaction)
 
-    transaction.authorized_value = max(transaction.authorized_value, Decimal("0"))
+    transaction.authorized_value = max(transaction.authorized_value, Decimal(0))
     transaction.authorize_pending_value = max(
-        transaction.authorize_pending_value, Decimal("0")
+        transaction.authorize_pending_value, Decimal(0)
     )
 
     if save:

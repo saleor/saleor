@@ -129,9 +129,30 @@ class TransactionRequestEventResponse:
 
 
 @dataclass
-class TransactionRequestResponse:
+class PaymentMethodDetails:
+    type: str
+    name: str
+    brand: str | None = None
+    first_digits: str | None = None
+    last_digits: str | None = None
+    exp_month: int | None = None
+    exp_year: int | None = None
+
+
+@dataclass
+class TransactionResponseBase:
     psp_reference: str | None
-    available_actions: list[str] | None = None
+    available_actions: list[str] | None
+
+
+@dataclass
+class TransactionSessionResponse(TransactionResponseBase):
+    event: TransactionRequestEventResponse
+    payment_method_details: PaymentMethodDetails | None = None
+
+
+@dataclass
+class TransactionRequestResponse(TransactionResponseBase):
     event: Optional["TransactionRequestEventResponse"] = None
 
 

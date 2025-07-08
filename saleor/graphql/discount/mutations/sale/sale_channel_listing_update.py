@@ -14,9 +14,9 @@ from .....discount.models import Promotion, PromotionRule
 from .....discount.utils.promotion import mark_catalogue_promotion_rules_as_dirty
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_in_channels_as_dirty
-from ....channel import ChannelContext
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList

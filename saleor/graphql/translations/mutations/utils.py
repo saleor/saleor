@@ -213,7 +213,7 @@ class BaseBulkTranslateMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(
+    def __init_subclass_with_meta__(  # type: ignore[override]
         cls,
         base_model=None,
         translation_model=None,

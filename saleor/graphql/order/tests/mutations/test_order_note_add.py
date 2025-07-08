@@ -68,6 +68,7 @@ def test_order_note_add_as_staff_user(
 
     order.refresh_from_db()
     assert order.status == OrderStatus.UNFULFILLED
+    assert order.search_vector
 
     # Ensure the correct order event was created
     event = order.events.get()

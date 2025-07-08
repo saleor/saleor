@@ -482,8 +482,7 @@ def test_query_order_without_addresses(order, user_api_client, channel_USD):
     query = ORDER_BY_TOKEN_QUERY
 
     order = Order.objects.create(
-        channel=channel_USD,
-        user=user_api_client.user,
+        channel=channel_USD, user=user_api_client.user, lines_count=0
     )
 
     # when
@@ -507,6 +506,7 @@ def test_order_query_address_without_order_user(
         channel=channel_USD,
         shipping_address=shipping_address,
         billing_address=billing_address,
+        lines_count=0,
     )
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, {"token": order.id})

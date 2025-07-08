@@ -2,14 +2,15 @@ import graphene
 import pytest
 from freezegun import freeze_time
 
-from ....product.models import (
+from .....product.models import (
     Category,
     Product,
     ProductChannelListing,
     ProductVariantChannelListing,
 )
-from ....warehouse.models import Stock, Warehouse
-from ...tests.utils import get_graphql_content
+from .....tests.utils import dummy_editorjs
+from .....warehouse.models import Stock, Warehouse
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
@@ -157,11 +158,19 @@ def test_order_query_with_filter_updated_at(
 
 
 GET_FILTERED_PRODUCTS_CATEGORY_QUERY = """
-query ($id: ID!, $channel: String, $filters: ProductFilterInput) {
+query (
+    $id: ID!,
+    $channel: String,
+    $filters: ProductFilterInput,
+    $where: ProductWhereInput,
+    $search: String,
+) {
   category(id: $id) {
     id
     name
-    products(first: 5, channel: $channel, filter: $filters) {
+    products(
+        first: 5, channel: $channel, filter: $filters, where: $where, search: $search
+    ) {
       edges {
         node {
           id
@@ -593,6 +602,102 @@ def test_category_filter_products_by_ids(
     assert [node["node"]["id"] for node in products] == product_ids
 
 
+@pytest.mark.parametrize(
+    ("is_published", "count", "indexes_of_products_in_result"),
+    [
+        (True, 2, [1, 2]),
+        (False, 1, [0]),
+    ],
+)
+def test_category_where_products_by_is_published(
+    is_published,
+    count,
+    indexes_of_products_in_result,
+    staff_api_client,
+    permission_manage_products,
+    category,
+    product_list_published,
+    channel_USD,
+):
+    # given
+    ProductChannelListing.objects.filter(
+        product=product_list_published[0],
+    ).update(is_published=False)
+
+    product_ids = [
+        graphene.Node.to_global_id("Product", product_list_published[index].pk)
+        for index in indexes_of_products_in_result
+    ]
+
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+        "where": {"isPublished": is_published},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["category"]["products"]["edges"]
+    assert len(products) == count
+    assert [product["node"]["id"] for product in products] == product_ids
+
+
+@pytest.mark.parametrize(
+    ("is_published", "count", "indexes_of_products_in_result"),
+    [
+        (True, 1, [1]),
+        (False, 0, []),
+    ],
+)
+def test_category_search_products_by_sku(
+    is_published,
+    count,
+    indexes_of_products_in_result,
+    user_api_client,
+    category,
+    product_with_two_variants,
+    product_with_default_variant,
+    channel_USD,
+):
+    # given
+    products = [product_with_two_variants, product_with_default_variant]
+
+    ProductChannelListing.objects.filter(
+        product=product_with_default_variant, channel=channel_USD
+    ).update(is_published=is_published)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+        "search": "1234",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        GET_FILTERED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products_result = content["data"]["category"]["products"]["edges"]
+    product_ids = {
+        graphene.Node.to_global_id("Product", products[index].pk)
+        for index in indexes_of_products_in_result
+    }
+
+    assert len(products_result) == count
+    assert {node["node"]["id"] for node in products_result} == product_ids
+
+
 GET_SORTED_PRODUCTS_CATEGORY_QUERY = """
 query (
     $id: ID!,
@@ -739,3 +844,79 @@ def test_categories_where_by_ids_empty_list(api_client, category_list):
     data = get_graphql_content(response)
     categories = data["data"]["categories"]["edges"]
     assert len(categories) == 0
+
+
+@pytest.mark.parametrize(
+    ("category_filter", "count"),
+    [
+        ({"search": "slug_"}, 4),
+        ({"search": "Category1"}, 1),
+        ({"search": "cat1"}, 3),
+        ({"search": "Description cat1."}, 2),
+        ({"search": "Subcategory_description"}, 1),
+        (
+            {
+                "ids": [
+                    graphene.Node.to_global_id("Category", 2),
+                    graphene.Node.to_global_id("Category", 3),
+                ]
+            },
+            2,
+        ),
+    ],
+)
+def test_categories_query_with_filter(
+    category_filter,
+    count,
+    staff_api_client,
+    permission_manage_products,
+):
+    query = """
+        query ($filter: CategoryFilterInput!, ) {
+              categories(first:5, filter: $filter) {
+                totalCount
+                edges{
+                  node{
+                    id
+                    name
+                  }
+                }
+              }
+            }
+    """
+
+    Category.objects.create(
+        id=1,
+        name="Category1",
+        slug="slug_category1",
+        description=dummy_editorjs("Description cat1."),
+        description_plaintext="Description cat1.",
+    )
+    Category.objects.create(
+        id=2,
+        name="Category2",
+        slug="slug_category2",
+        description=dummy_editorjs("Description cat2."),
+        description_plaintext="Description cat2.",
+    )
+
+    Category.objects.create(
+        id=3,
+        name="SubCategory",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Category1"),
+        description=dummy_editorjs("Subcategory_description of cat1."),
+        description_plaintext="Subcategory_description of cat1.",
+    )
+    Category.objects.create(
+        id=4,
+        name="DoubleSubCategory",
+        slug="slug_subcategory4",
+        description=dummy_editorjs("Super important Description cat1."),
+        description_plaintext="Super important Description cat1.",
+    )
+    variables = {"filter": category_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["categories"]["totalCount"] == count

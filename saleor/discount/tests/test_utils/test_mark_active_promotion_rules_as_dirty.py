@@ -56,7 +56,7 @@ def test_mark_active_catalogue_promotion_rules_as_dirty_with_multiple_channels(
             }
         },
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("10"),
+        reward_value=Decimal(10),
         variants_dirty=False,
     )
 
@@ -104,7 +104,7 @@ def test_mark_active_promotion_rules_as_dirty_with_multiple_promotions_and_chann
             }
         },
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("10"),
+        reward_value=Decimal(10),
         variants_dirty=False,
     )
 

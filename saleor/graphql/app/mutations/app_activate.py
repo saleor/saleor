@@ -29,7 +29,7 @@ class AppActivate(DeprecatedModelMutation):
         ]
 
     @classmethod
-    def perform_mutation(cls, _root, info, /, *, id):
+    def perform_mutation(cls, _root, info, /, *, id):  # type: ignore[override]
         qs = models.App.objects.filter(removed_at__isnull=True)
         app = cls.get_instance(
             info,

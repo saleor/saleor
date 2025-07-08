@@ -3,6 +3,8 @@ import graphene
 from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import ChannelContext, ChannelQsContext
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.fields import BaseField, FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
@@ -34,8 +36,15 @@ class AttributeQueries(graphene.ObjectType):
     attributes = FilterConnectionField(
         AttributeCountableConnection,
         description="List of the shop's attributes.",
-        filter=AttributeFilterInput(description="Filtering options for attributes."),
-        where=AttributeWhereInput(description="Filtering options for attributes."),
+        filter=AttributeFilterInput(
+            description=(
+                f"Filtering options for attributes. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes."
+        ),
         search=graphene.String(description="Search attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
         channel=graphene.String(
@@ -61,14 +70,18 @@ class AttributeQueries(graphene.ObjectType):
         )
         if search:
             qs = filter_attribute_search(qs, None, search)
+        qs = ChannelQsContext(qs=qs, channel_slug=None)
         return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
     def resolve_attribute(
         self, info: ResolveInfo, *, id=None, slug=None, external_reference=None
     ):
-        return resolve_by_global_id_slug_or_ext_ref(
+        attribute = resolve_by_global_id_slug_or_ext_ref(
             info, models.Attribute, id, slug, external_reference
         )
+        if attribute:
+            return ChannelContext(node=attribute, channel_slug=None)
+        return None
 
 
 class AttributeMutations(graphene.ObjectType):

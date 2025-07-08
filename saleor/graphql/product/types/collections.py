@@ -12,21 +12,24 @@ from ....thumbnail.utils import (
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ...channel import ChannelContext, ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
-from ...channel.types import ChannelContextType
 from ...core import ResolveInfo
 from ...core.connection import (
     CountableConnection,
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.context import get_database_connection_name
-from ...core.descriptions import RICH_CONTENT
+from ...core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
+from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -65,8 +68,14 @@ class Collection(ChannelContextType[models.Collection]):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
-        where=ProductWhereInput(description="Filtering options for products."),
+        filter=ProductFilterInput(
+            description=(
+                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
+        where=ProductWhereInput(description="Where filtering options for products."),
+        search=graphene.String(description="Search products."),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
@@ -141,7 +150,7 @@ class Collection(ChannelContextType[models.Collection]):
 
             if search:
                 qs = ChannelQsContext(
-                    qs=search_products(qs.qs, search), channel_slug=root.channel_slug
+                    qs=search_products(qs, search), channel_slug=root.channel_slug
                 )
             else:
                 qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)

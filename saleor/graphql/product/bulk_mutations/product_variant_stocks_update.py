@@ -10,8 +10,8 @@ from ....warehouse import models as warehouse_models
 from ....warehouse.management import stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BulkStockError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation

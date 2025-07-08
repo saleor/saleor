@@ -6,6 +6,7 @@ from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
@@ -72,5 +73,6 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     @classmethod
     def success_response(cls, instance):
         response = super().success_response(instance)
-        response.attribute = instance.attribute
+        response.attribute = ChannelContext(instance.attribute, None)
+        response.attributeValue = ChannelContext(instance, None)
         return response

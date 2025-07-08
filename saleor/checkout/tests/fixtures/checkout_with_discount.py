@@ -21,8 +21,8 @@ def checkout_with_item_on_promotion(checkout_with_item):
 
     variant = line.variant
 
-    reward_value = Decimal("5")
-    reward_value_prior = Decimal("2")
+    reward_value = Decimal(5)
+    reward_value_prior = Decimal(2)
 
     rule = promotion.rules.create(
         catalogue_predicate={
@@ -71,7 +71,7 @@ def checkout_with_item_and_order_discount(
 ):
     channel = checkout_with_item.channel
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
 
     rule = catalogue_promotion_without_rules.rules.create(
         order_predicate={

@@ -33,7 +33,7 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("10"),
+                reward_value=Decimal(10),
             ),
             PromotionRule(
                 name="Promotion 2 percentage rule",
@@ -44,7 +44,7 @@ def test_variant_discounts_multiple_promotions(product, channel_USD):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("50"),
+                reward_value=Decimal(50),
             ),
         ]
     )
@@ -106,7 +106,7 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
                     }
                 },
                 reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("1"),
+                reward_value=Decimal(1),
             ),
             PromotionRule(
                 name="Promotion rule 2",
@@ -117,7 +117,7 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("5"),
+                reward_value=Decimal(5),
             ),
             PromotionRule(
                 name="Promotion rule 4",
@@ -128,7 +128,7 @@ def test_variant_discounts_multiple_promotions_and_rules(product, channel_USD):
                     }
                 },
                 reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("50"),
+                reward_value=Decimal(50),
             ),
         ]
     )

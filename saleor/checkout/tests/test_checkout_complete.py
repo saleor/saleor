@@ -92,6 +92,7 @@ def test_create_order_captured_payment_creates_expected_events(
             manager=manager,
         )
 
+    order.refresh_from_db()
     (
         order_placed_event,
         payment_captured_event,
@@ -256,6 +257,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
             manager=manager,
         )
 
+    order.refresh_from_db()
     (
         order_placed_event,
         payment_captured_event,
@@ -415,6 +417,7 @@ def test_create_order_preauth_payment_creates_expected_events(
             manager=manager,
         )
 
+    order.refresh_from_db()
     (
         order_placed_event,
         payment_authorized_event,
@@ -531,6 +534,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
             manager=manager,
         )
 
+    order.refresh_from_db()
     (
         order_placed_event,
         payment_captured_event,
@@ -1308,6 +1312,7 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
             app=app,
         )
 
+    order.refresh_from_db()
     (
         order_marked_as_paid,
         order_placed_event,

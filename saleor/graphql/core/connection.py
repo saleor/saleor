@@ -15,8 +15,8 @@ from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
-from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
+from ..core.context import ChannelContext, ChannelQsContext
 from ..core.enums import OrderDirection
 from ..core.types import BaseConnection, NonNullList
 from ..utils.sorting import sort_queryset_for_connection
@@ -678,7 +678,7 @@ class NonNullConnection(BaseConnection):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, node=None, name=None, **options):
+    def __init_subclass_with_meta__(cls, node=None, name=None, **options):  # type: ignore[override]
         super().__init_subclass_with_meta__(node=node, name=name, **options)
 
         # Override the original EdgeBase type to make to `node` field required.

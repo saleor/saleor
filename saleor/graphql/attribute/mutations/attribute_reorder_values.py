@@ -7,6 +7,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
@@ -100,4 +101,4 @@ class AttributeReorderValues(BaseMutation):
             cls.call_event(manager.attribute_value_updated, value)
         cls.call_event(manager.attribute_updated, attribute)
 
-        return AttributeReorderValues(attribute=attribute)
+        return AttributeReorderValues(attribute=ChannelContext(attribute, None))

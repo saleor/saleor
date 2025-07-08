@@ -1220,7 +1220,7 @@ def test_order_total_remaining_grant_query_with_transactions_partially_refunded(
         currency="USD",
     )
     order.payment_transactions.create(
-        refund_pending_value=Decimal("125"), charged_value=Decimal("75"), currency="USD"
+        refund_pending_value=Decimal(125), charged_value=Decimal(75), currency="USD"
     )
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 

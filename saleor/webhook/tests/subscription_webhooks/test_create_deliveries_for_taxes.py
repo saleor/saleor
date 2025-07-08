@@ -643,7 +643,7 @@ def test_draft_order_calculate_taxes_line_discount(
         ]
     )
 
-    discount_value = Decimal("5")
+    discount_value = Decimal(5)
     update_discount_for_order_line(
         order_line, order, "test discount", DiscountValueType.FIXED, discount_value
     )
@@ -718,7 +718,7 @@ def test_draft_order_calculate_taxes_entire_order_voucher(
     voucher.type = VoucherType.ENTIRE_ORDER
     voucher.save(update_fields=["type"])
 
-    discount_amount = Decimal("10")
+    discount_amount = Decimal(10)
     channel_listing = voucher.channel_listings.get()
     channel_listing.discount_value = discount_amount
     channel_listing.save(update_fields=["discount_value"])
@@ -810,7 +810,7 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
     voucher.apply_once_per_order = True
     voucher.save(update_fields=["type", "apply_once_per_order"])
 
-    discount_amount = Decimal("10")
+    discount_amount = Decimal(10)
     order_discount = order.discounts.first()
     order_discount.value = discount_amount
     order_discount.save(update_fields=["value"])
@@ -920,7 +920,7 @@ def test_order_calculate_taxes_specific_product_voucher(
     voucher_listing = voucher_specific_product_type.channel_listings.get(
         channel=order.channel
     )
-    unit_discount_amount = Decimal("2")
+    unit_discount_amount = Decimal(2)
     voucher_listing.discount_value = unit_discount_amount
     voucher_listing.save(update_fields=["discount_value"])
     voucher_specific_product_type.variants.add(order_line.variant)
@@ -1031,7 +1031,7 @@ def test_order_calculate_taxes_with_manual_discount(
     order = order_with_lines
     shipping_price_amount = order.base_shipping_price_amount
 
-    discount_value = Decimal("20")
+    discount_value = Decimal(20)
     order.discounts.create(
         value_type=DiscountValueType.FIXED,
         value=discount_value,
@@ -1124,7 +1124,7 @@ def test_order_calculate_taxes_empty_order(
     order, webhook_app, permission_handle_taxes, channel_USD
 ):
     # given
-    order = Order.objects.create(channel=channel_USD, currency="USD")
+    order = Order.objects.create(channel=channel_USD, currency="USD", lines_count=0)
     webhook_app.permissions.add(permission_handle_taxes)
     webhook = Webhook.objects.create(
         name="Webhook",

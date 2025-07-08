@@ -6,6 +6,7 @@ from ....attribute.error_codes import AttributeErrorCode
 from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
@@ -152,7 +153,7 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cls.post_save_action(info, instance, cleaned_input)
 
         # Return the attribute that was created
-        return AttributeUpdate(attribute=instance)
+        return AttributeUpdate(attribute=ChannelContext(instance, None))
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

@@ -718,6 +718,7 @@ def _get_new_order_line(order, variant, channel):
         product_name=str(product),
         variant_name=str(variant),
         product_sku=variant.sku,
+        product_type_id=product.product_type.id,
         product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
         is_gift_card=variant.is_gift_card(),
@@ -806,6 +807,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
             "shipping_price": shipping_price,
             "base_shipping_price": shipping_method_channel_listing.price,
             "undiscounted_base_shipping_price": shipping_method_channel_listing.price,
+            "lines_count": 0,
         }
     )
     if will_be_unconfirmed:
@@ -825,6 +827,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
     )
+    order.lines_count = order.lines.count()
     order.save()
 
     create_fake_payment(order=order)

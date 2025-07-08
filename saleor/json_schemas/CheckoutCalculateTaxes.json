@@ -1,0 +1,108 @@
+{
+  "$defs": {
+    "LineCalculateTaxesSchema": {
+      "properties": {
+        "tax_rate": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Tax Rate"
+        },
+        "total_gross_amount": {
+          "anyOf": [
+            {
+              "maximum": 1e+17,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Total Gross Amount"
+        },
+        "total_net_amount": {
+          "anyOf": [
+            {
+              "maximum": 1e+17,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Total Net Amount"
+        }
+      },
+      "required": [
+        "tax_rate",
+        "total_gross_amount",
+        "total_net_amount"
+      ],
+      "title": "LineCalculateTaxesSchema",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "shipping_tax_rate": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Shipping Tax Rate"
+    },
+    "shipping_price_gross_amount": {
+      "anyOf": [
+        {
+          "maximum": 1e+17,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Shipping Price Gross Amount"
+    },
+    "shipping_price_net_amount": {
+      "anyOf": [
+        {
+          "maximum": 1e+17,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Shipping Price Net Amount"
+    },
+    "lines": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LineCalculateTaxesSchema"
+      },
+      "title": "Lines",
+      "type": "array"
+    }
+  },
+  "required": [
+    "shipping_tax_rate",
+    "shipping_price_gross_amount",
+    "shipping_price_net_amount"
+  ],
+  "title": "CalculateTaxes",
+  "type": "object"
+}

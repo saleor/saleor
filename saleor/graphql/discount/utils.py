@@ -220,7 +220,7 @@ def filter_qs_by_predicate(
             result_qs, base_qs, predicate, Operators.AND, predicate_type, currency
         )
 
-    return result_qs  # type: ignore[return-value]
+    return result_qs
 
 
 def _handle_and_data(

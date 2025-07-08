@@ -194,6 +194,7 @@ def test_order_lines_create(
     order = order_with_lines
     order.status = status
     order.save(update_fields=["status"])
+    lines_count = order.lines.count()
     variant = variant_with_many_stocks
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -227,6 +228,8 @@ def test_order_lines_create(
     assert data["orderLines"][0]["productSku"] == variant.sku
     assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
     assert data["orderLines"][0]["quantity"] == quantity
+    order.refresh_from_db()
+    assert order.lines_count == lines_count + 1
 
     # mutation should fail when quantity is lower than 1
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": 0}
@@ -284,6 +287,7 @@ def test_order_lines_create_by_app(
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
+    lines_count = order.lines.count()
     variant = variant_with_many_stocks
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -296,7 +300,6 @@ def test_order_lines_create_by_app(
     )
 
     # then
-
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["orderLines"][0]["productSku"] == variant.sku
@@ -317,6 +320,8 @@ def test_order_lines_create_by_app(
         draft_order_updated_webhook_mock,
         order_updated_webhook_mock,
     )
+    order.refresh_from_db()
+    assert order.lines_count == lines_count + 1
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
@@ -489,7 +494,7 @@ def test_order_lines_create_with_same_variant_and_force_new_line(
     order.status = status
     order.save(update_fields=["status"])
     lines = order.lines.all()
-    assert len(lines) == 2
+    lines_count = len(lines)
     line = lines[0]
     variant = line.variant
 
@@ -514,7 +519,10 @@ def test_order_lines_create_with_same_variant_and_force_new_line(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     response = staff_api_client.post_graphql(query, variables)
-    assert order.lines.count() == 3
+
+    order.refresh_from_db()
+    assert order.lines.count() == lines_count + 1
+    assert order.lines_count == lines_count + 1
     assert OrderEvent.objects.count() == 1
     assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
     content = get_graphql_content(response)
@@ -549,7 +557,7 @@ def test_order_lines_create_when_variant_already_in_multiple_lines(
     line.id = None
     line.save()
 
-    assert order.lines.count() == 3
+    lines_count = order.lines.count()
 
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -566,7 +574,9 @@ def test_order_lines_create_when_variant_already_in_multiple_lines(
 
     response = staff_api_client.post_graphql(ORDER_LINES_CREATE_MUTATION, variables)
 
-    assert order.lines.count() == 4
+    order.refresh_from_db()
+    assert order.lines.count() == lines_count + 1
+    assert order.lines_count == lines_count + 1
     assert OrderEvent.objects.count() == 1
     assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
     content = get_graphql_content(response)
@@ -603,7 +613,7 @@ def test_order_lines_create_variant_on_promotion(
 
     variant = variant_with_many_stocks
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         name="Promotion rule",
         catalogue_predicate={
@@ -715,7 +725,7 @@ def test_order_lines_create_order_promotion(
     rule = order_promotion_rule
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
     assert rule.reward_value_type == RewardValueType.PERCENTAGE
-    assert rule.reward_value == Decimal("25")
+    assert rule.reward_value == Decimal(25)
 
     variant = variant_with_many_stocks
     quantity = 5
@@ -1101,7 +1111,10 @@ def test_order_lines_create_with_custom_price_force_new_line(
     event = OrderEvent.objects.last()
     assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
     assert len(event.parameters["lines"]) == 1
+
+    order.refresh_from_db()
     assert order.lines.count() == lines_count + 1
+    assert order.lines_count == lines_count + 1
 
     line = OrderLine.objects.last()
     assert line.undiscounted_base_unit_price_amount == custom_price
@@ -1163,7 +1176,9 @@ def test_order_lines_create_with_custom_price_and_catalogue_discount(
 
     new_qty = quantity + old_qty
 
+    order.refresh_from_db()
     assert order.lines.count() == lines_count
+    assert order.lines_count == lines_count
     order_line.refresh_from_db()
     data = content["data"]["orderLinesCreate"]
     line_data = data["orderLines"][0]
@@ -1220,7 +1235,9 @@ def test_order_lines_create_with_custom_price_force_new_line_and_catalogue_disco
     # then
     content = get_graphql_content(response)
 
+    order.refresh_from_db()
     assert order.lines.count() == lines_count + 1
+    assert order.lines_count == lines_count + 1
     data = content["data"]["orderLinesCreate"]
 
     discounted_line_data = data["orderLines"][0]
@@ -1414,7 +1431,9 @@ def test_order_lines_create_with_catalogue_discount_existing_variant(
     content = get_graphql_content(response)
     new_qty = quantity + old_qty
 
+    order.refresh_from_db()
     assert order.lines.count() == lines_count
+    assert order.lines_count == lines_count
     line.refresh_from_db()
     data = content["data"]["orderLinesCreate"]
     line_data = data["orderLines"][0]
@@ -2058,7 +2077,7 @@ def test_order_lines_create_dont_set_price_expiration_time_when_price_overridden
 
     variant = variant_with_many_stocks
     quantity = 1
-    custom_price = Decimal("5")
+    custom_price = Decimal(5)
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
@@ -2142,7 +2161,7 @@ def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_d
     extra_quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    custom_price = Decimal("5")
+    custom_price = Decimal(5)
     variables = {
         "orderId": order_id,
         "variantId": variant_id,
@@ -2166,3 +2185,37 @@ def test_order_lines_create_existing_variant_and_custom_price_unset_expiration_d
     line.refresh_from_db()
     assert line.quantity == old_quantity + extra_quantity
     assert line.draft_base_price_expire_at is None
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_lines_create_sets_product_type_id_for_order_line(
+    status,
+    order,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    expected_product_type_id = variant.product.product_type_id
+
+    # when
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLinesCreate"]["errors"]
+
+    order.refresh_from_db()
+    assert len(order.lines.all()) == 1
+    assert order.lines.first().product_type_id == expected_product_type_id

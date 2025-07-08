@@ -38,6 +38,8 @@ def test_invoice_delete(staff_api_client, permission_group_manage_orders, order)
         user=staff_api_client.user,
         parameters__invoice_id=invoice.id,
     ).exists()
+    order.refresh_from_db()
+    assert order.search_vector
 
 
 def test_invoice_delete_by_user_no_channel_access(
@@ -79,6 +81,8 @@ def test_invoice_delete_by_app(app_api_client, permission_manage_orders, order):
         app=app_api_client.app,
         parameters__invoice_id=invoice.id,
     ).exists()
+    order.refresh_from_db()
+    assert order.search_vector
 
 
 @patch("saleor.plugins.manager.PluginsManager.invoice_delete")

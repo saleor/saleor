@@ -266,6 +266,8 @@ def test_checkout_without_any_transaction_allow_to_create_order(
     assert order.authorize_status == OrderAuthorizeStatus.NONE
     assert order.subtotal.gross == get_subtotal(order.lines.all(), order.currency).gross
 
+    assert order.lines_count == len(lines)
+
 
 def test_checkout_with_total_0(
     checkout_with_item_total_0,
@@ -325,6 +327,8 @@ def test_checkout_with_total_0(
     assert order.base_shipping_price_amount == 0
     assert order.undiscounted_base_shipping_price_amount == 0
 
+    assert order.lines_count == len(lines)
+
 
 def test_checkout_with_authorized(
     user_api_client,
@@ -333,6 +337,7 @@ def test_checkout_with_authorized(
     transaction_item_generator,
     address,
     shipping_method,
+    customer_user,
 ):
     # given
     checkout = checkout_with_gift_card
@@ -344,8 +349,11 @@ def test_checkout_with_authorized(
         items={"accepted": "false"}
     )
     checkout.tax_exemption = True
+    checkout.user = customer_user
     checkout.save()
     checkout.metadata_storage.save()
+
+    user_number_of_orders = customer_user.number_of_orders
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -427,8 +435,13 @@ def test_checkout_with_authorized(
     assert order.base_shipping_price_amount == shipping_price.amount
     assert order.undiscounted_base_shipping_price_amount == shipping_price.amount
 
+    assert order.lines_count == len(lines)
+
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_number_of_orders + 1
 
 
 def test_checkout_with_charged(
@@ -438,6 +451,7 @@ def test_checkout_with_charged(
     transaction_item_generator,
     address,
     shipping_method,
+    customer_user,
 ):
     # given
     checkout = checkout_with_gift_card
@@ -449,8 +463,11 @@ def test_checkout_with_charged(
         items={"accepted": "false"}
     )
     checkout.tax_exemption = True
+    checkout.user = customer_user
     checkout.save()
     checkout.metadata_storage.save()
+
+    user_number_of_orders = customer_user.number_of_orders
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -526,8 +543,13 @@ def test_checkout_with_charged(
         order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
     )
 
+    assert order.lines_count == len(lines)
+
     assert not Checkout.objects.filter()
     assert not len(Reservation.objects.all())
+
+    customer_user.refresh_from_db()
+    assert customer_user.number_of_orders == user_number_of_orders + 1
 
 
 def test_checkout_price_override(
@@ -629,6 +651,8 @@ def test_checkout_price_override(
         order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
     )
 
+    assert order.lines_count == len(lines)
+
     assert not Checkout.objects.filter()
 
 
@@ -659,10 +683,10 @@ def test_checkout_paid_with_multiple_transactions(
     )
 
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
     )
     second_transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=Decimal("10")
+        checkout_id=checkout.pk, charged_value=Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -722,7 +746,7 @@ def test_checkout_partially_paid(
     )
 
     transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -775,7 +799,7 @@ def test_checkout_partially_paid_allow_unpaid_order(
     )
 
     transaction = transaction_item_generator(
-        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal("10")
+        checkout_id=checkout.pk, charged_value=total.gross.amount - Decimal(10)
     )
 
     update_checkout_payment_statuses(
@@ -1784,7 +1808,7 @@ def test_checkout_complete_with_shipping_voucher_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_gift_card.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout = prepare_checkout_for_test(
@@ -2158,7 +2182,7 @@ def test_checkout_complete_with_entire_order_voucher_paid_with_gift_card_and_tra
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_voucher_percentage.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout = prepare_checkout_for_test(
@@ -2288,8 +2312,8 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         manager=manager, checkout_info=checkout_info, lines=lines, address=address
     )
 
-    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal("1")
-    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal("1")
+    gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal(1)
+    gift_card.current_balance_amount = total_without_gc.gross.amount + Decimal(1)
     gift_card.save()
 
     expected_gc_balance_amount = (
@@ -2360,7 +2384,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("1")),
+        (True, DiscountValueType.FIXED, Decimal(1)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -2486,7 +2510,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     code = voucher_percentage.codes.first()
@@ -2678,7 +2702,7 @@ def test_checkout_complete_with_shipping_voucher(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
     checkout.discount = shipping_listing.price
     checkout.save(update_fields=["discount_amount"])
@@ -2810,7 +2834,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
     checkout_line_variant = checkout_line.variant
 
     channel = checkout.channel
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -2914,7 +2938,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("3")),
+        (True, DiscountValueType.FIXED, Decimal(3)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -3028,7 +3052,7 @@ def test_checkout_complete_with_voucher_on_specific_product_and_gift_card(
     shipping_listing = shipping_method.channel_listings.get(
         channel_id=checkout_with_item_and_voucher_specific_products.channel_id
     )
-    shipping_listing.price_amount = Decimal("35")
+    shipping_listing.price_amount = Decimal(35)
     shipping_listing.save(update_fields=["price_amount"])
 
     checkout = prepare_checkout_for_test(
@@ -3143,7 +3167,7 @@ def test_checkout_complete_product_on_promotion(
 
     channel = checkout.channel
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -3251,8 +3275,8 @@ def test_checkout_complete_multiple_rules_applied(
 
     channel = checkout.channel
 
-    reward_value_1 = Decimal("2")
-    reward_value_2 = Decimal("10")
+    reward_value_1 = Decimal(2)
+    reward_value_2 = Decimal(10)
     rule_1, rule_2 = PromotionRule.objects.bulk_create(
         [
             PromotionRule(
@@ -3392,7 +3416,7 @@ def test_checkout_complete_multiple_rules_applied(
         "expected_voucher_discount_value",
     ),
     [
-        (True, DiscountValueType.FIXED, Decimal("3")),
+        (True, DiscountValueType.FIXED, Decimal(3)),
         (False, DiscountValueType.PERCENTAGE, Decimal(10)),
     ],
 )
@@ -5411,3 +5435,52 @@ def test_checkout_complete_with_different_email_than_user_email(
     order = Order.objects.first()
     assert order.user_email == checkout.email
     assert order.user.email == checkout.user.email
+
+
+def test_checkout_complete_sets_product_type_id_for_all_order_lines(
+    user_api_client,
+    checkout_ready_to_complete,
+    address,
+    address_usa,
+    shipping_method,
+    transaction_events_generator,
+    transaction_item_generator,
+    customer_user,
+):
+    # given
+    checkout = prepare_checkout_for_test(
+        checkout_ready_to_complete,
+        address,
+        address_usa,
+        shipping_method,
+        transaction_item_generator,
+        transaction_events_generator,
+        user=customer_user,
+        save_billing_address=True,
+        save_shipping_address=True,
+    )
+
+    lines, _ = fetch_checkout_lines(checkout)
+
+    variant_id_to_product_type_id_map = {
+        line.variant.id: line.product_type.id for line in lines
+    }
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+    for line in order.lines.all():
+        assert (
+            line.product_type_id == variant_id_to_product_type_id_map[line.variant_id]
+        )

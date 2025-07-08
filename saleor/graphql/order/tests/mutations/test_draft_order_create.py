@@ -276,6 +276,7 @@ def test_draft_order_create_with_voucher_entire_order(
     ).get_total()
     assert order.base_shipping_price == shipping_total
     assert order.undiscounted_base_shipping_price == shipping_total
+    assert order.lines_count == len(variant_list)
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -570,6 +571,7 @@ def test_draft_order_create_with_voucher_code(
     assert order.external_reference == external_reference
     assert order.base_shipping_price == shipping_total
     assert order.undiscounted_base_shipping_price == shipping_total
+    assert order.lines_count == len(variant_list)
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -821,6 +823,7 @@ def test_draft_order_create_with_voucher_specific_product(
     ).get_total()
     assert order.base_shipping_price == shipping_total
     assert order.undiscounted_base_shipping_price == shipping_total
+    assert order.lines_count == len(variant_list)
 
     lines_data = data["lines"]
     discounted_line_data, line_1_data = lines_data
@@ -975,6 +978,7 @@ def test_draft_order_create_with_voucher_apply_once_per_order(
     ).get_total()
     assert order.base_shipping_price == shipping_total
     assert order.undiscounted_base_shipping_price == shipping_total
+    assert order.lines_count == len(variant_list)
 
     lines_data = data["lines"]
     discounted_line_data, line_1_data = lines_data
@@ -1569,6 +1573,7 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
     ).get_total()
     assert order.base_shipping_price == shipping_total
     assert order.undiscounted_base_shipping_price == shipping_total
+    assert order.lines_count == len(variant_list)
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -3198,7 +3203,7 @@ def test_draft_order_create_order_promotion_flat_rates(
     promotion_id = graphene.Node.to_global_id("Promotion", rule.promotion_id)
     assert rule.reward_value_type == RewardValueType.PERCENTAGE
     reward_value = rule.reward_value
-    assert rule.reward_value == Decimal("25")
+    assert rule.reward_value == Decimal(25)
 
     variant = variant_with_many_stocks
     user_id = graphene.Node.to_global_id("User", customer_user.id)
@@ -4108,3 +4113,45 @@ def test_draft_order_create_create_with_language_code(
     order = Order.objects.get(id=order_pk)
 
     assert order.language_code == "pl"
+
+
+def test_draft_order_create_sets_product_type_id_for_order_line(
+    app_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_available_in_many_channels,
+    channel_PLN,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    expected_product_type_id = variant.product.product_type_id
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+
+    order_line = OrderLine.objects.first()
+    assert order_line.product_type_id == expected_product_type_id

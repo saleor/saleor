@@ -137,7 +137,7 @@ class TransactionInitialize(TransactionSessionBase):
         return idempotency_key
 
     @classmethod
-    def perform_mutation(
+    def perform_mutation(  # type: ignore[override]
         cls,
         root,
         info,

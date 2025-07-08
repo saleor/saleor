@@ -861,7 +861,7 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     # drop tax classes from lines and shipping, so that default country rate is used
     for line in lines:
         line.tax_class = None
-        line.tax_rate = Decimal("0")
+        line.tax_rate = Decimal(0)
         line.tax_class_name = None
         line.save(
             update_fields=[
@@ -874,7 +874,7 @@ def test_use_default_country_rate_when_no_tax_class_was_set_before(
     order.shipping_method.tax_class.delete()
     order.shipping_tax_class = None
     order.shipping_tax_class_name = None
-    order.shipping_tax_rate = Decimal("0")
+    order.shipping_tax_rate = Decimal(0)
     order.status = OrderStatus.DRAFT
     order.save(
         update_fields=[

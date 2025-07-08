@@ -16,8 +16,8 @@ from ....attribute.utils import (
     AttrValuesInput,
     has_input_modified_attribute_values,
 )
-from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.context import ChannelContext
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import ProductError
 from ....core.utils import ext_ref_to_global_id_or_error

@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models
 from django.db.models import JSONField, Q, Value
 from django.db.models.expressions import Exists, OuterRef
@@ -92,6 +92,10 @@ class Address(ModelWithMetadata):
                     "phone",
                 ],
                 opclasses=["gin_trgm_ops"] * 6,
+            ),
+            BTreeIndex(
+                fields=["country"],
+                name="address_country_idx",
             ),
         ]
 
@@ -190,6 +194,9 @@ class User(
     search_document = models.TextField(blank=True, default="")
     uuid = models.UUIDField(default=uuid4, unique=True)
 
+    # Denormalized number of orders placed by the user
+    number_of_orders = models.PositiveIntegerField(default=0, db_default=0)
+
     USERNAME_FIELD = "email"
     RETURN_ID_IN_API_RESPONSE = True
 
@@ -232,6 +239,18 @@ class User(
                 fields=["last_name"],
                 name="last_name_gin",
                 opclasses=["gin_trgm_ops"],
+            ),
+            BTreeIndex(
+                fields=["date_joined"],
+                name="user_date_joined_idx",
+            ),
+            BTreeIndex(
+                fields=["email"],
+                name="user_email_idx",
+            ),
+            BTreeIndex(
+                fields=["number_of_orders"],
+                name="user_number_of_orders_idx",
             ),
         ]
 

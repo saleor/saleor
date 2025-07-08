@@ -144,11 +144,11 @@ def test_get_shipping_tax_rate_for_checkout_weighted_tax(
     for line_info in checkout_lines_info:
         line_info.line.tax_rate = expected_tax_rate
         line_info.line.total_price = TaxedMoney(
-            net=Money(Decimal("100"), checkout.currency),
-            gross=Money(Decimal("110"), checkout.currency),
+            net=Money(Decimal(100), checkout.currency),
+            gross=Money(Decimal(110), checkout.currency),
         )
 
-    default_tax_rate = Decimal("20")
+    default_tax_rate = Decimal(20)
 
     # when
     shipping_tax_rate = get_shipping_tax_rate_for_checkout(
@@ -177,38 +177,38 @@ def test_get_shipping_tax_rate_for_checkout_weighted_tax_with_multiple_tax_rates
 
     assert len(checkout_lines_info) == 4
 
-    default_tax_rate = Decimal("20")
+    default_tax_rate = Decimal(20)
 
     # Set different tax rates for lines
     # First line: 10% tax rate with $10 tax amount
     first_line = checkout_lines_info[0].line
     first_line.tax_rate = Decimal("0.1")  # 10%
     first_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), checkout.currency),
-        gross=Money(Decimal("110"), checkout.currency),
+        net=Money(Decimal(100), checkout.currency),
+        gross=Money(Decimal(110), checkout.currency),
     )
 
     # Second line: 5% tax rate with $5 tax amount
     second_line = checkout_lines_info[1].line
     second_line.tax_rate = Decimal("0.05")  # 5%
     second_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), checkout.currency),
-        gross=Money(Decimal("105"), checkout.currency),
+        net=Money(Decimal(100), checkout.currency),
+        gross=Money(Decimal(105), checkout.currency),
     )
 
     # Third line: 0% tax rate with $0 tax amount
     third_line = checkout_lines_info[2].line
-    third_line.tax_rate = Decimal("0")  # 0%
+    third_line.tax_rate = Decimal(0)  # 0%
     third_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), checkout.currency),
-        gross=Money(Decimal("100"), checkout.currency),
+        net=Money(Decimal(100), checkout.currency),
+        gross=Money(Decimal(100), checkout.currency),
     )
 
     fourth_line = checkout_lines_info[3].line
     fourth_line.tax_rate = Decimal("0.2")  # 20%
     fourth_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), checkout.currency),
-        gross=Money(Decimal("120"), checkout.currency),
+        net=Money(Decimal(100), checkout.currency),
+        gross=Money(Decimal(120), checkout.currency),
     )
 
     # when
@@ -254,14 +254,14 @@ def test_get_shipping_tax_rate_for_checkout_when_weighted_tax_is_disabled(
     first_line = checkout_lines_info[0].line
     first_line.tax_rate = Decimal("0.1")  # 10%
     first_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), checkout.currency),
-        gross=Money(Decimal("110"), checkout.currency),
+        net=Money(Decimal(100), checkout.currency),
+        gross=Money(Decimal(110), checkout.currency),
     )
     first_line.save(
         update_fields=["tax_rate", "total_price_net_amount", "total_price_gross_amount"]
     )
 
-    default_tax_rate = Decimal("20")  # 20%
+    default_tax_rate = Decimal(20)  # 20%
 
     # when
     shipping_tax_rate = get_shipping_tax_rate_for_checkout(
@@ -288,7 +288,7 @@ def test_get_shipping_tax_rate_for_order_weighted_tax(
         update_fields=["use_weighted_tax_for_shipping", "tax_calculation_strategy"]
     )
 
-    default_tax_rate = Decimal("20")
+    default_tax_rate = Decimal(20)
     lines = list(order.lines.all())
     country = get_order_country(order)
 
@@ -297,8 +297,8 @@ def test_get_shipping_tax_rate_for_order_weighted_tax(
     for line in lines:
         line.tax_rate = expected_tax_rate
         line.total_price = TaxedMoney(
-            net=Money(Decimal("100"), order.currency),
-            gross=Money(Decimal("110"), order.currency),
+            net=Money(Decimal(100), order.currency),
+            gross=Money(Decimal(110), order.currency),
         )
 
     # when
@@ -329,7 +329,7 @@ def test_get_shipping_tax_rate_for_order_weighted_tax_with_multiple_tax_rates(
     lines = list(order.lines.all())
     assert len(lines) == 2
 
-    default_tax_rate = Decimal("20")
+    default_tax_rate = Decimal(20)
     country = get_order_country(order)
 
     # Set different tax rates for lines
@@ -337,8 +337,8 @@ def test_get_shipping_tax_rate_for_order_weighted_tax_with_multiple_tax_rates(
     first_line = lines[0]
     first_line.tax_rate = Decimal("0.1")  # 10%
     first_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), order.currency),
-        gross=Money(Decimal("110"), order.currency),
+        net=Money(Decimal(100), order.currency),
+        gross=Money(Decimal(110), order.currency),
     )
     first_line.save(
         update_fields=["tax_rate", "total_price_net_amount", "total_price_gross_amount"]
@@ -348,8 +348,8 @@ def test_get_shipping_tax_rate_for_order_weighted_tax_with_multiple_tax_rates(
     second_line = lines[1]
     second_line.tax_rate = Decimal("0.05")  # 5%
     second_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), order.currency),
-        gross=Money(Decimal("105"), order.currency),
+        net=Money(Decimal(100), order.currency),
+        gross=Money(Decimal(105), order.currency),
     )
     second_line.save(
         update_fields=["tax_rate", "total_price_net_amount", "total_price_gross_amount"]
@@ -391,14 +391,14 @@ def test_get_shipping_tax_rate_for_order_when_weighted_tax_is_disabled(
     first_line = lines[0]
     first_line.tax_rate = Decimal("0.1")  # 10%
     first_line.total_price = TaxedMoney(
-        net=Money(Decimal("100"), order.currency),
-        gross=Money(Decimal("110"), order.currency),
+        net=Money(Decimal(100), order.currency),
+        gross=Money(Decimal(110), order.currency),
     )
     first_line.save(
         update_fields=["tax_rate", "total_price_net_amount", "total_price_gross_amount"]
     )
 
-    default_tax_rate = Decimal("20")  # 20%
+    default_tax_rate = Decimal(20)  # 20%
     order.shipping_tax_class = default_tax_class
 
     # when

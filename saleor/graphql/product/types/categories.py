@@ -5,12 +5,12 @@ from promise import Promise
 from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
+from ....product.search import search_products
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ...channel import ChannelQsContext
 from ...channel.dataloaders import ChannelBySlugLoader
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -18,8 +18,8 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.context import get_database_connection_name
-from ...core.descriptions import RICH_CONTENT
+from ...core.context import ChannelQsContext, get_database_connection_name
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -63,9 +63,15 @@ class Category(ModelObjectType[models.Category]):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
-        where=ProductWhereInput(description="Filtering options for products."),
+        filter=ProductFilterInput(
+            description=(
+                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT} "
+                "Use `where` filter instead."
+            )
+        ),
+        where=ProductWhereInput(description="Where filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
+        search=graphene.String(description="Search products."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -160,6 +166,7 @@ class Category(ModelObjectType[models.Category]):
 
     @staticmethod
     def resolve_products(root: models.Category, info, *, channel=None, **kwargs):
+        search = kwargs.get("search")
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
@@ -185,13 +192,21 @@ class Category(ModelObjectType[models.Category]):
             if channel_obj and has_required_permissions:
                 qs = qs.filter(channel_listings__channel_id=channel_obj.id)
             qs = qs.filter(category__in=tree)
-            qs = ChannelQsContext(qs=qs, channel_slug=channel)
+
+            if search:
+                channel_qs = ChannelQsContext(
+                    qs=search_products(qs, search), channel_slug=channel
+                )
+            else:
+                channel_qs = ChannelQsContext(qs=qs, channel_slug=channel)
 
             kwargs["channel"] = channel
-            qs = filter_connection_queryset(
-                qs, kwargs, allow_replica=info.context.allow_replica
+            channel_qs = filter_connection_queryset(
+                channel_qs, kwargs, allow_replica=info.context.allow_replica
             )
-            return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+            return create_connection_slice(
+                channel_qs, info, kwargs, ProductCountableConnection
+            )
 
         if channel:
             return (

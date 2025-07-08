@@ -137,7 +137,9 @@ class PermissionGroupCreate(DeprecatedModelMutation):
                 )
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(
+        cls, context, permissions=None, require_all_permissions=False, **data
+    ):
         app = get_app_promise(context).get()
         if app:
             raise PermissionDenied(

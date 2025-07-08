@@ -191,7 +191,7 @@ def test_base_order_total_with_fixed_manual_discount_more_then_total(order_with_
     order_total = base_calculations.base_order_total(order, lines)
 
     # then
-    assert order_total == Money(Decimal("0"), order.currency)
+    assert order_total == Money(Decimal(0), order.currency)
     order_discount.refresh_from_db()
     assert order_discount.amount == undiscounted_total
 

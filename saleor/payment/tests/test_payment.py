@@ -461,7 +461,7 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
         gateway.capture(
             payment,
             get_plugins_manager(allow_replica=False),
-            amount=Decimal("0"),
+            amount=Decimal(0),
             channel_slug=payment_dummy.order.channel.slug,
         )
     assert exc.value.message == "Amount should be a positive number."
@@ -472,7 +472,7 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
         gateway.capture(
             payment,
             get_plugins_manager(allow_replica=False),
-            amount=Decimal("10"),
+            amount=Decimal(10),
             channel_slug=payment_dummy.order.channel.slug,
         )
     assert exc.value.message == "This payment cannot be captured."
@@ -483,7 +483,7 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
         gateway.capture(
             payment,
             get_plugins_manager(allow_replica=False),
-            amount=Decimal("1000000"),
+            amount=Decimal(1000000),
             channel_slug=payment_dummy.order.channel.slug,
         )
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
@@ -495,7 +495,7 @@ def test_gateway_refund_errors(payment_txn_captured):
         gateway.refund(
             payment,
             get_plugins_manager(allow_replica=False),
-            amount=Decimal("1000000"),
+            amount=Decimal(1000000),
             channel_slug=payment_txn_captured.order.channel.slug,
         )
     assert exc.value.message == "Cannot refund more than captured."
@@ -504,7 +504,7 @@ def test_gateway_refund_errors(payment_txn_captured):
         gateway.refund(
             payment,
             get_plugins_manager(allow_replica=False),
-            amount=Decimal("0"),
+            amount=Decimal(0),
             channel_slug=payment_txn_captured.order.channel.slug,
         )
     assert exc.value.message == "Amount should be a positive number."
@@ -515,7 +515,7 @@ def test_gateway_refund_errors(payment_txn_captured):
         gateway.refund(
             payment,
             get_plugins_manager(allow_replica=False),
-            amount=Decimal("1"),
+            amount=Decimal(1),
             channel_slug=payment_txn_captured.order.channel.slug,
         )
     assert exc.value.message == "This payment cannot be refunded."

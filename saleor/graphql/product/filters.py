@@ -37,8 +37,10 @@ from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     BooleanWhereFilter,
+    ChannelFilterInputObjectType,
     EnumFilter,
     EnumWhereFilter,
+    FilterInputObjectType,
     GlobalIDMultipleChoiceFilter,
     GlobalIDMultipleChoiceWhereFilter,
     ListObjectTypeFilter,
@@ -48,34 +50,33 @@ from ..core.filters import (
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
     OperationObjectTypeWhereFilter,
-    filter_slug_list,
+)
+from ..core.filters.where_input import (
+    DateTimeFilterInput,
+    DecimalFilterInput,
+    GlobalIDFilterInput,
+    StringFilterInput,
+    WhereInputObjectType,
 )
 from ..core.scalars import DateTime
 from ..core.types import (
     BaseInputObjectType,
-    ChannelFilterInputObjectType,
-    DateTimeFilterInput,
     DateTimeRangeInput,
-    FilterInputObjectType,
     IntRangeInput,
     NonNullList,
     PriceRangeInput,
-    StringFilterInput,
-)
-from ..core.types.filter_input import (
-    DecimalFilterInput,
-    GlobalIDFilterInput,
-    WhereInputObjectType,
 )
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
     filter_range_field,
+    filter_slug_list,
     filter_where_by_id_field,
     filter_where_by_numeric_field,
+    filter_where_by_range_field,
     filter_where_by_value_field,
-    filter_where_range_field,
+    filter_where_range_field_with_conditions,
 )
 from ..warehouse import types as warehouse_types
 from . import types as product_types
@@ -119,7 +120,7 @@ def _clean_product_attributes_filter_input(
 def _populate_value_map(
     database_connection_name, field, values, attribute_qs, attributes_pk_slug_map
 ):
-    value_maps: dict[str, dict[str, int]] = defaultdict(dict)
+    value_maps: dict[str, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
     for (
         attr_pk,
         value_pk,
@@ -131,7 +132,7 @@ def _populate_value_map(
         .values_list("attribute_id", "pk", field)
     ):
         attr_slug = attributes_pk_slug_map[attr_pk]
-        value_maps[attr_slug][field_value] = value_pk
+        value_maps[attr_slug][field_value].append(value_pk)
 
     return value_maps
 
@@ -141,9 +142,10 @@ def _update_queries(queries, filter_values, attributes_slug_pk_map, value_maps):
         if attr_name not in attributes_slug_pk_map:
             raise ValueError(f"Unknown attribute name: {attr_name}")
         attr_pk = attributes_slug_pk_map[attr_name]
-        attr_val_pk = [
-            value_maps[attr_name][val] for val in vals if val in value_maps[attr_name]
-        ]
+        attr_val_pk = []
+        for val in vals:
+            if val in value_maps[attr_name]:
+                attr_val_pk.extend(value_maps[attr_name][val])
         queries[attr_pk] += attr_val_pk
 
 
@@ -1129,7 +1131,7 @@ def where_filter_has_preordered_variants(qs, _, value):
 def where_filter_updated_at_range(qs, _, value):
     if value is None:
         return qs.none()
-    return filter_where_range_field(qs, "updated_at", value)
+    return filter_where_range_field_with_conditions(qs, "updated_at", value)
 
 
 class ProductWhere(MetadataWhereFilterBase):
@@ -1363,6 +1365,16 @@ class ProductVariantFilter(MetadataFilterBase):
 
 class ProductVariantWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("ProductVariant"))
+    sku = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_product_sku",
+        help_text="Filter by product SKU.",
+    )
+    updated_at = ObjectTypeWhereFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_updated_at",
+        help_text="Filter by when was the most recent update.",
+    )
 
     stock_availability = EnumWhereFilter(
         input_class=StockAvailability,
@@ -1376,6 +1388,14 @@ class ProductVariantWhere(MetadataWhereFilterBase):
 
     def filter_stock_availability(self, queryset, name, value):
         return where_filter_variant_stock_availability(queryset, name, value, self.data)
+
+    @staticmethod
+    def filter_product_sku(qs, _, value):
+        return filter_where_by_value_field(qs, "sku", value)
+
+    @staticmethod
+    def filter_updated_at(qs, _, value):
+        return filter_where_by_range_field(qs, "updated_at", value)
 
 
 class CollectionFilter(MetadataFilterBase):

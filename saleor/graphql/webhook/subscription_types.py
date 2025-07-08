@@ -38,11 +38,14 @@ from ...webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
-from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
-from ..core.context import SyncWebhookControlContext, get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    SyncWebhookControlContext,
+    get_database_connection_name,
+)
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
@@ -357,7 +360,7 @@ class AttributeBase(AbstractType):
     @staticmethod
     def resolve_attribute(root, _info: ResolveInfo):
         _, attribute = root
-        return attribute
+        return ChannelContext(attribute, None)
 
 
 class AttributeCreated(SubscriptionObjectType, AttributeBase):
@@ -392,8 +395,8 @@ class AttributeValueBase(AbstractType):
 
     @staticmethod
     def resolve_attribute_value(root, _info: ResolveInfo):
-        _, attribute = root
-        return attribute
+        _, attribute_value = root
+        return ChannelContext(attribute_value, None)
 
 
 class AttributeValueCreated(SubscriptionObjectType, AttributeValueBase):
@@ -1527,7 +1530,7 @@ class PageBase(AbstractType):
     @staticmethod
     def resolve_page(root, _info: ResolveInfo):
         _, page = root
-        return page
+        return ChannelContext(page, channel_slug=None)
 
 
 class PageCreated(SubscriptionObjectType, PageBase):

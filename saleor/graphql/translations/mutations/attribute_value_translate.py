@@ -6,6 +6,7 @@ from ....attribute import models as attribute_models
 from ....core.utils.editorjs import clean_editor_js
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValue
+from ...core.context import ChannelContext
 from ...core.descriptions import RICH_CONTENT
 from ...core.enums import LanguageCodeEnum
 from ...core.fields import JSONString
@@ -50,3 +51,9 @@ class AttributeValueTranslate(BaseTranslateMutation):
             elif instance.attribute.input_type == AttributeInputType.PLAIN_TEXT:
                 input_data["name"] = truncatechars(input_data["plain_text"], 250)
         return input_data
+
+    @classmethod
+    def perform_mutation(cls, *args, **kwargs):
+        response = super().perform_mutation(*args, **kwargs)
+        response.attributeValue = ChannelContext(response.attributeValue, None)
+        return response

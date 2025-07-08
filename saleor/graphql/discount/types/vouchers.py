@@ -3,17 +3,21 @@ from graphene import relay
 
 from ....discount import models
 from ....permission.enums import DiscountPermissions
-from ...channel import ChannelQsContext
 from ...channel.dataloaders import ChannelByIdLoader
-from ...channel.types import Channel, ChannelContext, ChannelContextType
+from ...channel.types import Channel
 from ...core import ResolveInfo, types
 from ...core.connection import CountableConnection, create_connection_slice
-from ...core.context import get_database_connection_name
+from ...core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    get_database_connection_name,
+)
 from ...core.descriptions import ADDED_IN_318, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
 from ...core.types import ModelObjectType, Money, NonNullList
+from ...core.types.context import ChannelContextType
 from ...meta.types import ObjectWithMetadata
 from ...product.types import (
     CategoryCountableConnection,

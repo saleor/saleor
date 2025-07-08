@@ -8,7 +8,7 @@ from .. import __version__ as saleor_version
 
 
 class JsonFormatter(BaseFormatter):
-    converter = time.gmtime
+    converter = time.gmtime  # type: ignore[assignment]
 
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)

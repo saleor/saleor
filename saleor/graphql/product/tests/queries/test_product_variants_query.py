@@ -1,6 +1,8 @@
 import graphene
+import pytest
 
 from .....product.models import Product, ProductVariant
+from .....product.search import update_products_search_vector
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 
@@ -269,3 +271,75 @@ def test_product_variants_visible_in_listings_by_app_with_perm(
     )
 
     assert data["totalCount"] == product_count
+
+
+QUERY_SEARCH_PRODUCT_VARIANTS = """
+    query searchProductVariants($search: String, $channel: String) {
+        productVariants(search: $search, first: 10, channel: $channel) {
+            edges {
+                node {
+                    id
+                    name
+                    sku
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    ("search_query", "expected_indexes"),
+    [("VariantName", [0, 1, 2]), ("SKU1", [1]), ("SKU2", [2]), ("Invalid", [])],
+)
+def test_search_product_variants_by_variant_name_and_sku(
+    search_query, expected_indexes, user_api_client, product_list, channel_USD
+):
+    # given
+    variants_list = list(ProductVariant.objects.all())
+    for index, variant in enumerate(variants_list):
+        variant.sku = f"SKU{index}"
+        variant.name = "VariantName"
+        variant.save()
+
+    update_products_search_vector(Product.objects.values_list("id", flat=True))
+
+    # when
+    variables = {"search": search_query, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(QUERY_SEARCH_PRODUCT_VARIANTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variants = content["data"]["productVariants"]["edges"]
+    assert len(variants) == len(expected_indexes)
+    skus = {node["node"]["sku"] for node in variants}
+    assert skus == {variants_list[index].sku for index in expected_indexes}
+
+
+@pytest.mark.parametrize(
+    ("search_query", "expected_indexes"),
+    [("ProductName", [0, 1]), ("anotherName", [2]), ("Invalid", [])],
+)
+def test_search_products_by_product_name(
+    search_query, expected_indexes, user_api_client, product_list, channel_USD
+):
+    # given
+    variants_list = sorted(ProductVariant.objects.all(), key=lambda x: x.product_id)
+
+    for product in product_list[:2]:
+        product.name = "ProductName"
+    product_list[2].name = "anotherName"
+    Product.objects.bulk_update(product_list, ["name"])
+
+    update_products_search_vector(Product.objects.values_list("id", flat=True))
+
+    # when
+    variables = {"search": search_query, "channel": channel_USD.slug}
+    response = user_api_client.post_graphql(QUERY_SEARCH_PRODUCT_VARIANTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["productVariants"]["edges"]
+    assert len(products) == len(expected_indexes)
+    skus = {node["node"]["sku"] for node in products}
+    assert skus == {variants_list[index].sku for index in expected_indexes}

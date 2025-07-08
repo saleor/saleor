@@ -3,8 +3,7 @@ from django.db.models import Exists, OuterRef, Q
 
 from ...account.models import User
 from ...app.models import App
-from ..core.filters import BaseJobFilter
-from ..core.types import FilterInputObjectType
+from ..core.filters import BaseJobFilter, FilterInputObjectType
 
 
 def filter_user(qs, _, value):

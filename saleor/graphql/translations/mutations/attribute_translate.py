@@ -3,6 +3,7 @@ import graphene
 from ....attribute import models as attribute_models
 from ....permission.enums import SitePermissions
 from ...attribute.types import Attribute
+from ...core.context import ChannelContext
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from .utils import BaseTranslateMutation, NameTranslationInput
@@ -29,3 +30,9 @@ class AttributeTranslate(BaseTranslateMutation):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
+
+    @classmethod
+    def perform_mutation(cls, *args, **kwargs):
+        response = super().perform_mutation(*args, **kwargs)
+        response.attribute = ChannelContext(response.attribute, None)
+        return response

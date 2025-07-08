@@ -138,7 +138,7 @@ class OrderCreateFromCheckout(BaseMutation):
         ]
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
+    def check_permissions(cls, context, permissions=None, **data):  # type: ignore[override]
         """Determine whether app has rights to perform this mutation."""
         permissions = permissions or cls._meta.permissions
         app = getattr(context, "app", None)

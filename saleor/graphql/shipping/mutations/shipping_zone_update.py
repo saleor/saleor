@@ -2,8 +2,8 @@ import graphene
 
 from ....permission.enums import ShippingPermissions
 from ....shipping import models
-from ...channel.types import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import NonNullList, ShippingError

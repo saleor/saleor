@@ -2,8 +2,8 @@ import graphene
 
 from ....permission.enums import SitePermissions
 from ....shipping import models as shipping_models
-from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.descriptions import RICH_CONTENT
 from ...core.enums import LanguageCodeEnum
 from ...core.fields import JSONString

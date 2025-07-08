@@ -2,10 +2,9 @@ import graphene
 
 from ...permission.enums import ShippingPermissions
 from ...shipping import models
-from ..channel.types import ChannelContext
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelContext, get_database_connection_name
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error

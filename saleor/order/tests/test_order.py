@@ -125,7 +125,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     order = order_with_lines
     variant = product.variants.first()
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -509,12 +509,18 @@ def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
 
 def test_order_queryset_confirmed(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
+            status=OrderStatus.UNFULFILLED, channel=channel_USD, lines_count=0
         ),
-        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
-        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.CANCELED, channel=channel_USD, lines_count=0
+        ),
     ]
 
     confirmed_orders = Order.objects.confirmed()
@@ -525,12 +531,18 @@ def test_order_queryset_confirmed(draft_order, channel_USD):
 
 def test_order_queryset_drafts(draft_order, channel_USD):
     other_orders = [
-        Order.objects.create(status=OrderStatus.UNFULFILLED, channel=channel_USD),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD
+            status=OrderStatus.UNFULFILLED, channel=channel_USD, lines_count=0
         ),
-        Order.objects.create(status=OrderStatus.FULFILLED, channel=channel_USD),
-        Order.objects.create(status=OrderStatus.CANCELED, channel=channel_USD),
+        Order.objects.create(
+            status=OrderStatus.PARTIALLY_FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.FULFILLED, channel=channel_USD, lines_count=0
+        ),
+        Order.objects.create(
+            status=OrderStatus.CANCELED, channel=channel_USD, lines_count=0
+        ),
     ]
 
     draft_orders = Order.objects.drafts()
@@ -547,12 +559,14 @@ def test_order_queryset_to_ship(settings, channel_USD):
             total=total,
             total_charged_amount=total.gross.amount,
             channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
             status=OrderStatus.PARTIALLY_FULFILLED,
             total=total,
             total_charged_amount=total.gross.amount,
             channel=channel_USD,
+            lines_count=0,
         ),
     ]
     for order in orders_to_ship:
@@ -566,19 +580,28 @@ def test_order_queryset_to_ship(settings, channel_USD):
 
     orders_not_to_ship = [
         Order.objects.create(
-            status=OrderStatus.DRAFT, total=total, channel=channel_USD
+            status=OrderStatus.DRAFT, total=total, channel=channel_USD, lines_count=0
         ),
         Order.objects.create(
-            status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.UNFULFILLED,
+            total=total,
+            channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
-            status=OrderStatus.PARTIALLY_FULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.PARTIALLY_FULFILLED,
+            total=total,
+            channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
-            status=OrderStatus.FULFILLED, total=total, channel=channel_USD
+            status=OrderStatus.FULFILLED,
+            total=total,
+            channel=channel_USD,
+            lines_count=0,
         ),
         Order.objects.create(
-            status=OrderStatus.CANCELED, total=total, channel=channel_USD
+            status=OrderStatus.CANCELED, total=total, channel=channel_USD, lines_count=0
         ),
     ]
 
@@ -592,17 +615,21 @@ def test_queryset_ready_to_capture(channel_USD):
     total = TaxedMoney(net=Money(10, "USD"), gross=Money(15, "USD"))
 
     preauth_order = Order.objects.create(
-        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD, lines_count=0
     )
     Payment.objects.create(
         order=preauth_order, charge_status=ChargeStatus.NOT_CHARGED, is_active=True
     )
 
-    Order.objects.create(status=OrderStatus.DRAFT, total=total, channel=channel_USD)
     Order.objects.create(
-        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD
+        status=OrderStatus.DRAFT, total=total, channel=channel_USD, lines_count=0
     )
-    Order.objects.create(status=OrderStatus.CANCELED, total=total, channel=channel_USD)
+    Order.objects.create(
+        status=OrderStatus.UNFULFILLED, total=total, channel=channel_USD, lines_count=0
+    )
+    Order.objects.create(
+        status=OrderStatus.CANCELED, total=total, channel=channel_USD, lines_count=0
+    )
 
     qs = Order.objects.ready_to_capture()
     assert preauth_order in qs
@@ -1226,7 +1253,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
     order = order_with_lines
     variant = product.variants.first()
 
-    reward_value = Decimal("5")
+    reward_value = Decimal(5)
     rule = catalogue_promotion_without_rules.rules.create(
         catalogue_predicate={
             "productPredicate": {
@@ -1385,18 +1412,18 @@ def test_add_variant_to_order_adds_translations_in_order_language(
     ("granted_refund_amount", "charged_amount", "expected_charge_status"),
     [
         # granted refund contains part of the order's total, charge amount is 0
-        (Decimal("10.40"), Decimal("0"), OrderChargeStatus.NONE),
+        (Decimal("10.40"), Decimal(0), OrderChargeStatus.NONE),
         # granted refund covers the whole order's total, charge amount is 0
         # status is FULL, as the order total - granted refund amount is 0.
         # It means that a charge amount equal to 0 fully covers the order total (0)
-        (Decimal("98.40"), Decimal("0"), OrderChargeStatus.FULL),
-        (Decimal("0"), Decimal("0"), OrderChargeStatus.NONE),
-        (Decimal("0"), Decimal("11.00"), OrderChargeStatus.PARTIAL),
-        (Decimal("4"), Decimal("11.00"), OrderChargeStatus.PARTIAL),
+        (Decimal("98.40"), Decimal(0), OrderChargeStatus.FULL),
+        (Decimal(0), Decimal(0), OrderChargeStatus.NONE),
+        (Decimal(0), Decimal("11.00"), OrderChargeStatus.PARTIAL),
+        (Decimal(4), Decimal("11.00"), OrderChargeStatus.PARTIAL),
         # granted refund covers 88.40 of total, which is 98.40. Charge amount is 10.
         # status is FULL, as the order total - granted refund amount is 10.
         (Decimal("88.40"), Decimal("10.00"), OrderChargeStatus.FULL),
-        (Decimal("0"), Decimal("98.40"), OrderChargeStatus.FULL),
+        (Decimal(0), Decimal("98.40"), OrderChargeStatus.FULL),
         # granted refund covers 88.40 of total, which is 98.40. Charge amount is 98.40.
         # status is OVERCHARGED as the charge amount is greater than the order
         # total - granted refund amount

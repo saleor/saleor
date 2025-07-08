@@ -1,6 +1,11 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytest
+from prices import Money, TaxedMoney
+
+from .....core.postgres import FlatConcatSearchVector
+from .....discount.models import OrderDiscount
 from .....order import OrderStatus
 from .....order.events import (
     draft_order_created_from_replace_event,
@@ -8,6 +13,8 @@ from .....order.events import (
     order_added_products_event,
 )
 from .....order.models import Order
+from .....order.search import prepare_order_search_vector_value
+from .....payment.models import Payment
 from .....plugins.manager import PluginsManager
 from .....tax.calculations.order import update_order_prices_with_flat_rates
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -372,3 +379,132 @@ def test_query_draft_orders_with_active_filter_shipping_methods_webhook(
     assert not order_with_lines.should_refresh_prices
     assert order_with_lines.total_gross_amount != Decimal(0)
     mocked_webhook_handler.assert_not_called()
+
+
+ORDERS_QUERY_WITH_SEARCH = """
+  query ($search: String) {
+    draftOrders(first: 10, search:$search) {
+      totalCount
+      edges {
+        node {
+          id
+          number
+        }
+      }
+    }
+  }
+"""
+
+
+@pytest.mark.parametrize(
+    ("search_value", "count"),
+    [
+        ("discount name", 2),
+        ("Some other", 1),
+        ("translated", 1),
+        ("test@mirumee.com", 1),
+        ("Leslie", 1),
+        ("Wade", 1),
+        ("Leslie Wade", 1),
+        ("", 3),
+        ("ExternalID", 1),
+        ("SKU_A", 1),
+    ],
+)
+def test_draft_orders_query_with_search(
+    search_value,
+    count,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    channel_USD,
+    product,
+    variant,
+):
+    # given
+    orders = Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                user_email="test@mirumee.com",
+                channel=channel_USD,
+                lines_count=0,
+                status=OrderStatus.DRAFT,
+            ),
+            Order(
+                user_email="user_email1@example.com",
+                channel=channel_USD,
+                lines_count=0,
+                status=OrderStatus.DRAFT,
+            ),
+            Order(
+                user_email="user_email2@example.com",
+                channel=channel_USD,
+                lines_count=0,
+                status=OrderStatus.DRAFT,
+            ),
+        ]
+    )
+
+    OrderDiscount.objects.bulk_create(
+        [
+            OrderDiscount(
+                order=orders[0],
+                name="Some discount name",
+                value=Decimal(1),
+                amount_value=Decimal(1),
+                translated_name="translated",
+            ),
+            OrderDiscount(
+                order=orders[2],
+                name="Some other discount name",
+                value=Decimal(10),
+                amount_value=Decimal(10),
+                translated_name="PL_name",
+            ),
+        ]
+    )
+    order_with_payment = orders[1]
+    payment = Payment.objects.create(
+        order=order_with_payment, psp_reference="ExternalID"
+    )
+    payment.transactions.create(gateway_response={}, is_success=True)
+
+    order_with_orderline = orders[2]
+    channel = order_with_orderline.channel
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(channel_listing)
+    currency = net.currency
+    gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    order_with_orderline.lines.create(
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=3,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * 3,
+        undiscounted_unit_price=unit_price,
+        undiscounted_total_price=unit_price * 3,
+        tax_rate=Decimal("0.23"),
+    )
+
+    for order in orders:
+        order.search_vector = FlatConcatSearchVector(
+            *prepare_order_search_vector_value(order)
+        )
+    Order.objects.bulk_update(orders, ["search_vector"])
+
+    variables = {"search": search_value}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_SEARCH, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrders"]["totalCount"] == count

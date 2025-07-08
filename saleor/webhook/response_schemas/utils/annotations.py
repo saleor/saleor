@@ -3,10 +3,13 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Annotated, Any, TypeVar
 
+import pydantic
 from pydantic import (
     AfterValidator,
     BeforeValidator,
+    Field,
     GetCoreSchemaHandler,
+    TypeAdapter,
     ValidationError,
     ValidationInfo,
     ValidatorFunctionWrapHandler,
@@ -15,6 +18,7 @@ from pydantic import (
 from pydantic_core import PydanticOmit, PydanticUseDefault, core_schema
 
 from ....core.utils.metadata_manager import metadata_is_valid
+from ....payment import interface
 
 M = TypeVar("M")
 logger = logging.getLogger(__name__)
@@ -22,7 +26,7 @@ logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 
-def skip_invalid_metadata(value: M) -> M:
+def skip_invalid_metadata[M](value: M) -> M:
     if not metadata_is_valid(value):
         raise PydanticUseDefault()
     return value
@@ -90,7 +94,7 @@ OnErrorDefault = Annotated[T, WrapValidator(default_if_invalid)]
 DatetimeUTC = Annotated[datetime, AfterValidator(lambda v: v.astimezone(UTC))]
 
 
-def skip_invalid_literal(value: T, handler: ValidatorFunctionWrapHandler) -> T:
+def skip_invalid_literal[T](value: T, handler: ValidatorFunctionWrapHandler) -> T:
     try:
         return handler(value)
     except ValidationError as err:
@@ -146,3 +150,24 @@ class EnumName:
 
 
 EnumByName = Annotated[T, EnumName()]
+
+
+class JSONValue:
+    """A wrapper to allow Pydantic to generate schema for JsonValue."""
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls, source_type, handler: GetCoreSchemaHandler
+    ) -> core_schema.CoreSchema:
+        # Use the original JsonValue schema (full validation)
+        json_schema = handler(pydantic.JsonValue)
+        return json_schema
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        # Return a standard JSON-compatible schema (no recursion errors)
+        Json = Annotated[
+            interface.JSONValue,
+            Field(title="JsonValue"),
+        ]
+        return TypeAdapter(Json).json_schema()

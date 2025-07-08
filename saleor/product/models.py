@@ -375,6 +375,14 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
         app_label = "product"
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="variant_gin",
+                fields=["name", "sku"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name or self.sku or f"ID:{self.pk}"
@@ -613,7 +621,12 @@ class DigitalContentUrl(models.Model):
     ):
         if not self.token:
             self.token = str(uuid4()).replace("-", "")
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
     def get_absolute_url(self) -> str | None:
         url = reverse("digital-product", kwargs={"token": str(self.token)})

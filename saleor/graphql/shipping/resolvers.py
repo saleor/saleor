@@ -2,9 +2,8 @@ from prices import MoneyRange
 
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
-from ..channel import ChannelQsContext
 from ..core import ResolveInfo
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelQsContext, get_database_connection_name
 from ..translations.resolvers import resolve_translation
 
 

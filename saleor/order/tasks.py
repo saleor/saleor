@@ -1,11 +1,14 @@
 import datetime
 import logging
+from collections import Counter
 
 from django.conf import settings
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
 from django.db.models.functions import Greatest
 from django.utils import timezone
 
+from ..account.lock_objects import user_qs_select_for_update
+from ..account.models import User
 from ..celeryconf import app
 from ..channel.models import Channel
 from ..core.db.connection import allow_writer
@@ -207,8 +210,32 @@ def delete_expired_orders_task():
     # Wrap ids_batch with a list as it comes from the replica DB and delete is done on
     # the writer DB. This avoids mixing querysets from different DBs.
     ids_batch = list(ids_batch)
+    user_orders_count = Counter(
+        Order.objects.filter(id__in=ids_batch, user_id__isnull=False)
+        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .values_list("user_id", flat=True)
+    )
 
     with allow_writer():
         Order.objects.filter(id__in=ids_batch).delete()
 
+    reduce_user_number_of_orders(user_orders_count)
+
     delete_expired_orders_task.delay()
+
+
+@allow_writer()
+def reduce_user_number_of_orders(user_orders_count: dict[int, int]):
+    user_ids = list(user_orders_count.keys())
+    users_to_update = []
+    with traced_atomic_transaction():
+        users = user_qs_select_for_update().filter(id__in=user_ids)
+        users_in_bulk = users.in_bulk()
+        for user_id, order_count in user_orders_count.items():
+            user = users_in_bulk.get(user_id)
+            if user:
+                user.number_of_orders = max(user.number_of_orders - order_count, 0)
+                users_to_update.append(user)
+
+        if users_to_update:
+            User.objects.bulk_update(users_to_update, ["number_of_orders"])

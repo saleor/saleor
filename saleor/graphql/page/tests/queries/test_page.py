@@ -7,7 +7,7 @@ from .....attribute.tests.model_helpers import (
     get_page_attributes,
 )
 from .....attribute.utils import associate_attribute_values_to_instance
-from .....page.models import PageTranslation
+from .....page.models import Page, PageTranslation
 from .....tests.utils import dummy_editorjs
 from ....core.enums import LanguageCodeEnum
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -470,6 +470,24 @@ query Page($id: ID!, $slug: String!) {
                 id
                 slug
             }
+            values {
+                reference
+                referencedObject {
+                    __typename
+                    ... on Page {
+                        id
+                        publicationDate
+                    }
+                    ... on ProductVariant {
+                        id
+                        created
+                    }
+                    ... on Product {
+                        id
+                        created
+                    }
+                }
+            }
         }
     }
 }
@@ -601,3 +619,171 @@ def test_page_attribute_visible_in_storefront_for_staff_is_always_returned(
     # then
     content = get_graphql_content(response)
     assert content["data"]["page"]["attribute"]["attribute"]["slug"] == attribute.slug
+
+
+def test_page_attribute_with_referenced_page_object(
+    staff_api_client,
+    page_type_page_reference_attribute,
+    permission_manage_pages,
+    page,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    # Create a second page to reference
+    referenced_page = Page.objects.create(
+        title="Referenced Page",
+        slug="referenced-page",
+        page_type=page.page_type,
+        is_published=True,
+    )
+
+    page_type = page.page_type
+    page_type.page_attributes.all().delete()
+    page_type.page_attributes.add(page_type_page_reference_attribute)
+
+    attribute_value = AttributeValue.objects.create(
+        attribute=page_type_page_reference_attribute,
+        name=f"Page {referenced_page.pk}",
+        slug=f"page-{referenced_page.pk}",
+        reference_page=referenced_page,
+    )
+
+    associate_attribute_values_to_instance(
+        page, {page_type_page_reference_attribute.pk: [attribute_value]}
+    )
+
+    query = QUERY_PAGE_WITH_ATTRIBUTE
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": page_type_page_reference_attribute.slug,
+    }
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    page_data = content["data"]["page"]
+    page_attributes = page_data["attributes"]
+    assert len(page_attributes) == 1
+
+    attribute_with_reference = page_attributes[0]
+    assert attribute_with_reference["attribute"]["slug"] == "page-reference"
+
+    assert len(attribute_with_reference["values"]) == 1
+    value = attribute_with_reference["values"][0]
+    assert value["reference"] == graphene.Node.to_global_id("Page", referenced_page.id)
+    assert value["referencedObject"]["__typename"] == "Page"
+    assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
+        "Page", referenced_page.id
+    )
+
+
+def test_page_attribute_with_referenced_product_variant_object(
+    staff_api_client,
+    page_type_variant_reference_attribute,
+    permission_manage_pages,
+    page,
+    product,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    product_variant = product.variants.first()
+    page_type = page.page_type
+    page_type.page_attributes.all().delete()
+    page_type.page_attributes.add(page_type_variant_reference_attribute)
+
+    attribute_value = AttributeValue.objects.create(
+        attribute=page_type_variant_reference_attribute,
+        name=f"Variant {product_variant.pk}",
+        slug=f"variant-{product_variant.pk}",
+        reference_variant=product_variant,
+    )
+
+    associate_attribute_values_to_instance(
+        page,
+        {page_type_variant_reference_attribute.pk: [attribute_value]},
+    )
+
+    query = QUERY_PAGE_WITH_ATTRIBUTE
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": page_type_variant_reference_attribute.slug,
+    }
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    page_data = content["data"]["page"]
+    page_attributes = page_data["attributes"]
+    assert len(page_attributes) == 1
+
+    attribute_with_reference = page_attributes[0]
+    assert attribute_with_reference["attribute"]["slug"] == "variant-reference"
+
+    assert len(attribute_with_reference["values"]) == 1
+    value = attribute_with_reference["values"][0]
+    assert value["reference"] == graphene.Node.to_global_id(
+        "ProductVariant", product_variant.id
+    )
+    assert value["referencedObject"]["__typename"] == "ProductVariant"
+    assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", product_variant.id
+    )
+
+
+def test_page_attribute_with_referenced_product_object(
+    staff_api_client,
+    page_type_product_reference_attribute,
+    permission_manage_pages,
+    page,
+    product,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+
+    page_type = page.page_type
+    page_type.page_attributes.all().delete()
+    page_type.page_attributes.add(page_type_product_reference_attribute)
+
+    attribute_value = AttributeValue.objects.create(
+        attribute=page_type_product_reference_attribute,
+        name=f"Product {product.pk}",
+        slug=f"product-{product.pk}",
+        reference_product=product,
+    )
+
+    associate_attribute_values_to_instance(
+        page,
+        {page_type_product_reference_attribute.pk: [attribute_value]},
+    )
+
+    query = QUERY_PAGE_WITH_ATTRIBUTE
+
+    # when
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "slug": page_type_product_reference_attribute.slug,
+    }
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    page_data = content["data"]["page"]
+    page_attributes = page_data["attributes"]
+    assert len(page_attributes) == 1
+
+    attribute_with_reference = page_attributes[0]
+    assert attribute_with_reference["attribute"]["slug"] == "product-reference"
+
+    assert len(attribute_with_reference["values"]) == 1
+    value = attribute_with_reference["values"][0]
+    assert value["reference"] == graphene.Node.to_global_id("Product", product.id)
+    assert value["referencedObject"]["__typename"] == "Product"
+    assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
+        "Product", product.id
+    )

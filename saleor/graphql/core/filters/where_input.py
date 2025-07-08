@@ -1,110 +1,14 @@
-import itertools
-
 import graphene
-from django.db import models
-from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
-from graphene import Argument, InputField, String
-from graphene.types.inputobjecttype import InputObjectTypeOptions
-from graphene.types.utils import yank_fields_from_attrs
 
-from ...core.scalars import UUID, DateTime, Decimal
-from ..descriptions import DEPRECATED_IN_3X_INPUT
-from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
-from ..scalars import Date
-from . import NonNullList
-from .base import BaseInputObjectType
-from .common import DateRangeInput, DateTimeRangeInput, DecimalRangeInput, IntRangeInput
-from .converter import convert_form_field
-
-GLOBAL_ID_FILTERS = {
-    models.AutoField: {"filter_class": GlobalIDFilter},
-    models.OneToOneField: {"filter_class": GlobalIDFilter},
-    models.ForeignKey: {"filter_class": GlobalIDFilter},
-    models.ManyToManyField: {"filter_class": GlobalIDMultipleChoiceFilter},
-    models.ManyToOneRel: {"filter_class": GlobalIDMultipleChoiceFilter},
-    models.ManyToManyRel: {"filter_class": GlobalIDMultipleChoiceFilter},
-}
-
-
-class GraphQLFilterSetMixin(BaseFilterSet):
-    FILTER_DEFAULTS = dict(
-        itertools.chain(FILTER_FOR_DBFIELD_DEFAULTS.items(), GLOBAL_ID_FILTERS.items())
-    )
-
-
-def get_filterset_class(filterset_class=None):
-    return type(
-        f"GraphQL{filterset_class.__name__}",
-        (filterset_class, GraphQLFilterSetMixin),
-        {},
-    )
-
-
-class FilterInputObjectType(BaseInputObjectType):
-    """Class for storing and serving django-filters as graphQL input.
-
-    FilterSet class which inherits from django-filters.FilterSet should be
-    provided with using fitlerset_class argument.
-    """
-
-    @classmethod
-    def __init_subclass_with_meta__(
-        cls, _meta=None, model=None, filterset_class=None, fields=None, **options
-    ):
-        cls.custom_filterset_class = filterset_class
-        cls.filterset_class = None
-        cls.fields = fields
-        cls.model = model
-
-        if not _meta:
-            _meta = InputObjectTypeOptions(cls)
-
-        fields = cls.get_filtering_args_from_filterset()
-        fields = yank_fields_from_attrs(fields, _as=InputField)
-        if _meta.fields:
-            _meta.fields.update(fields)
-        else:
-            _meta.fields = fields
-
-        super().__init_subclass_with_meta__(_meta=_meta, **options)
-
-    @classmethod
-    def get_filtering_args_from_filterset(cls):
-        """Retrieve the filtering arguments from the queryset.
-
-        Inspect a FilterSet and produce the arguments to pass to a Graphene field.
-        These arguments will be available to filter against in the GraphQL.
-        """
-        if not cls.custom_filterset_class:
-            raise ValueError("Provide filterset class")
-
-        cls.filterset_class = get_filterset_class(cls.custom_filterset_class)
-
-        args = {}
-        for name, filter_field in cls.filterset_class.base_filters.items():
-            input_class = getattr(filter_field, "input_class", None)
-            if input_class:
-                field_type = convert_form_field(filter_field)
-            else:
-                field_type = convert_form_field(filter_field.field)
-                field_type.description = getattr(filter_field, "help_text", "")
-            kwargs = getattr(field_type, "kwargs", {})
-            field_type.kwargs = kwargs
-            args[name] = field_type
-        return args
-
-
-class ChannelFilterInputObjectType(FilterInputObjectType):
-    channel = Argument(
-        String,
-        description=(
-            "Specifies the channel by which the data should be filtered. "
-            f"{DEPRECATED_IN_3X_INPUT} Use root-level channel argument instead."
-        ),
-    )
-
-    class Meta:
-        abstract = True
+from ..scalars import UUID, Date, DateTime, Decimal
+from ..types import NonNullList
+from ..types.common import (
+    DateRangeInput,
+    DateTimeRangeInput,
+    DecimalRangeInput,
+    IntRangeInput,
+)
+from .filter_input import FilterInputObjectType
 
 
 class WhereInputObjectType(FilterInputObjectType):
@@ -121,7 +25,7 @@ class WhereInputObjectType(FilterInputObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, _meta=None, **options):
+    def __init_subclass_with_meta__(cls, _meta=None, **options):  # type: ignore[override]
         super().__init_subclass_with_meta__(_meta=_meta, **options)
         cls._meta.fields.update(
             {
@@ -150,6 +54,7 @@ class WhereInputObjectType(FilterInputObjectType):
 class FilterInputDescriptions:
     EQ = "The value equal to."
     ONE_OF = "The value included in."
+    NOT_ONE_OF = "The value not included in."
     RANGE = "The value in range."
 
 
@@ -235,3 +140,45 @@ class UUIDFilterInput(graphene.InputObjectType):
 
     class Meta:
         description = "Define the filtering options for string fields."
+
+
+class PriceFilterInput(graphene.InputObjectType):
+    currency = graphene.String(
+        required=False, description="The currency of the price to filter by."
+    )
+    amount = DecimalFilterInput(
+        required=True, description="The amount of the price to filter by."
+    )
+
+
+class MetadataValueFilterInput(graphene.InputObjectType):
+    eq = graphene.String(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.String, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+
+    class Meta:
+        description = "Define the filtering options for metadata value fields."
+
+
+class MetadataFilterInput(graphene.InputObjectType):
+    key = graphene.String(
+        required=True,
+        description="Key to filter by. If not other fields provided - checking the existence of the key in metadata.",
+    )
+    value = MetadataValueFilterInput(
+        required=False,
+        description="Value to filter by.",
+    )
+
+    class Meta:
+        description = """Allows filtering based on metadata key/value pairs.
+
+        Examples:
+        - `{key: "size"}`
+          Matches objects where the metadata key "size" exists, regardless of its value.
+        - `{key: "color", value: {oneOf: ["blue", "green"]}}`
+          Matches objects where the metadata key "color" is set to either "blue" or "green".
+        - `{key: "status", value: {eq: "active"}}`
+          Matches objects where the metadata key "status" is set to "active".
+        """

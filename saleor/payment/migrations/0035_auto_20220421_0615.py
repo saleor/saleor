@@ -72,25 +72,25 @@ class Migration(migrations.Migration):
                 (
                     "captured_value",
                     models.DecimalField(
-                        decimal_places=3, default=Decimal("0"), max_digits=12
+                        decimal_places=3, default=Decimal(0), max_digits=12
                     ),
                 ),
                 (
                     "authorized_value",
                     models.DecimalField(
-                        decimal_places=3, default=Decimal("0"), max_digits=12
+                        decimal_places=3, default=Decimal(0), max_digits=12
                     ),
                 ),
                 (
                     "refunded_value",
                     models.DecimalField(
-                        decimal_places=3, default=Decimal("0"), max_digits=12
+                        decimal_places=3, default=Decimal(0), max_digits=12
                     ),
                 ),
                 (
                     "voided_value",
                     models.DecimalField(
-                        decimal_places=3, default=Decimal("0"), max_digits=12
+                        decimal_places=3, default=Decimal(0), max_digits=12
                     ),
                 ),
                 (

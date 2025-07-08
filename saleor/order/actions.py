@@ -9,6 +9,7 @@ import graphene
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import transaction
+from django.db.models import F
 
 from ..account.models import User
 from ..app.models import App
@@ -21,7 +22,7 @@ from ..core.utils.events import (
     webhook_async_event_requires_sync_webhooks_to_trigger,
 )
 from ..giftcard import GiftCardLineData
-from ..order.utils import order_lines_qs_select_for_update
+from ..order.lock_objects import order_lines_qs_select_for_update
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -296,6 +297,10 @@ def order_created(
             order_id,
             extra={"tax_error": order.tax_error, "order_id": order_id},
         )
+
+    if order_user := order.user:
+        order_user.number_of_orders = F("number_of_orders") + 1
+        order_user.save(update_fields=["number_of_orders"])
 
     events.order_created_event(
         order=order, user=user, app=app, from_draft=from_draft, automatic=automatic
@@ -1598,7 +1603,9 @@ def create_refund_fulfillment(
     return refunded_fulfillment
 
 
-def _populate_replace_order_fields(original_order: "Order"):
+def _populate_replace_order_fields(
+    original_order: "Order", replace_lines_count: int = 0
+) -> "Order":
     replace_order = Order()
     replace_order.status = OrderStatus.DRAFT
     replace_order.user_id = original_order.user_id
@@ -1612,6 +1619,7 @@ def _populate_replace_order_fields(original_order: "Order"):
     replace_order.origin = OrderOrigin.REISSUE
     replace_order.metadata = original_order.metadata
     replace_order.private_metadata = original_order.private_metadata
+    replace_order.lines_count = replace_lines_count
 
     if original_order.billing_address:
         original_order.billing_address.pk = None
@@ -1635,7 +1643,14 @@ def create_replace_order(
 ) -> "Order":
     """Create draft order with lines to replace."""
 
-    replace_order = _populate_replace_order_fields(original_order)
+    order_lines_with_fulfillment = OrderLine.objects.in_bulk(
+        [line_data.line.order_line_id for line_data in fulfillment_lines_to_replace]
+    )
+    replace_lines_count = len(
+        {line.line.id for line in order_lines_to_replace}
+        | set(order_lines_with_fulfillment.keys())
+    )
+    replace_order = _populate_replace_order_fields(original_order, replace_lines_count)
     order_line_to_create: dict[OrderLineIDType, OrderLine] = {}
     # transaction is needed to ensure data consistency for order lines
     with traced_atomic_transaction():
@@ -1653,9 +1668,6 @@ def create_replace_order(
             # items
             order_line_to_create[order_line_id] = order_line
 
-        order_lines_with_fulfillment = OrderLine.objects.in_bulk(
-            [line_data.line.order_line_id for line_data in fulfillment_lines_to_replace]
-        )
         for fulfillment_line_data in fulfillment_lines_to_replace:
             fulfillment_line = fulfillment_line_data.line
             order_line_id = fulfillment_line.order_line_id

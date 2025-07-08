@@ -84,14 +84,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def order_qs_select_for_update():
-    return Order.objects.order_by("id").select_for_update(of=(["self"]))
-
-
-def order_lines_qs_select_for_update() -> QuerySet[OrderLine]:
-    return OrderLine.objects.order_by("pk").select_for_update(of=["self"])
-
-
 def get_order_country(order: Order) -> str:
     """Return country to which order will be shipped."""
     return get_active_country(
@@ -191,36 +183,55 @@ def _calculate_quantity_including_returns(order):
     )
 
 
+def refresh_order_status(order: Order):
+    """Refresh order status based on the most recent data.
+
+    This function recalculates the order status using the most up-to-date information
+    about fulfillments, returns, and replacements. It should always be called within
+    a transaction and with the order locked to ensure data consistency and prevent race conditions.
+
+    Returns
+        bool: True if the order status was changed, False otherwise.
+
+    """
+    old_status = order.status
+    # Calculate the quantities for the most recent data
+    (
+        total_quantity,
+        quantity_fulfilled,
+        quantity_returned,
+        quantity_awaiting_approval,
+    ) = _calculate_quantity_including_returns(order)
+
+    all_products_replaced = total_quantity == 0
+    if all_products_replaced:
+        return False
+
+    order.status = determine_order_status(
+        total_quantity,
+        quantity_fulfilled,
+        quantity_returned,
+        quantity_awaiting_approval,
+    )
+    return old_status != order.status
+
+
 def update_order_status(order: Order):
     """Update order status depending on fulfillments."""
     with transaction.atomic():
         # Add a transaction block to ensure that the order status won't be overridden by
         # another process.
         locked_order = Order.objects.select_for_update().get(pk=order.pk)
-        # Calculate the quantities for the most recent data
-        (
-            total_quantity,
-            quantity_fulfilled,
-            quantity_returned,
-            quantity_awaiting_approval,
-        ) = _calculate_quantity_including_returns(locked_order)
 
-        all_products_replaced = total_quantity == 0
-        if all_products_replaced:
-            return
-
-        status = determine_order_status(
-            total_quantity,
-            quantity_fulfilled,
-            quantity_returned,
-            quantity_awaiting_approval,
-        )
+        status_updated = refresh_order_status(locked_order)
 
         # we would like to update the status for the order provided as the argument
         # to ensure that the reference order has up to date status
-        if status != order.status:
-            order.status = status
-            order.save(update_fields=["status", "updated_at"])
+        if status_updated:
+            # We need to update the order status in original order object to ensure that
+            # the status is updated in the mutation response.
+            order.status = locked_order.status
+            locked_order.save(update_fields=["status", "updated_at"])
 
 
 def determine_order_status(
@@ -307,6 +318,7 @@ def create_order_line(
         product_sku=variant.sku,
         product_variant_id=variant.get_global_id(),
         is_shipping_required=variant.is_shipping_required(),
+        product_type_id=product.product_type_id,
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         unit_price=unit_price,
@@ -1033,11 +1045,11 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
     the order.total - order granted refund
     We treat the order as not charged when the charged amount is 0.
     """
-    total_charged = order.total_charged_amount or Decimal("0")
+    total_charged = order.total_charged_amount or Decimal(0)
     total_charged = quantize_price(total_charged, order.currency)
 
     current_total_gross = order.total_gross_amount - granted_refund_amount
-    current_total_gross = max(current_total_gross, Decimal("0"))
+    current_total_gross = max(current_total_gross, Decimal(0))
     current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_charged == current_total_gross:
@@ -1114,7 +1126,7 @@ def update_order_authorize_status(order: Order, granted_refund_amount: Decimal):
     ) or Decimal(0)
     total_covered = quantize_price(total_covered, order.currency)
     current_total_gross = order.total_gross_amount - granted_refund_amount
-    current_total_gross = max(current_total_gross, Decimal("0"))
+    current_total_gross = max(current_total_gross, Decimal(0))
     current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_covered == Decimal(0) and order.total.gross.amount == Decimal(0):

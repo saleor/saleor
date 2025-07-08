@@ -439,7 +439,7 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
         ("/app", AppExtensionTargetEnum.APP_PAGE.name, "https://www.example.com/app"),
         ("/app", AppExtensionTargetEnum.POPUP.name, "https://www.example.com/app"),
         (
-            "https://app-absolute-url.com",
+            "https://www.example.com/app/form",
             AppExtensionTargetEnum.NEW_TAB.name,
             "https://www.example.com/app",
         ),
@@ -497,7 +497,6 @@ def test_app_fetch_manifest_extensions_correct_url(
         ("www.example.com/app", AppExtensionTargetEnum.POPUP.name),
         ("https://www.example.com/app", AppExtensionTargetEnum.APP_PAGE.name),
         ("http://www.example.com/app", AppExtensionTargetEnum.APP_PAGE.name),
-        ("/relative-app-url", AppExtensionTargetEnum.NEW_TAB.name),
     ],
 )
 def test_app_fetch_manifest_extensions_incorrect_url(

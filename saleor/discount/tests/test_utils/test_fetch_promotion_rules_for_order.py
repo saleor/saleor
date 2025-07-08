@@ -56,7 +56,7 @@ def test_fetch_promotion_rules_for_order_relevant_channel_only(
         promotion=promotion,
         order_predicate=order_predicate,
         reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("10"),
+        reward_value=Decimal(10),
         reward_type=RewardType.SUBTOTAL_DISCOUNT,
     )
     rule_2.channels.add(order_JPY.channel)

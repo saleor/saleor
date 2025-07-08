@@ -1961,6 +1961,61 @@ def test_update_product_variant_with_variant_reference_attribute(
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
 
 
+def test_update_product_variant_with_category_reference_attribute(
+    staff_api_client,
+    product,
+    category,
+    product_type_category_reference_attribute,
+    permission_manage_products,
+):
+    # given
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    product_type = product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(product_type_category_reference_attribute)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    ref_attribute_id = graphene.Node.to_global_id(
+        "Attribute", product_type_category_reference_attribute.pk
+    )
+    reference = graphene.Node.to_global_id("Category", category.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [{"id": ref_attribute_id, "references": [reference]}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant_data = data["productVariant"]
+    assert variant_data
+    assert variant_data["sku"] == sku
+    assert len(variant_data["attributes"]) == 1
+    assert (
+        variant_data["attributes"][0]["attribute"]["slug"]
+        == product_type_category_reference_attribute.slug
+    )
+    assert len(variant_data["attributes"][0]["values"]) == 1
+    assert (
+        variant_data["attributes"][0]["values"][0]["slug"]
+        == f"{variant.pk}_{category.pk}"
+    )
+    assert variant_data["attributes"][0]["values"][0]["reference"] == reference
+
+
 def test_update_product_variant_change_attribute_values_ordering(
     staff_api_client,
     variant,

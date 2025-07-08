@@ -4,6 +4,7 @@ from ....page import models
 from ....permission.enums import PagePermissions
 from ...attribute.utils import PageAttributeAssignmentMixin
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.types import PageError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Page
@@ -38,3 +39,9 @@ class PageUpdate(PageCreate):
         super(PageCreate, cls).save(info, instance, cleaned_input)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.page_updated, instance)
+
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.page = ChannelContext(instance, channel_slug=None)
+        return response

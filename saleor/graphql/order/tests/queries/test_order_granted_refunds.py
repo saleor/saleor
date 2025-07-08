@@ -68,7 +68,7 @@ def test_order_granted_refunds_query_without_lines_by_user(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("10"), currency="USD")
+    net = Money(amount=Decimal(10), currency="USD")
     gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
     shipping_price = TaxedMoney(net=net, gross=gross)
     order.shipping_price = shipping_price
@@ -146,7 +146,7 @@ def test_order_granted_refunds_query_without_lines_by_app(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("10"), currency="USD")
+    net = Money(amount=Decimal(10), currency="USD")
     gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
     shipping_price = TaxedMoney(net=net, gross=gross)
     order.shipping_price = shipping_price
@@ -224,7 +224,7 @@ def test_order_granted_refunds_query_by_user(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("10"), currency="USD")
+    net = Money(amount=Decimal(10), currency="USD")
     gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
     shipping_price = TaxedMoney(net=net, gross=gross)
     order.shipping_price = shipping_price
@@ -293,7 +293,7 @@ def test_order_granted_refunds_query_by_app(
 ):
     # given
     order = fulfilled_order
-    net = Money(amount=Decimal("10"), currency="USD")
+    net = Money(amount=Decimal(10), currency="USD")
     gross = Money(amount=net.amount * Decimal(1.23), currency="USD").quantize()
     shipping_price = TaxedMoney(net=net, gross=gross)
     order.shipping_price = shipping_price

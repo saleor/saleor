@@ -369,6 +369,8 @@ class AttributeData:
     reference_page: str | None = None
     reference_product: str | None = None
     reference_variant: str | None = None
+    reference_category: str | None = None
+    reference_collection: str | None = None
 
 
 def handle_attribute_data(
@@ -514,15 +516,23 @@ def _get_reference_value(attribute_data):
             attribute_data.reference_page,
             attribute_data.reference_product,
             attribute_data.reference_variant,
+            attribute_data.reference_category,
+            attribute_data.reference_collection,
         ]
     ):
         return None
+
     if attribute_data.reference_page:
         reference_id = attribute_data.reference_page
     elif attribute_data.reference_product:
         reference_id = attribute_data.reference_product
-    else:
+    elif attribute_data.reference_variant:
         reference_id = attribute_data.reference_variant
+    elif attribute_data.reference_category:
+        reference_id = attribute_data.reference_category
+    else:
+        reference_id = attribute_data.reference_collection
+
     return f"{attribute_data.entity_type}_{reference_id}"
 
 

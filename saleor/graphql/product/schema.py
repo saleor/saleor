@@ -1,18 +1,22 @@
 import graphene
+from django.db.models import Exists, OuterRef
 from promise import Promise
 
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
+from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...product.search import search_products
-from ..channel import ChannelContext, ChannelQsContext
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
     ADDED_IN_321,
+    ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import LanguageCodeEnum, ReportingPeriod
@@ -26,6 +30,7 @@ from ..core.tracing import traced_resolver
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
+from ..shop.resolvers import get_database_connection_name
 from ..translations.mutations import (
     CategoryTranslate,
     CollectionTranslate,
@@ -173,7 +178,7 @@ class ProductQueries(graphene.ObjectType):
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
-        where=CategoryWhereInput(description="Where filtering options."),
+        where=CategoryWhereInput(description="Where filtering options for categories."),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
             graphene.Int,
@@ -220,7 +225,9 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterConnectionField(
         CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
-        where=CollectionWhereInput(description="Where filtering options."),
+        where=CollectionWhereInput(
+            description="Where filtering options for collections."
+        ),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
             "List of the shop's collections. Requires one of the following permissions "
@@ -259,8 +266,13 @@ class ProductQueries(graphene.ObjectType):
     )
     products = FilterConnectionField(
         ProductCountableConnection,
-        filter=ProductFilterInput(description="Filtering options for products."),
-        where=ProductWhereInput(description="Where filtering options."),
+        filter=ProductFilterInput(
+            description=(
+                f"Filtering options for products. {DEPRECATED_IN_3X_INPUT}"
+                " Use `where` filter instead."
+            )
+        ),
+        where=ProductWhereInput(description="Where filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         search=graphene.String(description="Search products."),
         channel=graphene.String(
@@ -321,9 +333,15 @@ class ProductQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         filter=ProductVariantFilterInput(
-            description="Filtering options for product variant."
+            description=(
+                f"Filtering options for product variants. {DEPRECATED_IN_3X_INPUT}"
+                " Use `where` filter instead."
+            )
         ),
-        where=ProductVariantWhereInput(description="Where filtering options."),
+        where=ProductVariantWhereInput(
+            description="Where filtering options for product variants."
+        ),
+        search=graphene.String(description="Search product variants." + ADDED_IN_322),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of product variants. Requires one of the following permissions to "
@@ -617,6 +635,8 @@ class ProductQueries(graphene.ObjectType):
                 allow_replica=info.context.allow_replica
             )
 
+        search = kwargs.get("search")
+
         def _resolve_product_variants(channel_obj):
             qs = resolve_product_variants(
                 info,
@@ -625,6 +645,17 @@ class ProductQueries(graphene.ObjectType):
                 limited_channel_access=limited_channel_access,
                 requestor=requestor,
             )
+            if search:
+                products = search_products(
+                    models.Product.objects.using(
+                        get_database_connection_name(info.context)
+                    ),
+                    search,
+                )
+                variant_qs = qs.qs.filter(
+                    Exists(products.filter(id=OuterRef("product_id")))
+                )
+                qs = ChannelQsContext(qs=variant_qs, channel_slug=qs.channel_slug)
             kwargs["channel"] = qs.channel_slug
             qs = filter_connection_queryset(
                 qs, kwargs, allow_replica=info.context.allow_replica

@@ -17,6 +17,19 @@ query ($filter: AppExtensionFilterInput){
         target
         id
         accessToken
+        options {
+          ... on AppExtensionOptionsWidget{
+            widgetTarget {
+              method
+            }
+          }
+          ...on AppExtensionOptionsNewTab {
+            newTabTarget{
+              method
+            }
+          }
+
+        }
         permissions{
           code
         }
@@ -34,6 +47,8 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        http_target_method="POST",
+        target=AppExtensionTarget.WIDGET,
     )
     app_extension.permissions.add(permission_manage_products)
     variables = {}
@@ -65,6 +80,8 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
     assert extension_data["accessToken"]
     decode_token = jwt_decode(extension_data["accessToken"])
     decode_token["permissions"] = ["MANAGE_PRODUCTS"]
+
+    assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
 
 def test_app_extensions_app_not_active(

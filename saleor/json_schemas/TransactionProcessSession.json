@@ -1,0 +1,487 @@
+{
+  "title": "TransactionProcessSession",
+  "anyOf": [
+    {
+      "properties": {
+        "pspReference": {
+          "description": "Psp reference received from payment provider.",
+          "title": "Pspreference",
+          "type": "string"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": null,
+          "description": "Decimal amount of the processed action",
+          "title": "Amount"
+        },
+        "time": {
+          "description": "Time of the action in ISO 8601 format",
+          "format": "date-time",
+          "title": "Time",
+          "type": "string"
+        },
+        "externalUrl": {
+          "default": "",
+          "description": "External url with action details",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "description": "Message related to the action. The maximum length is 512 characters; any text exceeding this limit will be truncated",
+          "title": "Message",
+          "type": "string"
+        },
+        "actions": {
+          "anyOf": [
+            {
+              "description": "List of actions available for the transaction.",
+              "items": {
+                "enum": [
+                  "CHARGE",
+                  "REFUND",
+                  "CANCEL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actions"
+        },
+        "result": {
+          "description": "Result of the action",
+          "enum": [
+            "AUTHORIZATION_SUCCESS",
+            "CHARGE_SUCCESS",
+            "AUTHORIZATION_REQUEST",
+            "CHARGE_REQUEST"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null,
+          "description": "The JSON data that will be returned to storefront"
+        },
+        "paymentMethodDetails": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CARD": "#/$defs/CardPaymentMethodDetails",
+                  "OTHER": "#/$defs/OtherPaymentMethodDetails"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OtherPaymentMethodDetails"
+                },
+                {
+                  "$ref": "#/$defs/CardPaymentMethodDetails"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Details of the payment method used for the transaction.",
+          "title": "Paymentmethoddetails"
+        }
+      },
+      "required": [
+        "pspReference",
+        "result"
+      ],
+      "title": "TransactionSessionSuccess",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "pspReference": {
+          "default": null,
+          "description": "Psp reference received from payment provider.",
+          "title": "Pspreference",
+          "type": "string"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": null,
+          "description": "Decimal amount of the processed action",
+          "title": "Amount"
+        },
+        "time": {
+          "description": "Time of the action in ISO 8601 format",
+          "format": "date-time",
+          "title": "Time",
+          "type": "string"
+        },
+        "externalUrl": {
+          "default": "",
+          "description": "External url with action details",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "description": "Message related to the action. The maximum length is 512 characters; any text exceeding this limit will be truncated",
+          "title": "Message",
+          "type": "string"
+        },
+        "actions": {
+          "anyOf": [
+            {
+              "description": "List of actions available for the transaction.",
+              "items": {
+                "enum": [
+                  "CHARGE",
+                  "REFUND",
+                  "CANCEL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actions"
+        },
+        "result": {
+          "description": "Result of the action",
+          "enum": [
+            "AUTHORIZATION_FAILURE",
+            "CHARGE_FAILURE"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null,
+          "description": "The JSON data that will be returned to storefront"
+        },
+        "paymentMethodDetails": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CARD": "#/$defs/CardPaymentMethodDetails",
+                  "OTHER": "#/$defs/OtherPaymentMethodDetails"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OtherPaymentMethodDetails"
+                },
+                {
+                  "$ref": "#/$defs/CardPaymentMethodDetails"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Details of the payment method used for the transaction.",
+          "title": "Paymentmethoddetails"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "TransactionSessionFailure",
+      "type": "object"
+    },
+    {
+      "properties": {
+        "pspReference": {
+          "default": null,
+          "description": "Psp reference received from payment provider.",
+          "title": "Pspreference",
+          "type": "string"
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": null,
+          "description": "Decimal amount of the processed action",
+          "title": "Amount"
+        },
+        "time": {
+          "description": "Time of the action in ISO 8601 format",
+          "format": "date-time",
+          "title": "Time",
+          "type": "string"
+        },
+        "externalUrl": {
+          "default": "",
+          "description": "External url with action details",
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "title": "Externalurl",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "description": "Message related to the action. The maximum length is 512 characters; any text exceeding this limit will be truncated",
+          "title": "Message",
+          "type": "string"
+        },
+        "actions": {
+          "anyOf": [
+            {
+              "description": "List of actions available for the transaction.",
+              "items": {
+                "enum": [
+                  "CHARGE",
+                  "REFUND",
+                  "CANCEL"
+                ],
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actions"
+        },
+        "result": {
+          "description": "Result of the action",
+          "enum": [
+            "AUTHORIZATION_ACTION_REQUIRED",
+            "CHARGE_ACTION_REQUIRED"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/$defs/JsonValue",
+          "default": null,
+          "description": "The JSON data that will be returned to storefront"
+        },
+        "paymentMethodDetails": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "CARD": "#/$defs/CardPaymentMethodDetails",
+                  "OTHER": "#/$defs/OtherPaymentMethodDetails"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OtherPaymentMethodDetails"
+                },
+                {
+                  "$ref": "#/$defs/CardPaymentMethodDetails"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Details of the payment method used for the transaction.",
+          "title": "Paymentmethoddetails"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "TransactionSessionActionRequired",
+      "type": "object"
+    }
+  ],
+  "$defs": {
+    "CardPaymentMethodDetails": {
+      "properties": {
+        "type": {
+          "const": "CARD",
+          "description": "Type of the payment method used for the transaction.",
+          "maxLength": 32,
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the payment method used for the transaction.",
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        },
+        "brand": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Brand of the card used for the transaction.",
+          "title": "Brand"
+        },
+        "firstDigits": {
+          "anyOf": [
+            {
+              "maxLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "First digits of the card used for the transaction.",
+          "title": "Firstdigits"
+        },
+        "lastDigits": {
+          "anyOf": [
+            {
+              "maxLength": 4,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Last digits of the card used for the transaction.",
+          "title": "Lastdigits"
+        },
+        "expMonth": {
+          "anyOf": [
+            {
+              "maximum": 12,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Expiration month of the card used for the transaction.",
+          "title": "Expmonth"
+        },
+        "expYear": {
+          "anyOf": [
+            {
+              "minimum": 2000,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Expiration year of the card used for the transaction.",
+          "title": "Expyear"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "CardPaymentMethodDetails",
+      "type": "object"
+    },
+    "JsonValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "JsonValue"
+    },
+    "OtherPaymentMethodDetails": {
+      "properties": {
+        "type": {
+          "const": "OTHER",
+          "description": "Type of the payment method used for the transaction.",
+          "maxLength": 32,
+          "title": "Type",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the payment method used for the transaction.",
+          "maxLength": 256,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "OtherPaymentMethodDetails",
+      "type": "object"
+    }
+  }
+}

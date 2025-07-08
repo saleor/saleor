@@ -18,10 +18,10 @@ from ....product.models import (
 from ....product.models import Product as ProductModel
 from ....product.models import ProductVariant as ProductVariantModel
 from ....product.utils.product import mark_products_in_channels_as_dirty
-from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
@@ -275,7 +275,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
                 errors["addVariants"].append(error)
 
     @classmethod
-    def add_variants(cls, channel, add_variants: list[dict]):
+    def add_variants(cls, channel, add_variants: list[dict] | None):
         if not add_variants:
             return
         variants = cls.get_nodes_or_error(add_variants, "id", ProductVariant)
@@ -304,7 +304,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         product_channel_listing,
         product,
         channel,
-        remove_variants: list[dict],
+        remove_variants: list[dict] | None,
     ):
         if not remove_variants:
             return

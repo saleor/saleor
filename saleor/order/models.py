@@ -259,6 +259,8 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
 
+    lines_count = models.PositiveIntegerField()
+
     total_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -393,6 +395,16 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
                 name="order_user_email_user_id_idx",
             ),
             BTreeIndex(fields=["checkout_token"], name="checkout_token_btree_idx"),
+            BTreeIndex(fields=["lines_count"], name="lines_count_idx"),
+            BTreeIndex(
+                fields=["total_gross_amount"],
+                name="order_totalgrossamount_idx",
+            ),
+            BTreeIndex(
+                fields=["total_net_amount"],
+                name="order_totalnetamount_idx",
+            ),
+            BTreeIndex(fields=["status"], name="order_status_idx"),
         ]
 
     def is_fully_paid(self):
@@ -568,6 +580,10 @@ class OrderLine(ModelWithMetadata):
     product_sku = models.CharField(max_length=255, null=True, blank=True)
     # str with GraphQL ID used as fallback when product SKU is not available
     product_variant_id = models.CharField(max_length=255, null=True, blank=True)
+
+    # denormalized product type id
+    product_type_id = models.IntegerField(null=True, blank=True)
+
     is_shipping_required = models.BooleanField()
     is_gift_card = models.BooleanField()
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
@@ -732,6 +748,11 @@ class OrderLine(ModelWithMetadata):
     class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(fields=["product_type_id"], name="product_type_id_btree_idx"),
+        ]
+
     def __str__(self):
         return (
             f"{self.product_name} ({self.variant_name})"
@@ -784,6 +805,10 @@ class Fulfillment(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            BTreeIndex(fields=["status"], name="fulfillment_status_idx"),
+        ]
 
     def __str__(self):
         return f"Fulfillment #{self.composed_id}"
@@ -874,6 +899,7 @@ class OrderEvent(models.Model):
         indexes = [
             BTreeIndex(fields=["related"], name="order_orderevent_related_id_idx"),
             models.Index(fields=["type"]),
+            BTreeIndex(fields=["date"], name="order_orderevent_date_idx"),
         ]
 
     def __repr__(self):
@@ -889,7 +915,7 @@ class OrderGrantedRefund(models.Model):
     amount_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
+        default=Decimal(0),
     )
     amount = MoneyField(amount_field="amount_value", currency_field="currency")
     currency = models.CharField(

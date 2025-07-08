@@ -25,7 +25,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import ProductAttributeAssignmentMixin
-from ...channel import ChannelContext
+from ...core.context import ChannelContext
 from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum

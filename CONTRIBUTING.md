@@ -406,6 +406,26 @@ otherwise to the main module directory, usually to the `utils.py` file.
 Try to find a name as descriptive as possible when writing such a method.
 Also, do not forget about the docstring, especially in a complicated function.
 
+### Locking Objects
+
+To lock objects and prevent race conditions in concurrent operations, use Django's [`select_for_update()`](https://docs.djangoproject.com/en/stable/ref/models/querysets/#select-for-update) method on querysets.
+
+#### General Guidelines
+
+- When locking **multiple objects**, always lock them **in a consistent order** to avoid deadlocks.
+  - Use a clear and stable ordering—typically by `pk`.
+  - When locking **across multiple models**, always acquire locks in a defined order. For example, lock the `Order` model **before** `OrderLine`.
+
+#### Best Practices
+
+To reduce the chance of deadlocks and to keep the locking logic consistent:
+
+- Wrap all locking logic in **helper functions**.
+- Place these helper functions in a file named `lock_objects.py` located in the same app directory as the model you're locking.
+  - For single-model locks, use the model's app directory (e.g. `orders/lock_objects.py`).
+  - For multi-model locks, place the function in the directory of the **last model being locked**.
+    - Example: If locking `Order` and `TransactionItem`, and `TransactionItem` is locked last, use `payment/lock_objects.py`.
+
 ### Searching
 
 So far, we have mainly used the `GinIndex` and `ilike` operators for searching, but currently, we are testing a new solution with the use of `SearchVector` and `SearchRank`.

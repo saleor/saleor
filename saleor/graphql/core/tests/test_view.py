@@ -1,4 +1,5 @@
 import json
+import logging
 from unittest import mock
 from unittest.mock import patch
 
@@ -155,26 +156,45 @@ def test_graphql_execution_exception(monkeypatch, api_client):
 def test_invalid_query_graphql_errors_are_logged_in_another_logger(
     api_client, graphql_log_handler
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
+
+    # when
     response = api_client.post_graphql("{ shop }")
+
+    # then
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
     ]
 
 
 def test_invalid_syntax_graphql_errors_are_logged_in_another_logger(
     api_client, graphql_log_handler
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
+
+    # when
     response = api_client.post_graphql("{ }")
+
+    # then
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLSyntaxError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLSyntaxError"
     ]
 
 
 def test_permission_denied_query_graphql_errors_are_logged_in_another_logger(
     api_client, graphql_log_handler
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
+
+    # when
     response = api_client.post_graphql(
         """
         mutation {
@@ -186,9 +206,11 @@ def test_permission_denied_query_graphql_errors_are_logged_in_another_logger(
         }
         """
     )
+
+    # then
     assert response.status_code == 200
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].PermissionDenied"
+        "saleor.graphql.errors.handled[DEBUG].PermissionDenied"
     ]
 
 
@@ -253,6 +275,9 @@ def test_unexpected_exceptions_are_logged_in_their_own_logger(
 def test_query_contains_not_only_schema_raise_error(
     other_query, api_client, graphql_log_handler
 ):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
     query = """
         query IntrospectionQuery {
             %(other_query)s
@@ -263,10 +288,14 @@ def test_query_contains_not_only_schema_raise_error(
             }
         }
         """
+
+    # when
     response = api_client.post_graphql(query % {"other_query": other_query})
+
+    # then
     assert response.status_code == 400
     assert graphql_log_handler.messages == [
-        "saleor.graphql.errors.handled[INFO].GraphQLError"
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
     ]
 
 

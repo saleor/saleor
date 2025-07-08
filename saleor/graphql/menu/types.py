@@ -6,11 +6,12 @@ from ...permission.enums import PagePermissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.dataloaders import ChannelBySlugLoader
-from ..channel.types import ChannelContext, ChannelContextType
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
+from ..core.context import ChannelContext
 from ..core.doc_category import DOC_CATEGORY_MENU
 from ..core.types import NonNullList
+from ..core.types.context import ChannelContextType
 from ..meta.types import ObjectWithMetadata
 from ..page.dataloaders import PageByIdLoader
 from ..page.types import Page
@@ -223,14 +224,16 @@ class MenuItem(ChannelContextType[models.MenuItem]):
                 and requestor.is_active
                 and requestor.has_perm(PagePermissions.MANAGE_PAGES)
             )
+
+            def resolve_page_with_channel(page):
+                if requestor_has_access_to_all or page.is_visible:
+                    return ChannelContext(node=page, channel_slug=root.channel_slug)
+                return None
+
             return (
                 PageByIdLoader(info.context)
                 .load(root.node.page_id)
-                .then(
-                    lambda page: (
-                        page if requestor_has_access_to_all or page.is_visible else None
-                    )
-                )
+                .then(resolve_page_with_channel)
             )
         return None
 

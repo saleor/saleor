@@ -1,7 +1,8 @@
 import graphene
+import pytest
 
-from .....app.models import AppExtension
-from .....app.types import AppExtensionMount
+from .....app.models import App, AppExtension
+from .....app.types import AppExtensionMount, AppExtensionTarget, AppType
 from .....core.jwt import jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -17,6 +18,19 @@ query ($id: ID!){
         permissions{
             code
         }
+        options {
+          ... on AppExtensionOptionsWidget{
+            widgetTarget {
+              method
+            }
+          }
+          ...on AppExtensionOptionsNewTab {
+            newTabTarget{
+              method
+            }
+          }
+
+        }
     }
 }
 """
@@ -29,6 +43,8 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        http_target_method="POST",
+        target=AppExtensionTarget.WIDGET,
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -52,6 +68,8 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
     assert len(extension_data["permissions"]) == 1
     permission_code = extension_data["permissions"][0]["code"].lower()
     assert app_extension.permissions.first().codename == permission_code
+
+    assert extension_data["options"]["widgetTarget"]["method"] == "POST"
 
 
 def test_app_extension_by_app(app, app_api_client, permission_manage_products):
@@ -316,15 +334,17 @@ def test_app_extension_with_app_query_by_staff_without_permissions(
     )
 
     # then
-    assert_no_permission(response)
+    response = get_graphql_content(response)
+
+    assert response["data"]["appExtension"]["id"] == id
 
 
 def test_app_extension_with_app_query_by_app_without_permissions(
-    external_app, app_api_client, permission_manage_products
+    app, app_api_client, permission_manage_products
 ):
     # given
     app_extension = AppExtension.objects.create(
-        app=external_app,
+        app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
@@ -340,36 +360,50 @@ def test_app_extension_with_app_query_by_app_without_permissions(
     )
 
     # then
+    response = get_graphql_content(response)
+
+    # Can access OWN extension
+    assert response["data"]["appExtension"]["id"] == id
+
+
+def test_app_extension_with_app_query_by_app_without_permissions_other_app(
+    app_api_client, permission_manage_products
+):
+    # given
+    # another app - to be sure we don't mix it with app from the app_api_client
+    another_app = App.objects.create(
+        name="External App",
+        is_active=True,
+        type=AppType.THIRDPARTY,
+        identifier="mirumee.app.sample",
+        about_app="About app text.",
+        data_privacy="Data privacy text.",
+        data_privacy_url="http://www.example.com/privacy/",
+        homepage_url="http://www.example.com/homepage/",
+        support_url="http://www.example.com/support/contact/",
+        configuration_url="http://www.example.com/app-configuration/",
+        app_url="http://www.example.com/app/",
+    )
+
+    app_extension = AppExtension.objects.create(
+        app=another_app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+    app_extension.permissions.add(permission_manage_products)
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_APP_EXTENSION_WITH_APP,
+        variables,
+    )
+
+    # then
+    # Can't access other apps
     assert_no_permission(response)
-
-
-def test_app_extension_with_app_query_by_app_with_permissions(
-    external_app,
-    app,
-    permission_manage_apps,
-    app_api_client,
-    permission_manage_products,
-):
-    # given
-    app_extension = AppExtension.objects.create(
-        app=external_app,
-        label="Create product with App",
-        url="https://www.example.com/app-product",
-        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
-    )
-    app_extension.permissions.add(permission_manage_products)
-    app.permissions.add(permission_manage_apps)
-    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
-    variables = {"id": id}
-
-    # when
-    response = app_api_client.post_graphql(
-        QUERY_APP_EXTENSION_WITH_APP,
-        variables,
-    )
-
-    # then
-    get_graphql_content(response)
 
 
 def test_app_extension_with_app_query_by_owner_app(
@@ -397,7 +431,32 @@ def test_app_extension_with_app_query_by_owner_app(
 
 
 def test_app_extension_with_app_query_by_staff_with_permissions(
-    external_app, app, permission_manage_apps, staff_api_client
+    external_app, app, staff_api_client, permission_group_manage_apps
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=external_app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+    )
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    staff_api_client.user.groups.add(permission_group_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_APP_EXTENSION_WITH_APP, variables)
+
+    # then
+    response = get_graphql_content(response)
+
+    assert response["data"]["appExtension"]["id"] == id
+
+
+def test_app_extension_with_app_query_by_customer_without_permissions(
+    external_app, app, api_client, permission_group_manage_apps
 ):
     # given
     app_extension = AppExtension.objects.create(
@@ -411,9 +470,53 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
     variables = {"id": id}
 
     # when
+    response = api_client.post_graphql(QUERY_APP_EXTENSION_WITH_APP, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@pytest.mark.parametrize(
+    ("target", "method"),
+    [
+        (AppExtensionTarget.WIDGET, "POST"),
+        (AppExtensionTarget.WIDGET, "GET"),
+        (AppExtensionTarget.NEW_TAB, "POST"),
+        (AppExtensionTarget.NEW_TAB, "GET"),
+    ],
+)
+def test_app_extension_type_options(
+    target,
+    method,
+    app,
+    staff_api_client,
+):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount=AppExtensionMount.ORDER_DETAILS_WIDGETS,
+        http_target_method=method,
+        target=target,
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
     response = staff_api_client.post_graphql(
-        QUERY_APP_EXTENSION_WITH_APP, variables, permissions=[permission_manage_apps]
+        QUERY_APP_EXTENSION,
+        variables,
     )
 
     # then
-    get_graphql_content(response)
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+
+    assert extension_data["target"] == target.upper()
+
+    if target == AppExtensionTarget.NEW_TAB:
+        assert extension_data["options"]["newTabTarget"]["method"] == method
+
+    if target == AppExtensionTarget.WIDGET:
+        assert extension_data["options"]["widgetTarget"]["method"] == method

@@ -6,20 +6,30 @@ from django.core.exceptions import ValidationError
 from .....app.models import App
 from .....checkout.actions import transaction_amounts_for_checkout_updated
 from .....core.exceptions import PermissionDenied
+from .....order import OrderStatus
 from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.events import transaction_event as order_transaction_event
 from .....order.fetch import fetch_order_info
+from .....order.search import update_order_search_vector
+from .....order.utils import (
+    update_order_status,
+    updates_amounts_for_order,
+)
 from .....payment import models as payment_models
 from .....payment.error_codes import (
     TransactionCreateErrorCode,
     TransactionUpdateErrorCode,
 )
+from .....payment.interface import PaymentMethodDetails
 from .....payment.transaction_item_calculations import (
     calculate_transaction_amount_based_on_events,
     recalculate_transaction_amounts,
 )
-from .....payment.utils import create_manual_adjustment_events
+from .....payment.utils import (
+    create_manual_adjustment_events,
+    update_transaction_item_with_payment_method_details,
+)
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
@@ -31,6 +41,7 @@ from ....core.validators import validate_one_of_args_is_in_mutation
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import TransactionItem
 from ...utils import check_if_requestor_has_access
+from .shared import get_payment_method_details, validate_payment_method_details_input
 from .transaction_create import (
     TransactionCreate,
     TransactionCreateInput,
@@ -131,6 +142,10 @@ class TransactionUpdate(TransactionCreate):
             transaction_data.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        if payment_method_details := transaction_data.get("payment_method_details"):
+            validate_payment_method_details_input(
+                payment_method_details, TransactionUpdateErrorCode
+            )
 
     @classmethod
     def update_transaction(
@@ -140,6 +155,7 @@ class TransactionUpdate(TransactionCreate):
         money_data: dict,
         user: Optional["User"],
         app: Optional["App"],
+        payment_details_data: PaymentMethodDetails | None = None,
     ):
         psp_reference = transaction_data.get("psp_reference")
         if psp_reference and instance.psp_reference != psp_reference:
@@ -155,6 +171,10 @@ class TransactionUpdate(TransactionCreate):
                     }
                 )
         instance = cls.construct_instance(instance, transaction_data)
+        if payment_details_data:
+            update_transaction_item_with_payment_method_details(
+                instance, payment_details_data
+            )
         instance.save()
         if money_data:
             calculate_transaction_amount_based_on_events(transaction=instance)
@@ -179,6 +199,42 @@ class TransactionUpdate(TransactionCreate):
         if app and not transaction.user_id and not transaction_has_assigned_app:
             transaction_data["app"] = app
             transaction_data["app_identifier"] = app.identifier
+
+    # TODO (ENG-295): Remove this method when this will be refactored to use
+    # the new functions `process_order_or_checkout_with_transaction`.
+    @classmethod
+    def update_order(
+        cls,
+        order: order_models.Order,
+        money_data: dict,
+        update_search_vector: bool = True,
+    ) -> None:
+        update_fields = []
+        if money_data:
+            updates_amounts_for_order(order, save=False)
+            update_fields.extend(
+                [
+                    "total_authorized_amount",
+                    "total_charged_amount",
+                    "authorize_status",
+                    "charge_status",
+                ]
+            )
+        if (
+            order.channel.automatically_confirm_all_new_orders
+            and order.status == OrderStatus.UNCONFIRMED
+        ):
+            update_order_status(order)
+
+        if update_search_vector:
+            update_order_search_vector(order, save=False)
+            update_fields.append(
+                "search_vector",
+            )
+
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
 
     @classmethod
     def perform_mutation(
@@ -218,7 +274,21 @@ class TransactionUpdate(TransactionCreate):
                 transaction.pop("private_metadata", None),
             )
             money_data = cls.get_money_data_from_input(transaction, instance.currency)
-            cls.update_transaction(instance, transaction, money_data, user, app)
+            payment_details_data: PaymentMethodDetails | None = None
+            if payment_method_details := transaction.pop(
+                "payment_method_details", None
+            ):
+                payment_details_data = get_payment_method_details(
+                    payment_method_details
+                )
+            cls.update_transaction(
+                instance,
+                transaction,
+                money_data,
+                user,
+                app,
+                payment_details_data=payment_details_data,
+            )
 
         event = None
         if transaction_event:

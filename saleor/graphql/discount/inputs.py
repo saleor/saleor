@@ -25,7 +25,7 @@ class PredicateInputObjectType(BaseInputObjectType):
         abstract = True
 
     @classmethod
-    def __init_subclass_with_meta__(cls, _meta=None, **options):
+    def __init_subclass_with_meta__(cls, _meta=None, **options):  # type: ignore[override]
         super().__init_subclass_with_meta__(_meta=_meta, **options)
         cls._meta.fields.update(
             {

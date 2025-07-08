@@ -2,8 +2,8 @@ import graphene
 
 from ....permission.enums import ShippingPermissions
 from ....shipping import models
-from ...channel.types import ChannelContext
 from ...core import ResolveInfo
+from ...core.context import ChannelContext
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import ShippingError
 from ...plugins.dataloaders import get_plugin_manager_promise

@@ -8,7 +8,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
-from ..core.types import FilterInputObjectType
+from ..core.filters import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import (
     PromotionRuleTranslate,
@@ -151,7 +151,9 @@ class DiscountQueries(graphene.ObjectType):
     )
     promotions = FilterConnectionField(
         PromotionCountableConnection,
-        where=PromotionWhereInput(description="Where filtering options."),
+        where=PromotionWhereInput(
+            description="Where filtering options for promotions."
+        ),
         sort_by=PromotionSortingInput(description="Sort promotions."),
         description="List of the promotions.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],

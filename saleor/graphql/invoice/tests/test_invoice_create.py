@@ -89,6 +89,8 @@ def test_create_invoice(staff_api_client, permission_group_manage_orders, order)
         user=staff_api_client.user,
         parameters__invoice_number=number,
     ).exists()
+    order.refresh_from_db()
+    assert order.search_vector
 
 
 def test_create_invoice_by_user_no_channel_access(
@@ -161,6 +163,8 @@ def test_create_invoice_by_app(app_api_client, permission_manage_orders, order):
         app=app_api_client.app,
         parameters__invoice_number=number,
     ).exists()
+    order.refresh_from_db()
+    assert order.search_vector
 
 
 def test_create_invoice_no_billing_address(
