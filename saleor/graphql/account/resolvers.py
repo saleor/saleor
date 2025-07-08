@@ -67,7 +67,7 @@ def resolve_user(info, id=None, email=None, external_reference=None):
         if id:
             _model, filter_kwargs["pk"] = from_global_id_or_error(id, User)
         if email:
-            filter_kwargs["email"] = email
+            filter_kwargs["email__iexact"] = email.lower()
         if external_reference:
             filter_kwargs["external_reference"] = external_reference
         if requester.has_perms(
