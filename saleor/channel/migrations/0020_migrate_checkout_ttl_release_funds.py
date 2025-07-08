@@ -4,7 +4,7 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_20 import migrate_env_variable_setting_to_channels
+from .tasks.saleor3_21 import migrate_env_variable_setting_to_channels
 
 
 def migrate_checkout_ttl_release_funds(apps, _schema_editor):
