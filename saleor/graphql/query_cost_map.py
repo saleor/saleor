@@ -146,6 +146,9 @@ COST_MAP = {
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "productVariantTypes": {"complexity": 1, "multipliers": ["first", "last"]},
     },
+    "AttributeValue": {
+        "referencedObject": {"complexity": 1},
+    },
     "Category": {
         "ancestors": {"complexity": 1, "multipliers": ["first", "last"]},
         "children": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -233,11 +236,11 @@ COST_MAP = {
         "variant": {"complexity": 1},
     },
     "Page": {
-        "attributes": {"complexity": 1},
+        "attributes": {"complexity": 100},
         "pageType": {"complexity": 1},
     },
     "PageType": {
-        "attributes": {"complexity": 1},
+        "attributes": {"complexity": 100},
         "availableAttributes": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "Payment": {
@@ -245,7 +248,7 @@ COST_MAP = {
         "transactions": {"complexity": 1},
     },
     "Product": {
-        "attributes": {"complexity": 1},
+        "attributes": {"complexity": 100},
         "category": {"complexity": 1},
         "channelListings": {"complexity": 1},
         "collections": {"complexity": 1},
@@ -258,7 +261,7 @@ COST_MAP = {
         "pricing": {"complexity": 1},
         "productType": {"complexity": 1},
         "thumbnail": {"complexity": 1},
-        "variants": {"complexity": 1},
+        "variants": {"complexity": 100},
         "productVariants": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ProductChannelListing": {
@@ -277,7 +280,7 @@ COST_MAP = {
         "products": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "ProductVariant": {
-        "attributes": {"complexity": 1},
+        "attributes": {"complexity": 100},
         "channelListings": {"complexity": 1},
         "images": {"complexity": 1},
         "media": {"complexity": 1},
