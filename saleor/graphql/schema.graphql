@@ -684,6 +684,13 @@ type Query {
     Added in Saleor 3.21.
     """
     slugLanguageCode: LanguageCodeEnum
+
+    """
+    Slug of a channel for which the data should be returned.
+    
+    Added in Saleor 3.22.
+    """
+    channel: String
   ): Page @doc(category: "Pages")
 
   """List of the shop's pages."""
@@ -707,6 +714,13 @@ type Query {
     Added in Saleor 3.22.
     """
     where: PageWhereInput
+
+    """
+    Slug of a channel for which the data should be returned.
+    
+    Added in Saleor 3.22.
+    """
+    channel: String
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -11805,7 +11819,7 @@ type Transaction implements Node @doc(category: "Payments") {
   error: String
 
   """Response returned by payment gateway."""
-  gatewayResponse: JSONString!
+  gatewayResponse: JSONString! @deprecated(reason: "This field is a part of a legacy Payments API. Please use apps instead.")
 
   """Total amount of the transaction."""
   amount: Money

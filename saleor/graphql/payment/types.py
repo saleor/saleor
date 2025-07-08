@@ -62,7 +62,9 @@ class Transaction(ModelObjectType[models.Transaction]):
     )
     error = graphene.String(description="Error associated with transaction, if any.")
     gateway_response = JSONString(
-        required=True, description="Response returned by payment gateway."
+        deprecation_reason="This field is a part of a legacy Payments API. Please use apps instead.",
+        required=True,
+        description="Response returned by payment gateway.",
     )
     amount = graphene.Field(Money, description="Total amount of the transaction.")
 
