@@ -12,10 +12,15 @@ from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils import get_client_ip
 from .....order import OrderStatus
+from .....order import models as order_models
 from .....order.actions import order_transaction_updated
 from .....order.fetch import fetch_order_info
 from .....order.search import update_order_search_vector
-from .....order.utils import refresh_order_status, updates_amounts_for_order
+from .....order.utils import (
+    calculate_order_granted_refund_status,
+    refresh_order_status,
+    updates_amounts_for_order,
+)
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.lock_objects import (
@@ -104,10 +109,10 @@ def process_order_with_transaction(
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
-    money_data: dict[str, Decimal],
     previous_authorized_value: Decimal = Decimal(0),
     previous_charged_value: Decimal = Decimal(0),
     previous_refunded_value: Decimal = Decimal(0),
+    related_granted_refund: Optional[order_models.OrderGrantedRefund] = None,
 ):
     order = None
     # This is executed after we ensure that the transaction is not a checkout
@@ -118,16 +123,15 @@ def process_order_with_transaction(
             order_id, transaction.pk
         )
         update_fields = []
-        if money_data:
-            updates_amounts_for_order(order, save=False)
-            update_fields.extend(
-                [
-                    "total_charged_amount",
-                    "charge_status",
-                    "total_authorized_amount",
-                    "authorize_status",
-                ]
-            )
+        updates_amounts_for_order(order, save=False)
+        update_fields.extend(
+            [
+                "total_charged_amount",
+                "charge_status",
+                "total_authorized_amount",
+                "authorize_status",
+            ]
+        )
         if (
             order.channel.automatically_confirm_all_new_orders
             and order.status == OrderStatus.UNCONFIRMED
@@ -140,7 +144,6 @@ def process_order_with_transaction(
             order.save(update_fields=update_fields)
 
     update_order_search_vector(order)
-
     order_info = fetch_order_info(order)
     order_transaction_updated(
         order_info=order_info,
@@ -152,6 +155,8 @@ def process_order_with_transaction(
         previous_charged_value=previous_charged_value,
         previous_refunded_value=previous_refunded_value,
     )
+    if related_granted_refund:
+        calculate_order_granted_refund_status(related_granted_refund)
 
 
 def process_order_or_checkout_with_transaction(
@@ -159,13 +164,13 @@ def process_order_or_checkout_with_transaction(
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
-    money_data: dict[str, Decimal],
     previous_authorized_value: Decimal = Decimal(0),
     previous_charged_value: Decimal = Decimal(0),
     previous_refunded_value: Decimal = Decimal(0),
+    related_granted_refund: Optional[order_models.OrderGrantedRefund] = None,
 ):
     checkout_deleted = False
-    if transaction.checkout_id and money_data:
+    if transaction.checkout_id:
         with traced_atomic_transaction():
             locked_checkout, transaction = (
                 get_checkout_and_transaction_item_locked_for_update(
@@ -186,8 +191,8 @@ def process_order_or_checkout_with_transaction(
             manager,
             user,
             app,
-            money_data,
             previous_authorized_value,
             previous_charged_value,
             previous_refunded_value,
+            related_granted_refund=related_granted_refund,
         )

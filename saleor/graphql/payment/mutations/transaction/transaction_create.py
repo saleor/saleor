@@ -347,7 +347,6 @@ class TransactionCreate(BaseMutation):
             manager,
             user,
             app,
-            money_data,
         )
 
         if transaction_event:

@@ -233,7 +233,6 @@ class TransactionUpdate(TransactionCreate):
             manager,
             user,
             app,
-            money_data,
             previous_authorized_value,
             previous_charged_value,
             previous_refunded_value,
