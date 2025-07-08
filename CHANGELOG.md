@@ -83,7 +83,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Attribute values now expose the `referencedObject`, allowing for easier access to the linked entity.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
-
 - Extend the `Attribute` type with a `values` field, allowing you to retrieve all values assigned to a specific attribute.
 
 ### Webhooks
