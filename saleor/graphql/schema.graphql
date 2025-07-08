@@ -6086,31 +6086,11 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   Added in Saleor 3.22.
   """
   values(
-    """Sort attribute values."""
-    sortBy: AttributeChoicesSortingInput
-
-    """Where filtering options for attribute values."""
-    where: AttributeValueWhereInput
-
-    """Search attribute values."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
     """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    Maximum number of attribute values to return. The default value is also the maximum number of values that can be fetched.
     """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeValueCountableConnection
+    limit: Int = 100
+  ): [AttributeValue!]
 
   """
   Whether the attribute requires values to be passed or not. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.

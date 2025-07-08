@@ -1,4 +1,5 @@
 import graphene
+from graphql import GraphQLError
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...permission.enums import (
@@ -43,7 +44,10 @@ from ..page.dataloaders import PageByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader, ProductVariantByIdLoader
 from ..translations.fields import TranslationField
 from ..translations.types import AttributeTranslation, AttributeValueTranslation
-from .dataloaders import AttributesByAttributeId
+from .dataloaders import (
+    AttributesByAttributeId,
+    AttributeValuesByAttributeIdWithLimitLoader,
+)
 from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import (
@@ -259,16 +263,19 @@ class Attribute(ChannelContextType[models.Attribute]):
             "Available only for attributes with predefined choices."
         ),
     )
-    values = FilterConnectionField(
-        AttributeValueCountableConnection,
-        sort_by=AttributeChoicesSortingInput(description="Sort attribute values."),
-        where=AttributeValueWhereInput(
-            description="Where filtering options for attribute values."
-        ),
-        search=graphene.String(description="Search attribute values."),
+    values = NonNullList(
+        AttributeValue,
         description=(
             "List of all existing attribute values. This includes all values"
             " that have been assigned to attributes." + ADDED_IN_322
+        ),
+        limit=graphene.Int(
+            description=(
+                "Maximum number of attribute values to return. "
+                "The default value is also the maximum number of values "
+                "that can be fetched."
+            ),
+            default_value=100,
         ),
     )
 
@@ -395,20 +402,24 @@ class Attribute(ChannelContextType[models.Attribute]):
 
     @staticmethod
     def resolve_values(
-        root: ChannelContext[models.Attribute], info: ResolveInfo, **kwargs
+        root: ChannelContext[models.Attribute], info: ResolveInfo, limit: int, **kwargs
     ):
+        if limit > 100:
+            raise GraphQLError(
+                "The limit for attribute values cannot be greater than 100."
+            )
         attr = root.node
-        qs = attr.values.using(get_database_connection_name(info.context)).all()
 
-        if search := kwargs.pop("search", None):
-            qs = search_attribute_values(qs, search)
+        def map_channel_context(values):
+            return [
+                ChannelContext(node=value, channel_slug=root.channel_slug)
+                for value in values
+            ]
 
-        channel_context_qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
-        channel_context_qs = filter_connection_queryset(
-            channel_context_qs, kwargs, allow_replica=info.context.allow_replica
-        )
-        return create_connection_slice(
-            channel_context_qs, info, kwargs, AttributeValueCountableConnection
+        return (
+            AttributeValuesByAttributeIdWithLimitLoader(info.context, limit=limit)
+            .load(attr.id)
+            .then(map_channel_context)
         )
 
     @staticmethod
