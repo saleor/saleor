@@ -5,7 +5,7 @@ import uuid
 import graphene
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import DateTimeField, Exists, ExpressionWrapper, OuterRef, Q
 
 from ..celeryconf import app
 from ..channel.models import Channel
@@ -27,17 +27,43 @@ def transactions_to_release_funds():
     predefined TTL. It then fetches related transactions that are authorized or charged,
     ready for fund release.
     """
-    expired_checkouts_time = (
-        datetime.datetime.now(tz=datetime.UTC)
-        - settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS
+    now = datetime.datetime.now(datetime.UTC)
+    channels = (
+        Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .annotate(
+            last_transaction_modified_at=ExpressionWrapper(
+                OuterRef(
+                    "last_transaction_modified_at",
+                ),
+                output_field=DateTimeField(),
+            )
+        )
+        .filter(
+            Q(release_funds_for_expired_checkouts=True)
+            & Q(
+                checkout_ttl_before_releasing_funds__lt=now - OuterRef("last_change")  # type: ignore[operator]
+            )
+            & (
+                Q(last_transaction_modified_at__isnull=True)
+                | Q(
+                    checkout_ttl_before_releasing_funds__lt=now
+                    - OuterRef("last_transaction_modified_at")  # type: ignore[operator]
+                )
+            )
+            & Q(pk=OuterRef("channel_id"))
+            & (
+                Q(checkout_release_funds_cut_off_date__isnull=True)
+                | Q(checkout_release_funds_cut_off_date__lt=OuterRef("created_at"))
+            )
+        )
     )
 
     checkouts = Checkout.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(
+        Exists(channels),
+        created_at__gt=now - datetime.timedelta(days=365),
         automatically_refundable=True,
-        last_change__lt=expired_checkouts_time,
-        last_transaction_modified_at__lt=expired_checkouts_time,
         authorize_status__in=[
             CheckoutAuthorizeStatus.PARTIAL,
             CheckoutAuthorizeStatus.FULL,

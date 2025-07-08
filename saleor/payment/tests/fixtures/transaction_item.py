@@ -25,6 +25,7 @@ def transaction_item_generator():
         canceled_value=Decimal(0),
         use_old_id=False,
         last_refund_success=True,
+        currency="USD",
     ):
         if available_actions is None:
             available_actions = []
@@ -34,7 +35,7 @@ def transaction_item_generator():
             message=message,
             psp_reference=psp_reference,
             available_actions=available_actions,
-            currency="USD",
+            currency=currency,
             order_id=order_id,
             checkout_id=checkout_id,
             app_identifier=app.identifier if app else None,

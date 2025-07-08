@@ -56,7 +56,13 @@ class Channel(ModelWithMetadata):
 
     # line lvl discounts for orders created from checkout are stored as
     # OrderLineDiscount. This flag controls how we should return it via API.
+
     use_legacy_line_discount_propagation_for_order = models.BooleanField(default=True)
+    release_funds_for_expired_checkouts = models.BooleanField(default=False)
+    checkout_ttl_before_releasing_funds = models.DurationField(
+        default=datetime.timedelta(hours=6)
+    )
+    checkout_release_funds_cut_off_date = models.DateTimeField(null=True, blank=True)
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
