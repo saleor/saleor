@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...permission.enums import (
@@ -274,7 +275,7 @@ class Attribute(ChannelContextType[models.Attribute]):
                 "The default value is also the maximum number of values "
                 "that can be fetched."
             ),
-            default_value=100,
+            default_value=settings.NESTED_QUERY_LIMIT,
         ),
     )
 

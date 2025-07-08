@@ -2,6 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar
 
+from django.conf import settings
 from graphql import GraphQLError
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
@@ -80,13 +81,15 @@ class DataLoader[K, R](BaseLoader):
 class DataLoaderWithLimit(DataLoader[K, R]):
     """Data loader base class that support a limit on the number of items returned."""
 
-    def __new__(cls, context: SaleorContext, limit: int = 100):
+    def __new__(cls, context: SaleorContext, limit: int = settings.NESTED_QUERY_LIMIT):
         loader = super().__new__(cls, context)
         cls.limit_validation(limit)
         loader.limit = limit
         return loader
 
-    def __init__(self, context: SaleorContext, limit: int = 100) -> None:
+    def __init__(
+        self, context: SaleorContext, limit: int = settings.NESTED_QUERY_LIMIT
+    ) -> None:
         if getattr(self, "limit", None) != limit:
             self.limit_validation(limit)
             self.limit = limit
@@ -94,9 +97,9 @@ class DataLoaderWithLimit(DataLoader[K, R]):
 
     @staticmethod
     def limit_validation(limit: int) -> None:
-        if limit > 100:
+        if limit > settings.NESTED_QUERY_LIMIT:
             raise GraphQLError(
-                "The limit for attribute values cannot be greater than 100."
+                f"The limit for attribute values cannot be greater than {settings.NESTED_QUERY_LIMIT}."
             )
 
 
