@@ -259,6 +259,9 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
     product_variant_id = graphene.ID(
         required=True, description="The ID of the product variant to translate."
     )
+    product_variant_sku = graphene.String(
+        required=False, description="SKU of the product variant to translate."
+    )
     name = graphene.String(
         required=True,
         description="Name of the product variant to translate.",
@@ -302,6 +305,10 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
     @staticmethod
     def resolve_product_variant_id(root: product_models.ProductVariant, _info):
         return graphene.Node.to_global_id("ProductVariant", root.id)
+
+    @staticmethod
+    def resolve_product_variant_sku(root: product_models.ProductVariant, _info):
+        return root.sku
 
 
 class ProductTranslation(BaseTranslationType[product_models.ProductTranslation]):
