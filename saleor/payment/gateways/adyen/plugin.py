@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Optional
 from urllib.parse import urlencode, urljoin
 
@@ -48,6 +49,8 @@ from .webhooks import handle_additional_actions, handle_webhook
 GATEWAY_NAME = "Adyen"
 WEBHOOK_PATH = "/webhooks"
 ADDITIONAL_ACTION_PATH = "/additional-actions"
+
+logger = logging.getLogger(__name__)
 
 
 class AdyenGatewayPlugin(BasePlugin):
@@ -611,6 +614,10 @@ class AdyenGatewayPlugin(BasePlugin):
 
         result_code_temporary_field = transaction.legacy_adyen_plugin_result_code
         payment_method_temporary_field = transaction.legacy_adyen_plugin_payment_method
+
+        if (not result_code_temporary_field) and (not payment_method_temporary_field):
+            # Track legacy reads, so we keep grace period in case of enqueued messages
+            logger.warning("Reading deprecated raw_response from Adyen plugin.")
 
         if result_code_temporary_field:
             result_code = result_code_temporary_field
