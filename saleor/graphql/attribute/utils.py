@@ -1630,6 +1630,7 @@ def has_input_modified_attribute_values(
         `False` if the attribute values are equal, otherwise `True`.
 
     """
+    # TODO: scl-924
     if variant.product_id is not None:
         assigned_attributes = get_used_attribute_values_for_variant(variant)
         input_attribute_values: defaultdict[str, list[str]] = defaultdict(list)
@@ -1653,3 +1654,16 @@ def get_values_from_attribute_values_input(
             else []
         )
     return attribute_data.values or []
+
+
+def has_product_input_modified_attribute_values(
+    product: product_models.Product, attributes_data: T_INPUT_MAP
+) -> bool:
+    """Compare already assigned attribute values with values from AttrValuesInput.
+
+    Return:
+        `False` if the attribute values are equal, otherwise `True`.
+
+    """
+    # TODO: scl-924
+    return True

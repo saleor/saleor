@@ -1,12 +1,19 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
 from .....core.tracing import traced_atomic_transaction
+from .....core.utils.update_mutation_manager import InstanceTracker
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
-from ....attribute.utils import AttrValuesInput, ProductAttributeAssignmentMixin
+from ....attribute.utils import (
+    AttrValuesInput,
+    ProductAttributeAssignmentMixin,
+    has_product_input_modified_attribute_values,
+)
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.mutations import ModelWithExtRefMutation
@@ -15,7 +22,7 @@ from ....core.validators import clean_seo_fields
 from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
-from ..utils import clean_tax_code
+from ..utils import PRODUCT_UPDATE_FIELDS, clean_tax_code
 from . import product_cleaner as cleaner
 from .product_create import ProductInput
 
@@ -43,19 +50,27 @@ class ProductUpdate(ModelWithExtRefMutation):
         support_meta_field = True
         support_private_meta_field = True
 
+    FIELDS_TO_TRACK = list(PRODUCT_UPDATE_FIELDS)
+
     @classmethod
     def get_instance(cls, info, **data):
         """Prefetch related fields that are needed to process the mutation."""
-        # If we are updating an instance and want to update its attributes,
-        # prefetch them.
         object_id = cls.get_object_id(**data)
-        if object_id and data.get("attributes"):
-            # Prefetches needed by ProductAttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes__values",
-                "product_type__attributeproduct",
-            )
+        if object_id:
+            prefetch: list[str] = []
+            if data["input"].get("attributes"):
+                # Prefetches needed by ProductAttributeAssignmentMixin and
+                # associate_attribute_values_to_instance
+                prefetch.extend(
+                    (
+                        "product_type__product_attributes__values",
+                        "product_type__attributeproduct",
+                    )
+                )
+            if data["input"].get("collections"):
+                prefetch.append("collections")
+
+            qs = models.Product.objects.prefetch_related(*prefetch)
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
 
         return super().get_instance(info, **data)
@@ -74,7 +89,7 @@ class ProductUpdate(ModelWithExtRefMutation):
         return cleaned_input
 
     @classmethod
-    def clean_attributes(cls, cleaned_input, instance):
+    def clean_attributes(cls, cleaned_input: dict, instance: models.Product):
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -89,6 +104,7 @@ class ProductUpdate(ModelWithExtRefMutation):
                         attributes, attributes_qs, creation=False
                     )
                 )
+
             except ValidationError as e:
                 raise ValidationError({"attributes": e}) from e
 
@@ -109,30 +125,63 @@ class ProductUpdate(ModelWithExtRefMutation):
         )
 
     @classmethod
-    def save(cls, info: ResolveInfo, instance, cleaned_input):
-        with traced_atomic_transaction():
-            instance.search_index_dirty = True
-            instance.save()
-            attributes = cleaned_input.get("attributes")
-            if attributes:
-                ProductAttributeAssignmentMixin.save(instance, attributes)
+    def compare_collection(cls, instance, cleaned_input) -> bool:
+        if "collections" in cleaned_input:
+            actual_collection_ids = instance.collections.values_list("pk", flat=True)
+            input_collection_ids = [
+                collection.id for collection in cleaned_input.get("collections", [])
+            ]
+            return set(actual_collection_ids) != set(input_collection_ids)
+        return False
 
     @classmethod
-    def _save_m2m(cls, _info: ResolveInfo, instance, cleaned_data):
-        collections = cleaned_data.get("collections", None)
-        if collections is not None:
-            instance.collections.set(collections)
+    def compare_attributes(cls, instance, cleaned_input) -> bool:
+        if "attributes" in cleaned_input:
+            return has_product_input_modified_attribute_values(
+                instance, cleaned_input["attributes"]
+            )
+        return False
+
+    @classmethod
+    def _save(
+        cls,
+        instance_tracker: InstanceTracker,
+        cleaned_input: dict,
+        attributes_modified: bool,
+        collections_modified: bool,
+    ):
+        instance = cast(models.Product, instance_tracker.instance)
+        modified_instance_fields = instance_tracker.get_modified_fields()
+        with traced_atomic_transaction():
+            if modified_instance_fields:
+                instance.search_index_dirty = True
+                modified_instance_fields.append("search_index_dirty")
+                cls._save_product_instance(instance, modified_instance_fields)
+
+            if attributes_modified:
+                attributes = cleaned_input["attributes"]
+                ProductAttributeAssignmentMixin.save(instance, attributes)
+
+            if collections_modified:
+                collections = cleaned_input["collections"]
+                instance.collections.set(collections)
+
+        return bool(modified_instance_fields)
+
+    @classmethod
+    def _save_product_instance(cls, instance, modified_instance_fields):
+        update_fields = ["updated_at"] + modified_instance_fields
+        instance.save(update_fields=update_fields)
 
     @classmethod
     def _post_save_action(cls, info: ResolveInfo, instance):
-        product = models.Product.objects.get(pk=instance.pk)
         channel_ids = set(
-            product.channel_listings.all().values_list("channel_id", flat=True)
+            instance.channel_listings.all().values_list("channel_id", flat=True)
         )
         cls.call_event(mark_active_catalogue_promotion_rules_as_dirty, channel_ids)
 
         manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.product_updated, product)
+        cls.call_event(manager.product_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -142,6 +191,9 @@ class ProductUpdate(ModelWithExtRefMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
+        instance = cast(models.Product, instance)
+        instance_tracker = InstanceTracker(instance, cls.FIELDS_TO_TRACK)
+
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
@@ -151,7 +203,13 @@ class ProductUpdate(ModelWithExtRefMutation):
 
         cls.clean_instance(info, instance)
 
-        cls.save(info, instance, cleaned_input)
-        cls._save_m2m(info, instance, cleaned_input)
-        cls._post_save_action(info, instance)
+        collections_modified = cls.compare_collection(instance, cleaned_input)
+        attributes_modified = cls.compare_attributes(instance, cleaned_input)
+        product_modified = cls._save(
+            instance_tracker, cleaned_input, attributes_modified, collections_modified
+        )
+
+        if product_modified or attributes_modified or collections_modified:
+            cls._post_save_action(info, instance)
+
         return cls.success_response(instance)
