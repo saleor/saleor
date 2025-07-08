@@ -6053,13 +6053,15 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """The unit of attribute values."""
   unit: MeasurementUnitsEnum
 
-  """List of attribute's values."""
+  """
+  A list of predefined attribute choices available for selection. Available only for attributes with predefined choices.
+  """
   choices(
     """Sort attribute choices."""
     sortBy: AttributeChoicesSortingInput
 
     """Filtering options for attribute choices."""
-    filter: AttributeValueFilterInput @deprecated(reason: "Use where filter instead.")
+    filter: AttributeValueFilterInput @deprecated(reason: "Use `where` filter instead.")
 
     """
     Where filtering options for attribute choices.
@@ -6091,6 +6093,18 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """
     last: Int
   ): AttributeValueCountableConnection
+
+  """
+  List of all existing attribute values. This includes all values that have been assigned to attributes.
+  
+  Added in Saleor 3.22.
+  """
+  values(
+    """
+    Maximum number of attribute values to return. The default value is also the maximum number of values that can be fetched.
+    """
+    limit: Int = 100
+  ): [AttributeValue!]
 
   """
   Whether the attribute requires values to be passed or not. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.

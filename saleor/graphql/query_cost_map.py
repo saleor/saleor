@@ -143,6 +143,7 @@ COST_MAP = {
     },
     "Attribute": {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
+        "values": {"complexity": 1, "multipliers": ["first", "last"]},
         "productTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "productVariantTypes": {"complexity": 1, "multipliers": ["first", "last"]},
     },
@@ -301,7 +302,7 @@ COST_MAP = {
     },
     "SelectedAttribute": {
         "attribute": {"complexity": 1},
-        "values": {"complexity": 1, "multipliers": ["first", "last"]},
+        "values": {"complexity": 1, "multipliers": ["limit"]},
     },
     "ShippingMethodChannelListing": {
         "channel": {"complexity": 1},
