@@ -1,5 +1,6 @@
+from ...channel.models import Channel
 from ...page import models
-from ..core.context import get_database_connection_name
+from ..core.context import ChannelQsContext, get_database_connection_name
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from ..utils import get_user_or_app_from_context
@@ -39,11 +40,18 @@ def resolve_page(info, global_page_id=None, slug=None, slug_language_code=None):
     return page
 
 
-def resolve_pages(info):
+def resolve_pages(
+    info, channel_slug: str | None = None, channel: Channel | None = None
+) -> ChannelQsContext[models.Page]:
     requestor = get_user_or_app_from_context(info.context)
-    return models.Page.objects.using(
-        get_database_connection_name(info.context)
-    ).visible_to_user(requestor)
+    if channel is None and channel_slug is not None:
+        # If channel is provided but not found, return None
+        page_qs = models.Page.objects.none()
+    else:
+        page_qs = models.Page.objects.using(
+            get_database_connection_name(info.context)
+        ).visible_to_user(requestor)
+    return ChannelQsContext(qs=page_qs, channel_slug=channel_slug)
 
 
 def resolve_page_type(info, id):

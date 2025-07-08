@@ -46,10 +46,16 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                     ... on ProductVariant {
                         id
                         created
+                        pricing {
+                            onSale
+                        }
                     }
                     ... on Product {
                         id
                         created
+                        pricing {
+                            onSale
+                        }
                     }
                 }
               }
@@ -72,10 +78,16 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                     ... on ProductVariant {
                         id
                         created
+                        pricing {
+                            onSale
+                        }
                     }
                     ... on Product {
                         id
                         created
+                        pricing {
+                            onSale
+                        }
                     }
                   }
                 }
@@ -1904,6 +1916,8 @@ def test_product_attribute_with_referenced_product_variant_object(
     assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
         "ProductVariant", product_variant.id
     )
+    # having pricing object means that we passed channel_slug to the variant
+    assert value["referencedObject"]["pricing"]
 
 
 def test_product_attribute_with_referenced_product_object(
@@ -1954,6 +1968,8 @@ def test_product_attribute_with_referenced_product_object(
     assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
         "Product", product.id
     )
+    # having pricing object means that we passed channel_slug to the product
+    assert value["referencedObject"]["pricing"]
 
 
 def test_product_variant_attribute_with_referenced_page_object(
@@ -2061,6 +2077,8 @@ def test_product_variant_attribute_with_referenced_product_variant_object(
     assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
         "ProductVariant", product_variant.id
     )
+    # having pricing object means that we passed channel_slug to the variant
+    assert value["referencedObject"]["pricing"]
 
 
 def test_product_variant_attribute_with_referenced_product_object(
@@ -2113,3 +2131,5 @@ def test_product_variant_attribute_with_referenced_product_object(
     assert value["referencedObject"]["id"] == graphene.Node.to_global_id(
         "Product", product.id
     )
+    # having pricing object means that we passed channel_slug to the product
+    assert value["referencedObject"]["pricing"]

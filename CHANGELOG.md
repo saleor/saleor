@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.22.0 [Unreleased]
 
 ### Breaking changes
+- Increased query cost for attribute-related operations due to the addition of `AttributeValue.referencedObject`.
 
 ### GraphQL API
 
@@ -82,7 +83,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign category and collection as a attribute reference.
 - Attribute values now expose the `referencedObject`, allowing for easier access to the linked entity.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
-- Increased query cost for attribute-related operations due to the addition of `AttributeValue.referencedObject`.
+- Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
+- Extend the `Attribute` type with a `values` field, allowing you to retrieve all values assigned to a specific attribute.
+
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
 
@@ -117,3 +120,5 @@ All notable, unreleased changes to this project will be documented in this file.
   To see details of why a GraphQL request is failing, you can use OpenTelemetry tracing, where each span for a failing request will be marked with an error flag and will include an error message.
 
 - Fixed bug when not-authenticated staff user couldn't fetch `appExtension.app` without `MANAGE_APPS`. Now apps access is available by staff users and the app itself (for app and extension it owns)
+
+- Fixed bug in user email filtering to make it case-insensitive.

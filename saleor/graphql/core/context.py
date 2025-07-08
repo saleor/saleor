@@ -1,9 +1,9 @@
 import datetime
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from django.conf import settings
-from django.db.models import QuerySet
+from django.db.models import Model, QuerySet
 from django.http import HttpRequest
 from django.utils.functional import empty
 
@@ -89,7 +89,10 @@ class ChannelContext(BaseContext[N]):
     channel_slug: str | None
 
 
+M = TypeVar("M", bound=Model)
+
+
 @dataclass
-class ChannelQsContext:
-    qs: QuerySet
+class ChannelQsContext(Generic[M]):
+    qs: QuerySet[M]
     channel_slug: str | None

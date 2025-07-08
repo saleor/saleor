@@ -1834,7 +1834,7 @@ def test_search_attributes_on_root_level(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
-ATTRIBUTE_VALUES_FILTER_QUERY = """
+ATTRIBUTE_CHOICES_FILTER_QUERY = """
 query($id: ID!, $where: AttributeValueWhereInput, $search: String) {
     attribute(id: $id) {
         name
@@ -1854,14 +1854,14 @@ query($id: ID!, $where: AttributeValueWhereInput, $search: String) {
 
 def test_attributes_filter_by_choices_ids(api_client, color_attribute):
     # given
-    choices = AttributeValue.objects.bulk_create(
+    values = AttributeValue.objects.bulk_create(
         [
             AttributeValue(slug="choice-1", name="Choice 1", attribute=color_attribute),
             AttributeValue(slug="choice-2", name="Choice 2", attribute=color_attribute),
             AttributeValue(slug="choice-3", name="Choice 3", attribute=color_attribute),
         ]
     )
-    lookup_values = [choices[0], choices[2]]
+    lookup_values = [values[0], values[2]]
     value_ids = [
         graphene.Node.to_global_id("AttributeValue", value.pk)
         for value in lookup_values
@@ -1873,7 +1873,7 @@ def test_attributes_filter_by_choices_ids(api_client, color_attribute):
     }
 
     # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+    response = api_client.post_graphql(ATTRIBUTE_CHOICES_FILTER_QUERY, variables)
 
     # then
     data = get_graphql_content(response)
@@ -1911,7 +1911,7 @@ def test_attributes_filter_by_choices_slug(where, indexes, api_client, color_att
     }
 
     # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+    response = api_client.post_graphql(ATTRIBUTE_CHOICES_FILTER_QUERY, variables)
 
     # then
     data = get_graphql_content(response)
@@ -1949,7 +1949,7 @@ def test_attributes_filter_by_choices_name(where, indexes, api_client, color_att
     }
 
     # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+    response = api_client.post_graphql(ATTRIBUTE_CHOICES_FILTER_QUERY, variables)
 
     # then
     data = get_graphql_content(response)
@@ -1988,7 +1988,7 @@ def test_attributes_filter_by_choices_search(
     }
 
     # when
-    response = api_client.post_graphql(ATTRIBUTE_VALUES_FILTER_QUERY, variables)
+    response = api_client.post_graphql(ATTRIBUTE_CHOICES_FILTER_QUERY, variables)
 
     # then
     data = get_graphql_content(response)
