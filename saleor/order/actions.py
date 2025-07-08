@@ -999,7 +999,6 @@ def mark_order_as_paid_with_payment(
             is_success=True,
             amount=order.total.gross.amount,
             currency=order.total.gross.currency,
-            gateway_response={},
         )
         events.order_manually_marked_as_paid_event(
             order=order,

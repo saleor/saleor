@@ -1203,16 +1203,12 @@ def test_process_payment_with_error(
 @pytest.mark.parametrize("kind", [TransactionKind.AUTH, TransactionKind.CAPTURE])
 def test_confirm_payment_for_webhook(kind, stripe_plugin, payment_stripe_for_checkout):
     payment_intent_id = "payment-intent-id"
-    gateway_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
     payment = payment_stripe_for_checkout
     payment.transactions.create(
         is_success=True,
         action_required=False,
         kind=kind,
         token=payment_intent_id,
-        gateway_response=gateway_response,
         amount=payment.total,
         currency=payment.currency,
     )
@@ -1231,9 +1227,13 @@ def test_confirm_payment_for_webhook(kind, stripe_plugin, payment_stripe_for_che
     assert response.currency == payment_info.currency
     assert response.transaction_id == payment_intent_id
     assert response.error is None
-    assert response.raw_response == gateway_response
     assert response.action_required_data is None
     assert response.transaction_already_processed is True
+
+    transaction = payment.transactions.filter(kind=kind, token=payment_intent_id).last()
+    assert transaction is not None
+    assert transaction.is_success
+    assert transaction.token == payment_intent_id
 
 
 @pytest.mark.parametrize(
@@ -1252,10 +1252,6 @@ def test_confirm_payment_intent_without_details(
     payment_stripe_for_checkout,
     stripe_payment_intent,
 ):
-    gateway_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-
     payment_intent = stripe_payment_intent
     payment_intent_id = "payment-intent-id"
 
@@ -1265,7 +1261,6 @@ def test_confirm_payment_intent_without_details(
         action_required=False,
         kind=TransactionKind.ACTION_TO_CONFIRM,
         token=payment_intent_id,
-        gateway_response=gateway_response,
         amount=payment.total,
         currency=payment.currency,
     )
@@ -1309,10 +1304,6 @@ def test_confirm_payment_intent_with_details(
     payment_stripe_for_checkout,
     stripe_payment_intent_with_details,
 ):
-    gateway_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-
     payment_intent = stripe_payment_intent_with_details
     payment_intent_id = "payment-intent-id"
 
@@ -1322,7 +1313,6 @@ def test_confirm_payment_intent_with_details(
         action_required=False,
         kind=TransactionKind.ACTION_TO_CONFIRM,
         token=payment_intent_id,
-        gateway_response=gateway_response,
         amount=payment.total,
         currency=payment.currency,
     )
@@ -1361,10 +1351,6 @@ def test_confirm_payment_intent_with_details(
 def test_confirm_payment_incorrect_payment_intent(
     mocked_intent_retrieve, stripe_plugin, payment_stripe_for_checkout
 ):
-    gateway_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-
     payment_intent_id = "payment-intent-id"
 
     payment = payment_stripe_for_checkout
@@ -1373,7 +1359,6 @@ def test_confirm_payment_incorrect_payment_intent(
         action_required=False,
         kind=TransactionKind.ACTION_TO_CONFIRM,
         token=payment_intent_id,
-        gateway_response=gateway_response,
         amount=payment.total,
         currency=payment.currency,
     )
@@ -1402,10 +1387,6 @@ def test_confirm_payment_incorrect_payment_intent(
 def test_confirm_payment_action_required_status(
     mocked_intent_retrieve, status, stripe_plugin, payment_stripe_for_checkout
 ):
-    gateway_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-
     payment_intent_id = "payment-intent-id"
 
     payment = payment_stripe_for_checkout
@@ -1414,7 +1395,6 @@ def test_confirm_payment_action_required_status(
         action_required=False,
         kind=TransactionKind.ACTION_TO_CONFIRM,
         token=payment_intent_id,
-        gateway_response=gateway_response,
         amount=payment.total,
         currency=payment.currency,
     )
@@ -1446,10 +1426,6 @@ def test_confirm_payment_action_required_status(
 def test_confirm_payment_processing_status(
     mocked_intent_retrieve, stripe_plugin, payment_stripe_for_checkout
 ):
-    gateway_response = {
-        "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
-    }
-
     payment_intent_id = "payment-intent-id"
 
     payment = payment_stripe_for_checkout
@@ -1458,7 +1434,6 @@ def test_confirm_payment_processing_status(
         action_required=False,
         kind=TransactionKind.ACTION_TO_CONFIRM,
         token=payment_intent_id,
-        gateway_response=gateway_response,
         amount=payment.total,
         currency=payment.currency,
     )

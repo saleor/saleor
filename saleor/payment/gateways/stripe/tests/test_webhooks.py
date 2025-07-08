@@ -64,7 +64,6 @@ def test_handle_successful_payment_intent_for_checkout(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -110,7 +109,6 @@ def test_handle_successful_payment_intent_for_checkout_inactive_payment(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -150,7 +148,6 @@ def test_handle_successful_payment_intent_when_order_creation_raises_exception(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -336,7 +333,6 @@ def test_handle_successful_payment_intent_different_checkout_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -440,7 +436,6 @@ def test_handle_successful_payment_intent_checkout_with_voucher_ongoing_completi
         amount=total.gross.amount,
         currency=total.gross.currency,
         error="",
-        gateway_response={},
         action_required_data={},
     )
 
@@ -495,7 +490,6 @@ def test_handle_authorized_payment_intent_for_checkout(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -542,7 +536,6 @@ def test_handle_authorized_payment_intent_for_checkout_with_payment_details(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     intent["amount"] = price_to_minor_unit(payment.total, payment.currency)
@@ -581,7 +574,6 @@ def test_handle_authorized_payment_intent_for_checkout_inactive_payment(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -617,7 +609,6 @@ def test_handle_authorized_payment_intent_when_order_creation_raises_exception(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -786,7 +777,6 @@ def test_handle_authorized_payment_intent_different_checkout_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -843,7 +833,6 @@ def test_handle_processing_payment_intent_for_checkout(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -882,7 +871,6 @@ def test_handle_processing_payment_intent_for_checkout_inactive_payment(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -919,7 +907,6 @@ def test_handle_processing_payment_intent_when_order_creation_raises_exception(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -992,7 +979,6 @@ def test_handle_processing_payment_intent_different_checkout_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
     payment_intent = StripeObject(id="ABC", last_response={})
@@ -1018,7 +1004,6 @@ def test_handle_failed_payment_intent_for_checkout(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
 
     plugin = stripe_plugin()
@@ -1049,7 +1034,6 @@ def test_handle_failed_payment_intent_for_order(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
 
     plugin = stripe_plugin()
@@ -1093,7 +1077,6 @@ def test_handle_failed_payment_intent_different_order_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
 
     plugin = stripe_plugin()
@@ -1136,7 +1119,6 @@ def test_handle_failed_payment_intent_different_checkout_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
 
     plugin = stripe_plugin()
@@ -1165,7 +1147,6 @@ def test_handle_fully_refund(stripe_plugin, payment_stripe_for_order, channel_US
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -1199,7 +1180,6 @@ def test_handle_partial_refund(stripe_plugin, payment_stripe_for_order, channel_
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -1238,7 +1218,6 @@ def test_handle_refund_already_processed(
         amount=payment.total,
         currency=payment.currency,
         token=refund_id,
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -1276,7 +1255,6 @@ def test_handle_refund_missing_refunds(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -1335,7 +1313,6 @@ def test_handle_refund_different_order_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -1387,7 +1364,6 @@ def test_handle_refund_different_checkout_channel_slug(
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     plugin = stripe_plugin()
 
@@ -1676,7 +1652,6 @@ def test_handle_successful_payment_intent_for_checkout_when_already_processing_c
         amount=payment.total,
         currency=payment.currency,
         token="ABC",
-        gateway_response={},
     )
     payment_intent = StripeObject(id="ABC", last_response={})
     payment_intent["amount_received"] = price_to_minor_unit(

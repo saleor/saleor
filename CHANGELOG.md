@@ -6,6 +6,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Field `gatewayResponse` on `Transaction` type is gone. This is a part of sunsetting the legacy Payments API. This field was used by Payment Plugins. If you don't use them, no migration is needed. Otherwise, please remove this field from queries before updating to 3.22
+
 ### GraphQL API
 
 - Added support for filtering products by attribute value names. The `AttributeInput` now includes a `valueNames` field, enabling filtering by the names of attribute values, in addition to the existing filtering by value slugs.
@@ -117,3 +119,4 @@ All notable, unreleased changes to this project will be documented in this file.
   To see details of why a GraphQL request is failing, you can use OpenTelemetry tracing, where each span for a failing request will be marked with an error flag and will include an error message.
 
 - Fixed bug when not-authenticated staff user couldn't fetch `appExtension.app` without `MANAGE_APPS`. Now apps access is available by staff users and the app itself (for app and extension it owns)
+- Saleor no longer stores raw payment gateway response in the database

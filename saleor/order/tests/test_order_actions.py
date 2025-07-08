@@ -852,7 +852,6 @@ def test_order_refunded_triggers_webhooks(
         kind=TransactionKind.REFUND,
         is_success=True,
         amount=order.total.gross.amount,
-        gateway_response={},
     )
     amount = order.total.gross.amount
     plugins_manager = get_plugins_manager(allow_replica=False)
@@ -2451,7 +2450,6 @@ def test_order_transaction_updated_order_fully_refunded_with_transaction_and_pay
         amount=Decimal(10),
         currency=payment.currency,
         kind=TransactionKind.REFUND,
-        gateway_response={},
         is_success=True,
     )
 

@@ -54,7 +54,6 @@ def create_transaction(method, kind, created, amount, is_success, currency, toke
         amount=amount,
         token=token,
         currency=currency,
-        gateway_response={},
     )
 
 

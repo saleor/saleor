@@ -11804,9 +11804,6 @@ type Transaction implements Node @doc(category: "Payments") {
   """Error associated with transaction, if any."""
   error: String
 
-  """Response returned by payment gateway."""
-  gatewayResponse: JSONString!
-
   """Total amount of the transaction."""
   amount: Money
 }

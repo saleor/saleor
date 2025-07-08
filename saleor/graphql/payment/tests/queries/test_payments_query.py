@@ -1,4 +1,3 @@
-import json
 from decimal import Decimal
 
 import graphene
@@ -45,7 +44,6 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
                 chargeStatus
                 transactions {
                     error
-                    gatewayResponse
                     amount {
                         currency
                         amount
@@ -89,7 +87,6 @@ def test_payments_query(
         {
             "amount": {"currency": pay.currency, "amount": float(str(txn.amount))},
             "error": None,
-            "gatewayResponse": "{}",
         }
     ]
 
@@ -140,7 +137,6 @@ def test_query_payments_failed_payment(
         {
             "amount": {"currency": payment.currency, "amount": float(str(txn.amount))},
             "error": txn.error,
-            "gatewayResponse": json.dumps(txn.gateway_response),
         }
     ]
 

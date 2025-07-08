@@ -467,7 +467,6 @@ class Transaction(models.Model):
     )
     error = models.TextField(null=True)
     customer_id = models.CharField(max_length=256, null=True)
-    gateway_response = JSONField(encoder=DjangoJSONEncoder)
     already_processed = models.BooleanField(default=False)
 
     class Meta:
