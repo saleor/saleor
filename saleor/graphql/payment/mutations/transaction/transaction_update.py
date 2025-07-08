@@ -33,7 +33,7 @@ from .transaction_create import (
     TransactionCreateInput,
     TransactionEventInput,
 )
-from .utils import get_transaction_item
+from .utils import get_transaction_item, process_order_or_checkout_with_transaction
 
 if TYPE_CHECKING:
     from .....account.models import User
@@ -228,7 +228,7 @@ class TransactionUpdate(TransactionCreate):
 
         # TransactionCreate.process_order_or_checkout_with_transaction is called to use same logic for processing
         # order or checkout as in a transaction mutation.
-        cls.process_order_or_checkout_with_transaction(
+        process_order_or_checkout_with_transaction(
             instance,
             manager,
             user,
