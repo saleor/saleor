@@ -32,7 +32,7 @@ from ..core.doc_category import (
     DOC_CATEGORY_TAXES,
 )
 from ..core.fields import PermissionsField
-from ..core.scalars import Day, Hour, Minute
+from ..core.scalars import DateTime, Day, Hour, Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..tax.dataloaders import TaxConfigurationByChannelId
@@ -189,6 +189,29 @@ class PaymentSettings(ObjectType):
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
             "requested action for the transaction."
+        ),
+    )
+    release_funds_for_expired_checkouts = graphene.Boolean(
+        required=False,
+        description=(
+            "Determine if the funds for expired checkouts should be released automatically."
+            + ADDED_IN_320
+        ),
+    )
+    checkout_ttl_before_releasing_funds = Hour(
+        required=False,
+        description=(
+            "The time in hours after which funds for expired checkouts will be released."
+            + ADDED_IN_320
+        ),
+    )
+    checkout_release_funds_cut_off_date = DateTime(
+        required=False,
+        description=(
+            "Specifies the earliest date on which funds for expired checkouts can begin "
+            "to be released. Expired checkouts dated before this cut-off will not have their "
+            "funds released. Additionally, no funds will be released for checkouts that are "
+            "more than one year old, regardless of the cut-off date." + ADDED_IN_320
         ),
     )
 
@@ -493,4 +516,8 @@ class Channel(ModelObjectType):
     def resolve_payment_settings(root: models.Channel, _info):
         return PaymentSettings(
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
+            release_funds_for_expired_checkouts=root.release_funds_for_expired_checkouts,
+            checkout_ttl_before_releasing_funds=root.checkout_ttl_before_releasing_funds.seconds
+            // 3600,
+            checkout_release_funds_cut_off_date=root.checkout_release_funds_cut_off_date,
         )
