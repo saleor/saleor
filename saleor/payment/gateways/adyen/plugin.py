@@ -465,10 +465,17 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error=error_message,
+            # @deprecated
             raw_response=result.message,
             action_required_data=action,
             payment_method_info=payment_method_info,
             psp_reference=psp_reference,
+            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
+            .strip()
+            .lower(),
+            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
+            .strip()
+            .lower(),
         )
 
     @classmethod
@@ -542,9 +549,16 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error=result.message.get("refusalReason"),
+            # @deprecated
             raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
             payment_method_info=payment_method_info,
+            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
+            .strip()
+            .lower(),
+            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
+            .strip()
+            .lower(),
         )
 
     def confirm_payment(
@@ -595,10 +609,23 @@ class AdyenGatewayPlugin(BasePlugin):
             # standard flow for confirming an additional action
             return self._process_additional_action(payment_information, kind)
 
-        result_code = transaction.gateway_response.get("resultCode", "").strip().lower()
-        payment_method = (
-            transaction.gateway_response.get("paymentMethod", "").strip().lower()
-        )
+        result_code_temporary_field = transaction.legacy_adyen_plugin_result_code
+        payment_method_temporary_field = transaction.legacy_adyen_plugin_payment_method
+
+        if result_code_temporary_field:
+            result_code = result_code_temporary_field
+        else:
+            result_code = (
+                transaction.gateway_response.get("resultCode", "").strip().lower()
+            )
+
+        if payment_method_temporary_field:
+            payment_method = payment_method_temporary_field
+        else:
+            payment_method = (
+                transaction.gateway_response.get("paymentMethod", "").strip().lower()
+            )
+
         if result_code and result_code in PENDING_STATUSES:
             kind = TransactionKind.PENDING
         elif result_code == AUTH_STATUS and payment_method == "ideal":
@@ -638,6 +665,7 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=token,
             error=None,
+            # @deprecated
             raw_response={},
             transaction_already_processed=bool(transaction_already_processed),
             psp_reference=token,
@@ -706,8 +734,15 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
+            # @deprecated
             raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
+            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
+            .strip()
+            .lower(),
+            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
+            .strip()
+            .lower(),
         )
 
     def capture_payment(
@@ -736,9 +771,16 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
+            # @deprecated
             raw_response=result.message,
             payment_method_info=payment_method_info,
             psp_reference=result.message.get("pspReference", ""),
+            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
+            .strip()
+            .lower(),
+            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
+            .strip()
+            .lower(),
         )
 
     def void_payment(
@@ -767,8 +809,15 @@ class AdyenGatewayPlugin(BasePlugin):
             currency=payment_information.currency,
             transaction_id=result.message.get("pspReference", ""),
             error="",
+            # @deprecated
             raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
+            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
+            .strip()
+            .lower(),
+            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
+            .strip()
+            .lower(),
         )
 
     @classmethod
