@@ -2,6 +2,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar
 
+from graphql import GraphQLError
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
@@ -81,13 +82,22 @@ class DataLoaderWithLimit(DataLoader[K, R]):
 
     def __new__(cls, context: SaleorContext, limit: int = 100):
         loader = super().__new__(cls, context)
+        cls.limit_validation(limit)
         loader.limit = limit
         return loader
 
     def __init__(self, context: SaleorContext, limit: int = 100) -> None:
         if getattr(self, "limit", None) != limit:
+            self.limit_validation(limit)
             self.limit = limit
         super().__init__(context=context)
+
+    @staticmethod
+    def limit_validation(limit: int) -> None:
+        if limit > 100:
+            raise GraphQLError(
+                "The limit for attribute values cannot be greater than 100."
+            )
 
 
 class BaseThumbnailBySizeAndFormatLoader(

@@ -1,5 +1,4 @@
 import graphene
-from graphql import GraphQLError
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...permission.enums import (
@@ -404,10 +403,6 @@ class Attribute(ChannelContextType[models.Attribute]):
     def resolve_values(
         root: ChannelContext[models.Attribute], info: ResolveInfo, limit: int, **kwargs
     ):
-        if limit > 100:
-            raise GraphQLError(
-                "The limit for attribute values cannot be greater than 100."
-            )
         attr = root.node
 
         def map_channel_context(values):
