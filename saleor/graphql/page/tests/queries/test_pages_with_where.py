@@ -830,126 +830,126 @@ def test_pages_query_with_non_matching_records(
             ],
             1,
         ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {
-        #                 "slug": {"eq": "10"},
-        #             },
-        #         },
-        #         {
-        #             "slug": "tag",
-        #             "value": {"name": {"oneOf": ["About", "Help"]}},
-        #         },
-        #     ],
-        #     1,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"eq": "10"}},
-        #         },
-        #         {"slug": "boolean", "value": {"boolean": False}},
-        #     ],
-        #     0,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "tag",
-        #             "value": {
-        #                 "name": {"eq": "About"},
-        #             },
-        #         },
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"eq": "10"}},
-        #         },
-        #     ],
-        #     1,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"eq": "15"}},
-        #         },
-        #         {
-        #             "slug": "tag",
-        #             "value": {"name": {"eq": "Help"}},
-        #         },
-        #         {"slug": "boolean", "value": {"boolean": False}},
-        #     ],
-        #     0,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "author",
-        #             "value": {"slug": {"oneOf": ["test-author-1", "test-author-2"]}},
-        #         },
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"eq": "10"}},
-        #         },
-        #     ],
-        #     1,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"eq": "10"}},
-        #         },
-        #         {
-        #             "slug": "author",
-        #             "value": {"name": {"eq": "Test author 1"}},
-        #         },
-        #     ],
-        #     1,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"eq": "10"}},
-        #         },
-        #         {
-        #             "slug": "tag",
-        #             "value": {"name": {"eq": "About"}},
-        #         },
-        #         {
-        #             "slug": "author",
-        #             "value": {"slug": {"eq": "test-author-1"}},
-        #         },
-        #     ],
-        #     1,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"oneOf": ["10", "15"]}},
-        #         },
-        #         {
-        #             "slug": "tag",
-        #             "value": {"name": {"oneOf": ["About", "Help"]}},
-        #         },
-        #     ],
-        #     2,
-        # ),
-        # (
-        #     [
-        #         {
-        #             "slug": "page-size",
-        #             "value": {"slug": {"oneOf": ["10", "15"]}},
-        #         },
-        #         {"slug": "boolean", "value": {"boolean": True}},
-        #     ],
-        #     1,
-        # ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {
+                        "slug": {"eq": "10"},
+                    },
+                },
+                {
+                    "slug": "tag",
+                    "value": {"name": {"oneOf": ["About", "Help"]}},
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"eq": "10"}},
+                },
+                {"slug": "boolean", "value": {"boolean": False}},
+            ],
+            0,
+        ),
+        (
+            [
+                {
+                    "slug": "tag",
+                    "value": {
+                        "name": {"eq": "About"},
+                    },
+                },
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"eq": "10"}},
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"eq": "15"}},
+                },
+                {
+                    "slug": "tag",
+                    "value": {"name": {"eq": "Help"}},
+                },
+                {"slug": "boolean", "value": {"boolean": False}},
+            ],
+            0,
+        ),
+        (
+            [
+                {
+                    "slug": "author",
+                    "value": {"slug": {"oneOf": ["test-author-1", "test-author-2"]}},
+                },
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"eq": "10"}},
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"eq": "10"}},
+                },
+                {
+                    "slug": "author",
+                    "value": {"name": {"eq": "Test author 1"}},
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"eq": "10"}},
+                },
+                {
+                    "slug": "tag",
+                    "value": {"name": {"eq": "About"}},
+                },
+                {
+                    "slug": "author",
+                    "value": {"slug": {"eq": "test-author-1"}},
+                },
+            ],
+            1,
+        ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"oneOf": ["10", "15"]}},
+                },
+                {
+                    "slug": "tag",
+                    "value": {"name": {"oneOf": ["About", "Help"]}},
+                },
+            ],
+            2,
+        ),
+        (
+            [
+                {
+                    "slug": "page-size",
+                    "value": {"slug": {"oneOf": ["10", "15"]}},
+                },
+                {"slug": "boolean", "value": {"boolean": True}},
+            ],
+            1,
+        ),
     ],
 )
 def test_pages_query_with_multiple_attribute_filters(
