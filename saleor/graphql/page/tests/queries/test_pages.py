@@ -3,9 +3,8 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from saleor.attribute.models.base import AttributeValue
-from saleor.attribute.utils import associate_attribute_values_to_instance
-
+from .....attribute.models.base import AttributeValue
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.models import Page
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import get_graphql_content
