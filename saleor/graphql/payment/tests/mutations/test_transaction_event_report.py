@@ -3341,7 +3341,7 @@ def test_transaction_event_report_empty_message(
 
 
 @patch(
-    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_order_and_transaction_item_locked_for_update",
+    "saleor.graphql.payment.mutations.transaction.utils.get_order_and_transaction_item_locked_for_update",
     wraps=get_order_and_transaction_item_locked_for_update,
 )
 def test_lock_order_during_updating_order_amounts(
@@ -3405,7 +3405,7 @@ def test_lock_order_during_updating_order_amounts(
 
 
 @patch(
-    "saleor.graphql.payment.mutations.transaction.transaction_event_report.get_checkout_and_transaction_item_locked_for_update",
+    "saleor.graphql.payment.mutations.transaction.utils.get_checkout_and_transaction_item_locked_for_update",
     wraps=get_checkout_and_transaction_item_locked_for_update,
 )
 def test_lock_checkout_during_updating_checkout_amounts(
