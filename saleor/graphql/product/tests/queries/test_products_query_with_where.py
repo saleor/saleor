@@ -247,6 +247,44 @@ def test_product_filter_by_categories(
     }
 
 
+def test_product_filter_by_subcategories(
+    api_client, product_list, channel_USD, category_list
+):
+    # given
+    subcategory_1 = category_list[0]
+    subcategory_2 = category_list[1]
+    parent_category = category_list[2]
+
+    subcategory_1.parent = parent_category
+    subcategory_2.parent = parent_category
+    subcategory_1.save()
+    subcategory_2.save()
+
+    product_list[0].category = subcategory_1
+    product_list[1].category = subcategory_2
+    Product.objects.bulk_update(product_list, ["category"])
+
+    category_id = graphene.Node.to_global_id("Category", parent_category.pk)
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"category": {"eq": category_id}},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    returned_slugs = {node["node"]["slug"] for node in products}
+    assert returned_slugs == {
+        product_list[0].slug,
+        product_list[1].slug,
+    }
+
+
 def test_product_filter_by_category(
     api_client, product_list, channel_USD, category_list
 ):

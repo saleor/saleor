@@ -1107,6 +1107,22 @@ def where_filter_updated_at_range(qs, _, value):
     return filter_where_range_field_with_conditions(qs, "updated_at", value)
 
 
+def where_filter_by_categories(qs, value):
+    """Filter products by categories and subcategories of provided categories."""
+    if not value:
+        return qs.none()
+    eq = value.get("eq")
+    one_of = value.get("one_of")
+    pks = None
+    if eq and isinstance(eq, str):
+        _, pks = resolve_global_ids_to_primary_keys([eq], "Category", True)
+    if one_of:
+        _, pks = resolve_global_ids_to_primary_keys(one_of, "Category", True)
+    if pks:
+        return filter_products_by_categories(qs, pks)
+    return qs.none()
+
+
 class ProductWhere(MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Product"))
     name = OperationObjectTypeWhereFilter(
@@ -1215,7 +1231,7 @@ class ProductWhere(MetadataWhereFilterBase):
 
     @staticmethod
     def filter_category(qs, _, value):
-        return filter_where_by_id_field(qs, "category", value, "Category")
+        return where_filter_by_categories(qs, value)
 
     @staticmethod
     def filter_collection(qs, _, value):
