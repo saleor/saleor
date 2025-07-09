@@ -8,7 +8,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0031_alter_appextension_mount_alter_appextension_target"),
+        ("app", "0032_appextension_http_target_method_and_more"),
     ]
 
     operations = [
