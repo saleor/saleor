@@ -6217,6 +6217,7 @@ enum AttributeInputTypeEnum @doc(category: "Attributes") {
   MULTISELECT
   FILE
   REFERENCE
+  SINGLE_REFERENCE
   NUMERIC
   RICH_TEXT
   PLAIN_TEXT

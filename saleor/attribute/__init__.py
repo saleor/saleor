@@ -5,6 +5,7 @@ class AttributeInputType:
     MULTISELECT = "multiselect"
     FILE = "file"
     REFERENCE = "reference"
+    SINGLE_REFERENCE = "single-reference"
     NUMERIC = "numeric"
     RICH_TEXT = "rich-text"
     PLAIN_TEXT = "plain-text"
@@ -18,6 +19,7 @@ class AttributeInputType:
         (MULTISELECT, "Multi Select"),
         (FILE, "File"),
         (REFERENCE, "Reference"),
+        (SINGLE_REFERENCE, "Single Reference"),
         (NUMERIC, "Numeric"),
         (RICH_TEXT, "Rich Text"),
         (PLAIN_TEXT, "Plain Text"),
