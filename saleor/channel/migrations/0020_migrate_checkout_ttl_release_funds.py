@@ -35,17 +35,17 @@ def migrate_env_variable_setting_to_channels(apps, _schema_editor):
         )
         | ~Q(release_funds_for_expired_checkouts=turn_on)
     )
-    ids = channels.values_list("pk", flat=True)[:BATCH_SIZE]
 
-    qs = Channel.objects.filter(pk__in=ids).order_by("pk")
-    if ids:
-        with transaction.atomic():
-            # lock the batch of objects
-            _channels = list(qs.select_for_update(of=(["self"])))
-            qs.update(
-                checkout_ttl_before_releasing_funds=settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS,
-                release_funds_for_expired_checkouts=turn_on,
-            )
+    for ids in queryset_in_batches(channels):
+        qs = Channel.objects.filter(pk__in=ids).order_by("pk")
+        if ids:
+            with transaction.atomic():
+                # lock the batch of objects
+                _channels = list(qs.select_for_update(of=(["self"])))
+                qs.update(
+                    checkout_ttl_before_releasing_funds=settings.CHECKOUT_TTL_BEFORE_RELEASING_FUNDS,
+                    release_funds_for_expired_checkouts=turn_on,
+                )
 
 
 class Migration(migrations.Migration):
