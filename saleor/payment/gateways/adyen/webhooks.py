@@ -153,6 +153,12 @@ def create_new_transaction(notification, payment, kind):
         error="",
         raw_response=notification,
         psp_reference=transaction_id,
+        legacy_adyen_plugin_payment_method=notification.get("paymentMethod", "")
+        .strip()
+        .lower(),
+        legacy_adyen_plugin_result_code=notification.get("resultCode", "")
+        .strip()
+        .lower(),
     )
     return create_transaction(
         payment,
@@ -1168,6 +1174,12 @@ def handle_api_response(
         raw_response=response.message,
         action_required_data=response.message.get("action"),
         psp_reference=response.message.get("pspReference", ""),
+        legacy_adyen_plugin_payment_method=response.message.get("paymentMethod", "")
+        .strip()
+        .lower(),
+        legacy_adyen_plugin_result_code=response.message.get("resultCode", "")
+        .strip()
+        .lower(),
     )
 
     create_transaction(
