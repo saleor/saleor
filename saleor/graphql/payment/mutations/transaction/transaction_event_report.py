@@ -1,33 +1,21 @@
-from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, cast
-from uuid import UUID as UUID_TYPE
+from typing import TYPE_CHECKING, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from .....account.models import User
 from .....app.models import App
-from .....checkout.actions import (
-    transaction_amounts_for_checkout_updated_without_price_recalculation,
-)
 from .....core.exceptions import PermissionDenied
 from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.events import call_event
 from .....order import models as order_models
-from .....order.actions import order_transaction_updated
-from .....order.fetch import fetch_order_info
-from .....order.search import update_order_search_vector
 from .....order.utils import (
     calculate_order_granted_refund_status,
-    updates_amounts_for_order,
 )
 from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.lock_objects import (
-    get_checkout_and_transaction_item_locked_for_update,
-    get_order_and_transaction_item_locked_for_update,
     transaction_item_qs_select_for_update,
 )
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -56,7 +44,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 from ...types import TransactionEvent, TransactionItem
 from ...utils import check_if_requestor_has_access
-from .utils import get_transaction_item
+from .utils import get_transaction_item, process_order_or_checkout_with_transaction
 
 if TYPE_CHECKING:
     from .....plugins.manager import PluginsManager
@@ -194,7 +182,7 @@ class TransactionEventReport(DeprecatedModelMutation):
         transaction: payment_models.TransactionItem,
         transaction_event: payment_models.TransactionEvent,
         available_actions: list[str] | None = None,
-        app: Optional["App"] = None,
+        app: App | None = None,
         metadata: list[MetadataInput] | None = None,
         private_metadata: list[MetadataInput] | None = None,
     ):
@@ -281,81 +269,6 @@ class TransactionEventReport(DeprecatedModelMutation):
                     },
                 ) from e
         return quantize_price(amount, currency)
-
-    @classmethod
-    def process_order_with_transaction(
-        cls,
-        transaction: payment_models.TransactionItem,
-        manager: "PluginsManager",
-        user: User | None,
-        app: App | None,
-        previous_authorized_value: Decimal,
-        previous_charged_value: Decimal,
-        previous_refunded_value: Decimal,
-        related_granted_refund: order_models.OrderGrantedRefund | None,
-    ):
-        order = None
-        # This is executed after we ensure that the transaction is not a checkout
-        # transaction, so we can safely cast the order_id to UUID.
-        order_id = cast(UUID_TYPE, transaction.order_id)
-        with traced_atomic_transaction():
-            order, transaction = get_order_and_transaction_item_locked_for_update(
-                order_id, transaction.pk
-            )
-            updates_amounts_for_order(order)
-        update_order_search_vector(order)
-        order_info = fetch_order_info(order)
-        order_transaction_updated(
-            order_info=order_info,
-            transaction_item=transaction,
-            manager=manager,
-            user=user,
-            app=app,
-            previous_authorized_value=previous_authorized_value,
-            previous_charged_value=previous_charged_value,
-            previous_refunded_value=previous_refunded_value,
-        )
-        if related_granted_refund:
-            calculate_order_granted_refund_status(related_granted_refund)
-
-    @classmethod
-    def process_order_or_checkout_with_transaction(
-        cls,
-        transaction: payment_models.TransactionItem,
-        manager: "PluginsManager",
-        user: User | None,
-        app: App | None,
-        previous_authorized_value: Decimal,
-        previous_charged_value: Decimal,
-        previous_refunded_value: Decimal,
-        related_granted_refund: order_models.OrderGrantedRefund | None,
-    ):
-        checkout_deleted = False
-        if transaction.checkout_id:
-            with traced_atomic_transaction():
-                locked_checkout, transaction = (
-                    get_checkout_and_transaction_item_locked_for_update(
-                        transaction.checkout_id, transaction.pk
-                    )
-                )
-                if transaction.checkout_id and locked_checkout:
-                    transaction_amounts_for_checkout_updated_without_price_recalculation(
-                        transaction, locked_checkout, manager, user, app
-                    )
-                else:
-                    checkout_deleted = True
-                    # If the checkout was deleted, we still want to update the order associated with the transaction.
-        if transaction.order_id or checkout_deleted:
-            cls.process_order_with_transaction(
-                transaction,
-                manager,
-                user,
-                app,
-                previous_authorized_value,
-                previous_charged_value,
-                previous_refunded_value,
-                related_granted_refund,
-            )
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -503,7 +416,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 metadata=transaction_metadata,
                 private_metadata=transaction_private_metadata,
             )
-            cls.process_order_or_checkout_with_transaction(
+            process_order_or_checkout_with_transaction(
                 transaction,
                 manager,
                 user,
@@ -511,7 +424,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 previous_authorized_value,
                 previous_charged_value,
                 previous_refunded_value,
-                related_granted_refund,
+                related_granted_refund=related_granted_refund,
             )
         elif available_actions is not None and set(
             transaction.available_actions
