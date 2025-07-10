@@ -321,7 +321,7 @@ mutation OrderFulfillmentRefundProducts(
 """
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_order_lines_by_old_id(
     mocked_refund,
     staff_api_client,
@@ -430,7 +430,7 @@ mutation OrderFulfillmentReturnProducts(
 """
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_order_lines_by_old_line_id(
     mocked_refund,
     staff_api_client,

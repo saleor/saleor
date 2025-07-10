@@ -15,7 +15,10 @@ from .....payment.transaction_item_calculations import (
     calculate_transaction_amount_based_on_events,
     recalculate_transaction_amounts,
 )
-from .....payment.utils import create_manual_adjustment_events
+from .....payment.utils import (
+    create_manual_adjustment_events,
+    process_order_or_checkout_with_transaction,
+)
 from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
@@ -33,7 +36,7 @@ from .transaction_create import (
     TransactionCreateInput,
     TransactionEventInput,
 )
-from .utils import get_transaction_item, process_order_or_checkout_with_transaction
+from .utils import get_transaction_item
 
 if TYPE_CHECKING:
     from .....account.models import User
@@ -226,8 +229,6 @@ class TransactionUpdate(TransactionCreate):
                     message=transaction_event.get("message", ""),
                 )
 
-        # TransactionCreate.process_order_or_checkout_with_transaction is called to use same logic for processing
-        # order or checkout as in a transaction mutation.
         process_order_or_checkout_with_transaction(
             instance,
             manager,

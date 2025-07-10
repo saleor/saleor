@@ -157,7 +157,7 @@ def create_refund(payment_dummy):
             payment.captured_amount -= amount
             payment.save(update_fields=["captured_amount"])
 
-        with patch("saleor.order.actions.gateway.refund", side_effect=mocked_refund):
+        with patch("saleor.payment.gateway.refund", side_effect=mocked_refund):
             return create_refund_fulfillment(
                 user=None,
                 app=None,
