@@ -787,6 +787,33 @@ class AttributeAssignmentMixin:
         """Resolve, validate, and prepare attribute input."""
         error_class = PageErrorCode if is_page_attributes else ProductErrorCode
 
+        id_to_values_input_map, ext_ref_to_values_input_map = (
+            cls._prepare_attribute_input_maps(raw_input, error_class)
+        )
+
+        attributes = cls._resolve_attribute_nodes(
+            attributes_qs,
+            error_class,
+            id_map={pk: v.global_id for pk, v in id_to_values_input_map.items()},  # type: ignore[misc]
+            ext_ref_set=set(ext_ref_to_values_input_map.keys()),
+        )
+
+        cleaned_input = cls._validate_and_clean_attributes(
+            attributes,
+            attributes_qs,
+            id_to_values_input_map,
+            ext_ref_to_values_input_map,
+            error_class,
+            creation,
+        )
+
+        return cleaned_input
+
+    @classmethod
+    def _prepare_attribute_input_maps(
+        cls, raw_input: list[dict], error_class
+    ) -> tuple[dict[int, AttrValuesInput], dict[str, AttrValuesInput]]:
+        """Prepare maps for attribute input based on IDs and external references."""
         id_map: dict[int, AttrValuesInput] = {}
         ext_ref_map: dict[str, AttrValuesInput] = {}
 
@@ -814,19 +841,26 @@ class AttributeAssignmentMixin:
             if ext_ref:
                 ext_ref_map[ext_ref] = values
 
-        attributes = cls._resolve_attribute_nodes(
-            attributes_qs,
-            error_class,
-            id_map={pk: v.global_id for pk, v in id_map.items()},  # type: ignore[misc]
-            ext_ref_set=set(ext_ref_map.keys()),
-        )
+        return id_map, ext_ref_map
 
+    @classmethod
+    def _validate_and_clean_attributes(
+        cls,
+        attributes: list["Attribute"],
+        attributes_qs: "QuerySet[attribute_models.Attribute]",
+        id_to_values_input_map: dict[int, AttrValuesInput],
+        ext_ref_to_values_input_map: dict[str, AttrValuesInput],
+        error_class,
+        creation: bool,
+    ) -> T_INPUT_MAP:
+        """Validate and clean attribute inputs."""
         cleaned_input = []
         attribute_errors: T_ERROR_DICT = defaultdict(list)
+
         for attribute in attributes:
-            values_input = id_map.get(attribute.pk) or ext_ref_map.get(
-                attribute.external_reference
-            )
+            values_input = id_to_values_input_map.get(
+                attribute.pk
+            ) or ext_ref_to_values_input_map.get(attribute.external_reference)  # type: ignore[arg-type]
             values_input = cast(AttrValuesInput, values_input)
 
             is_legacy_path = values_input.values and attribute.input_type in {
@@ -853,22 +887,7 @@ class AttributeAssignmentMixin:
         )
 
         if creation:
-            supplied_pks = {attr.pk for attr, _ in cleaned_input}
-            missing_required = attributes_qs.filter(value_required=True).exclude(
-                pk__in=supplied_pks
-            )
-            if missing_required:
-                missing_ids = [
-                    graphene.Node.to_global_id("Attribute", attr.pk)
-                    for attr in missing_required
-                ]
-                errors.append(
-                    ValidationError(
-                        "All attributes flagged as having a value required must be supplied.",
-                        code=error_class.REQUIRED.value,
-                        params={"attributes": missing_ids},
-                    )
-                )
+            cls._validate_required_attributes(attributes_qs, cleaned_input, errors)
 
         if errors:
             raise ValidationError(errors)
@@ -906,6 +925,30 @@ class AttributeAssignmentMixin:
             errors.append(error)
 
         return errors
+
+    @classmethod
+    def _validate_required_attributes(
+        cls,
+        attributes_qs: "QuerySet[attribute_models.Attribute]",
+        cleaned_input: T_INPUT_MAP,
+        errors: list[ValidationError],
+    ):
+        """Validate that all required attributes are provided."""
+        supplied_pks = {attr.pk for attr, _ in cleaned_input}
+        missing_required = attributes_qs.filter(
+            Q(value_required=True) & ~Q(pk__in=supplied_pks)
+        )
+        if missing_required:
+            missing_ids = [
+                graphene.Node.to_global_id("Attribute", attr.pk)
+                for attr in missing_required
+            ]
+            error = ValidationError(
+                "All attributes flagged as having a value required must be supplied.",
+                code=ProductErrorCode.REQUIRED.value,
+                params={"attributes": missing_ids},
+            )
+            errors.append(error)
 
     @classmethod
     def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
@@ -957,23 +1000,29 @@ class AttributeAssignmentMixin:
 
         associate_attribute_values_to_instance(instance, attr_val_map)
 
-        if clean_assignment_pks:
-            values_to_unassign = attribute_models.AttributeValue.objects.filter(
-                attribute_id__in=clean_assignment_pks
-            )
-            # variant has old attribute structure so need to handle it differently
-            if isinstance(instance, product_models.ProductVariant):
-                cls._clean_variants_assignment(instance, clean_assignment_pks)
-                return
-            manager, instance_fk = cls._get_assignment_manager_and_fk(instance)
-            manager.filter(
-                Exists(values_to_unassign.filter(id=OuterRef("value_id"))),
-                **{instance_fk: instance.pk},
-            ).delete()
+        cls._clean_assignments(instance, clean_assignment_pks)
+
+    @classmethod
+    def _clean_assignments(cls, instance: T_INSTANCE, clean_assignment_pks: list[int]):
+        """Clean attribute assignments from the given instance."""
+        if not clean_assignment_pks:
+            return
+
+        values_to_unassign = attribute_models.AttributeValue.objects.filter(
+            attribute_id__in=clean_assignment_pks
+        )
+        # variant has old attribute structure so need to handle it differently
+        if isinstance(instance, product_models.ProductVariant):
+            cls._clean_variants_assignment(instance, clean_assignment_pks)
+            return
+        manager, instance_fk = cls._get_assignment_manager_and_fk(instance)
+        manager.filter(
+            Exists(values_to_unassign.filter(id=OuterRef("value_id"))),
+            **{instance_fk: instance.pk},
+        ).delete()
 
     @classmethod
     def _clean_variants_assignment(cls, instance: T_INSTANCE, attribute_ids: list[int]):
-        """Unassign attributes from the given instance."""
         attribute_variant = Exists(
             attribute_models.AttributeVariant.objects.filter(
                 pk=OuterRef("assignment_id"),
