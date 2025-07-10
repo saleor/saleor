@@ -42,6 +42,21 @@ def clean_delete_expired_orders_after(
     return datetime.timedelta(days=delete_expired_orders_after)
 
 
+def clean_checkout_ttl_before_releasing_funds(
+    checkout_ttl_before_releasing_funds: int,
+) -> datetime.timedelta:
+    if checkout_ttl_before_releasing_funds <= 0:
+        raise ValidationError(
+            {
+                "checkout_ttl_before_releasing_funds": ValidationError(
+                    "The time in hours after which funds for expired checkouts will be released must be greater than 0.",
+                    code=ChannelErrorCode.INVALID.value,
+                )
+            }
+        )
+    return datetime.timedelta(hours=checkout_ttl_before_releasing_funds)
+
+
 def clean_input_order_settings(
     order_settings: dict, cleaned_input: dict, instance: Channel
 ):
@@ -108,4 +123,31 @@ def clean_input_payment_settings(payment_settings: dict, cleaned_input: dict):
     ):
         cleaned_input["default_transaction_flow_strategy"] = (
             default_transaction_strategy
+        )
+    if (
+        release_funds_for_expired_checkouts := payment_settings.get(
+            "release_funds_for_expired_checkouts"
+        )
+    ) is not None:
+        cleaned_input["release_funds_for_expired_checkouts"] = (
+            release_funds_for_expired_checkouts
+        )
+
+    if (
+        checkout_ttl_before_releasing_funds := payment_settings.get(
+            "checkout_ttl_before_releasing_funds"
+        )
+    ) is not None:
+        cleaned_input["checkout_ttl_before_releasing_funds"] = (
+            clean_checkout_ttl_before_releasing_funds(
+                checkout_ttl_before_releasing_funds
+            )
+        )
+
+    if "checkout_release_funds_cut_off_date" in payment_settings:
+        checkout_release_funds_cut_off_date = payment_settings[
+            "checkout_release_funds_cut_off_date"
+        ]
+        cleaned_input["checkout_release_funds_cut_off_date"] = (
+            checkout_release_funds_cut_off_date
         )
