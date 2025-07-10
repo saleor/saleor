@@ -49,6 +49,12 @@ class Channel(ModelWithMetadata):
     use_legacy_error_flow_for_checkout = models.BooleanField(default=True)
     automatically_complete_fully_paid_checkouts = models.BooleanField(default=False)
 
+    release_funds_for_expired_checkouts = models.BooleanField(default=False)
+    checkout_ttl_before_releasing_funds = models.DurationField(
+        default=timedelta(hours=6)
+    )
+    checkout_release_funds_cut_off_date = models.DateTimeField(null=True, blank=True)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"

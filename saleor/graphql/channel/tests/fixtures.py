@@ -35,6 +35,7 @@ def channel_USD(db):
         default_country="US",
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
+        release_funds_for_expired_checkouts=True,
     )
     _create_channel_tax_configuration(channel)
     return channel
@@ -77,6 +78,7 @@ def channel_JPY(db):
         default_country="JP",
         is_active=True,
         allocation_strategy=AllocationStrategy.PRIORITIZE_HIGH_STOCK,
+        release_funds_for_expired_checkouts=True,
     )
     _create_channel_tax_configuration(channel)
     return channel

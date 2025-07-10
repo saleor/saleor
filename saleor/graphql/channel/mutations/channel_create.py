@@ -30,7 +30,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_PRODUCTS,
 )
 from ...core.mutations import ModelMutation
-from ...core.scalars import Day, Minute
+from ...core.scalars import DateTime, Day, Hour, Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
@@ -163,6 +163,29 @@ class PaymentSettingsInput(BaseInputObjectType):
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
             "requested action for the transaction." + ADDED_IN_316 + PREVIEW_FEATURE
+        ),
+    )
+    release_funds_for_expired_checkouts = graphene.Boolean(
+        required=False,
+        description=(
+            "Determine if the funds for expired checkouts should be released automatically."
+            + ADDED_IN_320
+        ),
+    )
+    checkout_ttl_before_releasing_funds = Hour(
+        required=False,
+        description=(
+            "The time in hours after which funds for expired checkouts will be released."
+            + ADDED_IN_320
+        ),
+    )
+    checkout_release_funds_cut_off_date = DateTime(
+        required=False,
+        description=(
+            "Specifies the earliest date on which funds for expired checkouts can begin "
+            "to be released. Expired checkouts dated before this cut-off will not have their "
+            "funds released. Additionally, no funds will be released for checkouts that are "
+            "more than one year old, regardless of the cut-off date." + ADDED_IN_320
         ),
     )
 
