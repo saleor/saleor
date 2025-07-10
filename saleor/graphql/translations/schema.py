@@ -120,7 +120,7 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.CATEGORY:
             qs = resolve_categories(info)
         elif kind == TranslatableKinds.PAGE:
-            qs = resolve_pages(info)
+            qs = resolve_pages(info).qs
         elif kind == TranslatableKinds.SHIPPING_METHOD:
             qs = resolve_shipping_methods(info)
         elif kind == TranslatableKinds.VOUCHER:

@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.22.0 [Unreleased]
 
 ### Breaking changes
+- Increased query cost for attribute-related operations due to the addition of `AttributeValue.referencedObject`.
 
 ### GraphQL API
 
@@ -82,8 +83,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend `AttributeEntityType` with `CATEGORY` and `COLLECTION`. You can now assign category and collection as a attribute reference.
 - Attribute values now expose the `referencedObject`, allowing for easier access to the linked entity.
 - You can now filter and search attribute choices using the new `where` and `search` fields on the `attribute.choices` query.
+- Filtering products by `category` now also includes subcategories. The filter will return products that belong to the specified categories as well as their subcategories.
 - Deprecated `Transaction.gatewayResponse` field. Please migrate to Transaction API and Apps.
+- Extend the `Attribute` type with a `values` field, allowing you to retrieve all values assigned to a specific attribute.
 - Add `productVariantSku` to `ProductVariantTranslatableContent`
+
 
 ### Webhooks
 - Transaction webhooks responsible for processing payments can now return payment method details`, which will be associated with the corresponding transaction. See [docs](https://docs.saleor.io/developer/extending/webhooks/synchronous-events/transaction#response-4) to learn more.
