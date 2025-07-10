@@ -18,6 +18,7 @@ from .....payment.interface import PaymentMethodDetails
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     create_manual_adjustment_events,
+    process_order_or_checkout_with_transaction,
     truncate_transaction_event_message,
     update_transaction_item_with_payment_method_details,
 )
@@ -40,7 +41,6 @@ from .shared import (
     get_payment_method_details,
     validate_payment_method_details_input,
 )
-from .utils import process_order_or_checkout_with_transaction
 
 if TYPE_CHECKING:
     pass

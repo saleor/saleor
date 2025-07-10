@@ -25,6 +25,7 @@ from .....payment.utils import (
     create_failed_transaction_event,
     get_already_existing_event,
     get_transaction_event_amount,
+    process_order_or_checkout_with_transaction,
     truncate_transaction_event_message,
     update_transaction_item_with_payment_method_details,
 )
@@ -52,7 +53,7 @@ from .shared import (
     get_payment_method_details,
     validate_payment_method_details_input,
 )
-from .utils import get_transaction_item, process_order_or_checkout_with_transaction
+from .utils import get_transaction_item
 
 if TYPE_CHECKING:
     from .....plugins.manager import PluginsManager
