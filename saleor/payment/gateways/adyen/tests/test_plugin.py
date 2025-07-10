@@ -47,6 +47,8 @@ def test_process_additional_action(
         raw_response=expected_message,
         psp_reference="ref-id",
         payment_method_info=PaymentMethodInfo(),
+        legacy_adyen_plugin_result_code=expected_message.get("resultCode"),
+        legacy_adyen_plugin_payment_method="",
     )
     mocked_api_call.assert_called_with(
         dummy_payment_data.data, plugin.adyen.checkout.payments_details
