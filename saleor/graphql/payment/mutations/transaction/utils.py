@@ -1,19 +1,41 @@
-from typing import TYPE_CHECKING
+from decimal import Decimal
+from typing import TYPE_CHECKING, cast
+from uuid import UUID
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_ipv46_address
 
+from .....account.models import User
+from .....app.models import App
+from .....checkout.actions import (
+    transaction_amounts_for_checkout_updated_without_price_recalculation,
+)
 from .....core.exceptions import PermissionDenied
+from .....core.tracing import traced_atomic_transaction
 from .....core.utils import get_client_ip
+from .....order import OrderStatus
+from .....order import models as order_models
+from .....order.actions import order_transaction_updated
+from .....order.fetch import fetch_order_info
+from .....order.search import update_order_search_vector
+from .....order.utils import (
+    calculate_order_granted_refund_status,
+    refresh_order_status,
+    updates_amounts_for_order,
+)
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionUpdateErrorCode
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
+)
 from .....permission.enums import PaymentPermissions
 from ....app.dataloaders import get_app_promise
 from ....core.utils import from_global_id_or_error
 from ...types import TransactionItem
 
 if TYPE_CHECKING:
-    pass
+    from .....plugins.manager import PluginsManager
 
 
 def get_transaction_item(
@@ -78,3 +100,97 @@ def clean_customer_ip_address(info, customer_ip_address: str | None, error_code:
             }
         ) from e
     return customer_ip_address
+
+
+def process_order_with_transaction(
+    transaction: payment_models.TransactionItem,
+    manager: "PluginsManager",
+    user: User | None,
+    app: App | None,
+    previous_authorized_value: Decimal = Decimal(0),
+    previous_charged_value: Decimal = Decimal(0),
+    previous_refunded_value: Decimal = Decimal(0),
+    related_granted_refund: order_models.OrderGrantedRefund | None = None,
+):
+    order = None
+    # This is executed after we ensure that the transaction is not a checkout
+    # transaction, so we can safely cast the order_id to UUID.
+    order_id = cast(UUID, transaction.order_id)
+    with traced_atomic_transaction():
+        order, transaction = get_order_and_transaction_item_locked_for_update(
+            order_id, transaction.pk
+        )
+        update_fields = []
+        updates_amounts_for_order(order, save=False)
+        update_fields.extend(
+            [
+                "total_charged_amount",
+                "charge_status",
+                "total_authorized_amount",
+                "authorize_status",
+            ]
+        )
+        if (
+            order.channel.automatically_confirm_all_new_orders
+            and order.status == OrderStatus.UNCONFIRMED
+        ):
+            status_updated = refresh_order_status(order)
+            if status_updated:
+                update_fields.append("status")
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
+
+    update_order_search_vector(order)
+    order_info = fetch_order_info(order)
+    order_transaction_updated(
+        order_info=order_info,
+        transaction_item=transaction,
+        manager=manager,
+        user=user,
+        app=app,
+        previous_authorized_value=previous_authorized_value,
+        previous_charged_value=previous_charged_value,
+        previous_refunded_value=previous_refunded_value,
+    )
+    if related_granted_refund:
+        calculate_order_granted_refund_status(related_granted_refund)
+
+
+def process_order_or_checkout_with_transaction(
+    transaction: payment_models.TransactionItem,
+    manager: "PluginsManager",
+    user: User | None,
+    app: App | None,
+    previous_authorized_value: Decimal = Decimal(0),
+    previous_charged_value: Decimal = Decimal(0),
+    previous_refunded_value: Decimal = Decimal(0),
+    related_granted_refund: order_models.OrderGrantedRefund | None = None,
+):
+    checkout_deleted = False
+    if transaction.checkout_id:
+        with traced_atomic_transaction():
+            locked_checkout, transaction = (
+                get_checkout_and_transaction_item_locked_for_update(
+                    transaction.checkout_id, transaction.pk
+                )
+            )
+            if transaction.checkout_id and locked_checkout:
+                transaction_amounts_for_checkout_updated_without_price_recalculation(
+                    transaction, locked_checkout, manager, user, app
+                )
+            else:
+                checkout_deleted = True
+                # If the checkout was deleted, we still want to update the order associated with the transaction.
+
+    if transaction.order_id or checkout_deleted:
+        process_order_with_transaction(
+            transaction,
+            manager,
+            user,
+            app,
+            previous_authorized_value,
+            previous_charged_value,
+            previous_refunded_value,
+            related_granted_refund=related_granted_refund,
+        )
