@@ -14,7 +14,7 @@ from ..models import Fulfillment, FulfillmentLine
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_order_lines(
     mocked_refund,
     mocked_order_updated,
@@ -92,7 +92,7 @@ def test_create_return_fulfillment_only_order_lines(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_with_refund(
     mocked_refund,
     mocked_order_updated,
@@ -172,7 +172,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     mocked_refund,
     mocked_order_updated,
@@ -258,7 +258,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_with_replace_request(
     mocked_refund,
     mocked_order_updated,
@@ -393,7 +393,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_fulfillment_lines(
     mocked_refund,
     mocked_order_updated,
@@ -444,7 +444,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     mocked_refund,
     mocked_order_updated,
@@ -555,7 +555,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_with_lines_already_refunded(
     mocked_refund,
     mocked_order_updated,
@@ -668,7 +668,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_with_old_ids(
     mocked_refund,
     mocked_order_updated,
