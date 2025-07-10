@@ -49,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Filter by associated payment method name and type.
     - Filter by associated billing and shipping address phone number and country code.
 - Extend the `Page` type with an `attribute` field. Adds support for querying a specific attribute on a page by `slug`, returning the matching attribute and its assigned values, or null if no match is found.
+- Allow to filter `ProductVariants` by their stock availability status by @delemeator
 - Enhanced order search options. Orders can now be searched using:
   - The order's ID
   - IDs of invoices linked to the order
