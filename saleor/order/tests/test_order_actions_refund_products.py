@@ -13,7 +13,7 @@ from ..models import FulfillmentLine
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_refund_fulfillment_only_order_lines(
     mocked_refund, mocked_order_updated, order_with_lines, payment_dummy
 ):
@@ -83,7 +83,7 @@ def test_create_refund_fulfillment_only_order_lines(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_refund_fulfillment_included_shipping_costs(
     mocked_refund, mocked_order_updated, order_with_lines, payment_dummy
 ):
@@ -145,7 +145,7 @@ def test_create_refund_fulfillment_included_shipping_costs(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_refund_fulfillment_only_fulfillment_lines(
     mocked_refund, mocked_order_updated, fulfilled_order, payment_dummy
 ):
@@ -202,7 +202,7 @@ def test_create_refund_fulfillment_only_fulfillment_lines(
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_create_refund_fulfillment_custom_amount(
     mocked_refund, mocked_order_updated, fulfilled_order, payment_dummy
 ):

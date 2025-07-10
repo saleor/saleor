@@ -17,6 +17,7 @@ from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from .....payment.utils import (
     create_manual_adjustment_events,
+    process_order_or_checkout_with_transaction,
     truncate_transaction_event_message,
 )
 from .....permission.enums import PaymentPermissions
@@ -33,7 +34,6 @@ from ...enums import TransactionActionEnum
 from ...types import TransactionItem
 from ...utils import metadata_contains_empty_key
 from ..payment.payment_check_balance import MoneyInput
-from .utils import process_order_or_checkout_with_transaction
 
 
 class TransactionCreateInput(BaseInputObjectType):

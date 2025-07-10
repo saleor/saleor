@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from unittest import mock
 
+import before_after
 import pytest
 import pytz
 from django.conf import settings
@@ -12,10 +13,11 @@ from freezegun import freeze_time
 from .....channel import TransactionFlowStrategy
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
+from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.prices import quantize_price
-from .....order import OrderChargeStatus, OrderEvents, OrderStatus
+from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....payment import TransactionEventType, TransactionItemIdempotencyUniqueError
 from .....payment.interface import (
@@ -23,6 +25,10 @@ from .....payment.interface import (
     TransactionProcessActionData,
     TransactionSessionData,
     TransactionSessionResult,
+)
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
 )
 from .....payment.models import Payment, TransactionItem
 from .....webhook.event_types import WebhookEventSyncType
@@ -2965,3 +2971,189 @@ def test_for_order_with_tax_app(
     for call in mocked_send_webhook_request_sync.mock_calls:
         delivery = call.args[0]
         assert delivery.payload.get_payload()
+
+
+# Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
+@pytest.mark.django_db(transaction=True)
+@mock.patch(
+    "saleor.payment.utils.get_order_and_transaction_item_locked_for_update",
+    wraps=get_order_and_transaction_item_locked_for_update,
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_lock_order_during_updating_order_amounts(
+    mocked_initialize,
+    mocked_get_order_and_transaction_item_locked_for_update,
+    user_api_client,
+    unconfirmed_order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = unconfirmed_order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["amount"] = str(order.total_gross_amount)
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "amount": order.total_gross_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=order.total_gross_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=order.total_gross_amount,
+        returned_data=expected_response["data"],
+    )
+
+    assert not order.is_fully_paid()
+    order.refresh_from_db()
+    assert order.is_fully_paid()
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == order.total_gross_amount
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    transaction_pk = order.payment_transactions.get().pk
+    mocked_get_order_and_transaction_item_locked_for_update.assert_called_once_with(
+        order.pk, transaction_pk
+    )
+
+
+# Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
+@pytest.mark.django_db(transaction=True)
+@mock.patch(
+    "saleor.payment.utils.get_checkout_and_transaction_item_locked_for_update",
+    wraps=get_checkout_and_transaction_item_locked_for_update,
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_lock_checkout_during_updating_checkout_amounts(
+    mocked_initialize,
+    mocked_get_checkout_and_transaction_item_locked_for_update,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=checkout.total_gross_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=checkout.total_gross_amount,
+        returned_data=expected_response["data"],
+    )
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    transaction_pk = checkout.payment_transactions.get().pk
+    mocked_get_checkout_and_transaction_item_locked_for_update.assert_called_once_with(
+        checkout.pk, transaction_pk
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_transaction_initialize_checkout_completed_race_condition(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    def complete_checkout(*args, **kwargs):
+        create_order_from_checkout(
+            checkout_info, plugins_manager, user=user_api_client.user, app=None
+        )
+
+    with before_after.after(
+        "saleor.payment.utils.recalculate_transaction_amounts",
+        complete_checkout,
+    ):
+        user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    order = Order.objects.get(checkout_token=checkout.pk)
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    assert order.total_charged.amount == checkout.total.gross.amount
