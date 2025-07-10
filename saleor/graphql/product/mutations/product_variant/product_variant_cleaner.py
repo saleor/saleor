@@ -58,7 +58,8 @@ def validate_duplicated_attribute_values(
     attribute_values: defaultdict[str, list[str]] = defaultdict(list)
     for attr, attr_data in attributes_data:
         values = get_values_from_attribute_values_input(attr, attr_data)
-        attribute_values[attr_data.global_id].extend(values)
+        if attr_data.global_id:
+            attribute_values[attr_data.global_id].extend(values)
 
     if attribute_values in used_attribute_values:
         raise ValidationError(

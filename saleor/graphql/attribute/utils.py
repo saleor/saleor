@@ -1,9 +1,9 @@
+import abc
 import datetime
 import re
 from collections import defaultdict
-from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -50,7 +50,7 @@ class AttrValuesForSelectableFieldInput:
 
 @dataclass
 class AttrValuesInput:
-    global_id: str
+    global_id: str | None
     external_reference: str | None = None
     values: list[str] | None = None
     dropdown: AttrValuesForSelectableFieldInput | None = None
@@ -73,47 +73,678 @@ T_ERROR_DICT = dict[tuple[str, str], list]
 
 
 class EntityTypeData(NamedTuple):
+    """Defines metadata for a referenceable entity type."""
+
     model: type[Model]
     name_field: str
     value_field: str
 
 
-class AttributeAssignmentMixin:
-    """Handles cleaning of the attribute input and creating the proper relations.
+ENTITY_TYPE_MAPPING = {
+    AttributeEntityType.PAGE: EntityTypeData(
+        page_models.Page, "title", "reference_page"
+    ),
+    AttributeEntityType.PRODUCT: EntityTypeData(
+        product_models.Product, "name", "reference_product"
+    ),
+    AttributeEntityType.PRODUCT_VARIANT: EntityTypeData(
+        product_models.ProductVariant, "name", "reference_variant"
+    ),
+    AttributeEntityType.CATEGORY: EntityTypeData(
+        product_models.Category, "name", "reference_category"
+    ),
+    AttributeEntityType.COLLECTION: EntityTypeData(
+        product_models.Collection, "name", "reference_collection"
+    ),
+}
 
-    1. You should first call ``clean_input``, to transform and attempt to resolve
-       the provided input into actual objects. It will then perform a few
-       checks to validate the operations supplied by the user are possible and allowed.
-    2. Once everything is ready and all your data is saved inside a transaction,
-       you shall call ``save`` with the cleaned input to build all the required
-       relations. Once the ``save`` call is done, you are safe from continuing working
-       or to commit the transaction.
 
-    Note: you shall never call ``save`` outside of a transaction and never before
-    the targeted instance owns a primary key. Failing to do so, the relations will
-    be unable to build or might only be partially built.
+class AttributeInputErrors:
+    """Defines error messages and codes for attribute validation."""
+
+    # General Errors
+    ID_OR_EXTERNAL_REFERENCE_REQUIRED = (
+        "Attribute 'id' or 'externalReference' must be provided.",
+        "REQUIRED",
+    )
+    VALUE_REQUIRED = ("This attribute requires a value.", "REQUIRED")
+    BLANK_VALUE = ("Attribute values cannot be blank.", "REQUIRED")
+    DUPLICATED_VALUES = (
+        "Duplicate attribute values are not allowed.",
+        "DUPLICATED_INPUT_ITEM",
+    )
+    INVALID_INPUT = ("Invalid value provided for attribute.", "INVALID")
+    MORE_THAN_ONE_VALUE = ("Attribute must take only one value.", "INVALID")
+
+    # Selectable Field Errors
+    ID_AND_VALUE_PROVIDED = (
+        "Provide either 'id' or 'value' for a selectable attribute, not both.",
+        "INVALID",
+    )
+    ID_AND_EXTERNAL_REFERENCE_PROVIDED = (
+        "Provide either 'id' or 'externalReference', not both.",
+        "INVALID",
+    )
+    MAX_LENGTH_EXCEEDED = ("The value exceeds the maximum length.", "INVALID")
+
+    # File Errors
+    FILE_URL_REQUIRED = ("A file URL is required for this attribute.", "REQUIRED")
+    INVALID_FILE_URL = (
+        "The file_url must be the path to the default storage.",
+        "INVALID",
+    )
+
+    # Reference Errors
+    REFERENCE_REQUIRED = ("A reference is required for this attribute.", "REQUIRED")
+    INVALID_REFERENCE = ("Invalid reference type.", "INVALID")
+
+
+class AttributeTypeHandler(abc.ABC):
+    """Abstract base class for attribute type-specific logic."""
+
+    def __init__(
+        self,
+        attribute: "Attribute",
+        values_input: AttrValuesInput,
+        error_code_enum: type[ProductErrorCode | PageErrorCode],
+    ):
+        self.attribute = attribute
+        self.values_input = values_input
+        self.attribute_identifier = (
+            values_input.global_id or values_input.external_reference
+        )
+        self.error_code_enum = error_code_enum
+        self.attr_identifier = values_input.global_id or values_input.external_reference
+
+    @abc.abstractmethod
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        """Clean, resolve, and validate input values."""
+
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def pre_save_value(
+        self, instance: T_INSTANCE
+    ) -> list[tuple[AttributeValueBulkActionEnum, dict | AttributeValue]]:
+        """Prepare attribute value data for bulk database operations."""
+
+        raise NotImplementedError
+
+    def _validate_selectable_field(
+        self,
+        attr_value_input: AttrValuesForSelectableFieldInput,
+        value_required: bool,
+        attribute_errors: T_ERROR_DICT,
+    ):
+        """Validate a single input for a selectable field."""
+
+        id, value, ext_ref = (
+            attr_value_input.id,
+            attr_value_input.value,
+            attr_value_input.external_reference,
+        )
+
+        # Check for conflicting identifiers
+        if id and ext_ref:
+            attribute_errors[
+                AttributeInputErrors.ID_AND_EXTERNAL_REFERENCE_PROVIDED
+            ].append(self.attribute_identifier)
+        if id and value:
+            attribute_errors[AttributeInputErrors.ID_AND_VALUE_PROVIDED].append(
+                self.attribute_identifier
+            )
+
+        # Check for an empty input object `{}`, which is invalid.
+        if value_required and (not id and not value and not ext_ref):
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+
+        # Validate the `value` field if provided
+        if value:
+            max_length = self.attribute.values.model.name.field.max_length
+            if not value.strip():
+                attribute_errors[AttributeInputErrors.BLANK_VALUE].append(
+                    self.attribute_identifier
+                )
+            elif max_length and len(value) > max_length:
+                attribute_errors[AttributeInputErrors.MAX_LENGTH_EXCEEDED].append(
+                    self.attribute_identifier
+                )
+
+    def _update_or_create_value(
+        self,
+        instance: T_INSTANCE,
+        value_defaults: dict,
+    ):
+        slug = slugify(unidecode(f"{instance.id}_{self.attribute.id}"))
+        value = {
+            "attribute": self.attribute,
+            "slug": slug,
+            "defaults": value_defaults,
+        }
+        return [
+            (AttributeValueBulkActionEnum.UPDATE_OR_CREATE, value),
+        ]
+
+
+class SelectableAttributeHandler(AttributeTypeHandler):
+    """Handler for Dropdown and Swatch attribute types."""
+
+    def get_selectable_input(self) -> AttrValuesForSelectableFieldInput | None:
+        """Get the specific input object for dropdown or swatch."""
+
+        if self.attribute.input_type == AttributeInputType.DROPDOWN:
+            return self.values_input.dropdown
+        if self.attribute.input_type == AttributeInputType.SWATCH:
+            return self.values_input.swatch
+        return None
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        selectable_input = self.get_selectable_input()
+
+        if not selectable_input:
+            if self.attribute.value_required:
+                attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                    self.attribute_identifier
+                )
+            return
+
+        # Use the helper method from the base class
+        self._validate_selectable_field(
+            selectable_input,
+            value_required=self.attribute.value_required,
+            attribute_errors=attribute_errors,
+        )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        selectable_input = self.get_selectable_input()
+        if not selectable_input:
+            return []
+
+        id, value, ext_ref = (
+            selectable_input.id,
+            selectable_input.value,
+            selectable_input.external_reference,
+        )
+
+        if ext_ref and value:
+            slug = prepare_unique_attribute_value_slug(
+                self.attribute, slugify(unidecode(value))
+            )
+            value_obj = AttributeValue(
+                attribute=self.attribute,
+                name=value,
+                slug=slug,
+                external_reference=ext_ref,
+            )
+            return [(AttributeValueBulkActionEnum.CREATE, value_obj)]
+
+        if ext_ref or id:
+            try:
+                if ext_ref:
+                    value_obj = self.attribute.values.get(external_reference=ext_ref)
+                else:
+                    _, pk = from_global_id_or_error(id, "AttributeValue")  # type: ignore[arg-type]
+                    value_obj = self.attribute.values.get(pk=pk)
+                return [(AttributeValueBulkActionEnum.NONE, value_obj)]
+            except (GraphQLError, AttributeValue.DoesNotExist) as e:
+                raise ValidationError(
+                    f"AttributeValue not found: {e}",
+                    code=ProductErrorCode.NOT_FOUND.value,
+                ) from e
+
+        if value:
+            return AttributeAssignmentMixin._prepare_attribute_values(
+                self.attribute, [value]
+            )
+
+        return []
+
+
+class MultiSelectableAttributeHandler(AttributeTypeHandler):
+    """Handler for Multiselect attribute type."""
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        multi_values = self.values_input.multiselect
+
+        if not multi_values:
+            if self.attribute.value_required:
+                attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                    self.attribute_identifier
+                )
+            return
+
+        ids = [value.id for value in multi_values if value.id is not None]
+        values = [value.value for value in multi_values if value.value is not None]
+        external_refs = [
+            value.external_reference
+            for value in multi_values
+            if value.external_reference is not None
+        ]
+        if ids and values:
+            attribute_errors[AttributeInputErrors.ID_AND_VALUE_PROVIDED].append(
+                self.attribute_identifier
+            )
+        elif (
+            not ids
+            and not external_refs
+            and not values
+            and self.attribute.value_required
+        ):
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+        elif (
+            len(ids) > len(set(ids))
+            or len(values) > len(set(values))
+            or len(external_refs) > len(set(external_refs))
+        ):
+            attribute_errors[AttributeInputErrors.DUPLICATED_VALUES].append(
+                self.attribute_identifier
+            )
+
+        for value_input in multi_values:
+            self._validate_selectable_field(
+                value_input,
+                value_required=self.attribute.value_required,
+                attribute_errors=attribute_errors,
+            )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        multi_values = self.values_input.multiselect
+        if not multi_values:
+            return []
+
+        results = []
+        values_to_create = []
+        pks_to_fetch = []
+        ext_refs_to_fetch = []
+
+        for v_input in multi_values:
+            if v_input.id:
+                _, pk = from_global_id_or_error(v_input.id, "AttributeValue")
+                pks_to_fetch.append(pk)
+            elif v_input.external_reference and not v_input.value:
+                ext_refs_to_fetch.append(v_input.external_reference)
+            elif v_input.value:
+                values_to_create.append(v_input.value)
+
+        # Fetch existing values by PK and external reference
+        existing_values = self.attribute.values.filter(
+            Q(pk__in=pks_to_fetch) | Q(external_reference__in=ext_refs_to_fetch)
+        )
+        results.extend(
+            [(AttributeValueBulkActionEnum.NONE, val) for val in existing_values]
+        )
+
+        # Prepare new values
+        if values_to_create:
+            results.extend(
+                AttributeAssignmentMixin._prepare_attribute_values(
+                    self.attribute, values_to_create
+                )
+            )
+
+        return results
+
+
+class FileAttributeHandler(AttributeTypeHandler):
+    """Handler for File attribute type."""
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        storage_root_url = get_default_storage_root_url()
+        file_url = self.values_input.file_url
+        if self.attribute.value_required and not file_url:
+            attribute_errors[AttributeInputErrors.FILE_URL_REQUIRED].append(
+                self.attribute_identifier
+            )
+        if file_url and not file_url.startswith(storage_root_url):
+            attribute_errors[AttributeInputErrors.INVALID_FILE_URL].append(
+                self.attribute_identifier
+            )
+        self.values_input.file_url = (
+            re.sub(storage_root_url, "", file_url) if file_url is not None else file_url
+        )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        file_url = self.values_input.file_url
+        if not file_url:
+            return []
+
+        # File attributes should be unique per assignment, so we create a new value
+        # unless this exact URL is already assigned to this instance.
+        value = AttributeAssignmentMixin._get_assigned_attribute_value_if_exists(
+            instance, self.attribute, "file_url", file_url
+        )
+        if value:
+            return [(AttributeValueBulkActionEnum.NONE, value)]
+
+        name = file_url.split("/")[-1]
+        value_obj = AttributeValue(
+            attribute=self.attribute,
+            file_url=file_url,
+            name=name,
+            content_type=self.values_input.content_type,
+        )
+        value_obj.slug = generate_unique_slug(value_obj, name)
+        return [(AttributeValueBulkActionEnum.CREATE, value_obj)]
+
+
+class ReferenceAttributeHandler(AttributeTypeHandler):
+    """Handler for Reference attribute type."""
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        """Resolve Graphene IDs and then validate the result.
+
+        Modifies `self.values_input.references` in place.
+        """
+        references = self.values_input.references
+
+        if not references:
+            if self.attribute.value_required:
+                attribute_errors[AttributeInputErrors.REFERENCE_REQUIRED].append(
+                    self.attribute_identifier
+                )
+            return
+
+        if not self.attribute.entity_type:
+            attribute_errors[AttributeInputErrors.INVALID_INPUT].append(
+                self.attribute_identifier
+            )
+            return
+        entity_data = ENTITY_TYPE_MAPPING[self.attribute.entity_type]
+
+        try:
+            ref_instances = get_nodes(
+                references, self.attribute.entity_type, model=entity_data.model
+            )
+            self.values_input.references = ref_instances
+        except GraphQLError:
+            self.values_input.references = []
+            attribute_errors[AttributeInputErrors.INVALID_REFERENCE].append(
+                self.attribute_identifier
+            )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        references = self.values_input.references
+        entity_type = self.attribute.entity_type
+        if not references or not entity_type:
+            return []
+
+        entity_data = ENTITY_TYPE_MAPPING[entity_type]
+        results = []
+        for ref in references:
+            name = getattr(ref, entity_data.name_field)
+            if entity_type == AttributeEntityType.PRODUCT_VARIANT:
+                name = f"{ref.product.name}: {name}"  # type: ignore[union-attr]
+
+            # Reference values are unique per referenced entity
+            slug = slugify(unidecode(f"{instance.id}_{ref.id}"))  # type: ignore[union-attr]
+            defaults = {"name": name}
+            value_data = {
+                "attribute": self.attribute,
+                "slug": slug,
+                "defaults": defaults,
+                entity_data.value_field: ref,
+            }
+            results.append((AttributeValueBulkActionEnum.GET_OR_CREATE, value_data))
+        return results
+
+
+class PlainTextAttributeHandler(AttributeTypeHandler):
+    """Handler for Plain Text attribute type."""
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        if self.attribute.value_required and (
+            not self.values_input.plain_text or not self.values_input.plain_text.strip()
+        ):
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        plain_text = self.values_input.plain_text
+        if plain_text is None:
+            return []
+
+        defaults = {
+            "plain_text": plain_text,
+            "name": truncatechars(plain_text, 200),
+        }
+        return self._update_or_create_value(instance, defaults)
+
+
+class RichTextAttributeHandler(PlainTextAttributeHandler):
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        rich_text = self.values_input.rich_text
+        if rich_text is None:
+            return []
+
+        defaults = {
+            "rich_text": rich_text,
+            "name": truncatechars(clean_editor_js(rich_text, to_string=True), 200),
+        }
+        return self._update_or_create_value(instance, defaults)
+
+
+class NumericAttributeHandler(AttributeTypeHandler):
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        numeric_val = self.values_input.numeric
+        if self.attribute.value_required and numeric_val is None:
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+        if numeric_val is not None:
+            try:
+                float(numeric_val)
+            except (ValueError, TypeError):
+                attribute_errors[AttributeInputErrors.INVALID_INPUT].append(
+                    self.attribute_identifier
+                )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        numeric_val = self.values_input.numeric
+        if numeric_val is None:
+            return []
+        defaults = {
+            "name": numeric_val,
+        }
+        return self._update_or_create_value(instance, defaults)
+
+
+class DateTimeAttributeHandler(AttributeTypeHandler):
+    """Handler for Date and DateTime attribute types."""
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        is_date = self.attribute.input_type == AttributeInputType.DATE
+        has_value = self.values_input.date if is_date else self.values_input.date_time
+        if self.attribute.value_required and not has_value:
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        is_date = self.attribute.input_type == AttributeInputType.DATE
+        value = self.values_input.date if is_date else self.values_input.date_time
+        if not value:
+            return []
+
+        date_time_val = (
+            datetime.datetime.combine(value, datetime.time.min, tzinfo=datetime.UTC)
+            if is_date
+            else value
+        )
+        defaults = {"name": str(value), "date_time": date_time_val}
+        return self._update_or_create_value(instance, defaults)
+
+
+class BooleanAttributeHandler(AttributeTypeHandler):
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        if self.attribute.value_required and self.values_input.boolean is None:
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        boolean_val = self.values_input.boolean
+        if boolean_val is None:
+            return []
+
+        boolean = bool(boolean_val)
+        value = {
+            "attribute": self.attribute,
+            "slug": slugify(unidecode(f"{self.attribute.id}_{boolean}")),
+            "defaults": {
+                "name": f"{self.attribute.name}: {'Yes' if boolean else 'No'}",
+                "boolean": boolean,
+            },
+        }
+        return [(AttributeValueBulkActionEnum.GET_OR_CREATE, value)]
+
+
+class LegacyValuesHandler(AttributeTypeHandler):
+    """Handler for the deprecated `values: [String!]` field.
+
+    Applicable for Dropdown, Swatch, Multiselect, and Numeric attribute types.
     """
 
-    # Defines the entity type corresponding model, the model field that should be used
-    # to create the value name, and relation field responsible for reference.
-    # Should be updated every time, the new `AttributeEntityType` value is added.
-    ENTITY_TYPE_MAPPING = {
-        AttributeEntityType.PAGE: EntityTypeData(
-            page_models.Page, "title", "reference_page"
-        ),
-        AttributeEntityType.PRODUCT: EntityTypeData(
-            product_models.Product, "name", "reference_product"
-        ),
-        AttributeEntityType.PRODUCT_VARIANT: EntityTypeData(
-            product_models.ProductVariant, "name", "reference_variant"
-        ),
-        AttributeEntityType.CATEGORY: EntityTypeData(
-            product_models.Category, "name", "reference_category"
-        ),
-        AttributeEntityType.COLLECTION: EntityTypeData(
-            product_models.Collection, "name", "reference_collection"
-        ),
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        """Validate a list of raw string values."""
+
+        values = self.values_input.values or []
+
+        def create_error(error_tuple, message=None):
+            msg, code = error_tuple
+            return ValidationError(
+                message or msg,
+                code=getattr(self.error_code_enum, code).value,
+                params={"attributes": [self.attr_identifier]},
+            )
+
+        # Validation for single-select types
+        if (
+            self.attribute.input_type not in [AttributeInputType.MULTISELECT]
+            and len(values) > 1
+        ):
+            attribute_errors[AttributeInputErrors.MORE_THAN_ONE_VALUE].append(
+                self.attr_identifier
+            )
+
+        # Shared validation
+        if get_duplicated_values(values):
+            attribute_errors[AttributeInputErrors.DUPLICATED_VALUES].append(
+                self.attr_identifier
+            )
+
+        is_numeric = self.attribute.input_type == AttributeInputType.NUMERIC
+        name_field = self.attribute.values.model.name.field
+
+        for value in values:
+            if value is None or (not is_numeric and not str(value).strip()):
+                attribute_errors[AttributeInputErrors.BLANK_VALUE].append(
+                    self.attr_identifier
+                )
+                continue
+
+            if is_numeric:
+                try:
+                    float(value)
+                except (ValueError, TypeError):
+                    attribute_errors[AttributeInputErrors.INVALID_INPUT].append(
+                        self.attr_identifier
+                    )
+            elif name_field.max_length and len(value) > name_field.max_length:
+                attribute_errors[AttributeInputErrors.MAX_LENGTH_EXCEEDED].append(
+                    self.attr_identifier
+                )
+
+    def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
+        if not self.values_input.values:
+            return []
+
+        if self.attribute.input_type == AttributeInputType.NUMERIC:
+            value = self.values_input.values[0]
+            defaults = {
+                "name": value,
+            }
+            return self._update_or_create_value(instance, defaults)
+
+        return AttributeAssignmentMixin._prepare_attribute_values(
+            self.attribute, self.values_input.values
+        )
+
+
+class AttributeAssignmentMixin:
+    """Handles cleaning, validation, and saving of attribute data."""
+
+    HANDLER_MAPPING = {
+        AttributeInputType.DROPDOWN: SelectableAttributeHandler,
+        AttributeInputType.SWATCH: SelectableAttributeHandler,
+        AttributeInputType.MULTISELECT: MultiSelectableAttributeHandler,
+        AttributeInputType.FILE: FileAttributeHandler,
+        AttributeInputType.REFERENCE: ReferenceAttributeHandler,
+        AttributeInputType.RICH_TEXT: RichTextAttributeHandler,
+        AttributeInputType.PLAIN_TEXT: PlainTextAttributeHandler,
+        AttributeInputType.NUMERIC: NumericAttributeHandler,
+        AttributeInputType.DATE: DateTimeAttributeHandler,
+        AttributeInputType.DATE_TIME: DateTimeAttributeHandler,
+        AttributeInputType.BOOLEAN: BooleanAttributeHandler,
     }
+
+    @classmethod
+    def _get_assignment_manager_and_fk(cls, instance: T_INSTANCE):
+        if isinstance(instance, page_models.Page):
+            return attribute_models.AssignedPageAttributeValue.objects, "page_id"
+        if isinstance(instance, product_models.Product):
+            return attribute_models.AssignedProductAttributeValue.objects, "product_id"
+        raise NotImplementedError(
+            f"Assignment for {type(instance).__name__} not implemented."
+        )
+
+    @classmethod
+    def _get_assigned_attribute_value_if_exists(
+        cls, instance: T_INSTANCE, attribute: "Attribute", lookup_field: str, value
+    ):
+        """Unified method to find an existing assigned value."""
+        if isinstance(instance, product_models.ProductVariant):
+            # variant has old attribute structure so need to handle it differently
+            return cls._get_variant_assigned_attribute_value_if_exists(
+                instance, attribute, lookup_field, value
+            )
+
+        manager, instance_fk = cls._get_assignment_manager_and_fk(instance)
+        assigned_values = manager.filter(**{instance_fk: instance.pk})
+        return attribute_models.AttributeValue.objects.filter(
+            Exists(assigned_values.filter(value_id=OuterRef("id"))),
+            attribute_id=attribute.pk,
+            **{lookup_field: value},
+        ).first()
+
+    @classmethod
+    def _get_variant_assigned_attribute_value_if_exists(
+        cls, instance: T_INSTANCE, attribute: "Attribute", lookup_field: str, value: str
+    ):
+        attribute_variant = Exists(
+            attribute_models.AttributeVariant.objects.filter(
+                pk=OuterRef("assignment_id"),
+                attribute_id=attribute.pk,
+            )
+        )
+        assigned_variant = Exists(
+            attribute_models.AssignedVariantAttribute.objects.filter(
+                attribute_variant
+            ).filter(
+                # Filter conditions for the main subquery
+                variant_id=instance.id,
+                values=OuterRef(
+                    "pk"
+                ),  # Refers to the AttributeValue's pk from the outermost query
+            )
+        )
+        return attribute_models.AttributeValue.objects.filter(
+            assigned_variant, **{lookup_field: value}
+        ).first()
 
     @classmethod
     def _resolve_attribute_nodes(
@@ -121,49 +752,128 @@ class AttributeAssignmentMixin:
         qs: "QuerySet",
         error_class,
         *,
-        global_ids: list[str],
-        external_references: Iterable[str],
-        pks: Iterable[int],
+        id_map: dict[int, str],
+        ext_ref_set: set[str],
     ):
-        """Retrieve attributes nodes from given global IDs or external reference."""
-
-        nodes: list[attribute_models.Attribute] = list(
-            qs.filter(
-                Q(pk__in=pks) | Q(external_reference__in=external_references)
-            ).iterator(chunk_size=1000)
+        """Retrieve attributes nodes from given identifiers."""
+        nodes = list(
+            qs.filter(Q(pk__in=id_map.keys()) | Q(external_reference__in=ext_ref_set))
         )
 
-        if not nodes:
+        resolved_pks = {node.pk for node in nodes}
+        resolved_ext_refs = {node.external_reference for node in nodes}
+
+        missing_pks = [gid for pk, gid in id_map.items() if pk not in resolved_pks]
+        missing_ext_refs = list(ext_ref_set - resolved_ext_refs)
+
+        if missing_pks or missing_ext_refs:
+            missing = [f"ID: {gid}" for gid in missing_pks] + [
+                f"ExtRef: {ref}" for ref in missing_ext_refs
+            ]
             raise ValidationError(
-                (
-                    f"Could not resolve to a node: ids={global_ids}, "
-                    f"external_references={external_references}."
-                ),
+                f"Could not resolve attributes: {', '.join(missing)}.",
                 code=error_class.NOT_FOUND.value,
             )
-
-        nodes_pk_list = set()
-        nodes_external_reference_list = set()
-
-        for node in nodes:
-            nodes_pk_list.add(node.pk)
-            nodes_external_reference_list.add(node.external_reference)
-
-        for pk, global_id in zip(pks, global_ids, strict=False):
-            if pk not in nodes_pk_list:
-                raise ValidationError(
-                    f"Could not resolve {global_id!r} to Attribute",
-                    code=error_class.NOT_FOUND.value,
-                )
-
-        for external_ref in external_references:
-            if external_ref not in nodes_external_reference_list:
-                raise ValidationError(
-                    f"Could not resolve {external_ref} to Attribute",
-                    code=error_class.NOT_FOUND.value,
-                )
-
         return nodes
+
+    @classmethod
+    def clean_input(
+        cls,
+        raw_input: list[dict],
+        attributes_qs: "QuerySet",
+        creation: bool = True,
+        is_page_attributes: bool = False,
+    ) -> T_INPUT_MAP:
+        """Resolve, validate, and prepare attribute input."""
+        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
+
+        id_map: dict[int, AttrValuesInput] = {}
+        ext_ref_map: dict[str, AttrValuesInput] = {}
+
+        for attr_input in raw_input:
+            gid = attr_input.pop("id", None)
+            ext_ref = attr_input.pop("external_reference", None)
+
+            try:
+                validate_one_of_args_is_in_mutation(
+                    "id", gid, "external_reference", ext_ref, use_camel_case=True
+                )
+            except ValidationError as e:
+                raise ValidationError(e.message, code=error_class.REQUIRED.value) from e
+
+            values = AttrValuesInput(
+                global_id=gid,
+                external_reference=ext_ref,
+                values=attr_input.pop("values", []),
+                file_url=attr_input.pop("file", None),
+                **attr_input,
+            )
+            if gid:
+                pk = cls._resolve_attribute_global_id(error_class, gid)
+                id_map[int(pk)] = values
+            if ext_ref:
+                ext_ref_map[ext_ref] = values
+
+        attributes = cls._resolve_attribute_nodes(
+            attributes_qs,
+            error_class,
+            id_map={pk: v.global_id for pk, v in id_map.items()},  # type: ignore[misc]
+            ext_ref_set=set(ext_ref_map.keys()),
+        )
+
+        cleaned_input = []
+        attribute_errors: T_ERROR_DICT = defaultdict(list)
+        for attribute in attributes:
+            values_input = id_map.get(attribute.pk) or ext_ref_map.get(
+                attribute.external_reference
+            )
+            values_input = cast(AttrValuesInput, values_input)
+
+            is_legacy_path = values_input.values and attribute.input_type in {
+                AttributeInputType.DROPDOWN,
+                AttributeInputType.MULTISELECT,
+                AttributeInputType.SWATCH,
+                AttributeInputType.NUMERIC,
+            }
+
+            handler_class: type[LegacyValuesHandler | AttributeTypeHandler]
+            if is_legacy_path:
+                handler_class = LegacyValuesHandler
+            else:
+                handler_class = cls.HANDLER_MAPPING[attribute.input_type]
+
+            if handler_class:
+                handler = handler_class(attribute, values_input, error_class)
+                handler.clean_and_validate(attribute_errors)
+
+            cleaned_input.append((attribute, values_input))
+
+        errors = cls.prepare_error_list_from_error_attribute_mapping(
+            attribute_errors, error_class
+        )
+
+        if creation:
+            supplied_pks = {attr.pk for attr, _ in cleaned_input}
+            missing_required = attributes_qs.filter(value_required=True).exclude(
+                pk__in=supplied_pks
+            )
+            if missing_required:
+                missing_ids = [
+                    graphene.Node.to_global_id("Attribute", attr.pk)
+                    for attr in missing_required
+                ]
+                errors.append(
+                    ValidationError(
+                        "All attributes flagged as having a value required must be supplied.",
+                        code=error_class.REQUIRED.value,
+                        params={"attributes": missing_ids},
+                    )
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+        return cleaned_input
 
     @classmethod
     def _resolve_attribute_global_id(cls, error_class, global_id: str) -> int:
@@ -181,638 +891,104 @@ class AttributeAssignmentMixin:
             )
         return int(internal_id)
 
-    @classmethod
-    def _get_assigned_attribute_value_if_exists(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        lookup_field: str,
-        value,
-    ):
-        assignment = instance.attributes.filter(  # type:ignore[union-attr]
-            assignment__attribute=attribute, **{f"values__{lookup_field}": value}
-        ).first()
-
-        return (
-            None
-            if assignment is None
-            else assignment.values.filter(**{lookup_field: value}).first()
-        )
-
-    @classmethod
-    def _create_value_instance(cls, attribute, attr_value, external_ref):
-        return (
-            (
-                AttributeValueBulkActionEnum.CREATE,
-                AttributeValue(
-                    external_reference=external_ref,
-                    attribute=attribute,
-                    name=attr_value,
-                    slug=prepare_unique_attribute_value_slug(
-                        attribute, slugify(unidecode(attr_value))
-                    ),
-                ),
-            ),
-        )
-
-    @classmethod
-    def clean_input(
-        cls,
-        raw_input: dict,
-        attributes_qs: "QuerySet",
-        creation: bool = True,
-        is_page_attributes: bool = False,
-    ) -> T_INPUT_MAP:
-        """Resolve and prepare the input for further checks.
-
-        :param raw_input: The user's attributes input.
-        :param attributes_qs:
-            A queryset of attributes, the attribute values must be prefetched.
-            Prefetch is needed by ``_pre_save_values`` during save.
-        :param creation: Whether the input is from creation mutation.
-        :param is_page_attributes: Whether the input is for page type or not.
-
-        :raises ValidationError: contain the message.
-        :return: The resolved data
-        """
-        error_class: type[PageErrorCode | ProductErrorCode] = (
-            PageErrorCode if is_page_attributes else ProductErrorCode
-        )
-
-        # Mapping to associate the input values back to the resolved attribute nodes
-        pks = {}
-        external_references_values_map = {}
-
-        # Temporary storage of the passed ID for error reporting
-        global_ids = []
-
-        for attribute_input in raw_input:
-            global_id = attribute_input.pop("id", None)
-            external_reference = attribute_input.pop("external_reference", None)
-
-            try:
-                validate_one_of_args_is_in_mutation(
-                    "id",
-                    global_id,
-                    "external_reference",
-                    external_reference,
-                    use_camel_case=True,
-                )
-            except ValidationError as e:
-                raise ValidationError(
-                    e.message,
-                    code=error_class.REQUIRED.value,
-                ) from e
-
-            values = AttrValuesInput(
-                global_id=global_id,
-                external_reference=external_reference,
-                values=attribute_input.pop("values", []),
-                file_url=cls._clean_file_url(
-                    attribute_input.pop("file", None), error_class
-                ),
-                **attribute_input,
-            )
-
-            if global_id:
-                internal_id = cls._resolve_attribute_global_id(error_class, global_id)
-                global_ids.append(global_id)
-                pks[internal_id] = values
-
-            if external_reference:
-                external_references_values_map[external_reference] = values
-
-        attributes = cls._resolve_attribute_nodes(
-            attributes_qs,
-            error_class,
-            global_ids=global_ids,
-            external_references=external_references_values_map.keys(),
-            pks=pks.keys(),
-        )
-
-        attr_with_invalid_references = []
-        cleaned_input = []
-
-        for attribute in attributes:
-            key = pks.get(attribute.pk)
-            if not key:
-                key = external_references_values_map[attribute.external_reference]
-
-            if attribute.input_type == AttributeInputType.REFERENCE:
-                try:
-                    key = cls._validate_references(error_class, attribute, key)
-                except GraphQLError:
-                    attr_with_invalid_references.append(attribute)
-            cleaned_input.append((attribute, key))
-
-        if attr_with_invalid_references:
-            raise ValidationError(
-                "Provided references are invalid. Some of the nodes "
-                "do not exist or are different types than types defined "
-                "in attribute entity type.",
-                code=error_class.INVALID.value,
-            )
-
-        cls._validate_attributes_input(
-            cleaned_input,
-            attributes_qs,
-            creation=creation,
-            is_page_attributes=is_page_attributes,
-        )
-
-        return cleaned_input
-
     @staticmethod
-    def _clean_file_url(file_url: str | None, error_class):
-        # extract storage path from file URL
-        storage_root_url = get_default_storage_root_url()
-        if file_url and not file_url.startswith(storage_root_url):
-            raise ValidationError(
-                "The file_url must be the path to the default storage.",
-                code=error_class.INVALID.value,
-            )
-        return (
-            re.sub(storage_root_url, "", file_url) if file_url is not None else file_url
-        )
-
-    @classmethod
-    def _validate_references(
-        cls, error_class, attribute: attribute_models.Attribute, values: AttrValuesInput
-    ) -> AttrValuesInput:
-        references = values.references
-        if not references:
-            return values
-
-        if not attribute.entity_type:
-            # FIXME: entity type is nullable for whatever reason
-            raise ValidationError(
-                "Invalid reference type.", code=error_class.INVALID.value
-            )
-        entity_model = cls.ENTITY_TYPE_MAPPING[attribute.entity_type].model
-        try:
-            ref_instances = get_nodes(
-                references, attribute.entity_type, model=entity_model
-            )
-            values.references = ref_instances
-            return values
-        except GraphQLError as e:
-            raise ValidationError(
-                "Invalid reference type.", code=error_class.INVALID.value
-            ) from e
-
-    @classmethod
-    def _validate_attributes_input(
-        cls,
-        cleaned_input: T_INPUT_MAP,
-        attribute_qs: "QuerySet",
-        *,
-        creation: bool,
-        is_page_attributes: bool,
+    def prepare_error_list_from_error_attribute_mapping(
+        attribute_errors: T_ERROR_DICT, error_code_enum
     ):
-        """Check the cleaned attribute input.
+        errors = []
+        for error_data, attributes in attribute_errors.items():
+            error_msg, error_type = error_data
+            error = ValidationError(
+                error_msg,
+                code=getattr(error_code_enum, error_type).value,
+                params={"attributes": attributes},
+            )
+            errors.append(error)
 
-        An Attribute queryset is supplied.
-
-        - ensure all required attributes are passed
-        - ensure the values are correct
-
-        :raises ValidationError: when an invalid operation was found.
-        """
-        if errors := validate_attributes_input(
-            cleaned_input,
-            attribute_qs,
-            is_page_attributes=is_page_attributes,
-            creation=creation,
-        ):
-            raise ValidationError(errors)
+        return errors
 
     @classmethod
     def save(cls, instance: T_INSTANCE, cleaned_input: T_INPUT_MAP):
-        """Save the cleaned input into the database against the given instance.
-
-        Note: this should always be run inside a transaction.
-
-        :param instance: the product or variant to associate the attribute against.
-        :param cleaned_input: the cleaned user input (refer to clean_attributes)
-        """
-        pre_save_methods_mapping = {
-            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
-            AttributeInputType.DATE: cls._pre_save_date_time_values,
-            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
-            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
-            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
-            AttributeInputType.FILE: cls._pre_save_file_value,
-            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
-            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
-            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
-            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
-            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
-        }
-        clean_assignment = []
-        pre_save_bulk = defaultdict(
-            lambda: defaultdict(list)  # type: ignore[var-annotated]
+        """Save the cleaned input against the given instance."""
+        pre_save_bulk: dict = defaultdict(lambda: defaultdict(list))
+        error_class = (
+            PageErrorCode
+            if isinstance(instance, page_models.Page)
+            else ProductErrorCode
         )
-        attr_val_map = defaultdict(list)
 
-        for attribute, attr_values in cleaned_input:
-            is_handled_by_values_field = (
-                attr_values.values
-                and attribute.input_type
-                in (
-                    AttributeInputType.DROPDOWN,
-                    AttributeInputType.MULTISELECT,
-                    AttributeInputType.SWATCH,
-                )
-            )
-            if is_handled_by_values_field:
-                attribute_values = cls._pre_save_values(attribute, attr_values)
+        for attribute, values_input in cleaned_input:
+            is_legacy_path = values_input.values and attribute.input_type in {
+                AttributeInputType.DROPDOWN,
+                AttributeInputType.MULTISELECT,
+                AttributeInputType.SWATCH,
+                AttributeInputType.NUMERIC,
+            }
+
+            handler_class: type[AttributeTypeHandler] | None = None
+            if is_legacy_path:
+                handler_class = LegacyValuesHandler
             else:
-                pre_save_func = pre_save_methods_mapping[attribute.input_type]
-                attribute_values = pre_save_func(instance, attribute, attr_values)
+                handler_class = cls.HANDLER_MAPPING.get(attribute.input_type)
 
-            if not attribute_values:
-                # to ensure that attribute will be present in variable `pre_save_bulk`,
-                # so function `associate_attribute_values_to_instance` will be called
-                # properly for all attributes, even in case when attribute has no values
+            if not handler_class:
+                continue
+
+            handler = handler_class(attribute, values_input, error_class)
+            prepared_values = handler.pre_save_value(instance)
+
+            if not prepared_values:
                 pre_save_bulk[AttributeValueBulkActionEnum.NONE].setdefault(
                     attribute, []
                 )
             else:
-                for key, value in attribute_values:
-                    pre_save_bulk[key][attribute].append(value)
+                for action, value_data in prepared_values:
+                    pre_save_bulk[action][attribute].append(value_data)
 
         attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
 
+        attr_val_map = defaultdict(list)
+        clean_assignment_pks = []
         for attribute, values in attribute_and_values.items():
             if not values:
-                clean_assignment.append(attribute.pk)
+                clean_assignment_pks.append(attribute.pk)
             else:
                 attr_val_map[attribute.pk].extend(values)
 
         associate_attribute_values_to_instance(instance, attr_val_map)
 
-        # drop attribute assignment model when values are unassigned from instance
-        if clean_assignment:
-            instance.attributes.filter(  # type:ignore[union-attr]
-                assignment__attribute_id__in=clean_assignment
+        if clean_assignment_pks:
+            values_to_unassign = attribute_models.AttributeValue.objects.filter(
+                attribute_id__in=clean_assignment_pks
+            )
+            # variant has old attribute structure so need to handle it differently
+            if isinstance(instance, product_models.ProductVariant):
+                cls._clean_variants_assignment(instance, clean_assignment_pks)
+                return
+            manager, instance_fk = cls._get_assignment_manager_and_fk(instance)
+            manager.filter(
+                Exists(values_to_unassign.filter(id=OuterRef("value_id"))),
+                **{instance_fk: instance.pk},
             ).delete()
 
     @classmethod
-    def _pre_save_dropdown_value(
-        cls,
-        _,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if not attr_values.dropdown:
-            return ()
-
-        attr_value = attr_values.dropdown.value
-        external_ref = attr_values.dropdown.external_reference
-
-        if external_ref and attr_value:
-            return cls._create_value_instance(attribute, attr_value, external_ref)
-
-        if external_ref:
-            value = attribute_models.AttributeValue.objects.get(
-                external_reference=external_ref
+    def _clean_variants_assignment(cls, instance: T_INSTANCE, attribute_ids: list[int]):
+        """Unassign attributes from the given instance."""
+        attribute_variant = Exists(
+            attribute_models.AttributeVariant.objects.filter(
+                pk=OuterRef("assignment_id"),
+                attribute_id__in=attribute_ids,
             )
-            if not value:
-                raise ValidationError(
-                    "Attribute value with given externalReference can't be found"
-                )
-            return ((AttributeValueBulkActionEnum.NONE, value),)
-
-        if id := attr_values.dropdown.id:
-            _, attr_value_id = from_global_id_or_error(id)
-            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
-            if not value:
-                raise ValidationError("Attribute value with given ID can't be found")
-            return ((AttributeValueBulkActionEnum.NONE, value),)
-
-        if attr_value:
-            return cls._prepare_attribute_values(attribute, [attr_value])
-
-        return ()
-
-    @classmethod
-    def _pre_save_swatch_value(
-        cls,
-        _,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if not attr_values.swatch:
-            return ()
-
-        attr_value = attr_values.swatch.value
-        external_ref = attr_values.swatch.external_reference
-
-        if external_ref and attr_value:
-            value = cls._create_value_instance(attribute, attr_value, external_ref)
-            return value
-
-        if external_ref:
-            value = attribute_models.AttributeValue.objects.filter(
-                external_reference=external_ref
-            ).first()
-            if not value:
-                raise ValidationError(
-                    "Attribute value with given externalReference can't be found"
-                )
-            return (
-                (
-                    AttributeValueBulkActionEnum.NONE,
-                    value,
-                ),
-            )
-
-        if id := attr_values.swatch.id:
-            _, attr_value_id = from_global_id_or_error(id)
-            value = attribute_models.AttributeValue.objects.filter(
-                pk=attr_value_id
-            ).first()
-            if not value:
-                raise ValidationError("Attribute value with given ID can't be found")
-            return (
-                (
-                    AttributeValueBulkActionEnum.NONE,
-                    value,
-                ),
-            )
-
-        if attr_value := attr_values.swatch.value:
-            return cls._prepare_attribute_values(attribute, [attr_value])
-
-        return ()
-
-    @classmethod
-    def _pre_save_multiselect_values(
-        cls,
-        _,
-        attribute: attribute_models.Attribute,
-        attr_values_input: AttrValuesInput,
-    ):
-        if not attr_values_input.multiselect:
-            return ()
-
-        attribute_values: list[attribute_models.AttributeValue] = []
-        for attr_value in attr_values_input.multiselect:
-            external_ref = attr_value.external_reference
-
-            if external_ref and attr_value.value:
-                return cls._create_value_instance(
-                    attribute, attr_value.value, external_ref
-                )
-
-            if external_ref:
-                value = attribute_models.AttributeValue.objects.get(
-                    external_reference=external_ref
-                )
-                if not value:
-                    raise ValidationError(
-                        "Attribute value with given externalReference can't be found"
-                    )
-                attribute_values.append(value)
-
-            if attr_value.id:
-                _, attr_value_id = from_global_id_or_error(attr_value.id)
-                attr_value_model = attribute_models.AttributeValue.objects.get(
-                    pk=attr_value_id
-                )
-                if not attr_value_model:
-                    raise ValidationError(
-                        "Attribute value with given ID can't be found"
-                    )
-                if attr_value_model.id not in [a.id for a in attribute_values]:
-                    attribute_values.append(attr_value_model)
-
-            if attr_value.value:
-                attr_value_model = prepare_attribute_values(
-                    attribute, [attr_value.value]
-                )[0][0]
-                attr_value_model.save()
-                if attr_value_model.id not in [a.id for a in attribute_values]:
-                    attribute_values.append(attr_value_model)
-
-        return [
-            (AttributeValueBulkActionEnum.NONE, value) for value in attribute_values
-        ]
-
-    @classmethod
-    def _pre_save_numeric_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if attr_values.values:
-            value = attr_values.values[0]
-        elif attr_values.numeric:
-            value = attr_values.numeric
-        else:
-            return ()
-
-        defaults = {
-            "name": value,
-        }
-        return cls._update_or_create_value(instance, attribute, defaults)
-
-    @classmethod
-    def _pre_save_values(
-        cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
-    ):
-        """To be deprecated together with `AttributeValueInput.values` field.
-
-        Lazy-retrieve or create the database objects from the supplied raw values.
-        """
-
-        if not attr_values.values:
-            return ()
-
-        return cls._prepare_attribute_values(attribute, attr_values.values)
-
-    @classmethod
-    def _pre_save_rich_text_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if not attr_values.rich_text:
-            return ()
-        defaults = {
-            "rich_text": attr_values.rich_text,
-            "name": truncatechars(
-                clean_editor_js(attr_values.rich_text, to_string=True), 200
-            ),
-        }
-        return cls._update_or_create_value(instance, attribute, defaults)
-
-    @classmethod
-    def _pre_save_plain_text_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if not attr_values.plain_text:
-            return ()
-        defaults = {
-            "plain_text": attr_values.plain_text,
-            "name": truncatechars(attr_values.plain_text, 200),
-        }
-        return cls._update_or_create_value(instance, attribute, defaults)
-
-    @classmethod
-    def _pre_save_boolean_values(
-        cls,
-        _instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        if attr_values.boolean is None:
-            return ()
-
-        boolean = bool(attr_values.boolean)
-        value = {
-            "attribute": attribute,
-            "slug": slugify(unidecode(f"{attribute.id}_{boolean}")),
-            "defaults": {
-                "name": f"{attribute.name}: {'Yes' if boolean else 'No'}",
-                "boolean": boolean,
-            },
-        }
-        return ((AttributeValueBulkActionEnum.GET_OR_CREATE, value),)
-
-    @classmethod
-    def _pre_save_date_time_values(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        is_date_attr = attribute.input_type == AttributeInputType.DATE
-        tz = datetime.UTC
-        if is_date_attr:
-            if not attr_values.date:
-                return ()
-            value = str(attr_values.date)
-            date_time = datetime.datetime(
-                attr_values.date.year,
-                attr_values.date.month,
-                attr_values.date.day,
-                0,
-                0,
-                tzinfo=tz,
-            )
-        else:
-            if not attr_values.date_time:
-                return ()
-            value = str(attr_values.date_time)
-            date_time = attr_values.date_time
-        defaults = {"name": value, "date_time": date_time}
-        return cls._update_or_create_value(instance, attribute, defaults)
-
-    @classmethod
-    def _update_or_create_value(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        value_defaults: dict,
-    ):
-        slug = slugify(unidecode(f"{instance.id}_{attribute.id}"))
-        value = {
-            "attribute": attribute,
-            "slug": slug,
-            "defaults": value_defaults,
-        }
-        return ((AttributeValueBulkActionEnum.UPDATE_OR_CREATE, value),)
-
-    @classmethod
-    def _pre_save_reference_values(
-        cls,
-        instance,
-        attribute: attribute_models.Attribute,
-        attr_values: AttrValuesInput,
-    ):
-        """Lazy-retrieve or create the database objects from the supplied raw values.
-
-        Slug value is generated based on instance and reference entity id.
-        """
-        if not attr_values.references or not attribute.entity_type:
-            return ()
-
-        entity_data = cls.ENTITY_TYPE_MAPPING[attribute.entity_type]
-        field_name = entity_data.name_field
-
-        reference_list = []
-        attr_value_field = entity_data.value_field
-        for ref in attr_values.references:
-            name = getattr(ref, field_name)
-            if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
-                name = f"{ref.product.name}: {name}"  # type: ignore[union-attr]
-
-            reference_list.append(
-                (
-                    AttributeValueBulkActionEnum.GET_OR_CREATE,
-                    {
-                        "attribute": attribute,
-                        "slug": slugify(
-                            unidecode(f"{instance.id}_{ref.id}")  # type: ignore[union-attr]
-                        ),
-                        "defaults": {"name": name},
-                        attr_value_field: ref,
-                    },
-                )
-            )
-
-        return reference_list
-
-    @classmethod
-    def _pre_save_file_value(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        attr_value: AttrValuesInput,
-    ):
-        """Create database file attribute value object from the supplied value.
-
-        For every URL new value must be created as file attribute can be removed
-        separately from every instance.
-        """
-        file_url = attr_value.file_url
-        if not file_url:
-            return ()
-        name = file_url.split("/")[-1]
-        # don't create new value when assignment already exists
-        value = cls._get_assigned_attribute_value_if_exists(
-            instance, attribute, "file_url", attr_value.file_url
         )
-        if value is None:
-            value = AttributeValue(
-                attribute=attribute,
-                file_url=file_url,
-                name=name,
-                content_type=attr_value.content_type,
-            )
-            value.slug = generate_unique_slug(value, name)
-            return ((AttributeValueBulkActionEnum.CREATE, value),)
-        return ((None, value),)
-
-    @classmethod
-    def _prepare_attribute_values(cls, attribute, values):
-        results, values_to_create = prepare_attribute_values(attribute, values)
-        return [
-            (AttributeValueBulkActionEnum.NONE, record)
-            for record in results
-            if record not in values_to_create
-        ] + [
-            (AttributeValueBulkActionEnum.CREATE, record) for record in values_to_create
-        ]
+        attribute_models.AssignedVariantAttribute.objects.filter(
+            attribute_variant
+        ).filter(
+            variant_id=instance.id,
+        ).delete()
 
     @classmethod
     def _bulk_create_pre_save_values(cls, pre_save_bulk):
+        """Execute bulk database operations based on prepared data."""
         results: dict[Attribute, list[AttributeValue]] = defaultdict(list)
 
         for action, attribute_data in pre_save_bulk.items():
@@ -832,795 +1008,53 @@ class AttributeAssignmentMixin:
 
         return results
 
-
-class PageAttributeAssignmentMixin(AttributeAssignmentMixin):
-    # TODO: Merge the code here with the mixin above
-    # after the refactor of Page <> Attribute and
-    # Product <> Attribute dedicated mixins
-    # should me merged into AttributeAssignmentMixin
-
     @classmethod
-    def _get_assigned_attribute_value_if_exists(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        lookup_field: str,
-        value,
-    ):
-        assigned_values = attribute_models.AssignedPageAttributeValue.objects.filter(
-            page_id=instance.pk
-        )
+    def _prepare_attribute_values(
+        cls, attribute: "Attribute", values: list[str]
+    ) -> list[tuple]:
+        slug_to_value_map = {}
+        name_to_value_map = {}
+        for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
+            slug_to_value_map[val.slug] = val
+            name_to_value_map[val.name] = val
 
-        return attribute_models.AttributeValue.objects.filter(
-            Exists(assigned_values.filter(value_id=OuterRef("id"))),
-            attribute_id=attribute.pk,
-            **{lookup_field: value},
-        ).first()
+        existing_slugs = cls._get_existing_slugs(attribute, values)
 
-    @classmethod
-    def save(
-        cls,
-        instance: T_INSTANCE,
-        cleaned_input: T_INPUT_MAP,
-    ):
-        """Save the cleaned input into the database against the given instance.
+        results = []
+        for value_str in values:
+            slug = slugify(unidecode(value_str))
 
-        Note: this should always be ran inside a transaction.
-        :param instance: the product or variant to associate the attribute against.
-        :param cleaned_input: the cleaned user input (refer to clean_attributes)
-        """
-        pre_save_methods_mapping = {
-            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
-            AttributeInputType.DATE: cls._pre_save_date_time_values,
-            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
-            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
-            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
-            AttributeInputType.FILE: cls._pre_save_file_value,
-            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
-            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
-            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
-            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
-            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
-        }
+            # Prioritize matching by slug, then fall back to matching by name.
+            value_obj = slug_to_value_map.get(slug) or name_to_value_map.get(value_str)
 
-        clean_assignment = []
-        pre_save_bulk = defaultdict(
-            lambda: defaultdict(list)  # type: ignore[var-annotated]
-        )
-        attr_val_map = defaultdict(list)
-
-        for attribute, attr_values in cleaned_input:
-            is_handled_by_values_field = (
-                attr_values.values
-                and attribute.input_type
-                in (
-                    AttributeInputType.DROPDOWN,
-                    AttributeInputType.MULTISELECT,
-                    AttributeInputType.SWATCH,
+            if value_obj:
+                results.append((AttributeValueBulkActionEnum.NONE, value_obj))
+            else:
+                # If no existing value is found, prepare a new one for creation.
+                unique_slug = prepare_unique_slug(slug, existing_slugs)
+                new_value = AttributeValue(
+                    attribute=attribute, name=value_str, slug=unique_slug
                 )
-            )
-            if is_handled_by_values_field:
-                attribute_values = cls._pre_save_values(attribute, attr_values)
-            else:
-                pre_save_func = pre_save_methods_mapping[attribute.input_type]
-                attribute_values = pre_save_func(instance, attribute, attr_values)
+                results.append((AttributeValueBulkActionEnum.CREATE, new_value))
 
-            if not attribute_values:
-                # to ensure that attribute will be present in variable `pre_save_bulk`,
-                # so function `associate_attribute_values_to_instance` will be called
-                # properly for all attributes, even in case when attribute has no values
-                pre_save_bulk[AttributeValueBulkActionEnum.NONE].setdefault(
-                    attribute, []
-                )
-            else:
-                for key, value in attribute_values:
-                    pre_save_bulk[key][attribute].append(value)
+                # Add the new slug to our set to prevent collisions within this loop.
+                existing_slugs.add(unique_slug)
 
-        attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
+        return results
 
-        for attribute, values in attribute_and_values.items():
-            if not values:
-                clean_assignment.append(attribute.pk)
-            else:
-                attr_val_map[attribute.pk].extend(values)
+    @staticmethod
+    def _get_existing_slugs(attribute: attribute_models.Attribute, values: list[str]):
+        lookup = Q()
+        for value in values:
+            lookup |= Q(slug__startswith=slugify(unidecode(value)))
 
-        associate_attribute_values_to_instance(instance, attr_val_map)
-
-        if clean_assignment:
-            values = attribute_models.AttributeValue.objects.filter(
-                attribute_id__in=clean_assignment
-            )
-            attribute_models.AssignedPageAttributeValue.objects.filter(
-                Exists(values.filter(id=OuterRef("value_id"))),
-                page_id=instance.pk,
-            ).delete()
-
-
-class ProductAttributeAssignmentMixin(AttributeAssignmentMixin):
-    # TODO: merge the code here with the mixin above
-    # when all attribute relations are cleaned up
-
-    @classmethod
-    def _get_assigned_attribute_value_if_exists(
-        cls,
-        instance: T_INSTANCE,
-        attribute: attribute_models.Attribute,
-        lookup_field: str,
-        value,
-    ):
-        assigned_values = attribute_models.AssignedProductAttributeValue.objects.filter(
-            product_id=instance.pk
+        existing_slugs = set(
+            attribute.values.filter(lookup).values_list("slug", flat=True)
         )
+        return existing_slugs
 
-        return attribute_models.AttributeValue.objects.filter(
-            Exists(assigned_values.filter(value_id=OuterRef("id"))),
-            attribute_id=attribute.pk,
-            **{lookup_field: value},
-        ).first()
 
-    @classmethod
-    def save(
-        cls,
-        instance: T_INSTANCE,
-        cleaned_input: T_INPUT_MAP,
-    ):
-        """Save the cleaned input into the database against the given instance.
-
-        Note: this should always be ran inside a transaction.
-
-        :param instance: the product or variant to associate the attribute against.
-        :param cleaned_input: the cleaned user input (refer to clean_attributes)
-        """
-        pre_save_methods_mapping = {
-            AttributeInputType.BOOLEAN: cls._pre_save_boolean_values,
-            AttributeInputType.DATE: cls._pre_save_date_time_values,
-            AttributeInputType.DATE_TIME: cls._pre_save_date_time_values,
-            AttributeInputType.DROPDOWN: cls._pre_save_dropdown_value,
-            AttributeInputType.SWATCH: cls._pre_save_swatch_value,
-            AttributeInputType.FILE: cls._pre_save_file_value,
-            AttributeInputType.NUMERIC: cls._pre_save_numeric_values,
-            AttributeInputType.MULTISELECT: cls._pre_save_multiselect_values,
-            AttributeInputType.PLAIN_TEXT: cls._pre_save_plain_text_values,
-            AttributeInputType.REFERENCE: cls._pre_save_reference_values,
-            AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
-        }
-
-        clean_assignment = []
-        pre_save_bulk = defaultdict(
-            lambda: defaultdict(list)  # type: ignore[var-annotated]
-        )
-        attr_val_map = defaultdict(list)
-        for attribute, attr_values in cleaned_input:
-            is_handled_by_values_field = (
-                attr_values.values
-                and attribute.input_type
-                in (
-                    AttributeInputType.DROPDOWN,
-                    AttributeInputType.MULTISELECT,
-                    AttributeInputType.SWATCH,
-                )
-            )
-            if is_handled_by_values_field:
-                attribute_values = cls._pre_save_values(attribute, attr_values)
-            else:
-                pre_save_func = pre_save_methods_mapping[attribute.input_type]
-                attribute_values = pre_save_func(instance, attribute, attr_values)
-
-            if not attribute_values:
-                # to ensure that attribute will be present in variable `pre_save_bulk`,
-                # so function `associate_attribute_values_to_instance` will be called
-                # properly for all attributes, even in case when attribute has no values
-                pre_save_bulk[AttributeValueBulkActionEnum.NONE].setdefault(
-                    attribute, []
-                )
-            else:
-                for key, value in attribute_values:
-                    pre_save_bulk[key][attribute].append(value)
-
-        attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
-
-        for attribute, values in attribute_and_values.items():
-            if not values:
-                clean_assignment.append(attribute.pk)
-            else:
-                attr_val_map[attribute.pk].extend(values)
-
-        associate_attribute_values_to_instance(instance, attr_val_map)
-
-        if clean_assignment:
-            values = attribute_models.AttributeValue.objects.filter(
-                attribute_id__in=clean_assignment
-            )
-            attribute_models.AssignedProductAttributeValue.objects.filter(
-                Exists(values.filter(id=OuterRef("value_id"))),
-                product_id=instance.pk,
-            ).delete()
-
-
-def prepare_attribute_values(attribute: attribute_models.Attribute, values: list[str]):
-    slug_to_value_map = {}
-    name_to_value_map = {}
-    for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
-        slug_to_value_map[val.slug] = val
-        name_to_value_map[val.name] = val
-
-    existing_slugs = get_existing_slugs(attribute, values)
-
-    result = []
-    values_to_create = []
-    for value in values:
-        # match the value firstly by slug then by name
-        value_obj = slug_to_value_map.get(value) or name_to_value_map.get(value)
-        if value_obj:
-            result.append(value_obj)
-        else:
-            slug = prepare_unique_slug(slugify(unidecode(value)), existing_slugs)
-            instance = attribute_models.AttributeValue(
-                attribute=attribute, name=value, slug=slug
-            )
-            result.append(instance)
-
-            values_to_create.append(instance)
-
-            # the set of existing slugs must be updated to not generate accidentally
-            # the same slug for two or more values
-            existing_slugs.add(slug)
-
-            # extend name to slug value to not create two elements with the same name
-            name_to_value_map[instance.name] = instance
-
-    return result, values_to_create
-
-
-def get_existing_slugs(attribute: attribute_models.Attribute, values: list[str]):
-    lookup = Q()
-    for value in values:
-        lookup |= Q(slug__startswith=slugify(unidecode(value)))
-
-    existing_slugs = set(attribute.values.filter(lookup).values_list("slug", flat=True))
-    return existing_slugs
-
-
-class AttributeInputErrors:
-    """Define error message and error code for given error.
-
-    All used error codes must be specified in PageErrorCode and ProductErrorCode.
-    """
-
-    ERROR_NO_VALUE_GIVEN = (
-        "Attribute expects a value but none were given.",
-        "REQUIRED",
-    )
-    ERROR_MORE_THAN_ONE_VALUE_GIVEN = (
-        "Attribute must take only one value.",
-        "INVALID",
-    )
-    ERROR_BLANK_VALUE = (
-        "Attribute values cannot be blank.",
-        "REQUIRED",
-    )
-    ERROR_DUPLICATED_VALUES = (
-        "Duplicated attribute values are provided.",
-        "DUPLICATED_INPUT_ITEM",
-    )
-    ERROR_ID_AND_VALUE = (
-        "Attribute values cannot be assigned by both id and value.",
-        "INVALID",
-    )
-    ERROR_ID_AND_EXTERNAL_REFERENCE = (
-        "Attribute values cannot be assigned by both id and external reference.",
-        "INVALID",
-    )
-    ERROR_NO_ID_OR_EXTERNAL_REFERENCE = (
-        "Attribute id or external reference has to be provided.",
-        "REQUIRED",
-    )
-    # file errors
-    ERROR_NO_FILE_GIVEN = (
-        "Attribute file url cannot be blank.",
-        "REQUIRED",
-    )
-    ERROR_BLANK_FILE_VALUE = (
-        "Attribute expects a file url but none were given.",
-        "REQUIRED",
-    )
-
-    # reference errors
-    ERROR_NO_REFERENCE_GIVEN = (
-        "Attribute expects an reference but none were given.",
-        "REQUIRED",
-    )
-
-    # numeric errors
-    ERROR_NUMERIC_VALUE_REQUIRED = (
-        "Numeric value is required.",
-        "INVALID",
-    )
-
-    # text errors
-    ERROR_MAX_LENGTH = (
-        "Attribute value length is exceeded.",
-        "INVALID",
-    )
-
-
-def validate_attributes_input(
-    input_data: list[tuple["Attribute", "AttrValuesInput"]],
-    attribute_qs: "QuerySet",
-    *,
-    is_page_attributes: bool,
-    creation: bool,
-):
-    """Validate attribute input.
-
-    - ensure all required attributes are passed
-    - ensure the values are correct for a products or a page
-    """
-
-    error_code_enum = PageErrorCode if is_page_attributes else ProductErrorCode
-    attribute_errors: T_ERROR_DICT = defaultdict(list)
-    input_type_to_validation_func_mapping = {
-        AttributeInputType.BOOLEAN: validate_boolean_input,
-        AttributeInputType.DATE: validate_date_time_input,
-        AttributeInputType.DATE_TIME: validate_date_time_input,
-        AttributeInputType.DROPDOWN: validate_dropdown_input,
-        AttributeInputType.SWATCH: validate_swatch_input,
-        AttributeInputType.FILE: validate_file_attributes_input,
-        AttributeInputType.NUMERIC: validate_numeric_input,
-        AttributeInputType.MULTISELECT: validate_multiselect_input,
-        AttributeInputType.PLAIN_TEXT: validate_plain_text_attributes_input,
-        AttributeInputType.REFERENCE: validate_reference_attributes_input,
-        AttributeInputType.RICH_TEXT: validate_rich_text_attributes_input,
-    }
-
-    for attribute, attr_values in input_data:
-        attrs = (
-            attribute,
-            attr_values,
-            attribute_errors,
-        )
-        is_handled_by_values_field = attr_values.values and attribute.input_type in (
-            AttributeInputType.DROPDOWN,
-            AttributeInputType.MULTISELECT,
-            AttributeInputType.NUMERIC,
-            AttributeInputType.SWATCH,
-        )
-        if is_handled_by_values_field:
-            validate_standard_attributes_input(*attrs)
-        else:
-            validation_func = input_type_to_validation_func_mapping[
-                attribute.input_type
-            ]
-            validation_func(*attrs)
-
-    errors = prepare_error_list_from_error_attribute_mapping(
-        attribute_errors, error_code_enum
-    )
-    # Check if all required attributes are in input only when instance is created.
-    # We should allow updating any instance attributes.
-    if creation:
-        errors = validate_required_attributes(
-            input_data, attribute_qs, errors, error_code_enum
-        )
-    return errors
-
-
-def validate_file_attributes_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    value = attr_values.file_url
-    if not value:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_FILE_GIVEN].append(
-                attr_identifier
-            )
-    elif not value.strip():
-        attribute_errors[AttributeInputErrors.ERROR_BLANK_FILE_VALUE].append(
-            attr_identifier
-        )
-
-
-def validate_reference_attributes_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    references = attr_values.references
-    if not references:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
-                attr_identifier
-            )
-
-
-def validate_boolean_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    value = attr_values.boolean
-
-    if attribute.value_required and value is None:
-        attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(attr_identifier)
-
-
-def validate_rich_text_attributes_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    text = clean_editor_js(attr_values.rich_text or {}, to_string=True)
-
-    if not text.strip() and attribute.value_required:
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-            attr_identifier
-        )
-
-
-def validate_plain_text_attributes_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    if (
-        not attr_values.plain_text or not attr_values.plain_text.strip()
-    ) and attribute.value_required:
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-            attr_identifier
-        )
-
-
-def validate_standard_attributes_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    """To be deprecated together with `AttributeValueInput.values` field."""
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    if not attr_values.values:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attr_identifier
-            )
-    elif (
-        attribute.input_type != AttributeInputType.MULTISELECT
-        and len(attr_values.values) != 1
-    ):
-        attribute_errors[AttributeInputErrors.ERROR_MORE_THAN_ONE_VALUE_GIVEN].append(
-            attr_identifier
-        )
-
-    if attr_values.values is not None:
-        validate_values(
-            attr_identifier,
-            attribute,
-            attr_values.values,
-            attribute_errors,
-        )
-
-
-def validate_single_selectable_field(
-    attribute: "Attribute",
-    attr_value: AttrValuesForSelectableFieldInput,
-    attribute_errors: T_ERROR_DICT,
-    attr_identifier: str,
-):
-    id = attr_value.id
-    value = attr_value.value
-    external_reference = attr_value.external_reference
-
-    if id and external_reference:
-        attribute_errors[AttributeInputErrors.ERROR_ID_AND_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    if id and value:
-        attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(
-            attr_identifier
-        )
-        return
-
-    if not id and not external_reference and not value and attribute.value_required:
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-            attr_identifier
-        )
-        return
-
-    if value:
-        max_length = attribute.values.model.name.field.max_length
-        if not value.strip():
-            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attr_identifier
-            )
-        elif max_length and len(value) > max_length:
-            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
-                attr_identifier
-            )
-
-    value_identifier = id or external_reference
-    if value_identifier:
-        if not value_identifier.strip():
-            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attr_identifier
-            )
-
-
-def validate_dropdown_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    if not attr_values.dropdown:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attr_identifier
-            )
-    else:
-        validate_single_selectable_field(
-            attribute,
-            attr_values.dropdown,
-            attribute_errors,
-            attr_identifier,
-        )
-
-
-def validate_swatch_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    if not attr_values.swatch:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attr_identifier
-            )
-    else:
-        validate_single_selectable_field(
-            attribute,
-            attr_values.swatch,
-            attribute_errors,
-            attr_identifier,
-        )
-
-
-def validate_multiselect_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attr_identifier = attr_values.global_id or attr_values.external_reference
-    if not attr_identifier:
-        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
-            attr_identifier
-        )
-        return
-
-    multi_values = attr_values.multiselect
-    if not multi_values:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attr_identifier
-            )
-    else:
-        ids = [value.id for value in multi_values if value.id is not None]
-        values = [value.value for value in multi_values if value.value is not None]
-        external_refs = [
-            value.external_reference
-            for value in multi_values
-            if value.external_reference is not None
-        ]
-        if ids and values:
-            attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(
-                attr_identifier
-            )
-            return
-        if not ids and not external_refs and not values and attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attr_identifier
-            )
-            return
-
-        if (
-            len(ids) > len(set(ids))
-            or len(values) > len(set(values))
-            or len(external_refs) > len(set(external_refs))
-        ):
-            attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
-                attr_identifier
-            )
-            return
-
-        for attr_value in multi_values:
-            validate_single_selectable_field(
-                attribute,
-                attr_value,
-                attribute_errors,
-                attr_identifier,
-            )
-
-
-def validate_numeric_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    attribute_id = attr_values.global_id
-    if attr_values.numeric is None:
-        if attribute.value_required:
-            attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attribute_id
-            )
-            return
-        return
-
-    try:
-        float(attr_values.numeric)
-    except ValueError:
-        attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
-            attribute_id
-        )
-
-    if isinstance(attr_values.numeric, bool):
-        attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
-            attribute_id
-        )
-
-
-def validate_date_time_input(
-    attribute: "Attribute",
-    attr_values: "AttrValuesInput",
-    attribute_errors: T_ERROR_DICT,
-):
-    is_blank_date = (
-        attribute.input_type == AttributeInputType.DATE and not attr_values.date
-    )
-    is_blank_date_time = (
-        attribute.input_type == AttributeInputType.DATE_TIME
-        and not attr_values.date_time
-    )
-
-    if attribute.value_required and (is_blank_date or is_blank_date_time):
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-            attr_values.global_id
-        )
-
-
-def validate_values(
-    attr_identifier: str,
-    attribute: "Attribute",
-    values: list,
-    attribute_errors: T_ERROR_DICT,
-):
-    """To be deprecated together with `AttributeValueInput.values` field."""
-    name_field = attribute.values.model.name.field
-    is_numeric = attribute.input_type == AttributeInputType.NUMERIC
-    if get_duplicated_values(values):
-        attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
-            attr_identifier
-        )
-    for value in values:
-        if value is None or (not is_numeric and not value.strip()):
-            attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attr_identifier
-            )
-        elif is_numeric:
-            try:
-                float(value)
-            except ValueError:
-                attribute_errors[
-                    AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
-                ].append(attr_identifier)
-        elif name_field.max_length and len(value) > name_field.max_length:
-            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
-                attr_identifier
-            )
-
-
-def validate_required_attributes(
-    input_data: list[tuple["Attribute", "AttrValuesInput"]],
-    attribute_qs: "QuerySet",
-    errors: list[ValidationError],
-    error_code_enum,
-):
-    """Ensure all required attributes are supplied."""
-
-    supplied_attribute_pk = [attribute.pk for attribute, _ in input_data]
-
-    missing_required_attributes = attribute_qs.filter(
-        Q(value_required=True) & ~Q(pk__in=supplied_attribute_pk)
-    )
-
-    if missing_required_attributes:
-        ids = [
-            graphene.Node.to_global_id("Attribute", attr.pk)
-            for attr in missing_required_attributes
-        ]
-        error = ValidationError(
-            "All attributes flagged as having a value required must be supplied.",
-            code=error_code_enum.REQUIRED.value,
-            params={"attributes": ids},
-        )
-        errors.append(error)
-
-    return errors
-
-
-def prepare_error_list_from_error_attribute_mapping(
-    attribute_errors: T_ERROR_DICT, error_code_enum
-):
-    errors = []
-    for error_data, attributes in attribute_errors.items():
-        error_msg, error_type = error_data
-        error = ValidationError(
-            error_msg,
-            code=getattr(error_code_enum, error_type).value,
-            params={"attributes": attributes},
-        )
-        errors.append(error)
-
-    return errors
-
-
+# TODO: move it
 def has_input_modified_attribute_values(
     variant: product_models.ProductVariant, attributes_data: T_INPUT_MAP
 ) -> bool:

@@ -2198,7 +2198,7 @@ def test_update_product_variant_requires_attr_value_when_is_required(
     assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
     assert content["data"]["productVariantUpdate"]["errors"][0] == {
         "field": "attributes",
-        "message": "Attribute expects a value but none were given.",
+        "message": "This attribute requires a value.",
         "code": "REQUIRED",
     }
     assert not variant.product.variants.filter(sku=sku).exists()

@@ -145,7 +145,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
         cleaner.clean_quantity_limit(cleaned_input)
         if stocks := cleaned_input.get("stocks"):
             cls.check_for_duplicates_in_stocks(stocks)
-        cls.clean_attributes(cleaned_input)
+        cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
         cleaner.clean_preorder_settings(cleaned_input)
@@ -153,7 +153,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_attributes(cls, cleaned_input: dict):
+    def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
         product = cls.get_product(cleaned_input)
         product_type = product.product_type
         used_attribute_values = get_used_variants_attribute_values(product)
