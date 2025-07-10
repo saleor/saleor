@@ -80,7 +80,7 @@ third_url = "http://www.example.com/third/"
     ],
 )
 @mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+    "saleor.webhook.transport.asynchronous.transport.send_webhooks_async_for_app.apply_async"
 )
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
@@ -125,10 +125,13 @@ def test_trigger_webhooks_for_event_calls_expected_events(
         allow_replica=False,
     )
 
-    deliveries_called = {
-        EventDelivery.objects.get(id=request.kwargs["kwargs"]["event_delivery_id"])
-        for request in mock_request.call_args_list
-    }
+    deliveries_called = EventDelivery.objects.filter(
+        webhook__app_id__in=[
+            app.id,
+            app_without_permissions.id,
+            app_with_partial_permissions.id,
+        ]
+    )
     urls_called = {delivery.webhook.target_url for delivery in deliveries_called}
     assert mock_request.call_count == total_webhook_calls
     assert urls_called == expected_target_urls
