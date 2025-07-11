@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
 from .....product.error_codes import ProductErrorCode
-from ....attribute.utils import (
+from ....attribute.utils.shared import (
     AttrValuesInput,
     get_values_from_attribute_values_input,
 )

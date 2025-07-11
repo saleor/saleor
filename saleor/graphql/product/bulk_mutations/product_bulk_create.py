@@ -24,7 +24,7 @@ from ....warehouse.models import Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core.context import ChannelContext
 from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS

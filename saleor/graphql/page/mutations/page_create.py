@@ -8,7 +8,7 @@ from ....page import models
 from ....page.error_codes import PageErrorCode
 from ....permission.enums import PagePermissions
 from ...attribute.types import AttributeValueInput
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT

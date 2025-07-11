@@ -2,7 +2,7 @@ import graphene
 
 from ....page import models
 from ....permission.enums import PagePermissions
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.types import PageError

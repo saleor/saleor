@@ -2,8 +2,8 @@ import graphene
 import pytest
 
 from .....attribute.models import AttributeValue
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.models import Page
-from ....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
 
 PAGE_BULK_DELETE_MUTATION = """

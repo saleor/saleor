@@ -6,7 +6,8 @@ from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import ProductPermissions
 from .....product import models
 from ....attribute.types import AttributeValueInput
-from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
+from ....attribute.utils.attribute_assignment import AttributeAssignmentMixin
+from ....attribute.utils.shared import AttrValuesInput
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.descriptions import (

@@ -26,7 +26,7 @@ from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product
-from ....attribute.utils import AttributeInputErrors
+from ....attribute.utils.type_handlers import AttributeInputErrors
 
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {

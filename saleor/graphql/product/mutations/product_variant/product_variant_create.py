@@ -9,10 +9,10 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
-from ....attribute.utils import (
+from ....attribute.utils.attribute_assignment import (
     AttributeAssignmentMixin,
-    AttrValuesInput,
 )
+from ....attribute.utils.shared import AttrValuesInput
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS

@@ -56,7 +56,7 @@ from .filters import (
     search_attribute_values,
 )
 from .sorters import AttributeChoicesSortingInput
-from .utils import ENTITY_TYPE_MAPPING
+from .utils.shared import ENTITY_TYPE_MAPPING
 
 
 def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
