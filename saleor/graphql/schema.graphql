@@ -6922,7 +6922,11 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   """The ID of the product variant to translate."""
   productVariantId: ID!
 
-  """SKU of the product variant to translate."""
+  """
+  SKU of the product variant to translate.
+  
+  Added in Saleor 3.22.
+  """
   productVariantSku: String
 
   """Name of the product variant to translate."""
