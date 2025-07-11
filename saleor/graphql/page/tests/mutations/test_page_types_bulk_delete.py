@@ -3,8 +3,8 @@ from unittest import mock
 import graphene
 import pytest
 
+from .....attribute.utils import associate_attribute_values_to_instance
 from .....page.models import Page
-from ....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 PAGE_TYPE_BULK_DELETE_MUTATION = """

@@ -26,7 +26,7 @@ from .....graphql.tests.utils import get_graphql_content
 from .....plugins.manager import PluginsManager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product
-from ....attribute.utils import AttributeInputErrors
+from ....attribute.utils.type_handlers import AttributeInputErrors
 
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
@@ -2809,15 +2809,15 @@ def test_update_product_with_selectable_attribute_by_both_id_and_value(
 
     assert not data["product"]
     assert len(errors) == 1
-    assert errors[0]["message"] == AttributeInputErrors.ERROR_ID_AND_VALUE[0]
+    assert errors[0]["message"] == AttributeInputErrors.ID_AND_VALUE_PROVIDED[0]
 
 
 @pytest.mark.parametrize(
     ("value", "expected_result"),
     [
-        ("", AttributeInputErrors.ERROR_NO_VALUE_GIVEN),
-        ("  ", AttributeInputErrors.ERROR_BLANK_VALUE),
-        (None, AttributeInputErrors.ERROR_NO_VALUE_GIVEN),
+        ("", AttributeInputErrors.VALUE_REQUIRED),
+        ("  ", AttributeInputErrors.BLANK_VALUE),
+        (None, AttributeInputErrors.VALUE_REQUIRED),
     ],
 )
 def test_update_product_with_selectable_attribute_value_required(
@@ -2910,7 +2910,7 @@ def test_update_product_with_selectable_attribute_exceed_max_length(
 
     assert not data["product"]
     assert len(errors) == 1
-    assert errors[0]["message"] == AttributeInputErrors.ERROR_MAX_LENGTH[0]
+    assert errors[0]["message"] == AttributeInputErrors.MAX_LENGTH_EXCEEDED[0]
 
 
 def test_update_product_with_multiselect_attribute_by_both_id_and_value(
@@ -2953,7 +2953,7 @@ def test_update_product_with_multiselect_attribute_by_both_id_and_value(
 
     assert not data["product"]
     assert len(errors) == 1
-    assert errors[0]["message"] == AttributeInputErrors.ERROR_ID_AND_VALUE[0]
+    assert errors[0]["message"] == AttributeInputErrors.ID_AND_VALUE_PROVIDED[0]
 
 
 def test_update_product_with_multiselect_attribute_by_id_duplicated(
@@ -2995,7 +2995,7 @@ def test_update_product_with_multiselect_attribute_by_id_duplicated(
 
     assert not data["product"]
     assert len(errors) == 1
-    assert errors[0]["message"] == AttributeInputErrors.ERROR_DUPLICATED_VALUES[0]
+    assert errors[0]["message"] == AttributeInputErrors.DUPLICATED_VALUES[0]
 
 
 def test_update_product_with_multiselect_attribute_by_name_duplicated(
@@ -3039,7 +3039,7 @@ def test_update_product_with_multiselect_attribute_by_name_duplicated(
 
     assert not data["product"]
     assert len(errors) == 1
-    assert errors[0]["message"] == AttributeInputErrors.ERROR_DUPLICATED_VALUES[0]
+    assert errors[0]["message"] == AttributeInputErrors.DUPLICATED_VALUES[0]
 
 
 MUTATION_UPDATE_PRODUCT_BY_EXTERNAL_REFERENCE = """

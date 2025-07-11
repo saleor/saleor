@@ -2117,7 +2117,11 @@ def test_update_product_variant_change_attribute_values_ordering(
 @pytest.mark.parametrize(
     ("values", "message", "code"),
     [
-        (["one", "two"], "Attribute must take only one value.", "INVALID"),
+        (
+            ["one", "two"],
+            "More than one value provided for a single-value attribute.",
+            "INVALID",
+        ),
         (["   "], "Attribute values cannot be blank.", "REQUIRED"),
     ],
 )
@@ -2198,7 +2202,7 @@ def test_update_product_variant_requires_attr_value_when_is_required(
     assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
     assert content["data"]["productVariantUpdate"]["errors"][0] == {
         "field": "attributes",
-        "message": "Attribute expects a value but none were given.",
+        "message": "This attribute requires a value.",
         "code": "REQUIRED",
     }
     assert not variant.product.variants.filter(sku=sku).exists()

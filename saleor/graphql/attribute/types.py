@@ -56,15 +56,13 @@ from .filters import (
     search_attribute_values,
 )
 from .sorters import AttributeChoicesSortingInput
-from .utils import AttributeAssignmentMixin
+from .utils.shared import ENTITY_TYPE_MAPPING
 
 
 def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
     if attribute.input_type != AttributeInputType.REFERENCE:
         return None
-    reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
-        attribute.entity_type
-    ].value_field
+    reference_field = ENTITY_TYPE_MAPPING[attribute.entity_type].value_field
     reference_pk = getattr(root, f"{reference_field}_id", None)
     if reference_pk is None:
         return None
