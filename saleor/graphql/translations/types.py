@@ -21,7 +21,12 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId, AttributeValueByIdLoader
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_TYPE, RICH_CONTENT
+from ..core.descriptions import (
+    ADDED_IN_321,
+    ADDED_IN_322,
+    DEPRECATED_IN_3X_TYPE,
+    RICH_CONTENT,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -259,6 +264,10 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
     product_variant_id = graphene.ID(
         required=True, description="The ID of the product variant to translate."
     )
+    product_variant_sku = graphene.String(
+        required=False,
+        description="SKU of the product variant to translate." + ADDED_IN_322,
+    )
     name = graphene.String(
         required=True,
         description="Name of the product variant to translate.",
@@ -302,6 +311,10 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
     @staticmethod
     def resolve_product_variant_id(root: product_models.ProductVariant, _info):
         return graphene.Node.to_global_id("ProductVariant", root.id)
+
+    @staticmethod
+    def resolve_product_variant_sku(root: product_models.ProductVariant, _info):
+        return root.sku
 
 
 class ProductTranslation(BaseTranslationType[product_models.ProductTranslation]):
