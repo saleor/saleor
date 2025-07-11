@@ -20,7 +20,6 @@ from ....core.utils import (
 )
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.url import get_default_storage_root_url
-from ....product.error_codes import ProductErrorCode
 from ...core.utils import from_global_id_or_error, get_duplicated_values
 from ...utils import get_nodes
 from ..enums import AttributeValueBulkActionEnum
@@ -41,10 +40,6 @@ class AttributeInputErrors:
     """Defines error messages and codes for attribute validation."""
 
     # General Errors
-    ID_OR_EXTERNAL_REFERENCE_REQUIRED = (
-        "Attribute 'id' or 'externalReference' must be provided.",
-        "REQUIRED",
-    )
     VALUE_REQUIRED = ("This attribute requires a value.", "REQUIRED")
     BLANK_VALUE = ("Attribute values cannot be blank.", "REQUIRED")
     DUPLICATED_VALUES = (
@@ -52,11 +47,14 @@ class AttributeInputErrors:
         "DUPLICATED_INPUT_ITEM",
     )
     INVALID_INPUT = ("Invalid value provided for attribute.", "INVALID")
-    MORE_THAN_ONE_VALUE = ("Attribute must take only one value.", "INVALID")
+    MORE_THAN_ONE_VALUE = (
+        "More than one value provided for a single-value attribute.",
+        "INVALID",
+    )
 
     # Selectable Field Errors
     ID_AND_VALUE_PROVIDED = (
-        "Provide either 'id' or 'value' for a selectable attribute, not both.",
+        "Provide either 'id' or 'value', not both.",
         "INVALID",
     )
     ID_AND_EXTERNAL_REFERENCE_PROVIDED = (
@@ -75,6 +73,9 @@ class AttributeInputErrors:
     # Reference Errors
     REFERENCE_REQUIRED = ("A reference is required for this attribute.", "REQUIRED")
     INVALID_REFERENCE = ("Invalid reference type.", "INVALID")
+
+    # Numeric Errors
+    ERROR_NUMERIC_VALUE_REQUIRED = ("Numeric value is required.", "INVALID")
 
 
 class AttributeTypeHandler(abc.ABC):
@@ -135,23 +136,28 @@ class AttributeTypeHandler(abc.ABC):
 
         results = []
         for value_str in values:
-            slug = slugify(unidecode(value_str))
-
-            # Prioritize matching by slug, then fall back to matching by name.
-            value_obj = slug_to_value_map.get(slug) or name_to_value_map.get(value_str)
+            value_obj = slug_to_value_map.get(value_str) or name_to_value_map.get(
+                value_str
+            )
 
             if value_obj:
                 results.append((AttributeValueBulkActionEnum.NONE, value_obj))
             else:
                 # If no existing value is found, prepare a new one for creation.
-                unique_slug = prepare_unique_slug(slug, existing_slugs)
+                unique_slug = prepare_unique_slug(
+                    slugify(unidecode(value_str)), existing_slugs
+                )
                 new_value = AttributeValue(
                     attribute=attribute, name=value_str, slug=unique_slug
                 )
                 results.append((AttributeValueBulkActionEnum.CREATE, new_value))
 
-                # Add the new slug to our set to prevent collisions within this loop.
+                # the set of existing slugs must be updated to not generate
+                # accidentally the same slug for two or more values
                 existing_slugs.add(unique_slug)
+
+                # extend name to slug value to not create two elements with the same name
+                name_to_value_map[new_value.name] = new_value
 
         return results
 
@@ -202,39 +208,44 @@ class SelectableAttributeHandler(AttributeTypeHandler):
         attribute_errors: T_ERROR_DICT,
     ):
         """Validate a single input for a selectable field."""
+        id = attr_value_input.id
+        value = attr_value_input.value
+        external_reference = attr_value_input.external_reference
 
-        id, value, ext_ref = (
-            attr_value_input.id,
-            attr_value_input.value,
-            attr_value_input.external_reference,
-        )
-
-        # Check for conflicting identifiers
-        if id and ext_ref:
+        if id and external_reference:
             attribute_errors[
                 AttributeInputErrors.ID_AND_EXTERNAL_REFERENCE_PROVIDED
-            ].append(self.attribute_identifier)
+            ].append(self.attr_identifier)
+            return
+
         if id and value:
             attribute_errors[AttributeInputErrors.ID_AND_VALUE_PROVIDED].append(
-                self.attribute_identifier
+                self.attr_identifier
             )
+            return
 
-        # Check for an empty input object `{}`, which is invalid.
-        if value_required and (not id and not value and not ext_ref):
+        if not id and not external_reference and not value and value_required:
             attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
-                self.attribute_identifier
+                self.attr_identifier
             )
+            return
 
-        # Validate the `value` field if provided
         if value:
             max_length = self.attribute.values.model.name.field.max_length
             if not value.strip():
                 attribute_errors[AttributeInputErrors.BLANK_VALUE].append(
-                    self.attribute_identifier
+                    self.attr_identifier
                 )
             elif max_length and len(value) > max_length:
                 attribute_errors[AttributeInputErrors.MAX_LENGTH_EXCEEDED].append(
-                    self.attribute_identifier
+                    self.attr_identifier
+                )
+
+        value_identifier = id or external_reference
+        if value_identifier:
+            if not value_identifier.strip():
+                attribute_errors[AttributeInputErrors.BLANK_VALUE].append(
+                    self.attr_identifier
                 )
 
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
@@ -260,19 +271,22 @@ class SelectableAttributeHandler(AttributeTypeHandler):
             )
             return [(AttributeValueBulkActionEnum.CREATE, value_obj)]
 
-        if ext_ref or id:
-            try:
-                if ext_ref:
-                    value_obj = self.attribute.values.get(external_reference=ext_ref)
-                else:
-                    _, pk = from_global_id_or_error(id, "AttributeValue")  # type: ignore[arg-type]
-                    value_obj = self.attribute.values.get(pk=pk)
-                return [(AttributeValueBulkActionEnum.NONE, value_obj)]
-            except (GraphQLError, AttributeValue.DoesNotExist) as e:
+        if ext_ref:
+            value = attribute_models.AttributeValue.objects.get(  # type: ignore[assignment]
+                external_reference=ext_ref
+            )
+            if not value:
                 raise ValidationError(
-                    f"AttributeValue not found: {e}",
-                    code=ProductErrorCode.NOT_FOUND.value,
-                ) from e
+                    "Attribute value with given externalReference can't be found"
+                )
+            return [(AttributeValueBulkActionEnum.NONE, value)]
+
+        if id:
+            _, attr_value_id = from_global_id_or_error(id)
+            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)  # type: ignore[assignment]
+            if not value:
+                raise ValidationError("Attribute value with given ID can't be found")
+            return [(AttributeValueBulkActionEnum.NONE, value)]
 
         if value:
             return self.prepare_attribute_values(self.attribute, [value])
@@ -371,7 +385,7 @@ class FileAttributeHandler(AttributeTypeHandler):
     def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
         storage_root_url = get_default_storage_root_url()
         file_url = self.values_input.file_url
-        if self.attribute.value_required and not file_url:
+        if self.attribute.value_required and (not file_url or not file_url.strip()):
             attribute_errors[AttributeInputErrors.FILE_URL_REQUIRED].append(
                 self.attribute_identifier
             )
@@ -472,9 +486,8 @@ class PlainTextAttributeHandler(AttributeTypeHandler):
     """Handler for Plain Text attribute type."""
 
     def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
-        if self.attribute.value_required and (
-            not self.values_input.plain_text or not self.values_input.plain_text.strip()
-        ):
+        plain_text = self.values_input.plain_text
+        if self.attribute.value_required and (not plain_text or not plain_text.strip()):
             attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
                 self.attribute_identifier
             )
@@ -491,7 +504,17 @@ class PlainTextAttributeHandler(AttributeTypeHandler):
         return self._update_or_create_value(instance, defaults)
 
 
-class RichTextAttributeHandler(PlainTextAttributeHandler):
+class RichTextAttributeHandler(AttributeTypeHandler):
+    """Handler for Rich Text attribute type."""
+
+    def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
+        text = clean_editor_js(self.values_input.rich_text or {}, to_string=True)
+
+        if not text.strip() and self.attribute.value_required:
+            attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
+
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
         rich_text = self.values_input.rich_text
         if rich_text is None:
@@ -505,6 +528,8 @@ class RichTextAttributeHandler(PlainTextAttributeHandler):
 
 
 class NumericAttributeHandler(AttributeTypeHandler):
+    """Handler for Numeric attribute type."""
+
     def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
         numeric_val = self.values_input.numeric
         if self.attribute.value_required and numeric_val is None:
@@ -515,9 +540,13 @@ class NumericAttributeHandler(AttributeTypeHandler):
             try:
                 float(numeric_val)
             except (ValueError, TypeError):
-                attribute_errors[AttributeInputErrors.INVALID_INPUT].append(
-                    self.attribute_identifier
-                )
+                attribute_errors[
+                    AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
+                ].append(self.attribute_identifier)
+        if isinstance(numeric_val, bool):
+            attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
+                self.attribute_identifier
+            )
 
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
         numeric_val = self.values_input.numeric
@@ -556,6 +585,8 @@ class DateTimeAttributeHandler(AttributeTypeHandler):
 
 
 class BooleanAttributeHandler(AttributeTypeHandler):
+    """Handler for Boolean attribute type."""
+
     def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
         if self.attribute.value_required and self.values_input.boolean is None:
             attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
