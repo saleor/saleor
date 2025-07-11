@@ -297,10 +297,16 @@ class GatewayResponse:
     payment_method_info: PaymentMethodInfo | None = None
     raw_response: dict[str, str] | None = None
     action_required_data: JSONType | None = None
+
     # Some gateway can process transaction asynchronously. This value define if we
     # should create new transaction based on this response
     transaction_already_processed: bool = False
     psp_reference: str | None = None
+
+    # Temporary pass Adyen-plugin-specific data to model, so we can drop raw_response
+    # After the plugin is gone, this should be removed
+    legacy_adyen_plugin_result_code: str | None = None
+    legacy_adyen_plugin_payment_method: str | None = None
 
 
 @dataclass
