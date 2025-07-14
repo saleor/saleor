@@ -2796,7 +2796,7 @@ def test_transaction_create_with_invalid_other_payment_method_details(
 # Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
 @pytest.mark.django_db(transaction=True)
 @patch(
-    "saleor.graphql.payment.mutations.transaction.transaction_create.get_order_and_transaction_item_locked_for_update",
+    "saleor.graphql.payment.mutations.transaction.utils.get_order_and_transaction_item_locked_for_update",
     wraps=get_order_and_transaction_item_locked_for_update,
 )
 def test_lock_order_during_updating_order_amounts(
@@ -2842,7 +2842,7 @@ def test_lock_order_during_updating_order_amounts(
 # Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
 @pytest.mark.django_db(transaction=True)
 @patch(
-    "saleor.graphql.payment.mutations.transaction.transaction_create.get_checkout_and_transaction_item_locked_for_update",
+    "saleor.graphql.payment.mutations.transaction.utils.get_checkout_and_transaction_item_locked_for_update",
     wraps=get_checkout_and_transaction_item_locked_for_update,
 )
 def test_lock_checkout_during_updating_checkout_amounts(

@@ -2,7 +2,7 @@ import graphene
 
 from ....page import models
 from ....permission.enums import PagePermissions
-from ...attribute.utils import PageAttributeAssignmentMixin
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.types import PageError
@@ -27,9 +27,9 @@ class PageUpdate(PageCreate):
         error_type_field = "page_errors"
 
     @classmethod
-    def clean_attributes(cls, attributes: dict, page_type: models.PageType):
+    def clean_attributes(cls, attributes: list[dict], page_type: models.PageType):
         attributes_qs = page_type.page_attributes.prefetch_related("values")
-        cleaned_attributes = PageAttributeAssignmentMixin.clean_input(
+        cleaned_attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True
         )
         return cleaned_attributes

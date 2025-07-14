@@ -2117,7 +2117,11 @@ def test_update_product_variant_change_attribute_values_ordering(
 @pytest.mark.parametrize(
     ("values", "message", "code"),
     [
-        (["one", "two"], "Attribute must take only one value.", "INVALID"),
+        (
+            ["one", "two"],
+            "Attribute must take only one value.",
+            "INVALID",
+        ),
         (["   "], "Attribute values cannot be blank.", "REQUIRED"),
     ],
 )

@@ -1,21 +1,11 @@
-from typing import TYPE_CHECKING, Optional, cast
+from typing import TYPE_CHECKING, Optional
 
 import graphene
 from django.core.exceptions import ValidationError
 
 from .....app.models import App
-from .....checkout.actions import transaction_amounts_for_checkout_updated
 from .....core.exceptions import PermissionDenied
-from .....order import OrderStatus
-from .....order import models as order_models
-from .....order.actions import order_transaction_updated
 from .....order.events import transaction_event as order_transaction_event
-from .....order.fetch import fetch_order_info
-from .....order.search import update_order_search_vector
-from .....order.utils import (
-    update_order_status,
-    updates_amounts_for_order,
-)
 from .....payment import models as payment_models
 from .....payment.error_codes import (
     TransactionCreateErrorCode,
@@ -47,7 +37,7 @@ from .transaction_create import (
     TransactionCreateInput,
     TransactionEventInput,
 )
-from .utils import get_transaction_item
+from .utils import get_transaction_item, process_order_or_checkout_with_transaction
 
 if TYPE_CHECKING:
     from .....account.models import User
@@ -200,42 +190,6 @@ class TransactionUpdate(TransactionCreate):
             transaction_data["app"] = app
             transaction_data["app_identifier"] = app.identifier
 
-    # TODO (ENG-295): Remove this method when this will be refactored to use
-    # the new functions `process_order_or_checkout_with_transaction`.
-    @classmethod
-    def update_order(
-        cls,
-        order: order_models.Order,
-        money_data: dict,
-        update_search_vector: bool = True,
-    ) -> None:
-        update_fields = []
-        if money_data:
-            updates_amounts_for_order(order, save=False)
-            update_fields.extend(
-                [
-                    "total_authorized_amount",
-                    "total_charged_amount",
-                    "authorize_status",
-                    "charge_status",
-                ]
-            )
-        if (
-            order.channel.automatically_confirm_all_new_orders
-            and order.status == OrderStatus.UNCONFIRMED
-        ):
-            update_order_status(order)
-
-        if update_search_vector:
-            update_order_search_vector(order, save=False)
-            update_fields.append(
-                "search_vector",
-            )
-
-        if update_fields:
-            update_fields.append("updated_at")
-            order.save(update_fields=update_fields)
-
     @classmethod
     def perform_mutation(
         cls,
@@ -260,7 +214,6 @@ class TransactionUpdate(TransactionCreate):
             app=app,
         )
         money_data = {}
-        previous_transaction_psp_reference = instance.psp_reference
         previous_authorized_value = instance.authorized_value
         previous_charged_value = instance.charged_value
         previous_refunded_value = instance.refunded_value
@@ -290,9 +243,8 @@ class TransactionUpdate(TransactionCreate):
                 payment_details_data=payment_details_data,
             )
 
-        event = None
         if transaction_event:
-            event = cls.create_transaction_event(transaction_event, instance, user, app)
+            cls.create_transaction_event(transaction_event, instance, user, app)
             if instance.order:
                 order_transaction_event(
                     order=instance.order,
@@ -301,28 +253,17 @@ class TransactionUpdate(TransactionCreate):
                     reference=transaction_event.get("psp_reference"),
                     message=transaction_event.get("message", ""),
                 )
-        if instance.order_id:
-            order = cast(order_models.Order, instance.order)
-            should_update_search_vector = bool(
-                (instance.psp_reference != previous_transaction_psp_reference)
-                or (event and event.psp_reference)
-            )
-            cls.update_order(
-                order, money_data, update_search_vector=should_update_search_vector
-            )
-            order_info = fetch_order_info(order)
-            order_transaction_updated(
-                order_info=order_info,
-                transaction_item=instance,
-                manager=manager,
-                user=user,
-                app=app,
-                previous_authorized_value=previous_authorized_value,
-                previous_charged_value=previous_charged_value,
-                previous_refunded_value=previous_refunded_value,
-            )
-        if instance.checkout_id and money_data:
-            manager = get_plugin_manager_promise(info.context).get()
-            transaction_amounts_for_checkout_updated(instance, manager, user, app)
+
+        # TransactionCreate.process_order_or_checkout_with_transaction is called to use same logic for processing
+        # order or checkout as in a transaction mutation.
+        process_order_or_checkout_with_transaction(
+            instance,
+            manager,
+            user,
+            app,
+            previous_authorized_value,
+            previous_charged_value,
+            previous_refunded_value,
+        )
 
         return TransactionUpdate(transaction=instance)

@@ -7,14 +7,20 @@ from freezegun import freeze_time
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
+from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
 from .....payment import PaymentMethodType, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
+from .....payment.lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
+)
 from .....payment.models import TransactionEvent, TransactionItem
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
+from .....tests import race_condition
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum
@@ -2642,7 +2648,7 @@ def test_transaction_update_amounts_are_correct(
 
 
 def test_transaction_update_for_checkout_updates_payment_statuses(
-    checkout_with_items,
+    checkout_with_prices,
     permission_manage_payments,
     app_api_client,
     transaction_item_generator,
@@ -2652,7 +2658,7 @@ def test_transaction_update_for_checkout_updates_payment_statuses(
     current_authorized_value = Decimal(1)
     current_charged_value = Decimal(2)
     transaction = transaction_item_generator(
-        checkout_id=checkout_with_items.pk,
+        checkout_id=checkout_with_prices.pk,
         app=app,
         authorized_value=current_authorized_value,
         charged_value=current_charged_value,
@@ -2680,9 +2686,9 @@ def test_transaction_update_for_checkout_updates_payment_statuses(
     )
 
     # then
-    checkout_with_items.refresh_from_db()
-    assert checkout_with_items.charge_status == CheckoutChargeStatus.PARTIAL
-    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+    checkout_with_prices.refresh_from_db()
+    assert checkout_with_prices.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout_with_prices.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
 @patch("saleor.checkout.tasks.automatic_checkout_completion_task.delay")
@@ -3403,7 +3409,7 @@ def test_transaction_update_amounts_with_lot_of_decimal_places(
     assert getattr(transaction, db_field_name) == round(value, 2)
 
 
-def test_transaction_uodate_transaction_event_message_limit_exceeded(
+def test_transaction_update_transaction_event_message_limit_exceeded(
     transaction_item_created_by_app,
     order_with_lines,
     permission_manage_payments,
@@ -3444,7 +3450,7 @@ def test_transaction_uodate_transaction_event_message_limit_exceeded(
     assert event.psp_reference == transaction_reference
 
 
-def test_transaction_uodate_transaction_event_empty_message(
+def test_transaction_update_transaction_event_empty_message(
     transaction_item_created_by_app,
     order_with_lines,
     permission_manage_payments,
@@ -3749,3 +3755,170 @@ def test_transaction_update_with_invalid_other_payment_method_details(
     error = transaction_data["errors"][0]
     assert error["code"] == "INVALID"
     assert error["field"] == "paymentMethodDetails"
+
+
+# Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
+@pytest.mark.django_db(transaction=True)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.utils.get_order_and_transaction_item_locked_for_update",
+    wraps=get_order_and_transaction_item_locked_for_update,
+)
+def test_lock_order_during_updating_order_amounts(
+    mocked_get_order_and_transaction_item_locked_for_update,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    unconfirmed_order_with_lines,
+    app,
+):
+    # given
+    order = unconfirmed_order_with_lines
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": order.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order.refresh_from_db()
+    transaction_pk = order.payment_transactions.get().pk
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    mocked_get_order_and_transaction_item_locked_for_update.assert_called_once_with(
+        order.pk, transaction_pk
+    )
+
+
+# Test wrapped by `transaction=True` to ensure that `selector_for_update` is called in a database transaction.
+@pytest.mark.django_db(transaction=True)
+@patch(
+    "saleor.graphql.payment.mutations.transaction.utils.get_checkout_and_transaction_item_locked_for_update",
+    wraps=get_checkout_and_transaction_item_locked_for_update,
+)
+def test_lock_checkout_during_updating_checkout_amounts(
+    mocked_get_checkout_and_transaction_item_locked_for_update,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_prices,
+    plugins_manager,
+    app,
+):
+    # given
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout.refresh_from_db()
+    transaction_pk = checkout.payment_transactions.get().pk
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+    mocked_get_checkout_and_transaction_item_locked_for_update.assert_called_once_with(
+        checkout.pk, transaction_pk
+    )
+
+
+def test_transaction_create_create_checkout_completed_race_condition(
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_prices,
+    plugins_manager,
+    transaction_item_generator,
+    app,
+):
+    # given
+    current_authorized_value = Decimal(1)
+    current_charged_value = Decimal(2)
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+
+    assert checkout.channel.automatically_complete_fully_paid_checkouts is False
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    def complete_checkout(*args, **kwargs):
+        create_order_from_checkout(
+            checkout_info, plugins_manager, user=None, app=app_api_client.app
+        )
+
+    with race_condition.RunBefore(
+        "saleor.graphql.payment.mutations.transaction.transaction_update.recalculate_transaction_amounts",
+        complete_checkout,
+    ):
+        app_api_client.post_graphql(
+            MUTATION_TRANSACTION_UPDATE,
+            variables,
+            permissions=[permission_manage_payments],
+        )
+
+    # then
+    order = Order.objects.get(checkout_token=checkout.pk)
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.charge_status == OrderChargeStatus.FULL
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    assert order.total_charged.amount == checkout.total.gross.amount
