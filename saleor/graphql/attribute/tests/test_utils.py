@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....attribute import AttributeInputType
+from ....product.error_codes import ProductErrorCode
 from ..enums import AttributeValueBulkActionEnum
 from ..utils.attribute_assignment import AttributeAssignmentMixin
 from ..utils.shared import AttrValuesForSelectableFieldInput, AttrValuesInput
@@ -84,7 +85,7 @@ def test_clean_attribute_input_for_product_no_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "This attribute requires a value."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [weight_attribute, color_attribute]
@@ -129,7 +130,7 @@ def test_clean_attribute_input_for_product_too_many_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "More than one value provided for a single-value attribute."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
@@ -173,7 +174,7 @@ def test_clean_attribute_input_for_product_empty_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Attribute values cannot be blank."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [weight_attribute, color_attribute]
@@ -211,12 +212,9 @@ def test_clean_attribute_input_for_product_lack_of_required_attribute(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert (
-        error.message
-        == "All attributes flagged as having a value required must be supplied."
-    )
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
-        graphene.Node.to_global_id("Attribute", attr.pk) for attr in [color_attribute]
+        graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
 
 
@@ -257,9 +255,9 @@ def test_clean_attribute_input_for_product_creation_multiple_errors(
 
     # then
     assert len(exc_info.value.error_list) == 2
-    assert {error.message for error in exc_info.value.error_list} == {
-        "Attribute values cannot be blank.",
-        "More than one value provided for a single-value attribute.",
+    assert {error.code for error in exc_info.value.error_list} == {
+        ProductErrorCode.INVALID.value,
+        ProductErrorCode.REQUIRED.value,
     }
     assert {
         attr
@@ -339,7 +337,7 @@ def test_clean_attribute_input_for_page_no_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "This attribute requires a value."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [weight_attribute, color_attribute]
@@ -384,7 +382,7 @@ def test_clean_attribute_input_for_page_too_many_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "More than one value provided for a single-value attribute."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
@@ -428,7 +426,7 @@ def test_clean_attribute_input_for_page_empty_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Attribute values cannot be blank."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [weight_attribute, color_attribute]
@@ -465,10 +463,7 @@ def test_clean_attribute_input_for_page_lack_of_required_attribute(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert (
-        error.message
-        == "All attributes flagged as having a value required must be supplied."
-    )
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
     }
@@ -509,9 +504,9 @@ def test_clean_attribute_input_for_page_multiple_errors(
 
     # then
     assert len(exc_info.value.error_list) == 2
-    assert {error.message for error in exc_info.value.error_list} == {
-        "This attribute requires a value.",
-        "More than one value provided for a single-value attribute.",
+    assert {error.code for error in exc_info.value.error_list} == {
+        ProductErrorCode.INVALID.value,
+        ProductErrorCode.REQUIRED.value,
     }
     assert {
         attr
@@ -591,7 +586,7 @@ def test_clean_variant_attribute_input_no_values_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "This attribute requires a value."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
         for attr in [weight_attribute, color_attribute]
@@ -599,16 +594,93 @@ def test_clean_variant_attribute_input_no_values_given(
 
 
 @pytest.mark.parametrize("creation", [True, False])
-def test_clean_variant_attribute_input_too_many_values_given(
+def test_clean_variant_attribute_duplicated_values_given(
     creation, weight_attribute, color_attribute, product_type
 ):
     # given
-    color_attribute.input_type = AttributeInputType.DROPDOWN
+    color_attribute.input_type = AttributeInputType.MULTISELECT
     color_attribute.value_required = True
     color_attribute.save(update_fields=["value_required", "input_type"])
 
     weight_attribute.value_required = True
     weight_attribute.input_type = AttributeInputType.MULTISELECT
+    weight_attribute.save(update_fields=["value_required", "input_type"])
+
+    product_type.variant_attributes.add(color_attribute, weight_attribute)
+
+    input_data = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+            "values": ["test", "new", "test"],
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+            "values": ["test", "test"],
+        },
+    ]
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        AttributeAssignmentMixin.clean_input(
+            input_data,
+            product_type.variant_attributes.all(),
+            is_page_attributes=False,
+            creation=creation,
+        )
+
+    # then
+    assert len(exc_info.value.error_list) == 1
+    error = exc_info.value.error_list[0]
+    assert error.code == ProductErrorCode.DUPLICATED_INPUT_ITEM.value
+    assert set(error.params["attributes"]) == {
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in [weight_attribute, color_attribute]
+    }
+
+
+@pytest.mark.parametrize("creation", [True, False])
+def test_clean_variant_attribute_input_empty_values_given(
+    creation, weight_attribute, color_attribute, product_type
+):
+    # given
+    color_attribute.input_type = AttributeInputType.MULTISELECT
+    color_attribute.value_required = False
+    color_attribute.save(update_fields=["value_required", "input_type"])
+
+    weight_attribute.value_required = False
+    weight_attribute.input_type = AttributeInputType.MULTISELECT
+    weight_attribute.save(update_fields=["value_required", "input_type"])
+
+    product_type.variant_attributes.add(color_attribute, weight_attribute)
+
+    input_data = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", weight_attribute.pk),
+        },
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        },
+    ]
+
+    # when & then
+    # error shouldn't be raised
+    AttributeAssignmentMixin.clean_input(
+        input_data,
+        product_type.variant_attributes.all(),
+        is_page_attributes=False,
+        creation=creation,
+    )
+
+
+@pytest.mark.parametrize("creation", [True, False])
+def test_clean_variant_attribute_too_many_values_given(
+    creation, weight_attribute, color_attribute, product_type
+):
+    # given
+    color_attribute.value_required = True
+    color_attribute.save(update_fields=["value_required", "input_type"])
+
+    weight_attribute.value_required = True
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
     product_type.variant_attributes.add(color_attribute, weight_attribute)
@@ -624,7 +696,7 @@ def test_clean_variant_attribute_input_too_many_values_given(
         },
     ]
 
-    # when
+    # when & then
     with pytest.raises(ValidationError) as exc_info:
         AttributeAssignmentMixin.clean_input(
             input_data,
@@ -633,26 +705,24 @@ def test_clean_variant_attribute_input_too_many_values_given(
             creation=creation,
         )
 
-    # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "More than one value provided for a single-value attribute."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
-        graphene.Node.to_global_id("Attribute", color_attribute.pk)
+        graphene.Node.to_global_id("Attribute", attr.pk)
+        for attr in [color_attribute, weight_attribute]
     }
 
 
 @pytest.mark.parametrize("creation", [True, False])
-def test_clean_variant_attribute_input_empty_values_given(
+def test_clean_variant_attribute_empty_values_given(
     creation, weight_attribute, color_attribute, product_type
 ):
     # given
-    color_attribute.input_type = AttributeInputType.DROPDOWN
     color_attribute.value_required = True
     color_attribute.save(update_fields=["value_required", "input_type"])
 
     weight_attribute.value_required = True
-    weight_attribute.input_type = AttributeInputType.MULTISELECT
     weight_attribute.save(update_fields=["value_required", "input_type"])
 
     product_type.variant_attributes.add(color_attribute, weight_attribute)
@@ -660,15 +730,15 @@ def test_clean_variant_attribute_input_empty_values_given(
     input_data = [
         {
             "id": graphene.Node.to_global_id("Attribute", weight_attribute.pk),
-            "values": ["a", None],
+            "values": [None],
         },
         {
             "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
-            "values": ["  "],
+            "values": [" "],
         },
     ]
 
-    # when
+    # when & then
     with pytest.raises(ValidationError) as exc_info:
         AttributeAssignmentMixin.clean_input(
             input_data,
@@ -677,13 +747,12 @@ def test_clean_variant_attribute_input_empty_values_given(
             creation=creation,
         )
 
-    # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Attribute values cannot be blank."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk)
-        for attr in [weight_attribute, color_attribute]
+        for attr in [color_attribute, weight_attribute]
     }
 
 
@@ -724,9 +793,9 @@ def test_clean_variant_attribute_input_multiple_errors(
 
     # then
     assert len(exc_info.value.error_list) == 2
-    assert {error.message for error in exc_info.value.error_list} == {
-        "Attribute values cannot be blank.",
-        "More than one value provided for a single-value attribute.",
+    assert {error.code for error in exc_info.value.error_list} == {
+        ProductErrorCode.INVALID.value,
+        ProductErrorCode.REQUIRED.value,
     }
     assert {
         attr
@@ -809,7 +878,7 @@ def test_clean_attributes_with_file_input_type_for_product_no_file_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "A file URL is required for this attribute."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", attr.pk) for attr in [file_attribute]
     }
@@ -884,9 +953,9 @@ def test_clean_attributes_with_file_input_type_for_product_empty_file_value(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "A file URL is required for this attribute."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
-        graphene.Node.to_global_id("Attribute", attr.pk) for attr in [file_attribute]
+        graphene.Node.to_global_id("Attribute", file_attribute.pk)
     }
 
 
@@ -947,7 +1016,7 @@ def test_clean_numeric_attributes_input_for_product_not_numeric_value_given(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Invalid value provided for attribute."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }
@@ -982,7 +1051,7 @@ def test_validate_numeric_attributes_input_for_product_blank_value(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Attribute values cannot be blank."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }
@@ -1016,7 +1085,7 @@ def test_validate_numeric_attributes_input_none_as_values(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "This attribute requires a value."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }
@@ -1051,7 +1120,7 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "More than one value provided for a single-value attribute."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }
@@ -1202,7 +1271,7 @@ def test_clean_selectable_attribute_by_id_and_value(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Provide either 'id' or 'value', not both."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
@@ -1272,7 +1341,7 @@ def test_clean_selectable_attribute_by_id_and_external_reference(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Provide either 'id' or 'externalReference', not both."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
@@ -1342,7 +1411,7 @@ def test_clean_multiselect_attribute_by_id_and_value(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Provide either 'id' or 'value', not both."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", weight_attribute.pk)
     }
@@ -1382,7 +1451,7 @@ def test_clean_multiselect_attribute_duplicated_values(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Duplicate attribute values are not allowed."
+    assert error.code == ProductErrorCode.DUPLICATED_INPUT_ITEM.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", weight_attribute.pk)
     }
@@ -1422,7 +1491,7 @@ def test_clean_multiselect_attribute_duplicated_ids(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Duplicate attribute values are not allowed."
+    assert error.code == ProductErrorCode.DUPLICATED_INPUT_ITEM.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", weight_attribute.pk)
     }
@@ -1462,7 +1531,7 @@ def test_clean_multiselect_attribute_duplicated_external_refs(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Duplicate attribute values are not allowed."
+    assert error.code == ProductErrorCode.DUPLICATED_INPUT_ITEM.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", weight_attribute.pk)
     }
@@ -1499,7 +1568,7 @@ def test_clean_selectable_attribute_max_length_exceeded(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "The value exceeds the maximum length."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
@@ -1536,7 +1605,7 @@ def test_clean_selectable_attribute_value_required(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "This attribute requires a value."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", color_attribute.pk)
     }
@@ -1598,7 +1667,7 @@ def test_validate_numeric_attributes_invalid_number(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "Numeric value is required."
+    assert error.code == ProductErrorCode.INVALID.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }
@@ -1655,7 +1724,7 @@ def test_clean_numeric_attributes_value_required(
     # then
     assert len(exc_info.value.error_list) == 1
     error = exc_info.value.error_list[0]
-    assert error.message == "This attribute requires a value."
+    assert error.code == ProductErrorCode.REQUIRED.value
     assert set(error.params["attributes"]) == {
         graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     }

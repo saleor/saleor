@@ -40,28 +40,27 @@ class AttributeInputErrors:
     """Defines error messages and codes for attribute validation."""
 
     # General Errors
-    VALUE_REQUIRED = ("This attribute requires a value.", "REQUIRED")
+    VALUE_REQUIRED = ("Attribute expects a value but none were given.", "REQUIRED")
     BLANK_VALUE = ("Attribute values cannot be blank.", "REQUIRED")
     DUPLICATED_VALUES = (
-        "Duplicate attribute values are not allowed.",
+        "Duplicated attribute values are provided.",
         "DUPLICATED_INPUT_ITEM",
     )
     INVALID_INPUT = ("Invalid value provided for attribute.", "INVALID")
     MORE_THAN_ONE_VALUE = (
-        "More than one value provided for a single-value attribute.",
+        "Attribute must take only one value.",
         "INVALID",
     )
 
-    # Selectable Field Errors
     ID_AND_VALUE_PROVIDED = (
-        "Provide either 'id' or 'value', not both.",
+        "Attribute values cannot be assigned by both id and value.",
         "INVALID",
     )
     ID_AND_EXTERNAL_REFERENCE_PROVIDED = (
-        "Provide either 'id' or 'externalReference', not both.",
+        "Attribute values cannot be assigned by both id and external reference",
         "INVALID",
     )
-    MAX_LENGTH_EXCEEDED = ("The value exceeds the maximum length.", "INVALID")
+    MAX_LENGTH_EXCEEDED = ("Attribute value length is exceeded.", "INVALID")
 
     # File Errors
     FILE_URL_REQUIRED = ("A file URL is required for this attribute.", "REQUIRED")
@@ -389,10 +388,12 @@ class FileAttributeHandler(AttributeTypeHandler):
             attribute_errors[AttributeInputErrors.FILE_URL_REQUIRED].append(
                 self.attribute_identifier
             )
+
         if file_url and not file_url.startswith(storage_root_url):
             attribute_errors[AttributeInputErrors.INVALID_FILE_URL].append(
                 self.attribute_identifier
             )
+
         self.values_input.file_url = (
             re.sub(storage_root_url, "", file_url) if file_url is not None else file_url
         )
@@ -536,6 +537,7 @@ class NumericAttributeHandler(AttributeTypeHandler):
             attribute_errors[AttributeInputErrors.VALUE_REQUIRED].append(
                 self.attribute_identifier
             )
+
         if numeric_val is not None:
             try:
                 float(numeric_val)
@@ -543,6 +545,7 @@ class NumericAttributeHandler(AttributeTypeHandler):
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
                 ].append(self.attribute_identifier)
+
         if isinstance(numeric_val, bool):
             attribute_errors[AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED].append(
                 self.attribute_identifier
