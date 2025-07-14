@@ -36,7 +36,8 @@ class AttrValuesInput:
     swatch: AttrValuesForSelectableFieldInput | None = None
     multiselect: list[AttrValuesForSelectableFieldInput] | None = None
     numeric: str | None = None
-    references: list[str] | list[page_models.Page] | None = None
+    reference: str | None = None
+    references: list[str] | None = None
     file_url: str | None = None
     content_type: str | None = None
     rich_text: dict | None = None

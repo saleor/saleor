@@ -21501,6 +21501,13 @@ input AttributeValueInput @doc(category: "Attributes") {
   """File content type."""
   contentType: String
 
+  """
+  ID of the referenced entity for single reference attribute.
+  
+  Added in Saleor 3.22.
+  """
+  reference: ID
+
   """List of entity IDs that will be used as references."""
   references: [ID!]
 

@@ -53,6 +53,7 @@ class AttributeAssignmentMixin:
         AttributeInputType.MULTISELECT: MultiSelectableAttributeHandler,
         AttributeInputType.FILE: FileAttributeHandler,
         AttributeInputType.REFERENCE: ReferenceAttributeHandler,
+        AttributeInputType.SINGLE_REFERENCE: ReferenceAttributeHandler,
         AttributeInputType.RICH_TEXT: RichTextAttributeHandler,
         AttributeInputType.PLAIN_TEXT: PlainTextAttributeHandler,
         AttributeInputType.NUMERIC: NumericAttributeHandler,

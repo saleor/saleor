@@ -681,6 +681,116 @@ def page_type_collection_reference_attribute(db):
 
 
 @pytest.fixture
+def product_type_page_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-page-reference",
+        name="Single page reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PAGE,
+    )
+
+
+@pytest.fixture
+def page_type_page_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-page-reference",
+        name="Single page reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PAGE,
+    )
+
+
+@pytest.fixture
+def product_type_product_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-product-reference",
+        name="Single product reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT,
+    )
+
+
+@pytest.fixture
+def page_type_product_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-product-reference",
+        name="Single product reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT,
+    )
+
+
+@pytest.fixture
+def product_type_variant_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-variant-reference",
+        name="Single variant reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
+def page_type_variant_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-variant-reference",
+        name="Single variant reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
+def product_type_category_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-category-reference",
+        name="Single category reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.CATEGORY,
+    )
+
+
+@pytest.fixture
+def page_type_category_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-category-reference",
+        name="Single category reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.CATEGORY,
+    )
+
+
+@pytest.fixture
+def product_type_collection_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-collection-reference",
+        name="Single collection reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.COLLECTION,
+    )
+
+
+@pytest.fixture
+def page_type_collection_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="single-collection-reference",
+        name="Single collection reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.COLLECTION,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size",
