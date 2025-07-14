@@ -23,6 +23,7 @@ from .....payment.utils import (
     create_failed_transaction_event,
     get_already_existing_event,
     get_transaction_event_amount,
+    process_order_or_checkout_with_transaction,
     truncate_transaction_event_message,
 )
 from .....permission.auth_filters import AuthorizationFilters
@@ -49,7 +50,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 from ...types import TransactionEvent, TransactionItem
 from ...utils import check_if_requestor_has_access
-from .utils import get_transaction_item, process_order_or_checkout_with_transaction
+from .utils import get_transaction_item
 
 if TYPE_CHECKING:
     from .....app.models import App

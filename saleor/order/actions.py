@@ -28,11 +28,9 @@ from ..payment import (
     PaymentError,
     TransactionAction,
     TransactionKind,
-    gateway,
 )
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction, TransactionItem
-from ..payment.utils import create_payment, create_transaction_for_order
 from ..plugins.manager import PluginsManager
 from ..shipping.models import ShippingMethodChannelListing
 from ..warehouse.management import (
@@ -930,6 +928,9 @@ def mark_order_as_paid_with_transaction(
     Allows to create a transaction for an order.
     """
     with transaction.atomic():
+        # Circular imports
+        from ..payment.utils import create_transaction_for_order
+
         create_transaction_for_order(
             order=order,
             user=request_user,
@@ -971,6 +972,9 @@ def mark_order_as_paid_with_payment(
     # transaction ensures that webhooks are triggered when payments and transactions are
     # properly created
     with traced_atomic_transaction():
+        # Circular imports
+        from ..payment.utils import create_payment
+
         payment = create_payment(
             gateway=CustomPaymentChoices.MANUAL,
             payment_token="",
@@ -2026,7 +2030,10 @@ def _process_refund(
             amount += order.shipping_price_gross_amount
     if amount and payment:
         amount = min(payment.captured_amount, amount)
-        gateway.refund(
+        # Circular imports
+        from ..payment.gateway import refund
+
+        refund(
             payment,
             manager,
             amount=amount,

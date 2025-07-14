@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, Optional, Union, cast, overload
+from uuid import UUID
 
 import graphene
 from aniso8601 import parse_datetime
@@ -19,6 +20,7 @@ from ..app.models import App
 from ..channel import TransactionFlowStrategy
 from ..checkout.actions import (
     transaction_amounts_for_checkout_updated,
+    transaction_amounts_for_checkout_updated_without_price_recalculation,
     update_last_transaction_modified_at_for_checkout,
 )
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -28,11 +30,14 @@ from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..graphql.core.utils import str_to_enum
+from ..order import OrderStatus
+from ..order.actions import order_transaction_updated
 from ..order.fetch import fetch_order_info
 from ..order.models import Order, OrderGrantedRefund
 from ..order.search import update_order_search_vector
 from ..order.utils import (
     calculate_order_granted_refund_status,
+    refresh_order_status,
     update_order_authorize_data,
     updates_amounts_for_order,
 )
@@ -64,6 +69,10 @@ from .interface import (
     TransactionRequestEventResponse,
     TransactionRequestResponse,
     TransactionSessionData,
+)
+from .lock_objects import (
+    get_checkout_and_transaction_item_locked_for_update,
+    get_order_and_transaction_item_locked_for_update,
 )
 from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .transaction_item_calculations import recalculate_transaction_amounts
@@ -1215,6 +1224,100 @@ def update_order_with_transaction_details(transaction: TransactionItem):
         )
 
 
+def process_order_with_transaction(
+    transaction: TransactionItem,
+    manager: "PluginsManager",
+    user: Optional["User"],
+    app: Optional["App"],
+    previous_authorized_value: Decimal = Decimal(0),
+    previous_charged_value: Decimal = Decimal(0),
+    previous_refunded_value: Decimal = Decimal(0),
+    related_granted_refund: Optional[OrderGrantedRefund] = None,
+):
+    order = None
+    # This is executed after we ensure that the transaction is not a checkout
+    # transaction, so we can safely cast the order_id to UUID.
+    order_id = cast(UUID, transaction.order_id)
+    with traced_atomic_transaction():
+        order, transaction = get_order_and_transaction_item_locked_for_update(
+            order_id, transaction.pk
+        )
+        update_fields = []
+        updates_amounts_for_order(order, save=False)
+        update_fields.extend(
+            [
+                "total_charged_amount",
+                "charge_status",
+                "total_authorized_amount",
+                "authorize_status",
+            ]
+        )
+        if (
+            order.channel.automatically_confirm_all_new_orders
+            and order.status == OrderStatus.UNCONFIRMED
+        ):
+            status_updated = refresh_order_status(order)
+            if status_updated:
+                update_fields.append("status")
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
+
+    update_order_search_vector(order)
+    order_info = fetch_order_info(order)
+    order_transaction_updated(
+        order_info=order_info,
+        transaction_item=transaction,
+        manager=manager,
+        user=user,
+        app=app,
+        previous_authorized_value=previous_authorized_value,
+        previous_charged_value=previous_charged_value,
+        previous_refunded_value=previous_refunded_value,
+    )
+    if related_granted_refund:
+        calculate_order_granted_refund_status(related_granted_refund)
+
+
+def process_order_or_checkout_with_transaction(
+    transaction: TransactionItem,
+    manager: "PluginsManager",
+    user: Optional["User"],
+    app: Optional["App"],
+    previous_authorized_value: Decimal = Decimal(0),
+    previous_charged_value: Decimal = Decimal(0),
+    previous_refunded_value: Decimal = Decimal(0),
+    related_granted_refund: Optional[OrderGrantedRefund] = None,
+):
+    checkout_deleted = False
+    if transaction.checkout_id:
+        with traced_atomic_transaction():
+            locked_checkout, transaction = (
+                get_checkout_and_transaction_item_locked_for_update(
+                    transaction.checkout_id, transaction.pk
+                )
+            )
+            if transaction.checkout_id and locked_checkout:
+                transaction_amounts_for_checkout_updated_without_price_recalculation(
+                    transaction, locked_checkout, manager, user, app
+                )
+            else:
+                checkout_deleted = True
+                # If the checkout was deleted, we still want to update the order associated with the transaction.
+
+    if transaction.order_id or checkout_deleted:
+        process_order_with_transaction(
+            transaction,
+            manager,
+            user,
+            app,
+            previous_authorized_value,
+            previous_charged_value,
+            previous_refunded_value,
+            related_granted_refund=related_granted_refund,
+        )
+
+
 def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
@@ -1309,27 +1412,17 @@ def create_transaction_event_for_transaction_session(
                 "modified_at",
             ]
         )
-        if transaction_item.order_id:
-            # circular import
-            from ..order.actions import order_transaction_updated
 
-            update_order_with_transaction_details(transaction_item)
-            order = cast(Order, transaction_item.order)
-            order_info = fetch_order_info(order)
-            order_transaction_updated(
-                order_info=order_info,
-                transaction_item=transaction_item,
-                manager=manager,
-                user=None,
-                app=app,
-                previous_authorized_value=previous_authorized_value,
-                previous_charged_value=previous_charged_value,
-                previous_refunded_value=previous_refunded_value,
-            )
-        elif transaction_item.checkout_id:
-            transaction_amounts_for_checkout_updated(
-                transaction_item, manager, app=app, user=None
-            )
+        process_order_or_checkout_with_transaction(
+            transaction_item,
+            manager,
+            None,
+            app,
+            previous_authorized_value=previous_authorized_value,
+            previous_charged_value=previous_charged_value,
+            previous_refunded_value=previous_refunded_value,
+        )
+
     elif event.psp_reference and transaction_item.psp_reference != event.psp_reference:
         transaction_item.psp_reference = event.psp_reference
         transaction_item.save(update_fields=["psp_reference", "modified_at"])
