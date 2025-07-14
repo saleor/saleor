@@ -379,6 +379,10 @@ class AdyenGatewayPlugin(BasePlugin):
             return False
         return self.channel.automatically_confirm_all_new_orders
 
+    def _normalize_response_field(self, field: str) -> str:
+        """Normalize response field to lowercase and remove spaces."""
+        return field.strip().lower()
+
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
@@ -429,7 +433,7 @@ class AdyenGatewayPlugin(BasePlugin):
         with tracer.start_as_current_span("adyen.checkout.payments") as span:
             span.set_attribute(saleor_attributes.COMPONENT, "payment")
             result = api_call(request_data, self.adyen.checkout.payments)
-        result_code = result.message["resultCode"].strip().lower()
+        result_code = self._normalize_response_field(result.message["resultCode"])
         is_success = result_code not in FAILED_STATUSES
         adyen_auto_capture = self.config.connection_params["adyen_auto_capture"]
         kind = TransactionKind.AUTH
@@ -473,12 +477,12 @@ class AdyenGatewayPlugin(BasePlugin):
             action_required_data=action,
             payment_method_info=payment_method_info,
             psp_reference=psp_reference,
-            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
-            .strip()
-            .lower(),
-            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
-            .strip()
-            .lower(),
+            legacy_adyen_plugin_payment_method=self._normalize_response_field(
+                result.message.get("paymentMethod", "")
+            ),
+            legacy_adyen_plugin_result_code=self._normalize_response_field(
+                result.message.get("resultCode", "")
+            ),
         )
 
     @classmethod
@@ -520,7 +524,7 @@ class AdyenGatewayPlugin(BasePlugin):
         with tracer.start_as_current_span("adyen.checkout.payment_details") as span:
             span.set_attribute(saleor_attributes.COMPONENT, "payment")
             result = api_call(additional_data, self.adyen.checkout.payments_details)
-        result_code = result.message["resultCode"].strip().lower()
+        result_code = self._normalize_response_field(result.message["resultCode"])
         is_success = result_code not in FAILED_STATUSES
         action_required = "action" in result.message
         if result_code in PENDING_STATUSES:
@@ -556,12 +560,12 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
             payment_method_info=payment_method_info,
-            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
-            .strip()
-            .lower(),
-            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
-            .strip()
-            .lower(),
+            legacy_adyen_plugin_payment_method=self._normalize_response_field(
+                result.message.get("paymentMethod", "")
+            ),
+            legacy_adyen_plugin_result_code=self._normalize_response_field(
+                result.message.get("resultCode", "")
+            ),
         )
 
     def confirm_payment(
@@ -622,15 +626,15 @@ class AdyenGatewayPlugin(BasePlugin):
         if result_code_temporary_field:
             result_code = result_code_temporary_field
         else:
-            result_code = (
-                transaction.gateway_response.get("resultCode", "").strip().lower()
+            result_code = self._normalize_response_field(
+                transaction.gateway_response.get("resultCode", "")
             )
 
         if payment_method_temporary_field:
             payment_method = payment_method_temporary_field
         else:
-            payment_method = (
-                transaction.gateway_response.get("paymentMethod", "").strip().lower()
+            payment_method = self._normalize_response_field(
+                transaction.gateway_response.get("paymentMethod", "")
             )
 
         if result_code and result_code in PENDING_STATUSES:
@@ -744,12 +748,12 @@ class AdyenGatewayPlugin(BasePlugin):
             # @deprecated
             raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
-            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
-            .strip()
-            .lower(),
-            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
-            .strip()
-            .lower(),
+            legacy_adyen_plugin_payment_method=self._normalize_response_field(
+                result.message.get("paymentMethod", "")
+            ),
+            legacy_adyen_plugin_result_code=self._normalize_response_field(
+                result.message.get("resultCode", "")
+            ),
         )
 
     def capture_payment(
@@ -782,12 +786,12 @@ class AdyenGatewayPlugin(BasePlugin):
             raw_response=result.message,
             payment_method_info=payment_method_info,
             psp_reference=result.message.get("pspReference", ""),
-            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
-            .strip()
-            .lower(),
-            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
-            .strip()
-            .lower(),
+            legacy_adyen_plugin_payment_method=self._normalize_response_field(
+                result.message.get("paymentMethod", "")
+            ),
+            legacy_adyen_plugin_result_code=self._normalize_response_field(
+                result.message.get("resultCode", "")
+            ),
         )
 
     def void_payment(
@@ -819,12 +823,12 @@ class AdyenGatewayPlugin(BasePlugin):
             # @deprecated
             raw_response=result.message,
             psp_reference=result.message.get("pspReference", ""),
-            legacy_adyen_plugin_payment_method=result.message.get("paymentMethod", "")
-            .strip()
-            .lower(),
-            legacy_adyen_plugin_result_code=result.message.get("resultCode", "")
-            .strip()
-            .lower(),
+            legacy_adyen_plugin_payment_method=self._normalize_response_field(
+                result.message.get("paymentMethod", "")
+            ),
+            legacy_adyen_plugin_result_code=self._normalize_response_field(
+                result.message.get("resultCode", "")
+            ),
         )
 
     @classmethod
