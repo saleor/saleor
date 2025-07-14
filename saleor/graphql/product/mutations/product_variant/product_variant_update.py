@@ -11,8 +11,10 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.utils.variants import generate_and_set_variant_name
-from ....attribute.utils import (
+from ....attribute.utils.attribute_assignment import (
     AttributeAssignmentMixin,
+)
+from ....attribute.utils.shared import (
     AttrValuesInput,
     has_input_modified_attribute_values,
 )

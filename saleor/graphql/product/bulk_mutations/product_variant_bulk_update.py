@@ -16,7 +16,7 @@ from ....warehouse import models as warehouse_models
 from ....warehouse.management import delete_stocks, stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
-from ...attribute.utils import AttributeAssignmentMixin
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation

@@ -24,7 +24,7 @@ from ....warehouse.models import Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
-from ...attribute.utils import ProductAttributeAssignmentMixin
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core.context import ChannelContext
 from ...core.descriptions import RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -289,7 +289,7 @@ class ProductBulkCreate(BaseMutation):
         if attributes := cleaned_input.get("attributes"):
             try:
                 attributes_qs = cleaned_input["product_type"].product_attributes.all()
-                attributes = ProductAttributeAssignmentMixin.clean_input(
+                attributes = AttributeAssignmentMixin.clean_input(
                     attributes, attributes_qs
                 )
                 cleaned_input["attributes"] = attributes
@@ -796,7 +796,7 @@ class ProductBulkCreate(BaseMutation):
         models.ProductChannelListing.objects.bulk_create(listings_to_create)
 
         for product, attributes in attributes_to_save:
-            ProductAttributeAssignmentMixin.save(product, attributes)
+            AttributeAssignmentMixin.save(product, attributes)
 
         if variants_input_data:
             variants = cls.save_variants(info, variants_input_data)

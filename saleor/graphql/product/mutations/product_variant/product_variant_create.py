@@ -9,10 +9,10 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
-from ....attribute.utils import (
+from ....attribute.utils.attribute_assignment import (
     AttributeAssignmentMixin,
-    AttrValuesInput,
 )
+from ....attribute.utils.shared import AttrValuesInput
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -145,7 +145,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
         cleaner.clean_quantity_limit(cleaned_input)
         if stocks := cleaned_input.get("stocks"):
             cls.check_for_duplicates_in_stocks(stocks)
-        cls.clean_attributes(cleaned_input)
+        cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
         cleaner.clean_preorder_settings(cleaned_input)
@@ -153,7 +153,7 @@ class ProductVariantCreate(DeprecatedModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_attributes(cls, cleaned_input: dict):
+    def clean_attributes(cls, cleaned_input: dict, instance: models.ProductVariant):
         product = cls.get_product(cleaned_input)
         product_type = product.product_type
         used_attribute_values = get_used_variants_attribute_values(product)
