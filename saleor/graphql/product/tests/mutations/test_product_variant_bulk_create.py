@@ -741,6 +741,50 @@ def test_product_variant_bulk_create_with_page_reference_attribute(
     assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
+def test_product_variant_bulk_create_with_single_reference_attribute(
+    staff_api_client,
+    product,
+    product_type_category_single_reference_attribute,
+    permission_manage_products,
+    site_settings,
+    category,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    attribute = product_type_category_single_reference_attribute
+    product.product_type.variant_attributes.add(attribute)
+    reference_attr_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    reference = graphene.Node.to_global_id("Category", category.pk)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": reference_attr_id, "reference": reference}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["reference"] == reference
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
 def test_product_variant_bulk_create_with_dropdown_attribute(
     staff_api_client,
     product,

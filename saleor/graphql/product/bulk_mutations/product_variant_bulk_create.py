@@ -22,7 +22,7 @@ from ...attribute.types import (
 )
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core.context import ChannelContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -156,6 +156,12 @@ class BulkAttributeValueInput(BaseInputObjectType):
     content_type = graphene.String(
         required=False,
         description="File content type.",
+    )
+    reference = graphene.ID(
+        description=(
+            "ID of the referenced entity for single reference attribute." + ADDED_IN_322
+        ),
+        required=False,
     )
     references = NonNullList(
         graphene.ID,
