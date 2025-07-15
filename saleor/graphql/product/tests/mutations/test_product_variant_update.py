@@ -2016,6 +2016,109 @@ def test_update_product_variant_with_category_reference_attribute(
     assert variant_data["attributes"][0]["values"][0]["reference"] == reference
 
 
+def test_update_product_variant_with_single_reference_attributes(
+    staff_api_client,
+    product,
+    page,
+    product_type_page_single_reference_attribute,
+    product_type_product_single_reference_attribute,
+    product_type_variant_single_reference_attribute,
+    product_type_category_single_reference_attribute,
+    product_type_collection_single_reference_attribute,
+    permission_manage_products,
+    collection,
+    product_variant_list,
+    categories,
+):
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+
+    product_type = product.product_type
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(
+        product_type_page_single_reference_attribute,
+        product_type_product_single_reference_attribute,
+        product_type_variant_single_reference_attribute,
+        product_type_category_single_reference_attribute,
+        product_type_collection_single_reference_attribute,
+    )
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    references = [
+        (page, product_type_page_single_reference_attribute, page.title),
+        (product, product_type_product_single_reference_attribute, product.name),
+        (
+            product_variant_list[0],
+            product_type_variant_single_reference_attribute,
+            f"{product_variant_list[0].product.name}: {product_variant_list[0].name}",
+        ),
+        (
+            categories[0],
+            product_type_category_single_reference_attribute,
+            categories[0].name,
+        ),
+        (
+            collection,
+            product_type_collection_single_reference_attribute,
+            collection.name,
+        ),
+    ]
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attr.pk),
+            "reference": graphene.Node.to_global_id(attr.entity_type, ref.pk),
+        }
+        for ref, attr, _name in references
+    ]
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": attributes,
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant_data = data["productVariant"]
+    assert variant_data
+    assert variant_data["sku"] == sku
+    attributes_data = variant_data["attributes"]
+    assert len(attributes_data) == len(references)
+    expected_attributes_data = [
+        {
+            "attribute": {
+                "slug": attr.slug,
+            },
+            "values": [
+                {
+                    "id": ANY,
+                    "date": None,
+                    "dateTime": None,
+                    "richText": None,
+                    "slug": f"{variant.id}_{ref.id}",
+                    "name": name,
+                    "file": None,
+                    "plainText": None,
+                    "boolean": None,
+                    "reference": graphene.Node.to_global_id(attr.entity_type, ref.pk),
+                }
+            ],
+        }
+        for ref, attr, name in references
+    ]
+    for attr_data in attributes_data:
+        assert attr_data in expected_attributes_data
+
+
 def test_update_product_variant_change_attribute_values_ordering(
     staff_api_client,
     variant,
