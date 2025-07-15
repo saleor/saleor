@@ -464,7 +464,7 @@ class AttributeValuePageInput(BaseInputObjectType):
     )
     reference = ReferenceAttributeWhereInput(
         required=False,
-        description=("Filter by reference attribute value. "),
+        description=("Filter by reference attribute value."),
     )
 
 
