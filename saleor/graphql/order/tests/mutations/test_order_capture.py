@@ -182,7 +182,7 @@ def test_order_capture_by_app(
 @override_settings(
     PLUGINS=[
         "saleor.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
     ]
 )
 def test_order_capture_triggers_webhooks(

@@ -123,3 +123,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed bug when not-authenticated staff user couldn't fetch `appExtension.app` without `MANAGE_APPS`. Now apps access is available by staff users and the app itself (for app and extension it owns)
 
 - Fixed bug in user email filtering to make it case-insensitive.
+
+### Deprecations
+
+Following plugins are now marked as deprecated:
+
+- Braintree (`mirumee.payments.braintree`)
+- Razorpay (`mirumme.payments.razorpay`)
+- Sendgrid (`mirumee.notifications.sendgrid_email`)
+- Dummy (`mirumee.payments.dummy`)
+- DummyCreditCard (`mirumee.payments.dummy_credit_card`)
+- Avalara (`mirumee.taxes.avalara`)
+
+We plan to remove deprecated plugins in the future versions of Saleor. We recommend you use [Saleor apps](https://apps.saleor.io/) instead.

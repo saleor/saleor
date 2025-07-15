@@ -24,7 +24,7 @@ INVOICE_REQUEST_DELETE_MUTATION = """
 @pytest.fixture(autouse=True)
 def setup_dummy_gateways(settings):
     settings.PLUGINS = [
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
     ]
     return settings
 

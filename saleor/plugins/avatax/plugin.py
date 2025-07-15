@@ -76,9 +76,14 @@ def _get_prices_entered_with_tax_for_order(order: "Order"):
     return tax_configuration.prices_entered_with_tax
 
 
-class AvataxPlugin(BasePlugin):
-    PLUGIN_NAME = "Avalara"
+class DeprecatedAvataxPlugin(BasePlugin):
+    """Deprecated.
+
+    This plugin is deprecated and will be removed in future version.
+    """
+
     PLUGIN_ID = "mirumee.taxes.avalara"
+    PLUGIN_NAME = "Avalara"
     # identifier used in tax configuration
     PLUGIN_IDENTIFIER = PLUGIN_IDENTIFIER_PREFIX + PLUGIN_ID
 

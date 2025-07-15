@@ -5,7 +5,7 @@ import pytest
 from ....account.models import Address
 from ...models import PluginConfiguration
 from .. import AvataxConfiguration
-from ..plugin import AvataxPlugin
+from ..plugin import DeprecatedAvataxPlugin
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +36,7 @@ def plugin_configuration(db, channel_USD):
         channel = channel or channel_USD
         data = {
             "active": active,
-            "name": AvataxPlugin.PLUGIN_NAME,
+            "name": DeprecatedAvataxPlugin.PLUGIN_NAME,
             "channel": channel,
             "configuration": [
                 {"name": "Username or account", "value": username},
@@ -53,7 +53,7 @@ def plugin_configuration(db, channel_USD):
             ],
         }
         configuration = PluginConfiguration.objects.create(
-            identifier=AvataxPlugin.PLUGIN_ID, **data
+            identifier=DeprecatedAvataxPlugin.PLUGIN_ID, **data
         )
         return configuration
 

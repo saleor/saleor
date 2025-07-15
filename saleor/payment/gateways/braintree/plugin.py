@@ -21,7 +21,12 @@ if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData, TokenConfig
 
 
-class BraintreeGatewayPlugin(BasePlugin):
+class DeprecatedBraintreeGatewayPlugin(BasePlugin):
+    """Deprecated.
+
+    This plugin is deprecated and will be removed in future version.
+    """
+
     PLUGIN_ID = "mirumee.payments.braintree"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIGURATION_PER_CHANNEL = True

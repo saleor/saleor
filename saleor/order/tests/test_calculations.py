@@ -19,7 +19,7 @@ from ...discount import DiscountValueType
 from ...graphql.core.utils import to_global_id_or_none
 from ...order.utils import get_order_country
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
-from ...plugins.avatax.plugin import AvataxPlugin
+from ...plugins.avatax.plugin import DeprecatedAvataxPlugin
 from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
 from ...plugins.manager import get_plugins_manager
 from ...plugins.tests.sample_plugins import PluginSample
@@ -1700,7 +1700,7 @@ def test_fetch_order_data_tax_data_missing_tax_id_empty_tax_data(
 
 
 @patch("saleor.plugins.avatax.plugin.get_order_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
 def test_fetch_order_data_plugin_tax_data_with_negative_values(
     mock_get_tax_data,
     order_with_lines,
@@ -1711,7 +1711,7 @@ def test_fetch_order_data_plugin_tax_data_with_negative_values(
     order = order_with_lines
 
     channel = order.channel
-    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.tax_app_id = DeprecatedAvataxPlugin.PLUGIN_IDENTIFIER
     channel.tax_configuration.save(update_fields=["tax_app_id"])
 
     tax_data = {
@@ -1748,7 +1748,7 @@ def test_fetch_order_data_plugin_tax_data_with_negative_values(
 
 
 @patch("saleor.plugins.avatax.plugin.get_order_tax_data")
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
 def test_fetch_order_data_plugin_tax_data_price_overflow(
     mock_get_tax_data,
     order_with_lines,
@@ -1759,7 +1759,7 @@ def test_fetch_order_data_plugin_tax_data_price_overflow(
     order = order_with_lines
 
     channel = order.channel
-    channel.tax_configuration.tax_app_id = AvataxPlugin.PLUGIN_IDENTIFIER
+    channel.tax_configuration.tax_app_id = DeprecatedAvataxPlugin.PLUGIN_IDENTIFIER
     channel.tax_configuration.save(update_fields=["tax_app_id"])
 
     tax_data = {

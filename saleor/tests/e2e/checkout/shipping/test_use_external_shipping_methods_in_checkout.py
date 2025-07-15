@@ -30,7 +30,7 @@ def test_use_external_shipping_methods_in_checkout_core_1652(
     # Before
     settings.PLUGINS = [
         "saleor.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
     ]
     permissions = [
         permission_manage_products,

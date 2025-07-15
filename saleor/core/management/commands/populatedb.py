@@ -1,7 +1,6 @@
 from io import StringIO
 
 from django.apps import apps
-from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
@@ -83,11 +82,7 @@ class Command(BaseCommand):
         user_password = options["user_password"]
         staff_password = options["staff_password"]
         superuser_password = options["superuser_password"]
-        settings.PLUGINS = [
-            "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
-            "saleor.payment.gateways.dummy_credit_card.plugin."
-            "DummyCreditCardGatewayPlugin",
-        ]
+
         create_images = not options["withoutimages"]
         for msg in create_channels():
             self.stdout.write(msg)

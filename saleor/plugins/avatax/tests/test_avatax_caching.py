@@ -7,11 +7,11 @@ from prices import Money, TaxedMoney
 from ....checkout.fetch import fetch_checkout_lines
 from ...manager import get_plugins_manager
 from .. import CACHE_KEY, generate_request_data_from_checkout
-from ..plugin import AvataxPlugin
+from ..plugin import DeprecatedAvataxPlugin
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_calculate_checkout_total_use_cache(
     mock_cache_set,
@@ -30,7 +30,7 @@ def test_calculate_checkout_total_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -59,8 +59,8 @@ def test_calculate_checkout_total_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_calculate_checkout_total_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -77,7 +77,7 @@ def test_calculate_checkout_total_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -105,8 +105,8 @@ def test_calculate_checkout_total_save_avatax_response_in_cache(
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_calculate_checkout_subtotal_use_cache(
     mock_cache_set,
@@ -125,7 +125,7 @@ def test_calculate_checkout_subtotal_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -154,8 +154,8 @@ def test_calculate_checkout_subtotal_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -172,7 +172,7 @@ def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -200,8 +200,8 @@ def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_calculate_checkout_shipping_use_cache(
     mock_cache_set,
@@ -220,7 +220,7 @@ def test_calculate_checkout_shipping_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -249,8 +249,8 @@ def test_calculate_checkout_shipping_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_calculate_checkout_shipping_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -267,7 +267,7 @@ def test_calculate_checkout_shipping_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -295,8 +295,8 @@ def test_calculate_checkout_shipping_save_avatax_response_in_cache(
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_calculate_checkout_line_total_use_cache(
     mock_cache_set,
@@ -315,7 +315,7 @@ def test_calculate_checkout_line_total_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -348,8 +348,8 @@ def test_calculate_checkout_line_total_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_calculate_checkout_line_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -366,7 +366,7 @@ def test_calculate_checkout_line_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -395,8 +395,8 @@ def test_calculate_checkout_line_save_avatax_response_in_cache(
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_calculate_checkout_line_unit_price_use_cache(
     mock_cache_set,
@@ -415,7 +415,7 @@ def test_calculate_checkout_line_unit_price_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -448,8 +448,8 @@ def test_calculate_checkout_line_unit_price_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -466,7 +466,7 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -501,8 +501,8 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_get_checkout_line_tax_rate_use_cache(
     mock_cache_set,
@@ -521,7 +521,7 @@ def test_get_checkout_line_tax_rate_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -556,8 +556,8 @@ def test_get_checkout_line_tax_rate_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -574,7 +574,7 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -612,8 +612,8 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
     mocked_avalara.assert_called_once_with(ANY, avalara_request_data, plugin.config)
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 @patch("saleor.plugins.avatax.cache.set")
 def test_get_checkout_shipping_tax_rate_use_cache(
     mock_cache_set,
@@ -632,7 +632,7 @@ def test_get_checkout_shipping_tax_rate_use_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
@@ -662,8 +662,8 @@ def test_get_checkout_shipping_tax_rate_use_cache(
     mock_cache_set.assert_not_called()
 
 
-@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-@patch("saleor.plugins.avatax.plugin.AvataxPlugin.validate_tax_data")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+@patch("saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin.validate_tax_data")
 def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
     mock_validate_tax_data,
     checkout_with_items_and_shipping,
@@ -680,7 +680,7 @@ def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
     checkout_info = checkout_with_items_and_shipping_info
     plugin_configuration()
     manager = get_plugins_manager(allow_replica=False)
-    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID, channel_USD.slug)
+    plugin = manager.get_plugin(DeprecatedAvataxPlugin.PLUGIN_ID, channel_USD.slug)
     site_settings.company_address = address
     site_settings.save()
     lines, _ = fetch_checkout_lines(checkout)
