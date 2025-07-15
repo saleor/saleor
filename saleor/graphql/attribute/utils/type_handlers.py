@@ -455,16 +455,15 @@ class ReferenceAttributeHandler(AttributeTypeHandler):
             ref_instances = get_nodes(
                 references, self.attribute.entity_type, model=entity_data.model
             )
-            if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
-                self.values_input.reference = (
-                    ref_instances[0] if ref_instances else None
-                )
-            else:
-                self.values_input.references = ref_instances
         except GraphQLError:
             attribute_errors[AttributeInputErrors.INVALID_REFERENCE].append(
                 self.attribute_identifier
             )
+            return
+        if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
+            self.values_input.reference = ref_instances[0] if ref_instances else None
+        else:
+            self.values_input.references = ref_instances
 
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
         references = self.get_references()
