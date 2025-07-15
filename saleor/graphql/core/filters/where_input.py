@@ -56,6 +56,8 @@ class FilterInputDescriptions:
     ONE_OF = "The value included in."
     NOT_ONE_OF = "The value not included in."
     RANGE = "The value in range."
+    CONTAINS_ALL = "The field contains all of the specified values."
+    CONTAINS_ANY = "The field contains at least one of the specified values."
 
 
 class StringFilterInput(graphene.InputObjectType):
@@ -182,3 +184,21 @@ class MetadataFilterInput(graphene.InputObjectType):
         - `{key: "status", value: {eq: "active"}}`
           Matches objects where the metadata key "status" is set to "active".
         """
+
+
+class ContainsFilterInput(graphene.InputObjectType):
+    contains_any = NonNullList(
+        graphene.String,
+        description=FilterInputDescriptions.CONTAINS_ANY,
+        required=False,
+    )
+    contains_all = NonNullList(
+        graphene.String,
+        description=FilterInputDescriptions.CONTAINS_ALL,
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for fields that can contain multiple values."
+        )

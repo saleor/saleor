@@ -13033,6 +13033,42 @@ input AttributeValuePageInput {
 
   """Filter by boolean value for attributes of boolean type."""
   boolean: Boolean
+
+  """Filter by reference attribute value."""
+  reference: ReferenceAttributeWhereInput
+}
+
+input ReferenceAttributeWhereInput {
+  """
+  Returns objects with a reference pointing to an object identified by the given ID.
+  """
+  referencedIds: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a page identified by the given slug.
+  """
+  pageSlugs: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a product identified by the given slug.
+  """
+  productSlugs: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a product variant identified by the given sku.
+  """
+  productVariantSkus: ContainsFilterInput
+}
+
+"""
+Define the filtering options for fields that can contain multiple values.
+"""
+input ContainsFilterInput {
+  """The field contains at least one of the specified values."""
+  containsAny: [String!]
+
+  """The field contains all of the specified values."""
+  containsAll: [String!]
 }
 
 type PageTypeCountableConnection @doc(category: "Pages") {

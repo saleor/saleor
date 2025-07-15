@@ -141,7 +141,7 @@ def test_pages_query_with_filter_by_page_type(
     [
         ({"slugs": ["test-url-1"]}, 1),
         ({"slugs": ["test-url-1", "test-url-2"]}, 2),
-        ({"slugs": []}, 2),
+        ({"slugs": []}, 4),
     ],
 )
 def test_pages_with_filtering(filter_by, pages_count, staff_api_client, page_list):
