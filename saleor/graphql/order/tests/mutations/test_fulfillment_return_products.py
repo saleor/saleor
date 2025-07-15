@@ -103,7 +103,7 @@ def test_fulfillment_return_products_by_user_no_channel_access(
     assert_no_permission(response)
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_by_app(
     mocked_refund,
     app_api_client,
@@ -173,7 +173,7 @@ def test_fulfillment_return_products_order_without_payment(
     assert fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_amount_and_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -252,7 +252,7 @@ def test_fulfillment_return_products_amount_order_with_gift_card(
     assert fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_refund_raising_payment_error(
     mocked_refund,
     staff_api_client,
@@ -286,7 +286,7 @@ def test_fulfillment_return_products_refund_raising_payment_error(
     assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_order_lines(
     mocked_refund,
     staff_api_client,
@@ -520,7 +520,7 @@ def test_fulfillment_return_products_order_lines_quantity_bigger_than_unfulfille
     assert return_fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_order_lines_custom_amount(
     mocked_refund,
     staff_api_client,
@@ -576,7 +576,7 @@ def test_fulfillment_return_products_order_lines_custom_amount(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_fulfillment_lines(
     mocked_refund,
     staff_api_client,
@@ -710,7 +710,7 @@ def test_fulfillment_return_products_fulfillment_lines(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_gift_card_fulfillment_line(
     mocked_refund,
     staff_api_client,
@@ -877,7 +877,7 @@ def test_fulfillment_return_products_lines_with_incorrect_status(
     assert return_fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -938,7 +938,7 @@ def test_fulfillment_return_products_fulfillment_lines_include_shipping_costs(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
     mocked_refund,
     warehouse,
@@ -1061,7 +1061,7 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.order.actions.order_refunded")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_and_replace_products_calls_order_refunded_and_webhooks(
     mocked_refund,
     mocked_order_refunded,
@@ -1151,7 +1151,7 @@ def test_fulfillment_return_and_replace_products_calls_order_refunded_and_webhoo
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.order.actions.order_refunded")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_calls_order_refunded_and_webhooks(
     mocked_refund,
     mocked_order_refunded,
