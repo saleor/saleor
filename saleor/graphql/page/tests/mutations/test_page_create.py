@@ -67,7 +67,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages, page_ty
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    # Default attributes defined in product_type fixture
+    # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
     tag_value_slug = tag_attr.values.first().slug
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
@@ -129,7 +129,7 @@ def test_page_create_mutation_with_published_at_date(
     ) + datetime.timedelta(days=5)
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    # Default attributes defined in product_type fixture
+    # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
     tag_value_slug = tag_attr.values.first().slug
     tag_value_name = tag_attr.values.first().name
@@ -279,7 +279,7 @@ def test_page_create_mutation_missing_required_attributes(
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    # Default attributes defined in product_type fixture
+    # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
     tag_value_slug = tag_attr.values.first().slug
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
@@ -330,7 +330,7 @@ def test_page_create_mutation_empty_attribute_value(
     page_is_published = True
     page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
 
-    # Default attributes defined in product_type fixture
+    # Default attributes defined in page_type fixture
     tag_attr = page_type.page_attributes.get(name="tag")
     tag_attr_id = graphene.Node.to_global_id("Attribute", tag_attr.id)
 
@@ -1384,3 +1384,116 @@ def test_create_page_with_collection_reference_attribute(
 
     page_type_collection_reference_attribute.refresh_from_db()
     assert page_type_collection_reference_attribute.values.count() == values_count + 1
+
+
+def test_create_page_with_single_reference_attributes(
+    staff_api_client,
+    permission_manage_pages,
+    page_type,
+    page_type_page_single_reference_attribute,
+    page_type_product_single_reference_attribute,
+    page_type_variant_single_reference_attribute,
+    page_type_category_single_reference_attribute,
+    page_type_collection_single_reference_attribute,
+    collection,
+    page,
+    product,
+    categories,
+    product_variant_list,
+):
+    # given
+    page_slug = "test-slug"
+    page_content = dummy_editorjs("test content", True)
+    page_title = "test title"
+    page_is_published = True
+    page_type = PageType.objects.create(
+        name="Test page type 2", slug="test-page-type-2"
+    )
+    page_type_id = graphene.Node.to_global_id("PageType", page_type.pk)
+
+    page_type.page_attributes.add(
+        page_type_page_single_reference_attribute,
+        page_type_product_single_reference_attribute,
+        page_type_variant_single_reference_attribute,
+        page_type_category_single_reference_attribute,
+        page_type_collection_single_reference_attribute,
+    )
+    references = [
+        (page, page_type_page_single_reference_attribute, page.title),
+        (product, page_type_product_single_reference_attribute, product.name),
+        (
+            product_variant_list[0],
+            page_type_variant_single_reference_attribute,
+            f"{product_variant_list[0].product.name}: {product_variant_list[0].name}",
+        ),
+        (
+            categories[0],
+            page_type_category_single_reference_attribute,
+            categories[0].name,
+        ),
+        (
+            collection,
+            page_type_collection_single_reference_attribute,
+            collection.name,
+        ),
+    ]
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attr.pk),
+            "reference": graphene.Node.to_global_id(attr.entity_type, ref.pk),
+        }
+        for ref, attr, _name in references
+    ]
+
+    variables = {
+        "input": {
+            "title": page_title,
+            "content": page_content,
+            "isPublished": page_is_published,
+            "slug": page_slug,
+            "pageType": page_type_id,
+            "attributes": attributes,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, variables, permissions=[permission_manage_pages]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageCreate"]
+    errors = data["errors"]
+
+    assert not errors
+    assert data["page"]["title"] == page_title
+    assert data["page"]["content"] == page_content
+    assert data["page"]["slug"] == page_slug
+    assert data["page"]["isPublished"] == page_is_published
+    assert data["page"]["pageType"]["id"] == page_type_id
+    attributes_data = data["page"]["attributes"]
+    assert len(attributes_data) == len(references)
+    page_id = data["page"]["id"]
+    _, new_page_pk = graphene.Node.from_global_id(page_id)
+    expected_attributes_data = [
+        {
+            "attribute": {
+                "slug": attr.slug,
+            },
+            "values": [
+                {
+                    "slug": f"{new_page_pk}_{ref.id}",
+                    "date": None,
+                    "dateTime": None,
+                    "name": name,
+                    "file": None,
+                    "plainText": None,
+                    "reference": graphene.Node.to_global_id(attr.entity_type, ref.pk),
+                }
+            ],
+        }
+        for ref, attr, name in references
+    ]
+    for attr_data in attributes_data:
+        assert attr_data in expected_attributes_data
