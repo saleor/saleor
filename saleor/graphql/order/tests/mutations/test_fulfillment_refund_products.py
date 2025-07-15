@@ -79,7 +79,7 @@ def test_fulfillment_refund_products_by_user_no_channel_access(
     assert_no_permission(response)
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_with_action_requested_by_app(
     mocked_refund,
     app_api_client,
@@ -126,7 +126,7 @@ def test_fulfillment_refund_products_with_action_requested_by_app(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_fulfillment_refund_products_with_back_in_stock_webhook(
     back_in_stock_webhook_trigger,
@@ -217,7 +217,7 @@ def test_fulfillment_refund_products_order_without_payment(
     assert fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_amount_and_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -286,7 +286,7 @@ def test_fulfillment_refund_products_amount_costs_for_order_with_gift_card_lines
     assert errors[0]["field"] == "amountToRefund"
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_refund_raising_payment_error(
     mocked_refund,
     staff_api_client,
@@ -320,7 +320,7 @@ def test_fulfillment_refund_products_refund_raising_payment_error(
     assert errors[0]["code"] == OrderErrorCode.CANNOT_REFUND.name
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_order_lines(
     mocked_refund,
     staff_api_client,
@@ -427,7 +427,7 @@ def test_fulfillment_refund_products_order_lines_quantity_bigger_than_unfulfille
     assert refund_fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines(
     mocked_refund,
     staff_api_client,
@@ -484,7 +484,7 @@ def test_fulfillment_refund_products_fulfillment_lines(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_waiting_fulfillment_lines(
     mocked_refund,
     staff_api_client,
@@ -657,7 +657,7 @@ def test_fulfillment_refund_products_amount_bigger_than_captured_amount(
     assert refund_fulfillment is None
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -715,7 +715,7 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
@@ -767,7 +767,7 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
     mocked_refund,
     staff_api_client,
@@ -827,7 +827,7 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_order_lines_custom_amount(
     mocked_refund,
     staff_api_client,
@@ -878,7 +878,7 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
     )
 
 
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     mocked_refund,
     warehouse,
@@ -984,7 +984,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
 
 
 @patch("saleor.order.actions.order_refunded")
-@patch("saleor.order.actions.gateway.refund")
+@patch("saleor.payment.gateway.refund")
 def test_fulfillment_refund_products_calls_order_refunded(
     mocked_refund,
     mocked_order_refunded,
