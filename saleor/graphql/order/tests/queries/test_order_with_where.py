@@ -1382,35 +1382,75 @@ def test_orders_filter_by_has_invoices_none(
     ("where", "indexes"),
     [
         (
-            {
-                "lte": (timezone.now() - datetime.timedelta(days=3)).isoformat(),
-                "gte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
-            },
+            [
+                {
+                    "createdAt": {
+                        "lte": (
+                            timezone.now() - datetime.timedelta(days=3)
+                        ).isoformat(),
+                        "gte": (
+                            timezone.now() - datetime.timedelta(days=25)
+                        ).isoformat(),
+                    }
+                },
+                {
+                    "createdAt": {
+                        "gte": (
+                            timezone.now() - datetime.timedelta(days=15)
+                        ).isoformat(),
+                    }
+                },
+            ],
             [1, 2],
         ),
         (
-            {
-                "lte": (timezone.now() - datetime.timedelta(days=4)).isoformat(),
-            },
+            [
+                {
+                    "createdAt": {
+                        "lte": (
+                            timezone.now() - datetime.timedelta(days=4)
+                        ).isoformat(),
+                    }
+                },
+                {
+                    "createdAt": {
+                        "gte": (
+                            timezone.now() - datetime.timedelta(days=9)
+                        ).isoformat(),
+                    }
+                },
+            ],
             [1, 2],
         ),
         (
-            {
-                "gte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
-            },
-            [0, 1, 2],
+            [
+                {
+                    "createdAt": {
+                        "lte": (
+                            timezone.now() - datetime.timedelta(days=9)
+                        ).isoformat(),
+                    }
+                }
+            ],
+            [2],
         ),
         (
-            {
-                "lte": (timezone.now() - datetime.timedelta(days=25)).isoformat(),
-            },
-            [],
+            [
+                {
+                    "createdAt": {
+                        "gte": (
+                            timezone.now() - datetime.timedelta(days=2)
+                        ).isoformat(),
+                    }
+                }
+            ],
+            [0],
         ),
         (None, []),
-        ({"gte": None}, []),
-        ({"lte": None}, []),
-        ({"lte": None, "gte": None}, []),
-        ({}, []),
+        ([{"createdAt": {"gte": None}}], []),
+        ([{"createdAt": {"lte": None}}], []),
+        ([{"createdAt": {"lte": None, "gte": None}}], []),
+        ([{}], []),
     ],
 )
 def test_orders_filter_by_invoices(
@@ -1425,12 +1465,13 @@ def test_orders_filter_by_invoices(
 
     with freeze_time((timezone.now() - datetime.timedelta(days=5)).isoformat()):
         Invoice.objects.create(order=order_list[1])
+        Invoice.objects.create(order=order_list[2])
 
     with freeze_time((timezone.now() - datetime.timedelta(days=10)).isoformat()):
         Invoice.objects.create(order=order_list[2])
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"invoices": {"createdAt": where}}}
+    variables = {"where": {"invoices": where}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)

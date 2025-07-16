@@ -762,10 +762,15 @@ class OrderWhere(MetadataWhereBase):
         method="filter_has_invoices",
         help_text="Filter by whether the order has any invoices.",
     )
-    invoices = ObjectTypeWhereFilter(
+    invoices = ListObjectTypeWhereFilter(
         input_class=InvoiceFilterInput,
         method="filter_invoices",
-        help_text="Filter by invoice data associated with the order.",
+        help_text=(
+            "Filter by invoice data associated with the order. "
+            "Each list item represents conditions that must be satisfied by a single "
+            "invoice. The filter matches orders that have related objects "
+            "meeting all specified groups of conditions."
+        ),
     )
     has_fulfillments = BooleanWhereFilter(
         method="filter_has_fulfillments",
@@ -779,7 +784,12 @@ class OrderWhere(MetadataWhereBase):
     lines = ListObjectTypeWhereFilter(
         input_class=LinesFilterInput,
         method=filter_where_lines,
-        help_text="Filter by metadata fields of order lines.",
+        help_text=(
+            "Filter by line items associated with the order. "
+            "Each list item specifies conditions that must be satisfied by a single "
+            "line. The filter matches orders that have related objects "
+            "meeting all specified groups of conditions."
+        ),
     )
     lines_count = OperationObjectTypeWhereFilter(
         input_class=IntFilterInput,
@@ -857,13 +867,18 @@ class OrderWhere(MetadataWhereBase):
 
     @staticmethod
     def filter_invoices(qs, _, value):
-        if value is None:
+        if not value:
             return qs.none()
-        if filter_value := value.get("created_at"):
-            invoices = filter_where_by_range_field(
-                Invoice.objects.using(qs.db), "created_at", filter_value
-            )
-            return qs.filter(Exists(invoices.filter(order_id=OuterRef("id"))))
+
+        lookup = Q()
+        for input_data in value:
+            if filter_value := input_data.get("created_at"):
+                invoices = filter_where_by_range_field(
+                    Invoice.objects.using(qs.db), "created_at", filter_value
+                )
+                lookup &= Q(Exists(invoices.filter(order_id=OuterRef("id"))))
+        if lookup:
+            return qs.filter(lookup)
         return qs.none()
 
     @staticmethod
@@ -935,7 +950,12 @@ class DraftOrderWhere(MetadataWhereBase):
     lines = ListObjectTypeWhereFilter(
         input_class=LinesFilterInput,
         method=filter_where_lines,
-        help_text="Filter by metadata fields of order lines.",
+        help_text=(
+            "Filter by line items associated with the order. "
+            "Each list item specifies conditions that must be satisfied by a single "
+            "line. The filter matches orders that have related objects "
+            "meeting all specified groups of conditions."
+        ),
     )
     lines_count = OperationObjectTypeWhereFilter(
         input_class=IntFilterInput,
