@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 
 DEFAULT_EMAIL_TEMPLATES_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor/plugins/admin_email/default_email_templates"
+    settings.PROJECT_ROOT, "saleor", "plugins", "admin_email", "default_email_templates"
 )
 
 STAFF_ORDER_CONFIRMATION_TEMPLATE_FIELD = "staff_order_confirmation_template"
