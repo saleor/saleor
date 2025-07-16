@@ -626,14 +626,19 @@ def filter_where_transactions(qs, _, value):
     return qs.none()
 
 
-def filter_where_lines(qs, _, value):
+def filter_where_lines(qs, _, value: list | None):
     if not value:
-        return qs
-    if metadata_value := value.get("metadata"):
-        lines_qs = filter_where_metadata(
-            OrderLine.objects.using(qs.db), None, metadata_value
-        )
-        return qs.filter(Exists(lines_qs.filter(order_id=OuterRef("id"))))
+        return qs.none()
+
+    lookup = Q()
+    for input_data in value:
+        if metadata_value := input_data.get("metadata"):
+            lines_qs = filter_where_metadata(
+                OrderLine.objects.using(qs.db), None, metadata_value
+            )
+            lookup &= Q(Exists(lines_qs.filter(order_id=OuterRef("id"))))
+    if lookup:
+        return qs.filter(lookup)
     return qs.none()
 
 
@@ -771,7 +776,7 @@ class OrderWhere(MetadataWhereBase):
         method="filter_fulfillments",
         help_text="Filter by fulfillment data associated with the order.",
     )
-    lines = ObjectTypeWhereFilter(
+    lines = ListObjectTypeWhereFilter(
         input_class=LinesFilterInput,
         method=filter_where_lines,
         help_text="Filter by metadata fields of order lines.",
@@ -927,7 +932,7 @@ class DraftOrderWhere(MetadataWhereBase):
         method=filter_where_voucher_code,
         help_text="Filter by voucher code used in the order.",
     )
-    lines = ObjectTypeWhereFilter(
+    lines = ListObjectTypeWhereFilter(
         input_class=LinesFilterInput,
         method=filter_where_lines,
         help_text="Filter by metadata fields of order lines.",

@@ -13266,7 +13266,7 @@ input OrderWhereInput @doc(category: "Orders") {
   fulfillments: FulfillmentFilterInput
 
   """Filter by metadata fields of order lines."""
-  lines: LinesFilterInput
+  lines: [LinesFilterInput!]
 
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput
@@ -13512,7 +13512,7 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   voucherCode: StringFilterInput
 
   """Filter by metadata fields of order lines."""
-  lines: LinesFilterInput
+  lines: [LinesFilterInput!]
 
   """Filter by number of lines in the order."""
   linesCount: IntFilterInput

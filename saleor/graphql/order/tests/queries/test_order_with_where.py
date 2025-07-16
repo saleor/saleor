@@ -1817,20 +1817,41 @@ def test_orders_filter_fulfillment_status_oneof_metadata_oneof(
 
 
 @pytest.mark.parametrize(
-    ("metadata", "expected_indexes"),
+    ("filter_input", "expected_indexes"),
     [
-        ({"key": "foo"}, [0, 1]),
-        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
-        ({"key": "foo", "value": {"eq": "baz"}}, []),
-        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
-        ({"key": "notfound"}, []),
-        ({"key": "foo", "value": {"eq": None}}, []),
-        ({"key": "foo", "value": {"oneOf": []}}, []),
+        ([{"metadata": {"key": "foo"}}], [0, 1]),
+        ([{"metadata": {"key": "foo", "value": {"eq": "bar"}}}], [0]),
+        ([{"metadata": {"key": "foo", "value": {"eq": "baz"}}}], []),
+        ([{"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}}], [0, 1]),
+        ([{"metadata": {"key": "notfound"}}], []),
+        ([{"metadata": {"key": "foo", "value": {"eq": None}}}], []),
+        ([{"metadata": {"key": "foo", "value": {"oneOf": []}}}], []),
         (None, []),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "foo", "value": {"eq": "bar"}}},
+            ],
+            [0],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "baz", "value": {"eq": "zaz"}}},
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "foo", "value": {"eq": "baz"}}},
+            ],
+            [],
+        ),
     ],
 )
 def test_orders_filter_by_lines_metadata(
-    metadata,
+    filter_input,
     expected_indexes,
     order_list,
     staff_api_client,
@@ -1839,8 +1860,14 @@ def test_orders_filter_by_lines_metadata(
     # given
     lines = []
     metadata_values = [
-        {"foo": "bar"},
-        {"foo": "zaz"},
+        {
+            "foo": "bar",
+            "baz": "zaz",
+        },
+        {
+            "foo": "zaz",
+            "baz": "zaz",
+        },
         {},
     ]
     for order, metadata_value in zip(order_list, metadata_values, strict=True):
@@ -1862,7 +1889,7 @@ def test_orders_filter_by_lines_metadata(
     OrderLine.objects.bulk_create(lines)
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"lines": {"metadata": metadata}}}
+    variables = {"where": {"lines": filter_input}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
