@@ -283,19 +283,24 @@ def filter_has_fulfillments(qs, value):
 
 
 def filter_fulfillments(qs, value):
-    if value is None:
+    if not value:
         return qs.none()
-    fulfillment_qs = None
-    if status_value := value.get("status"):
-        fulfillment_qs = filter_where_by_value_field(
-            Fulfillment.objects.using(qs.db), "status", status_value
-        )
-    if metadata_value := value.get("metadata"):
-        fulfillment_qs = filter_where_metadata(
-            fulfillment_qs or Fulfillment.objects.using(qs.db), None, metadata_value
-        )
-    if fulfillment_qs is not None:
-        return qs.filter(Exists(fulfillment_qs.filter(order_id=OuterRef("id"))))
+
+    lookup = Q()
+    for input_data in value:
+        fulfillment_qs = None
+        if status_value := input_data.get("status"):
+            fulfillment_qs = filter_where_by_value_field(
+                Fulfillment.objects.using(qs.db), "status", status_value
+            )
+        if metadata_value := input_data.get("metadata"):
+            fulfillment_qs = filter_where_metadata(
+                fulfillment_qs or Fulfillment.objects.using(qs.db), None, metadata_value
+            )
+        if fulfillment_qs is not None:
+            lookup &= Q(Exists(fulfillment_qs.filter(order_id=OuterRef("id"))))
+    if lookup:
+        return qs.filter(lookup)
     return qs.none()
 
 
@@ -776,10 +781,15 @@ class OrderWhere(MetadataWhereBase):
         method="filter_has_fulfillments",
         help_text="Filter by whether the order has any fulfillments.",
     )
-    fulfillments = ObjectTypeWhereFilter(
+    fulfillments = ListObjectTypeWhereFilter(
         input_class=FulfillmentFilterInput,
         method="filter_fulfillments",
-        help_text="Filter by fulfillment data associated with the order.",
+        help_text=(
+            "Filter by fulfillment data associated with the order."
+            "Each list item specifies conditions that must be satisfied by a single "
+            "fulfillment. The filter matches orders that have related objects "
+            "meeting all specified groups of conditions."
+        ),
     )
     lines = ListObjectTypeWhereFilter(
         input_class=LinesFilterInput,

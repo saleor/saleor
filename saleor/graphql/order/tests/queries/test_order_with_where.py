@@ -1554,31 +1554,39 @@ def test_orders_filter_by_has_fulfillments_none(
 @pytest.mark.parametrize(
     ("where", "indexes"),
     [
-        ({"eq": FulfillmentStatus.FULFILLED.upper()}, [0]),
-        ({"eq": FulfillmentStatus.REFUNDED.upper()}, [1]),
-        ({"eq": FulfillmentStatus.RETURNED.upper()}, [2]),
+        ([{"status": {"eq": FulfillmentStatus.FULFILLED.upper()}}], [0]),
+        ([{"status": {"eq": FulfillmentStatus.REFUNDED.upper()}}], [1]),
+        ([{"status": {"eq": FulfillmentStatus.RETURNED.upper()}}], [2]),
         (
-            {
-                "oneOf": [
-                    FulfillmentStatus.FULFILLED.upper(),
-                    FulfillmentStatus.REFUNDED.upper(),
-                ]
-            },
+            [
+                {
+                    "status": {
+                        "oneOf": [
+                            FulfillmentStatus.FULFILLED.upper(),
+                            FulfillmentStatus.REFUNDED.upper(),
+                        ]
+                    }
+                }
+            ],
             [0, 1],
         ),
         (
-            {
-                "oneOf": [
-                    FulfillmentStatus.REPLACED.upper(),
-                    FulfillmentStatus.CANCELED.upper(),
-                ]
-            },
+            [
+                {
+                    "status": {
+                        "oneOf": [
+                            FulfillmentStatus.REPLACED.upper(),
+                            FulfillmentStatus.CANCELED.upper(),
+                        ]
+                    }
+                }
+            ],
             [],
         ),
-        ({"eq": FulfillmentStatus.WAITING_FOR_APPROVAL.upper()}, []),
-        ({}, []),
-        ({"oneOf": []}, []),
-        ({"eq": None}, []),
+        ([{"status": {"eq": FulfillmentStatus.WAITING_FOR_APPROVAL.upper()}}], []),
+        ([{}], []),
+        ([{"status": {"oneOf": []}}], []),
+        ([{"status": {"eq": None}}], []),
         (None, []),
     ],
 )
@@ -1599,7 +1607,7 @@ def test_orders_filter_by_fulfillment_status(
         order.fulfillments.create(tracking_number="123", status=status)
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"fulfillments": {"status": where}}}
+    variables = {"where": {"fulfillments": where}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
@@ -1613,20 +1621,48 @@ def test_orders_filter_by_fulfillment_status(
 
 
 @pytest.mark.parametrize(
-    ("metadata", "expected_indexes"),
+    ("where", "expected_indexes"),
     [
-        ({"key": "foo"}, [0, 1]),
-        ({"key": "foo", "value": {"eq": "bar"}}, [0]),
-        ({"key": "foo", "value": {"eq": "baz"}}, []),
-        ({"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}, [0, 1]),
-        ({"key": "notfound"}, []),
-        ({"key": "foo", "value": {"eq": None}}, []),
-        ({"key": "foo", "value": {"oneOf": []}}, []),
+        ([{"metadata": {"key": "foo"}}], [0, 1]),
+        ([{"metadata": {"key": "foo", "value": {"eq": "bar"}}}], [0]),
+        ([{"metadata": {"key": "foo", "value": {"eq": "baz"}}}], []),
+        ([{"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}}], [0, 1]),
+        ([{"metadata": {"key": "notfound"}}], []),
+        ([{"metadata": {"key": "foo", "value": {"eq": None}}}], []),
+        ([{"metadata": {"key": "foo", "value": {"oneOf": []}}}], []),
+        (
+            [
+                {"metadata": {"key": "foo"}},
+                {"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}},
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"eq": "bar"}}},
+                {"metadata": {"key": "baz", "value": {"eq": "zaz"}}},
+            ],
+            [],
+        ),
+        (
+            [
+                {"metadata": {"key": "baz"}},
+                {"metadata": {"key": "foo", "value": {"eq": "zaz"}}},
+            ],
+            [1],
+        ),
+        (
+            [
+                {"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}},
+                {"metadata": {"key": "baz"}},
+            ],
+            [1],
+        ),
         (None, []),
     ],
 )
 def test_orders_filter_by_fulfillment_metadata(
-    metadata,
+    where,
     expected_indexes,
     order_list,
     staff_api_client,
@@ -1635,14 +1671,14 @@ def test_orders_filter_by_fulfillment_metadata(
     # given
     metadata_values = [
         {"foo": "bar"},
-        {"foo": "zaz"},
+        {"foo": "zaz", "baz": "zaz"},
         {},
     ]
     for order, metadata_value in zip(order_list, metadata_values, strict=True):
         order.fulfillments.create(tracking_number="123", metadata=metadata_value)
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"where": {"fulfillments": {"metadata": metadata}}}
+    variables = {"where": {"fulfillments": where}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
@@ -1655,19 +1691,70 @@ def test_orders_filter_by_fulfillment_metadata(
     assert numbers == {str(order_list[i].number) for i in expected_indexes}
 
 
+@pytest.mark.parametrize(
+    ("fulfillment_filter", "expected_indexes"),
+    [
+        (
+            [
+                {"status": {"eq": FulfillmentStatus.FULFILLED.upper()}},
+                {"metadata": {"key": "foo"}},
+            ],
+            [0],
+        ),
+        (
+            [
+                {"status": {"eq": FulfillmentStatus.REFUNDED.upper()}},
+                {"metadata": {"key": "foo", "value": {"eq": "zaz"}}},
+            ],
+            [1],
+        ),
+        (
+            [
+                {"status": {"eq": FulfillmentStatus.RETURNED.upper()}},
+                {"metadata": {"key": "baz"}},
+            ],
+            [],
+        ),
+        (
+            [
+                {
+                    "status": {
+                        "oneOf": [
+                            FulfillmentStatus.FULFILLED.upper(),
+                            FulfillmentStatus.REFUNDED.upper(),
+                        ]
+                    }
+                },
+                {"metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}}},
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {"status": {"eq": FulfillmentStatus.FULFILLED.upper()}},
+                {"metadata": {"key": "notfound"}},
+            ],
+            [],
+        ),
+        (
+            [
+                {"status": {"eq": FulfillmentStatus.RETURNED.upper()}},
+                {"metadata": {"key": "foo", "value": {"eq": "baz"}}},
+            ],
+            [],
+        ),
+    ],
+)
 def test_orders_filter_fulfillment_status_and_metadata_both_match(
-    orders_with_fulfillments, staff_api_client, permission_group_manage_orders
+    fulfillment_filter,
+    expected_indexes,
+    orders_with_fulfillments,
+    staff_api_client,
+    permission_group_manage_orders,
 ):
     # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {
-        "where": {
-            "fulfillments": {
-                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
-                "metadata": {"key": "foo", "value": {"eq": "bar"}},
-            }
-        }
-    }
+    variables = {"where": {"fulfillments": fulfillment_filter}}
 
     # when
     response = staff_api_client.post_graphql(ORDERS_WHERE_QUERY, variables)
@@ -1675,9 +1762,9 @@ def test_orders_filter_fulfillment_status_and_metadata_both_match(
     orders = content["data"]["orders"]["edges"]
 
     # then
-    assert len(orders) == 1
+    assert len(orders) == len(expected_indexes)
     assert {node["node"]["number"] for node in orders} == {
-        str(orders_with_fulfillments[0].number)
+        str(orders_with_fulfillments[i].number) for i in expected_indexes
     }
 
 
@@ -1688,10 +1775,12 @@ def test_orders_filter_fulfillment_status_matches_metadata_not(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
-                "metadata": {"key": "foo", "value": {"eq": "notfound"}},
-            }
+            "fulfillments": [
+                {
+                    "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                    "metadata": {"key": "foo", "value": {"eq": "notfound"}},
+                }
+            ]
         }
     }
 
@@ -1711,10 +1800,12 @@ def test_orders_filter_fulfillment_metadata_matches_status_not(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": {"eq": FulfillmentStatus.REFUNDED.upper()},
-                "metadata": {"key": "foo", "value": {"eq": "bar"}},
-            }
+            "fulfillments": [
+                {
+                    "status": {"eq": FulfillmentStatus.REFUNDED.upper()},
+                    "metadata": {"key": "foo", "value": {"eq": "bar"}},
+                }
+            ]
         }
     }
 
@@ -1734,10 +1825,12 @@ def test_orders_filter_fulfillment_status_and_metadata_both_not_match(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": {"eq": FulfillmentStatus.RETURNED.upper()},
-                "metadata": {"key": "foo", "value": {"eq": "baz"}},
-            }
+            "fulfillments": [
+                {
+                    "status": {"eq": FulfillmentStatus.RETURNED.upper()},
+                    "metadata": {"key": "foo", "value": {"eq": "baz"}},
+                }
+            ]
         }
     }
 
@@ -1757,10 +1850,12 @@ def test_orders_filter_fulfillment_status_matches_metadata_none(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
-                "metadata": None,
-            }
+            "fulfillments": [
+                {
+                    "status": {"eq": FulfillmentStatus.FULFILLED.upper()},
+                    "metadata": None,
+                }
+            ]
         }
     }
 
@@ -1783,10 +1878,12 @@ def test_orders_filter_fulfillment_metadata_matches_status_none(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": None,
-                "metadata": {"key": "foo", "value": {"eq": "bar"}},
-            }
+            "fulfillments": [
+                {
+                    "status": None,
+                    "metadata": {"key": "foo", "value": {"eq": "bar"}},
+                }
+            ]
         }
     }
 
@@ -1809,10 +1906,12 @@ def test_orders_filter_fulfillment_status_and_metadata_both_none(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": None,
-                "metadata": None,
-            }
+            "fulfillments": [
+                {
+                    "status": None,
+                    "metadata": None,
+                }
+            ]
         }
     }
 
@@ -1832,15 +1931,17 @@ def test_orders_filter_fulfillment_status_oneof_metadata_oneof(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "where": {
-            "fulfillments": {
-                "status": {
-                    "oneOf": [
-                        FulfillmentStatus.FULFILLED.upper(),
-                        FulfillmentStatus.REFUNDED.upper(),
-                    ]
-                },
-                "metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}},
-            }
+            "fulfillments": [
+                {
+                    "status": {
+                        "oneOf": [
+                            FulfillmentStatus.FULFILLED.upper(),
+                            FulfillmentStatus.REFUNDED.upper(),
+                        ]
+                    },
+                    "metadata": {"key": "foo", "value": {"oneOf": ["bar", "zaz"]}},
+                }
+            ]
         }
     }
 

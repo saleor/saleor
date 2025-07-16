@@ -13264,8 +13264,10 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by whether the order has any fulfillments."""
   hasFulfillments: Boolean
 
-  """Filter by fulfillment data associated with the order."""
-  fulfillments: FulfillmentFilterInput
+  """
+  Filter by fulfillment data associated with the order.Each list item specifies conditions that must be satisfied by a single fulfillment. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  fulfillments: [FulfillmentFilterInput!]
 
   """
   Filter by line items associated with the order. Each list item specifies conditions that must be satisfied by a single line. The filter matches orders that have related objects meeting all specified groups of conditions.
