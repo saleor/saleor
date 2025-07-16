@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, TypedDict
 
 import django_filters
 import graphene
@@ -338,6 +338,14 @@ class AttributeValueWhereInput(WhereInputObjectType):
 CONTAINS_TYPING = dict[Literal["contains_any", "contains_all"], list[str]]
 
 
+class SharedContainsFilterParams(TypedDict):
+    attr_id: int | None
+    db_connection_name: str
+    assigned_attr_model: type[AssignedPageAttributeValue]
+    assigned_id_field_name: Literal["page_id"]
+    identifier_field_name: Literal["slug", "id", "sku"]
+
+
 def filter_by_contains_referenced_object_ids(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
@@ -374,62 +382,60 @@ def filter_by_contains_referenced_object_ids(
             variant_ids.add(id_)
 
     expression = Q()
+    shared_filter_params: SharedContainsFilterParams = {
+        "attr_id": attr_id,
+        "db_connection_name": db_connection_name,
+        "assigned_attr_model": assigned_attr_model,
+        "assigned_id_field_name": assigned_id_field_name,
+        "identifier_field_name": "id",
+    }
     if contains_all:
         if page_ids:
-            expression &= filter_by_contains_referenced_pages(
-                attr_id,
-                {"contains_all": list(page_ids)},
-                db_connection_name,
-                identifier_field_name="id",
-                assigned_attr_model=assigned_attr_model,
-                assigned_id_field_name=assigned_id_field_name,
+            expression &= _filter_contains_all_condition(
+                contains_all=list(page_ids),
+                referenced_model=page_models.Page,
+                attr_value_reference_field_name="reference_page_id",
+                **shared_filter_params,
             )
         if product_ids:
-            expression &= filter_by_contains_referenced_products(
-                attr_id,
-                {"contains_all": list(product_ids)},
-                db_connection_name,
-                identifier_field_name="id",
-                assigned_attr_model=assigned_attr_model,
-                assigned_id_field_name=assigned_id_field_name,
+            expression &= _filter_contains_all_condition(
+                contains_all=list(product_ids),
+                referenced_model=product_models.Product,
+                attr_value_reference_field_name="reference_product_id",
+                **shared_filter_params,
             )
         if variant_ids:
-            expression &= filter_by_contains_referenced_variants(
-                attr_id,
-                {"contains_all": list(variant_ids)},
-                db_connection_name,
-                identifier_field_name="id",
-                assigned_attr_model=assigned_attr_model,
-                assigned_id_field_name=assigned_id_field_name,
+            expression &= _filter_contains_all_condition(
+                contains_all=list(variant_ids),
+                referenced_model=product_models.ProductVariant,
+                attr_value_reference_field_name="reference_variant_id",
+                **shared_filter_params,
             )
+        return expression
 
     if contains_any:
         if page_ids:
-            expression |= filter_by_contains_referenced_pages(
-                attr_id,
-                {"contains_any": list(page_ids)},
-                db_connection_name,
-                identifier_field_name="id",
-                assigned_attr_model=assigned_attr_model,
-                assigned_id_field_name=assigned_id_field_name,
+            expression |= _filter_contains_any_condition(
+                contains_any=list(page_ids),
+                referenced_model=page_models.Page,
+                attr_value_reference_field_name="reference_page_id",
+                **shared_filter_params,
             )
+
         if product_ids:
-            expression |= filter_by_contains_referenced_products(
-                attr_id,
-                {"contains_any": list(product_ids)},
-                db_connection_name,
-                identifier_field_name="id",
-                assigned_attr_model=assigned_attr_model,
-                assigned_id_field_name=assigned_id_field_name,
+            expression |= _filter_contains_any_condition(
+                contains_any=list(product_ids),
+                referenced_model=product_models.Product,
+                attr_value_reference_field_name="reference_product_id",
+                **shared_filter_params,
             )
+
         if variant_ids:
-            expression |= filter_by_contains_referenced_variants(
-                attr_id,
-                {"contains_any": list(variant_ids)},
-                db_connection_name,
-                identifier_field_name="id",
-                assigned_attr_model=assigned_attr_model,
-                assigned_id_field_name=assigned_id_field_name,
+            expression |= _filter_contains_any_condition(
+                contains_any=list(variant_ids),
+                referenced_model=product_models.ProductVariant,
+                attr_value_reference_field_name="reference_variant_id",
+                **shared_filter_params,
             )
     return expression
 
@@ -461,11 +467,89 @@ def _filter_contains_single_expression(
     return Q(Exists(assigned_attr_value))
 
 
+def _filter_contains_all_condition(
+    attr_id: int | None,
+    db_connection_name: str,
+    contains_all: list[str],
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+    identifier_field_name: Literal["slug", "id", "sku"],
+    referenced_model: type[
+        page_models.Page | product_models.Product | product_models.ProductVariant
+    ],
+    attr_value_reference_field_name: Literal[
+        "reference_page_id", "reference_product_id", "reference_variant_id"
+    ],
+):
+    """Build a filter expression that ensures all specified references are present.
+
+    Constructs a Q expression that checks for references to all entities from
+    `referenced_model`, matched using the provided identifiers in `contains_all`.
+
+    For each identifier, it resolves the corresponding object using
+    `identifier_field_name` and adds a subquery to verify the presence
+    of that reference. The subqueries are combined using logical AND.
+    """
+
+    identifiers = contains_all
+    expression = Q()
+
+    for identifier in identifiers:
+        reference_obj = referenced_model.objects.using(db_connection_name).filter(
+            **{str(identifier_field_name): identifier}
+        )
+        expression &= _filter_contains_single_expression(
+            attr_id,
+            db_connection_name,
+            reference_obj,
+            attr_value_reference_field_name,
+            assigned_attr_model,
+            assigned_id_field_name,
+        )
+    return expression
+
+
+def _filter_contains_any_condition(
+    attr_id: int | None,
+    db_connection_name: str,
+    contains_any: list[str],
+    assigned_attr_model: type[AssignedPageAttributeValue],
+    assigned_id_field_name: Literal["page_id"],
+    identifier_field_name: Literal["slug", "id", "sku"],
+    referenced_model: type[
+        page_models.Page | product_models.Product | product_models.ProductVariant
+    ],
+    attr_value_reference_field_name: Literal[
+        "reference_page_id", "reference_product_id", "reference_variant_id"
+    ],
+):
+    """Build a filter expression that ensures at least one specified reference is present.
+
+    Constructs a Q expression that checks for a reference to any entity from
+    `referenced_model`, matched using the provided identifiers in `contains_any`.
+
+    All matching references are resolved using `identifier_field_name`,
+    and passed as a single queryset to be checked in a single subquery.
+
+    """
+    identifiers = contains_any
+    reference_objs = referenced_model.objects.using(db_connection_name).filter(
+        **{f"{identifier_field_name}__in": identifiers}
+    )
+    return _filter_contains_single_expression(
+        attr_id,
+        db_connection_name,
+        reference_objs,
+        attr_value_reference_field_name,
+        assigned_attr_model,
+        assigned_id_field_name,
+    )
+
+
 def filter_by_contains_referenced_pages(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    identifier_field_name: Literal["slug", "id"],
     assigned_attr_model: type[AssignedPageAttributeValue],
     assigned_id_field_name: Literal["page_id"],
 ):
@@ -482,36 +566,27 @@ def filter_by_contains_referenced_pages(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
+    shared_filter_params: SharedContainsFilterParams = {
+        "attr_id": attr_id,
+        "db_connection_name": db_connection_name,
+        "assigned_attr_model": assigned_attr_model,
+        "assigned_id_field_name": assigned_id_field_name,
+        "identifier_field_name": "slug",
+    }
     if contains_all:
-        identifiers = contains_all
-        expression = Q()
-
-        for identifier in identifiers:
-            reference_obj = page_models.Page.objects.using(db_connection_name).filter(
-                **{str(identifier_field_name): identifier}
-            )
-            expression &= _filter_contains_single_expression(
-                attr_id,
-                db_connection_name,
-                reference_obj,
-                "reference_page_id",
-                assigned_attr_model,
-                assigned_id_field_name,
-            )
-        return expression
+        return _filter_contains_all_condition(
+            contains_all=contains_all,
+            referenced_model=page_models.Page,
+            attr_value_reference_field_name="reference_page_id",
+            **shared_filter_params,
+        )
 
     if contains_any:
-        identifiers = contains_any
-        reference_objs = page_models.Page.objects.using(db_connection_name).filter(
-            **{f"{identifier_field_name}__in": identifiers}
-        )
-        return _filter_contains_single_expression(
-            attr_id,
-            db_connection_name,
-            reference_objs,
-            "reference_page_id",
-            assigned_attr_model,
-            assigned_id_field_name,
+        return _filter_contains_any_condition(
+            contains_any=contains_any,
+            referenced_model=page_models.Page,
+            attr_value_reference_field_name="reference_page_id",
+            **shared_filter_params,
         )
     return Q()
 
@@ -520,7 +595,6 @@ def filter_by_contains_referenced_products(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    identifier_field_name: Literal["slug", "id"],
     assigned_attr_model: type[AssignedPageAttributeValue],
     assigned_id_field_name: Literal["page_id"],
 ):
@@ -537,36 +611,28 @@ def filter_by_contains_referenced_products(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
-    if contains_all:
-        identifiers = contains_all
-        expression = Q()
+    shared_filter_params: SharedContainsFilterParams = {
+        "attr_id": attr_id,
+        "db_connection_name": db_connection_name,
+        "assigned_attr_model": assigned_attr_model,
+        "assigned_id_field_name": assigned_id_field_name,
+        "identifier_field_name": "slug",
+    }
 
-        for identifier in identifiers:
-            reference_obj = product_models.Product.objects.using(
-                db_connection_name
-            ).filter(**{str(identifier_field_name): identifier})
-            expression &= _filter_contains_single_expression(
-                attr_id,
-                db_connection_name,
-                reference_obj,
-                "reference_product_id",
-                assigned_attr_model,
-                assigned_id_field_name,
-            )
-        return expression
+    if contains_all:
+        return _filter_contains_all_condition(
+            contains_all=contains_all,
+            referenced_model=product_models.Product,
+            attr_value_reference_field_name="reference_product_id",
+            **shared_filter_params,
+        )
 
     if contains_any:
-        identifiers = contains_any
-        reference_objs = product_models.Product.objects.using(
-            db_connection_name
-        ).filter(**{f"{identifier_field_name}__in": identifiers})
-        return _filter_contains_single_expression(
-            attr_id,
-            db_connection_name,
-            reference_objs,
-            "reference_product_id",
-            assigned_attr_model,
-            assigned_id_field_name,
+        return _filter_contains_any_condition(
+            contains_any=contains_any,
+            referenced_model=product_models.Product,
+            attr_value_reference_field_name="reference_product_id",
+            **shared_filter_params,
         )
     return Q()
 
@@ -575,7 +641,6 @@ def filter_by_contains_referenced_variants(
     attr_id: int | None,
     attr_value: CONTAINS_TYPING,
     db_connection_name: str,
-    identifier_field_name: Literal["sku", "id"],
     assigned_attr_model: type[AssignedPageAttributeValue],
     assigned_id_field_name: Literal["page_id"],
 ):
@@ -593,35 +658,27 @@ def filter_by_contains_referenced_variants(
     contains_all = attr_value.get("contains_all")
     contains_any = attr_value.get("contains_any")
 
-    if contains_all:
-        identifiers = contains_all
-        expression = Q()
+    shared_filter_params: SharedContainsFilterParams = {
+        "attr_id": attr_id,
+        "db_connection_name": db_connection_name,
+        "assigned_attr_model": assigned_attr_model,
+        "assigned_id_field_name": assigned_id_field_name,
+        "identifier_field_name": "sku",
+    }
 
-        for identifier in identifiers:
-            reference_obj = product_models.ProductVariant.objects.using(
-                db_connection_name
-            ).filter(**{str(identifier_field_name): identifier})
-            expression &= _filter_contains_single_expression(
-                attr_id,
-                db_connection_name,
-                reference_obj,
-                "reference_variant_id",
-                assigned_attr_model,
-                assigned_id_field_name,
-            )
-        return expression
+    if contains_all:
+        return _filter_contains_all_condition(
+            contains_all=contains_all,
+            referenced_model=product_models.ProductVariant,
+            attr_value_reference_field_name="reference_variant_id",
+            **shared_filter_params,
+        )
 
     if contains_any:
-        identifiers = contains_any
-        reference_objs = product_models.ProductVariant.objects.using(
-            db_connection_name
-        ).filter(**{f"{identifier_field_name}__in": identifiers})
-        return _filter_contains_single_expression(
-            attr_id,
-            db_connection_name,
-            reference_objs,
-            "reference_variant_id",
-            assigned_attr_model,
-            assigned_id_field_name,
+        return _filter_contains_any_condition(
+            contains_any=contains_any,
+            referenced_model=product_models.ProductVariant,
+            attr_value_reference_field_name="reference_variant_id",
+            **shared_filter_params,
         )
     return Q()

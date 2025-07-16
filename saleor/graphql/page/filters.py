@@ -242,6 +242,7 @@ def filter_pages_by_reference_attributes(
     db_connection_name: str,
 ):
     filter_expression = Q()
+
     if "referenced_ids" in attr_value:
         filter_expression &= filter_by_contains_referenced_object_ids(
             attr_id,
@@ -255,7 +256,6 @@ def filter_pages_by_reference_attributes(
             attr_id,
             attr_value["page_slugs"],
             db_connection_name,
-            identifier_field_name="slug",
             assigned_attr_model=AssignedPageAttributeValue,
             assigned_id_field_name="page_id",
         )
@@ -264,7 +264,6 @@ def filter_pages_by_reference_attributes(
             attr_id,
             attr_value["product_slugs"],
             db_connection_name,
-            identifier_field_name="slug",
             assigned_attr_model=AssignedPageAttributeValue,
             assigned_id_field_name="page_id",
         )
@@ -273,7 +272,6 @@ def filter_pages_by_reference_attributes(
             attr_id,
             attr_value["product_variant_skus"],
             db_connection_name,
-            identifier_field_name="sku",
             assigned_attr_model=AssignedPageAttributeValue,
             assigned_id_field_name="page_id",
         )
