@@ -13291,8 +13291,10 @@ input OrderWhereInput @doc(category: "Orders") {
   """Filter by the product type of related order lines."""
   productTypeId: GlobalIDFilterInput
 
-  """Filter by order events."""
-  events: OrderEventFilterInput
+  """
+  Filter by order events. Each list item specifies conditions that must be satisfied by a single event. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  events: [OrderEventFilterInput!]
 
   """Filter by billing address of the order."""
   billingAddress: AddressFilterInput
@@ -13539,8 +13541,10 @@ input DraftOrderWhereInput @doc(category: "Orders") {
   """Filter by the product type of related order lines."""
   productTypeId: GlobalIDFilterInput
 
-  """Filter by order events."""
-  events: OrderEventFilterInput
+  """
+  Filter by order events. Each list item specifies conditions that must be satisfied by a single event. The filter matches orders that have related objects meeting all specified groups of conditions.
+  """
+  events: [OrderEventFilterInput!]
 
   """Filter by billing address of the order."""
   billingAddress: AddressFilterInput

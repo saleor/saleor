@@ -657,21 +657,28 @@ def filter_where_product_type_id(qs, _, value):
     return qs.filter(Exists(line_qs.filter(order_id=OuterRef("id"))))
 
 
-def filter_where_events(qs, _, value):
+def filter_where_events(qs, _, value: list | None):
     if not value:
         return qs.none()
-    if not {"date", "type"}.intersection(value.keys()):
-        return qs.none()
-    if filter_value := value.get("date"):
-        events = filter_where_by_range_field(
-            OrderEvent.objects.using(qs.db), "date", filter_value
-        )
-        qs = qs.filter(Exists(events.filter(order_id=OuterRef("id"))))
-    if filter_value := value.get("type"):
-        events = filter_where_by_value_field(
-            OrderEvent.objects.using(qs.db), "type", filter_value
-        )
-        qs = qs.filter(Exists(events.filter(order_id=OuterRef("id"))))
+
+    lookup = Q()
+    for input_data in value:
+        if not {"date", "type"}.intersection(input_data.keys()):
+            return qs.none()
+
+        event_qs = None
+        if filter_value := input_data.get("date"):
+            events = filter_where_by_range_field(
+                OrderEvent.objects.using(qs.db), "date", filter_value
+            )
+        if filter_value := input_data.get("type"):
+            events = filter_where_by_value_field(
+                event_qs or OrderEvent.objects.using(qs.db), "type", filter_value
+            )
+        if events is not None:
+            lookup &= Q(Exists(events.filter(order_id=OuterRef("id"))))
+    if lookup:
+        return qs.filter(lookup)
     return qs
 
 
@@ -831,10 +838,14 @@ class OrderWhere(MetadataWhereBase):
         method=filter_where_product_type_id,
         help_text="Filter by the product type of related order lines.",
     )
-    events = ObjectTypeWhereFilter(
+    events = ListObjectTypeWhereFilter(
         input_class=OrderEventFilterInput,
         method=filter_where_events,
-        help_text="Filter by order events.",
+        help_text=(
+            "Filter by order events. Each list item specifies conditions that must be "
+            "satisfied by a single event. The filter matches orders that have related "
+            "objects meeting all specified groups of conditions."
+        ),
     )
     billing_address = ObjectTypeWhereFilter(
         input_class=AddressFilterInput,
@@ -997,10 +1008,14 @@ class DraftOrderWhere(MetadataWhereBase):
         method=filter_where_product_type_id,
         help_text="Filter by the product type of related order lines.",
     )
-    events = ObjectTypeWhereFilter(
+    events = ListObjectTypeWhereFilter(
         input_class=OrderEventFilterInput,
         method=filter_where_events,
-        help_text="Filter by order events.",
+        help_text=(
+            "Filter by order events. Each list item specifies conditions that must be "
+            "satisfied by a single event. The filter matches orders that have related "
+            "objects meeting all specified groups of conditions."
+        ),
     )
     billing_address = ObjectTypeWhereFilter(
         input_class=AddressFilterInput,

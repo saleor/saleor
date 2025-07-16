@@ -1289,41 +1289,87 @@ def test_draft_orders_filter_by_product_type_none(
     ("event_input", "expected_indexes"),
     [
         (
-            {
-                "date": {"gte": "2025-01-01T00:00:00Z"},
-                "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
-            },
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
+                }
+            ],
             [0, 1, 2],
         ),
         (
-            {
-                "date": {"gte": "2025-01-01T00:00:00Z"},
-                "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
-            },
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
+                }
+            ],
             [0, 1],
         ),
         (
-            {
-                "date": {"gte": "2026-01-01T00:00:00Z"},
-            },
+            [
+                {
+                    "date": {"gte": "2026-01-01T00:00:00Z"},
+                }
+            ],
             [],
         ),
         (
-            {
-                "date": {"gte": "2020-01-01T00:00:00Z"},
-            },
+            [
+                {
+                    "date": {"gte": "2020-01-01T00:00:00Z"},
+                }
+            ],
             [0, 1, 2],
         ),
         (
-            {
-                "type": {
-                    "oneOf": [
-                        OrderEvents.NOTE_ADDED.upper(),
-                        OrderEvents.ORDER_FULLY_PAID.upper(),
-                    ]
-                },
-            },
+            [
+                {
+                    "type": {
+                        "oneOf": [
+                            OrderEvents.NOTE_ADDED.upper(),
+                            OrderEvents.ORDER_FULLY_PAID.upper(),
+                        ]
+                    },
+                }
+            ],
             [0, 1, 2],
+        ),
+        (
+            [
+                {
+                    "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
+                },
+                {
+                    "type": {"eq": OrderEvents.ORDER_FULLY_PAID.upper()},
+                },
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"oneOf": [OrderEvents.NOTE_ADDED.upper()]},
+                },
+                {
+                    "date": {"gte": "2025-02-01T00:00:00Z"},
+                    "type": {"oneOf": [OrderEvents.ORDER_FULLY_PAID.upper()]},
+                },
+            ],
+            [0, 1],
+        ),
+        (
+            [
+                {
+                    "date": {"gte": "2025-01-01T00:00:00Z"},
+                    "type": {"eq": OrderEvents.NOTE_ADDED.upper()},
+                },
+                {
+                    "date": {"gte": "2025-02-02T00:00:00Z"},
+                },
+            ],
+            [0, 1],
         ),
     ],
 )
