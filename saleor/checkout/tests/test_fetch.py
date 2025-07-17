@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 import pytest
+from prices import Money
 
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ..fetch import CheckoutLineInfo, fetch_checkout_lines
