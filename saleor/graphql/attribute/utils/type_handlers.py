@@ -28,6 +28,7 @@ from .shared import (
     ENTITY_TYPE_MAPPING,
     T_ERROR_DICT,
     T_INSTANCE,
+    T_REFERENCE,
     AttrValuesForSelectableFieldInput,
     AttrValuesInput,
     get_assigned_attribute_value_if_exists,
@@ -425,7 +426,7 @@ class FileAttributeHandler(AttributeTypeHandler):
 class ReferenceAttributeHandler(AttributeTypeHandler):
     """Handler for Reference and Single Reference attribute type."""
 
-    def get_references(self) -> Sequence[str | None]:
+    def get_references(self) -> Sequence[str | T_REFERENCE]:
         if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
             return [self.values_input.reference] if self.values_input.reference else []
         return self.values_input.references or []
