@@ -7725,7 +7725,9 @@ input ProductFilterInput @doc(category: "Products") {
   hasCategory: Boolean
   attributes: [AttributeInput!]
 
-  """Filter by variants having specific stock status."""
+  """
+  Filter by specific product stock status (considering all variant stocks combined).
+  """
   stockAvailability: StockAvailability
   stocks: ProductStockFilterInput
   search: String
@@ -7880,7 +7882,9 @@ input ProductWhereInput @doc(category: "Products") {
   """Filter by attributes associated with the product."""
   attributes: [AttributeInput!]
 
-  """Filter by variants having specific stock status."""
+  """
+  Filter by specific product stock status (considering all variant stocks combined).
+  """
   stockAvailability: StockAvailability
 
   """Filter by stock of the product variant."""
@@ -8286,6 +8290,9 @@ input ProductVariantWhereInput @doc(category: "Products") {
 
   """Filter by when was the most recent update."""
   updatedAt: DateTimeRangeInput
+
+  """Filter by variant stock status."""
+  stockAvailability: StockAvailability
 
   """List of conditions that must be met."""
   AND: [ProductVariantWhereInput!]
