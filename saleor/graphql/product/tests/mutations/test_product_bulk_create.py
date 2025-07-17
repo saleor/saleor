@@ -797,6 +797,84 @@ def test_product_bulk_create_with_attributes(
         assert get_product_attribute_values(product, color_attr).count() == 1
 
 
+def test_product_bulk_create_with_single_reference_attributes(
+    staff_api_client,
+    product_type,
+    category,
+    page,
+    product_type_page_single_reference_attribute,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    description_json = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+    base_product_slug = "product-test-slug"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    attribute = product_type_page_single_reference_attribute
+    product_type.product_attributes.clear()
+    product_type.product_attributes.add(attribute)
+    attr_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_1,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+            "attributes": [
+                {"id": attr_id, "reference": reference},
+            ],
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name_2,
+            "slug": f"{base_product_slug}-2",
+            "description": description_json,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "attributes": [
+                {"id": attr_id, "reference": reference},
+            ],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    products = Product.objects.all()
+
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert (
+        data["results"][0]["product"]["attributes"][0]["attribute"]["slug"]
+        == attribute.slug
+    )
+    assert (
+        data["results"][1]["product"]["attributes"][0]["attribute"]["slug"]
+        == attribute.slug
+    )
+
+
 def test_product_bulk_create_with_attributes_using_external_refs(
     staff_api_client,
     product_type,

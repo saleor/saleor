@@ -1,6 +1,7 @@
 import abc
 import datetime
 import re
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
@@ -402,7 +403,6 @@ class FileAttributeHandler(AttributeTypeHandler):
         file_url = self.values_input.file_url
         if not file_url:
             return []
-
         # File attributes should be unique per assignment, so we create a new value
         # unless this exact URL is already assigned to this instance.
         value = get_assigned_attribute_value_if_exists(
@@ -423,14 +423,19 @@ class FileAttributeHandler(AttributeTypeHandler):
 
 
 class ReferenceAttributeHandler(AttributeTypeHandler):
-    """Handler for Reference attribute type."""
+    """Handler for Reference and Single Reference attribute type."""
+
+    def get_references(self) -> Sequence[str | None]:
+        if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
+            return [self.values_input.reference] if self.values_input.reference else []
+        return self.values_input.references or []
 
     def clean_and_validate(self, attribute_errors: T_ERROR_DICT):
         """Resolve Graphene IDs and then validate the result.
 
         Modifies `self.values_input.references` in place.
         """
-        references = self.values_input.references
+        references = self.get_references()
 
         if not references:
             if self.attribute.value_required:
@@ -450,15 +455,18 @@ class ReferenceAttributeHandler(AttributeTypeHandler):
             ref_instances = get_nodes(
                 references, self.attribute.entity_type, model=entity_data.model
             )
-            self.values_input.references = ref_instances
         except GraphQLError:
-            self.values_input.references = []
             attribute_errors[AttributeInputErrors.INVALID_REFERENCE].append(
                 self.attribute_identifier
             )
+            return
+        if self.attribute.input_type == AttributeInputType.SINGLE_REFERENCE:
+            self.values_input.reference = ref_instances[0] if ref_instances else None
+        else:
+            self.values_input.references = ref_instances
 
     def pre_save_value(self, instance: T_INSTANCE) -> list[tuple]:
-        references = self.values_input.references
+        references = self.get_references()
         entity_type = self.attribute.entity_type
         if not references or not entity_type:
             return []

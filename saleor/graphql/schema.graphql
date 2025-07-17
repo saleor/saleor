@@ -6217,6 +6217,7 @@ enum AttributeInputTypeEnum @doc(category: "Attributes") {
   MULTISELECT
   FILE
   REFERENCE
+  SINGLE_REFERENCE
   NUMERIC
   RICH_TEXT
   PLAIN_TEXT
@@ -21500,6 +21501,13 @@ input AttributeValueInput @doc(category: "Attributes") {
   """File content type."""
   contentType: String
 
+  """
+  ID of the referenced entity for single reference attribute.
+  
+  Added in Saleor 3.22.
+  """
+  reference: ID
+
   """List of entity IDs that will be used as references."""
   references: [ID!]
 
@@ -21804,6 +21812,13 @@ input BulkAttributeValueInput @doc(category: "Products") {
 
   """File content type."""
   contentType: String
+
+  """
+  ID of the referenced entity for single reference attribute.
+  
+  Added in Saleor 3.22.
+  """
+  reference: ID
 
   """List of entity IDs that will be used as references."""
   references: [ID!]

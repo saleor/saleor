@@ -60,7 +60,10 @@ from .utils.shared import ENTITY_TYPE_MAPPING
 
 
 def get_reference_pk(attribute, root: models.AttributeValue) -> None | int:
-    if attribute.input_type != AttributeInputType.REFERENCE:
+    if attribute.input_type not in [
+        AttributeInputType.REFERENCE,
+        AttributeInputType.SINGLE_REFERENCE,
+    ]:
         return None
     reference_field = ENTITY_TYPE_MAPPING[attribute.entity_type].value_field
     reference_pk = getattr(root, f"{reference_field}_id", None)
@@ -637,6 +640,12 @@ class AttributeValueInput(BaseInputObjectType):
         description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
+    reference = graphene.ID(
+        required=False,
+        description=(
+            "ID of the referenced entity for single reference attribute." + ADDED_IN_322
+        ),
+    )
     references = NonNullList(
         graphene.ID,
         description="List of entity IDs that will be used as references.",

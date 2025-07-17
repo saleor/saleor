@@ -133,13 +133,15 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        if cleaned_input.get(
-            "input_type"
-        ) == AttributeInputType.REFERENCE and not cleaned_input.get("entity_type"):
+        is_reference_type = cleaned_input.get("input_type") in [
+            AttributeInputType.REFERENCE,
+            AttributeInputType.SINGLE_REFERENCE,
+        ]
+        if is_reference_type and not cleaned_input.get("entity_type"):
             raise ValidationError(
                 {
                     "entity_type": ValidationError(
-                        "Entity type is required when REFERENCE input type is used.",
+                        "Entity type is required for reference input type.",
                         code=AttributeErrorCode.REQUIRED.value,
                     )
                 }
